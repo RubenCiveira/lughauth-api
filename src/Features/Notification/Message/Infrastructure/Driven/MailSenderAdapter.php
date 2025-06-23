@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Civi\Phylax\Features\Notification\Message\Infrastructure\Driven;
+namespace Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven;
 
-use Civi\Phylax\Features\Notification\Message\Domain\Gateway\MailSenderRepository;
-use Civi\Phylax\Features\Notification\Message\Domain\Message;
-use Civi\Phylax\Shared\AppConfig;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MailSenderRepository;
+use Civi\Lughauth\Features\Notification\Message\Domain\Message;
+use Civi\Lughauth\Shared\AppConfig;
 use Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
