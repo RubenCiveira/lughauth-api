@@ -1,0 +1,337 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Organizations{% endblock %}
+
+{% block page_title %}Organizations{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold">Organizations</h2>
+    
+    {% include 'components/button.html.twig' with {
+        label: 'Create organization',
+        variant: 'primary',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>',
+        attributes: {'data-action': 'open-modal', 'data-target': 'create-organization-modal'}
+    } %}
+</div>
+
+{% if organizations is defined and organizations|length > 0 %}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for organization in organizations %}
+            <a href="{{ path('organization', {'id': organization.id}) }}" class="block bg-white border rounded-lg shadow-sm overflow-hidden transition-all hover:shadow-md hover:border-gray-300">
+                <div class="p-4">
+                    <h3 class="text-lg font-medium mb-4">{{ organization.name }}</h3>
+                </div>
+            </a>
+        {% endfor %}
+
+        <!-- Empty organizations card -->
+        <div class="bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col items-center justify-center p-8">
+            <div data-action="open-modal" data-target="create-organization-modal"  class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4 hover:shadow-md hover:border-black-300">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+            </div>
+            <button data-action="open-modal" data-target="create-organization-modal" class="text-center text-gray-500 hover:text-primary">Create a new organization</button>
+        </div>
+    </div>
+    <!--
+    {% include 'components/pagination.html.twig' with {
+        entity_name: 'Organizations',
+        per_page: 6,
+        current_page: 1,
+        total: organizations|length,
+        total_pages: 1
+    } %}
+    -->
+{% else %}
+    <div class="bg-white border rounded-lg shadow-sm overflow-hidden p-8">
+        <div class="flex flex-col items-center justify-center py-12">
+            <!-- Empty state illustration -->
+            <div class="w-64 h-64 mb-8">
+                <img src="{{ asset('images/empty-organizations.svg') }}" alt="No organizations" class="w-full h-full">
+            </div>
+            
+            <h3 class="text-xl font-medium mb-2">Create an organization to get started.</h3>
+            <p class="text-gray-500 mb-6">Need a hand? Learn more in our documentation.</p>
+            
+            <div class="flex space-x-4">
+                <a href="#" class="px-4 py-2 border rounded-md text-sm">Documentation</a>
+                {% include 'components/button.html.twig' with {
+                    label: 'Create organization',
+                    variant: 'primary',
+                    attributes: {'data-action': 'open-modal', 'data-target': 'create-organization-modal'}
+                } %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- Modal Overlay (común para todos los modales) -->
+<div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center">
+    <!-- Modal para crear organización -->
+    <div id="create-organization-modal" class="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden hidden">
+        <div class="border-b px-6 py-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-semibold text-gray-900">Create new organization</h3>
+                <button type="button" class="modal-close text-gray-400 hover:text-gray-500">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+            <form id="create-organization-form" method="post" action="{{ path('create_organization') }}">
+        <div class="px-6 py-4">
+                <div class="mb-4">
+                    <label for="org-name" class="block text-sm font-medium text-gray-700 mb-1">
+                        Name<span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" id="org-name" name="name" required 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary" 
+                        placeholder="Enter name">
+                </div>
+        </div>
+        
+        <div class="bg-gray-50 px-6 py-4 flex justify-end space-x-3 border-t">
+            <button type="button" class="modal-close px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                Cancel
+            </button>
+            <button type="submit" form="create-organization-form" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-600">
+                Create
+            </button>
+        </div>
+            </form>
+    </div>
+    
+    <!-- Aquí puedes añadir más modales según sea necesario -->
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal elements
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modals = document.querySelectorAll('#modal-overlay > div[id$="-modal"]');
+        
+        // Botones para abrir modales
+        const modalTriggers = document.querySelectorAll('[data-action="open-modal"]');
+        
+        // Función para abrir un modal específico
+        function openModal(modalId) {
+            // Ocultar todos los modales primero
+            modals.forEach(modal => {
+                modal.classList.add('hidden');
+            });
+            
+            // Mostrar el modal solicitado
+            const targetModal = document.getElementById(modalId);
+            if (targetModal) {
+                targetModal.classList.remove('hidden');
+                modalOverlay.classList.remove('hidden');
+            }
+        }
+        
+        // Función para cerrar todos los modales
+        function closeModals() {
+            modalOverlay.classList.add('hidden');
+            modals.forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+        
+        // Función para manejar el envío del formulario
+        function submitForm(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            // Mostrar estado de carga
+            const submitButton = form.querySelector('button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.innerHTML = `
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating...
+            `;
+            
+            // Eliminar mensajes de error anteriores
+            const existingError = form.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                try {
+                    return response.json();
+                } catch(fail) {
+                    return { };
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    // Mostrar mensaje de éxito
+                    closeModals();
+                    
+                    // Recargar la página para mostrar la nueva organización
+                    window.location.reload();
+                } else {
+                    // Mostrar mensaje de error
+                    const errorElement = document.createElement('div');
+                    errorElement.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 error-message';
+                    errorElement.textContent = data.message || 'An error occurred while creating the organization.';
+                    
+                    const parent = form.querySelector('.px-6');
+                    const formElement = parent.querySelector('.mb-4');
+                    parent.insertBefore(errorElement, formElement);
+                    
+                    // Restablecer botón
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                
+                // Mostrar mensaje de error
+                const errorElement = document.createElement('div');
+                errorElement.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 error-message';
+                errorElement.textContent = 'An error occurred while creating the organization.';
+                
+                const parent = form.querySelector('.px-6');
+                const formElement = parent.querySelector('.mb-4');
+                parent.insertBefore(errorElement, formElement);
+                
+                // Restablecer botón
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            });
+        }
+        
+        // Cerrar modal al hacer clic fuera
+        modalOverlay.addEventListener('click', function(event) {
+            if (event.target === modalOverlay) {
+                closeModals();
+            }
+        });
+        
+        // Cerrar modal con tecla Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !modalOverlay.classList.contains('hidden')) {
+                closeModals();
+            }
+        });
+        
+        // Añadir evento de clic a todos los botones para abrir modales
+        modalTriggers.forEach(button => {
+            button.addEventListener('click', function() {
+                const targetModal = this.getAttribute('data-target');
+                openModal(targetModal);
+            });
+        });
+        
+        // Añadir evento de clic a todos los botones para cerrar modales
+        const closeButtons = document.querySelectorAll('.modal-close');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', closeModals);
+        });
+        
+        // Añadir evento de envío al formulario de creación de organización
+        const createOrgForm = document.getElementById('create-organization-form');
+        if (createOrgForm) {
+            createOrgForm.addEventListener('submit', submitForm);
+            createOrgForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                
+                const form = event.target;
+                const formData = new FormData(form);
+                
+                // Mostrar estado de carga
+                const submitButton = form.querySelector('button[type="submit"]');
+                const originalText = submitButton.textContent;
+                submitButton.disabled = true;
+                submitButton.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Creating...
+                `;
+                
+                // Eliminar mensajes de error anteriores
+                const existingError = form.querySelector('.error-message');
+                if (existingError) {
+                    existingError.remove();
+                }
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Mostrar mensaje de éxito
+                        closeModals();
+                        
+                        // Recargar la página para mostrar la nueva organización
+                        window.location.reload();
+                    } else {
+                        // Mostrar mensaje de error
+                        const errorElement = document.createElement('div');
+                        errorElement.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 error-message';
+                        errorElement.textContent = data.message || 'An error occurred while creating the organization.';
+                        
+                        const formElement = form.querySelector('.mb-4');
+                        form.insertBefore(errorElement, formElement);
+                        
+                        // Restablecer botón
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    
+                    // Mostrar mensaje de error
+                    const errorElement = document.createElement('div');
+                    errorElement.className = 'bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 error-message';
+                    errorElement.textContent = 'An error occurred while creating the organization.';
+                    
+                    const formElement = form.querySelector('.mb-4');
+                    form.insertBefore(errorElement, formElement);
+                    
+                    // Restablecer botón
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalText;
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

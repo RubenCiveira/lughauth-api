@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Proyectos{% endblock %}
+
+{% block page_title %}Proyectos{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-semibold">Proyectos</h2>
+    
+    {% include 'components/button.html.twig' with {
+        label: 'Create project',
+        variant: 'primary',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>'
+    } %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for project in projects|default([]) %}
+    <div class="bg-white border rounded-lg shadow-sm overflow-hidden">
+        <div class="p-4">
+            <div class="text-xs text-gray-500 mb-1">{{ project.apps_count|default(1) }} APPS</div>
+            <h3 class="text-lg font-medium mb-4">{{ project.name }}</h3>
+            
+            <div class="flex flex-wrap gap-2 mt-auto">
+                {% for tag in project.tags|default([]) %}
+                <span class="px-2 py-1 bg-gray-100 rounded-md text-xs">{{ tag }}</span>
+                {% endfor %}
+                
+                {% if project.type is defined %}
+                <span class="px-2 py-1 bg-gray-100 rounded-md text-xs flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
+                    {{ project.type }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    <!-- Empty project card -->
+    <div class="bg-white border rounded-lg shadow-sm overflow-hidden flex flex-col items-center justify-center p-8">
+        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <p class="text-center text-gray-500">Create a new project</p>
+    </div>
+</div>
+
+{% include 'components/pagination.html.twig' with {
+    entity_name: 'Projects',
+    per_page: 6,
+    current_page: 1,
+    total: projects|length|default(0),
+    total_pages: 1
+} %}
+{% endblock %}

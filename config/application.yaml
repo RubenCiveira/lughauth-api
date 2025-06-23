@@ -1,0 +1,7 @@
+app:
+  http:
+    cors:
+      enabled: true
+    proxy:
+      proxy-address-forwarding: true
+      allow-forwarded: true

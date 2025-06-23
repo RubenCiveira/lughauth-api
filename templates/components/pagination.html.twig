@@ -1,0 +1,28 @@
+<div class="flex items-center justify-between mt-6">
+    <div class="flex items-center">
+        <select class="border rounded-md text-sm px-2 py-1 mr-2">
+            {% for option in [6, 12, 24, 48] %}
+            <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>{{ option }}</option>
+            {% endfor %}
+        </select>
+        <span class="text-sm text-gray-500">{{ entity_name|default('Items') }} por página. Total resultados: {{ total|default(0) }}</span>
+    </div>
+    
+    <div class="flex items-center space-x-2">
+        <a href="{{ prev_url|default('#') }}" class="px-2 py-1 border rounded-md text-sm {% if current_page <= 1 %}opacity-50 cursor-not-allowed{% endif %}">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="sr-only">Anterior</span>
+        </a>
+        
+        <span class="px-3 py-1 bg-gray-100 rounded-md text-sm">{{ current_page|default(1) }}</span>
+        
+        <a href="{{ next_url|default('#') }}" class="px-2 py-1 border rounded-md text-sm {% if current_page >= total_pages %}opacity-50 cursor-not-allowed{% endif %}">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+            </svg>
+            <span class="sr-only">Siguiente</span>
+        </a>
+    </div>
+</div>

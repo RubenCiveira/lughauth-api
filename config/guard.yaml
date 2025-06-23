@@ -1,0 +1,8 @@
+/management/log-collector:
+  api-key-scope: collect
+/management/trace-collector:
+  api-key-scope: collect
+/management:
+  roles: ['ROOT']
+  # cidr: ['192.168.0.0/24']
+  anonimous: false
