@@ -35,7 +35,6 @@ class ChangePasswordAdapter implements ChangePasswordRepository
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUser($theTenant, $username);
         $code = $this->users->userCodeForUpdate($theUser);
-        // FIXME: send by meian.. ¿may be registered?
         $this->users->updateCode($code->generatePasswordRecover($verify, new DateTimeImmutable()->add(new DateInterval("1D"))));
     }
     #[Override]

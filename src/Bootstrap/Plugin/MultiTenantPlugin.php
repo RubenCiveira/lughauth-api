@@ -13,6 +13,8 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Management\OidcMigrationProvider;
 use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyLogin;
+use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyRecover;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 
 class MultiTenantPlugin extends AggregatedMicroPlugin
 {
@@ -27,6 +29,7 @@ class MultiTenantPlugin extends AggregatedMicroPlugin
     {
         parent::registerEvents($bus);
         $bus->registerListener(AuthenticationResult::class, NotifyLogin::class);
+        $bus->registerListener(UserAccessTemporalCodeGeneratePasswordRecoverEvent::class, NotifyRecover::class);
     }
 
     #[Override]
