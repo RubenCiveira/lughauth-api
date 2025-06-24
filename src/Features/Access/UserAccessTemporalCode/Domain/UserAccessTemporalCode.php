@@ -126,6 +126,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function generateMfaTemporalCode(AesCypherService $cypher, string|null $tempSecondFactorSeed, \DateTimeImmutable|null $tempSecondFactorSeedExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
+        $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($cypher, $tempSecondFactorSeed);
         $value->_tempSecondFactorSeedExpiration = UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($tempSecondFactorSeedExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGenerateMfaTemporalCodeEvent($value);
         return $value;
@@ -141,6 +142,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function generatePasswordRecover(string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
+        $value->_recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::from($recoveryCode);
         $value->_recoveryCodeExpiration = UserAccessTemporalCodeRecoveryCodeExpirationVO::from($recoveryCodeExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGeneratePasswordRecoverEvent($value);
         return $value;
