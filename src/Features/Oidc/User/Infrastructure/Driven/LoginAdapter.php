@@ -8,19 +8,12 @@ namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 use Override;
 use DateInterval;
 use DateTimeImmutable;
-use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeFilter;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeAttributes;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
@@ -31,6 +24,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginRepository;
 
 class LoginAdapter implements LoginRepository
@@ -39,16 +33,14 @@ class LoginAdapter implements LoginRepository
 
     public function __construct(
         private readonly AesCypherService $cypher,
-        private readonly TenantReadGateway $tenants,
+        private readonly UserLoaderAdapter $users,
         private readonly TenantConfigReadGateway $configs,
         private readonly TenantTermsOfUseReadGateway $terms,
         private readonly UserIdentityReadGateway $identities,
         private readonly TrustedClientReadGateway $clients,
         private readonly RelyingPartyReadGateway $parties,
-        private readonly UserReadGateway $users,
         private readonly UserWriteGateway $writeUsers,
         private readonly RoleReadGateway $roles,
-        private readonly UserAccessTemporalCodeWriteGateway $codeWriter
     ) {
     }
     #[Override]
@@ -57,8 +49,8 @@ class LoginAdapter implements LoginRepository
         AuthenticationRequest $client,
         AuthorizedChalleges $challenges
     ): AuthenticationResult {
-        $theTenant = $this->checkTenant($tenant, $challenges->username);
-        $theUser = $this->checkUser($theTenant, $challenges->username);
+        $theTenant = $this->users->checkTenant($tenant, $challenges->username);
+        $theUser = $this->users->checkUser($theTenant, $challenges->username);
         return new AuthenticationResult(
             valid: true,
             id: $challenges->username,
@@ -78,8 +70,8 @@ class LoginAdapter implements LoginRepository
         string $password,
         AuthenticationRequest $client
     ): AuthenticationResult {
-        $theTenant = $this->checkTenant($tenant, $username);
-        $theUser = $this->checkUser($theTenant, $username);
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $theUser = $this->users->checkUser($theTenant, $username);
         $this->checkPassword($theTenant, $theUser, $password);
         if ($temp = $this->checkTemporalPassword($theTenant, $theUser)) {
             return $temp;
@@ -106,41 +98,6 @@ class LoginAdapter implements LoginRepository
         );
     }
 
-    private function checkTenant(string $tenant, string $username): Tenant
-    {
-        $result = $this->tenants->findOneByName($tenant);
-        if (!$result) {
-            $this->inexistentTenant($tenant);
-            throw new LoginException(auth: AuthenticationResult::unknowUser($tenant, $username));
-        }
-        if (!$result->getEnabled()) {
-            $this->disabledTenant($tenant);
-            throw new LoginException(auth: AuthenticationResult::unknowUser($tenant, $username));
-        }
-        return $result;
-    }
-
-    private function checkUser(Tenant $tenant, string $username): User
-    {
-        $theUser = $this->users->findOneByTenantAndName($tenant, $username);
-        if (!$theUser) {
-            $this->inexistentUser($tenant->getName(), $username);
-            throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
-        }
-        if (!$theUser->getEnabled()) {
-            $this->disabledUser($tenant->getName(), $username);
-            throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
-        }
-        if ($blocked = $theUser->getBlockedUntil()) {
-            if ($blocked > new DateTimeImmutable()) {
-                $this->blockedUser($tenant->getName(), $username);
-                throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
-            }
-        }
-
-        return $theUser;
-    }
-
     private function checkPassword(Tenant $tenant, User $user, string $password)
     {
         if ($user->getPlainPassword($this->cypher) !== $password) {
@@ -165,7 +122,7 @@ class LoginAdapter implements LoginRepository
         if ($user->getSecondFactorSeed()) {
             return null;
         }
-        if ( $user->getUseSecondFactors() ) {
+        if ($user->getUseSecondFactors()) {
             return AuthenticationResult::newMfaRequired();
         }
         $conf = $this->configs->findOneByTenant($tenant);
@@ -190,27 +147,16 @@ class LoginAdapter implements LoginRepository
     private function markLogin(User $user, bool $fail)
     {
         $limit = 3;
-
-        $filter = new UserAccessTemporalCodeFilter(
-            user: $user
-        );
-        $code = $this->codeWriter->retrieveForUpdate($filter);
-        if (!$code) {
-            $atts = new UserAccessTemporalCodeAttributes();
-            $atts->uid(Random::comb());
-            $atts->user($user);
-            $code = $this->codeWriter->create(UserAccessTemporalCode::create($atts));
-        }
-        $atts = $code->toAttributes();
+        $code = $this->users->userCodeForUpdate($user);
         if ($fail) {
             if ($code->getFailedLoginAttempts() >= $limit) {
                 $this->writeUsers->update($user, $user->block((new DateTimeImmutable())->add(new DateInterval("PT6H"))));
-                $this->codeWriter->update($code, $code->markLoginBlock());
+                $this->users->updateCode($code->markLoginBlock());
             } else {
-                $this->codeWriter->update($code, $code->markLoginFail());
+                $this->users->updateCode($code->markLoginFail());
             }
         } else {
-            $this->codeWriter->update($code, $code->markLoginOk());
+            $this->users->updateCode($code->markLoginOk());
         }
     }
 
@@ -266,30 +212,4 @@ class LoginAdapter implements LoginRepository
     {
         return $client->audiences;
     }
-
-    private function disabledTenant(string $tenant)
-    {
-        $this->logError('Try login on a disabled tenant', ['tenant-name' => $tenant]);
-    }
-
-    private function inexistentTenant(string $tenant)
-    {
-        $this->logError('Try login on an inexistent tenant', ['tenant-name' => $tenant]);
-    }
-
-    private function inexistentUser(string $tenant, string $user)
-    {
-        $this->logError('Try login on an inexistent user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
-    }
-
-    private function disabledUser(string $tenant, string $user)
-    {
-        $this->logError('Try login with a disabled user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
-    }
-
-    private function blockedUser(string $tenant, string $user)
-    {
-        $this->logError('Try login with a blocked user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
-    }
-
 }

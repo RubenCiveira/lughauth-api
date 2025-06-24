@@ -5,16 +5,38 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
+use Override;
+use DateInterval;
+use DateTimeImmutable;
+use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
-use Override;
+use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ChangePasswordRepository;
 
 class ChangePasswordAdapter implements ChangePasswordRepository
 {
+    public function __construct(
+        private readonly UserLoaderAdapter $users,
+        private readonly UserWriteGateway $repository,
+        private readonly UserAccessTemporalCodeWriteGateway $codes,
+        private readonly AesCypherService $cypher,
+        private readonly Random $randomizer,
+    ) {
+    }
+
     #[Override]
     public function requestForChange(string $url, string $tenant, string $username): void
     {
+        $verify = $this->randomizer->password();
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $theUser = $this->users->checkUser($theTenant, $username);
+        $code = $this->users->userCodeForUpdate($theUser);
+        // FIXME: send by meian.. ¿may be registered?
+        $this->users->updateCode($code->generatePasswordRecover($verify, new DateTimeImmutable()->add(new DateInterval("1D"))));
     }
     #[Override]
     public function allowRecover(string $tenant): bool
@@ -30,9 +52,12 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     #[Override]
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool
     {
-        if ($oldPass !== "1111") {
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $theUser = $this->users->checkUser($theTenant, $username);
+        if ($oldPass !== $theUser->getPlainPassword($this->cypher)) {
             throw new LoginException(AuthenticationResult::newPasswordRequired('wrong_old_pass'));
         }
-        return $oldPass === "1111" && $newPass === "22";
+        $changed = $theUser->changePassword($this->cypher, $newPass);
+        return !!$this->repository->update($theUser, $changed);
     }
 }
