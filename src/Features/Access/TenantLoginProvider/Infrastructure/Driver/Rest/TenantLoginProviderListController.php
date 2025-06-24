@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Drive
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderFilter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCursor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
@@ -26,6 +27,16 @@ class TenantLoginProviderListController
         private readonly TenantLoginProviderRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/login-providers",
+        tags: ["Tenant login provider"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantLoginProviderApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List Tenant login provider");

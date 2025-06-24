@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
@@ -25,6 +26,16 @@ class ApiKeyClientListController
         private readonly ApiKeyClientRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/api-key-clients",
+        tags: ["Api key client"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/ApiKeyClientApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List Api key client");

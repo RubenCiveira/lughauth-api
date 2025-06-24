@@ -10,7 +10,12 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "User", description: "user")]
 class UserApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"A number to identify the db record", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"A number to identify the db record",
+        type: "string"
+    )]
     public ?string $uid;
     #[OA\Property(
         property: "tenant",
@@ -18,38 +23,113 @@ class UserApiDTO
         description:"El tenant de user",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $tenant;
-    #[OA\Property(property: "name", title: "name", description:"The user name to identify on the login screen", type: "string")]
+    #[OA\Property(
+        property: "name",
+        title: "name",
+        description:"The user name to identify on the login screen",
+        type: "string"
+    )]
     public ?string $name;
-    #[OA\Property(property: "password", title: "password", description:"If the user is not delegated, the phrasse to identify", type: "string")]
+    #[OA\Property(
+        property: "password",
+        title: "password",
+        description:"If the user is not delegated, the phrasse to identify",
+        type: "string"
+    )]
     public ?string $password;
-    #[OA\Property(property: "email", title: "email", description:"An optional email used to send notifications to the user", type: "string")]
+    #[OA\Property(
+        property: "email",
+        title: "email",
+        description:"An optional email used to send notifications to the user",
+        type: "string"
+    )]
     public ?string $email;
-    #[OA\Property(property: "enabled", title: "enabled", description:"A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.", type: "string")]
+    #[OA\Property(
+        property: "enabled",
+        title: "enabled",
+        description:"A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.",
+        type: "string"
+    )]
     public ?bool $enabled;
-    #[OA\Property(property: "temporalPassword", title: "temporal password", description:"El temporal password de user", type: "string")]
+    #[OA\Property(
+        property: "temporalPassword",
+        title: "temporal password",
+        description:"El temporal password de user",
+        type: "string"
+    )]
     public ?bool $temporalPassword;
-    #[OA\Property(property: "useSecondFactors", title: "use second factors", description:"If is true, the user has a otp to force mfa on login", type: "string")]
+    #[OA\Property(
+        property: "useSecondFactors",
+        title: "use second factors",
+        description:"If is true, the user has a otp to force mfa on login",
+        type: "string"
+    )]
     public ?bool $useSecondFactors;
-    #[OA\Property(property: "secondFactorSeed", title: "second factor seed", description:"the seed used to the otp login", type: "string")]
+    #[OA\Property(
+        property: "secondFactorSeed",
+        title: "second factor seed",
+        description:"the seed used to the otp login",
+        type: "string"
+    )]
     public ?string $secondFactorSeed;
-    #[OA\Property(property: "tempSecondFactorSeed", title: "temp second factor seed", description:"the seed used to the otp login", type: "string")]
+    #[OA\Property(
+        property: "tempSecondFactorSeed",
+        title: "temp second factor seed",
+        description:"the seed used to the otp login",
+        type: "string"
+    )]
     public ?string $tempSecondFactorSeed;
-    #[OA\Property(property: "failedLoginAttempts", title: "failed login attempts", description:"The amount login attempts failed since the last right login.", type: "string")]
+    #[OA\Property(
+        property: "failedLoginAttempts",
+        title: "failed login attempts",
+        description:"The amount login attempts failed since the last right login.",
+        type: "string"
+    )]
     public ?int $failedLoginAttempts;
-    #[OA\Property(property: "blockedUntil", title: "blocked until", description:"A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.", type: "string")]
+    #[OA\Property(
+        property: "blockedUntil",
+        title: "blocked until",
+        description:"A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.",
+        type: "string"
+    )]
     public ?string $blockedUntil;
-    #[OA\Property(property: "recoveryCode", title: "recovery code", description:"El codigo de recuperacion enviado por email", type: "string")]
+    #[OA\Property(
+        property: "recoveryCode",
+        title: "recovery code",
+        description:"El codigo de recuperacion enviado por email",
+        type: "string"
+    )]
     public ?string $recoveryCode;
-    #[OA\Property(property: "recoveryCodeExpiration", title: "recovery code expiration", description:"La caducidad del código de recuperacion", type: "string")]
+    #[OA\Property(
+        property: "recoveryCodeExpiration",
+        title: "recovery code expiration",
+        description:"La caducidad del código de recuperacion",
+        type: "string"
+    )]
     public ?string $recoveryCodeExpiration;
-    #[OA\Property(property: "language", title: "language", description:"El language de user", type: "string")]
+    #[OA\Property(
+        property: "language",
+        title: "language",
+        description:"El language de user",
+        type: "string"
+    )]
     public ?string $language;
-    #[OA\Property(property: "provider", title: "provider", description:"Si se identificó con un proveedor, se marca con cual (aunque el provvedor cambie luego)", type: "string")]
+    #[OA\Property(
+        property: "provider",
+        title: "provider",
+        description:"Si se identificó con un proveedor, se marca con cual (aunque el provvedor cambie luego)",
+        type: "string"
+    )]
     public ?string $provider;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de user para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de user para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }

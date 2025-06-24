@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\R
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Shared\Value\StreamResource;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
@@ -25,6 +26,18 @@ class TenantTermsOfUseRetrieveController
         private readonly TenantTermsOfUseRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/tenants-terms-of-use{uid}",
+        tags: ["Tenant terms of use"],
+        description:"Create",
+        parameters: [
+               new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+          ],
+        responses: [
+              new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantTermsOfUseApiDTO")),
+              new OA\Response(response: 404, description: "Not found"),
+          ]
+    )]
     public function retrieve(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Retrieve Tenant terms of use");

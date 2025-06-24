@@ -31,11 +31,10 @@ class RoleCreateController
         description:"Create",
         requestBody: new OA\RequestBody(content: new OA\JsonContent(type: "object", ref:"#/components/schemas/RoleApiDTO")),
         responses: [
-        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/RoleApiDTO")),
-        new OA\Response(response: 422, description: "Constraint error"),
-    ]
-    )
-    ]
+              new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/RoleApiDTO")),
+              new OA\Response(response: 422, description: "Constraint error"),
+          ]
+    )]
     public function create(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Create Role");

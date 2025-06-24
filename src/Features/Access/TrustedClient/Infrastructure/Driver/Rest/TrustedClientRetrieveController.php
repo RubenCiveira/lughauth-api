@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -24,6 +25,18 @@ class TrustedClientRetrieveController
         private readonly TrustedClientRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/trusted-clients{uid}",
+        tags: ["Trusted client"],
+        description:"Create",
+        parameters: [
+               new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+          ],
+        responses: [
+              new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TrustedClientApiDTO")),
+              new OA\Response(response: 404, description: "Not found"),
+          ]
+    )]
     public function retrieve(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Retrieve Trusted client");

@@ -292,17 +292,17 @@ class Micro
         $appConfig = $container->get(AppConfig::class);
         $base = $appConfig->managementEndpoint;
         $interfaces = $this->interfaces;
-        $app->get("{$base}/", function ($request, ResponseInterface $response) use($interfaces) {
+        $app->get("{$base}/", function ($request, ResponseInterface $response) use ($interfaces) {
             $value = [];
-            foreach($interfaces as $interface) {
-                if( $interface->get() ) {
-                    $value[] = [ 
+            foreach ($interfaces as $interface) {
+                if ($interface->get()) {
+                    $value[] = [
                         'url' => './' . $interface->name(),
                         'method' => 'GET'
                     ];
                 }
-                if( $interface->set() ) {
-                    $value[] = [ 
+                if ($interface->set()) {
+                    $value[] = [
                         'url' => './' . $interface->name(),
                         'method' => 'POST'
                     ];
@@ -318,15 +318,15 @@ class Micro
                 $app->get("{$base}/{$name}", function ($request, ResponseInterface $response) use ($get) {
                     $value = $get($request, $response);
                     $contentType = $response->getHeader('Content-Type');
-                    if ($value instanceof ResponseInterface ) {
+                    if ($value instanceof ResponseInterface) {
                         return $value;
-                    } else if (is_string($value)) {
+                    } elseif (is_string($value)) {
                         $response->getBody()->write($value);
-                        if( !$contentType ) {
+                        if (!$contentType) {
                             $contentType = str_starts_with($value, '<html') ? 'text/html' : 'text/plain';
                         }
                     } else {
-                        if( !$contentType ) {
+                        if (!$contentType) {
                             $contentType = 'application/json';
                         }
                         $response->getBody()->write(json_encode($value));

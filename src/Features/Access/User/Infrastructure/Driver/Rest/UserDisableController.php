@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -31,6 +32,19 @@ class UserDisableController
         private readonly UserRestMapper $mapper,
     ) {
     }
+    #[OA\Patch(
+        path: "/api/access/users/{uid}/disable",
+        tags: ["User"],
+        description: "Update the value",
+        parameters: [
+        new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+    ],
+        responses: [
+        new OA\Response(response: 200, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/UserApiDTO")),
+        new OA\Response(response: 404, description: "Not found"),
+    ]
+    )
+    ]
     public function disable(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("disable for User");

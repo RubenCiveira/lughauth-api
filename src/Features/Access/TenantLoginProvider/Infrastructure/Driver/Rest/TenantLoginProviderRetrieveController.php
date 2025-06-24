@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Drive
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Shared\Value\StreamResource;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
@@ -25,6 +26,18 @@ class TenantLoginProviderRetrieveController
         private readonly TenantLoginProviderRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/login-providers{uid}",
+        tags: ["Tenant login provider"],
+        description:"Create",
+        parameters: [
+               new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+          ],
+        responses: [
+              new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantLoginProviderApiDTO")),
+              new OA\Response(response: 404, description: "Not found"),
+          ]
+    )]
     public function retrieve(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Retrieve Tenant login provider");

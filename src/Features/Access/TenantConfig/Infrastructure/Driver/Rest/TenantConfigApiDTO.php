@@ -10,7 +10,12 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "Tenant config", description: "tenant-config")]
 class TenantConfigApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"A number to identify the db record", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"A number to identify the db record",
+        type: "string"
+    )]
     public ?string $uid;
     #[OA\Property(
         property: "tenant",
@@ -18,14 +23,29 @@ class TenantConfigApiDTO
         description:"The name to identify the account.",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $tenant;
-    #[OA\Property(property: "innerLabel", title: "inner label", description:"Tenant could use these field to label the application for the users", type: "string")]
+    #[OA\Property(
+        property: "innerLabel",
+        title: "inner label",
+        description:"Tenant could use these field to label the application for the users",
+        type: "string"
+    )]
     public ?string $innerLabel;
-    #[OA\Property(property: "forceMfa", title: "force mfa", description:"El force mfa de tenant config", type: "string")]
+    #[OA\Property(
+        property: "forceMfa",
+        title: "force mfa",
+        description:"El force mfa de tenant config",
+        type: "string"
+    )]
     public ?bool $forceMfa;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de tenant config para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de tenant config para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }

@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\R
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCursor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
@@ -26,6 +27,16 @@ class TenantTermsOfUseListController
         private readonly TenantTermsOfUseRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/tenants-terms-of-use",
+        tags: ["Tenant terms of use"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantTermsOfUseApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List Tenant terms of use");

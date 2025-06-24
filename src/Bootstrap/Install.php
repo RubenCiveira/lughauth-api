@@ -13,9 +13,9 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
 
 #[OA\Info(
-      title: "Mi API REST",
-     version: "1.0.0",
-      description: "Documentación generada automáticamente"
+    title: "Mi API REST",
+    version: "1.0.0",
+    description: "Documentación generada automáticamente"
 )]
 class Install
 {
@@ -78,8 +78,8 @@ class Install
 
         // Guardar en archivo
         $output = __DIR__ . '/../../templates/api-doc/openapi.yaml';
-        if( !is_dir(dirname($output) ) ) {
-            mkdir( dirname($output), 0777, true);
+        if (!is_dir(dirname($output))) {
+            mkdir(dirname($output), 0777, true);
         }
         file_put_contents($output, $yaml);
     }

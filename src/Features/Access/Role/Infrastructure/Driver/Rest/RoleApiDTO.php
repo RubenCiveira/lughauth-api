@@ -10,9 +10,19 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "Role", description: "role")]
 class RoleApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"A uid string to identify the entity", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"A uid string to identify the entity",
+        type: "string"
+    )]
     public ?string $uid;
-    #[OA\Property(property: "name", title: "name", description:"The user name to identify on the login screen", type: "string")]
+    #[OA\Property(
+        property: "name",
+        title: "name",
+        description:"The user name to identify on the login screen",
+        type: "string"
+    )]
     public ?string $name;
     #[OA\Property(
         property: "tenant",
@@ -20,10 +30,15 @@ class RoleApiDTO
         description:"Domains without a tenant could be used only for admins",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $tenant;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de role para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de role para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }

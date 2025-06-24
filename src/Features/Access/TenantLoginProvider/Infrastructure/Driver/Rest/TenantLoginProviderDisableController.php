@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Drive
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -31,6 +32,19 @@ class TenantLoginProviderDisableController
         private readonly TenantLoginProviderRestMapper $mapper,
     ) {
     }
+    #[OA\Patch(
+        path: "/api/access/login-providers/{uid}/disable",
+        tags: ["Tenant login provider"],
+        description: "Update the value",
+        parameters: [
+        new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+    ],
+        responses: [
+        new OA\Response(response: 200, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantLoginProviderApiDTO")),
+        new OA\Response(response: 404, description: "Not found"),
+    ]
+    )
+    ]
     public function disable(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("disable for Tenant login provider");

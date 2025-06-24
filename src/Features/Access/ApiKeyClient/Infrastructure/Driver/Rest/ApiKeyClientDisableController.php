@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -30,6 +31,19 @@ class ApiKeyClientDisableController
         private readonly ApiKeyClientRestMapper $mapper,
     ) {
     }
+    #[OA\Patch(
+        path: "/api/api-key-clients/{uid}/disable",
+        tags: ["Api key client"],
+        description: "Update the value",
+        parameters: [
+        new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+    ],
+        responses: [
+        new OA\Response(response: 200, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/ApiKeyClientApiDTO")),
+        new OA\Response(response: 404, description: "Not found"),
+    ]
+    )
+    ]
     public function disable(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("disable for Api key client");

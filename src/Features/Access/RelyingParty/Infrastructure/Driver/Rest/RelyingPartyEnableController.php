@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -30,6 +31,19 @@ class RelyingPartyEnableController
         private readonly RelyingPartyRestMapper $mapper,
     ) {
     }
+    #[OA\Patch(
+        path: "/api/access/relying-parties/{uid}/enable",
+        tags: ["Relying party"],
+        description: "Update the value",
+        parameters: [
+        new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+    ],
+        responses: [
+        new OA\Response(response: 200, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/RelyingPartyApiDTO")),
+        new OA\Response(response: 404, description: "Not found"),
+    ]
+    )
+    ]
     public function enable(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("enable for Relying party");

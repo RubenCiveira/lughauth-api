@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\Rest;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -24,6 +25,18 @@ class TenantRetrieveController
         private readonly TenantRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/tenants{uid}",
+        tags: ["Tenant"],
+        description:"Create",
+        parameters: [
+               new OA\PathParameter(name: "uid", required: true, schema: new OA\Schema(type: "string")),
+          ],
+        responses: [
+              new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantApiDTO")),
+              new OA\Response(response: 404, description: "Not found"),
+          ]
+    )]
     public function retrieve(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Retrieve Tenant");

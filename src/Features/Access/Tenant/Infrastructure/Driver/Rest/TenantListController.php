@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
@@ -25,6 +26,16 @@ class TenantListController
         private readonly TenantRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/tenants",
+        tags: ["Tenant"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/TenantApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List Tenant");

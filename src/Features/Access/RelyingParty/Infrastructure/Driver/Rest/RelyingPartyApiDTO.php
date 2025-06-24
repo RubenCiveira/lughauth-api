@@ -10,14 +10,39 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "Relying party", description: "relying-party")]
 class RelyingPartyApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"El identificador de la aplicacion", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"El identificador de la aplicacion",
+        type: "string"
+    )]
     public ?string $uid;
-    #[OA\Property(property: "code", title: "code", description:"El código identificativo de la aplicación", type: "string")]
+    #[OA\Property(
+        property: "code",
+        title: "code",
+        description:"El código identificativo de la aplicación",
+        type: "string"
+    )]
     public ?string $code;
-    #[OA\Property(property: "apiKey", title: "api key", description:"A identification for the aplication", type: "string")]
+    #[OA\Property(
+        property: "apiKey",
+        title: "api key",
+        description:"A identification for the aplication",
+        type: "string"
+    )]
     public ?string $apiKey;
-    #[OA\Property(property: "enabled", title: "enabled", description:"Una marca que permite quitar el acceso a una cuenta sin borrarla", type: "string")]
+    #[OA\Property(
+        property: "enabled",
+        title: "enabled",
+        description:"Una marca que permite quitar el acceso a una cuenta sin borrarla",
+        type: "string"
+    )]
     public ?bool $enabled;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de relying party para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de relying party para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }

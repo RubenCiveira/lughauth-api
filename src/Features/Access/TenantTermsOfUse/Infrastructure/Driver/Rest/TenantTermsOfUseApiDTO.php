@@ -10,7 +10,12 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "Tenant terms of use", description: "tenant-terms-of-use")]
 class TenantTermsOfUseApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"A number to identify the db record", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"A number to identify the db record",
+        type: "string"
+    )]
     public ?string $uid;
     #[OA\Property(
         property: "tenant",
@@ -18,16 +23,36 @@ class TenantTermsOfUseApiDTO
         description:"La cuenta a la que pertenece",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $tenant;
-    #[OA\Property(property: "text", title: "text", description:"El text de tenant terms of use", type: "string")]
+    #[OA\Property(
+        property: "text",
+        title: "text",
+        description:"El text de tenant terms of use",
+        type: "string"
+    )]
     public ?string $text;
-    #[OA\Property(property: "attached", title: "attached", description:"El attached de tenant terms of use", type: "string")]
+    #[OA\Property(
+        property: "attached",
+        title: "attached",
+        description:"El attached de tenant terms of use",
+        type: "string"
+    )]
     public ?string $attached;
-    #[OA\Property(property: "activationDate", title: "activation date", description:"El activation date de tenant terms of use", type: "string")]
+    #[OA\Property(
+        property: "activationDate",
+        title: "activation date",
+        description:"El activation date de tenant terms of use",
+        type: "string"
+    )]
     public ?string $activationDate;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de tenant terms of use para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de tenant terms of use para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }

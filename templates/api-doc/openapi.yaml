@@ -32,6 +32,20 @@ paths:
         404:
           description: 'Not found'
   /api/api-key-clients:
+    get:
+      tags:
+        - 'Api key client'
+      description: Create
+      operationId: c265c85faac405d8c1236c4ded77dc8f
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'Api key client'
@@ -103,6 +117,72 @@ paths:
                 $ref: '#/components/schemas/ApiKeyClientApiDTO'
         404:
           description: 'Not found'
+  '/api/api-key-clients/{uid}/disable':
+    patch:
+      tags:
+        - 'Api key client'
+      description: 'Update the value'
+      operationId: 8101e3989c0bc093f3169fe929094aea
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        404:
+          description: 'Not found'
+  '/api/api-key-clients/{uid}/enable':
+    patch:
+      tags:
+        - 'Api key client'
+      description: 'Update the value'
+      operationId: 0707dedfb34fa0435087417a9e75cef7
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        404:
+          description: 'Not found'
+  '/api/api-key-clients{uid}':
+    get:
+      tags:
+        - 'Api key client'
+      description: Create
+      operationId: 3ce79560fdc9e5a2d9a009dee23b04cd
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/relying-parties:
     get:
       tags:
@@ -131,6 +211,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/relying-parties:
+    get:
+      tags:
+        - 'Relying party'
+      description: Create
+      operationId: 3d5b22ddbbfc7bab7efad811459d525c
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'Relying party'
@@ -202,6 +296,72 @@ paths:
                 $ref: '#/components/schemas/RelyingPartyApiDTO'
         404:
           description: 'Not found'
+  '/api/access/relying-parties/{uid}/disable':
+    patch:
+      tags:
+        - 'Relying party'
+      description: 'Update the value'
+      operationId: 13cb92e7a7a8e31fadb9f5144b62c5e4
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/relying-parties/{uid}/enable':
+    patch:
+      tags:
+        - 'Relying party'
+      description: 'Update the value'
+      operationId: 56aabd455bc8fb0d49bf079ff0aad3df
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/relying-parties{uid}':
+    get:
+      tags:
+        - 'Relying party'
+      description: Create
+      operationId: 5e143f53f3c7f62e32336860799f42d8
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/roles:
     get:
       tags:
@@ -230,6 +390,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/roles:
+    get:
+      tags:
+        - Role
+      description: Create
+      operationId: dedf33fdc1872b444aae7da44f680c65
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - Role
@@ -301,6 +475,28 @@ paths:
                 $ref: '#/components/schemas/RoleApiDTO'
         404:
           description: 'Not found'
+  '/api/access/roles{uid}':
+    get:
+      tags:
+        - Role
+      description: Create
+      operationId: bde9ac0b6d4a5f5ba67fe1fbf7bf7fa3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/tenants:
     get:
       tags:
@@ -329,6 +525,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/tenants:
+    get:
+      tags:
+        - Tenant
+      description: Create
+      operationId: 5bfc7dc50293fc075bc629e79d6bc0f7
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - Tenant
@@ -400,6 +610,72 @@ paths:
                 $ref: '#/components/schemas/TenantApiDTO'
         404:
           description: 'Not found'
+  '/api/access/tenants/{uid}/disable':
+    patch:
+      tags:
+        - Tenant
+      description: 'Update the value'
+      operationId: 0ae7a5b48d39dbd790597675a07066f6
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/tenants/{uid}/enable':
+    patch:
+      tags:
+        - Tenant
+      description: 'Update the value'
+      operationId: 69b14184e5265cb1ff2e45cbbe0ada85
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/tenants{uid}':
+    get:
+      tags:
+        - Tenant
+      description: Create
+      operationId: 40f339de0ba058056398e7f0ce9723d7
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/tenants-config:
     get:
       tags:
@@ -428,6 +704,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/tenants-config:
+    get:
+      tags:
+        - 'Tenant config'
+      description: Create
+      operationId: 0f0e8bde366fad469634b89d2cb11c33
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'Tenant config'
@@ -499,6 +789,28 @@ paths:
                 $ref: '#/components/schemas/TenantConfigApiDTO'
         404:
           description: 'Not found'
+  '/api/access/tenants-config{uid}':
+    get:
+      tags:
+        - 'Tenant config'
+      description: Create
+      operationId: f79d4b2a22455d4c5e31e12065760859
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/login-providers:
     get:
       tags:
@@ -527,6 +839,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/login-providers:
+    get:
+      tags:
+        - 'Tenant login provider'
+      description: Create
+      operationId: f255a9bcf5af66bde78be7705d2be615
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'Tenant login provider'
@@ -598,6 +924,72 @@ paths:
                 $ref: '#/components/schemas/TenantLoginProviderApiDTO'
         404:
           description: 'Not found'
+  '/api/access/login-providers/{uid}/disable':
+    patch:
+      tags:
+        - 'Tenant login provider'
+      description: 'Update the value'
+      operationId: 65cbf9705de7ac74afc7847506946201
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/login-providers/{uid}/enable':
+    patch:
+      tags:
+        - 'Tenant login provider'
+      description: 'Update the value'
+      operationId: c12a9cc88d8069c790d647c30bc89e92
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/login-providers{uid}':
+    get:
+      tags:
+        - 'Tenant login provider'
+      description: Create
+      operationId: ebcd0c10ec490adbcec9da6124d4e355
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/tenants-terms-of-use:
     get:
       tags:
@@ -626,6 +1018,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/tenants-terms-of-use:
+    get:
+      tags:
+        - 'Tenant terms of use'
+      description: Create
+      operationId: ac5e5eba3371136910cd0abc41f36ec8
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'Tenant terms of use'
@@ -697,6 +1103,28 @@ paths:
                 $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
         404:
           description: 'Not found'
+  '/api/access/tenants-terms-of-use{uid}':
+    get:
+      tags:
+        - 'Tenant terms of use'
+      description: Create
+      operationId: d41851155986f0c9e29d9cf663c79101
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/trusted-clients:
     get:
       tags:
@@ -725,6 +1153,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/trusted-clients:
+    get:
+      tags:
+        - 'Trusted client'
+      description: Create
+      operationId: 581865c8899cfc8e6e79501a6e1796db
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'Trusted client'
@@ -796,6 +1238,72 @@ paths:
                 $ref: '#/components/schemas/TrustedClientApiDTO'
         404:
           description: 'Not found'
+  '/api/access/trusted-clients/{uid}/disable':
+    patch:
+      tags:
+        - 'Trusted client'
+      description: 'Update the value'
+      operationId: 7748efc367b7de2190754183b4e335dd
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/trusted-clients/{uid}/enable':
+    patch:
+      tags:
+        - 'Trusted client'
+      description: 'Update the value'
+      operationId: 037f999de2444cc3bc67c554f79bdc26
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/trusted-clients{uid}':
+    get:
+      tags:
+        - 'Trusted client'
+      description: Create
+      operationId: a58694dd437faaef0ba5377a4b6435ea
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/users:
     get:
       tags:
@@ -824,6 +1332,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/users:
+    get:
+      tags:
+        - User
+      description: Create
+      operationId: 97719c8813a262bad9116bbeae973e16
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - User
@@ -895,6 +1417,94 @@ paths:
                 $ref: '#/components/schemas/UserApiDTO'
         404:
           description: 'Not found'
+  '/api/access/users/{uid}/disable':
+    patch:
+      tags:
+        - User
+      description: 'Update the value'
+      operationId: 6a8389101a52d54c56e852071097bf06
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/users/{uid}/enable':
+    patch:
+      tags:
+        - User
+      description: 'Update the value'
+      operationId: 3bec14fd4e4947ad560d792824a6c728
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/users{uid}':
+    get:
+      tags:
+        - User
+      description: Create
+      operationId: f9907be886630f3f01edac49745181da
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/users/{uid}/unlock':
+    patch:
+      tags:
+        - User
+      description: 'Update the value'
+      operationId: ab2416ee719a7ea2ae04fd60f2a847e1
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/identity:
     get:
       tags:
@@ -923,6 +1533,20 @@ paths:
         404:
           description: 'Not found'
   /api/access/identity:
+    get:
+      tags:
+        - 'User identity'
+      description: Create
+      operationId: dfb0ac776319d94e1db22092a8052276
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdentityApiListDTO'
+        422:
+          description: 'Constraint error'
     post:
       tags:
         - 'User identity'
@@ -994,6 +1618,28 @@ paths:
                 $ref: '#/components/schemas/UserIdentityApiDTO'
         404:
           description: 'Not found'
+  '/api/access/identity{uid}':
+    get:
+      tags:
+        - 'User identity'
+      description: Create
+      operationId: 3f82715e3f4804e28dc5692cfa78297b
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdentityApiDTO'
+        404:
+          description: 'Not found'
 components:
   schemas:
     ApiKeyClientApiDTO:
@@ -1025,6 +1671,21 @@ components:
           description: 'Campo con el número de version de api key client para controlar bloqueos optimistas'
           type: string
       type: object
+    ApiKeyClientApiListDTO:
+      title: 'Api key client'
+      description: 'Las diferentes aplicaciones que pueden usar el sistema a través de un api.'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     RelyingPartyApiDTO:
       title: 'Relying party'
       description: relying-party
@@ -1050,6 +1711,21 @@ components:
           description: 'Campo con el número de version de relying party para controlar bloqueos optimistas'
           type: string
       type: object
+    RelyingPartyApiListDTO:
+      title: 'Relying party'
+      description: relying-party
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/RelyingPartyApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     RoleApiDTO:
       title: Role
       description: role
@@ -1072,6 +1748,21 @@ components:
         version:
           title: version
           description: 'Campo con el número de version de role para controlar bloqueos optimistas'
+          type: string
+      type: object
+    RoleApiListDTO:
+      title: Role
+      description: role
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
           type: string
       type: object
     TenantApiDTO:
@@ -1111,6 +1802,21 @@ components:
           description: 'Campo con el número de version de tenant para controlar bloqueos optimistas'
           type: string
       type: object
+    TenantApiListDTO:
+      title: Tenant
+      description: tenant
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     TenantConfigApiDTO:
       title: 'Tenant config'
       description: tenant-config
@@ -1137,6 +1843,21 @@ components:
         version:
           title: version
           description: 'Campo con el número de version de tenant config para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TenantConfigApiListDTO:
+      title: 'Tenant config'
+      description: tenant-config
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantConfigApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
           type: string
       type: object
     TenantLoginProviderApiDTO:
@@ -1199,6 +1920,21 @@ components:
           description: 'Campo con el número de version de tenant login provider para controlar bloqueos optimistas'
           type: string
       type: object
+    TenantLoginProviderApiListDTO:
+      title: 'Tenant login provider'
+      description: 'Represents a login identity provider (e.g., Google, GitHub, SAML) configured for a tenant. Enables federated authentication integration.'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     TenantTermsOfUseApiDTO:
       title: 'Tenant terms of use'
       description: tenant-terms-of-use
@@ -1231,6 +1967,21 @@ components:
           description: 'Campo con el número de version de tenant terms of use para controlar bloqueos optimistas'
           type: string
       type: object
+    TenantTermsOfUseApiListDTO:
+      title: 'Tenant terms of use'
+      description: tenant-terms-of-use
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     TrustedClientApiDTO:
       title: 'Trusted client'
       description: 'Las diferentes aplicaciones que pueden usar el sistema de acceso. Dado qua la app va en la petición de login, podemos obtener la cuenta asociado a traves del proyecto'
@@ -1258,6 +2009,21 @@ components:
         version:
           title: version
           description: 'Campo con el número de version de trusted client para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TrustedClientApiListDTO:
+      title: 'Trusted client'
+      description: 'Las diferentes aplicaciones que pueden usar el sistema de acceso. Dado qua la app va en la petición de login, podemos obtener la cuenta asociado a traves del proyecto'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TrustedClientApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
           type: string
       type: object
     UserApiDTO:
@@ -1336,6 +2102,21 @@ components:
           description: 'Campo con el número de version de user para controlar bloqueos optimistas'
           type: string
       type: object
+    UserApiListDTO:
+      title: User
+      description: user
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/UserApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     UserIdentityApiDTO:
       title: 'User identity'
       description: user-identity
@@ -1368,6 +2149,21 @@ components:
         version:
           title: version
           description: 'Campo con el número de version de user identity para controlar bloqueos optimistas'
+          type: string
+      type: object
+    UserIdentityApiListDTO:
+      title: 'User identity'
+      description: user-identity
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/UserIdentityApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
           type: string
       type: object
 tags:

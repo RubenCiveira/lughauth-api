@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
@@ -26,6 +27,16 @@ class RoleListController
         private readonly RoleRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/roles",
+        tags: ["Role"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/RoleApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List Role");

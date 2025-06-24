@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
@@ -25,6 +26,16 @@ class RelyingPartyListController
         private readonly RelyingPartyRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/relying-parties",
+        tags: ["Relying party"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/RelyingPartyApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List Relying party");

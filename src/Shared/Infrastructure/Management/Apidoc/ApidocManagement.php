@@ -5,13 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Management\Apidoc;
 
-use Civi\Lughauth\Shared\Context;
 use Closure;
 use Override;
 use Slim\App;
-use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
 class ApidocManagement implements ManagementInterface
 {
@@ -30,9 +30,9 @@ class ApidocManagement implements ManagementInterface
     {
         return function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             $params = $request->getQueryParams();
-            if( 'yaml' === ($params['format'] ?? '') ) {
+            if ('yaml' === ($params['format'] ?? '')) {
                 $yaml = file_get_contents(__DIR__ . '/../../../../../templates/api-doc/openapi.yaml');
-                $response->getBody()->write( $yaml );
+                $response->getBody()->write($yaml);
                 return $response->withHeader('ContentType', 'text/plain');
             } else {
                 $base = $this->context->getBaseUrl() . '/swagger/';

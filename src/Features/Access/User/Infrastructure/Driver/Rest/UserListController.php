@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
+use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
@@ -26,6 +27,16 @@ class UserListController
         private readonly UserRestMapper $mapper,
     ) {
     }
+    #[OA\Get(
+        path: "/api/access/users",
+        tags: ["User"],
+        description:"Create",
+        responses: [
+        new OA\Response(response: 201, description: "Ok", content: new OA\JsonContent(type: "object", ref:"#/components/schemas/UserApiListDTO")),
+        new OA\Response(response: 422, description: "Constraint error"),
+    ]
+    )
+    ]
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("List User");

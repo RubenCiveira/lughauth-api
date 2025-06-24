@@ -10,7 +10,12 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "User identity", description: "user-identity")]
 class UserIdentityApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"El identificador de la aplicacion", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"El identificador de la aplicacion",
+        type: "string"
+    )]
     public ?string $uid;
     #[OA\Property(
         property: "user",
@@ -18,8 +23,8 @@ class UserIdentityApiDTO
         description:"El user de user identity",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $user;
     #[OA\Property(
@@ -28,8 +33,8 @@ class UserIdentityApiDTO
         description:"El relying party de user identity",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $relyingParty;
     #[OA\Property(
@@ -38,11 +43,16 @@ class UserIdentityApiDTO
         description:"El trusted client de user identity",
         type: "object",
         properties: [
-    new OA\Property(property: "\$ref", type: "string")
-  ]
+          new OA\Property(property: "\$ref", type: "string")
+    ]
     )]
     public ?array $trustedClient;
     public ?array $roles;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de user identity para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de user identity para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }

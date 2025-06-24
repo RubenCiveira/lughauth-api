@@ -10,20 +10,60 @@ use OpenApi\Attributes as OA;
 #[OA\Schema(title: "Tenant", description: "tenant")]
 class TenantApiDTO
 {
-    #[OA\Property(property: "uid", title: "uid", description:"A number to identify the db record", type: "string")]
+    #[OA\Property(
+        property: "uid",
+        title: "uid",
+        description:"A number to identify the db record",
+        type: "string"
+    )]
     public ?string $uid;
-    #[OA\Property(property: "name", title: "name", description:"The name to identify the account.", type: "string")]
+    #[OA\Property(
+        property: "name",
+        title: "name",
+        description:"The name to identify the account.",
+        type: "string"
+    )]
     public ?string $name;
-    #[OA\Property(property: "root", title: "root", description:"El root de tenant", type: "string")]
+    #[OA\Property(
+        property: "root",
+        title: "root",
+        description:"El root de tenant",
+        type: "string"
+    )]
     public ?bool $root;
-    #[OA\Property(property: "domain", title: "domain", description:"A domain suffix to identify the account", type: "string")]
+    #[OA\Property(
+        property: "domain",
+        title: "domain",
+        description:"A domain suffix to identify the account",
+        type: "string"
+    )]
     public ?string $domain;
-    #[OA\Property(property: "enabled", title: "enabled", description:"The indicator to allow the account be used without deleting it", type: "string")]
+    #[OA\Property(
+        property: "enabled",
+        title: "enabled",
+        description:"The indicator to allow the account be used without deleting it",
+        type: "string"
+    )]
     public ?bool $enabled;
-    #[OA\Property(property: "markForDelete", title: "mark for delete", description:"a tenant mark for deleted will be", type: "string")]
+    #[OA\Property(
+        property: "markForDelete",
+        title: "mark for delete",
+        description:"a tenant mark for deleted will be",
+        type: "string"
+    )]
     public ?bool $markForDelete;
-    #[OA\Property(property: "markForDeleteTime", title: "mark for delete time", description:"A tenant mark for deleted will be deleted soon", type: "string")]
+    #[OA\Property(
+        property: "markForDeleteTime",
+        title: "mark for delete time",
+        description:"A tenant mark for deleted will be deleted soon",
+        type: "string"
+    )]
     public ?string $markForDeleteTime;
-    #[OA\Property(property: "version", title: "version", description:"Campo con el número de version de tenant para controlar bloqueos optimistas", type: "string")]
+    #[OA\Property(
+        property: "version",
+        title: "version",
+        description:"Campo con el número de version de tenant para controlar bloqueos optimistas",
+        type: "string"
+    )]
     public ?int $version;
 }
