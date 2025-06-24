@@ -43,8 +43,8 @@ class UserMfaAdapter implements UserMfaRepository
         $label = $theConfig ? $theConfig->getInnerLabel() : $theTenant->getName() ;
         $delegated = new TwoFactorAuth(new EndroidQrCodeProvider(), $label);
         $seed = $delegated->createSecret();
-        $qrCode = $delegated->getQRCodeImageAsDataUri($label, $seed);
-        $url = $delegated->getQRText($label, $seed);
+        $qrCode = $delegated->getQRCodeImageAsDataUri($username, $seed);
+        $url = $delegated->getQRText($username, $seed);
         return new PublicLoginMfaBuildResponse(
             seed: $seed,
             message: '',
