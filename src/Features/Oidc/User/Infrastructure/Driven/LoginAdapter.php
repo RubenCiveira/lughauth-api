@@ -57,30 +57,18 @@ class LoginAdapter implements LoginRepository
         AuthenticationRequest $client,
         AuthorizedChalleges $challenges
     ): AuthenticationResult {
-        if ($challenges->username === 'jose') {
-            // return AuthenticationResult::notAllowedAccess($tenant, '');
-            return AuthenticationResult::unknowUser($tenant, $challenges->username);
-        } else {
-            $loadRoles = 'main' == $tenant ? ['ROOT'] : ['rol-1'];
-            $roles = [];
-            if ($client->audiences) {
-                foreach ($client->audiences as $audience) {
-                    $roles[$audience] = $loadRoles;
-                }
-            } else {
-                $roles = $loadRoles;
-            }
-            return new AuthenticationResult(
-                valid: true,
-                id: $challenges->username,
-                tenant: $tenant,
-                tenantName: 'tenantName',
-                scope: $client->scope,
-                audiences: $client->audiences,
-                roles: $roles,
-                groups: ['group-1']
-            );
-        }
+        $theTenant = $this->checkTenant($tenant, $challenges->username);
+        $theUser = $this->checkUser($theTenant, $challenges->username);
+        return new AuthenticationResult(
+            valid: true,
+            id: $challenges->username,
+            tenant: $theTenant->uid(),
+            tenantName: $theTenant->getName(),
+            scope: $client->scope,
+            audiences: $client->audiences,
+            roles: $this->loadRoles($client, $theTenant, $theUser),
+            groups: $this->loadGroups($client, $theTenant, $theUser),
+        );
     }
 
     #[Override]
@@ -176,6 +164,9 @@ class LoginAdapter implements LoginRepository
     {
         if ($user->getSecondFactorSeed()) {
             return null;
+        }
+        if ( $user->getUseSecondFactors() ) {
+            return AuthenticationResult::newMfaRequired();
         }
         $conf = $this->configs->findOneByTenant($tenant);
         return ($conf && $conf->getForceMfa()) ? AuthenticationResult::newMfaRequired() : null;
