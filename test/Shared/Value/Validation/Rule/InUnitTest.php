@@ -26,7 +26,7 @@ final class InUnitTest extends TestCase
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_in', $result->code);
             $this->assertEquals($value, $result->value);
-            $this->assertEquals(['allowed' => ['red', 'green', 'blue']], $result->expectedValues);
+            $this->assertEquals(['red', 'green', 'blue'], $result->expectedValues);
         }
     }
 }

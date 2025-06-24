@@ -35,6 +35,6 @@ class In implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        return Validator::in($this->haystack)->isValid($value) ? null : new RuleFail('rule_in', $value, ['allowed' => $this->haystack]);
+        return Validator::in($this->haystack)->isValid($value) ? null : new RuleFail('rule_in', $value, $this->haystack);
     }
 }

@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
 use Override;
-use Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Response;
@@ -20,11 +19,24 @@ class ErrorsPlugin extends MicroPlugin
     #[Override]
     public function registerErrorHandler(ErrorMiddleware $errorHandler)
     {
-        $errorHandler->setErrorHandler(ConstraintException::class, function (ServerRequestInterface $request, Exception $exception): ResponseInterface {
-            echo $exception->getTraceAsString();
-            die();
+        $errorHandler->setErrorHandler(ConstraintException::class, function (ServerRequestInterface $request, ConstraintException $exception): ResponseInterface {
+            $errors = [];
+            foreach ($exception as $fail) {
+                foreach ($fail->fields as $k => $field) {
+                    $errors[$field] = [ $fail->wrongValues[$k] . ' fail for ' . $fail->code . ': [' . join(',', $fail->expectedValues) . ']'];
+                }
+            }
+            $content = [
+                "type" => "/validation-error",
+                "title" => "Validation failed",
+                "status" => 422,
+                "errors" => $errors
+            ];
+            $response = new Response();
+            $response->getBody()->write(json_encode($content));
+            return $response->withStatus(422)->withHeader("Content-Type", "application/problem+json");
         });
-        $errorHandler->setErrorHandler(UnauthorizedException::class, function (ServerRequestInterface $request, Exception $exception): ResponseInterface {
+        $errorHandler->setErrorHandler(UnauthorizedException::class, function (ServerRequestInterface $request, UnauthorizedException $exception): ResponseInterface {
             $response = new Response();
             $data = [
                 'message' => $exception->getMessage()
