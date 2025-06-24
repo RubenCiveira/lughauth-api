@@ -23,7 +23,7 @@ class ErrorsPlugin extends MicroPlugin
             $errors = [];
             foreach ($exception as $fail) {
                 foreach ($fail->fields as $k => $field) {
-                    $errors[$field] = [ $fail->wrongValues[$k] . ' fail for ' . $fail->code . ': [' . join(',', $fail->expectedValues) . ']'];
+                    $errors[$field] = [ $fail->wrongValues[$k] . ' fail for ' . $fail->code . '' ];
                 }
             }
             $content = [
