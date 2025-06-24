@@ -291,19 +291,47 @@ class Micro
     {
         $appConfig = $container->get(AppConfig::class);
         $base = $appConfig->managementEndpoint;
+        $interfaces = $this->interfaces;
+        $app->get("{$base}/", function ($request, ResponseInterface $response) use($interfaces) {
+            $value = [];
+            foreach($interfaces as $interface) {
+                if( $interface->get() ) {
+                    $value[] = [ 
+                        'url' => './' . $interface->name(),
+                        'method' => 'GET'
+                    ];
+                }
+                if( $interface->set() ) {
+                    $value[] = [ 
+                        'url' => './' . $interface->name(),
+                        'method' => 'POST'
+                    ];
+                }
+            }
+            $response->getBody()->write(json_encode($value));
+            return $response->withHeader('Content-Type', 'application/json');
+        });
         foreach ($this->interfaces as $interface) {
             $name = $interface->name();
             $get = $interface->get();
             if ($get) {
                 $app->get("{$base}/{$name}", function ($request, ResponseInterface $response) use ($get) {
-                    $value = $get($request);
-                    if (is_string($value)) {
+                    $value = $get($request, $response);
+                    $contentType = $response->getHeader('Content-Type');
+                    if ($value instanceof ResponseInterface ) {
+                        return $value;
+                    } else if (is_string($value)) {
                         $response->getBody()->write($value);
-                        return $response->withHeader('Content-Type', 'text/plain');
+                        if( !$contentType ) {
+                            $contentType = str_starts_with($value, '<html') ? 'text/html' : 'text/plain';
+                        }
                     } else {
+                        if( !$contentType ) {
+                            $contentType = 'application/json';
+                        }
                         $response->getBody()->write(json_encode($value));
-                        return $response->withHeader('Content-Type', 'application/json');
                     }
+                    return $response->withHeader('Content-Type', $contentType);
                 });
             }
             $set = $interface->set();

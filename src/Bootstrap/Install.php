@@ -5,10 +5,18 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Bootstrap;
 
+use Throwable;
+use OpenApi\Generator;
+use OpenApi\Attributes as OA;
+use Symfony\Component\Yaml\Yaml;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
-use Throwable;
 
+#[OA\Info(
+      title: "Mi API REST",
+     version: "1.0.0",
+      description: "Documentación generada automáticamente"
+)]
 class Install
 {
     public static function bootstrap()
@@ -52,6 +60,31 @@ class Install
         if ($lock) {
             unlink($lock);
         }
+        self::openApi();
         echo "==== Borrar flags\n";
+    }
+
+    private static function openApi()
+    {
+        // Ruta de directorio que contiene las anotaciones
+        $scanPaths = [__DIR__ . '/../'];
+
+        // Generar el objeto OpenApi
+        $gen = new Generator();
+        $openapi = $gen->generate($scanPaths);
+
+        // Exportar a YAML
+        $yaml = Yaml::dump(json_decode($openapi->toJson(), true), 20, 2);
+
+        // Guardar en archivo
+        $output = __DIR__ . '/../../templates/api-doc/openapi.yaml';
+        if( !is_dir(dirname($output) ) ) {
+            mkdir( dirname($output), 0777, true);
+        }
+        file_put_contents($output, $yaml);
+    }
+
+    private static function info()
+    {
     }
 }

@@ -1,0 +1,1433 @@
+openapi: 3.0.0
+info:
+  title: 'Mi API REST'
+  description: 'Documentación generada automáticamente'
+  version: 1.0.0
+paths:
+  /api/me/acl/api-key-clients:
+    get:
+      tags:
+        - 'Api key client access control'
+      description: Allows
+      operationId: 2a6a7ceb5329e9154e4a92a07ff24945
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/api-key-clients/{uid}':
+    get:
+      tags:
+        - 'Api key client access control'
+      description: Allows
+      operationId: 486d769f0c8dd7aa5a1a352191660202
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/api-key-clients:
+    post:
+      tags:
+        - 'Api key client'
+      description: Create
+      operationId: 5b9d558d8849184d3f58bf088401294e
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiKeyClientApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/api-key-clients/{uid}':
+    put:
+      tags:
+        - 'Api key client'
+      description: 'Update the value'
+      operationId: 4ff4979ff4b190298648e19f190ce295
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiKeyClientApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Api key client'
+      description: 'Delete the record'
+      operationId: b76c9af34327b25a3824e19f6a16f6b0
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/relying-parties:
+    get:
+      tags:
+        - 'Relying party access control'
+      description: Allows
+      operationId: f5abd6ea9c4cf24156a80d47c0bdd8b0
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/relying-parties/{uid}':
+    get:
+      tags:
+        - 'Relying party access control'
+      description: Allows
+      operationId: 42ca34728eb17e71955ada9f7702aa0b
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/relying-parties:
+    post:
+      tags:
+        - 'Relying party'
+      description: Create
+      operationId: 8022f2a6e60166f879d2d2d988861d4d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelyingPartyApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/relying-parties/{uid}':
+    put:
+      tags:
+        - 'Relying party'
+      description: 'Update the value'
+      operationId: 049cbc737c7db72cfdf4751504cf4072
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RelyingPartyApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Relying party'
+      description: 'Delete the record'
+      operationId: 454d83113f01cade987e62eb62d563ab
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelyingPartyApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/roles:
+    get:
+      tags:
+        - 'Role access control'
+      description: Allows
+      operationId: 6bcd04f86b1d62dead8ba5c3f63052b2
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/roles/{uid}':
+    get:
+      tags:
+        - 'Role access control'
+      description: Allows
+      operationId: 09322c79f34b07730af0f28a871a6655
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/roles:
+    post:
+      tags:
+        - Role
+      description: Create
+      operationId: 7b060878e245e1a03f9147b5b9dd298d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/roles/{uid}':
+    put:
+      tags:
+        - Role
+      description: 'Update the value'
+      operationId: 8c71fdef5728d6eec8a0db57cc9c01f3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - Role
+      description: 'Delete the record'
+      operationId: 24f5e499b7b7b789d8494df7387ccbba
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/tenants:
+    get:
+      tags:
+        - 'Tenant access control'
+      description: Allows
+      operationId: f22c4be1e8c50a8743443c0cbe428013
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/tenants/{uid}':
+    get:
+      tags:
+        - 'Tenant access control'
+      description: Allows
+      operationId: 24a4d0789cd4db283f78314c489e226c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/tenants:
+    post:
+      tags:
+        - Tenant
+      description: Create
+      operationId: 104c6b001bb82a6b5f38cf56753f624e
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/tenants/{uid}':
+    put:
+      tags:
+        - Tenant
+      description: 'Update the value'
+      operationId: 43f22eb3b202e6678b41e719ec094bde
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - Tenant
+      description: 'Delete the record'
+      operationId: 4b685e2c32233e4b32720b4608cad942
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/tenants-config:
+    get:
+      tags:
+        - 'Tenant config access control'
+      description: Allows
+      operationId: 37ae4d47b53c329249075f08368b0775
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/tenants-config/{uid}':
+    get:
+      tags:
+        - 'Tenant config access control'
+      description: Allows
+      operationId: 5ba569b60734117d55c4cfa74724f4ba
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/tenants-config:
+    post:
+      tags:
+        - 'Tenant config'
+      description: Create
+      operationId: 36ea36c0e27f5129427eb786f477184f
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantConfigApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/tenants-config/{uid}':
+    put:
+      tags:
+        - 'Tenant config'
+      description: 'Update the value'
+      operationId: c97db834a27013fa024c8daa6d44fb4f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantConfigApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Tenant config'
+      description: 'Delete the record'
+      operationId: 49d89fb300e781becc13105a5e898944
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantConfigApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/login-providers:
+    get:
+      tags:
+        - 'Tenant login provider access control'
+      description: Allows
+      operationId: 9a93278fa983876ea0a277d84db3edfc
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/login-providers/{uid}':
+    get:
+      tags:
+        - 'Tenant login provider access control'
+      description: Allows
+      operationId: 85d8aa70235c1842c0ddcec7228c2c84
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/login-providers:
+    post:
+      tags:
+        - 'Tenant login provider'
+      description: Create
+      operationId: 57a23c0c09f1188eb0b4fc314b0db1ee
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/login-providers/{uid}':
+    put:
+      tags:
+        - 'Tenant login provider'
+      description: 'Update the value'
+      operationId: 0805f5ef4025894e8a5c5d362e0c4032
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Tenant login provider'
+      description: 'Delete the record'
+      operationId: 76809de1d229dcd90244c95c8df89a2f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantLoginProviderApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/tenants-terms-of-use:
+    get:
+      tags:
+        - 'Tenant terms of use access control'
+      description: Allows
+      operationId: 6250025e685f85f6f1dfa9deb6f9a844
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/tenants-terms-of-use/{uid}':
+    get:
+      tags:
+        - 'Tenant terms of use access control'
+      description: Allows
+      operationId: e21d44f7e3d9ba45d04ae09c40813b57
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/tenants-terms-of-use:
+    post:
+      tags:
+        - 'Tenant terms of use'
+      description: Create
+      operationId: 732588c3afbf5cb52d4fef77e897832d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/tenants-terms-of-use/{uid}':
+    put:
+      tags:
+        - 'Tenant terms of use'
+      description: 'Update the value'
+      operationId: 7f7e9938d7f4b4dad14adafdfffdb4c8
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Tenant terms of use'
+      description: 'Delete the record'
+      operationId: 0e0da1337ab8dd921b32ce489b16b62d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/trusted-clients:
+    get:
+      tags:
+        - 'Trusted client access control'
+      description: Allows
+      operationId: 3a9bafa340fdee8a8ce0dc5cb5bbd857
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/trusted-clients/{uid}':
+    get:
+      tags:
+        - 'Trusted client access control'
+      description: Allows
+      operationId: 9d155d02b7b4c5f4478e31d74f5b173a
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/trusted-clients:
+    post:
+      tags:
+        - 'Trusted client'
+      description: Create
+      operationId: 0c20980c9f7c31f26f8e1a2e96d87f15
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrustedClientApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/trusted-clients/{uid}':
+    put:
+      tags:
+        - 'Trusted client'
+      description: 'Update the value'
+      operationId: dea0efaca1322262e7785f84b59ef3b3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TrustedClientApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Trusted client'
+      description: 'Delete the record'
+      operationId: c6ba6f698725083e8cbbadd5f3b8317d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedClientApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/users:
+    get:
+      tags:
+        - 'User access control'
+      description: Allows
+      operationId: 252c41b55e83fc56c8d6ec7619db60db
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/users/{uid}':
+    get:
+      tags:
+        - 'User access control'
+      description: Allows
+      operationId: d584b125359c3bc44809c02aa1ab6762
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/users:
+    post:
+      tags:
+        - User
+      description: Create
+      operationId: e29f38beebf7f3e62dc610feb8c5ba81
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/users/{uid}':
+    put:
+      tags:
+        - User
+      description: 'Update the value'
+      operationId: aea6e1282170021fbe40b59c6ea05708
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - User
+      description: 'Delete the record'
+      operationId: dd9ebac4491f5cf00f0d7bf8454bc149
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/identity:
+    get:
+      tags:
+        - 'User identity access control'
+      description: Allows
+      operationId: f716daea74d1c34af14b8515bd31a4fd
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/identity/{uid}':
+    get:
+      tags:
+        - 'User identity access control'
+      description: Allows
+      operationId: 34f802cb281853e86109d2a23a76fa94
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/identity:
+    post:
+      tags:
+        - 'User identity'
+      description: Create
+      operationId: b569a06c9444e11f975adf7a0ba0f7d9
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserIdentityApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdentityApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/identity/{uid}':
+    put:
+      tags:
+        - 'User identity'
+      description: 'Update the value'
+      operationId: 82446e1c64ec462693a6dbd5a4010cef
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserIdentityApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdentityApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'User identity'
+      description: 'Delete the record'
+      operationId: 7ff0d67c0961eef06c4f27072a5dc0f4
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserIdentityApiDTO'
+        404:
+          description: 'Not found'
+components:
+  schemas:
+    ApiKeyClientApiDTO:
+      title: 'Api key client'
+      description: 'Las diferentes aplicaciones que pueden usar el sistema a través de un api.'
+      properties:
+        uid:
+          title: uid
+          description: 'El identificador de la aplicacion'
+          type: string
+        code:
+          title: code
+          description: 'El código identificativo de la aplicación'
+          type: string
+        key:
+          title: key
+          description: 'The key for the api'
+          type: string
+        enabled:
+          title: enabled
+          description: 'The indicator to allow the account be used without deleting it'
+          type: string
+        scopes:
+          title: scopes
+          description: 'A coma separated scopes for the api key'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de api key client para controlar bloqueos optimistas'
+          type: string
+      type: object
+    RelyingPartyApiDTO:
+      title: 'Relying party'
+      description: relying-party
+      properties:
+        uid:
+          title: uid
+          description: 'El identificador de la aplicacion'
+          type: string
+        code:
+          title: code
+          description: 'El código identificativo de la aplicación'
+          type: string
+        apiKey:
+          title: 'api key'
+          description: 'A identification for the aplication'
+          type: string
+        enabled:
+          title: enabled
+          description: 'Una marca que permite quitar el acceso a una cuenta sin borrarla'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de relying party para controlar bloqueos optimistas'
+          type: string
+      type: object
+    RoleApiDTO:
+      title: Role
+      description: role
+      properties:
+        uid:
+          title: uid
+          description: 'A uid string to identify the entity'
+          type: string
+        name:
+          title: name
+          description: 'The user name to identify on the login screen'
+          type: string
+        tenant:
+          title: tenant
+          description: 'Domains without a tenant could be used only for admins'
+          properties:
+            $ref:
+              type: string
+          type: object
+        version:
+          title: version
+          description: 'Campo con el número de version de role para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TenantApiDTO:
+      title: Tenant
+      description: tenant
+      properties:
+        uid:
+          title: uid
+          description: 'A number to identify the db record'
+          type: string
+        name:
+          title: name
+          description: 'The name to identify the account.'
+          type: string
+        root:
+          title: root
+          description: 'El root de tenant'
+          type: string
+        domain:
+          title: domain
+          description: 'A domain suffix to identify the account'
+          type: string
+        enabled:
+          title: enabled
+          description: 'The indicator to allow the account be used without deleting it'
+          type: string
+        markForDelete:
+          title: 'mark for delete'
+          description: 'a tenant mark for deleted will be'
+          type: string
+        markForDeleteTime:
+          title: 'mark for delete time'
+          description: 'A tenant mark for deleted will be deleted soon'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de tenant para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TenantConfigApiDTO:
+      title: 'Tenant config'
+      description: tenant-config
+      properties:
+        uid:
+          title: uid
+          description: 'A number to identify the db record'
+          type: string
+        tenant:
+          title: tenant
+          description: 'The name to identify the account.'
+          properties:
+            $ref:
+              type: string
+          type: object
+        innerLabel:
+          title: 'inner label'
+          description: 'Tenant could use these field to label the application for the users'
+          type: string
+        forceMfa:
+          title: 'force mfa'
+          description: 'El force mfa de tenant config'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de tenant config para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TenantLoginProviderApiDTO:
+      title: 'Tenant login provider'
+      description: 'Represents a login identity provider (e.g., Google, GitHub, SAML) configured for a tenant. Enables federated authentication integration.'
+      properties:
+        uid:
+          title: uid
+          description: 'A uid string to identify the entity'
+          type: string
+        tenant:
+          title: tenant
+          description: 'The tenant this login provider is configured for.'
+          properties:
+            $ref:
+              type: string
+          type: object
+        name:
+          title: name
+          description: 'A name that identifies this login provider within the tenant.'
+          type: string
+        source:
+          title: source
+          description: 'The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, SAML).'
+          type: string
+          enum:
+            - GOOGLE
+            - GITHUB
+            - SAML
+        disabled:
+          title: disabled
+          description: 'Indicates if this provider is currently disabled.'
+          type: string
+        directAccess:
+          title: 'direct access'
+          description: 'If true, the system will default to this login method without requiring selection.'
+          type: string
+        publicKey:
+          title: 'public key'
+          description: 'A public key shared with users to interact with the identity provider.'
+          type: string
+        privateKey:
+          title: 'private key'
+          description: 'Private key used internally to validate codes returned by the identity provider.'
+          type: string
+        certificate:
+          title: certificate
+          description: 'The provider certificate used for signature verification, if required.'
+          type: string
+        metadata:
+          title: metadata
+          description: 'A metadata file required by some providers for configuration (e.g., SAML descriptor).'
+          type: string
+        usersEnabledByDefault:
+          title: 'users enabled by default'
+          description: 'Defines whether the users created with this provider are enabled by default.'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de tenant login provider para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TenantTermsOfUseApiDTO:
+      title: 'Tenant terms of use'
+      description: tenant-terms-of-use
+      properties:
+        uid:
+          title: uid
+          description: 'A number to identify the db record'
+          type: string
+        tenant:
+          title: tenant
+          description: 'La cuenta a la que pertenece'
+          properties:
+            $ref:
+              type: string
+          type: object
+        text:
+          title: text
+          description: 'El text de tenant terms of use'
+          type: string
+        attached:
+          title: attached
+          description: 'El attached de tenant terms of use'
+          type: string
+        activationDate:
+          title: 'activation date'
+          description: 'El activation date de tenant terms of use'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de tenant terms of use para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TrustedClientApiDTO:
+      title: 'Trusted client'
+      description: 'Las diferentes aplicaciones que pueden usar el sistema de acceso. Dado qua la app va en la petición de login, podemos obtener la cuenta asociado a traves del proyecto'
+      properties:
+        uid:
+          title: uid
+          description: 'El identificador de la aplicacion'
+          type: string
+        code:
+          title: code
+          description: 'El código identificativo de la aplicación'
+          type: string
+        publicAllow:
+          title: 'public allow'
+          description: 'If true, users can use these client to access with public code flow'
+          type: string
+        secretOauth:
+          title: 'secret oauth'
+          description: 'If the user is not delegated, the phrasse to identify'
+          type: string
+        enabled:
+          title: enabled
+          description: 'The indicator to allow the account be used without deleting it'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de trusted client para controlar bloqueos optimistas'
+          type: string
+      type: object
+    UserApiDTO:
+      title: User
+      description: user
+      properties:
+        uid:
+          title: uid
+          description: 'A number to identify the db record'
+          type: string
+        tenant:
+          title: tenant
+          description: 'El tenant de user'
+          properties:
+            $ref:
+              type: string
+          type: object
+        name:
+          title: name
+          description: 'The user name to identify on the login screen'
+          type: string
+        password:
+          title: password
+          description: 'If the user is not delegated, the phrasse to identify'
+          type: string
+        email:
+          title: email
+          description: 'An optional email used to send notifications to the user'
+          type: string
+        enabled:
+          title: enabled
+          description: 'A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.'
+          type: string
+        temporalPassword:
+          title: 'temporal password'
+          description: 'El temporal password de user'
+          type: string
+        useSecondFactors:
+          title: 'use second factors'
+          description: 'If is true, the user has a otp to force mfa on login'
+          type: string
+        secondFactorSeed:
+          title: 'second factor seed'
+          description: 'the seed used to the otp login'
+          type: string
+        tempSecondFactorSeed:
+          title: 'temp second factor seed'
+          description: 'the seed used to the otp login'
+          type: string
+        failedLoginAttempts:
+          title: 'failed login attempts'
+          description: 'The amount login attempts failed since the last right login.'
+          type: string
+        blockedUntil:
+          title: 'blocked until'
+          description: 'A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.'
+          type: string
+        recoveryCode:
+          title: 'recovery code'
+          description: 'El codigo de recuperacion enviado por email'
+          type: string
+        recoveryCodeExpiration:
+          title: 'recovery code expiration'
+          description: 'La caducidad del código de recuperacion'
+          type: string
+        language:
+          title: language
+          description: 'El language de user'
+          type: string
+        provider:
+          title: provider
+          description: 'Si se identificó con un proveedor, se marca con cual (aunque el provvedor cambie luego)'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de user para controlar bloqueos optimistas'
+          type: string
+      type: object
+    UserIdentityApiDTO:
+      title: 'User identity'
+      description: user-identity
+      properties:
+        uid:
+          title: uid
+          description: 'El identificador de la aplicacion'
+          type: string
+        user:
+          title: user
+          description: 'El user de user identity'
+          properties:
+            $ref:
+              type: string
+          type: object
+        relyingParty:
+          title: 'relying party'
+          description: 'El relying party de user identity'
+          properties:
+            $ref:
+              type: string
+          type: object
+        trustedClient:
+          title: 'trusted client'
+          description: 'El trusted client de user identity'
+          properties:
+            $ref:
+              type: string
+          type: object
+        version:
+          title: version
+          description: 'Campo con el número de version de user identity para controlar bloqueos optimistas'
+          type: string
+      type: object
+tags:
+  -
+    name: 'Api key client access control'
+    description: 'Api key client access control'
+  -
+    name: 'Api key client'
+    description: 'Api key client'
+  -
+    name: 'Relying party access control'
+    description: 'Relying party access control'
+  -
+    name: 'Relying party'
+    description: 'Relying party'
+  -
+    name: 'Role access control'
+    description: 'Role access control'
+  -
+    name: Role
+    description: Role
+  -
+    name: 'Tenant access control'
+    description: 'Tenant access control'
+  -
+    name: Tenant
+    description: Tenant
+  -
+    name: 'Tenant config access control'
+    description: 'Tenant config access control'
+  -
+    name: 'Tenant config'
+    description: 'Tenant config'
+  -
+    name: 'Tenant login provider access control'
+    description: 'Tenant login provider access control'
+  -
+    name: 'Tenant login provider'
+    description: 'Tenant login provider'
+  -
+    name: 'Tenant terms of use access control'
+    description: 'Tenant terms of use access control'
+  -
+    name: 'Tenant terms of use'
+    description: 'Tenant terms of use'
+  -
+    name: 'Trusted client access control'
+    description: 'Trusted client access control'
+  -
+    name: 'Trusted client'
+    description: 'Trusted client'
+  -
+    name: 'User access control'
+    description: 'User access control'
+  -
+    name: User
+    description: User
+  -
+    name: 'User identity access control'
+    description: 'User identity access control'
+  -
+    name: 'User identity'
+    description: 'User identity'

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
+use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
 use Override;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
@@ -34,7 +35,8 @@ class ManagementPlugin extends MicroPlugin
         $traces = $container->get(TraceManagement::class);
         $traceCollect = $container->get(TraceCollector::class);
         $logCollect = $container->get(LogCollector::class);
-        return [$health, $metrics, $migrations, $config, $routes, $dependencies, $logs, $traces, $traceCollect, $logCollect];
+        $apiDocs = $container->get(ApidocManagement::class);
+        return [$health, $metrics, $migrations, $config, $routes, $dependencies, $logs, $traces, $traceCollect, $logCollect, $apiDocs];
     }
 
     #[Override]
