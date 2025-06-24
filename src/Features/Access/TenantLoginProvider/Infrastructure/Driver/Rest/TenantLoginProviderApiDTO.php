@@ -24,7 +24,7 @@ class TenantLoginProviderApiDTO
     public ?array $tenant;
     #[OA\Property(property: "name", title: "name", description:"A name that identifies this login provider within the tenant.", type: "string")]
     public ?string $name;
-    #[OA\Property(property: "source", title: "source", description:"The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, SAML).", type: "string", enum: [GOOGLE,GITHUB,SAML])]
+    #[OA\Property(property: "source", title: "source", description:"The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, SAML).", type: "string", enum: ["GOOGLE","GITHUB","SAML"])]
     public ?string $source;
     #[OA\Property(property: "disabled", title: "disabled", description:"Indicates if this provider is currently disabled.", type: "string")]
     public ?bool $disabled;
