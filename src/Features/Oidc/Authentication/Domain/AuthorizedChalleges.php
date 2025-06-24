@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 class AuthorizedChalleges
 {
     public bool $mfa = false;
+    public bool $session = false;
     public ?string $username = null;
 
     public function encode(): array

@@ -117,6 +117,7 @@ class AuthorizeHtml
             $challenges = new AuthorizedChalleges();
             $challenges->username = $sess->userId;
             $challenges->mfa = $sess->withMfa;
+            $challenges->session = true;
             $issuer = $base . '/openid/' . $tenant;
             // auth-csid
             $auth = $this->publicLogin->preAutenticate($authRequest, $challenges, $tenant, $issuer, $csid, $state, $nonce);

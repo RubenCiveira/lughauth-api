@@ -24,7 +24,11 @@ class LoginUsecase
         AuthenticationRequest $client,
         AuthorizedChalleges $challenges
     ): AuthenticationResult {
-        return $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
+        $result = $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
+        if ($result->valid && !$challenges->session) {
+            $this->dispacher->dispatch($result);
+        }
+        return $result;
     }
 
     public function validatedUserData(
