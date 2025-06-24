@@ -97,10 +97,10 @@ class UserListController
             if ($value && $value->sinceUid()) {
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
-            if ($value && strpos('name-asc', $params['order'] ?? '') !== false && $value->sinceName()) {
+            if ($value && strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
-            if ($value && strpos('name-desc', $params['order'] ?? '') !== false && $value->sinceName()) {
+            if ($value && strpos('NAME-DESC', $params['order'] ?? '') !== false && $value->sinceName()) {
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
             return implode('&', $link);

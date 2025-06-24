@@ -102,16 +102,16 @@ class TenantListController
             if ($value && $value->sinceUid()) {
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
-            if ($value && strpos('name-asc', $params['order'] ?? '') !== false && $value->sinceName()) {
+            if ($value && strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
-            if ($value && strpos('name-desc', $params['order'] ?? '') !== false && $value->sinceName()) {
+            if ($value && strpos('NAME-DESC', $params['order'] ?? '') !== false && $value->sinceName()) {
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
-            if ($value && strpos('domain-asc', $params['order'] ?? '') !== false && $value->sinceDomain()) {
+            if ($value && strpos('DOMAIN-ASC', $params['order'] ?? '') !== false && $value->sinceDomain()) {
                 $link['since-domain'] = 'since-domain=' . urlencode($value->sinceDomain());
             }
-            if ($value && strpos('domain-desc', $params['order'] ?? '') !== false && $value->sinceDomain()) {
+            if ($value && strpos('DOMAIN-DESC', $params['order'] ?? '') !== false && $value->sinceDomain()) {
                 $link['since-domain'] = 'since-domain=' . urlencode($value->sinceDomain());
             }
             return implode('&', $link);

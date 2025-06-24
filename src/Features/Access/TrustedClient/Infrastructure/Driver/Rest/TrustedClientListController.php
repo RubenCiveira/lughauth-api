@@ -94,10 +94,10 @@ class TrustedClientListController
             if ($value && $value->sinceUid()) {
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
-            if ($value && strpos('code-asc', $params['order'] ?? '') !== false && $value->sinceCode()) {
+            if ($value && strpos('CODE-ASC', $params['order'] ?? '') !== false && $value->sinceCode()) {
                 $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
             }
-            if ($value && strpos('code-desc', $params['order'] ?? '') !== false && $value->sinceCode()) {
+            if ($value && strpos('CODE-DESC', $params['order'] ?? '') !== false && $value->sinceCode()) {
                 $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
             }
             return implode('&', $link);
