@@ -87,14 +87,14 @@ class ApiKeyClient extends ApiKeyClientRef
     {
         $value = clone $this;
         $value->_enabled = ApiKeyClientEnabledVO::from(true);
-        $value->recordedEvents[] = new ApiKeyClientEnableEvent($value);
+        $value->recordedEvents[] = new ApiKeyClientEnableEvent(payload: $value);
         return $value;
     }
     public function disable(): ApiKeyClient
     {
         $value = clone $this;
         $value->_enabled = ApiKeyClientEnabledVO::from(false);
-        $value->recordedEvents[] = new ApiKeyClientDisableEvent($value);
+        $value->recordedEvents[] = new ApiKeyClientDisableEvent(payload: $value);
         return $value;
     }
     public function toAttributes(): ApiKeyClientAttributes

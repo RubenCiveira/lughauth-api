@@ -180,28 +180,28 @@ class User extends UserRef
     {
         $value = clone $this;
         $value->_enabled = UserEnabledVO::from(false);
-        $value->recordedEvents[] = new UserDisableEvent($value);
+        $value->recordedEvents[] = new UserDisableEvent(payload: $value);
         return $value;
     }
     public function enable(): User
     {
         $value = clone $this;
         $value->_enabled = UserEnabledVO::from(true);
-        $value->recordedEvents[] = new UserEnableEvent($value);
+        $value->recordedEvents[] = new UserEnableEvent(payload: $value);
         return $value;
     }
     public function unlock(): User
     {
         $value = clone $this;
         $value->_blockedUntil = UserBlockedUntilVO::from(null);
-        $value->recordedEvents[] = new UserUnlockEvent($value);
+        $value->recordedEvents[] = new UserUnlockEvent(payload: $value);
         return $value;
     }
     public function block(\DateTimeImmutable|null $blockedUntil): User
     {
         $value = clone $this;
         $value->_blockedUntil = UserBlockedUntilVO::from($blockedUntil);
-        $value->recordedEvents[] = new UserBlockEvent($value);
+        $value->recordedEvents[] = new UserBlockEvent(payload: $value);
         return $value;
     }
     public function setMfaSeed(AesCypherService $cypher, string|null $secondFactorSeed): User
@@ -209,7 +209,7 @@ class User extends UserRef
         $value = clone $this;
         $value->_secondFactorSeed = UserSecondFactorSeedVO::fromPlainText($cypher, $secondFactorSeed);
         $value->_useSecondFactors = UserUseSecondFactorsVO::from(true);
-        $value->recordedEvents[] = new UserSetMfaSeedEvent($value);
+        $value->recordedEvents[] = new UserSetMfaSeedEvent(payload: $value);
         return $value;
     }
     public function changePassword(AesCypherService $cypher, string $password): User
@@ -217,7 +217,7 @@ class User extends UserRef
         $value = clone $this;
         $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
         $value->_temporalPassword = UserTemporalPasswordVO::from(false);
-        $value->recordedEvents[] = new UserChangePasswordEvent($value);
+        $value->recordedEvents[] = new UserChangePasswordEvent(payload: $value);
         return $value;
     }
     public function toAttributes(): UserAttributes

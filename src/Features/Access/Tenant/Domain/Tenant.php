@@ -105,14 +105,14 @@ class Tenant extends TenantRef
     {
         $value = clone $this;
         $value->_enabled = TenantEnabledVO::from(true);
-        $value->recordedEvents[] = new TenantEnableEvent($value);
+        $value->recordedEvents[] = new TenantEnableEvent(payload: $value);
         return $value;
     }
     public function disable(): Tenant
     {
         $value = clone $this;
         $value->_enabled = TenantEnabledVO::from(false);
-        $value->recordedEvents[] = new TenantDisableEvent($value);
+        $value->recordedEvents[] = new TenantDisableEvent(payload: $value);
         return $value;
     }
     public function toAttributes(): TenantAttributes

@@ -81,14 +81,14 @@ class RelyingParty extends RelyingPartyRef
     {
         $value = clone $this;
         $value->_enabled = RelyingPartyEnabledVO::from(true);
-        $value->recordedEvents[] = new RelyingPartyEnableEvent($value);
+        $value->recordedEvents[] = new RelyingPartyEnableEvent(payload: $value);
         return $value;
     }
     public function disable(): RelyingParty
     {
         $value = clone $this;
         $value->_enabled = RelyingPartyEnabledVO::from(false);
-        $value->recordedEvents[] = new RelyingPartyDisableEvent($value);
+        $value->recordedEvents[] = new RelyingPartyDisableEvent(payload: $value);
         return $value;
     }
     public function toAttributes(): RelyingPartyAttributes

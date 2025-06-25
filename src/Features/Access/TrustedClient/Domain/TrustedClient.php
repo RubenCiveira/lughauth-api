@@ -94,14 +94,14 @@ class TrustedClient extends TrustedClientRef
     {
         $value = clone $this;
         $value->_enabled = TrustedClientEnabledVO::from(true);
-        $value->recordedEvents[] = new TrustedClientEnableEvent($value);
+        $value->recordedEvents[] = new TrustedClientEnableEvent(payload: $value);
         return $value;
     }
     public function disable(): TrustedClient
     {
         $value = clone $this;
         $value->_enabled = TrustedClientEnabledVO::from(false);
-        $value->recordedEvents[] = new TrustedClientDisableEvent($value);
+        $value->recordedEvents[] = new TrustedClientDisableEvent(payload: $value);
         return $value;
     }
     public function toAttributes(): TrustedClientAttributes
