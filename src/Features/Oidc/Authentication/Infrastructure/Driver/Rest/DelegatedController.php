@@ -18,6 +18,6 @@ class DelegatedController
 
     public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        return $this->delegated->redirectToTenant('/openid/', '/authorize', $request, $response);
+        return $this->delegated->redirectToTenant('/oauth/openid/', '/authorize', $request, $response);
     }
 }

@@ -19,9 +19,9 @@ class DelegateLoginGateway
     {
         $this->repository = $repository ?? $container->get(DelegateLoginAdapter::class);
     }
-    public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user): AuthenticationResult
+    public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user, string $providerId): AuthenticationResult
     {
-        return $this->repository->save($tenant, $client, $user);
+        return $this->repository->save($tenant, $client, $user, $providerId);
     }
     public function providers(string $tenant): array
     {

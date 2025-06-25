@@ -43,7 +43,7 @@ class DelegateForm implements AuthorizationForm
     {
         $body = $request->getParsedBody();
         $params = $request->getQueryParams();
-        $route = '/openid/-/delegated/verify';
+        $route = '/oauth/openid/-/delegated/verify';
         if (isset($params['provider-data']) && isset($params['provider'])) {
             $js = $this->securer->configureScripts([
                 $this->securer->addSign("sign"),
@@ -93,7 +93,7 @@ class DelegateForm implements AuthorizationForm
         AuthorizedChalleges $challenges,
         mixed $body
     ): PublicLoginAuthResponse {
-        $route = '/openid/-/delegated/verify';
+        $route = '/oauth/openid/-/delegated/verify';
         $result = $this->delegated->validateRedirection($route, $body['provider'], $body['provider-data'], $tenant, $request);
         if ($result && $result->valid) {
             $challenges->username = $result->id;

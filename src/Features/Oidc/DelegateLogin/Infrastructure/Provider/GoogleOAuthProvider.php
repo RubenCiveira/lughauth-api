@@ -26,7 +26,7 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
         private readonly string $clientId,
         private readonly string $secretId
     ) {
-        $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/assets/');
+        $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
     #[Override]
     public function info(): DelegatedProviderDescription

@@ -51,7 +51,7 @@ class DelegateLogin
         $info = json_decode(base64_decode($data), true);
         $provider =  $this->delegate->getProvider($tenant, $providerId);
         $clientData = $provider->authorize($this->context->getBaseUrl() . $route, $info);
-        return  $clientData ? $this->delegate->save($tenant, $request, $clientData) : null;
+        return  $clientData ? $this->delegate->save($tenant, $request, $clientData, $providerId) : null;
     }
 
     public function getTargetEndpoint(string $route, string $tenant, string $providerId, array $data): DelegatedLoginEndpoint

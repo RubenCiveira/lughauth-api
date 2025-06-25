@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedUserData;
 
 interface DelegateLoginRepository
 {
-    public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user): AuthenticationResult;
+    public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user, string $providerId): AuthenticationResult;
 
     public function providers(string $tenant): array;
 
