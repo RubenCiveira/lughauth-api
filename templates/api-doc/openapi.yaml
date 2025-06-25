@@ -1103,6 +1103,50 @@ paths:
                 $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
         404:
           description: 'Not found'
+  '/api/access/tenants-terms-of-use/{uid}/disable':
+    patch:
+      tags:
+        - 'Tenant terms of use'
+      description: 'Update the value'
+      operationId: 8ffc06002e2c7580ba4d2fcd726d6d9f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/tenants-terms-of-use/{uid}/enable':
+    patch:
+      tags:
+        - 'Tenant terms of use'
+      description: 'Update the value'
+      operationId: 0586c66f04423ffd45d569b16a61c305
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantTermsOfUseApiDTO'
+        404:
+          description: 'Not found'
   '/api/access/tenants-terms-of-use{uid}':
     get:
       tags:
@@ -1953,6 +1997,10 @@ components:
         text:
           title: text
           description: 'El text de tenant terms of use'
+          type: string
+        enabled:
+          title: enabled
+          description: 'The indicator to allow the account be used without deleting it'
           type: string
         attached:
           title: attached
