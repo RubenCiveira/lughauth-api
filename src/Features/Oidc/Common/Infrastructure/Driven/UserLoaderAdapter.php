@@ -11,6 +11,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
@@ -25,9 +26,9 @@ class UserLoaderAdapter
     public function __construct(
         private readonly TenantReadGateway $tenants,
         private readonly UserAccessTemporalCodeWriteGateway $codeWriter,
-        private readonly UserReadGateway $users
+        private readonly UserReadGateway $users,
+        private readonly UserWriteGateway $usersWriter,
     ) {
-
     }
 
     public function userCodeForUpdate(User $user): UserAccessTemporalCode
@@ -61,6 +62,23 @@ class UserLoaderAdapter
         return $result;
     }
 
+    /**
+     * @return array{0: User, 1: UserAccessTemporalCode}
+     */
+    public function checkUserByCode(Tenant $tenant, string $code): array
+    {
+        if ($recover = $this->codeWriter->findOneForUpdateByRecoveryCode($code)) {
+            if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid())) {
+                if ($tenant->uid() === $theUser->getTenant()->uid()) {
+                    $username = $theUser->getName();
+                    $this->checkLookupUser($tenant, $theUser, $username);
+                    return [$theUser, $recover];
+                }
+            }
+        }
+        throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $code));
+    }
+
     public function checkUserNameOrEmail(Tenant $tenant, string $username): User
     {
         return $this->checkLookupUser($tenant, $this->users->findOneByTenantAndName($tenant, $username), $username);
@@ -71,7 +89,7 @@ class UserLoaderAdapter
         return $this->checkLookupUser($tenant, $this->users->findOneByTenantAndName($tenant, $username), $username);
     }
 
-    private function checkLookupUser(Tenant $tenant, User $theUser, string $username): User
+    private function checkLookupUser(Tenant $tenant, ?User $theUser, string $username): User
     {
         if (!$theUser) {
             $this->inexistentUser($tenant->getName(), $username);

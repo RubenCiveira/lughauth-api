@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services;
 
 use DateInterval;
+use Ramsey\Uuid\Uuid;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
@@ -18,8 +20,6 @@ use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\LoginUsecase;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
-use Civi\Lughauth\Shared\Context;
-use Ramsey\Uuid\Uuid;
 
 class PublicLogin
 {
@@ -40,11 +40,9 @@ class PublicLogin
 
     public function askPassChange(
         AuthenticationRequest $client,
-        AuthorizedChalleges $keypass,
+        string $suffix,
         string $user,
         string $tenant,
-        string $issuer,
-        string $csid,
         string $state,
         string $nonce
     ): string {
@@ -56,7 +54,7 @@ class PublicLogin
             . '&audience=' . urlencode(implode(',', $client->audiences))
             . '&redirect_uri=' . urlencode($client->redirect)
             . '&response_type=' . urlencode($client->responseType)
-            . '&step=recover-pass&recover_send=true';
+            . '&step=recover-pass&recover_send=true' . $suffix;
         $this->userChpassGateway->requestForChange($url, $tenant, $user);
         return $url;
     }

@@ -67,7 +67,7 @@ class RecoverPassForm implements AuthorizationForm
     ): PublicLoginAuthResponse {
         if (isset($body['user'])) {
             $user = $body['user'];
-            $url = $this->publicLogin->askPassChange($request, $challenges, $user, $tenant, $issuer, $csid, $state, $nonce);
+            $url = $this->publicLogin->askPassChange($request, '&_use_code=', $user, $tenant, $state, $nonce);
             throw new LoginException(AuthenticationResult::waitNewpass($url));
         } else {
             $code = $this->securer->decrypt($body["code"]);
@@ -125,6 +125,7 @@ class RecoverPassForm implements AuthorizationForm
 
     public function paintConfirm(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
+        $params = $request->getQueryParams();
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
             $this->securer->focusOn("type_code"),
@@ -148,6 +149,7 @@ class RecoverPassForm implements AuthorizationForm
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("recoverpass.code.back-label") . "\" />"]
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $defaultCode = $params['_use_code'] ?? '';
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',
@@ -161,7 +163,7 @@ class RecoverPassForm implements AuthorizationForm
                         <input type="hidden" name="code" id="code" value="" />
                         <input type="hidden" name="new_pass" id="new_pass" value="" />
                         <label>{$code}
-                            <input type="text" id="type_code" value="" />
+                            <input type="text" id="type_code" value="{$defaultCode}" />
                         </label>
                         <label>{$pass}
                             <input type="password" id="type_new_pass" id="new_pass" value="" />

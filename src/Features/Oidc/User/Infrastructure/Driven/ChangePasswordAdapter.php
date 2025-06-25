@@ -31,11 +31,11 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     #[Override]
     public function requestForChange(string $url, string $tenant, string $username): void
     {
-        $verify = $this->randomizer->password();
+        $verify = md5($this->randomizer->comb());
         $theTenant = $this->users->checkTenant($tenant, $username);
-        $theUser = $this->users->checkUser($theTenant, $username);
+        $theUser = $this->users->checkUserNameOrEmail($theTenant, $username);
         $code = $this->users->userCodeForUpdate($theUser);
-        $this->users->updateCode($code->generatePasswordRecover($verify, new DateTimeImmutable()->add(new DateInterval("1D"))));
+        $this->users->updateCode($code->generatePasswordRecover(str_ends_with($url, '=') ? $url . $verify : $url, $verify, new DateTimeImmutable()->add(new DateInterval("P1D"))));
     }
     #[Override]
     public function allowRecover(string $tenant): bool
@@ -45,9 +45,16 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     #[Override]
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string
     {
-        $valid = $code === "1111" && $newPass === "22";
-        return $valid ? 'user' : null;
+        $theTenant = $this->users->checkTenant($tenant, $code);
+        [$user, $userCode] = $this->users->checkUserByCode($theTenant, $code);
+        if ($code !== $userCode->getRecoveryCode()) {
+            return null;
+        }
+        $changed = $user->changePassword($this->cypher, $newPass);
+        $this->repository->update($user, $changed);
+        return $user->getName();
     }
+
     #[Override]
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool
     {

@@ -340,6 +340,9 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
+        $sourceUrl = 'one';
+        $targetUrl = 'other';
+        $source = $source->withUrl($sourceUrl);
         $sourceRecoveryCode = 'one';
         $targetRecoveryCode = 'other';
         $source = $source->withRecoveryCode($sourceRecoveryCode);
@@ -348,7 +351,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $source = $source->withRecoveryCodeExpiration($sourceRecoveryCodeExpiration);
 
         // @Act
-        $target = $source->generatePasswordRecover($targetRecoveryCode, $targetRecoveryCodeExpiration);
+        $target = $source->generatePasswordRecover($targetUrl, $targetRecoveryCode, $targetRecoveryCodeExpiration);
 
         // @Assert
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $source->getRecoveryCodeExpiration());

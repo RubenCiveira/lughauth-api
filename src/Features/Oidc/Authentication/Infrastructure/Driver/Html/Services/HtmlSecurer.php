@@ -5,10 +5,10 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services;
 
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 
 class HtmlSecurer
 {
@@ -86,16 +86,20 @@ class HtmlSecurer
         $imp = "";
         $code = "";
         foreach ($spnippeds as $snipped) {
-            if ($snipped->dependecies) {
-                foreach ($snipped->dependecies as $dep) {
-                    $row = "<script src=\"" . $this->assetsPath . $dep . "\"></script>";
-                    if (false === strpos($imp, $row)) {
-                        $imp .= $row;
+            if (is_string($snipped)) {
+                $code .= $snipped;
+            } else {
+                if ($snipped->dependecies) {
+                    foreach ($snipped->dependecies as $dep) {
+                        $row = "<script src=\"" . $this->assetsPath . $dep . "\"></script>";
+                        if (false === strpos($imp, $row)) {
+                            $imp .= $row;
+                        }
                     }
                 }
-            }
-            if (false === strpos($code, $snipped->code)) {
-                $code .= $snipped->code;
+                if (false === strpos($code, $snipped->code)) {
+                    $code .= $snipped->code;
+                }
             }
         }
         return "" . $imp. "<script>"
