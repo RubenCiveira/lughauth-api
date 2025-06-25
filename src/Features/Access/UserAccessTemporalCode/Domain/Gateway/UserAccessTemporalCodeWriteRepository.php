@@ -21,4 +21,5 @@ interface UserAccessTemporalCodeWriteRepository
     public function countForUpdate(?UserAccessTemporalCodeFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?UserAccessTemporalCode;
     public function findOneForUpdateByUser(UserRef $user): ?UserAccessTemporalCode;
+    public function findOneForUpdateByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode;
 }

@@ -18,4 +18,5 @@ interface UserAccessTemporalCodeReadRepository
     public function count(?UserAccessTemporalCodeFilter $filter = null): int;
     public function findOneByUid(string $uid): ?UserAccessTemporalCode;
     public function findOneByUser(UserRef $user): ?UserAccessTemporalCode;
+    public function findOneByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode;
 }

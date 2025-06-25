@@ -271,6 +271,10 @@ class UserAccessTemporalCodePdoConnector
             if ($this->db->exists('SELECT  "user" from "access_user_access_temporal_code" where "user" = :user and "uid" != :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', ['user'], [$entity->getUser()?->uid()]);
             }
+            $values = ['recoveryCode' => $entity->getRecoveryCode(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "recovery_code" from "access_user_access_temporal_code" where "recovery_code" = :recoveryCode and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['recoveryCode'], [$entity->getRecoveryCode()]);
+            }
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -306,6 +310,11 @@ class UserAccessTemporalCodePdoConnector
                 if ($filterUser) {
                     $query .= ' and "user" = :user';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
+                }
+                $filterRecoveryCode = $filter->recoveryCode();
+                if ($filterRecoveryCode) {
+                    $query .= ' and "recovery_code" = :recoveryCode';
+                    $params[] = new SqlParam(name: 'recoveryCode', value: $filterRecoveryCode, type: SqlParam::STR);
                 }
                 if ($filterUser = $filter->user()) {
                     $query .= ' and "user" = :user ';

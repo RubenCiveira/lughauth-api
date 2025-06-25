@@ -13,6 +13,7 @@ class UserAccessTemporalCodeFilter
         private ?array $uids = null,
         private ?string $search = null,
         public readonly ?UserRef $user = null,
+        public readonly ?string $recoveryCode = null,
         private ?array $users = null,
         private ?string $userTenantTenantAccesible = null,
     ) {
@@ -45,6 +46,16 @@ class UserAccessTemporalCodeFilter
     {
         $copy = clone $this;
         $copy->user = $user;
+        return $copy;
+    }
+    public function recoveryCode(): ?string
+    {
+        return $this->recoveryCode;
+    }
+    public function withRecoveryCode($recoveryCode): self
+    {
+        $copy = clone $this;
+        $copy->recoveryCode = $recoveryCode;
         return $copy;
     }
     public function users(): ?array

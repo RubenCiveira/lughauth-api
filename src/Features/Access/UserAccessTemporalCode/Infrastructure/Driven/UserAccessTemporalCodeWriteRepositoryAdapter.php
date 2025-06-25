@@ -165,6 +165,20 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
             $span->end();
         }
     }
+    #[Override]
+    public function findOneForUpdateByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Find on by recovery code for User access temporal code on adapter");
+        $span = $this->startSpan("Find on by recovery code for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieveForUpdate(new UserAccessTemporalCodeFilter(recoveryCode: $recoveryCode));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     private function dispach(UserAccessTemporalCode $entity)
     {
         $this->logDebug("Count for User access temporal code on adapter ");

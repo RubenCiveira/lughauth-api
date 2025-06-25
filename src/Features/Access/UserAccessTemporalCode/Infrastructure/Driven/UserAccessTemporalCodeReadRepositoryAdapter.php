@@ -124,4 +124,18 @@ class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalC
             $span->end();
         }
     }
+    #[Override]
+    public function findOneByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Find on by recovery code for User access temporal code on adapter");
+        $span = $this->startSpan("Find on by recovery code for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieve(new UserAccessTemporalCodeFilter(recoveryCode: $recoveryCode));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
 }
