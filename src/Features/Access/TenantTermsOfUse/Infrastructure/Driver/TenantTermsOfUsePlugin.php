@@ -13,6 +13,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\Te
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseRetrieveController;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseUpdateController;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseDeleteController;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseEnableController;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseDisableController;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseTempAttachedUploadController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
@@ -30,6 +32,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\List
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowProposal;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowProposal;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -49,6 +55,8 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $bus->registerListener(TenantTermsOfUseRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantTermsOfUseListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantTermsOfUseDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TenantTermsOfUseEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TenantTermsOfUseDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup)
     {
@@ -65,6 +73,12 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $tenantTermsOfUseGroup->delete('/{uid}', [TenantTermsOfUseDeleteController::class, 'delete']);
         $tenantTermsOfUseGroup->delete('', [TenantTermsOfUseDeleteController::class, 'deleteAllForQuery']);
         $tenantTermsOfUseGroup->get('/~/delete-status/{uid}', [TenantTermsOfUseDeleteController::class, 'checkDeleteAllForQueryStatus']);
+        $tenantTermsOfUseGroup->patch('/~/enable', [TenantTermsOfUseEnableController::class, 'enableAllForQuery']);
+        $tenantTermsOfUseGroup->patch('/{uid}/enable', [TenantTermsOfUseEnableController::class, 'enable']);
+        $tenantTermsOfUseGroup->get('/~/enable-status/{uid}', [TenantTermsOfUseEnableController::class, 'checkEnableAllForQueryStatus']);
+        $tenantTermsOfUseGroup->patch('/~/disable', [TenantTermsOfUseDisableController::class, 'disableAllForQuery']);
+        $tenantTermsOfUseGroup->patch('/{uid}/disable', [TenantTermsOfUseDisableController::class, 'disable']);
+        $tenantTermsOfUseGroup->get('/~/disable-status/{uid}', [TenantTermsOfUseDisableController::class, 'checkDisableAllForQueryStatus']);
         $tenantTermsOfUseGroup->post('/-/temp-attached', [TenantTermsOfUseTempAttachedUploadController::class, 'uploadTemp']);
         $tenantTermsOfUseGroup->get('/-/temp-attached', [TenantTermsOfUseTempAttachedUploadController::class, 'getTemp']);
     }

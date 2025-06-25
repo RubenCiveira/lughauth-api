@@ -40,6 +40,7 @@ class TenantTermsOfUseRestMapper
             $dto->uid = $body['uid'] ?? null;
             $dto->tenant = $body['tenant'] ?? null;
             $dto->text = $body['text'] ?? null;
+            $dto->enabled = $body['enabled'] ?? null;
             $dto->attached = $body['attached'] ?? null;
             $dto->activationDate = $body['activationDate'] ?? null;
             $dto->version = $body['version'] ?? null;
@@ -63,6 +64,7 @@ class TenantTermsOfUseRestMapper
                 $value->tenant(TenantTermsOfUseTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
             }
             $value->text(TenantTermsOfUseTextVO::tryFrom($body->text ?? null, $errorsList));
+            // enabled is a calculated value, we cant read it
             $preffixAttached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/-/temp-attached?temp=';
             if (isset($body->attached) && strpos($body->attached, $preffixAttached) === 0) {
                 $value->attached(TenantTermsOfUseAttachedVO::tryFromTemporal(base64_decode(substr($body->attached, strlen($preffixAttached))), $errorsList));
@@ -90,6 +92,7 @@ class TenantTermsOfUseRestMapper
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->text = $value->getText();
+            $dto->enabled = $value->getEnabled();
             if ($value->getAttached()) {
                 $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
             }

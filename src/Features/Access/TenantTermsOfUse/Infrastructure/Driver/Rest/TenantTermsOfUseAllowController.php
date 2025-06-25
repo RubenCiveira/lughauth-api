@@ -15,6 +15,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\Tena
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateUsecase;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteUsecase;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveUsecase;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableUsecase;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableUsecase;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
@@ -30,6 +32,8 @@ class TenantTermsOfUseAllowController
         private readonly TenantTermsOfUseUpdateUsecase $updateUsecase,
         private readonly TenantTermsOfUseDeleteUsecase $deleteUsecase,
         private readonly TenantTermsOfUseRetrieveUsecase $retrieveUsecase,
+        private readonly TenantTermsOfUseEnableUsecase $enableUsecase,
+        private readonly TenantTermsOfUseDisableUsecase $disableUsecase,
     ) {
     }
     #[OA\Get(
@@ -53,6 +57,8 @@ class TenantTermsOfUseAllowController
                 $this->updateUsecase->allowUpdate(),
               $this->deleteUsecase->allowDelete(),
               $this->retrieveUsecase->allowRetrieve(),
+              $this->enableUsecase->allowEnable(),
+              $this->disableUsecase->allowDisable(),
               ],
               'fields' => [
                 'noEditables' => $this->updateUsecase->fixedFields(),
@@ -96,6 +102,8 @@ class TenantTermsOfUseAllowController
                 $this->updateUsecase->allowUpdate($ref),
               $this->deleteUsecase->allowDelete($ref),
               $this->retrieveUsecase->allowRetrieve($ref),
+              $this->enableUsecase->allowEnable($ref),
+              $this->disableUsecase->allowDisable($ref),
               ],
               'fields' => [
                 'noEditables' => $this->updateUsecase->fixedFields($ref),

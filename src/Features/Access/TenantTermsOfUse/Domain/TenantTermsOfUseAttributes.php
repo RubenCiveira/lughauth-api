@@ -11,6 +11,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\Ten
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTextAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseEnabledAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseAttachedAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseActivationDateAttributeHolder;
@@ -24,6 +26,7 @@ class TenantTermsOfUseAttributes
     use TenantTermsOfUseUidAttributeHolder;
     use TenantTermsOfUseTenantAttributeHolder;
     use TenantTermsOfUseTextAttributeHolder;
+    use TenantTermsOfUseEnabledAttributeHolder;
     use TenantTermsOfUseAttachedAttributeHolder;
     use TenantTermsOfUseActivationDateAttributeHolder;
     use TenantTermsOfUseVersionAttributeHolder;
@@ -32,6 +35,7 @@ class TenantTermsOfUseAttributes
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'text' => 'unsetText',
+      'enabled' => 'unsetEnabled',
       'attached' => 'unsetAttached',
       'activationDate' => 'unsetActivationDate',
       'version' => 'unsetVersion',
@@ -43,6 +47,7 @@ class TenantTermsOfUseAttributes
         $uid = TenantTermsOfUseUidVO::tryFrom($this->uid, $errors);
         $tenant = TenantTermsOfUseTenantVO::tryFrom($this->tenant, $errors);
         $text = TenantTermsOfUseTextVO::tryFrom($this->text, $errors);
+        $enabled = TenantTermsOfUseEnabledVO::tryFrom($this->enabled, $errors);
         $attached = TenantTermsOfUseAttachedVO::tryFrom($this->attached, $errors);
         $activationDate = TenantTermsOfUseActivationDateVO::tryFrom($this->activationDate, $errors);
         $version = TenantTermsOfUseVersionVO::tryFrom($this->version, $errors);
@@ -52,6 +57,7 @@ class TenantTermsOfUseAttributes
             uid: $uid,
             tenant: $tenant,
             text: $text,
+            enabled: $enabled,
             attached: $attached,
             activationDate: $activationDate,
             version: $version,
@@ -70,6 +76,7 @@ class TenantTermsOfUseAttributes
         $this->withAssertedUidRules($value, $errorsList);
         $this->withAssertedTenantRules($value, $errorsList);
         $this->withAssertedTextRules($value, $errorsList);
+        $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedAttachedRules($value, $errorsList);
         $this->withAssertedActivationDateRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
@@ -83,6 +90,7 @@ class TenantTermsOfUseAttributes
         $this->withDefaultUid();
         $this->withDefaultTenant();
         $this->withDefaultText();
+        $this->withDefaultEnabled();
         $this->withDefaultAttached();
         $this->withDefaultActivationDate();
         $this->withDefaultVersion();

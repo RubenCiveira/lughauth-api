@@ -120,10 +120,11 @@ class TenantTermsOfUsePdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant terms of use");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_terms_of_use" ( "uid", "tenant", "text", "attached", "activation_date", "version") VALUES ( :uid, :tenant, :text, :attached, :activationDate, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_terms_of_use" ( "uid", "tenant", "text", "enabled", "attached", "activation_date", "version") VALUES ( :uid, :tenant, :text, :enabled, :attached, :activationDate, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'text', value: $entity->getText(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'attached', value: $entity->getAttached(), type: SqlParam::STR),
                      new SqlParam(name: 'activationDate', value: $entity->getActivationDate(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
@@ -153,10 +154,11 @@ class TenantTermsOfUsePdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant terms of use");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_terms_of_use" SET "tenant" = :tenant , "text" = :text , "attached" = :attached , "activation_date" = :activationDate , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_terms_of_use" SET "tenant" = :tenant , "text" = :text , "enabled" = :enabled , "attached" = :attached , "activation_date" = :activationDate , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'text', value: $update->getText(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'attached', value: $update->getAttached(), type: SqlParam::STR),
                      new SqlParam(name: 'activationDate', value: $update->getActivationDate(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
@@ -340,6 +342,7 @@ class TenantTermsOfUsePdoConnector
                 uid: $row['uid'] ?? null,
                 tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
                 text: $row['text'] ?? null,
+                enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
                 attached: isset($row['attached']) && $row['attached'] ? TenantTermsOfUseAttachedVO::fromStored($row['attached']) : TenantTermsOfUseAttachedVO::empty(),
                 activationDate: $row['activation_date'] ? new \DateTimeImmutable($row['activation_date']) : null,
                 version: $row['version'] ?? null,

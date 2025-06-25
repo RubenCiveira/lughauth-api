@@ -35,6 +35,13 @@ class TenantTermsOfUseApiDTO
     )]
     public ?string $text;
     #[OA\Property(
+        property: "enabled",
+        title: "enabled",
+        description:"The indicator to allow the account be used without deleting it",
+        type: "string"
+    )]
+    public ?bool $enabled;
+    #[OA\Property(
         property: "attached",
         title: "attached",
         description:"El attached de tenant terms of use",
