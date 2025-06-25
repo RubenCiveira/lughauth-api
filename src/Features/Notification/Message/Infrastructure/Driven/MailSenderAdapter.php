@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven;
 
+use Exception;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\PHPMailer;
+use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MailSenderRepository;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
-use Civi\Lughauth\Shared\AppConfig;
-use Exception;
-use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\SMTP;
 
 class MailSenderAdapter implements MailSenderRepository
 {
@@ -50,8 +50,14 @@ class MailSenderAdapter implements MailSenderRepository
         $mail->Password = $this->password;
         $mail->setFrom($this->senderEmail, $this->senderName);
         $mail->Subject = $message->subject;
-        $mail->isHTML(false);
-        $mail->Body = $message->txtContent;
+        if ($message->htmlContent) {
+            $mail->isHTML(true);
+            $mail->Body = $message->htmlContent;
+            $mail->AltBody = $message->txtContent;
+        } else {
+            $mail->isHTML(false);
+            $mail->Body = $message->txtContent;
+        }
         $mail->AddAddress($message->targetAddress, $message->targetName);
         if (!$mail->Send()) {
             throw new Exception($mail->ErrorInfo);
