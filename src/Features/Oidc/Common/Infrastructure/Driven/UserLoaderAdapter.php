@@ -10,6 +10,9 @@ use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -28,6 +31,7 @@ class UserLoaderAdapter
         private readonly UserAccessTemporalCodeWriteGateway $codeWriter,
         private readonly UserReadGateway $users,
         private readonly UserWriteGateway $usersWriter,
+        private readonly TenantTermsOfUseReadGateway $terms,
     ) {
     }
 
@@ -41,6 +45,28 @@ class UserLoaderAdapter
             $code = $this->codeWriter->create(UserAccessTemporalCode::create($atts));
         }
         return $code;
+    }
+
+    public function loadTenantTerms(Tenant $tenant): ?TenantTermsOfUse
+    {
+        /** @var ?TenantTermsOfUse  */
+        $last = null;
+        $now = new DateTimeImmutable();
+        $query = new TenantTermsOfUseFilter(tenant: $tenant);
+        $all = $this->terms->list($query);
+        foreach ($all as $term) {
+            $on = $term->getActivationDate();
+            if (!$on || !$term->getEnabled() || $on > $now) {
+                // No date.
+                continue;
+            }
+            if ($last != null && $last->getActivationDate() > $on) {
+                // Date before prev selected
+                continue;
+            }
+            $last = $term;
+        }
+        return $last;
     }
 
     public function updateCode(UserAccessTemporalCode $user): UserAccessTemporalCode

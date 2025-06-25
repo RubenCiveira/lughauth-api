@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
@@ -20,6 +19,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
@@ -35,7 +35,7 @@ class LoginAdapter implements LoginRepository
         private readonly AesCypherService $cypher,
         private readonly UserLoaderAdapter $users,
         private readonly TenantConfigReadGateway $configs,
-        private readonly TenantTermsOfUseReadGateway $terms,
+        private readonly UserAcceptedTermnsOfUseReadGateway $userTerms,
         private readonly UserIdentityReadGateway $identities,
         private readonly TrustedClientReadGateway $clients,
         private readonly RelyingPartyReadGateway $parties,
@@ -113,7 +113,10 @@ class LoginAdapter implements LoginRepository
 
     private function checkTerms(Tenant $tenant, User $user): ?AuthenticationResult
     {
-        // $this->terms->findOneByUid();
+        if ($terms = $this->users->loadTenantTerms($tenant)) {
+            $accepted = $this->userTerms->findOneByUserAndConditions($user, $terms);
+            return $accepted ? null : AuthenticationResult::consentRequired($terms->getText());
+        }
         return null;
     }
 
