@@ -41,7 +41,7 @@
     "php-di/php-di": "^7.0",
     "phpmailer/phpmailer": "^6.10",
     "promphp/prometheus_client_php": "^2.14",
-    "league/oauth2-google": "^4.0",
+    "league/oauth2-google": "*",
     "ramsey/uuid": "^4.8",
     "respect/validation": "^2.4",
     "robmorgan/phinx": "^0.16.9",
