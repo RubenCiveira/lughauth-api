@@ -61,9 +61,18 @@ class UserLoaderAdapter
         return $result;
     }
 
+    public function checkUserNameOrEmail(Tenant $tenant, string $username): User
+    {
+        return $this->checkLookupUser($tenant, $this->users->findOneByTenantAndName($tenant, $username), $username);
+    }
+
     public function checkUser(Tenant $tenant, string $username): User
     {
-        $theUser = $this->users->findOneByTenantAndName($tenant, $username);
+        return $this->checkLookupUser($tenant, $this->users->findOneByTenantAndName($tenant, $username), $username);
+    }
+
+    private function checkLookupUser(Tenant $tenant, User $theUser, string $username): User
+    {
         if (!$theUser) {
             $this->inexistentUser($tenant->getName(), $username);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
