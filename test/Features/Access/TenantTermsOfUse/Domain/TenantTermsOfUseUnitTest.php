@@ -17,6 +17,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             text: 'one',
+            enabled: true,
             attached: 'store://bin',
             activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -45,6 +46,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             text: 'one',
+            enabled: true,
             attached: 'store://bin',
             activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -53,6 +55,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'other',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
             text: 'other',
+            enabled: false,
             attached: 'store://obin',
             activationDate: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -81,6 +84,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             text: 'one',
+            enabled: true,
             attached: 'store://bin',
             activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -110,6 +114,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             text: 'one',
+            enabled: true,
             attached: 'store://bin',
             activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -118,6 +123,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'other',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
             text: 'other',
+            enabled: false,
             attached: 'store://obin',
             activationDate: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -148,6 +154,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             text: 'one',
+            enabled: true,
             attached: 'store://bin',
             activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -168,5 +175,53 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertTrue($one->isActivationDateChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
+    }
+    public function test_enable_modify(): void
+    {
+        // @Arrange
+        $source = new TenantTermsOfUse(
+            uid: 'one',
+            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            text: 'one',
+            enabled: true,
+            attached: 'store://bin',
+            activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+        $sourceEnabled = false;
+        $targetEnabled = true;
+        $source = $source->withEnabled($sourceEnabled);
+
+        // @Act
+        $target = $source->enable();
+
+        // @Assert
+        $this->assertEquals(false, $source->getEnabled());
+        $this->assertEquals($targetEnabled, $target->getEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+    }
+    public function test_disable_modify(): void
+    {
+        // @Arrange
+        $source = new TenantTermsOfUse(
+            uid: 'one',
+            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            text: 'one',
+            enabled: true,
+            attached: 'store://bin',
+            activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+        $sourceEnabled = true;
+        $targetEnabled = false;
+        $source = $source->withEnabled($sourceEnabled);
+
+        // @Act
+        $target = $source->disable();
+
+        // @Assert
+        $this->assertEquals(true, $source->getEnabled());
+        $this->assertEquals($targetEnabled, $target->getEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
     }
 }
