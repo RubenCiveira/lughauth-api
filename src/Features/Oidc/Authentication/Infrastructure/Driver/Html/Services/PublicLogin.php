@@ -48,7 +48,7 @@ class PublicLogin
         string $state,
         string $nonce
     ): string {
-        $url = $this->context->getBaseUrl() . '/openid/' . $tenant . '/authorize?'
+        $url = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize?'
             . 'client_id=' . urlencode($client->client->id)
             . '&scope=' . urlencode($client->scope)
             . '&state=' . urlencode($state)
