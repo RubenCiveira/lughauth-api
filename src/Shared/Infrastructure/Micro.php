@@ -22,7 +22,6 @@ use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
 use chillerlan\SimpleCache\CacheOptions;
-use chillerlan\SimpleCache\FileCache;
 use GuzzleHttp\Client;
 use Monolog\Logger;
 use Monolog\Handler\RotatingFileHandler;
@@ -36,7 +35,9 @@ use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
 use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory;
+use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Infrastructure\Cacheable\SafeFileCache;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\JwtVerifierMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\CorsMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
@@ -49,7 +50,6 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\RateLimitMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
-use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 
 class Micro
 {
@@ -234,7 +234,7 @@ class Micro
             if (!is_dir($dir)) {
                 mkdir($dir);
             }
-            return new FileCache(new CacheOptions(['cacheFilestorage' => $dir]));
+            return new SafeFileCache(new CacheOptions(['cacheFilestorage' => $dir]));
         };
     }
 
