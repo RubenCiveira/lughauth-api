@@ -69,7 +69,7 @@ class RegisterUserForm implements AuthorizationForm
             $user = $body['user'];
             $accept = $body['accept'];
             $pass  = $this->securer->decrypt($body["pass"]);
-            if( $accept !== 'accept' ) {
+            if ($accept !== 'accept') {
                 throw new LoginException(AuthenticationResult::unknowUser($tenant, $user, 'conditions_requierd'));
             } else {
                 $url = $this->publicLogin->askRegisterUser($request, '&_use_code=', $user, $pass, $tenant, $state, $nonce);
@@ -101,11 +101,11 @@ class RegisterUserForm implements AuthorizationForm
         $pass = $translator->get("registeruser.ask.password");
 
         $accept = '<input type="hidden" name="accept" value="accept" />';
-        if( $terms = $this->publicLogin->getPendingConsent($tenant) ) {
+        if ($terms = $this->publicLogin->getPendingConsent($tenant)) {
             $accept = '<input type="checkbox" name="accept" value="accept" />' .
                             '<textarea type="text" readonly>' . $terms . '</textarea>';
         }
-        
+
         $backText = $translator->get(
             "registeruser.ask.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("registeruser.ask.back-label") . "\" />"]

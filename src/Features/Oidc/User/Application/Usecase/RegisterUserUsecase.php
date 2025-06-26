@@ -12,7 +12,7 @@ class RegisterUserUsecase
     public function __construct(private readonly RegisterUserGateway $gateway)
     {
     }
-    
+
     public function allowRegister(string $tenant): bool
     {
         return $this->gateway->allowRegister($tenant);
