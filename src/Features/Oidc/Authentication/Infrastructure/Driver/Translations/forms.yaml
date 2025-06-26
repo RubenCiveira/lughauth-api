@@ -7,6 +7,8 @@ login:
   password: Contraseña
   recover-text: Si olvidó su contraseña, pulse {0}
   recover-label: aqui
+  register-text: Si no tienes usuarios, puedes registrarte {0}
+  register-label: aqui
   enter: Identificarse
 
 recover:
@@ -52,6 +54,34 @@ recoverpass:
     newpass: Nueva contraseña
     back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
     back-label: aqui
+    send: Verificar
+
+registeruser:
+  ask:
+    title: Recuperar clave
+    help: Indique su username o su correo, y si existe se le adjuntarán las instrucciones para resetear la constraseña.
+    error-format: "Error: {0}"
+    email: Email:
+    password: Clave:
+    send: Enviar instrucciones
+    back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
+    back-label: aqui
+  info:
+    title: Instrucciones enviadas
+    help: Revise el correo electrónico que ha indicado para encontrar el codigo para verificar la cuenta y poder registrarse.
+    error-format: "Error: {0}"
+    goto-text: Desde {0} puede introducir los código remitidos. 
+    goto-label: aqui 
+    back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
+    back-label: aqui
+  code:
+    title: Instrucciones enviadas
+    help: Si el usuario o correo que ha indicado existe en nuestros sistemas, se le habrán enviado instrucciones para resetear la constraseña.
+    error-format: "Error: {0}"
+    validation: Código
+    back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
+    back-label: aqui
+    send: Verificar
 
 newpass:
   title: Cambiar clave

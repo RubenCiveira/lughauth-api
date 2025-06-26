@@ -23,6 +23,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
@@ -49,10 +50,11 @@ class AuthorizeHtml
         NewPassForm $pass,
         UseMfaForm $useMfa,
         RecoverPassForm $recover,
-        DelegateForm $delegate
+        DelegateForm $delegate,
+        RegisterUserForm $register,
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
-        $this->forms = [$conset, $login, $mfa, $pass, $useMfa, $recover, $delegate ];
+        $this->forms = [$conset, $login, $mfa, $pass, $useMfa, $recover, $register, $delegate ];
     }
 
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

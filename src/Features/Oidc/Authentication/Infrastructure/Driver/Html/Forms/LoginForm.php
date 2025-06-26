@@ -69,6 +69,9 @@ class LoginForm implements AuthorizationForm
         $recoverText = $translator->get("login.recover-text", [
              "<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("login.recover-label") . "\"/>"
         ]);
+        $registerText = $translator->get("login.register-text", [
+             "<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("login.register-label") . "\"/>"
+        ]);
         $enter = $translator->get("login.enter");
 
         $delegatedLogins = "";
@@ -90,6 +93,15 @@ class LoginForm implements AuthorizationForm
                 <form method="POST">
                     <input type="hidden" name="step" value="recover-pass" />
                     {$recoverText}
+                </form>
+                HTML;
+        }
+        $registerUser = "";
+        if ($this->publicLogin->allowUserRegister($tenant)) {
+            $registerUser .= <<<HTML
+                <form method="POST">
+                    <input type="hidden" name="step" value="register-user" />
+                    {$registerText}
                 </form>
                 HTML;
         }
@@ -117,6 +129,7 @@ class LoginForm implements AuthorizationForm
                         <input class="primary-button" type="submit" value="{$enter}" />
                     </form>
                     {$recoverPass}
+                    {$registerUser}
                     {$delegatedLogins}
                 HTML,
                 'es'

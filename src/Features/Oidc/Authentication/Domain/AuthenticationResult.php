@@ -12,6 +12,7 @@ class AuthenticationResult
     public const ERR_CONSENT_REQUIRED = 'CONSENT_REQUIRED';
     public const ERR_NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED';
     public const ERR_WAITING_PASSCHANGE_CODE = 'WAITING_PASSCHANGE_CODE';
+    public const ERR_WAITING_USER_VERIFY = 'WAITING_USER_VERIFY';
     public const ERR_UNKNOW_USER = 'UNKNOW_USER';
     public const ERR_WRONG_CREDENTIAL = 'WRONG_CREDENTIAL';
     public const ERR_NOT_ALLOWED_ACCESS = 'NOT_ALLOWED_ACCESS';
@@ -19,6 +20,10 @@ class AuthenticationResult
     public static function waitNewpass($url, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_PASSCHANGE_CODE, errorMessage: $detail);
+    }
+    public static function waitNewuserVerify($url, ?string $detail = null): AuthenticationResult
+    {
+        return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_USER_VERIFY, errorMessage: $detail);
     }
     public static function mfaRequired(?string $detail = null): AuthenticationResult
     {

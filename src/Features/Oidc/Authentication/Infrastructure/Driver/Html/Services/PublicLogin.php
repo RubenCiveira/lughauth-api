@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\LoginUsecase;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
 class PublicLogin
@@ -30,7 +31,59 @@ class PublicLogin
         private readonly SessionStoreGateway $session,
         private readonly ClientStoreGateway $clients,
         private readonly ChangePasswordUsecase $userChpassGateway,
+        private readonly RegisterUserUsecase $userRegisterGateway
     ) {
+    }
+
+    public function allowUserRegister(string $tenant): bool
+    {
+        return $this->userRegisterGateway->allowRegister($tenant);
+    }
+
+    public function getPendingConsent(string $tenant): ?string
+    {
+        return $this->userRegisterGateway->getPendingConsent($tenant);
+    }
+
+    public function askRegisterUser(
+        AuthenticationRequest $client,
+        string $suffix,
+        string $email,
+        string $password,
+        string $tenant,
+        string $state,
+        string $nonce
+    ): string {
+        $url = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize?'
+            . 'client_id=' . urlencode($client->client->id)
+            . '&scope=' . urlencode($client->scope)
+            . '&state=' . urlencode($state)
+            . '&nonce=' . urlencode($nonce)
+            . '&audience=' . urlencode(implode(',', $client->audiences))
+            . '&redirect_uri=' . urlencode($client->redirect)
+            . '&response_type=' . urlencode($client->responseType)
+            . '&step=register-user&verify_send=true' . $suffix;
+        $this->userRegisterGateway->requestForRegister($url, $tenant, $email, $password);
+        return $url;
+    }
+
+    public function confirmRegisterUser(
+        AuthenticationRequest $client,
+        AuthorizedChalleges $keypass,
+        string $code,
+        string $tenant,
+        string $issuer,
+        string $csid,
+        string $state,
+        string $nonce
+    ): PublicLoginAuthResponse {
+        $user = $this->userRegisterGateway->verifyRegister($tenant, $code);
+        if ($user) {
+            $keypass->username = $user;
+            return $this->preAutenticate($client, $keypass, $tenant, $issuer, $csid, $state, $nonce);
+        } else {
+            throw new LoginException(auth: AuthenticationResult::waitNewuserVerify('', 'Invalid code'));
+        }
     }
 
     public function allowUserRecoverPassword(string $tenant): bool
