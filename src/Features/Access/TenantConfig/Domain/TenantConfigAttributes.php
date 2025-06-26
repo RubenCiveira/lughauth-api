@@ -13,6 +13,22 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInnerLabelVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigForceMfaAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnabledUserEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRecoverPassAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRecoverPassVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRecoverPassEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRecoverPassEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -23,6 +39,14 @@ class TenantConfigAttributes
     use TenantConfigTenantAttributeHolder;
     use TenantConfigInnerLabelAttributeHolder;
     use TenantConfigForceMfaAttributeHolder;
+    use TenantConfigAllowRegisterAttributeHolder;
+    use TenantConfigEnableRegisterUsersAttributeHolder;
+    use TenantConfigWellcomeEmailAttributeHolder;
+    use TenantConfigRegisterdEmailAttributeHolder;
+    use TenantConfigDisabledUserEmailAttributeHolder;
+    use TenantConfigEnabledUserEmailAttributeHolder;
+    use TenantConfigAllowRecoverPassAttributeHolder;
+    use TenantConfigRecoverPassEmailAttributeHolder;
     use TenantConfigVersionAttributeHolder;
 
     private const UNSETS = [
@@ -30,6 +54,14 @@ class TenantConfigAttributes
       'tenant' => 'unsetTenant',
       'innerLabel' => 'unsetInnerLabel',
       'forceMfa' => 'unsetForceMfa',
+      'allowRegister' => 'unsetAllowRegister',
+      'enableRegisterUsers' => 'unsetEnableRegisterUsers',
+      'wellcomeEmail' => 'unsetWellcomeEmail',
+      'registerdEmail' => 'unsetRegisterdEmail',
+      'disabledUserEmail' => 'unsetDisabledUserEmail',
+      'enabledUserEmail' => 'unsetEnabledUserEmail',
+      'allowRecoverPass' => 'unsetAllowRecoverPass',
+      'recoverPassEmail' => 'unsetRecoverPassEmail',
       'version' => 'unsetVersion',
     ];
 
@@ -40,6 +72,14 @@ class TenantConfigAttributes
         $tenant = TenantConfigTenantVO::tryFrom($this->tenant, $errors);
         $innerLabel = TenantConfigInnerLabelVO::tryFrom($this->innerLabel, $errors);
         $forceMfa = TenantConfigForceMfaVO::tryFrom($this->forceMfa, $errors);
+        $allowRegister = TenantConfigAllowRegisterVO::tryFrom($this->allowRegister, $errors);
+        $enableRegisterUsers = TenantConfigEnableRegisterUsersVO::tryFrom($this->enableRegisterUsers, $errors);
+        $wellcomeEmail = TenantConfigWellcomeEmailVO::tryFrom($this->wellcomeEmail, $errors);
+        $registerdEmail = TenantConfigRegisterdEmailVO::tryFrom($this->registerdEmail, $errors);
+        $disabledUserEmail = TenantConfigDisabledUserEmailVO::tryFrom($this->disabledUserEmail, $errors);
+        $enabledUserEmail = TenantConfigEnabledUserEmailVO::tryFrom($this->enabledUserEmail, $errors);
+        $allowRecoverPass = TenantConfigAllowRecoverPassVO::tryFrom($this->allowRecoverPass, $errors);
+        $recoverPassEmail = TenantConfigRecoverPassEmailVO::tryFrom($this->recoverPassEmail, $errors);
         $version = TenantConfigVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -48,6 +88,14 @@ class TenantConfigAttributes
             tenant: $tenant,
             innerLabel: $innerLabel,
             forceMfa: $forceMfa,
+            allowRegister: $allowRegister,
+            enableRegisterUsers: $enableRegisterUsers,
+            wellcomeEmail: $wellcomeEmail,
+            registerdEmail: $registerdEmail,
+            disabledUserEmail: $disabledUserEmail,
+            enabledUserEmail: $enabledUserEmail,
+            allowRecoverPass: $allowRecoverPass,
+            recoverPassEmail: $recoverPassEmail,
             version: $version,
         );
     }
@@ -65,6 +113,14 @@ class TenantConfigAttributes
         $this->withAssertedTenantRules($value, $errorsList);
         $this->withAssertedInnerLabelRules($value, $errorsList);
         $this->withAssertedForceMfaRules($value, $errorsList);
+        $this->withAssertedAllowRegisterRules($value, $errorsList);
+        $this->withAssertedEnableRegisterUsersRules($value, $errorsList);
+        $this->withAssertedWellcomeEmailRules($value, $errorsList);
+        $this->withAssertedRegisterdEmailRules($value, $errorsList);
+        $this->withAssertedDisabledUserEmailRules($value, $errorsList);
+        $this->withAssertedEnabledUserEmailRules($value, $errorsList);
+        $this->withAssertedAllowRecoverPassRules($value, $errorsList);
+        $this->withAssertedRecoverPassEmailRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -77,6 +133,14 @@ class TenantConfigAttributes
         $this->withDefaultTenant();
         $this->withDefaultInnerLabel();
         $this->withDefaultForceMfa();
+        $this->withDefaultAllowRegister();
+        $this->withDefaultEnableRegisterUsers();
+        $this->withDefaultWellcomeEmail();
+        $this->withDefaultRegisterdEmail();
+        $this->withDefaultDisabledUserEmail();
+        $this->withDefaultEnabledUserEmail();
+        $this->withDefaultAllowRecoverPass();
+        $this->withDefaultRecoverPassEmail();
         $this->withDefaultVersion();
         return $this;
     }

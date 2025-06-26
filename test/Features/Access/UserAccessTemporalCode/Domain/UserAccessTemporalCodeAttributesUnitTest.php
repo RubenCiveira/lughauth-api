@@ -9,6 +9,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\User
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedExpirationVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeFailedLoginAttemptsVO;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeExpirationVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeVersionVO;
@@ -64,6 +65,17 @@ final class UserAccessTemporalCodeAttributesUnitTest extends TestCase
         $value->unsetFailedLoginAttempts();
         $this->assertEquals(2, $value->getFailedLoginAttemptsOrDefault(UserAccessTemporalCodeFailedLoginAttemptsVO::from($failedLoginAttemptsOtherValue))->value());
         $this->assertNotEquals(1, $value->getFailedLoginAttemptsOrDefault(UserAccessTemporalCodeFailedLoginAttemptsVO::from($failedLoginAttemptsOtherValue))->value());
+        $registerCodeOneValue = 'one';
+        $registerCodeOtherValue = 'other';
+        $copy = $value->registerCode($registerCodeOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getRegisterCode());
+        $this->assertNotEquals('other', $value->getRegisterCode());
+        $this->assertEquals('one', $value->getRegisterCodeOrDefault(UserAccessTemporalCodeRegisterCodeVO::from($registerCodeOtherValue))->value());
+        $this->assertNotEquals('other', $value->getRegisterCodeOrDefault(UserAccessTemporalCodeRegisterCodeVO::from($registerCodeOtherValue))->value());
+        $value->unsetRegisterCode();
+        $this->assertEquals('other', $value->getRegisterCodeOrDefault(UserAccessTemporalCodeRegisterCodeVO::from($registerCodeOtherValue))->value());
+        $this->assertNotEquals('one', $value->getRegisterCodeOrDefault(UserAccessTemporalCodeRegisterCodeVO::from($registerCodeOtherValue))->value());
         $recoveryCodeOneValue = 'one';
         $recoveryCodeOtherValue = 'other';
         $copy = $value->recoveryCode($recoveryCodeOneValue);

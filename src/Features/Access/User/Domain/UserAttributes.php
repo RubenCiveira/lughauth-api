@@ -15,6 +15,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAtt
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
@@ -23,18 +25,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserUseSecondFa
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserSecondFactorSeedAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTempSecondFactorSeedAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTempSecondFactorSeedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserFailedLoginAttemptsAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserFailedLoginAttemptsVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserBlockedUntilAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserRecoveryCodeAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRecoveryCodeVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserRecoveryCodeExpirationAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRecoveryCodeExpirationVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserLanguageAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserLanguageVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserProviderAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserVersionAttributeHolder;
@@ -48,16 +40,12 @@ class UserAttributes
     use UserNameAttributeHolder;
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
+    use UserWellcomeAtAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
     use UserUseSecondFactorsAttributeHolder;
     use UserSecondFactorSeedAttributeHolder;
-    use UserTempSecondFactorSeedAttributeHolder;
-    use UserFailedLoginAttemptsAttributeHolder;
     use UserBlockedUntilAttributeHolder;
-    use UserRecoveryCodeAttributeHolder;
-    use UserRecoveryCodeExpirationAttributeHolder;
-    use UserLanguageAttributeHolder;
     use UserProviderAttributeHolder;
     use UserVersionAttributeHolder;
 
@@ -67,16 +55,12 @@ class UserAttributes
       'name' => 'unsetName',
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
+      'wellcomeAt' => 'unsetWellcomeAt',
       'enabled' => 'unsetEnabled',
       'temporalPassword' => 'unsetTemporalPassword',
       'useSecondFactors' => 'unsetUseSecondFactors',
       'secondFactorSeed' => 'unsetSecondFactorSeed',
-      'tempSecondFactorSeed' => 'unsetTempSecondFactorSeed',
-      'failedLoginAttempts' => 'unsetFailedLoginAttempts',
       'blockedUntil' => 'unsetBlockedUntil',
-      'recoveryCode' => 'unsetRecoveryCode',
-      'recoveryCodeExpiration' => 'unsetRecoveryCodeExpiration',
-      'language' => 'unsetLanguage',
       'provider' => 'unsetProvider',
       'version' => 'unsetVersion',
     ];
@@ -89,16 +73,12 @@ class UserAttributes
         $name = UserNameVO::tryFrom($this->name, $errors);
         $password = UserPasswordVO::tryFrom($this->password, $errors);
         $email = UserEmailVO::tryFrom($this->email, $errors);
+        $wellcomeAt = UserWellcomeAtVO::tryFrom($this->wellcomeAt, $errors);
         $enabled = UserEnabledVO::tryFrom($this->enabled, $errors);
         $temporalPassword = UserTemporalPasswordVO::tryFrom($this->temporalPassword, $errors);
         $useSecondFactors = UserUseSecondFactorsVO::tryFrom($this->useSecondFactors, $errors);
         $secondFactorSeed = UserSecondFactorSeedVO::tryFrom($this->secondFactorSeed, $errors);
-        $tempSecondFactorSeed = UserTempSecondFactorSeedVO::tryFrom($this->tempSecondFactorSeed, $errors);
-        $failedLoginAttempts = UserFailedLoginAttemptsVO::tryFrom($this->failedLoginAttempts, $errors);
         $blockedUntil = UserBlockedUntilVO::tryFrom($this->blockedUntil, $errors);
-        $recoveryCode = UserRecoveryCodeVO::tryFrom($this->recoveryCode, $errors);
-        $recoveryCodeExpiration = UserRecoveryCodeExpirationVO::tryFrom($this->recoveryCodeExpiration, $errors);
-        $language = UserLanguageVO::tryFrom($this->language, $errors);
         $provider = UserProviderVO::tryFrom($this->provider, $errors);
         $version = UserVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
@@ -109,16 +89,12 @@ class UserAttributes
             name: $name,
             password: $password,
             email: $email,
+            wellcomeAt: $wellcomeAt,
             enabled: $enabled,
             temporalPassword: $temporalPassword,
             useSecondFactors: $useSecondFactors,
             secondFactorSeed: $secondFactorSeed,
-            tempSecondFactorSeed: $tempSecondFactorSeed,
-            failedLoginAttempts: $failedLoginAttempts,
             blockedUntil: $blockedUntil,
-            recoveryCode: $recoveryCode,
-            recoveryCodeExpiration: $recoveryCodeExpiration,
-            language: $language,
             provider: $provider,
             version: $version,
         );
@@ -138,16 +114,12 @@ class UserAttributes
         $this->withAssertedNameRules($value, $errorsList);
         $this->withAssertedPasswordRules($value, $errorsList);
         $this->withAssertedEmailRules($value, $errorsList);
+        $this->withAssertedWellcomeAtRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedTemporalPasswordRules($value, $errorsList);
         $this->withAssertedUseSecondFactorsRules($value, $errorsList);
         $this->withAssertedSecondFactorSeedRules($value, $errorsList);
-        $this->withAssertedTempSecondFactorSeedRules($value, $errorsList);
-        $this->withAssertedFailedLoginAttemptsRules($value, $errorsList);
         $this->withAssertedBlockedUntilRules($value, $errorsList);
-        $this->withAssertedRecoveryCodeRules($value, $errorsList);
-        $this->withAssertedRecoveryCodeExpirationRules($value, $errorsList);
-        $this->withAssertedLanguageRules($value, $errorsList);
         $this->withAssertedProviderRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
@@ -162,16 +134,12 @@ class UserAttributes
         $this->withDefaultName();
         $this->withDefaultPassword();
         $this->withDefaultEmail();
+        $this->withDefaultWellcomeAt();
         $this->withDefaultEnabled();
         $this->withDefaultTemporalPassword();
         $this->withDefaultUseSecondFactors();
         $this->withDefaultSecondFactorSeed();
-        $this->withDefaultTempSecondFactorSeed();
-        $this->withDefaultFailedLoginAttempts();
         $this->withDefaultBlockedUntil();
-        $this->withDefaultRecoveryCode();
-        $this->withDefaultRecoveryCodeExpiration();
-        $this->withDefaultLanguage();
         $this->withDefaultProvider();
         $this->withDefaultVersion();
         return $this;

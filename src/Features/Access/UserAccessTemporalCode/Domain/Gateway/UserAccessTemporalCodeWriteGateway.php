@@ -55,6 +55,10 @@ class UserAccessTemporalCodeWriteGateway
     {
         return $this->repository->findOneForUpdateByUser($user);
     }
+    public function findOneForUpdateByRegisterCode(?string $registerCode): ?UserAccessTemporalCode
+    {
+        return $this->repository->findOneForUpdateByRegisterCode($registerCode);
+    }
     public function findOneForUpdateByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode
     {
         return $this->repository->findOneForUpdateByRecoveryCode($recoveryCode);

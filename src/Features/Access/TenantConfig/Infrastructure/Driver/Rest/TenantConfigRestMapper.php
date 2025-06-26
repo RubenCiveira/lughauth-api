@@ -12,6 +12,14 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigTenantVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInnerLabelVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRecoverPassVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRecoverPassEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
@@ -34,6 +42,14 @@ class TenantConfigRestMapper
             $dto->tenant = $body['tenant'] ?? null;
             $dto->innerLabel = $body['innerLabel'] ?? null;
             $dto->forceMfa = $body['forceMfa'] ?? null;
+            $dto->allowRegister = $body['allowRegister'] ?? null;
+            $dto->enableRegisterUsers = $body['enableRegisterUsers'] ?? null;
+            $dto->wellcomeEmail = $body['wellcomeEmail'] ?? null;
+            $dto->registerdEmail = $body['registerdEmail'] ?? null;
+            $dto->disabledUserEmail = $body['disabledUserEmail'] ?? null;
+            $dto->enabledUserEmail = $body['enabledUserEmail'] ?? null;
+            $dto->allowRecoverPass = $body['allowRecoverPass'] ?? null;
+            $dto->recoverPassEmail = $body['recoverPassEmail'] ?? null;
             $dto->version = $body['version'] ?? null;
             return $this->mapTenantConfigApiDTO($dto);
         } catch (Throwable $ex) {
@@ -56,6 +72,14 @@ class TenantConfigRestMapper
             }
             $value->innerLabel(TenantConfigInnerLabelVO::tryFrom($body->innerLabel ?? null, $errorsList));
             $value->forceMfa(TenantConfigForceMfaVO::tryFrom($body->forceMfa ?? null, $errorsList));
+            $value->allowRegister(TenantConfigAllowRegisterVO::tryFrom($body->allowRegister ?? null, $errorsList));
+            $value->enableRegisterUsers(TenantConfigEnableRegisterUsersVO::tryFrom($body->enableRegisterUsers ?? null, $errorsList));
+            $value->wellcomeEmail(TenantConfigWellcomeEmailVO::tryFrom($body->wellcomeEmail ?? null, $errorsList));
+            $value->registerdEmail(TenantConfigRegisterdEmailVO::tryFrom($body->registerdEmail ?? null, $errorsList));
+            $value->disabledUserEmail(TenantConfigDisabledUserEmailVO::tryFrom($body->disabledUserEmail ?? null, $errorsList));
+            $value->enabledUserEmail(TenantConfigEnabledUserEmailVO::tryFrom($body->enabledUserEmail ?? null, $errorsList));
+            $value->allowRecoverPass(TenantConfigAllowRecoverPassVO::tryFrom($body->allowRecoverPass ?? null, $errorsList));
+            $value->recoverPassEmail(TenantConfigRecoverPassEmailVO::tryFrom($body->recoverPassEmail ?? null, $errorsList));
             $value->version(TenantConfigVersionVO::tryFrom($body->version ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -79,6 +103,14 @@ class TenantConfigRestMapper
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->innerLabel = $value->getInnerLabel();
             $dto->forceMfa = $value->getForceMfa();
+            $dto->allowRegister = $value->getAllowRegister();
+            $dto->enableRegisterUsers = $value->getEnableRegisterUsers();
+            $dto->wellcomeEmail = $value->getWellcomeEmail();
+            $dto->registerdEmail = $value->getRegisterdEmail();
+            $dto->disabledUserEmail = $value->getDisabledUserEmail();
+            $dto->enabledUserEmail = $value->getEnabledUserEmail();
+            $dto->allowRecoverPass = $value->getAllowRecoverPass();
+            $dto->recoverPassEmail = $value->getRecoverPassEmail();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

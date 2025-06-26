@@ -19,6 +19,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -35,6 +36,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedChanged());
         $this->assertEquals($one->getTempSecondFactorSeedExpiration(), $other->getTempSecondFactorSeedExpiration());
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged());
+        $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
+        $this->assertTrue($one->isRegisterCodeChanged());
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged());
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -51,6 +54,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -61,6 +65,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://ocyphered',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
+            registerCode: 'other',
             recoveryCode: 'other',
             recoveryCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -77,6 +82,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedChanged($base));
         $this->assertEquals($one->getTempSecondFactorSeedExpiration(), $other->getTempSecondFactorSeedExpiration());
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged($base));
+        $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
+        $this->assertTrue($one->isRegisterCodeChanged($base));
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged($base));
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -93,6 +100,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -109,6 +117,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedChanged());
         $this->assertEquals($one->getTempSecondFactorSeedExpiration(), $other->getTempSecondFactorSeedExpiration());
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged());
+        $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
+        $this->assertTrue($one->isRegisterCodeChanged());
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged());
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -126,6 +136,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -136,6 +147,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://ocyphered',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
+            registerCode: 'other',
             recoveryCode: 'other',
             recoveryCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -152,6 +164,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedChanged($base));
         $this->assertEquals($one->getTempSecondFactorSeedExpiration(), $other->getTempSecondFactorSeedExpiration());
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged($base));
+        $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
+        $this->assertTrue($one->isRegisterCodeChanged($base));
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged($base));
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -170,6 +184,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -186,6 +201,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedChanged());
         $this->assertEquals($one->getTempSecondFactorSeedExpiration(), $other->getTempSecondFactorSeedExpiration());
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged());
+        $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
+        $this->assertTrue($one->isRegisterCodeChanged());
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged());
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -202,6 +219,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -227,6 +245,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -252,6 +271,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -277,6 +297,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -305,6 +326,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -336,6 +358,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -367,6 +390,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
+            registerCode: 'one',
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,

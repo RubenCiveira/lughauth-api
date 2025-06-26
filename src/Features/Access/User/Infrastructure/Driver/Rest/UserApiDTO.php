@@ -49,6 +49,13 @@ class UserApiDTO
     )]
     public ?string $email;
     #[OA\Property(
+        property: "wellcomeAt",
+        title: "wellcome at",
+        description:"The date when a wellcome email is send",
+        type: "string"
+    )]
+    public ?string $wellcomeAt;
+    #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.",
@@ -77,47 +84,12 @@ class UserApiDTO
     )]
     public ?string $secondFactorSeed;
     #[OA\Property(
-        property: "tempSecondFactorSeed",
-        title: "temp second factor seed",
-        description:"the seed used to the otp login",
-        type: "string"
-    )]
-    public ?string $tempSecondFactorSeed;
-    #[OA\Property(
-        property: "failedLoginAttempts",
-        title: "failed login attempts",
-        description:"The amount login attempts failed since the last right login.",
-        type: "string"
-    )]
-    public ?int $failedLoginAttempts;
-    #[OA\Property(
         property: "blockedUntil",
         title: "blocked until",
         description:"A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.",
         type: "string"
     )]
     public ?string $blockedUntil;
-    #[OA\Property(
-        property: "recoveryCode",
-        title: "recovery code",
-        description:"El codigo de recuperacion enviado por email",
-        type: "string"
-    )]
-    public ?string $recoveryCode;
-    #[OA\Property(
-        property: "recoveryCodeExpiration",
-        title: "recovery code expiration",
-        description:"La caducidad del código de recuperacion",
-        type: "string"
-    )]
-    public ?string $recoveryCodeExpiration;
-    #[OA\Property(
-        property: "language",
-        title: "language",
-        description:"El language de user",
-        type: "string"
-    )]
-    public ?string $language;
     #[OA\Property(
         property: "provider",
         title: "provider",

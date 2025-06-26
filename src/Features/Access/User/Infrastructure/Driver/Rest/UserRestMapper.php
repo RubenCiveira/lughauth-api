@@ -17,7 +17,6 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserLanguageVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
@@ -45,16 +44,12 @@ class UserRestMapper
             $dto->name = $body['name'] ?? null;
             $dto->password = $body['password'] ?? null;
             $dto->email = $body['email'] ?? null;
+            $dto->wellcomeAt = $body['wellcomeAt'] ?? null;
             $dto->enabled = $body['enabled'] ?? null;
             $dto->temporalPassword = $body['temporalPassword'] ?? null;
             $dto->useSecondFactors = $body['useSecondFactors'] ?? null;
             $dto->secondFactorSeed = $body['secondFactorSeed'] ?? null;
-            $dto->tempSecondFactorSeed = $body['tempSecondFactorSeed'] ?? null;
-            $dto->failedLoginAttempts = $body['failedLoginAttempts'] ?? null;
             $dto->blockedUntil = $body['blockedUntil'] ?? null;
-            $dto->recoveryCode = $body['recoveryCode'] ?? null;
-            $dto->recoveryCodeExpiration = $body['recoveryCodeExpiration'] ?? null;
-            $dto->language = $body['language'] ?? null;
             $dto->provider = $body['provider'] ?? null;
             $dto->version = $body['version'] ?? null;
             return $this->mapUserApiDTO($dto);
@@ -82,16 +77,12 @@ class UserRestMapper
                 $value->password(UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList));
             }
             $value->email(UserEmailVO::tryFrom($body->email ?? null, $errorsList));
+            // wellcomeAt is a calculated value, we cant read it
             // enabled is a calculated value, we cant read it
             $value->temporalPassword(UserTemporalPasswordVO::tryFrom($body->temporalPassword ?? null, $errorsList));
             $value->useSecondFactors(UserUseSecondFactorsVO::tryFrom($body->useSecondFactors ?? null, $errorsList));
             // secondFactorSeed is a calculated value, we cant read it
-            // tempSecondFactorSeed is a calculated value, we cant read it
-            // failedLoginAttempts is a calculated value, we cant read it
             // blockedUntil is a calculated value, we cant read it
-            // recoveryCode is a calculated value, we cant read it
-            // recoveryCodeExpiration is a calculated value, we cant read it
-            $value->language(UserLanguageVO::tryFrom($body->language ?? null, $errorsList));
             // provider is a calculated value, we cant read it
             $value->version(UserVersionVO::tryFrom($body->version ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
@@ -117,16 +108,12 @@ class UserRestMapper
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
+            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
             $dto->enabled = $value->getEnabled();
             $dto->temporalPassword = $value->getTemporalPassword();
             $dto->useSecondFactors = $value->getUseSecondFactors();
             $dto->secondFactorSeed = '******';
-            $dto->tempSecondFactorSeed = '******';
-            $dto->failedLoginAttempts = $value->getFailedLoginAttempts();
             $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
-            $dto->recoveryCode = $value->getRecoveryCode();
-            $dto->recoveryCodeExpiration = $value->getRecoveryCodeExpiration()?->format(DateTime::ATOM);
-            $dto->language = $value->getLanguage();
             $dto->provider = $value->getProvider();
             $dto->version = $value->getVersion();
             return $dto;

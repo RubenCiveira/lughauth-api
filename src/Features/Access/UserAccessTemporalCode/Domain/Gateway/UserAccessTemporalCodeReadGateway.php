@@ -46,6 +46,10 @@ class UserAccessTemporalCodeReadGateway
     {
         return $this->repository->findOneByUser($user);
     }
+    public function findOneByRegisterCode(?string $registerCode): ?UserAccessTemporalCode
+    {
+        return $this->repository->findOneByRegisterCode($registerCode);
+    }
     public function findOneByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode
     {
         return $this->repository->findOneByRecoveryCode($recoveryCode);

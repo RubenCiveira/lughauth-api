@@ -42,6 +42,62 @@ class TenantConfigApiDTO
     )]
     public ?bool $forceMfa;
     #[OA\Property(
+        property: "allowRegister",
+        title: "allow register",
+        description:"El allow register de tenant config",
+        type: "string"
+    )]
+    public ?bool $allowRegister;
+    #[OA\Property(
+        property: "enableRegisterUsers",
+        title: "enable register users",
+        description:"El enable register users de tenant config",
+        type: "string"
+    )]
+    public ?bool $enableRegisterUsers;
+    #[OA\Property(
+        property: "wellcomeEmail",
+        title: "wellcome email",
+        description:"Email send to the enabled user",
+        type: "string"
+    )]
+    public ?string $wellcomeEmail;
+    #[OA\Property(
+        property: "registerdEmail",
+        title: "registerd email",
+        description:"El registerd email de tenant config",
+        type: "string"
+    )]
+    public ?string $registerdEmail;
+    #[OA\Property(
+        property: "disabledUserEmail",
+        title: "disabled user email",
+        description:"Email send when a user is disabled",
+        type: "string"
+    )]
+    public ?string $disabledUserEmail;
+    #[OA\Property(
+        property: "enabledUserEmail",
+        title: "enabled user email",
+        description:"Email send when a user is enabled",
+        type: "string"
+    )]
+    public ?string $enabledUserEmail;
+    #[OA\Property(
+        property: "allowRecoverPass",
+        title: "allow recover pass",
+        description:"El allow recover pass de tenant config",
+        type: "string"
+    )]
+    public ?bool $allowRecoverPass;
+    #[OA\Property(
+        property: "recoverPassEmail",
+        title: "recover pass email",
+        description:"Email send to the user to recover the password",
+        type: "string"
+    )]
+    public ?string $recoverPassEmail;
+    #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de tenant config para controlar bloqueos optimistas",

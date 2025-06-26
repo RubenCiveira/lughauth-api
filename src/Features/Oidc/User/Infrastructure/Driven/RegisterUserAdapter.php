@@ -19,7 +19,7 @@ class RegisterUserAdapter implements RegisterUserRepository
     #[Override]
     public function getPendingConsent(string $tenant): ?string
     {
-        return "Condiciones genrales";
+        return null;
     }
 
     #[Override]

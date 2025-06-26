@@ -14,6 +14,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserPasswordAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserEmailAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserWellcomeAtAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserEnabledAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
@@ -22,29 +24,16 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserUseSecondFactorsAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserSecondFactorSeedAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTempSecondFactorSeedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserTempSecondFactorSeedAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserFailedLoginAttemptsVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserFailedLoginAttemptsAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserBlockedUntilAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRecoveryCodeVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserRecoveryCodeAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRecoveryCodeExpirationVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserRecoveryCodeExpirationAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserLanguageVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserLanguageAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserProviderAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserVersionAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\Formula\WellcomeAtCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\SecondFactorSeedCalculator;
-use Civi\Lughauth\Features\Access\User\Domain\Formula\TempSecondFactorSeedCalculator;
-use Civi\Lughauth\Features\Access\User\Domain\Formula\FailedLoginAttemptsCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\BlockedUntilCalculator;
-use Civi\Lughauth\Features\Access\User\Domain\Formula\RecoveryCodeCalculator;
-use Civi\Lughauth\Features\Access\User\Domain\Formula\RecoveryCodeExpirationCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\ProviderCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserUpdateEvent;
@@ -64,16 +53,12 @@ class User extends UserRef
     use UserNameAccesor;
     use UserPasswordAccesor;
     use UserEmailAccesor;
+    use UserWellcomeAtAccesor;
     use UserEnabledAccesor;
     use UserTemporalPasswordAccesor;
     use UserUseSecondFactorsAccesor;
     use UserSecondFactorSeedAccesor;
-    use UserTempSecondFactorSeedAccesor;
-    use UserFailedLoginAttemptsAccesor;
     use UserBlockedUntilAccesor;
-    use UserRecoveryCodeAccesor;
-    use UserRecoveryCodeExpirationAccesor;
-    use UserLanguageAccesor;
     use UserProviderAccesor;
     use UserVersionAccesor;
     private array $recordedEvents = [];
@@ -84,16 +69,12 @@ class User extends UserRef
         UserNameVO|string $name,
         UserPasswordVO|string $password,
         UserEmailVO|string|null $email = null,
+        UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null,
         UserEnabledVO|bool|null $enabled = null,
         UserTemporalPasswordVO|bool|null $temporalPassword = null,
         UserUseSecondFactorsVO|bool|null $useSecondFactors = null,
         UserSecondFactorSeedVO|string|null $secondFactorSeed = null,
-        UserTempSecondFactorSeedVO|string|null $tempSecondFactorSeed = null,
-        UserFailedLoginAttemptsVO|int|null $failedLoginAttempts = null,
         UserBlockedUntilVO|\DateTimeImmutable|null $blockedUntil = null,
-        UserRecoveryCodeVO|string|null $recoveryCode = null,
-        UserRecoveryCodeExpirationVO|\DateTimeImmutable|null $recoveryCodeExpiration = null,
-        UserLanguageVO|string|null $language = null,
         UserProviderVO|string|null $provider = null,
         UserVersionVO|int|null $version = null,
     ) {
@@ -102,16 +83,12 @@ class User extends UserRef
         $this->_name = UserNameVO::from($name);
         $this->_password = UserPasswordVO::from($password);
         $this->_email = null === $email ? UserEmailVO::empty() : UserEmailVO::from($email);
+        $this->_wellcomeAt = null === $wellcomeAt ? UserWellcomeAtVO::empty() : UserWellcomeAtVO::from($wellcomeAt);
         $this->_enabled = null === $enabled ? UserEnabledVO::empty() : UserEnabledVO::from($enabled);
         $this->_temporalPassword = null === $temporalPassword ? UserTemporalPasswordVO::empty() : UserTemporalPasswordVO::from($temporalPassword);
         $this->_useSecondFactors = null === $useSecondFactors ? UserUseSecondFactorsVO::empty() : UserUseSecondFactorsVO::from($useSecondFactors);
         $this->_secondFactorSeed = null === $secondFactorSeed ? UserSecondFactorSeedVO::empty() : UserSecondFactorSeedVO::from($secondFactorSeed);
-        $this->_tempSecondFactorSeed = null === $tempSecondFactorSeed ? UserTempSecondFactorSeedVO::empty() : UserTempSecondFactorSeedVO::from($tempSecondFactorSeed);
-        $this->_failedLoginAttempts = null === $failedLoginAttempts ? UserFailedLoginAttemptsVO::empty() : UserFailedLoginAttemptsVO::from($failedLoginAttempts);
         $this->_blockedUntil = null === $blockedUntil ? UserBlockedUntilVO::empty() : UserBlockedUntilVO::from($blockedUntil);
-        $this->_recoveryCode = null === $recoveryCode ? UserRecoveryCodeVO::empty() : UserRecoveryCodeVO::from($recoveryCode);
-        $this->_recoveryCodeExpiration = null === $recoveryCodeExpiration ? UserRecoveryCodeExpirationVO::empty() : UserRecoveryCodeExpirationVO::from($recoveryCodeExpiration);
-        $this->_language = null === $language ? UserLanguageVO::empty() : UserLanguageVO::from($language);
         $this->_provider = null === $provider ? UserProviderVO::empty() : UserProviderVO::from($provider);
         $this->_version = null === $version ? UserVersionVO::empty() : UserVersionVO::from($version);
     }
@@ -122,34 +99,27 @@ class User extends UserRef
         $value->_name = $values->getNameOrDefault($this->_name);
         $value->_password = $values->getPasswordOrDefault($this->_password);
         $value->_email = $values->getEmailOrDefault($this->_email);
+        $value->_wellcomeAt = $values->getWellcomeAtOrDefault($this->_wellcomeAt);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
         $value->_temporalPassword = $values->getTemporalPasswordOrDefault($this->_temporalPassword);
         $value->_useSecondFactors = $values->getUseSecondFactorsOrDefault($this->_useSecondFactors);
         $value->_secondFactorSeed = $values->getSecondFactorSeedOrDefault($this->_secondFactorSeed);
-        $value->_tempSecondFactorSeed = $values->getTempSecondFactorSeedOrDefault($this->_tempSecondFactorSeed);
-        $value->_failedLoginAttempts = $values->getFailedLoginAttemptsOrDefault($this->_failedLoginAttempts);
         $value->_blockedUntil = $values->getBlockedUntilOrDefault($this->_blockedUntil);
-        $value->_recoveryCode = $values->getRecoveryCodeOrDefault($this->_recoveryCode);
-        $value->_recoveryCodeExpiration = $values->getRecoveryCodeExpirationOrDefault($this->_recoveryCodeExpiration);
-        $value->_language = $values->getLanguageOrDefault($this->_language);
         $value->_provider = $values->getProviderOrDefault($this->_provider);
         $value->_version = $values->getVersionOrDefault($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
     {
-        return [ 'enabled', 'secondFactorSeed', 'tempSecondFactorSeed', 'failedLoginAttempts', 'blockedUntil', 'recoveryCode', 'recoveryCodeExpiration', 'provider'];
+        return [ 'wellcomeAt', 'enabled', 'secondFactorSeed', 'blockedUntil', 'provider'];
     }
     public static function create(UserAttributes $values): User
     {
         $calculated = clone $values;
+        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
         $calculated->enabled(EnabledCalculator::calculateEnabled());
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
-        $calculated->tempSecondFactorSeed(TempSecondFactorSeedCalculator::calculateTempSecondFactorSeed());
-        $calculated->failedLoginAttempts(FailedLoginAttemptsCalculator::calculateFailedLoginAttempts());
         $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
-        $calculated->recoveryCode(RecoveryCodeCalculator::calculateRecoveryCode());
-        $calculated->recoveryCodeExpiration(RecoveryCodeExpirationCalculator::calculateRecoveryCodeExpiration());
         $calculated->provider(ProviderCalculator::calculateProvider());
         $value = $calculated->build();
         $value->recordedEvents[] = new UserCreateEvent($value);
@@ -158,13 +128,10 @@ class User extends UserRef
     public function update(UserAttributes $values): User
     {
         $calculated = clone $values;
+        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt($this));
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed($this));
-        $calculated->tempSecondFactorSeed(TempSecondFactorSeedCalculator::calculateTempSecondFactorSeed($this));
-        $calculated->failedLoginAttempts(FailedLoginAttemptsCalculator::calculateFailedLoginAttempts($this));
         $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil($this));
-        $calculated->recoveryCode(RecoveryCodeCalculator::calculateRecoveryCode($this));
-        $calculated->recoveryCodeExpiration(RecoveryCodeExpirationCalculator::calculateRecoveryCodeExpiration($this));
         $calculated->provider(ProviderCalculator::calculateProvider($this));
         $value = $this->replace($calculated);
         $value->recordedEvents[] = new UserUpdateEvent($value);
@@ -228,16 +195,12 @@ class User extends UserRef
           ->name($this->_name)
           ->password($this->_password)
           ->email($this->_email)
+          ->wellcomeAt($this->_wellcomeAt)
           ->enabled($this->_enabled)
           ->temporalPassword($this->_temporalPassword)
           ->useSecondFactors($this->_useSecondFactors)
           ->secondFactorSeed($this->_secondFactorSeed)
-          ->tempSecondFactorSeed($this->_tempSecondFactorSeed)
-          ->failedLoginAttempts($this->_failedLoginAttempts)
           ->blockedUntil($this->_blockedUntil)
-          ->recoveryCode($this->_recoveryCode)
-          ->recoveryCodeExpiration($this->_recoveryCodeExpiration)
-          ->language($this->_language)
           ->provider($this->_provider)
           ->version($this->_version);
     }

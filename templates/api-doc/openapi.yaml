@@ -1884,6 +1884,38 @@ components:
           title: 'force mfa'
           description: 'El force mfa de tenant config'
           type: string
+        allowRegister:
+          title: 'allow register'
+          description: 'El allow register de tenant config'
+          type: string
+        enableRegisterUsers:
+          title: 'enable register users'
+          description: 'El enable register users de tenant config'
+          type: string
+        wellcomeEmail:
+          title: 'wellcome email'
+          description: 'Email send to the enabled user'
+          type: string
+        registerdEmail:
+          title: 'registerd email'
+          description: 'El registerd email de tenant config'
+          type: string
+        disabledUserEmail:
+          title: 'disabled user email'
+          description: 'Email send when a user is disabled'
+          type: string
+        enabledUserEmail:
+          title: 'enabled user email'
+          description: 'Email send when a user is enabled'
+          type: string
+        allowRecoverPass:
+          title: 'allow recover pass'
+          description: 'El allow recover pass de tenant config'
+          type: string
+        recoverPassEmail:
+          title: 'recover pass email'
+          description: 'Email send to the user to recover the password'
+          type: string
         version:
           title: version
           description: 'Campo con el número de version de tenant config para controlar bloqueos optimistas'
@@ -2101,6 +2133,10 @@ components:
           title: email
           description: 'An optional email used to send notifications to the user'
           type: string
+        wellcomeAt:
+          title: 'wellcome at'
+          description: 'The date when a wellcome email is send'
+          type: string
         enabled:
           title: enabled
           description: 'A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.'
@@ -2117,29 +2153,9 @@ components:
           title: 'second factor seed'
           description: 'the seed used to the otp login'
           type: string
-        tempSecondFactorSeed:
-          title: 'temp second factor seed'
-          description: 'the seed used to the otp login'
-          type: string
-        failedLoginAttempts:
-          title: 'failed login attempts'
-          description: 'The amount login attempts failed since the last right login.'
-          type: string
         blockedUntil:
           title: 'blocked until'
           description: 'A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.'
-          type: string
-        recoveryCode:
-          title: 'recovery code'
-          description: 'El codigo de recuperacion enviado por email'
-          type: string
-        recoveryCodeExpiration:
-          title: 'recovery code expiration'
-          description: 'La caducidad del código de recuperacion'
-          type: string
-        language:
-          title: language
-          description: 'El language de user'
           type: string
         provider:
           title: provider

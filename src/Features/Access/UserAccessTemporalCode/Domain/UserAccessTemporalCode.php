@@ -14,6 +14,8 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\User
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeTempSecondFactorSeedExpirationAccesor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeFailedLoginAttemptsVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeFailedLoginAttemptsAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRegisterCodeAccesor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRecoveryCodeAccesor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeExpirationVO;
@@ -41,6 +43,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     use UserAccessTemporalCodeTempSecondFactorSeedAccesor;
     use UserAccessTemporalCodeTempSecondFactorSeedExpirationAccesor;
     use UserAccessTemporalCodeFailedLoginAttemptsAccesor;
+    use UserAccessTemporalCodeRegisterCodeAccesor;
     use UserAccessTemporalCodeRecoveryCodeAccesor;
     use UserAccessTemporalCodeRecoveryCodeExpirationAccesor;
     use UserAccessTemporalCodeVersionAccesor;
@@ -52,6 +55,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         UserAccessTemporalCodeTempSecondFactorSeedVO|string|null $tempSecondFactorSeed = null,
         UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $tempSecondFactorSeedExpiration = null,
         UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts = null,
+        UserAccessTemporalCodeRegisterCodeVO|string|null $registerCode = null,
         UserAccessTemporalCodeRecoveryCodeVO|string|null $recoveryCode = null,
         UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null $recoveryCodeExpiration = null,
         UserAccessTemporalCodeVersionVO|int|null $version = null,
@@ -61,6 +65,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $this->_tempSecondFactorSeed = null === $tempSecondFactorSeed ? UserAccessTemporalCodeTempSecondFactorSeedVO::empty() : UserAccessTemporalCodeTempSecondFactorSeedVO::from($tempSecondFactorSeed);
         $this->_tempSecondFactorSeedExpiration = null === $tempSecondFactorSeedExpiration ? UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::empty() : UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($tempSecondFactorSeedExpiration);
         $this->_failedLoginAttempts = null === $failedLoginAttempts ? UserAccessTemporalCodeFailedLoginAttemptsVO::empty() : UserAccessTemporalCodeFailedLoginAttemptsVO::from($failedLoginAttempts);
+        $this->_registerCode = null === $registerCode ? UserAccessTemporalCodeRegisterCodeVO::empty() : UserAccessTemporalCodeRegisterCodeVO::from($registerCode);
         $this->_recoveryCode = null === $recoveryCode ? UserAccessTemporalCodeRecoveryCodeVO::empty() : UserAccessTemporalCodeRecoveryCodeVO::from($recoveryCode);
         $this->_recoveryCodeExpiration = null === $recoveryCodeExpiration ? UserAccessTemporalCodeRecoveryCodeExpirationVO::empty() : UserAccessTemporalCodeRecoveryCodeExpirationVO::from($recoveryCodeExpiration);
         $this->_version = null === $version ? UserAccessTemporalCodeVersionVO::empty() : UserAccessTemporalCodeVersionVO::from($version);
@@ -72,6 +77,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->_tempSecondFactorSeed = $values->getTempSecondFactorSeedOrDefault($this->_tempSecondFactorSeed);
         $value->_tempSecondFactorSeedExpiration = $values->getTempSecondFactorSeedExpirationOrDefault($this->_tempSecondFactorSeedExpiration);
         $value->_failedLoginAttempts = $values->getFailedLoginAttemptsOrDefault($this->_failedLoginAttempts);
+        $value->_registerCode = $values->getRegisterCodeOrDefault($this->_registerCode);
         $value->_recoveryCode = $values->getRecoveryCodeOrDefault($this->_recoveryCode);
         $value->_recoveryCodeExpiration = $values->getRecoveryCodeExpirationOrDefault($this->_recoveryCodeExpiration);
         $value->_version = $values->getVersionOrDefault($this->_version);
@@ -164,6 +170,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
           ->tempSecondFactorSeed($this->_tempSecondFactorSeed)
           ->tempSecondFactorSeedExpiration($this->_tempSecondFactorSeedExpiration)
           ->failedLoginAttempts($this->_failedLoginAttempts)
+          ->registerCode($this->_registerCode)
           ->recoveryCode($this->_recoveryCode)
           ->recoveryCodeExpiration($this->_recoveryCodeExpiration)
           ->version($this->_version);

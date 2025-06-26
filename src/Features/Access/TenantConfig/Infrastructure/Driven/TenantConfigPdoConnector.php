@@ -119,11 +119,19 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant config");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "allow_register", "enable_register_users", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :allowRegister, :enableRegisterUsers, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $entity->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $entity->getForceMfa(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'allowRegister', value: $entity->getAllowRegister(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enableRegisterUsers', value: $entity->getEnableRegisterUsers(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'wellcomeEmail', value: $entity->getWellcomeEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'registerdEmail', value: $entity->getRegisterdEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'disabledUserEmail', value: $entity->getDisabledUserEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'enabledUserEmail', value: $entity->getEnabledUserEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'allowRecoverPass', value: $entity->getAllowRecoverPass(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'recoverPassEmail', value: $entity->getRecoverPassEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
             } catch (NotUniqueException $ex) {
@@ -151,11 +159,19 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant config");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $update->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $update->getForceMfa(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'allowRegister', value: $update->getAllowRegister(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enableRegisterUsers', value: $update->getEnableRegisterUsers(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'wellcomeEmail', value: $update->getWellcomeEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'registerdEmail', value: $update->getRegisterdEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'disabledUserEmail', value: $update->getDisabledUserEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'enabledUserEmail', value: $update->getEnabledUserEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'allowRecoverPass', value: $update->getAllowRecoverPass(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'recoverPassEmail', value: $update->getRecoverPassEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
@@ -347,6 +363,14 @@ class TenantConfigPdoConnector
                 tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
                 innerLabel: $row['inner_label'] ?? null,
                 forceMfa: isset($row['force_mfa']) ? !! $row['force_mfa'] : null,
+                allowRegister: isset($row['allow_register']) ? !! $row['allow_register'] : null,
+                enableRegisterUsers: isset($row['enable_register_users']) ? !! $row['enable_register_users'] : null,
+                wellcomeEmail: $row['wellcome_email'] ?? null,
+                registerdEmail: $row['registerd_email'] ?? null,
+                disabledUserEmail: $row['disabled_user_email'] ?? null,
+                enabledUserEmail: $row['enabled_user_email'] ?? null,
+                allowRecoverPass: isset($row['allow_recover_pass']) ? !! $row['allow_recover_pass'] : null,
+                recoverPassEmail: $row['recover_pass_email'] ?? null,
                 version: $row['version'] ?? null,
             );
         } catch (Throwable $ex) {
