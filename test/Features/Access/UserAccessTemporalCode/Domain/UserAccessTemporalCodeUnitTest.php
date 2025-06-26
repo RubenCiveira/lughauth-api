@@ -20,6 +20,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -38,6 +40,10 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged());
         $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
         $this->assertTrue($one->isRegisterCodeChanged());
+        $this->assertEquals($one->getRegisterCodeUrl(), $other->getRegisterCodeUrl());
+        $this->assertTrue($one->isRegisterCodeUrlChanged());
+        $this->assertEquals($one->getRegisterCodeExpiration(), $other->getRegisterCodeExpiration());
+        $this->assertTrue($one->isRegisterCodeExpirationChanged());
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged());
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -55,6 +61,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -66,6 +74,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
             registerCode: 'other',
+            registerCodeUrl: 'other',
+            registerCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             recoveryCode: 'other',
             recoveryCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -84,6 +94,10 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged($base));
         $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
         $this->assertTrue($one->isRegisterCodeChanged($base));
+        $this->assertEquals($one->getRegisterCodeUrl(), $other->getRegisterCodeUrl());
+        $this->assertTrue($one->isRegisterCodeUrlChanged($base));
+        $this->assertEquals($one->getRegisterCodeExpiration(), $other->getRegisterCodeExpiration());
+        $this->assertTrue($one->isRegisterCodeExpirationChanged($base));
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged($base));
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -101,6 +115,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -119,6 +135,10 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged());
         $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
         $this->assertTrue($one->isRegisterCodeChanged());
+        $this->assertEquals($one->getRegisterCodeUrl(), $other->getRegisterCodeUrl());
+        $this->assertTrue($one->isRegisterCodeUrlChanged());
+        $this->assertEquals($one->getRegisterCodeExpiration(), $other->getRegisterCodeExpiration());
+        $this->assertTrue($one->isRegisterCodeExpirationChanged());
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged());
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -137,6 +157,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -148,6 +170,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
             registerCode: 'other',
+            registerCodeUrl: 'other',
+            registerCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             recoveryCode: 'other',
             recoveryCodeExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
@@ -166,6 +190,10 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged($base));
         $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
         $this->assertTrue($one->isRegisterCodeChanged($base));
+        $this->assertEquals($one->getRegisterCodeUrl(), $other->getRegisterCodeUrl());
+        $this->assertTrue($one->isRegisterCodeUrlChanged($base));
+        $this->assertEquals($one->getRegisterCodeExpiration(), $other->getRegisterCodeExpiration());
+        $this->assertTrue($one->isRegisterCodeExpirationChanged($base));
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged($base));
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -185,6 +213,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -203,6 +233,10 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertTrue($one->isTempSecondFactorSeedExpirationChanged());
         $this->assertEquals($one->getRegisterCode(), $other->getRegisterCode());
         $this->assertTrue($one->isRegisterCodeChanged());
+        $this->assertEquals($one->getRegisterCodeUrl(), $other->getRegisterCodeUrl());
+        $this->assertTrue($one->isRegisterCodeUrlChanged());
+        $this->assertEquals($one->getRegisterCodeExpiration(), $other->getRegisterCodeExpiration());
+        $this->assertTrue($one->isRegisterCodeExpirationChanged());
         $this->assertEquals($one->getRecoveryCode(), $other->getRecoveryCode());
         $this->assertTrue($one->isRecoveryCodeChanged());
         $this->assertEquals($one->getRecoveryCodeExpiration(), $other->getRecoveryCodeExpiration());
@@ -220,6 +254,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -246,6 +282,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -272,6 +310,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -298,6 +338,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -327,6 +369,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -349,6 +393,40 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertEquals($targetTempSecondFactorSeedExpiration, $target->getTempSecondFactorSeedExpiration());
         $this->assertNotEquals($sourceTempSecondFactorSeedExpiration, $target->getTempSecondFactorSeedExpiration());
     }
+    public function test_generated_register_verification_modify(): void
+    {
+        // @Arrange
+        $source = new UserAccessTemporalCode(
+            uid: 'one',
+            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            failedLoginAttempts: 1,
+            registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            recoveryCode: 'one',
+            recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+        $sourceRegisterCode = 'one';
+        $targetRegisterCode = 'other';
+        $source = $source->withRegisterCode($sourceRegisterCode);
+        $sourceRegisterCodeUrl = 'one';
+        $targetRegisterCodeUrl = 'other';
+        $source = $source->withRegisterCodeUrl($sourceRegisterCodeUrl);
+        $sourceRegisterCodeExpiration = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
+        $targetRegisterCodeExpiration = (new \DateTimeImmutable('1981-09-06T14:32:45.123Z'));
+        $source = $source->withRegisterCodeExpiration($sourceRegisterCodeExpiration);
+
+        // @Act
+        $target = $source->generatedRegisterVerification($targetRegisterCode, $targetRegisterCodeUrl, $targetRegisterCodeExpiration);
+
+        // @Assert
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $source->getRegisterCodeExpiration());
+        $this->assertEquals((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')), $target->getRegisterCodeExpiration());
+        $this->assertNotEquals($sourceRegisterCodeExpiration, $target->getRegisterCodeExpiration());
+    }
     public function test_generate_password_recover_modify(): void
     {
         // @Arrange
@@ -359,6 +437,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
@@ -391,6 +471,8 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
             registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             recoveryCode: 'one',
             recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,

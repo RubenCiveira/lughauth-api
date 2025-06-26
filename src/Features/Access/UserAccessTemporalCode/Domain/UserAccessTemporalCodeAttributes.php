@@ -17,6 +17,10 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Hold
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeFailedLoginAttemptsVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRegisterCodeAttributeHolder;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRegisterCodeUrlAttributeHolder;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeUrlVO;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRegisterCodeExpirationAttributeHolder;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeExpirationVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRecoveryCodeAttributeHolder;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder;
@@ -33,6 +37,8 @@ class UserAccessTemporalCodeAttributes
     use UserAccessTemporalCodeTempSecondFactorSeedExpirationAttributeHolder;
     use UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder;
     use UserAccessTemporalCodeRegisterCodeAttributeHolder;
+    use UserAccessTemporalCodeRegisterCodeUrlAttributeHolder;
+    use UserAccessTemporalCodeRegisterCodeExpirationAttributeHolder;
     use UserAccessTemporalCodeRecoveryCodeAttributeHolder;
     use UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder;
     use UserAccessTemporalCodeVersionAttributeHolder;
@@ -44,6 +50,8 @@ class UserAccessTemporalCodeAttributes
       'tempSecondFactorSeedExpiration' => 'unsetTempSecondFactorSeedExpiration',
       'failedLoginAttempts' => 'unsetFailedLoginAttempts',
       'registerCode' => 'unsetRegisterCode',
+      'registerCodeUrl' => 'unsetRegisterCodeUrl',
+      'registerCodeExpiration' => 'unsetRegisterCodeExpiration',
       'recoveryCode' => 'unsetRecoveryCode',
       'recoveryCodeExpiration' => 'unsetRecoveryCodeExpiration',
       'version' => 'unsetVersion',
@@ -58,6 +66,8 @@ class UserAccessTemporalCodeAttributes
         $tempSecondFactorSeedExpiration = UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::tryFrom($this->tempSecondFactorSeedExpiration, $errors);
         $failedLoginAttempts = UserAccessTemporalCodeFailedLoginAttemptsVO::tryFrom($this->failedLoginAttempts, $errors);
         $registerCode = UserAccessTemporalCodeRegisterCodeVO::tryFrom($this->registerCode, $errors);
+        $registerCodeUrl = UserAccessTemporalCodeRegisterCodeUrlVO::tryFrom($this->registerCodeUrl, $errors);
+        $registerCodeExpiration = UserAccessTemporalCodeRegisterCodeExpirationVO::tryFrom($this->registerCodeExpiration, $errors);
         $recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::tryFrom($this->recoveryCode, $errors);
         $recoveryCodeExpiration = UserAccessTemporalCodeRecoveryCodeExpirationVO::tryFrom($this->recoveryCodeExpiration, $errors);
         $version = UserAccessTemporalCodeVersionVO::tryFrom($this->version, $errors);
@@ -70,6 +80,8 @@ class UserAccessTemporalCodeAttributes
             tempSecondFactorSeedExpiration: $tempSecondFactorSeedExpiration,
             failedLoginAttempts: $failedLoginAttempts,
             registerCode: $registerCode,
+            registerCodeUrl: $registerCodeUrl,
+            registerCodeExpiration: $registerCodeExpiration,
             recoveryCode: $recoveryCode,
             recoveryCodeExpiration: $recoveryCodeExpiration,
             version: $version,
@@ -91,6 +103,8 @@ class UserAccessTemporalCodeAttributes
         $this->withAssertedTempSecondFactorSeedExpirationRules($value, $errorsList);
         $this->withAssertedFailedLoginAttemptsRules($value, $errorsList);
         $this->withAssertedRegisterCodeRules($value, $errorsList);
+        $this->withAssertedRegisterCodeUrlRules($value, $errorsList);
+        $this->withAssertedRegisterCodeExpirationRules($value, $errorsList);
         $this->withAssertedRecoveryCodeRules($value, $errorsList);
         $this->withAssertedRecoveryCodeExpirationRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
@@ -107,6 +121,8 @@ class UserAccessTemporalCodeAttributes
         $this->withDefaultTempSecondFactorSeedExpiration();
         $this->withDefaultFailedLoginAttempts();
         $this->withDefaultRegisterCode();
+        $this->withDefaultRegisterCodeUrl();
+        $this->withDefaultRegisterCodeExpiration();
         $this->withDefaultRecoveryCode();
         $this->withDefaultRecoveryCodeExpiration();
         $this->withDefaultVersion();
