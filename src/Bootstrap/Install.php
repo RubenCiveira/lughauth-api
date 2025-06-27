@@ -6,13 +6,13 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap;
 
 use Throwable;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use OpenApi\Generator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Yaml\Yaml;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 #[OA\Info(
     title: "Mi API REST",

@@ -129,21 +129,23 @@ class AccessControlMiddleware
 
     private function validateApiKey(string $key, string $scope)
     {
-        if ($this->cache->has('api-key-verify-' . $key)) {
-            $info = json_decode($this->cache->get('api-key-verify-' . $key), true);
+        if ($this->cache->has('api-key-verify--' . $key)) {
+            $info = json_decode($this->cache->get('api-key-verify--' . $key), true);
         } else {
             $url = $this->config->get('security.api.key.verify.location');
             $body = json_encode(['api-key' => $key]);
             $stream = $this->streamFactory->createStream($body);
 
             $response = $this->client->sendRequest($this->requestFactory->createRequest('POST', $url)
-            ->withHeader('Content-Type', 'application/json')
-            ->withBody($stream));
+                    ->withHeader('Content-Type', 'application/json')
+                    ->withBody($stream));
             if ($response->getStatusCode() !== 200) {
                 throw new UnauthorizedException(message: 'Unable to verify.');
             } else {
                 $body = (string) $response->getBody();
-                $this->cache->set('api-key-verify-' . $key, $body);
+                if ($body) {
+                    $this->cache->set('api-key-verify--' . $key, $body);
+                }
                 $info = json_decode($body, true);
             }
         }
