@@ -59,7 +59,7 @@ class JwtVerifierMiddleware
 
     private function verifyAuth(string $token, string $authScope): string
     {
-        $cache_key = "verify_access:{$token}";
+        $cache_key = "verify_access_{$token}";
         if ($this->cache->has($cache_key)) {
             [$connection, $identity, $error] = json_decode($this->cache->get($cache_key), true);
             if ($error) {
