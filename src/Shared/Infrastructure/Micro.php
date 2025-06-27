@@ -73,7 +73,7 @@ class Micro
             $def = new MicroConfig();
         }
         $this->config = new AppConfig();
-        if( file_exists( __DIR__.'/../../../var/cache/di-definitions.php') ) {
+        if (file_exists(__DIR__.'/../../../var/cache/di-definitions.php')) {
             $defs = require __DIR__.'/../../../var/cache/di-definitions.php';
         } else {
             $defs = [];
@@ -97,8 +97,8 @@ class Micro
         $depenencies->addDefinitions($defs);
         $depenencies->useAutowiring(true);
         $depenencies->useAttributes(true);
-        if( 'production' === $this->config->get("app.env") ) {
-            $depenencies->enableCompilation( __DIR__.'/../../../var/compiled/di' );
+        if ('production' === $this->config->get("app.env")) {
+            $depenencies->enableCompilation(__DIR__.'/../../../var/compiled/di');
         }
         $container = $depenencies->build();
 
@@ -231,11 +231,11 @@ class Micro
 
     private function withRate(&$def)
     {
-        $def[StorageInterface::class] = function(ContainerInterface $container, AppConfig $conf) {
-            if( "redis" === $conf->get("app.state.vault.engine") ) {
-                return new CacheStorage( new RedisAdapter( new \Redis() ) );
+        $def[StorageInterface::class] = function (ContainerInterface $container, AppConfig $conf) {
+            if ("redis" === $conf->get("app.state.vault.engine")) {
+                return new CacheStorage(new RedisAdapter(new \Redis()));
             } else {
-                return new PdoRateLimiterStorage( $container->get(PDO::class));
+                return new PdoRateLimiterStorage($container->get(PDO::class));
             }
         };
     }
@@ -243,7 +243,7 @@ class Micro
     private function withMetrics(&$def)
     {
         $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf) {
-            if( "redis" === $conf->get("app.state.vault.engine") ) {
+            if ("redis" === $conf->get("app.state.vault.engine")) {
                 $storage = new StorageRedis();
             } else {
                 $storage = new StoragePDO($container->get(PDO::class), '_prometheus_');
@@ -260,14 +260,14 @@ class Micro
     private function withCache(&$def)
     {
         $def[CacheInterface::class] = function (AppConfig $conf) {
-            if( "redis" === $conf->get("app.state.vault.engine") ) {
-                return new Psr16Cache( new RedisAdapter( new \Redis() ) );
+            if ("redis" === $conf->get("app.state.vault.engine")) {
+                return new Psr16Cache(new RedisAdapter(new \Redis()));
             } else {
                 $dir = dirname(__DIR__) . "/../../var/cache";
                 if (!is_dir($dir)) {
                     mkdir($dir);
                 }
-                return new Psr16Cache( new FilesystemAdapter('', 0, $dir) );
+                return new Psr16Cache(new FilesystemAdapter('', 0, $dir));
             }
         };
     }

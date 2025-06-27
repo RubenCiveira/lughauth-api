@@ -70,7 +70,7 @@ class RateConfig
     {
         $this->id = $config->get('app.rate-limit.id', 'app_global_limit');
         $this->policy = $config->get('app.rate-limit.policy', 'sliding_window');
-        $this->limit = intval( $config->get('app.rate-limit.limit', 150) );
+        $this->limit = intval($config->get('app.rate-limit.limit', 150));
         $this->interval = $config->get('app.rate-limit.interval', '1 minute');
         $this->bucketResolverType = $config->get('app.rate-limit.bucket-resolver', BaseBucketResolver::class);
         $this->connectionResolverType = $config->get('app.rate-limit.connection-resolver', IpGranularityResolver::class);

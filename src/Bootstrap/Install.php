@@ -95,8 +95,8 @@ class Install
     {
         $srcDir = __DIR__ . '/..';
         $outputFile = __DIR__ . '/../../var/cache/di-definitions.php';
-        if( file_exists($outputFile) ) {
-            unlink( $outputFile );
+        if (file_exists($outputFile)) {
+            unlink($outputFile);
         }
 
         $included = [];
@@ -116,8 +116,8 @@ class Install
             }
             $namespace = trim($nsMatch[1]);
 
-            if( !in_array(realpath( $file->getPathname()), $included ) ) {
-                $included[] = realpath( $file->getPathname() );
+            if (!in_array(realpath($file->getPathname()), $included)) {
+                $included[] = realpath($file->getPathname());
             }
             /*
             preg_match_all('/^use\s+([^;]+);/m', $contents, $useMatches);
@@ -142,7 +142,7 @@ class Install
             $class = trim($classMatch[1]);
 
             $fqcn = $namespace . '\\' . $class;
-            if( str_ends_with($class, 'Controller') ) {
+            if (str_ends_with($class, 'Controller')) {
                 $definitions[$fqcn] = "autowire($fqcn::class)";
             }
             // $definitions[$fqcn] = "autowire($fqcn::class)";
@@ -151,7 +151,7 @@ class Install
         ksort($definitions);
 
         $code = "<?php\n";
-        foreach($included as $inc) {
+        foreach ($included as $inc) {
             // $code .= "require_once \"".$inc."\";\n";
         }
         $code .= "use function DI\\autowire;\n\n";
