@@ -11,6 +11,8 @@ use OpenApi\Attributes as OA;
 use Symfony\Component\Yaml\Yaml;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 #[OA\Info(
     title: "Mi API REST",
@@ -61,6 +63,7 @@ class Install
             unlink($lock);
         }
         self::openApi();
+        self::compileDi();
         echo "==== Borrar flags\n";
     }
 
@@ -86,5 +89,83 @@ class Install
 
     private static function info()
     {
+    }
+
+    private static function compileDi()
+    {
+        $srcDir = __DIR__ . '/..';
+        $outputFile = __DIR__ . '/../../var/cache/di-definitions.php';
+        if( file_exists($outputFile) ) {
+            unlink( $outputFile );
+        }
+
+        $included = [];
+        $definitions = [];
+
+        $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($srcDir));
+
+        foreach ($rii as $file) {
+            if (!$file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $contents = file_get_contents($file->getPathname());
+
+            if (!preg_match('/^namespace\s+(.+?);/m', $contents, $nsMatch)) {
+                continue;
+            }
+            $namespace = trim($nsMatch[1]);
+
+            if( !in_array(realpath( $file->getPathname()), $included ) ) {
+                $included[] = realpath( $file->getPathname() );
+            }
+            /*
+            preg_match_all('/^use\s+([^;]+);/m', $contents, $useMatches);
+            foreach ($useMatches[1] as $fqcn) {
+                $fqcn = trim($fqcn);
+                if (class_exists($fqcn) || interface_exists($fqcn)) {
+                    try {
+                        $rc = new \ReflectionClass($fqcn);
+                        $file = $rc->getFileName();
+                        if ($file && file_exists($file) && in_array(realpath($file), $included)) {
+                            $included[] = realpath($file);
+                        }
+                    } catch (\ReflectionException) {
+                        // Saltar clases que no pueden ser cargadas/reflejadas
+                    }
+                }
+            }
+            */
+            if (!preg_match('/^class\s+([a-zA-Z0-9_]+)/m', $contents, $classMatch)) {
+                continue;
+            }
+            $class = trim($classMatch[1]);
+
+            $fqcn = $namespace . '\\' . $class;
+            if( str_ends_with($class, 'Controller') ) {
+                $definitions[$fqcn] = "autowire($fqcn::class)";
+            }
+            // $definitions[$fqcn] = "autowire($fqcn::class)";
+        }
+
+        ksort($definitions);
+
+        $code = "<?php\n";
+        foreach($included as $inc) {
+            // $code .= "require_once \"".$inc."\";\n";
+        }
+        $code .= "use function DI\\autowire;\n\n";
+        $code .= "return [\n";
+        foreach ($definitions as $fqcn => $autowireCall) {
+            $code .= "    {$fqcn}::class => {$autowireCall},\n";
+        }
+        $code .= "];\n";
+
+        if (!is_dir(dirname($outputFile))) {
+            mkdir(dirname($outputFile), 0775, true);
+        }
+
+        file_put_contents($outputFile, $code);
+        echo "Generated DI definitions in $outputFile\n";
     }
 }

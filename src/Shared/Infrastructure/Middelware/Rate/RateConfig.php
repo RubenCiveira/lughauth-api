@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Rate;
 
-use PDO;
+use Civi\Lughauth\Shared\AppConfig;
 use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
 /**
@@ -66,18 +66,18 @@ class RateConfig
      * Constructor that assigns rate limiting parameters, applying sensible defaults
      * when values are not provided.
      */
-    public function __construct(private readonly PDO $pdo)
+    public function __construct(private readonly StorageInterface $storage, private readonly AppConfig $config)
     {
-        $this->id = $id ?? 'app_global_limit';
-        $this->policy = $policy ?? 'sliding_window';
-        $this->limit = $limit ?? 150;
-        $this->interval = $interval ?? '1 minute';
-        $this->bucketResolverType = $bucketResolverType ?? BaseBucketResolver::class;
-        $this->connectionResolverType = $connectionResolverType ?? IpGranularityResolver::class;
+        $this->id = $config->get('app.rate-limit.id', 'app_global_limit');
+        $this->policy = $config->get('app.rate-limit.policy', 'sliding_window');
+        $this->limit = intval( $config->get('app.rate-limit.limit', 150) );
+        $this->interval = $config->get('app.rate-limit.interval', '1 minute');
+        $this->bucketResolverType = $config->get('app.rate-limit.bucket-resolver', BaseBucketResolver::class);
+        $this->connectionResolverType = $config->get('app.rate-limit.connection-resolver', IpGranularityResolver::class);
     }
 
     public function storage(): StorageInterface
     {
-        return new PdoRateLimiterStorage($this->pdo);
+        return $this->storage;
     }
 }

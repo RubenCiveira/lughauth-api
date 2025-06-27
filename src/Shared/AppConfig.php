@@ -32,7 +32,7 @@ class AppConfig
 
     public function get(string $name, $def = null)
     {
-        return $_ENV[ strtoupper(str_replace(".", "_", $name))] ?? $this->conf[$name] ?? $def;
+        return $_ENV[ strtoupper(str_replace('-', '_', str_replace(".", "_", $name)))] ?? $this->conf[$name] ?? $def;
     }
 
     public function is(string $name, bool $def = false): bool

@@ -22,6 +22,7 @@ use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
 use chillerlan\SimpleCache\CacheOptions;
+use chillerlan\SimpleCache\RedisCache;
 use GuzzleHttp\Client;
 use Monolog\Logger;
 use Monolog\Handler\RotatingFileHandler;
@@ -30,6 +31,7 @@ use Nimbly\Capsule\Factory\RequestFactory;
 use Nimbly\Capsule\Factory\StreamFactory;
 use Prometheus\CollectorRegistry;
 use Prometheus\Storage\PDO as StoragePDO;
+use Prometheus\Storage\Redis as StorageRedis;
 use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\SDK\Trace\SpanProcessor\SimpleSpanProcessor;
@@ -48,8 +50,14 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ManagementPlugin;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\AccessControlMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\PdoRateLimiterStorage;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\RateLimitMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
+use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
 class Micro
 {
@@ -68,7 +76,12 @@ class Micro
             $def = new MicroConfig();
         }
         $this->config = new AppConfig();
-        $defs = [AppConfig::class => $this->config];
+        if( file_exists( __DIR__.'/../../../var/cache/di-definitions.php') ) {
+            $defs = require __DIR__.'/../../../var/cache/di-definitions.php';
+        } else {
+            $defs = [];
+        }
+        $defs[AppConfig::class] = $this->config;
         $this->withContainer($defs, $depenencies);
         $this->withCache($defs);
         $this->withLogging($defs);
@@ -81,10 +94,15 @@ class Micro
         if ($def->withMetrics) {
             $this->withMetrics($defs);
         }
+        if ($def->withRate) {
+            $this->withRate($defs);
+        }
         $depenencies->addDefinitions($defs);
         $depenencies->useAutowiring(true);
         $depenencies->useAttributes(true);
-        // $depenencies->enableCompilation( __DIR__.'/../../../var/compiled/di' );
+        if( 'production' === $this->config->get("app.env") ) {
+            $depenencies->enableCompilation( __DIR__.'/../../../var/compiled/di' );
+        }
         $container = $depenencies->build();
 
         AppFactory::setContainer($container);
@@ -214,10 +232,25 @@ class Micro
         };
     }
 
+    private function withRate(&$def)
+    {
+        $def[StorageInterface::class] = function(ContainerInterface $container, AppConfig $conf) {
+            if( "redis" === $conf->get("app.state.vault.engine") ) {
+                return new CacheStorage( new RedisAdapter( new \Redis() ) );
+            } else {
+                return new PdoRateLimiterStorage( $container->get(PDO::class));
+            }
+        };
+    }
+
     private function withMetrics(&$def)
     {
-        $def[CollectorRegistry::class] = function (PDO $pdo) {
-            $storage = new StoragePDO($pdo, '_prometheus_');
+        $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf) {
+            if( "redis" === $conf->get("app.state.vault.engine") ) {
+                $storage = new StorageRedis();
+            } else {
+                $storage = new StoragePDO($container->get(PDO::class), '_prometheus_');
+            }
             return new CollectorRegistry($storage);
         };
     }
@@ -229,12 +262,16 @@ class Micro
 
     private function withCache(&$def)
     {
-        $def[CacheInterface::class] = function () {
-            $dir = dirname(__DIR__) . "/../../var/cache";
-            if (!is_dir($dir)) {
-                mkdir($dir);
+        $def[CacheInterface::class] = function (AppConfig $conf) {
+            if( "redis" === $conf->get("app.state.vault.engine") ) {
+                return new Psr16Cache( new RedisAdapter( new \Redis() ) );
+            } else {
+                $dir = dirname(__DIR__) . "/../../var/cache";
+                if (!is_dir($dir)) {
+                    mkdir($dir);
+                }
+                return new Psr16Cache( new FilesystemAdapter('', 0, $dir) );
             }
-            return new SafeFileCache(new CacheOptions(['cacheFilestorage' => $dir]));
         };
     }
 

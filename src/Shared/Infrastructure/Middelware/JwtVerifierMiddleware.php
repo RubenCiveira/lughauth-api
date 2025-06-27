@@ -5,22 +5,23 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware;
 
+use DateTime;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
-use Civi\Lughauth\Shared\Security\Connection;
-use Civi\Lughauth\Shared\Security\Identity;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Signature\Algorithm\RS256;
+use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Civi\Lughauth\Shared\Security\Connection;
+use Civi\Lughauth\Shared\Security\Identity;
 
 class JwtVerifierMiddleware
 {
@@ -58,12 +59,13 @@ class JwtVerifierMiddleware
 
     private function verifyAuth(string $token, string $authScope): string
     {
-        $cache_key = "verify_access::{$token}";
+        $cache_key = "verify_access:{$token}";
         if ($this->cache->has($cache_key)) {
-            [$connection, $identity, $error] = $this->cache->get($cache_key);
+            [$connection, $identity, $error] = json_decode($this->cache->get($cache_key), true);
             if ($error) {
                 throw new UnauthorizedException(message: $error);
             } else {
+                [$connection, $identity] = $this->deseiralize([$connection, $identity]);
                 $this->context->setSecurityContext($connection, $identity);
             }
         } else {
@@ -77,15 +79,15 @@ class JwtVerifierMiddleware
                     $now = time();
                     if ($now < $nbf) {
                         $fail = 'The provided JWT is not ready for use.';
-                        $this->cache->set($cache_key, [null, null, $fail]);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
                         throw new UnauthorizedException(message: $fail);
                     } elseif ($now > $exp) {
                         $fail = 'The provided JWT is expired.';
-                        $this->cache->set($cache_key, [null, null, $fail]);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
                         throw new UnauthorizedException(message: $fail);
                     } elseif (!$nbf || !$exp) {
                         $fail = 'The provided JWT dont have valid time range.';
-                        $this->cache->set($cache_key, [null, null, $fail]);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
                         throw new UnauthorizedException(message: $fail);
                     } else {
                         $this->verifyToken($payload);
@@ -106,7 +108,7 @@ class JwtVerifierMiddleware
                             claims: $claims ?? null
                         );
                         $connection = Connection::remoteHttp($payload->azp, $this->config);
-                        $this->cache->set($cache_key, [$connection, $identity, null]);
+                        $this->cache->set($cache_key, json_encode([$connection, $identity, null]));
                         $this->context->setSecurityContext($connection, $identity);
                     }
                 } else {
@@ -121,6 +123,32 @@ class JwtVerifierMiddleware
             }
         }
         return $token;
+    }
+
+    private function deseiralize($vcc)
+    {
+        [$cc, $ac] = $vcc;
+        $identity = new Identity(
+            anonimous: $ac['anonimous'],
+            authScope: $ac['authScope'],
+            id: $ac['id'],
+            name: $ac['name'],
+            issuer: $ac['issuer'],
+            roles: $ac['roles'],
+            groups: $ac['groups'],
+            tenant: $ac['tenant'],
+            claims: $ac['claims']
+        );
+        $connection = new Connection(
+            remote: $cc['remote'],
+            startTime: new DateTime($cc['startTime']['date']),
+            application: $cc['application'],
+            callback: $cc['callback'],
+            source: $cc['source'],
+            target: $cc['target'],
+            locale: $cc['locale']
+        );
+        return [$connection, $identity];
     }
 
     private function extractJwt(string $token)

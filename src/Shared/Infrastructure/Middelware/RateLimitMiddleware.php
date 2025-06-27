@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware;
 
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -14,6 +13,7 @@ use Slim\Psr7\Response;
 use Symfony\Component\RateLimiter\RateLimit;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\Storage\StorageInterface;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
 
 /**
  * Middleware that applies rate limiting to incoming HTTP requests using Symfony RateLimiter.
@@ -31,7 +31,6 @@ class RateLimitMiddleware
     public function __construct(
         private readonly ContainerInterface $container,
         private readonly RateConfig $rateConfig
-        // , private readonly StorageInterface $storage
     ) {
     }
 

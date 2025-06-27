@@ -5,3 +5,10 @@ app:
     proxy:
       proxy-address-forwarding: true
       allow-forwarded: true
+  rate-limit:
+      id: app_global_limit
+      policy: sliding_window
+      limit: 1500
+      interval: 1 minute
+      bucket-resolver: Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\BaseBucketResolver
+      connection-resolver: Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\IpGranularityResolver
