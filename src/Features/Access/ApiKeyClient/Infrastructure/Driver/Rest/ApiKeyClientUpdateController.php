@@ -27,7 +27,7 @@ class ApiKeyClientUpdateController
     ) {
     }
     #[OA\Put(
-        path: "/api/api-key-clients/{uid}",
+        path: "/api/access/api-key-clients/{uid}",
         tags: ["Api key client"],
         description: "Update the value",
         parameters: [

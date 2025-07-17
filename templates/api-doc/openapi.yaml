@@ -4,21 +4,21 @@ info:
   description: 'Documentación generada automáticamente'
   version: 1.0.0
 paths:
-  /api/me/acl/api-key-clients:
+  /api/me/acl/access/api-key-clients:
     get:
       tags:
         - 'Api key client access control'
       description: Allows
-      operationId: 2a6a7ceb5329e9154e4a92a07ff24945
+      operationId: fb4ce5d376996d2c3ef54ad34316fe24
       responses:
         200:
           description: Ok
-  '/api/me/acl/api-key-clients/{uid}':
+  '/api/me/acl/access/api-key-clients/{uid}':
     get:
       tags:
         - 'Api key client access control'
       description: Allows
-      operationId: 486d769f0c8dd7aa5a1a352191660202
+      operationId: f81bde3a59d89f0c9a2e9bd78fb35c08
       parameters:
         -
           name: uid
@@ -31,12 +31,12 @@ paths:
           description: Ok
         404:
           description: 'Not found'
-  /api/api-key-clients:
+  /api/access/api-key-clients:
     get:
       tags:
         - 'Api key client'
       description: Create
-      operationId: c265c85faac405d8c1236c4ded77dc8f
+      operationId: 3e215c8a5159c98ecf757e947cee2ab5
       responses:
         201:
           description: Ok
@@ -50,7 +50,7 @@ paths:
       tags:
         - 'Api key client'
       description: Create
-      operationId: 5b9d558d8849184d3f58bf088401294e
+      operationId: 31a66cd2a31edb34f7dc8df2d88783a1
       requestBody:
         content:
           application/json:
@@ -65,12 +65,12 @@ paths:
                 $ref: '#/components/schemas/ApiKeyClientApiDTO'
         422:
           description: 'Constraint error'
-  '/api/api-key-clients/{uid}':
+  '/api/access/api-key-clients/{uid}':
     put:
       tags:
         - 'Api key client'
       description: 'Update the value'
-      operationId: 4ff4979ff4b190298648e19f190ce295
+      operationId: def803344f7829b1022dd48f80f15b8c
       parameters:
         -
           name: uid
@@ -100,7 +100,7 @@ paths:
       tags:
         - 'Api key client'
       description: 'Delete the record'
-      operationId: b76c9af34327b25a3824e19f6a16f6b0
+      operationId: 8845f701fc17e327ce8f0917e8d3a81c
       parameters:
         -
           name: uid
@@ -117,12 +117,12 @@ paths:
                 $ref: '#/components/schemas/ApiKeyClientApiDTO'
         404:
           description: 'Not found'
-  '/api/api-key-clients/{uid}/disable':
+  '/api/access/api-key-clients/{uid}/disable':
     patch:
       tags:
         - 'Api key client'
       description: 'Update the value'
-      operationId: 8101e3989c0bc093f3169fe929094aea
+      operationId: 061e64574938cf4f513445d64e6a36e7
       parameters:
         -
           name: uid
@@ -139,12 +139,12 @@ paths:
                 $ref: '#/components/schemas/ApiKeyClientApiDTO'
         404:
           description: 'Not found'
-  '/api/api-key-clients/{uid}/enable':
+  '/api/access/api-key-clients/{uid}/enable':
     patch:
       tags:
         - 'Api key client'
       description: 'Update the value'
-      operationId: 0707dedfb34fa0435087417a9e75cef7
+      operationId: 76ed7f31039db8b31a6b862205e61bf5
       parameters:
         -
           name: uid
@@ -161,12 +161,12 @@ paths:
                 $ref: '#/components/schemas/ApiKeyClientApiDTO'
         404:
           description: 'Not found'
-  '/api/api-key-clients{uid}':
+  '/api/access/api-key-clients{uid}':
     get:
       tags:
         - 'Api key client'
       description: Create
-      operationId: 3ce79560fdc9e5a2d9a009dee23b04cd
+      operationId: 20e745506d0c923e015e3d503eac641c
       parameters:
         -
           name: uid

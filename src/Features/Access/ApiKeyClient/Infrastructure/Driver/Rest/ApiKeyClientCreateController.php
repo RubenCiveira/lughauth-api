@@ -26,7 +26,7 @@ class ApiKeyClientCreateController
     ) {
     }
     #[OA\Post(
-        path: "/api/api-key-clients",
+        path: "/api/access/api-key-clients",
         tags: ["Api key client"],
         description:"Create",
         requestBody: new OA\RequestBody(content: new OA\JsonContent(type: "object", ref:"#/components/schemas/ApiKeyClientApiDTO")),

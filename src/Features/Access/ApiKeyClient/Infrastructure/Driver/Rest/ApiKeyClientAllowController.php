@@ -37,7 +37,7 @@ class ApiKeyClientAllowController
     ) {
     }
     #[OA\Get(
-        path: "/api/me/acl/api-key-clients",
+        path: "/api/me/acl/access/api-key-clients",
         tags: ["Api key client access control"],
         description:"Allows",
         responses: [
@@ -76,7 +76,7 @@ class ApiKeyClientAllowController
         }
     }
     #[OA\Get(
-        path: "/api/me/acl/api-key-clients/{uid}",
+        path: "/api/me/acl/access/api-key-clients/{uid}",
         tags: ["Api key client access control"],
         description:"Allows",
         parameters: [

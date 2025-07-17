@@ -32,7 +32,7 @@ class ApiKeyClientEnableController
     ) {
     }
     #[OA\Patch(
-        path: "/api/api-key-clients/{uid}/enable",
+        path: "/api/access/api-key-clients/{uid}/enable",
         tags: ["Api key client"],
         description: "Update the value",
         parameters: [

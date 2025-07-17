@@ -32,7 +32,7 @@ class ApiKeyClientDeleteController
     ) {
     }
     #[OA\Delete(
-        path: "/api/api-key-clients/{uid}",
+        path: "/api/access/api-key-clients/{uid}",
         tags: ["Api key client"],
         description: "Delete the record",
         parameters: [

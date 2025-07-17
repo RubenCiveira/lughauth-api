@@ -27,7 +27,7 @@ class ApiKeyClientListController
     ) {
     }
     #[OA\Get(
-        path: "/api/api-key-clients",
+        path: "/api/access/api-key-clients",
         tags: ["Api key client"],
         description:"Create",
         responses: [

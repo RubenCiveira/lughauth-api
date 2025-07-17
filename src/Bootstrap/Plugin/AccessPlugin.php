@@ -11,6 +11,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPart
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\UserIdentityPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\UserPlugin;
@@ -26,6 +27,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new TrustedClientPlugin(),
           new UserIdentityPlugin(),
           new TenantConfigPlugin(),
+          new ApiKeyClientPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
           new UserPlugin(),
