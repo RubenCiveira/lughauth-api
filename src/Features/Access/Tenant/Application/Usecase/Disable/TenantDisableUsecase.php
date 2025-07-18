@@ -60,7 +60,7 @@ class TenantDisableUsecase
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantDisableOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantDisableOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -59,7 +59,7 @@ class UserCreateUsecase
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new UserCreateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new UserCreateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

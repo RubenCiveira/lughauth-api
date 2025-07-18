@@ -38,8 +38,6 @@ class ApiKeyClientPlugin extends MicroPlugin
     #[Override]
     public function registerRoutes(RouteCollectorProxy $app)
     {
-        $app->group('/api/api-key-clients', [$this, 'setRoutesForApiKeyClient']);
-        $app->group('/api/me/acl/api-key-clients', [$this, 'setRoutesForApiKeyClientAcl']);
         $app->group('/api/access/api-key-clients', [$this, 'setRoutesForApiKeyClient']);
         $app->group('/api/me/acl/access/api-key-clients', [$this, 'setRoutesForApiKeyClientAcl']);
     }

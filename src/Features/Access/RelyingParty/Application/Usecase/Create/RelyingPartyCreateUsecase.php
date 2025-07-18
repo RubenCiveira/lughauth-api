@@ -59,7 +59,7 @@ class RelyingPartyCreateUsecase
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new RelyingPartyCreateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new RelyingPartyCreateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

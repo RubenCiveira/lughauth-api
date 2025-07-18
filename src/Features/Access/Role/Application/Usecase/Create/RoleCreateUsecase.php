@@ -59,7 +59,7 @@ class RoleCreateUsecase
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new RoleCreateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new RoleCreateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

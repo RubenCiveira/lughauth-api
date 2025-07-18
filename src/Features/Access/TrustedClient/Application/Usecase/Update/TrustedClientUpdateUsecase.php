@@ -73,7 +73,7 @@ class TrustedClientUpdateUsecase
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TrustedClientUpdateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TrustedClientUpdateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

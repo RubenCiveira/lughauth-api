@@ -72,7 +72,7 @@ class RelyingPartyRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new RelyingPartyRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new RelyingPartyRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new RelyingPartyRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

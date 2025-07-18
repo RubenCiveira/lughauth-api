@@ -59,7 +59,7 @@ class TrustedClientDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new TrustedClientDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new TrustedClientDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

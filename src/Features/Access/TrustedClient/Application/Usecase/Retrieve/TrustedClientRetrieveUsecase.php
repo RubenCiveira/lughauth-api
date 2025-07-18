@@ -72,7 +72,7 @@ class TrustedClientRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new TrustedClientRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new TrustedClientRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TrustedClientRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

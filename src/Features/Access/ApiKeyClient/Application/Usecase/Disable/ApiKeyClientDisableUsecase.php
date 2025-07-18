@@ -60,7 +60,7 @@ class ApiKeyClientDisableUsecase
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new ApiKeyClientDisableOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new ApiKeyClientDisableOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

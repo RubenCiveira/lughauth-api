@@ -72,7 +72,7 @@ class TenantRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new TenantRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new TenantRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

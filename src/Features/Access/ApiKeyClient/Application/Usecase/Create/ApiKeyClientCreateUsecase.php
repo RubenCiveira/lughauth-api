@@ -59,7 +59,7 @@ class ApiKeyClientCreateUsecase
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new ApiKeyClientCreateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new ApiKeyClientCreateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

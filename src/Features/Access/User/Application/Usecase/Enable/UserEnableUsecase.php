@@ -60,7 +60,7 @@ class UserEnableUsecase
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new UserEnableOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new UserEnableOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -59,7 +59,7 @@ class TenantConfigDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new TenantConfigDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new TenantConfigDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

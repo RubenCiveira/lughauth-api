@@ -73,7 +73,7 @@ class UserListUsecase
             $input = $this->dispacher->dispatch(new UserListInputProposal($filter, $cursor));
             $slide = $this->visibility->listVisibles($input->filter, $input->cursor);
             $output = new UserAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
-            return $this->dispacher->dispatch(new UserListOuputProposal($output))->slide;
+            return $this->dispacher->dispatch(new UserListOutputProposal($output))->slide;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

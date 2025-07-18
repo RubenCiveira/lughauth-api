@@ -73,7 +73,7 @@ class TenantUpdateUsecase
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantUpdateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantUpdateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -59,7 +59,7 @@ class ApiKeyClientDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new ApiKeyClientDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new ApiKeyClientDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

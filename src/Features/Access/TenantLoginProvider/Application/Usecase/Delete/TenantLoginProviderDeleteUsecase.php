@@ -59,7 +59,7 @@ class TenantLoginProviderDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new TenantLoginProviderDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new TenantLoginProviderDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

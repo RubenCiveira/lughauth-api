@@ -73,7 +73,7 @@ class TenantTermsOfUseRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new TenantTermsOfUseRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new TenantTermsOfUseRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantTermsOfUseRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

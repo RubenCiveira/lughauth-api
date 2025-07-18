@@ -59,7 +59,7 @@ class TenantLoginProviderCreateUsecase
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantLoginProviderCreateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantLoginProviderCreateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -72,7 +72,7 @@ class RoleRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new RoleRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new RoleRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new RoleRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

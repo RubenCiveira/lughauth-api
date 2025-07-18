@@ -73,7 +73,7 @@ class TenantTermsOfUseUpdateUsecase
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantTermsOfUseUpdateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantTermsOfUseUpdateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

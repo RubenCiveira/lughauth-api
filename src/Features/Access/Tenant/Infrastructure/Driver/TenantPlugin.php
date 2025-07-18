@@ -51,17 +51,17 @@ class TenantPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(TenantCreateAllowProposal::class, CreateTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantUpdateAllowProposal::class, UpdateTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantDeleteAllowProposal::class, DeleteTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantEnableAllowProposal::class, EnableTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantDisableAllowProposal::class, DisableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(TenantCreateAllowProposal::class, CreateTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(TenantUpdateAllowProposal::class, UpdateTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TenantDeleteAllowProposal::class, DeleteTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TenantEnableAllowProposal::class, EnableTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantDisableAllowProposal::class, DisableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForTenantAcl(RouteCollectorProxy $tenantGroup)

@@ -72,7 +72,7 @@ class UserRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new UserRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new UserRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new UserRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

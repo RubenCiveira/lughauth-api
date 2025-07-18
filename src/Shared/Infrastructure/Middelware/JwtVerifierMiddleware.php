@@ -113,12 +113,12 @@ class JwtVerifierMiddleware
                     }
                 } else {
                     $fail = 'The provided JWT could not be verified.';
-                    $this->cache->set($cache_key, [null, null, $fail]);
+                    $this->cache->set($cache_key, json_encode([null, null, $fail]));
                     throw new UnauthorizedException(message: $fail);
                 }
             } catch (\InvalidArgumentException $je) {
                 $fail = 'The provided JWT is not valid.';
-                $this->cache->set($cache_key, [null, null, $fail]);
+                $this->cache->set($cache_key, json_encode([null, null, $fail]));
                 throw new UnauthorizedException(message: $fail);
             }
         }

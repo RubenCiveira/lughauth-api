@@ -60,7 +60,7 @@ class TenantTermsOfUseEnableUsecase
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantTermsOfUseEnableOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TenantTermsOfUseEnableOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

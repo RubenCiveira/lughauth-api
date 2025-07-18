@@ -73,7 +73,7 @@ class TenantTermsOfUseListUsecase
             $input = $this->dispacher->dispatch(new TenantTermsOfUseListInputProposal($filter, $cursor));
             $slide = $this->visibility->listVisibles($input->filter, $input->cursor);
             $output = new TenantTermsOfUseAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
-            return $this->dispacher->dispatch(new TenantTermsOfUseListOuputProposal($output))->slide;
+            return $this->dispacher->dispatch(new TenantTermsOfUseListOutputProposal($output))->slide;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

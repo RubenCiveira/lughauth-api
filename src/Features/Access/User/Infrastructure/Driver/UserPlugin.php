@@ -60,21 +60,21 @@ class UserPlugin extends MicroPlugin
     {
         $bus->registerListener(UserFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(UserFixedFieldsProposal::class, UserExcludingdRoot::class);
+        $bus->registerListener(UserCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(UserCreateAllowProposal::class, CreateUserOnlyForRootAllow::class);
+        $bus->registerListener(UserUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(UserUpdateAllowProposal::class, UpdateUserOnlyForRootAllow::class);
+        $bus->registerListener(UserRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserRetrieveAllowProposal::class, RetrieveUserOnlyForRootAllow::class);
         $bus->registerListener(UserListAllowProposal::class, ListUserOnlyForRootAllow::class);
-        $bus->registerListener(UserDeleteAllowProposal::class, DeleteUserOnlyForRootAllow::class);
-        $bus->registerListener(UserDisableAllowProposal::class, DisableUserOnlyForRootAllow::class);
-        $bus->registerListener(UserEnableAllowProposal::class, EnableUserOnlyForRootAllow::class);
-        $bus->registerListener(UserUnlockAllowProposal::class, UnlockUserOnlyForRootAllow::class);
-        $bus->registerListener(UserCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(UserUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(UserRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(UserDeleteAllowProposal::class, DeleteUserOnlyForRootAllow::class);
+        $bus->registerListener(UserDisableAllowProposal::class, DisableUserOnlyForRootAllow::class);
         $bus->registerListener(UserDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(UserEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(UserEnableAllowProposal::class, EnableUserOnlyForRootAllow::class);
+        $bus->registerListener(UserUnlockAllowProposal::class, UnlockUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowProposal::class, IsAutenticatedUnlockAllow::class);
     }
     public function setRoutesForUserAcl(RouteCollectorProxy $userGroup)

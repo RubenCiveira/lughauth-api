@@ -73,7 +73,7 @@ class TenantListUsecase
             $input = $this->dispacher->dispatch(new TenantListInputProposal($filter, $cursor));
             $slide = $this->visibility->listVisibles($input->filter, $input->cursor);
             $output = new TenantAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
-            return $this->dispacher->dispatch(new TenantListOuputProposal($output))->slide;
+            return $this->dispacher->dispatch(new TenantListOutputProposal($output))->slide;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

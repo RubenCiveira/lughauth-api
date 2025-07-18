@@ -59,7 +59,7 @@ class UserDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new UserDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new UserDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

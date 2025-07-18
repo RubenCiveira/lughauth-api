@@ -59,7 +59,7 @@ class RelyingPartyDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new RelyingPartyDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new RelyingPartyDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

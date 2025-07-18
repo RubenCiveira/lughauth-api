@@ -5,10 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware;
 
-use Civi\Lughauth\Shared\AppConfig;
-use Slim\App;
-use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -16,8 +12,12 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Psr\SimpleCache\CacheInterface;
+use Slim\App;
 use Slim\Psr7\Factory\ResponseFactory;
 use Symfony\Component\Yaml\Yaml;
+use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
 class AccessControlMiddleware
 {

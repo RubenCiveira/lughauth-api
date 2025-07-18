@@ -72,7 +72,7 @@ class UserIdentityRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new UserIdentityRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new UserIdentityRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new UserIdentityRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

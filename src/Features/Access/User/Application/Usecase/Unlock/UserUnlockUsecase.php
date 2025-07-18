@@ -60,7 +60,7 @@ class UserUnlockUsecase
             $modified = $original->unlock();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new UserUnlockOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new UserUnlockOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

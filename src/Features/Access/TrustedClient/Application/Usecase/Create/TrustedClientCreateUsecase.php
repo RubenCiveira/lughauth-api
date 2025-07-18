@@ -59,7 +59,7 @@ class TrustedClientCreateUsecase
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TrustedClientCreateOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new TrustedClientCreateOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

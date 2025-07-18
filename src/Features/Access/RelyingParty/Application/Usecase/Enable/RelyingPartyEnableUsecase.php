@@ -60,7 +60,7 @@ class RelyingPartyEnableUsecase
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new RelyingPartyEnableOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new RelyingPartyEnableOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

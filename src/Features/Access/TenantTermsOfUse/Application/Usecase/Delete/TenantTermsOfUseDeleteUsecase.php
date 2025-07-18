@@ -59,7 +59,7 @@ class TenantTermsOfUseDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new TenantTermsOfUseDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new TenantTermsOfUseDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

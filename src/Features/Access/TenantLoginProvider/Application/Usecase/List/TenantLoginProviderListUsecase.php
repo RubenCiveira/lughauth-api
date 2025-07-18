@@ -73,7 +73,7 @@ class TenantLoginProviderListUsecase
             $input = $this->dispacher->dispatch(new TenantLoginProviderListInputProposal($filter, $cursor));
             $slide = $this->visibility->listVisibles($input->filter, $input->cursor);
             $output = new TenantLoginProviderAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
-            return $this->dispacher->dispatch(new TenantLoginProviderListOuputProposal($output))->slide;
+            return $this->dispacher->dispatch(new TenantLoginProviderListOutputProposal($output))->slide;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

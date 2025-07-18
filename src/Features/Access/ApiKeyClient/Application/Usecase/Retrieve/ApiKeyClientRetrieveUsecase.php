@@ -72,7 +72,7 @@ class ApiKeyClientRetrieveUsecase
             }
             $input = $this->dispacher->dispatch(new ApiKeyClientRetrieveInputProposal($result))->ref;
             $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new ApiKeyClientRetrieveOuputProposal($output))->attributes;
+            return $this->dispacher->dispatch(new ApiKeyClientRetrieveOutputProposal($output))->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

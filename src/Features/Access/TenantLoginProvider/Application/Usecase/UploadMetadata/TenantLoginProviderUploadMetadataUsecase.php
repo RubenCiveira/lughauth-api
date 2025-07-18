@@ -69,7 +69,7 @@ class TenantLoginProviderUploadMetadataUsecase
             }
             $input = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataInputProposal($binary));
             $output = $this->writer->temporalStoreMetadata($input->file);
-            return $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataOuputProposal($output))->key;
+            return $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataOutputProposal($output))->key;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

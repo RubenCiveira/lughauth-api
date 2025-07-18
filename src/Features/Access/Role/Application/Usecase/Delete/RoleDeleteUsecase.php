@@ -59,7 +59,7 @@ class RoleDeleteUsecase
             }
             $deleted = $original->delete();
             $this->writer->delete($deleted);
-            $this->dispacher->dispatch(new RoleDeleteOuputProposal($ref));
+            $this->dispacher->dispatch(new RoleDeleteOutputProposal($ref));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
