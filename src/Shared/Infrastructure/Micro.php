@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Shared\Infrastructure;
 use PDO;
 use Exception;
 use Throwable;
+use DateInterval;
 use DI\ContainerBuilder;
 use Slim\App;
 use Slim\Factory\AppFactory;
@@ -222,10 +223,10 @@ class Micro
             }
             return $exporter;
         };
-        $def[TracerInterface::class] = function (SpanExporterInterface $exporter) {
+        $def[TracerInterface::class] = function (SpanExporterInterface $exporter, AppConfig $config) {
             $processor = new SimpleSpanProcessor($exporter);
             $provider = new TracerProvider($processor);
-            return $provider->getTracer('my-php-service');
+            return $provider->getTracer($config->get('app.name', 'php-service') . '_' . $config->get('app.version', '1'));
         };
     }
 
@@ -261,7 +262,11 @@ class Micro
     {
         $def[CacheInterface::class] = function (AppConfig $conf) {
             if ("redis" === $conf->get("app.state.vault.engine")) {
-                return new Psr16Cache(new RedisAdapter(new \Redis()));
+                $interval = new DateInterval($conf->get('app.cache.lifetime', 'PT2H'));
+                $now = new \DateTimeImmutable();
+                $future = $now->add($interval);
+                $defaultLifetime = $future->getTimestamp() - $now->getTimestamp();
+                return new Psr16Cache(new RedisAdapter(new \Redis(), $conf->get('app.cache.namespace', ''), $defaultLifetime));
             } else {
                 $dir = dirname(__DIR__) . "/../../var/cache";
                 if (!is_dir($dir)) {

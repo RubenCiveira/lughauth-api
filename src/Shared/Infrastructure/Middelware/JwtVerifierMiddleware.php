@@ -77,7 +77,7 @@ class JwtVerifierMiddleware
                     $nbf = $payload->nbf;
                     $exp = $payload->exp;
                     $now = time();
-                    if ($now < $nbf) {
+                    if (($now - $nbf) > 1000) {
                         $fail = 'The provided JWT is not ready for use.';
                         $this->cache->set($cache_key, json_encode([null, null, $fail]));
                         throw new UnauthorizedException(message: $fail);
