@@ -40,11 +40,21 @@ class TokenController
             }
             $client = $code->client;
             $auth = $code->data;
-            $withRefresh = false;
+            $withRefresh = true;
             $identity = ['nonce' => $code->nonce ];
+        } else if( "refresh_token" == $grant) {
+            $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
+            $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
+            $auth = $this->granter->autenticate(
+                $grant,
+                $tenant,
+                new AuthenticationRequest($client, "", "", null, [$client->id, ...$audiences]),
+                $params
+            );
+            $identity = [];
         } else {
             if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
-                throw new UnauthorizedException(message: 'Unauthorized.');
+                throw new UnauthorizedException(message: 'Unauthorized by header.');
             }
             $client = $this->clientDataGateway->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
             if (!$client) {
@@ -66,7 +76,7 @@ class TokenController
             throw new UnauthorizedException("No auth");
         }
         $issuer = $this->context->getBaseUrl().'/oauth/openid/'. $tenant;
-        $data = [
+        $detail = [
             'aud' => $this->tokenAudiences($client->id, $auth->audiences),
             'azp' => $client->id,
             'iss' => $issuer,
@@ -76,7 +86,7 @@ class TokenController
             'roles' => $auth->roles,
             'groups' => $auth->groups
         ];
-        $identity = [...$data, ...$identity];
+        $identity = [...$detail, ...$identity];
         $expiration = new \DateInterval("PT10M");
         $now = new \DateTimeImmutable();
         $expires = $now->add($expiration);
@@ -84,7 +94,7 @@ class TokenController
             'token_type' => 'Bearer',
             'expires_in' => $expires->getTimestamp() - $now->getTimestamp(),
             'id_token' => $this->manager->sign($tenant, $identity, $expiration),
-            'access_token' => $this->manager->sign($tenant, array_merge($data, [
+            'access_token' => $this->manager->sign($tenant, array_merge($detail, [
                 // https://www.iana.org/assignments/jwt/jwt.xhtml
                 'scope' => $auth->scope,
                 'roles' => $auth->roles,
@@ -92,7 +102,7 @@ class TokenController
             ]), $expiration),
         ];
         if ($withRefresh) {
-            $data['refresh_token'] = $this->manager->sign($tenant, array_merge($data, ['scope' => ['refresh'] ]), new \DateInterval("PT10H"));
+            $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'] ], new \DateInterval("PT10H"));
         }
         $response->getBody()->write(json_encode($data));
         return $response->withHeader('Content-Type', 'application/json');

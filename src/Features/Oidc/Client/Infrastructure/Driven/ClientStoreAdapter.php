@@ -48,6 +48,28 @@ class ClientStoreAdapter implements ClientStoreRepository
     }
 
     #[Override]
+    public function preValidatedClient(string $id): ?ClientData
+    {
+        $existent = $this->clients->findOneByCode($id);
+        if ($existent) {
+            if (!$existent->getEnabled()) {
+                $this->notEnabled($id);
+                // Not enabled
+                return null;
+            } elseif (!$existent->getPublicAllow()) {
+                // Not public allowed
+                $this->notPublic($id);
+                return null;
+            } else {
+                return new ClientData($id, ['password'], true);
+            }
+        } else {
+            $this->inexistent($id);
+            return null;
+        }
+    }
+
+    #[Override]
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
     {
         $existent = $this->clients->findOneByCode($id);

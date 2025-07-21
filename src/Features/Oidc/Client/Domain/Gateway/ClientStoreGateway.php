@@ -22,6 +22,11 @@ class ClientStoreGateway
         return $this->repository->clientData($clientId, $clientSecret);
     }
 
+    public function preValidatedClient(string $clientId): ?ClientData
+    {
+        return $this->repository->preValidatedClient($clientId);
+    }
+
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
     {
         return $this->repository->publicClientData($id, $tenant, $redirectUrl, $scope);
