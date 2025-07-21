@@ -15,9 +15,10 @@ use Jose\Bundle\JoseFramework\DependencyInjection\Source\KeyManagement\KeyManage
 
 class ResolverForRefresh implements TokenGranterStrategy
 {
-    public function __construct(private readonly LoginUsecase $userLoginGateway, 
-            private readonly KeysManagerService $manager)
-    {
+    public function __construct(
+        private readonly LoginUsecase $userLoginGateway,
+        private readonly KeysManagerService $manager
+    ) {
 
     }
 

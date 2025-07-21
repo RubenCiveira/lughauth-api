@@ -42,7 +42,7 @@ class TokenController
             $auth = $code->data;
             $withRefresh = true;
             $identity = ['nonce' => $code->nonce ];
-        } else if( "refresh_token" == $grant) {
+        } elseif ("refresh_token" == $grant) {
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
             $auth = $this->granter->autenticate(
