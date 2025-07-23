@@ -13,7 +13,7 @@ class UserIdentityApiDTO
     #[OA\Property(
         property: "uid",
         title: "uid",
-        description:"El identificador de la aplicacion",
+        description:"A uid string to identify the entity",
         type: "string"
     )]
     public ?string $uid;

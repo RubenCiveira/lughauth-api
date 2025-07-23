@@ -11,6 +11,7 @@ class MicroConfig
     public readonly bool $withMetrics;
     public readonly bool $withTelemetry;
     public readonly bool $withManagement;
+    public readonly bool $withAudit;
 
     public function __construct()
     {
@@ -18,5 +19,6 @@ class MicroConfig
         $this->withMetrics = true;
         $this->withManagement = true;
         $this->withTelemetry = true;
+        $this->withAudit = true;
     }
 }

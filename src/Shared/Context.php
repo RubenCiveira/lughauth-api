@@ -26,7 +26,7 @@ class Context
         $this->connection = $connection;
     }
 
-    public function getIdentity(): ?Identity
+    public function getIdentity(): Identity
     {
         if ($this->identity == null) {
             $this->identity = Identity::anonimous();
@@ -34,7 +34,7 @@ class Context
         return $this->identity;
     }
 
-    public function getConnection(): ?Connection
+    public function getConnection(): Connection
     {
         if ($this->connection == null) {
             $this->connection = Connection::remoteHttp();

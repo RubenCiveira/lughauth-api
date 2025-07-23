@@ -271,6 +271,10 @@ class UserIdentityPdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_user_identity" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
+            $values = ['user' => $entity->getUser()?->uid(), 'relyingParty' => $entity->getRelyingParty()?->uid(), 'trustedClient' => $entity->getTrustedClient()?->uid(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "user", "relying_party", "trusted_client" from "access_user_identity" where "user" = :user and "relying_party" = :relyingParty and "trusted_client" = :trustedClient and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['user', 'relyingParty', 'trustedClient'], [$entity->getUser()?->uid(), $entity->getRelyingParty()?->uid(), $entity->getTrustedClient()?->uid()]);
+            }
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -302,8 +306,12 @@ class UserIdentityPdoConnector
                     $query .= ' and ( "uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                if ($filter->forAllAudiences()) {
-                    $query .= ' and ("relying_party" is null and "trusted_client" is null)';
+                $filterUserAndRelyingPartyAndTrustedClient = $filter->userAndRelyingPartyAndTrustedClient();
+                if ($filterUserAndRelyingPartyAndTrustedClient) {
+                    $query .= ' and ( "user" = :userRelyingPartyTrustedClientUser and "relying_party" = :userRelyingPartyTrustedClientRelyingParty and "trusted_client" = :userRelyingPartyTrustedClientTrustedClient)';
+                    $params[] = new SqlParam(name: 'userRelyingPartyTrustedClientUser', value: $filterUserAndRelyingPartyAndTrustedClient['user']->uid(), type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'userRelyingPartyTrustedClientRelyingParty', value: $filterUserAndRelyingPartyAndTrustedClient['relyingParty']->uid(), type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'userRelyingPartyTrustedClientTrustedClient', value: $filterUserAndRelyingPartyAndTrustedClient['trustedClient']->uid(), type: SqlParam::STR);
                 }
                 if ($filterUser = $filter->user()) {
                     $query .= ' and "user" = :user ';

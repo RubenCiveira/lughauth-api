@@ -7,6 +7,9 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway;
 
 use Psr\Container\ContainerInterface;
 use Closure;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityWriteRepositoryAdapter;
@@ -49,5 +52,9 @@ class UserIdentityWriteGateway
     public function findOneForUpdateByUid(string $uid): ?UserIdentity
     {
         return $this->repository->findOneForUpdateByUid($uid);
+    }
+    public function findOneForUpdateByUserAndRelyingPartyAndTrustedClient(UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): ?UserIdentity
+    {
+        return $this->repository->findOneForUpdateByUserAndRelyingPartyAndTrustedClient($user, $relyingParty, $trustedClient);
     }
 }

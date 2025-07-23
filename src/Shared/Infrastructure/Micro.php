@@ -38,6 +38,11 @@ use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Infrastructure\Audit\AuditablePdoWrapper;
+use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
+use Civi\Lughauth\Shared\Infrastructure\Audit\AuditMiddleware;
+use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\JwtVerifierMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\CorsMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
@@ -51,6 +56,7 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\PdoRateLimiterStorage;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\RateLimitMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
+use DI\Container;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Psr16Cache;
@@ -62,9 +68,9 @@ class Micro
     public readonly App $app;
     public readonly EventBus $bus;
     public readonly AppConfig $config;
+    public readonly MicroConfig $definition;
     public readonly ContainerInterface $container;
     public readonly ErrorMiddleware $errorHandler;
-    // public readonly HealthManagement $health;
     private array $interfaces = [];
     private array $startups = [];
 
@@ -73,6 +79,7 @@ class Micro
         if (!$def) {
             $def = new MicroConfig();
         }
+        $this->definition = $def;
         $this->config = new AppConfig();
         if (file_exists(__DIR__.'/../../../var/cache/di-definitions.php')) {
             $defs = require __DIR__.'/../../../var/cache/di-definitions.php';
@@ -80,27 +87,40 @@ class Micro
             $defs = [];
         }
         $defs[AppConfig::class] = $this->config;
+        $defs[MicroConfig::class] = $this->definition;
+        if ($this->definition->withAudit) {
+            $this->withAudit($defs);
+        }
         $this->withContainer($defs, $depenencies);
         $this->withCache($defs);
         $this->withLogging($defs);
         $this->withDatabase($defs);
         $this->withHttpClient($defs);
         $this->withEventBus($defs);
-        if ($def->withTelemetry) {
+        if ($this->definition->withTelemetry) {
             $this->withTelementry($defs);
         }
-        if ($def->withMetrics) {
+        if ($this->definition->withMetrics) {
             $this->withMetrics($defs);
         }
-        if ($def->withRate) {
+        if ($this->definition->withRate) {
             $this->withRate($defs);
         }
         $depenencies->addDefinitions($defs);
         $depenencies->useAutowiring(true);
         $depenencies->useAttributes(true);
-        if ('production' === $this->config->get("app.env")) {
-            $depenencies->enableCompilation(__DIR__.'/../../../var/compiled/di');
-        }
+        // if ('production' === $this->config->get("app.env")) {
+        //     $vardir = __DIR__.'/../../../var/';
+        //     if (!is_dir($vardir)) {
+        //         mkdir($vardir, 0777, true);
+        //     }
+        //     $compiledFile = __DIR__.'/../../../var/compiled/di';
+        //     $startUpFile = $vardir.'startup.flag';
+        //     if( !file_exists($startUpFile) && file_exists($compiledFile)) {
+        //         unlink( $compiledFile );
+        //     }
+        //     $depenencies->enableCompilation($compiledFile);
+        // }
         $container = $depenencies->build();
 
         AppFactory::setContainer($container);
@@ -123,14 +143,17 @@ class Micro
         $this->app->add(AccessControlMiddleware::class);
         $this->app->add(JwtVerifierMiddleware::class);
         $this->app->add(HttpCompressionMiddleware::class);
-        if ($def->withTelemetry) {
+        if ($this->definition->withTelemetry) {
             $this->app->add(TelemetrySpanMiddleware::class);
         }
-        if ($def->withRate) {
+        if ($this->definition->withRate) {
             $this->app->add(RateLimitMiddleware::class);
         }
-        if ($def->withMetrics) {
+        if ($this->definition->withMetrics) {
             $this->app->add(PrometheusMetricMiddleware::class);
+        }
+        if ($this->definition->withAudit) {
+            $this->app->add(AuditMiddleware::class);
         }
 
         $logger = null;
@@ -253,6 +276,20 @@ class Micro
         };
     }
 
+    private function withAudit(&$def)
+    {
+        $def[AuditContext::class] = \DI\autowire(AuditContext::class);
+        $def[AuditMiddleware::class] = function (Container $container, Context $appContext, AppConfig $conf) {
+            $pdo = $container->get('DIRECT_PDO');
+            $context = $container->get(AuditContext::class);
+            return new AuditMiddleware($pdo, $context, $appContext, $conf);
+        };
+        $def[AuditQueryService::class] = function (Container $container) {
+            $pdo = $container->get('DIRECT_PDO');
+            return new AuditQueryService($pdo);
+        };
+    }
+
     private function withContainer(&$def, $builder)
     {
         $def[ContainerBuilder::class] = $builder;
@@ -279,11 +316,25 @@ class Micro
 
     private function withDatabase(&$def)
     {
-        $def[PDO::class] = function (AppConfig $config) {
-            return new PDO($config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
-            ]);
-        };
+        if ($this->definition->withAudit) {
+            $def['DIRECT_PDO'] = function (AppConfig $config) {
+                return new PDO($config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                ]);
+            };
+            $def[PDO::class] = function (Container $container, AppConfig $config) {
+                $context = $container->get(AuditContext::class);
+                return new AuditablePdoWrapper($context, $config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                ]);
+            };
+        } else {
+            $def[PDO::class] = function (AppConfig $config) {
+                return new PDO($config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+                ]);
+            };
+        }
     }
 
     private function withLogging(&$def)

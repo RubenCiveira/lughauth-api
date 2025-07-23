@@ -26,7 +26,7 @@ class UserIdentityRetrieveController
     ) {
     }
     #[OA\Get(
-        path: "/api/access/identity{uid}",
+        path: "/api/access/user-identities{uid}",
         tags: ["User identity"],
         description:"Create",
         parameters: [

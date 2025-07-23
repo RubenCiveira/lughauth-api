@@ -4,6 +4,12 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsUidVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsSecurityDomainVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVersionVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsItem;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
@@ -17,6 +23,11 @@ final class RoleUnitTest extends TestCase
             uid: 'one',
             name: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('one'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+                RoleDomainsVersionVO::from(1)
+            )),
             version: 1,
         );
 
@@ -29,6 +40,8 @@ final class RoleUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getDomains(), $other->getDomains());
+        $this->assertTrue($one->isDomainsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -39,12 +52,22 @@ final class RoleUnitTest extends TestCase
             uid: 'one',
             name: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('one'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+                RoleDomainsVersionVO::from(1)
+            )),
             version: 1,
         );
         $other = new Role(
             uid: 'other',
             name: 'other',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('other'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['other'])->getMock()),
+                RoleDomainsVersionVO::from(2)
+            )),
             version: 2,
         );
 
@@ -57,6 +80,8 @@ final class RoleUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged($base));
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->getDomains(), $other->getDomains());
+        $this->assertTrue($one->isDomainsChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -67,6 +92,11 @@ final class RoleUnitTest extends TestCase
             uid: 'one',
             name: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('one'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+                RoleDomainsVersionVO::from(1)
+            )),
             version: 1,
         );
 
@@ -79,6 +109,8 @@ final class RoleUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getDomains(), $other->getDomains());
+        $this->assertTrue($one->isDomainsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -90,12 +122,22 @@ final class RoleUnitTest extends TestCase
             uid: 'one',
             name: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('one'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+                RoleDomainsVersionVO::from(1)
+            )),
             version: 1,
         );
         $other = new Role(
             uid: 'other',
             name: 'other',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('other'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['other'])->getMock()),
+                RoleDomainsVersionVO::from(2)
+            )),
             version: 2,
         );
 
@@ -108,6 +150,8 @@ final class RoleUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged($base));
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->getDomains(), $other->getDomains());
+        $this->assertTrue($one->isDomainsChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -120,6 +164,11 @@ final class RoleUnitTest extends TestCase
             uid: 'one',
             name: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            domains: new RoleDomainsListRef(new RoleDomainsItem(
+                RoleDomainsUidVO::from('one'),
+                RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+                RoleDomainsVersionVO::from(1)
+            )),
             version: 1,
         );
 
@@ -132,6 +181,8 @@ final class RoleUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getDomains(), $other->getDomains());
+        $this->assertTrue($one->isDomainsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }

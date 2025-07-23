@@ -11,11 +11,14 @@ use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPart
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\UserIdentityPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
+use Civi\Lughauth\Features\Access\SecurityDomain\Infrastructure\Driver\SecurityDomainPlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Infrastructure\Driver\ScopeAssignationPlugin;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\UserPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
+use Civi\Lughauth\Features\Access\SecurityScope\Infrastructure\Driver\SecurityScopePlugin;
 
 class AccessPlugin extends AggregatedMicroPlugin
 {
@@ -27,11 +30,14 @@ class AccessPlugin extends AggregatedMicroPlugin
           new TrustedClientPlugin(),
           new UserIdentityPlugin(),
           new TenantConfigPlugin(),
+          new SecurityDomainPlugin(),
           new ApiKeyClientPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
+          new ScopeAssignationPlugin(),
           new UserPlugin(),
           new TenantPlugin(),
+          new SecurityScopePlugin(),
 ]);
     }
 }

@@ -5,8 +5,15 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleTenantVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsUidVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsSecurityDomainVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVersionVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsItem;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use PHPUnit\Framework\TestCase;
@@ -38,6 +45,49 @@ final class RoleAttributesUnitTest extends TestCase
         $value->unsetTenant();
         $this->assertEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTenantOrDefault(RoleTenantVO::from($tenantOtherValue))->value());
         $this->assertNotEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTenantOrDefault(RoleTenantVO::from($tenantOtherValue))->value());
+        $domainsOneValue = new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('one'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+            RoleDomainsVersionVO::from(1)
+        ));
+        $domainsOtherValue = new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('other'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['other'])->getMock()),
+            RoleDomainsVersionVO::from(2)
+        ));
+        $copy = $value->domains($domainsOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals(new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('one'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+            RoleDomainsVersionVO::from(1)
+        )), $value->getDomains());
+        $this->assertNotEquals(new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('other'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['other'])->getMock()),
+            RoleDomainsVersionVO::from(2)
+        )), $value->getDomains());
+        $this->assertEquals(new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('one'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+            RoleDomainsVersionVO::from(1)
+        )), $value->getDomainsOrDefault(RoleDomainsVO::from($domainsOtherValue))->value());
+        $this->assertNotEquals(new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('other'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['other'])->getMock()),
+            RoleDomainsVersionVO::from(2)
+        )), $value->getDomainsOrDefault(RoleDomainsVO::from($domainsOtherValue))->value());
+        $value->unsetDomains();
+        $this->assertEquals(new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('other'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['other'])->getMock()),
+            RoleDomainsVersionVO::from(2)
+        )), $value->getDomainsOrDefault(RoleDomainsVO::from($domainsOtherValue))->value());
+        $this->assertNotEquals(new RoleDomainsListRef(new RoleDomainsItem(
+            RoleDomainsUidVO::from('one'),
+            RoleDomainsSecurityDomainVO::from($this->getMockBuilder(SecurityDomainRef::class)->setConstructorArgs(['one'])->getMock()),
+            RoleDomainsVersionVO::from(1)
+        )), $value->getDomainsOrDefault(RoleDomainsVO::from($domainsOtherValue))->value());
         $versionOneValue = 1;
         $versionOtherValue = 2;
         $copy = $value->version($versionOneValue);

@@ -497,6 +497,499 @@ paths:
                 $ref: '#/components/schemas/RoleApiDTO'
         404:
           description: 'Not found'
+  /api/me/acl/access/scope-assignations:
+    get:
+      tags:
+        - 'Scope assignation access control'
+      description: Allows
+      operationId: 04f082a8fc1cb3043ef76f3aa5d3a634
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/scope-assignations/{uid}':
+    get:
+      tags:
+        - 'Scope assignation access control'
+      description: Allows
+      operationId: 0146a5d2f8ea3859216af43621c4b789
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/scope-assignations:
+    get:
+      tags:
+        - 'Scope assignation'
+      description: Create
+      operationId: 1f68ced83d66d2196e7405f94a01b0ba
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAssignationApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Scope assignation'
+      description: Create
+      operationId: b4fe7cb2164b396281a0a6075afc5c21
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopeAssignationApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAssignationApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/scope-assignations/{uid}':
+    put:
+      tags:
+        - 'Scope assignation'
+      description: 'Update the value'
+      operationId: 1303d0e6a228f19bcb8d601462d4f357
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopeAssignationApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAssignationApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Scope assignation'
+      description: 'Delete the record'
+      operationId: b6619e8cd497520ec0398c30db4ac542
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAssignationApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/scope-assignations{uid}':
+    get:
+      tags:
+        - 'Scope assignation'
+      description: Create
+      operationId: efde4b93fd7196066ed9298a31370ecf
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAssignationApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/security-domains:
+    get:
+      tags:
+        - 'Security domain access control'
+      description: Allows
+      operationId: f34d211f1f5456138c675821122c1cb2
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/security-domains/{uid}':
+    get:
+      tags:
+        - 'Security domain access control'
+      description: Allows
+      operationId: ed7ce8715828a383ec8e763a4984e5c0
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/security-domains:
+    get:
+      tags:
+        - 'Security domain'
+      description: Create
+      operationId: 9bfc47153e86cb4a048177830a8f3293
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Security domain'
+      description: Create
+      operationId: ae0fc572adfefdb535c509d8639136b4
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityDomainApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/security-domains/{uid}':
+    put:
+      tags:
+        - 'Security domain'
+      description: 'Update the value'
+      operationId: c7ff8c53f1e1076aa1d4599d9cca0637
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityDomainApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Security domain'
+      description: 'Delete the record'
+      operationId: f6d1ebc1cf5c485e3081f65018ef57ad
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-domains/{uid}/disable':
+    patch:
+      tags:
+        - 'Security domain'
+      description: 'Update the value'
+      operationId: d34c3798baf0783bac7070cadae07887
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-domains/{uid}/enable':
+    patch:
+      tags:
+        - 'Security domain'
+      description: 'Update the value'
+      operationId: 7797529d3e6059e7efa4f1f0ab6ba5b3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-domains{uid}':
+    get:
+      tags:
+        - 'Security domain'
+      description: Create
+      operationId: cd822e0aee7561f150c83a0ce339a91b
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityDomainApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/security-scopes:
+    get:
+      tags:
+        - 'Security scope access control'
+      description: Allows
+      operationId: fc4f41c514c74019993164498eca3b64
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/security-scopes/{uid}':
+    get:
+      tags:
+        - 'Security scope access control'
+      description: Allows
+      operationId: 816763ba143762c374850bd998d008c4
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/security-scopes:
+    get:
+      tags:
+        - 'Security scope'
+      description: Create
+      operationId: be19fd7a159a4dbe75e9f4a4248290ba
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Security scope'
+      description: Create
+      operationId: 4ad078aa99f1142a11b940deff821428
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityScopeApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/security-scopes/{uid}':
+    put:
+      tags:
+        - 'Security scope'
+      description: 'Update the value'
+      operationId: 6bd86ee7a65312480db7f355bc2b0993
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityScopeApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Security scope'
+      description: 'Delete the record'
+      operationId: a2ccd43401b6e98cef67f43bc3a8d37f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-scopes/{uid}/disable':
+    patch:
+      tags:
+        - 'Security scope'
+      description: 'Update the value'
+      operationId: ccbb10b99faba3179eeb2b6282d010d3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-scopes/{uid}/enable':
+    patch:
+      tags:
+        - 'Security scope'
+      description: 'Update the value'
+      operationId: 3063d18c306ac1aa52e186481f3d47a9
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-scopes{uid}':
+    get:
+      tags:
+        - 'Security scope'
+      description: Create
+      operationId: 41cdaace9c823cc266b73cadbf2aef8d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityScopeApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/tenants:
     get:
       tags:
@@ -1549,21 +2042,21 @@ paths:
                 $ref: '#/components/schemas/UserApiDTO'
         404:
           description: 'Not found'
-  /api/me/acl/access/identity:
+  /api/me/acl/access/user-identities:
     get:
       tags:
         - 'User identity access control'
       description: Allows
-      operationId: f716daea74d1c34af14b8515bd31a4fd
+      operationId: 116f601e85a182944ea32a257b1fa8b3
       responses:
         200:
           description: Ok
-  '/api/me/acl/access/identity/{uid}':
+  '/api/me/acl/access/user-identities/{uid}':
     get:
       tags:
         - 'User identity access control'
       description: Allows
-      operationId: 34f802cb281853e86109d2a23a76fa94
+      operationId: 4740db17d28e5500093169dd636df5f8
       parameters:
         -
           name: uid
@@ -1576,12 +2069,12 @@ paths:
           description: Ok
         404:
           description: 'Not found'
-  /api/access/identity:
+  /api/access/user-identities:
     get:
       tags:
         - 'User identity'
       description: Create
-      operationId: dfb0ac776319d94e1db22092a8052276
+      operationId: 0497baeb818fdfe211a2e2e097baf499
       responses:
         201:
           description: Ok
@@ -1595,7 +2088,7 @@ paths:
       tags:
         - 'User identity'
       description: Create
-      operationId: b569a06c9444e11f975adf7a0ba0f7d9
+      operationId: 8b4ad9226f66000687d1d62daf3f00cd
       requestBody:
         content:
           application/json:
@@ -1610,12 +2103,12 @@ paths:
                 $ref: '#/components/schemas/UserIdentityApiDTO'
         422:
           description: 'Constraint error'
-  '/api/access/identity/{uid}':
+  '/api/access/user-identities/{uid}':
     put:
       tags:
         - 'User identity'
       description: 'Update the value'
-      operationId: 82446e1c64ec462693a6dbd5a4010cef
+      operationId: 6fccffc7cc4392ad2309843970d26bcf
       parameters:
         -
           name: uid
@@ -1645,7 +2138,7 @@ paths:
       tags:
         - 'User identity'
       description: 'Delete the record'
-      operationId: 7ff0d67c0961eef06c4f27072a5dc0f4
+      operationId: ab413875dbb9478b612287044dc79675
       parameters:
         -
           name: uid
@@ -1662,12 +2155,12 @@ paths:
                 $ref: '#/components/schemas/UserIdentityApiDTO'
         404:
           description: 'Not found'
-  '/api/access/identity{uid}':
+  '/api/access/user-identities{uid}':
     get:
       tags:
         - 'User identity'
       description: Create
-      operationId: 3f82715e3f4804e28dc5692cfa78297b
+      operationId: 427172bd43eae63ecaf1b1662275556a
       parameters:
         -
           name: uid
@@ -1804,6 +2297,170 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/RoleApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    ScopeAssignationApiDTO:
+      title: 'Scope assignation'
+      description: 'Witch scopes are assigned to the security domain'
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de scope assignation'
+          type: string
+        securityDomain:
+          title: 'security domain'
+          description: 'El security domain de scope assignation'
+          properties:
+            $ref:
+              type: string
+          type: object
+        securityScope:
+          title: 'security scope'
+          description: 'El security scope de scope assignation'
+          properties:
+            $ref:
+              type: string
+          type: object
+        version:
+          title: version
+          description: 'Campo con el número de version de scope assignation para controlar bloqueos optimistas'
+          type: string
+      type: object
+    ScopeAssignationApiListDTO:
+      title: 'Scope assignation'
+      description: 'Witch scopes are assigned to the security domain'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ScopeAssignationApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    SecurityDomainApiDTO:
+      title: 'Security domain'
+      description: 'A security domain is a set of allow over security scopes. Each security domain mark what an user can do over diferente applications of the stack.'
+      properties:
+        uid:
+          title: uid
+          description: 'A uid string to identify the entity'
+          type: string
+        name:
+          title: name
+          description: 'El name de security domain'
+          type: string
+        level:
+          title: level
+          description: 'The user inherit level, and can view only domain with his level or lower'
+          type: string
+        readAll:
+          title: 'read all'
+          description: 'Allow to read on every scope'
+          type: string
+        writeAll:
+          title: 'write all'
+          description: 'Allow to write on every scope'
+          type: string
+        manageAll:
+          title: 'manage all'
+          description: 'Allow to write on every scope'
+          type: string
+        enabled:
+          title: enabled
+          description: 'Una marca que permite quitar el acceso a una cuenta sin borrarla'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de security domain para controlar bloqueos optimistas'
+          type: string
+      type: object
+    SecurityDomainApiListDTO:
+      title: 'Security domain'
+      description: 'A security domain is a set of allow over security scopes. Each security domain mark what an user can do over diferente applications of the stack.'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityDomainApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    SecurityScopeApiDTO:
+      title: 'Security scope'
+      description: 'each of the allow scopes for the application.'
+      properties:
+        uid:
+          title: uid
+          description: 'A uid string to identify the entity'
+          type: string
+        trustedClient:
+          title: 'trusted client'
+          description: 'El trusted client de security scope'
+          properties:
+            $ref:
+              type: string
+          type: object
+        relyingParty:
+          title: 'relying party'
+          description: 'El relying party de security scope'
+          properties:
+            $ref:
+              type: string
+          type: object
+        resource:
+          title: resource
+          description: 'A label group key to show the scope'
+          type: string
+        scope:
+          title: scope
+          description: 'A label to show the scope'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de security scope'
+          type: string
+        kind:
+          title: kind
+          description: 'El kind de security scope'
+          type: string
+          enum:
+            - READ
+            - WRITE
+            - MANAGE
+        visibility:
+          title: visibility
+          description: 'El visibility de security scope'
+          type: string
+          enum:
+            - PUBLIC
+            - AUTHORIZED
+            - EXPLICIT
+        version:
+          title: version
+          description: 'Campo con el número de version de security scope para controlar bloqueos optimistas'
+          type: string
+      type: object
+    SecurityScopeApiListDTO:
+      title: 'Security scope'
+      description: 'each of the allow scopes for the application.'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityScopeApiDTO'
         next:
           title: 'Link to retrieve next page'
           description: 'A link to retrieve next page'
@@ -2187,7 +2844,7 @@ components:
       properties:
         uid:
           title: uid
-          description: 'El identificador de la aplicacion'
+          description: 'A uid string to identify the entity'
           type: string
         user:
           title: user
@@ -2249,6 +2906,24 @@ tags:
   -
     name: Role
     description: Role
+  -
+    name: 'Scope assignation access control'
+    description: 'Scope assignation access control'
+  -
+    name: 'Scope assignation'
+    description: 'Scope assignation'
+  -
+    name: 'Security domain access control'
+    description: 'Security domain access control'
+  -
+    name: 'Security domain'
+    description: 'Security domain'
+  -
+    name: 'Security scope access control'
+    description: 'Security scope access control'
+  -
+    name: 'Security scope'
+    description: 'Security scope'
   -
     name: 'Tenant access control'
     description: 'Tenant access control'

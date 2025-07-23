@@ -35,6 +35,8 @@ class UserIdentityPlugin extends MicroPlugin
     {
         $app->group('/api/access/identity', [$this, 'setRoutesForUserIdentity']);
         $app->group('/api/me/acl/access/identity', [$this, 'setRoutesForUserIdentityAcl']);
+        $app->group('/api/access/user-identities', [$this, 'setRoutesForUserIdentity']);
+        $app->group('/api/me/acl/access/user-identities', [$this, 'setRoutesForUserIdentityAcl']);
     }
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)

@@ -5,9 +5,10 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
-use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
 use Override;
 use Psr\Container\ContainerInterface;
+use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
+use Civi\Lughauth\Shared\Infrastructure\Management\Audit\AuditManagement;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Metrics\MetricsManagement;
@@ -19,24 +20,36 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Routes\RoutesManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Trace\TraceManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\LogCollector;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\TraceCollector;
+use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
+use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
 
 class ManagementPlugin extends MicroPlugin
 {
     #[Override]
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
-        $health = $container->get(HealthManagement::class);
-        $metrics = $container->get(MetricsManagement::class);
-        $migrations = $container->get(MigrationManagement::class);
-        $config = $container->get(ConfigManagement::class);
-        $routes = $container->get(RoutesManagement::class);
-        $dependencies = $container->get(DependenciesManagement::class);
-        $logs = $container->get(LogManagement::class);
-        $traces = $container->get(TraceManagement::class);
-        $traceCollect = $container->get(TraceCollector::class);
-        $logCollect = $container->get(LogCollector::class);
-        $apiDocs = $container->get(ApidocManagement::class);
-        return [$health, $metrics, $migrations, $config, $routes, $dependencies, $logs, $traces, $traceCollect, $logCollect, $apiDocs];
+        $all = [];
+        $def = $container->get(MicroConfig::class);
+        $all[] = $container->get(HealthManagement::class);
+        $all[] = $container->get(ConfigManagement::class);
+        $all[] = $container->get(RoutesManagement::class);
+        $all[] = $container->get(DependenciesManagement::class);
+        if ($def->withMetrics) {
+            $all[] = $container->get(MetricsManagement::class);
+        }
+        $all[] = $container->get(MigrationManagement::class);
+        $all[] = $container->get(ApidocManagement::class);
+        if ($def->withTelemetry) {
+            $all[] = $container->get(LogManagement::class);
+            $all[] = $container->get(TraceManagement::class);
+            $all[] = $container->get(TraceCollector::class);
+            $all[] = $container->get(LogCollector::class);
+        }
+        if ($def->withAudit) {
+            $all[] = $container->get(HistoryManagement::class);
+            $all[] = $container->get(AuditManagement::class);
+        }
+        return $all;
     }
 
     #[Override]

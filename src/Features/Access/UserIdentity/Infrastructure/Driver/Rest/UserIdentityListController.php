@@ -30,7 +30,7 @@ class UserIdentityListController
     ) {
     }
     #[OA\Get(
-        path: "/api/access/identity",
+        path: "/api/access/user-identities",
         tags: ["User identity"],
         description:"Create",
         responses: [
@@ -49,10 +49,10 @@ class UserIdentityListController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 user: isset($params['user']) ? new UserRef($params['user']) : null,
-                users: isset($params['users']) ? explode(",", $params['users']) : null,
                 relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
-                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
                 trustedClient: isset($params['trusted-client']) ? new TrustedClientRef($params['trusted-client']) : null,
+                users: isset($params['users']) ? explode(",", $params['users']) : null,
+                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
                 trustedClients: isset($params['trusted-clients']) ? explode(",", $params['trusted-clients']) : null,
             );
             $cursor = new UserIdentityCursor(

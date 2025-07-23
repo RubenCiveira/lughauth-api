@@ -8,6 +8,8 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Service\Visibility;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
@@ -29,7 +31,8 @@ class RoleVisibilityService
         private readonly EventDispatcherInterface $dispacher,
         private readonly RoleReadGateway $readGateway,
         private readonly RoleWriteGateway $writeGateway,
-        private readonly TenantVisibilityService $tenantVisibilityService
+        private readonly TenantVisibilityService $tenantVisibilityService,
+        private readonly SecurityDomainVisibilityService $securityDomainVisibilityService
     ) {
     }
 
@@ -233,6 +236,9 @@ class RoleVisibilityService
             if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
                 throw new NotFoundException("Unknow Tenant " . $attributes->getTenant());
             }
+            if ($attributes->getDomains() && !$this->checkVisibilityForDomains($attributes->getDomains())) {
+                throw new NotFoundException("Unknow Domains " . $attributes->getDomains()->uid());
+            }
             return $attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -248,6 +254,24 @@ class RoleVisibilityService
         try {
             $result = $this->dispacher->dispatch(new RoleFilterProposal($filter));
             return $result->roleFilter;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function checkVisibilityForDomains(RoleDomainsListRef $items): RoleDomainsListRef
+    {
+        $this->logDebug("Copy with fixed for Role");
+        $span = $this->startSpan("Copy with fixed for  Role");
+        try {
+            foreach ($items as $item) {
+                if ($item->getSecurityDomain() && !$this->securityDomainVisibilityService->checkVisibility($item->getSecurityDomain())) {
+                    throw new NotFoundException("Unknow SecurityDomain " . $item->getSecurityDomain()->uid());
+                }
+            }
+            return $items;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

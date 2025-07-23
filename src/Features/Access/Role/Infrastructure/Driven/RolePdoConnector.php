@@ -21,6 +21,14 @@ use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsItem;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
+use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsUidVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsSecurityDomainVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVersionVO;
 
 class RolePdoConnector
 {
@@ -64,7 +72,7 @@ class RolePdoConnector
         $this->logDebug("Make query for entities for Role");
         $span = $this->startSpan("Make query for entities for Role");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $this->queryWithChilds($query, $params);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -91,7 +99,7 @@ class RolePdoConnector
         $span = $this->startSpan("Retrieve query for Role");
         try {
             $sqlFilter = $this->filter(false, $filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->findOneWithChilds($sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -105,7 +113,7 @@ class RolePdoConnector
         $span = $this->startSpan("Retrieve query for update of Role");
         try {
             $sqlFilter = $this->filter(true, $filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->findOneWithChilds($sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -125,6 +133,7 @@ class RolePdoConnector
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
+                $entity = $this->saveChilds($entity);
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($entity, true);
                 throw $ex;
@@ -162,6 +171,7 @@ class RolePdoConnector
                 } elseif (!$result) {
                     throw new NotFoundException($update->uid());
                 }
+                $update = $this->saveChilds($update);
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
@@ -180,6 +190,7 @@ class RolePdoConnector
         $span = $this->startSpan("Execute delete sql query for Role");
         try {
             try {
+                $this->db->execute('DELETE FROM "access_role_domain" where "role" = :parent', [new SqlParam(name:'parent', value:$ref->uid(), type:SqlParam::STR) ]);
                 return $this->db->execute('DELETE FROM "access_role" where "uid" = :uid', [new SqlParam(name: 'uid', value: $ref->uid(), type:SqlParam::STR)]);
             } catch (NotEmptyChildsException $ex) {
                 throw ConstraintException::ofError('not-empty', ['uid'], [$ref->uid()]);
@@ -365,6 +376,101 @@ class RolePdoConnector
             $span->end();
         }
     }
+    private function saveChilds(Role $parent): Role
+    {
+        $this->logDebug("Execute save childs sql query for Role");
+        $span = $this->startSpan("Execute save childs sql query for Role");
+        try {
+            $domains = $parent->getDomains();
+            if ($domains) {
+                $uids = [];
+                $saved = [];
+                foreach ($domains as $child) {
+                    if (!$this->existsDomains($parent->uid(), $child->uid())) {
+                        $insertedChild = $this->insertDomains($parent->uid(), $child);
+                        $saved[] = $insertedChild;
+                        $uids[] = $insertedChild->uid();
+                    } else {
+                        $updatedChild = $this->updateDomains($parent->uid(), $child);
+                        $saved[] = $updatedChild;
+                        $uids[] = $updatedChild->uid();
+                    }
+                }
+                $this->db->execute('DELETE FROM "access_role_domain" WHERE "role" = :parent and  "uid" NOT IN (:uids)', [
+                  new SqlParam(name: 'parent', value: $parent->uid(), type: SqlParam::STR),
+                  new SqlParam(name: 'uids', value: $uids, type: SqlParam::STR),
+                ]);
+                $parent = $parent->withDomains(RoleDomainsListRef::fromArray($saved));
+            }
+            return $parent;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function insertDomains(string $entity, RoleDomainsItem $child): RoleDomainsItem
+    {
+        $this->logDebug("Execute insert Domains childs sql query for Role");
+        $span = $this->startSpan("Execute insert Domains childs sql query for Role");
+        try {
+            $uid = $child->uid() ?? Random::comb();
+            if (!$this->db->execute('insert into "access_role_domain" ("uid", "role", "security_domain", "version") VALUES(:uid, :role, :securityDomain, :version) ', [
+                new SqlParam(name: 'uid', value: $uid, type: SqlParam::STR),
+                new SqlParam(name: 'role', value: $entity, type: SqlParam::STR),
+                new SqlParam(name: 'securityDomain', value: $child->getSecurityDomain()->uid(), type: SqlParam::STR),
+                new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
+            ])) {
+                throw new OptimistLockException("Insert child RoleDomainsItem for Role", $uid);
+            }
+            return $child->withVersion(0);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function updateDomains(string $entity, RoleDomainsItem $child): RoleDomainsItem
+    {
+        $this->logDebug("Execute insert Domains childs sql query for Role");
+        $span = $this->startSpan("Execute insert Domains childs sql query for Role");
+        try {
+            $uid = $child->uid();
+            if (!$this->db->execute('update "access_role_domain" set "security_domain" = :securityDomain, "version" = :nextVersion where "uid" = :uid and "role" = :role and "version" = :version ', [
+                new SqlParam(name: 'uid', value: $uid, type: SqlParam::STR),
+                new SqlParam(name: 'role', value: $entity, type: SqlParam::STR),
+                new SqlParam(name: 'securityDomain', value: $child->getSecurityDomain()->uid(), type: SqlParam::STR),
+                new SqlParam(name: 'nextVersion', value: ($child->getVersion() ?? 0) + 1, type: SqlParam::INT),
+                new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
+            ])) {
+                throw new OptimistLockException("Update child RoleDomainsItem for Role", $uid);
+            }
+            return $child->withVersion($child->getVersion() + 1);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function existsDomains($entity, $reference): bool
+    {
+        $this->logDebug("Execute exsits Domains childs sql query for Role");
+        $span = $this->startSpan("Execute exists Domains childs sql query for Role");
+        try {
+            return $this->db->exists('select * from "access_role_domain" where "role" = :entity and "uid" = :uid', [
+                new SqlParam(name: 'entity', value: $entity, type: SqlParam::STR),
+                new SqlParam(name: 'uid', value: $reference, type: SqlParam::STR),
+            ]);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     private function mapper($row): Role
     {
         $this->logDebug("Mapping from sql to entity for Role");
@@ -374,6 +480,7 @@ class RolePdoConnector
                 uid: $row['uid'] ?? null,
                 name: $row['name'] ?? null,
                 tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
+                domains: RoleDomainsVO::from(RoleDomainsListRef::fromArray($row['domains'] ?? [])),
                 version: $row['version'] ?? null,
             );
         } catch (Throwable $ex) {
@@ -382,5 +489,46 @@ class RolePdoConnector
         } finally {
             $span->end();
         }
+    }
+    private function queryWithChilds(string $query, ?array $params = []): array
+    {
+        $values = $this->db->query($query, $params, fn ($row) => $row);
+        $mapped = [];
+        $ids = [];
+        foreach ($values as $value) {
+            $ids[] = $value['uid'];
+            $value['domains'] = [];
+            $mapped[$value['uid']] = $value;
+        }
+        $childsDomains = $this->db->query('select "uid", "role", "security_domain", "version" from "access_role_domain" where "role" in (:parents)', [
+          new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
+        ]);
+        foreach ($childsDomains as $childDomains) {
+            $parent = $childDomains['role'];
+            $mapped[$parent]['domains'][] = new RoleDomainsItem(
+                uid: RoleDomainsUidVO::from($childDomains['uid']),
+                securityDomain: RoleDomainsSecurityDomainVO::from(new SecurityDomainRef($childDomains['security_domain'])),
+                version: RoleDomainsVersionVO::from($childDomains['version']),
+            );
+        }
+        return array_values(array_map(fn ($row) => $this->mapper($row), $mapped));
+    }
+    private function findOneWithChilds(string $query, ?array $params = []): ?Role
+    {
+        if ($value = $this->db->findOne($query, $params, fn ($row) => $row)) {
+            $value['domains'] = [];
+            $childsDomains = $this->db->query('select "uid", "role", "security_domain", "version" from "access_role_domain" where "role" = :parent', [
+              new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
+            ]);
+            foreach ($childsDomains as $childDomains) {
+                $value['domains'][] = new RoleDomainsItem(
+                    uid: RoleDomainsUidVO::from($childDomains['uid']),
+                    securityDomain: RoleDomainsSecurityDomainVO::from(new SecurityDomainRef($childDomains['security_domain'])),
+                    version: RoleDomainsVersionVO::from($childDomains['version']),
+                );
+            }
+            return $this->mapper($value);
+        }
+        return $value;
     }
 }

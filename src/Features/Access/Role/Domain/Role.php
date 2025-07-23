@@ -10,6 +10,9 @@ use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleNameAccesor;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleTenantVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleTenantAccesor;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleDomainsAccesor;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleVersionAccesor;
 use Civi\Lughauth\Features\Access\Role\Domain\Event\RoleCreateEvent;
@@ -21,18 +24,21 @@ class Role extends RoleRef
 {
     use RoleNameAccesor;
     use RoleTenantAccesor;
+    use RoleDomainsAccesor;
     use RoleVersionAccesor;
     private array $recordedEvents = [];
 
     public function __construct(
         RoleUidVO|string $uid,
         RoleNameVO|string $name,
+        RoleDomainsVO|RoleDomainsListRef| array |null $domains,
         RoleTenantVO|TenantRef|null $tenant = null,
         RoleVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
         $this->_name = RoleNameVO::from($name);
         $this->_tenant = null === $tenant ? RoleTenantVO::empty() : RoleTenantVO::from($tenant);
+        $this->_domains = RoleDomainsVO::from($domains);
         $this->_version = null === $version ? RoleVersionVO::empty() : RoleVersionVO::from($version);
     }
     public function replace(RoleAttributes $values): Role
@@ -40,6 +46,7 @@ class Role extends RoleRef
         $value = clone $this;
         $value->_name = $values->getNameOrDefault($this->_name);
         $value->_tenant = $values->getTenantOrDefault($this->_tenant);
+        $value->_domains = $values->getDomainsOrDefault($this->_domains);
         $value->_version = $values->getVersionOrDefault($this->_version);
         return $value;
     }
@@ -71,6 +78,7 @@ class Role extends RoleRef
           ->uid($this->uid())
           ->name($this->_name)
           ->tenant($this->_tenant)
+          ->domains($this->_domains)
           ->version($this->_version);
     }
     public function getTheEvents(): array

@@ -26,7 +26,7 @@ class UserIdentityCreateController
     ) {
     }
     #[OA\Post(
-        path: "/api/access/identity",
+        path: "/api/access/user-identities",
         tags: ["User identity"],
         description:"Create",
         requestBody: new OA\RequestBody(content: new OA\JsonContent(type: "object", ref:"#/components/schemas/UserIdentityApiDTO")),
