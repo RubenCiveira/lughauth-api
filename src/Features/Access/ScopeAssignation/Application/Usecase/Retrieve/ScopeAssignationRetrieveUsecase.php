@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationRef;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignation;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Service\Visibility\ScopeAssignationVisibilityService;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

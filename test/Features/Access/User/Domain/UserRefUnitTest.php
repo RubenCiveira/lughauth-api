@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\User\Domain\User;
 
 final class UserRefUnitTest extends TestCase
 {

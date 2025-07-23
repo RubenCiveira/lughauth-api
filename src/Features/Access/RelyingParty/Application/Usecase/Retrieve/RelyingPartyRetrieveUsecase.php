@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

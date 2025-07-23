@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
 use Civi\Lughauth\Shared\Context;

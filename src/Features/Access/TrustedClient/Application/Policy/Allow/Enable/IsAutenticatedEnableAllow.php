@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
 use Civi\Lughauth\Shared\Context;

@@ -24,7 +24,6 @@ use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAutenti
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutenticatedListAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;

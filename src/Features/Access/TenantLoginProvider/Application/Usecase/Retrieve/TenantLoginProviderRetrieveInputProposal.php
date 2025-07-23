@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 
 class TenantLoginProviderRetrieveInputProposal
 {

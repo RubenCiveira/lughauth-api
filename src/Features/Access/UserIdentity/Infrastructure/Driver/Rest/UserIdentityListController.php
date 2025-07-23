@@ -11,7 +11,6 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityCursor;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListUsecase;

@@ -13,7 +13,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderVisibilityService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

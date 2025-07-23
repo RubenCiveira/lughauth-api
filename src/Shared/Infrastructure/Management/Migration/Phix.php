@@ -9,7 +9,6 @@ use Override;
 use Phinx\Config\Config;
 use Phinx\Migration\Manager;
 use Symfony\Component\Console\Input\StringInput;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Civi\Lughauth\Shared\AppConfig;
 use Symfony\Component\Console\Output\BufferedOutput;
 

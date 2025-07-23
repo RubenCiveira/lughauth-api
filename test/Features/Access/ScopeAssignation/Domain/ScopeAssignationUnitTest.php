@@ -6,7 +6,6 @@ declare(strict_types=1);
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignation;
 
 final class ScopeAssignationUnitTest extends TestCase

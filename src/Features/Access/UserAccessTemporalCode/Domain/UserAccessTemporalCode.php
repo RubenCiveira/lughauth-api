@@ -36,7 +36,6 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccess
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGenerateMfaTemporalCodeEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeResetMfaTemporalCodeEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratedRegisterVerificationEvent;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeUrlVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeResetPasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;

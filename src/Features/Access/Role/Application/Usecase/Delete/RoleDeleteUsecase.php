@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
-use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleVisibilityService;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

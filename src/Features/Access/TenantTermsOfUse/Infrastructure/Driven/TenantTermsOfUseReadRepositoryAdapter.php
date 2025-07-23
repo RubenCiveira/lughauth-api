@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;

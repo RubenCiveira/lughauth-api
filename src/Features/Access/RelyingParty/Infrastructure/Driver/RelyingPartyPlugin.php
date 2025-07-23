@@ -24,7 +24,6 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveAllowDecision;

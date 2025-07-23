@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 
 class UserRetrieveInputProposal
 {

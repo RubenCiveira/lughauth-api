@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields;
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigFixedFieldsProposal;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;

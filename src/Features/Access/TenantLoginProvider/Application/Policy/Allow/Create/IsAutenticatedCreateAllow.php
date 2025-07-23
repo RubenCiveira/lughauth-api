@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Create;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
 use Civi\Lughauth\Shared\Context;

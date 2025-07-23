@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserVisibilityService;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

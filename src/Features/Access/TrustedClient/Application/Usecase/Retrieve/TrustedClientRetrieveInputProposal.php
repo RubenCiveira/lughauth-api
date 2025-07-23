@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 
 class TrustedClientRetrieveInputProposal
 {

@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigVisibilityService;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

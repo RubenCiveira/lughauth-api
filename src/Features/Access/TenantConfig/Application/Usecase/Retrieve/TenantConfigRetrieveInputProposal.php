@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 
 class TenantConfigRetrieveInputProposal
 {

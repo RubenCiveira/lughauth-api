@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomain;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

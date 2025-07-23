@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeAttributes;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 
 final class UserAccessTemporalCodeUnitTest extends TestCase

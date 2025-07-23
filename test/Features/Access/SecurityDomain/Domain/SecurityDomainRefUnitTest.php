@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomain;
 
 final class SecurityDomainRefUnitTest extends TestCase
 {

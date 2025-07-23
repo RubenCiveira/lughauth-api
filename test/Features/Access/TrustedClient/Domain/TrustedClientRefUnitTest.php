@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
 final class TrustedClientRefUnitTest extends TestCase
 {

@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Delete;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Delete\SecurityScopeDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;

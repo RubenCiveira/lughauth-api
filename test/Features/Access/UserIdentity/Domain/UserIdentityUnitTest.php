@@ -13,7 +13,6 @@ use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesVersionVO;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesItem;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 
 final class UserIdentityUnitTest extends TestCase

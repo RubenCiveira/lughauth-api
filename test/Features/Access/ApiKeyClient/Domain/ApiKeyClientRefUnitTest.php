@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 
 final class ApiKeyClientRefUnitTest extends TestCase
 {

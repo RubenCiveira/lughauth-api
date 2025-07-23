@@ -5,9 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
-use Override;
 use PDO;
-use PDOStatement;
 
 class AuditablePdoWrapper extends PDO
 {

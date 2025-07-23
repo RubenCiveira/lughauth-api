@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
-use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScope;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Service\Visibility\SecurityScopeVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

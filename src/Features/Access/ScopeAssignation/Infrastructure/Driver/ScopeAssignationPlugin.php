@@ -20,7 +20,6 @@ use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Upda
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\List\IsAutenticatedListAllow;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Delete\ScopeAssignationDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Create\ScopeAssignationCreateAllowDecision;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveAllowDecision;

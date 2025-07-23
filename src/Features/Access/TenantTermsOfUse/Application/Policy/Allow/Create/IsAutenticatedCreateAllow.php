@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Create;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowDecision;
 use Civi\Lughauth\Shared\Context;

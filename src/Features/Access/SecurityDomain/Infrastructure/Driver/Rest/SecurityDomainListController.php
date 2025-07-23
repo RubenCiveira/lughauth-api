@@ -11,7 +11,6 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainFilter;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainCursor;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\List\SecurityDomainListUsecase;

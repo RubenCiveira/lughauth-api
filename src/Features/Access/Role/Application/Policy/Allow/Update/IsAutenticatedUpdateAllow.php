@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;

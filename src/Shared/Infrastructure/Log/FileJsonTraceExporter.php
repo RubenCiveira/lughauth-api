@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\Log;
 
 use Override;
-use Throwable;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Common\Future\CancellationInterface;

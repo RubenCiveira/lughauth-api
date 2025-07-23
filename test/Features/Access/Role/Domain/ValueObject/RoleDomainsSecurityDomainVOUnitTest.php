@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsSecurityDomainVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;

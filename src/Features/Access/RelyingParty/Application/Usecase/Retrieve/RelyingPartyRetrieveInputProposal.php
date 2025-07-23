@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 
 class RelyingPartyRetrieveInputProposal
 {

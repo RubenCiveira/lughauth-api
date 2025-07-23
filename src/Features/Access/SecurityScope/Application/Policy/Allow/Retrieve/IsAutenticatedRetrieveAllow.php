@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Retrieve;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;

@@ -6,7 +6,6 @@ declare(strict_types=1);
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeAttributes;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScope;
 
 final class SecurityScopeUnitTest extends TestCase

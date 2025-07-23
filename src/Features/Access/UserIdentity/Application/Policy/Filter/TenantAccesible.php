@@ -9,7 +9,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityFilterProposal;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 

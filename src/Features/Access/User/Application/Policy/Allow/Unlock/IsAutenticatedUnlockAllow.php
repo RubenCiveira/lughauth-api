@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 use Civi\Lughauth\Shared\Context;

@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
 use Civi\Lughauth\Shared\Context;

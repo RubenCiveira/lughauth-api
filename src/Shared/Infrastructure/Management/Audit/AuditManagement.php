@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management\Audit;
 use Closure;
 use Override;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;

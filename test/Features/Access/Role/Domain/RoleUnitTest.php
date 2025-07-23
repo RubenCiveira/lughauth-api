@@ -11,7 +11,6 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVersionVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsItem;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 
 final class RoleUnitTest extends TestCase

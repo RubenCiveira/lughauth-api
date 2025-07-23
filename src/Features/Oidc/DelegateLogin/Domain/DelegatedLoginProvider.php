@@ -5,10 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\DelegateLogin\Domain;
 
-use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedLoginEndpoint;
-use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedProviderDescription;
-use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedUserData;
-
 interface DelegatedLoginProvider
 {
     public function info(): DelegatedProviderDescription;

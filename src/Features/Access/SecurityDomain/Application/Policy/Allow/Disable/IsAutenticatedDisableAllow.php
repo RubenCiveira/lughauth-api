@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Disable;
 
-use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Disable\SecurityDomainDisableAllowDecision;
 use Civi\Lughauth\Shared\Context;

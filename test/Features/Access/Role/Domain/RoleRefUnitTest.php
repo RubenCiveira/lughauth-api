@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
-use Civi\Lughauth\Features\Access\Role\Domain\Role;
 
 final class RoleRefUnitTest extends TestCase
 {

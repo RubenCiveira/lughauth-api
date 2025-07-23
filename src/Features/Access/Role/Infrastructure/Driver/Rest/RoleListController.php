@@ -11,7 +11,6 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
-use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListUsecase;

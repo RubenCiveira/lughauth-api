@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Fields;
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleFixedFieldsProposal;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;

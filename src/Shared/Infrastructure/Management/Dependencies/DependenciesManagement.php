@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management\Dependencies;
 
 use Closure;
 use Override;
-use Slim\App;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
 class DependenciesManagement implements ManagementInterface

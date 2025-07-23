@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Retrieve;
 
-use Override;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 

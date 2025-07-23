@@ -9,7 +9,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigFilterProposal;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 

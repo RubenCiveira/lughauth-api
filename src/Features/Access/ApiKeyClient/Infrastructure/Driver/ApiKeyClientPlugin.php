@@ -24,9 +24,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientFilterProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\List\ApiKeyClientListAllowDecision;

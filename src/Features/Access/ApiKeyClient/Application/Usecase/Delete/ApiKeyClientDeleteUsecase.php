@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientVisibilityService;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

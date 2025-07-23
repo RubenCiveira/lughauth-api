@@ -9,7 +9,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleFilterProposal;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 

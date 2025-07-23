@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
-use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScope;
 
 final class SecurityScopeRefUnitTest extends TestCase
 {

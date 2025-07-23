@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Access\User\Infrastructure\Driver;
 
 use Override;
 use Slim\Routing\RouteCollectorProxy;
-use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserAllowController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserListController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserCreateController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserRetrieveController;
@@ -30,6 +29,7 @@ use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\IsAuten
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\RetrieveUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\ListUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserAllowController;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\DeleteUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable\DisableUserOnlyForRootAllow;

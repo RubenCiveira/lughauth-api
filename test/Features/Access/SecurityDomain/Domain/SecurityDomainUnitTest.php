@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomain;
 
 final class SecurityDomainUnitTest extends TestCase

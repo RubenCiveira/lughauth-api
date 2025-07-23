@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 
 final class RelyingPartyUnitTest extends TestCase

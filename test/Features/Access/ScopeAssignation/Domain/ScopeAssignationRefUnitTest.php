@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationRef;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignation;
 
 final class ScopeAssignationRefUnitTest extends TestCase
 {

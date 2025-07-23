@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationRef;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 
 class ScopeAssignationRetrieveInputProposal
 {

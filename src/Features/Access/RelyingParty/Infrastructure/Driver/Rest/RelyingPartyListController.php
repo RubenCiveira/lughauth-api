@@ -11,7 +11,6 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\List\RelyingPartyListUsecase;

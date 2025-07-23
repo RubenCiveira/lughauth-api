@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 
 class UserIdentityRetrieveInputProposal
 {

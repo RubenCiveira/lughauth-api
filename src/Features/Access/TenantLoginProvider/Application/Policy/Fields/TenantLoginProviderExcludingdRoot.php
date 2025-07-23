@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\F
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderFixedFieldsProposal;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;

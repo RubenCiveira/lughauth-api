@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityVisibilityService;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;

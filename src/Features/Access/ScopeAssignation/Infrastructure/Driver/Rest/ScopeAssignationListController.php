@@ -11,7 +11,6 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationFilter;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationCursor;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListUsecase;

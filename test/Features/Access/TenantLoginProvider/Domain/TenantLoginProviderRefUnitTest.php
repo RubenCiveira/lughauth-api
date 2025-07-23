@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 
 final class TenantLoginProviderRefUnitTest extends TestCase
 {

@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Retrieve;
 
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 
 class SecurityDomainRetrieveInputProposal
 {

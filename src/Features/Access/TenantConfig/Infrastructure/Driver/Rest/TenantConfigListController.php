@@ -11,7 +11,6 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCursor;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListUsecase;
