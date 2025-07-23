@@ -27,7 +27,7 @@ class UserIdentityUpdateController
     ) {
     }
     #[OA\Put(
-        path: "/api/access/user-identities/{uid}",
+        path: "/api/access/identity/{uid}",
         tags: ["User identity"],
         description: "Update the value",
         parameters: [

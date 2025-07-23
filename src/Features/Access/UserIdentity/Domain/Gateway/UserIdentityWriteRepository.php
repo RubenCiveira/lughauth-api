@@ -6,9 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway;
 
 use Closure;
-use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
 
@@ -22,5 +19,4 @@ interface UserIdentityWriteRepository
     public function existsForUpdate(?UserIdentityFilter $filter): bool;
     public function countForUpdate(?UserIdentityFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?UserIdentity;
-    public function findOneForUpdateByUserAndRelyingPartyAndTrustedClient(UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): ?UserIdentity;
 }

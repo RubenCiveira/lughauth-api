@@ -33,7 +33,7 @@ class UserIdentityAllowController
     ) {
     }
     #[OA\Get(
-        path: "/api/me/acl/access/user-identities",
+        path: "/api/me/acl/access/identity",
         tags: ["User identity access control"],
         description:"Allows",
         responses: [
@@ -70,7 +70,7 @@ class UserIdentityAllowController
         }
     }
     #[OA\Get(
-        path: "/api/me/acl/access/user-identities/{uid}",
+        path: "/api/me/acl/access/identity/{uid}",
         tags: ["User identity access control"],
         description:"Allows",
         parameters: [

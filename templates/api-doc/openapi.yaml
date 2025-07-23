@@ -2042,21 +2042,21 @@ paths:
                 $ref: '#/components/schemas/UserApiDTO'
         404:
           description: 'Not found'
-  /api/me/acl/access/user-identities:
+  /api/me/acl/access/identity:
     get:
       tags:
         - 'User identity access control'
       description: Allows
-      operationId: 116f601e85a182944ea32a257b1fa8b3
+      operationId: f716daea74d1c34af14b8515bd31a4fd
       responses:
         200:
           description: Ok
-  '/api/me/acl/access/user-identities/{uid}':
+  '/api/me/acl/access/identity/{uid}':
     get:
       tags:
         - 'User identity access control'
       description: Allows
-      operationId: 4740db17d28e5500093169dd636df5f8
+      operationId: 34f802cb281853e86109d2a23a76fa94
       parameters:
         -
           name: uid
@@ -2069,12 +2069,12 @@ paths:
           description: Ok
         404:
           description: 'Not found'
-  /api/access/user-identities:
+  /api/access/identity:
     get:
       tags:
         - 'User identity'
       description: Create
-      operationId: 0497baeb818fdfe211a2e2e097baf499
+      operationId: dfb0ac776319d94e1db22092a8052276
       responses:
         201:
           description: Ok
@@ -2088,7 +2088,7 @@ paths:
       tags:
         - 'User identity'
       description: Create
-      operationId: 8b4ad9226f66000687d1d62daf3f00cd
+      operationId: b569a06c9444e11f975adf7a0ba0f7d9
       requestBody:
         content:
           application/json:
@@ -2103,12 +2103,12 @@ paths:
                 $ref: '#/components/schemas/UserIdentityApiDTO'
         422:
           description: 'Constraint error'
-  '/api/access/user-identities/{uid}':
+  '/api/access/identity/{uid}':
     put:
       tags:
         - 'User identity'
       description: 'Update the value'
-      operationId: 6fccffc7cc4392ad2309843970d26bcf
+      operationId: 82446e1c64ec462693a6dbd5a4010cef
       parameters:
         -
           name: uid
@@ -2138,7 +2138,7 @@ paths:
       tags:
         - 'User identity'
       description: 'Delete the record'
-      operationId: ab413875dbb9478b612287044dc79675
+      operationId: 7ff0d67c0961eef06c4f27072a5dc0f4
       parameters:
         -
           name: uid
@@ -2155,12 +2155,12 @@ paths:
                 $ref: '#/components/schemas/UserIdentityApiDTO'
         404:
           description: 'Not found'
-  '/api/access/user-identities{uid}':
+  '/api/access/identity{uid}':
     get:
       tags:
         - 'User identity'
       description: Create
-      operationId: 427172bd43eae63ecaf1b1662275556a
+      operationId: 3f82715e3f4804e28dc5692cfa78297b
       parameters:
         -
           name: uid
@@ -2844,7 +2844,7 @@ components:
       properties:
         uid:
           title: uid
-          description: 'A uid string to identify the entity'
+          description: 'El identificador de la aplicacion'
           type: string
         user:
           title: user

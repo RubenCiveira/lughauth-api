@@ -11,14 +11,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 
 class UserIdentityFilter
 {
-    public static function userAndRelyingPartyAndTrustedClientFilter(?UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): array
-    {
-        return ['user' => $user, 'relyingParty' => $relyingParty, 'trustedClient' => $trustedClient];
-    }
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        private ?array $userAndRelyingPartyAndTrustedClient = null,
+        private ?bool $forAllAudiences = null,
         private ?UserRef $user = null,
         private ?array $users = null,
         private ?RelyingPartyRef $relyingParty = null,
@@ -48,14 +44,14 @@ class UserIdentityFilter
         $copy->search = $search;
         return $copy;
     }
-    public function userAndRelyingPartyAndTrustedClient(): ?array
+    public function forAllAudiences(): ?bool
     {
-        return $this->userAndRelyingPartyAndTrustedClient;
+        return $this->forAllAudiences;
     }
-    public function withUserAndRelyingPartyAndTrustedClient(?UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): self
+    public function withForAllAudiences($forAllAudiences): self
     {
         $copy = clone $this;
-        $copy->userAndRelyingPartyAndTrustedClient = ['user' => $user, 'relyingParty' => $relyingParty, 'trustedClient' => $trustedClient];
+        $copy->forAllAudiences = $forAllAudiences;
         return $copy;
     }
     public function user(): ?UserRef

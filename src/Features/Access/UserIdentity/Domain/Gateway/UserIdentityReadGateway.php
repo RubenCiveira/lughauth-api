@@ -6,9 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway;
 
 use Psr\Container\ContainerInterface;
-use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
@@ -43,9 +40,5 @@ class UserIdentityReadGateway
     public function findOneByUid(string $uid): ?UserIdentity
     {
         return $this->repository->findOneByUid($uid);
-    }
-    public function findOneByUserAndRelyingPartyAndTrustedClient(UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): ?UserIdentity
-    {
-        return $this->repository->findOneByUserAndRelyingPartyAndTrustedClient($user, $relyingParty, $trustedClient);
     }
 }

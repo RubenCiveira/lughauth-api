@@ -9,9 +9,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteRepository;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentitySlide;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityCursor;
@@ -146,20 +143,6 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
         $span = $this->startSpan("Find on by uid for User identity on adapter");
         try {
             return $this->conn->retrieveForUpdate(new UserIdentityFilter(uids: [$uid]));
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
-    }
-    #[Override]
-    public function findOneForUpdateByUserAndRelyingPartyAndTrustedClient(UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): ?UserIdentity
-    {
-        $this->logDebug("Find on by user relying party trusted client for User identity on adapter");
-        $span = $this->startSpan("Find on by user relying party trusted client for User identity on adapter");
-        try {
-            return $this->conn->retrieveForUpdate(new UserIdentityFilter(userAndRelyingPartyAndTrustedClient: UserIdentityFilter::userAndRelyingPartyAndTrustedClientFilter(user: $user, relyingParty: $relyingParty, trustedClient: $trustedClient)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

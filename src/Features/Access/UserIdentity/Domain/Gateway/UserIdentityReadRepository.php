@@ -5,9 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway;
 
-use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
 
@@ -19,5 +16,4 @@ interface UserIdentityReadRepository
     public function exists(UserIdentityFilter $filter): bool;
     public function count(?UserIdentityFilter $filter = null): int;
     public function findOneByUid(string $uid): ?UserIdentity;
-    public function findOneByUserAndRelyingPartyAndTrustedClient(UserRef $user, ?RelyingPartyRef $relyingParty, ?TrustedClientRef $trustedClient): ?UserIdentity;
 }
