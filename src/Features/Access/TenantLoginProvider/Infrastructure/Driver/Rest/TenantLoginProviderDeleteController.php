@@ -77,8 +77,8 @@ class TenantLoginProviderDeleteController
             $filter = new TenantLoginProviderFilter(
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
-                tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 name: $params['name'] ?? null,
+                tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
             $res = $this->runner->run(TenantLoginProviderTaskDelete::class, ['filter' => $filter]);

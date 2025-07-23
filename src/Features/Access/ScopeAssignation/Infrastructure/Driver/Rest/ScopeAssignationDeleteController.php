@@ -79,8 +79,8 @@ class ScopeAssignationDeleteController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 securityDomain: isset($params['security-domain']) ? new SecurityDomainRef($params['security-domain']) : null,
-                securityScope: isset($params['security-scope']) ? new SecurityScopeRef($params['security-scope']) : null,
                 securityDomains: isset($params['security-domains']) ? explode(",", $params['security-domains']) : null,
+                securityScope: isset($params['security-scope']) ? new SecurityScopeRef($params['security-scope']) : null,
                 securityScopes: isset($params['security-scopes']) ? explode(",", $params['security-scopes']) : null,
             );
             $res = $this->runner->run(ScopeAssignationTaskDelete::class, ['filter' => $filter]);

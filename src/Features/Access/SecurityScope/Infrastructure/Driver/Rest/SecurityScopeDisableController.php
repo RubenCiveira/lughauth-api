@@ -80,7 +80,6 @@ class SecurityScopeDisableController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 resource: $params['resource'] ?? null,
-                scope: $params['scope'] ?? null,
                 trustedClient: isset($params['trusted-client']) ? new TrustedClientRef($params['trusted-client']) : null,
                 trustedClients: isset($params['trusted-clients']) ? explode(",", $params['trusted-clients']) : null,
                 relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
