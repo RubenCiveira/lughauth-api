@@ -34,7 +34,7 @@ class RelyingPartyDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Relying party");
         $span = $this->startSpan("Check allow of delete usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new RelyingPartyDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

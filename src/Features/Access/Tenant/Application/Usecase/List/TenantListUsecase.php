@@ -34,7 +34,7 @@ class TenantListUsecase
         $this->logDebug("Check allow of list usecase for Tenant");
         $span = $this->startSpan("Check allow of list usecase for Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantListAllowProposal(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispacher->dispatch(new TenantListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

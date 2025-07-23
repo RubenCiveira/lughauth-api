@@ -34,7 +34,7 @@ class UserUnlockUsecase
         $this->logDebug("Check allow of Unlock usecase for User");
         $span = $this->startSpan("Check allow of Unlock usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserUnlockAllowProposal(Allow::allowed('unlock', 'Allowed to User by default'), $ref));
+            $result = $this->dispacher->dispatch(new UserUnlockAllowDecision(Allow::allowed('unlock', 'Allowed to User by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

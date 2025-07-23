@@ -35,7 +35,7 @@ class SecurityScopeRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Security scope");
         $span = $this->startSpan("Check allow of retrieve usecase for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityScopeRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

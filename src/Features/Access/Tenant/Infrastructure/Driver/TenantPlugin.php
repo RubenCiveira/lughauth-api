@@ -38,6 +38,13 @@ use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\EnableT
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\DisableTenantOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowProposal;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Retrieve\TenantRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\List\TenantListAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
 
 class TenantPlugin extends MicroPlugin
 {
@@ -51,8 +58,6 @@ class TenantPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(TenantCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(TenantCreateAllowProposal::class, CreateTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantUpdateAllowProposal::class, UpdateTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
@@ -63,6 +68,18 @@ class TenantPlugin extends MicroPlugin
         $bus->registerListener(TenantEnableAllowProposal::class, EnableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowProposal::class, DisableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TenantCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(TenantCreateAllowDecision::class, CreateTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(TenantUpdateAllowDecision::class, UpdateTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(TenantListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(TenantDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TenantDeleteAllowDecision::class, DeleteTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForTenantAcl(RouteCollectorProxy $tenantGroup)
     {

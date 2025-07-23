@@ -34,7 +34,7 @@ class ScopeAssignationListUsecase
         $this->logDebug("Check allow of list usecase for Scope assignation");
         $span = $this->startSpan("Check allow of list usecase for Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationListAllowProposal(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispacher->dispatch(new ScopeAssignationListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\De
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(ApiKeyClientDeleteAllowProposal $proposal): ApiKeyClientDeleteAllowProposal
+    public function __invoke(ApiKeyClientDeleteAllowDecision $proposal): ApiKeyClientDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Api key client");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Api key client");

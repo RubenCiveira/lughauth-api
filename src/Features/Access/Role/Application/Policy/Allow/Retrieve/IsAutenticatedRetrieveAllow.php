@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RoleRetrieveAllowProposal $proposal): RoleRetrieveAllowProposal
+    public function __invoke(RoleRetrieveAllowDecision $proposal): RoleRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow Role");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Role");

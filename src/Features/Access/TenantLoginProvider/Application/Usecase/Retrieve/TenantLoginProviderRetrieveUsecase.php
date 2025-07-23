@@ -36,7 +36,7 @@ class TenantLoginProviderRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of retrieve usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantLoginProviderRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

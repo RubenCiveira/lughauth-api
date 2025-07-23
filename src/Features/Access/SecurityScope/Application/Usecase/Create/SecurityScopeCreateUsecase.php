@@ -33,7 +33,7 @@ class SecurityScopeCreateUsecase
         $this->logDebug("Check allow of create usecase for Security scope");
         $span = $this->startSpan("Check allow of create usecase for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeCreateAllowProposal(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispacher->dispatch(new SecurityScopeCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

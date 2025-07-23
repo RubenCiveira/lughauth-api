@@ -34,7 +34,7 @@ class SecurityDomainListUsecase
         $this->logDebug("Check allow of list usecase for Security domain");
         $span = $this->startSpan("Check allow of list usecase for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainListAllowProposal(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispacher->dispatch(new SecurityDomainListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

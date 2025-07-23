@@ -36,6 +36,13 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\E
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowProposal;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowProposal;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Retrieve\TenantLoginProviderRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\TenantLoginProviderListAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Delete\TenantLoginProviderDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -50,13 +57,19 @@ class TenantLoginProviderPlugin extends MicroPlugin
     {
         $bus->registerListener(TenantLoginProviderFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(TenantLoginProviderFixedFieldsProposal::class, TenantLoginProviderExcludingdRoot::class);
-        $bus->registerListener(TenantLoginProviderCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantLoginProviderUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantLoginProviderRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantLoginProviderListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantLoginProviderDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantLoginProviderEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TenantLoginProviderCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(TenantLoginProviderUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(TenantLoginProviderRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(TenantLoginProviderListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup)
     {

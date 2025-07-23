@@ -34,7 +34,7 @@ class TrustedClientDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Trusted client");
         $span = $this->startSpan("Check allow of Disable usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientDisableAllowProposal(Allow::allowed('disable', 'Allowed to Trusted client by default'), $ref));
+            $result = $this->dispacher->dispatch(new TrustedClientDisableAllowDecision(Allow::allowed('disable', 'Allowed to Trusted client by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

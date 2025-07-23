@@ -32,6 +32,13 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Enable\RelyingPartyEnableAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowProposal;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\List\RelyingPartyListAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Delete\RelyingPartyDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Enable\RelyingPartyEnableAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
@@ -44,13 +51,19 @@ class RelyingPartyPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(RelyingPartyCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RelyingPartyUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RelyingPartyRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RelyingPartyListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RelyingPartyDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(RelyingPartyEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(RelyingPartyCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(RelyingPartyUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(RelyingPartyListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(RelyingPartyDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForRelyingPartyAcl(RouteCollectorProxy $relyingPartyGroup)
     {

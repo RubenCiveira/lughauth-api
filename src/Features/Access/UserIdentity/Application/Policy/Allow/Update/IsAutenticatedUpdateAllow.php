@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Up
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedUpdateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserIdentityUpdateAllowProposal $proposal): UserIdentityUpdateAllowProposal
+    public function __invoke(UserIdentityUpdateAllowDecision $proposal): UserIdentityUpdateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedUpdateAllow User identity");
         $span = $this->startSpan("Check IsAutenticatedUpdateAllow User identity");

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\R
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(SecurityScopeRetrieveAllowProposal $proposal): SecurityScopeRetrieveAllowProposal
+    public function __invoke(SecurityScopeRetrieveAllowDecision $proposal): SecurityScopeRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow Security scope");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Security scope");

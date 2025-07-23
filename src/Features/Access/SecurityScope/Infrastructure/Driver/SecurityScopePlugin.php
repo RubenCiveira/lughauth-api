@@ -32,6 +32,13 @@ use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Disable
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Disable\SecurityScopeDisableAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Enable\SecurityScopeEnableAllowProposal;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Create\SecurityScopeCreateAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\List\SecurityScopeListAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Delete\SecurityScopeDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Disable\SecurityScopeDisableAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Enable\SecurityScopeEnableAllowDecision;
 
 class SecurityScopePlugin extends MicroPlugin
 {
@@ -44,13 +51,19 @@ class SecurityScopePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(SecurityScopeCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(SecurityScopeUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(SecurityScopeRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(SecurityScopeListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(SecurityScopeDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(SecurityScopeDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(SecurityScopeEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(SecurityScopeCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(SecurityScopeUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(SecurityScopeRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(SecurityScopeListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(SecurityScopeDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(SecurityScopeDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(SecurityScopeEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
     }
     public function setRoutesForSecurityScopeAcl(RouteCollectorProxy $securityScopeGroup)
     {

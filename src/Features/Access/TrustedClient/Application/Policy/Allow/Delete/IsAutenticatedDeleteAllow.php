@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\D
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TrustedClientDeleteAllowProposal $proposal): TrustedClientDeleteAllowProposal
+    public function __invoke(TrustedClientDeleteAllowDecision $proposal): TrustedClientDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Trusted client");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Trusted client");

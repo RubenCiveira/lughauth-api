@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Di
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowProposal;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDisableAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RelyingPartyDisableAllowProposal $proposal): RelyingPartyDisableAllowProposal
+    public function __invoke(RelyingPartyDisableAllowDecision $proposal): RelyingPartyDisableAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDisableAllow Relying party");
         $span = $this->startSpan("Check IsAutenticatedDisableAllow Relying party");

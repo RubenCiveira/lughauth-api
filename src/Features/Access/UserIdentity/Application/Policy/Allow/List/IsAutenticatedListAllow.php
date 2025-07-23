@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Li
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowProposal;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedListAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserIdentityListAllowProposal $proposal): UserIdentityListAllowProposal
+    public function __invoke(UserIdentityListAllowDecision $proposal): UserIdentityListAllowDecision
     {
         $this->logDebug("Check IsAutenticatedListAllow User identity");
         $span = $this->startSpan("Check IsAutenticatedListAllow User identity");

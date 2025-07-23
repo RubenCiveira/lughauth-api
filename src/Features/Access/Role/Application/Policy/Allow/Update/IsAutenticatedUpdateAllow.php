@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedUpdateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RoleUpdateAllowProposal $proposal): RoleUpdateAllowProposal
+    public function __invoke(RoleUpdateAllowDecision $proposal): RoleUpdateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedUpdateAllow Role");
         $span = $this->startSpan("Check IsAutenticatedUpdateAllow Role");

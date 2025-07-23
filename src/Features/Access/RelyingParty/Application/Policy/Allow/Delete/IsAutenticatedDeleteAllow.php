@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\De
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Delete\RelyingPartyDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Delete\RelyingPartyDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RelyingPartyDeleteAllowProposal $proposal): RelyingPartyDeleteAllowProposal
+    public function __invoke(RelyingPartyDeleteAllowDecision $proposal): RelyingPartyDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Relying party");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Relying party");

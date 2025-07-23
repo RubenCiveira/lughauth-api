@@ -35,7 +35,7 @@ class TenantConfigRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Tenant config");
         $span = $this->startSpan("Check allow of retrieve usecase for Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantConfigRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

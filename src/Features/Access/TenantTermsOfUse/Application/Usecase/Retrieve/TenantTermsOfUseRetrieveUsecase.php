@@ -36,7 +36,7 @@ class TenantTermsOfUseRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of retrieve usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantTermsOfUseRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

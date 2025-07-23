@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Delete\SecurityDomainDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Delete\SecurityDomainDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(SecurityDomainDeleteAllowProposal $proposal): SecurityDomainDeleteAllowProposal
+    public function __invoke(SecurityDomainDeleteAllowDecision $proposal): SecurityDomainDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Security domain");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Security domain");

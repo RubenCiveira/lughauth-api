@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allo
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowProposal;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedEnableAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantTermsOfUseEnableAllowProposal $proposal): TenantTermsOfUseEnableAllowProposal
+    public function __invoke(TenantTermsOfUseEnableAllowDecision $proposal): TenantTermsOfUseEnableAllowDecision
     {
         $this->logDebug("Check IsAutenticatedEnableAllow Tenant terms of use");
         $span = $this->startSpan("Check IsAutenticatedEnableAllow Tenant terms of use");

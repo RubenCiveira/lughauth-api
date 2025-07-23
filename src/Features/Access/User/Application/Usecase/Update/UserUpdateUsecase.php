@@ -34,7 +34,7 @@ class UserUpdateUsecase
         $this->logDebug("Check allow update usecase for User");
         $span = $this->startSpan("Check allow update usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new UserUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

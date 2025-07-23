@@ -34,7 +34,7 @@ class SecurityScopeListUsecase
         $this->logDebug("Check allow of list usecase for Security scope");
         $span = $this->startSpan("Check allow of list usecase for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeListAllowProposal(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispacher->dispatch(new SecurityScopeListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

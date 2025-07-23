@@ -34,7 +34,7 @@ class RoleUpdateUsecase
         $this->logDebug("Check allow update usecase for Role");
         $span = $this->startSpan("Check allow update usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new RoleUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

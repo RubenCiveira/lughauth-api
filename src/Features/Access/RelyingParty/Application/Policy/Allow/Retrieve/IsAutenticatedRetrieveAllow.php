@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Re
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RelyingPartyRetrieveAllowProposal $proposal): RelyingPartyRetrieveAllowProposal
+    public function __invoke(RelyingPartyRetrieveAllowDecision $proposal): RelyingPartyRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow Relying party");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Relying party");

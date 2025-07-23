@@ -34,7 +34,7 @@ class UserListUsecase
         $this->logDebug("Check allow of list usecase for User");
         $span = $this->startSpan("Check allow of list usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserListAllowProposal(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispacher->dispatch(new UserListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

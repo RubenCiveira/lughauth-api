@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allo
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedUpdateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(ScopeAssignationUpdateAllowProposal $proposal): ScopeAssignationUpdateAllowProposal
+    public function __invoke(ScopeAssignationUpdateAllowDecision $proposal): ScopeAssignationUpdateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedUpdateAllow Scope assignation");
         $span = $this->startSpan("Check IsAutenticatedUpdateAllow Scope assignation");

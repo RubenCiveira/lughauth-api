@@ -33,7 +33,7 @@ class ApiKeyClientCreateUsecase
         $this->logDebug("Check allow of create usecase for Api key client");
         $span = $this->startSpan("Check allow of create usecase for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientCreateAllowProposal(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispacher->dispatch(new ApiKeyClientCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

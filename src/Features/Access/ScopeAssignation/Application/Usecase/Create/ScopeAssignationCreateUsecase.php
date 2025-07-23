@@ -33,7 +33,7 @@ class ScopeAssignationCreateUsecase
         $this->logDebug("Check allow of create usecase for Scope assignation");
         $span = $this->startSpan("Check allow of create usecase for Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationCreateAllowProposal(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispacher->dispatch(new ScopeAssignationCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

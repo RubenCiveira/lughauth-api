@@ -27,6 +27,11 @@ use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
 
 class UserIdentityPlugin extends MicroPlugin
 {
@@ -42,11 +47,15 @@ class UserIdentityPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(UserIdentityFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(UserIdentityCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(UserIdentityUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(UserIdentityRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserIdentityListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserIdentityDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(UserIdentityCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(UserIdentityUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
     }
     public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup)
     {

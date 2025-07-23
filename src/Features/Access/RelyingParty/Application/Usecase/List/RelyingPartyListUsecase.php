@@ -34,7 +34,7 @@ class RelyingPartyListUsecase
         $this->logDebug("Check allow of list usecase for Relying party");
         $span = $this->startSpan("Check allow of list usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyListAllowProposal(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispacher->dispatch(new RelyingPartyListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

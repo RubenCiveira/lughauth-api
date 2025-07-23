@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Re
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantConfigRetrieveAllowProposal $proposal): TenantConfigRetrieveAllowProposal
+    public function __invoke(TenantConfigRetrieveAllowDecision $proposal): TenantConfigRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow Tenant config");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Tenant config");

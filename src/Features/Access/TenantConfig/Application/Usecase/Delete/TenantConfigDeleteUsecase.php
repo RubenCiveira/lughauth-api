@@ -34,7 +34,7 @@ class TenantConfigDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Tenant config");
         $span = $this->startSpan("Check allow of delete usecase for Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantConfigDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Up
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedUpdateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(ApiKeyClientUpdateAllowProposal $proposal): ApiKeyClientUpdateAllowProposal
+    public function __invoke(ApiKeyClientUpdateAllowDecision $proposal): ApiKeyClientUpdateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedUpdateAllow Api key client");
         $span = $this->startSpan("Check IsAutenticatedUpdateAllow Api key client");

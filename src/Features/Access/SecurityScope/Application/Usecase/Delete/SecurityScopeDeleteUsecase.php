@@ -34,7 +34,7 @@ class SecurityScopeDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Security scope");
         $span = $this->startSpan("Check allow of delete usecase for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityScopeDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\De
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantConfigDeleteAllowProposal $proposal): TenantConfigDeleteAllowProposal
+    public function __invoke(TenantConfigDeleteAllowDecision $proposal): TenantConfigDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Tenant config");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Tenant config");

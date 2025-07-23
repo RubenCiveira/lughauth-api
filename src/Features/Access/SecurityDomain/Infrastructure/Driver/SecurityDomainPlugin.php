@@ -32,6 +32,13 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Enable
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Enable\SecurityDomainEnableAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Disable\SecurityDomainDisableAllowProposal;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Create\SecurityDomainCreateAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Update\SecurityDomainUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Retrieve\SecurityDomainRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\List\SecurityDomainListAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Delete\SecurityDomainDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Enable\SecurityDomainEnableAllowDecision;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Disable\SecurityDomainDisableAllowDecision;
 
 class SecurityDomainPlugin extends MicroPlugin
 {
@@ -44,13 +51,19 @@ class SecurityDomainPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(SecurityDomainCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(SecurityDomainUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(SecurityDomainRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(SecurityDomainListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(SecurityDomainDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(SecurityDomainEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(SecurityDomainDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(SecurityDomainCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(SecurityDomainUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(SecurityDomainRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(SecurityDomainListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(SecurityDomainDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(SecurityDomainEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(SecurityDomainDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForSecurityDomainAcl(RouteCollectorProxy $securityDomainGroup)
     {

@@ -26,7 +26,7 @@ class AuditMiddleware implements MiddlewareInterface
         private readonly Context $appContext,
         AppConfig $config
     ) {
-        $this->retentionWeeks = $config->get('app.audit.retention-weeks', 0);
+        $this->retentionWeeks = intval($config->get('app.audit.retention-weeks', 0));
         $this->exportDir = __DIR__ . '/../../../../var/audit';
         $this->clear();
     }

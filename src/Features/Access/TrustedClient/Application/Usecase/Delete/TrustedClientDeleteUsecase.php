@@ -34,7 +34,7 @@ class TrustedClientDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Trusted client");
         $span = $this->startSpan("Check allow of delete usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new TrustedClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RoleDeleteAllowProposal $proposal): RoleDeleteAllowProposal
+    public function __invoke(RoleDeleteAllowDecision $proposal): RoleDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Role");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Role");

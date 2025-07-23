@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Re
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserIdentityRetrieveAllowProposal $proposal): UserIdentityRetrieveAllowProposal
+    public function __invoke(UserIdentityRetrieveAllowDecision $proposal): UserIdentityRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow User identity");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow User identity");

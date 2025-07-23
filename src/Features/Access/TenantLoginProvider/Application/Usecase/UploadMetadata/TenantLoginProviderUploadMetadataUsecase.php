@@ -32,7 +32,7 @@ class TenantLoginProviderUploadMetadataUsecase
         $this->logDebug("Check allow of temp upload Metadata usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of temp upload Metadata usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataAllowProposal(Allow::allowed('upload', 'Allowed to upload by default')));
+            $result = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataAllowDecision(Allow::allowed('upload', 'Allowed to upload by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

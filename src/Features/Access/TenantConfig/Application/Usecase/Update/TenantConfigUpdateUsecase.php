@@ -34,7 +34,7 @@ class TenantConfigUpdateUsecase
         $this->logDebug("Check allow update usecase for Tenant config");
         $span = $this->startSpan("Check allow update usecase for Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantConfigUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

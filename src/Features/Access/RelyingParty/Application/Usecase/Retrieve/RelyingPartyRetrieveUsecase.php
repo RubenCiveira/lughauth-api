@@ -35,7 +35,7 @@ class RelyingPartyRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Relying party");
         $span = $this->startSpan("Check allow of retrieve usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new RelyingPartyRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

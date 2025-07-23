@@ -29,6 +29,11 @@ use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutentica
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
 
 class RolePlugin extends MicroPlugin
 {
@@ -43,11 +48,15 @@ class RolePlugin extends MicroPlugin
     {
         $bus->registerListener(RoleFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(RoleFixedFieldsProposal::class, RoleExcludingdRoot::class);
-        $bus->registerListener(RoleCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RoleUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RoleRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RoleListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RoleDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(RoleCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(RoleUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
     }
     public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup)
     {

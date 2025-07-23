@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allo
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(ScopeAssignationRetrieveAllowProposal $proposal): ScopeAssignationRetrieveAllowProposal
+    public function __invoke(ScopeAssignationRetrieveAllowDecision $proposal): ScopeAssignationRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow Scope assignation");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Scope assignation");

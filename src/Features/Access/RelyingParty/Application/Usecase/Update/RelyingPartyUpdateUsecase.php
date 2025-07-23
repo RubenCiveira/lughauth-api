@@ -34,7 +34,7 @@ class RelyingPartyUpdateUsecase
         $this->logDebug("Check allow update usecase for Relying party");
         $span = $this->startSpan("Check allow update usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new RelyingPartyUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

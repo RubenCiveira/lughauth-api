@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\A
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowProposal;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedCreateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantLoginProviderCreateAllowProposal $proposal): TenantLoginProviderCreateAllowProposal
+    public function __invoke(TenantLoginProviderCreateAllowDecision $proposal): TenantLoginProviderCreateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedCreateAllow Tenant login provider");
         $span = $this->startSpan("Check IsAutenticatedCreateAllow Tenant login provider");

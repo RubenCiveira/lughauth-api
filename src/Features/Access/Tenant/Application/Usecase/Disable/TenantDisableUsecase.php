@@ -34,7 +34,7 @@ class TenantDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Tenant");
         $span = $this->startSpan("Check allow of Disable usecase for Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantDisableAllowProposal(Allow::allowed('disable', 'Allowed to Tenant by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

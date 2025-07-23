@@ -35,7 +35,7 @@ class ScopeAssignationRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Scope assignation");
         $span = $this->startSpan("Check allow of retrieve usecase for Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new ScopeAssignationRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

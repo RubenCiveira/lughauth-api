@@ -36,6 +36,13 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enab
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowProposal;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -50,13 +57,19 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     {
         $bus->registerListener(TenantTermsOfUseFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(TenantTermsOfUseFixedFieldsProposal::class, TenantTermsOfUseExcludingdRoot::class);
-        $bus->registerListener(TenantTermsOfUseCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantTermsOfUseUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantTermsOfUseRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantTermsOfUseListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantTermsOfUseDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantTermsOfUseEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantTermsOfUseDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(TenantTermsOfUseListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup)
     {

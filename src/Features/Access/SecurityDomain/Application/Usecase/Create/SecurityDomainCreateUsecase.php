@@ -33,7 +33,7 @@ class SecurityDomainCreateUsecase
         $this->logDebug("Check allow of create usecase for Security domain");
         $span = $this->startSpan("Check allow of create usecase for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainCreateAllowProposal(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispacher->dispatch(new SecurityDomainCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

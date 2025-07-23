@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowProposal;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class ListUserOnlyForRootAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserListAllowProposal $proposal): UserListAllowProposal
+    public function __invoke(UserListAllowDecision $proposal): UserListAllowDecision
     {
         $this->logDebug("Check ListUserOnlyForRootAllow User");
         $span = $this->startSpan("Check ListUserOnlyForRootAllow User");

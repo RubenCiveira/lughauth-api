@@ -34,7 +34,7 @@ class RoleDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Role");
         $span = $this->startSpan("Check allow of delete usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new RoleDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

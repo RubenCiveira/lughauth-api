@@ -35,7 +35,7 @@ class SecurityDomainRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Security domain");
         $span = $this->startSpan("Check allow of retrieve usecase for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityDomainRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

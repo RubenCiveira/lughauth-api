@@ -32,6 +32,13 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowProposal;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -44,13 +51,19 @@ class TrustedClientPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(TrustedClientCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TrustedClientUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TrustedClientRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TrustedClientListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TrustedClientDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TrustedClientEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TrustedClientDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(TrustedClientListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForTrustedClientAcl(RouteCollectorProxy $trustedClientGroup)
     {

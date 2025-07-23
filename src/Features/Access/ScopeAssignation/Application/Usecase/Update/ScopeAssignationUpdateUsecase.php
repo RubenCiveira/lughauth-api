@@ -34,7 +34,7 @@ class ScopeAssignationUpdateUsecase
         $this->logDebug("Check allow update usecase for Scope assignation");
         $span = $this->startSpan("Check allow update usecase for Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new ScopeAssignationUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

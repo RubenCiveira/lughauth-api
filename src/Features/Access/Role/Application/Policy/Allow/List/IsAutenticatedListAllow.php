@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedListAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RoleListAllowProposal $proposal): RoleListAllowProposal
+    public function __invoke(RoleListAllowDecision $proposal): RoleListAllowDecision
     {
         $this->logDebug("Check IsAutenticatedListAllow Role");
         $span = $this->startSpan("Check IsAutenticatedListAllow Role");

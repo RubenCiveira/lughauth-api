@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Li
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowProposal;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedListAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantConfigListAllowProposal $proposal): TenantConfigListAllowProposal
+    public function __invoke(TenantConfigListAllowDecision $proposal): TenantConfigListAllowDecision
     {
         $this->logDebug("Check IsAutenticatedListAllow Tenant config");
         $span = $this->startSpan("Check IsAutenticatedListAllow Tenant config");

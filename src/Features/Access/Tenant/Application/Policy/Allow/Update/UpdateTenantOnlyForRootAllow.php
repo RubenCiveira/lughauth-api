@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Update;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class UpdateTenantOnlyForRootAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantUpdateAllowProposal $proposal): TenantUpdateAllowProposal
+    public function __invoke(TenantUpdateAllowDecision $proposal): TenantUpdateAllowDecision
     {
         $this->logDebug("Check UpdateTenantOnlyForRootAllow Tenant");
         $span = $this->startSpan("Check UpdateTenantOnlyForRootAllow Tenant");

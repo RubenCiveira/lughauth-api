@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\U
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedUpdateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(SecurityScopeUpdateAllowProposal $proposal): SecurityScopeUpdateAllowProposal
+    public function __invoke(SecurityScopeUpdateAllowDecision $proposal): SecurityScopeUpdateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedUpdateAllow Security scope");
         $span = $this->startSpan("Check IsAutenticatedUpdateAllow Security scope");

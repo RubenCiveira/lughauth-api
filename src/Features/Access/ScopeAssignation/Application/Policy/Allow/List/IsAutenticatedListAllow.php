@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allo
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListAllowProposal;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedListAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(ScopeAssignationListAllowProposal $proposal): ScopeAssignationListAllowProposal
+    public function __invoke(ScopeAssignationListAllowDecision $proposal): ScopeAssignationListAllowDecision
     {
         $this->logDebug("Check IsAutenticatedListAllow Scope assignation");
         $span = $this->startSpan("Check IsAutenticatedListAllow Scope assignation");

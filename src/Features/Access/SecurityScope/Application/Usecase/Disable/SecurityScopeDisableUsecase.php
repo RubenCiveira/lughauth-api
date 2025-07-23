@@ -34,7 +34,7 @@ class SecurityScopeDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Security scope");
         $span = $this->startSpan("Check allow of Disable usecase for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeDisableAllowProposal(Allow::allowed('disable', 'Allowed to Security scope by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityScopeDisableAllowDecision(Allow::allowed('disable', 'Allowed to Security scope by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -34,7 +34,7 @@ class TenantTermsOfUseDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of Disable usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseDisableAllowProposal(Allow::allowed('disable', 'Allowed to Tenant terms of use by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantTermsOfUseDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant terms of use by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

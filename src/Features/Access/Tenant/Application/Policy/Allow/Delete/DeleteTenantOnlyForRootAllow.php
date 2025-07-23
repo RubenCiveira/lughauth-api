@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class DeleteTenantOnlyForRootAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantDeleteAllowProposal $proposal): TenantDeleteAllowProposal
+    public function __invoke(TenantDeleteAllowDecision $proposal): TenantDeleteAllowDecision
     {
         $this->logDebug("Check DeleteTenantOnlyForRootAllow Tenant");
         $span = $this->startSpan("Check DeleteTenantOnlyForRootAllow Tenant");

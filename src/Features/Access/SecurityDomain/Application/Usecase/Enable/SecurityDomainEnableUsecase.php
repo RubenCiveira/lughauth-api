@@ -34,7 +34,7 @@ class SecurityDomainEnableUsecase
         $this->logDebug("Check allow of Enable usecase for Security domain");
         $span = $this->startSpan("Check allow of Enable usecase for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainEnableAllowProposal(Allow::allowed('enable', 'Allowed to Security domain by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityDomainEnableAllowDecision(Allow::allowed('enable', 'Allowed to Security domain by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

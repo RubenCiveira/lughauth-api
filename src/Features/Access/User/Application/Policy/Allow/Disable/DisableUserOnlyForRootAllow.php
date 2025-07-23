@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowProposal;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class DisableUserOnlyForRootAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserDisableAllowProposal $proposal): UserDisableAllowProposal
+    public function __invoke(UserDisableAllowDecision $proposal): UserDisableAllowDecision
     {
         $this->logDebug("Check DisableUserOnlyForRootAllow User");
         $span = $this->startSpan("Check DisableUserOnlyForRootAllow User");

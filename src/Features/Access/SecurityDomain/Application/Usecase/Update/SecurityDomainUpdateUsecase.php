@@ -34,7 +34,7 @@ class SecurityDomainUpdateUsecase
         $this->logDebug("Check allow update usecase for Security domain");
         $span = $this->startSpan("Check allow update usecase for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityDomainUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

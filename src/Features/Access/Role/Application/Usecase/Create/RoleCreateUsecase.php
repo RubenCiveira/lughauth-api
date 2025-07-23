@@ -33,7 +33,7 @@ class RoleCreateUsecase
         $this->logDebug("Check allow of create usecase for Role");
         $span = $this->startSpan("Check allow of create usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleCreateAllowProposal(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispacher->dispatch(new RoleCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

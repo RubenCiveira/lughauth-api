@@ -46,6 +46,14 @@ use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\EnableUse
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\UnlockUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowProposal;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAutenticatedUnlockAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 
 class UserPlugin extends MicroPlugin
 {
@@ -60,8 +68,6 @@ class UserPlugin extends MicroPlugin
     {
         $bus->registerListener(UserFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(UserFixedFieldsProposal::class, UserExcludingdRoot::class);
-        $bus->registerListener(UserCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(UserCreateAllowProposal::class, CreateUserOnlyForRootAllow::class);
         $bus->registerListener(UserUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(UserUpdateAllowProposal::class, UpdateUserOnlyForRootAllow::class);
         $bus->registerListener(UserRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
@@ -76,6 +82,22 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserEnableAllowProposal::class, EnableUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowProposal::class, UnlockUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowProposal::class, IsAutenticatedUnlockAllow::class);
+        $bus->registerListener(UserCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(UserCreateAllowDecision::class, CreateUserOnlyForRootAllow::class);
+        $bus->registerListener(UserUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(UserUpdateAllowDecision::class, UpdateUserOnlyForRootAllow::class);
+        $bus->registerListener(UserRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(UserRetrieveAllowDecision::class, RetrieveUserOnlyForRootAllow::class);
+        $bus->registerListener(UserListAllowDecision::class, ListUserOnlyForRootAllow::class);
+        $bus->registerListener(UserListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(UserDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(UserDeleteAllowDecision::class, DeleteUserOnlyForRootAllow::class);
+        $bus->registerListener(UserDisableAllowDecision::class, DisableUserOnlyForRootAllow::class);
+        $bus->registerListener(UserDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(UserEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(UserEnableAllowDecision::class, EnableUserOnlyForRootAllow::class);
+        $bus->registerListener(UserUnlockAllowDecision::class, UnlockUserOnlyForRootAllow::class);
+        $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
     }
     public function setRoutesForUserAcl(RouteCollectorProxy $userGroup)
     {

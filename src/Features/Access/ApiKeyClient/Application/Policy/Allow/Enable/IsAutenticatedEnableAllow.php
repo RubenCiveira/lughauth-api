@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\En
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowProposal;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedEnableAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(ApiKeyClientEnableAllowProposal $proposal): ApiKeyClientEnableAllowProposal
+    public function __invoke(ApiKeyClientEnableAllowDecision $proposal): ApiKeyClientEnableAllowDecision
     {
         $this->logDebug("Check IsAutenticatedEnableAllow Api key client");
         $span = $this->startSpan("Check IsAutenticatedEnableAllow Api key client");

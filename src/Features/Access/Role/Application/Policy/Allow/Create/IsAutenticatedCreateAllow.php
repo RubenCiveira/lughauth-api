@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedCreateAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RoleCreateAllowProposal $proposal): RoleCreateAllowProposal
+    public function __invoke(RoleCreateAllowDecision $proposal): RoleCreateAllowDecision
     {
         $this->logDebug("Check IsAutenticatedCreateAllow Role");
         $span = $this->startSpan("Check IsAutenticatedCreateAllow Role");

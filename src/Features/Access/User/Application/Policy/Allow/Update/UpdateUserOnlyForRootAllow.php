@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowProposal;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class UpdateUserOnlyForRootAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserUpdateAllowProposal $proposal): UserUpdateAllowProposal
+    public function __invoke(UserUpdateAllowDecision $proposal): UserUpdateAllowDecision
     {
         $this->logDebug("Check UpdateUserOnlyForRootAllow User");
         $span = $this->startSpan("Check UpdateUserOnlyForRootAllow User");

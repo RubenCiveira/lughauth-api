@@ -35,7 +35,7 @@ class TrustedClientRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Trusted client");
         $span = $this->startSpan("Check allow of retrieve usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientRetrieveAllowProposal(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispacher->dispatch(new TrustedClientRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

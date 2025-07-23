@@ -34,7 +34,7 @@ class TenantTermsOfUseUpdateUsecase
         $this->logDebug("Check allow update usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow update usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new TenantTermsOfUseUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

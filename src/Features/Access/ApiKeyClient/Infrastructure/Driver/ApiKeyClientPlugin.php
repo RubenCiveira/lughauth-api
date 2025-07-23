@@ -17,9 +17,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKey
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKeyClientDisableController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientFilterProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
@@ -32,6 +30,14 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowProposal;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientFilterProposal;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\List\ApiKeyClientListAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
@@ -44,13 +50,19 @@ class ApiKeyClientPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(ApiKeyClientCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(ApiKeyClientUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(ApiKeyClientRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(ApiKeyClientListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(ApiKeyClientDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(ApiKeyClientEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(ApiKeyClientDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(ApiKeyClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(ApiKeyClientListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(ApiKeyClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(ApiKeyClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
     }
     public function setRoutesForApiKeyClientAcl(RouteCollectorProxy $apiKeyClientGroup)
     {

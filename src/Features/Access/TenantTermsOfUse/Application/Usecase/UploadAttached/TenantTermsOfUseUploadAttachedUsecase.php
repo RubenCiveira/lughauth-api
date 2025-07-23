@@ -32,7 +32,7 @@ class TenantTermsOfUseUploadAttachedUsecase
         $this->logDebug("Check allow of temp upload Attached usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of temp upload Attached usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedAllowProposal(Allow::allowed('upload', 'Allowed to upload by default')));
+            $result = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedAllowDecision(Allow::allowed('upload', 'Allowed to upload by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

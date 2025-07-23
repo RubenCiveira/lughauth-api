@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allo
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedDeleteAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantTermsOfUseDeleteAllowProposal $proposal): TenantTermsOfUseDeleteAllowProposal
+    public function __invoke(TenantTermsOfUseDeleteAllowDecision $proposal): TenantTermsOfUseDeleteAllowDecision
     {
         $this->logDebug("Check IsAutenticatedDeleteAllow Tenant terms of use");
         $span = $this->startSpan("Check IsAutenticatedDeleteAllow Tenant terms of use");

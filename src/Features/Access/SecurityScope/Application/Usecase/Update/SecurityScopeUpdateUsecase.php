@@ -34,7 +34,7 @@ class SecurityScopeUpdateUsecase
         $this->logDebug("Check allow update usecase for Security scope");
         $span = $this->startSpan("Check allow update usecase for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeUpdateAllowProposal(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityScopeUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

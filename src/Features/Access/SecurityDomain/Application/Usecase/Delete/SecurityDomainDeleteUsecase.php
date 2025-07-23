@@ -34,7 +34,7 @@ class SecurityDomainDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Security domain");
         $span = $this->startSpan("Check allow of delete usecase for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new SecurityDomainDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

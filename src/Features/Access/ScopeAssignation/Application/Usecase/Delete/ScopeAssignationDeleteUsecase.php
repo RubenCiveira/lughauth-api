@@ -34,7 +34,7 @@ class ScopeAssignationDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Scope assignation");
         $span = $this->startSpan("Check allow of delete usecase for Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationDeleteAllowProposal(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispacher->dispatch(new ScopeAssignationDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

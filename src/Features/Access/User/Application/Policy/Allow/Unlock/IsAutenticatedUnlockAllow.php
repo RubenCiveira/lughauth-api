@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock;
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowProposal;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedUnlockAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserUnlockAllowProposal $proposal): UserUnlockAllowProposal
+    public function __invoke(UserUnlockAllowDecision $proposal): UserUnlockAllowDecision
     {
         $this->logDebug("Check IsAutenticatedUnlockAllow User");
         $span = $this->startSpan("Check IsAutenticatedUnlockAllow User");

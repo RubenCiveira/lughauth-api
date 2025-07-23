@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\L
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListAllowProposal;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedListAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TrustedClientListAllowProposal $proposal): TrustedClientListAllowProposal
+    public function __invoke(TrustedClientListAllowDecision $proposal): TrustedClientListAllowDecision
     {
         $this->logDebug("Check IsAutenticatedListAllow Trusted client");
         $span = $this->startSpan("Check IsAutenticatedListAllow Trusted client");

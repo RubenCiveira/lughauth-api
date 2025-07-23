@@ -33,7 +33,7 @@ class TrustedClientCreateUsecase
         $this->logDebug("Check allow of create usecase for Trusted client");
         $span = $this->startSpan("Check allow of create usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientCreateAllowProposal(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispacher->dispatch(new TrustedClientCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

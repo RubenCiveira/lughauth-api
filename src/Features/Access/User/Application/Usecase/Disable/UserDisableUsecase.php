@@ -34,7 +34,7 @@ class UserDisableUsecase
         $this->logDebug("Check allow of Disable usecase for User");
         $span = $this->startSpan("Check allow of Disable usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserDisableAllowProposal(Allow::allowed('disable', 'Allowed to User by default'), $ref));
+            $result = $this->dispacher->dispatch(new UserDisableAllowDecision(Allow::allowed('disable', 'Allowed to User by default'), $ref));
             return $result->allow;
         } catch (Throwable $ex) {
             $span->recordException($ex);

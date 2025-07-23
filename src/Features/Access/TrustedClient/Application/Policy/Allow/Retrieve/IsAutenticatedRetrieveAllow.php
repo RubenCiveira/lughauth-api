@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\R
 
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowProposal;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -21,7 +21,7 @@ class IsAutenticatedRetrieveAllow
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TrustedClientRetrieveAllowProposal $proposal): TrustedClientRetrieveAllowProposal
+    public function __invoke(TrustedClientRetrieveAllowDecision $proposal): TrustedClientRetrieveAllowDecision
     {
         $this->logDebug("Check IsAutenticatedRetrieveAllow Trusted client");
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Trusted client");

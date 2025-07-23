@@ -26,6 +26,11 @@ use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\List
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Delete\ScopeAssignationDeleteAllowProposal;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Create\ScopeAssignationCreateAllowDecision;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListAllowDecision;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Delete\ScopeAssignationDeleteAllowDecision;
 
 class ScopeAssignationPlugin extends MicroPlugin
 {
@@ -38,11 +43,15 @@ class ScopeAssignationPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(ScopeAssignationCreateAllowProposal::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(ScopeAssignationUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(ScopeAssignationRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(ScopeAssignationListAllowProposal::class, IsAutenticatedListAllow::class);
         $bus->registerListener(ScopeAssignationDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(ScopeAssignationCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
+        $bus->registerListener(ScopeAssignationUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(ScopeAssignationRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(ScopeAssignationListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(ScopeAssignationDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
     }
     public function setRoutesForScopeAssignationAcl(RouteCollectorProxy $scopeAssignationGroup)
     {
