@@ -19,15 +19,10 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\List\ApiKeyClientListAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowProposal;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
@@ -50,12 +45,6 @@ class ApiKeyClientPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(ApiKeyClientUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(ApiKeyClientRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(ApiKeyClientListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(ApiKeyClientDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(ApiKeyClientEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(ApiKeyClientDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(ApiKeyClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

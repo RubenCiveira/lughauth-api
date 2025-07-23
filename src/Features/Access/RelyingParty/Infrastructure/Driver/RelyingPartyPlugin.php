@@ -17,19 +17,12 @@ use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\Relyin
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\RelyingPartyDisableController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyFilterProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\List\RelyingPartyListAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Delete\RelyingPartyDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Enable\RelyingPartyEnableAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowProposal;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowDecision;
@@ -51,12 +44,6 @@ class RelyingPartyPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(RelyingPartyUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(RelyingPartyRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(RelyingPartyListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(RelyingPartyDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(RelyingPartyEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(RelyingPartyDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(RelyingPartyCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RelyingPartyUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

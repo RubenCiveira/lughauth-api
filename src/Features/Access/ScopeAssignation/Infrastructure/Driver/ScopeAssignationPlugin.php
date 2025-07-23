@@ -15,15 +15,10 @@ use Civi\Lughauth\Features\Access\ScopeAssignation\Infrastructure\Driver\Rest\Sc
 use Civi\Lughauth\Features\Access\ScopeAssignation\Infrastructure\Driver\Rest\ScopeAssignationDeleteController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Service\Visibility\ScopeAssignationFilterProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Create\ScopeAssignationCreateAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Delete\ScopeAssignationDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Create\ScopeAssignationCreateAllowDecision;
@@ -43,10 +38,6 @@ class ScopeAssignationPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(ScopeAssignationUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(ScopeAssignationRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(ScopeAssignationListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(ScopeAssignationDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(ScopeAssignationCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(ScopeAssignationUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(ScopeAssignationRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

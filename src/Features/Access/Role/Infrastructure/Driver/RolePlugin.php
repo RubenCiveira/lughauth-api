@@ -20,13 +20,9 @@ use Civi\Lughauth\Features\Access\Role\Application\Policy\Filter\TenantAccesible
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Fields\RoleExcludingdRoot;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleFixedFieldsProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
@@ -48,10 +44,6 @@ class RolePlugin extends MicroPlugin
     {
         $bus->registerListener(RoleFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(RoleFixedFieldsProposal::class, RoleExcludingdRoot::class);
-        $bus->registerListener(RoleUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(RoleRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(RoleListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(RoleDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(RoleCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RoleUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

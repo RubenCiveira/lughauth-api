@@ -17,21 +17,13 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Infrastructure\Driver\Rest\Secu
 use Civi\Lughauth\Features\Access\SecurityDomain\Infrastructure\Driver\Rest\SecurityDomainDisableController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainFilterProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Create\SecurityDomainCreateAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Update\SecurityDomainUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Retrieve\SecurityDomainRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\List\SecurityDomainListAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Delete\SecurityDomainDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Enable\SecurityDomainEnableAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Disable\SecurityDomainDisableAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Create\SecurityDomainCreateAllowDecision;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Update\SecurityDomainUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Retrieve\SecurityDomainRetrieveAllowDecision;
@@ -51,12 +43,6 @@ class SecurityDomainPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(SecurityDomainUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(SecurityDomainRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(SecurityDomainListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(SecurityDomainDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(SecurityDomainEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(SecurityDomainDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(SecurityDomainCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(SecurityDomainUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(SecurityDomainRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

@@ -23,19 +23,12 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\Ten
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\TenantTermsOfUseExcludingdRoot;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseFixedFieldsProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowProposal;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveAllowDecision;
@@ -57,12 +50,6 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     {
         $bus->registerListener(TenantTermsOfUseFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(TenantTermsOfUseFixedFieldsProposal::class, TenantTermsOfUseExcludingdRoot::class);
-        $bus->registerListener(TenantTermsOfUseUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(TenantTermsOfUseRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantTermsOfUseListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(TenantTermsOfUseDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(TenantTermsOfUseEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(TenantTermsOfUseDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

@@ -17,21 +17,13 @@ use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\Trust
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\TrustedClientDisableController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientFilterProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowProposal;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowDecision;
@@ -51,12 +43,6 @@ class TrustedClientPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(TrustedClientUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(TrustedClientRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(TrustedClientListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(TrustedClientDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(TrustedClientEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(TrustedClientDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TrustedClientRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

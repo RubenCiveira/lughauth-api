@@ -20,15 +20,10 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantA
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\TenantConfigExcludingdRoot;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigFixedFieldsProposal;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create\TenantConfigCreateAllowProposal;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Update\TenantConfigUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowProposal;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create\TenantConfigCreateAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Update\TenantConfigUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowDecision;
@@ -48,10 +43,6 @@ class TenantConfigPlugin extends MicroPlugin
     {
         $bus->registerListener(TenantConfigFilterProposal::class, TenantAccesible::class);
         $bus->registerListener(TenantConfigFixedFieldsProposal::class, TenantConfigExcludingdRoot::class);
-        $bus->registerListener(TenantConfigUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(TenantConfigRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantConfigListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(TenantConfigDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantConfigCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantConfigUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

@@ -17,21 +17,13 @@ use Civi\Lughauth\Features\Access\SecurityScope\Infrastructure\Driver\Rest\Secur
 use Civi\Lughauth\Features\Access\SecurityScope\Infrastructure\Driver\Rest\SecurityScopeEnableController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Service\Visibility\SecurityScopeFilterProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Create\SecurityScopeCreateAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\List\SecurityScopeListAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Delete\SecurityScopeDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Disable\SecurityScopeDisableAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Enable\SecurityScopeEnableAllowProposal;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Create\SecurityScopeCreateAllowDecision;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveAllowDecision;
@@ -51,12 +43,6 @@ class SecurityScopePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(SecurityScopeUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(SecurityScopeRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(SecurityScopeListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(SecurityScopeDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(SecurityScopeDisableAllowProposal::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(SecurityScopeEnableAllowProposal::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(SecurityScopeCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(SecurityScopeUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(SecurityScopeRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

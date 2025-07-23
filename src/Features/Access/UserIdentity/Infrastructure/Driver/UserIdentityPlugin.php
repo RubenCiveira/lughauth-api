@@ -18,15 +18,10 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityFilterProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateAllowProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowProposal;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowDecision;
@@ -47,10 +42,6 @@ class UserIdentityPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(UserIdentityFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(UserIdentityUpdateAllowProposal::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(UserIdentityRetrieveAllowProposal::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(UserIdentityListAllowProposal::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(UserIdentityDeleteAllowProposal::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(UserIdentityCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(UserIdentityUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
