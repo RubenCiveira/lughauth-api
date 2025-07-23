@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Rcab\Resource\Infrastructure\Driven\PartyVerifierAdap
 class PartyVerifierGateway
 {
     private readonly PartyVerifierRepository $repository;
-    
+
     public function __construct(ContainerInterface $container, ?PartyVerifierRepository $repository = null)
     {
         $this->repository = $repository ?? $container->get(PartyVerifierAdapter::class);

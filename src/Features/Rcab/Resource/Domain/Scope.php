@@ -11,5 +11,6 @@ class Scope
         public readonly string $name,
         public readonly string $description,
         public readonly ScopeKind $kind
-    ) {}
+    ) {
+    }
 }

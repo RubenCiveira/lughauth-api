@@ -16,5 +16,6 @@ class ScopeList
     public function __construct(
         public readonly Resource $resource,
         public readonly array $scopes
-    ) {}
+    ) {
+    }
 }

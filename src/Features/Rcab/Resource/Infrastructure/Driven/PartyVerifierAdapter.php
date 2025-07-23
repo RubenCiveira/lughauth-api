@@ -11,9 +11,9 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGa
 
 class PartyVerifierAdapter implements PartyVerifierRepository
 {
-    public function __construct(private readonly RelyingPartyReadGateway $repository )
+    public function __construct(private readonly RelyingPartyReadGateway $repository)
     {
-        
+
     }
     /**
      * Devuelve el cliente si existe, o null si no está permitido.
@@ -24,10 +24,10 @@ class PartyVerifierAdapter implements PartyVerifierRepository
     #[Override]
     public function findOptional(string $apiKey): ?string
     {
-        if( !$apiKey ) {
+        if (!$apiKey) {
             return null;
         }
-        $party = $this->repository->findOneByApiKey( $apiKey );
+        $party = $this->repository->findOneByApiKey($apiKey);
         return $party ? $party->getCode() : null;
     }
 }

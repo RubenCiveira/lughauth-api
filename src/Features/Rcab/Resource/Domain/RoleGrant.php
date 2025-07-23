@@ -15,5 +15,6 @@ class RoleGrant
         public readonly string $rolename,
         public readonly array $allowedScopes,
         public readonly array $restrictedFields
-    ) {}
+    ) {
+    }
 }

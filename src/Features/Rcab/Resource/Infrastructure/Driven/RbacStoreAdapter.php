@@ -24,13 +24,14 @@ use Civi\Lughauth\Shared\Value\Random;
 
 class RbacStoreAdapter implements RbacStoreRepository
 {
-     public function __construct(
+    public function __construct(
         private readonly RelyingPartyReadGateway $parties,
         private readonly RoleReadGateway $roles,
         private readonly SecurityScopeReadGateway $scopes,
         private readonly SecurityScopeWriteGateway $writeScopes,
         private readonly SecurityDomainReadGateway $domains
-    ) {}
+    ) {
+    }
     /**
      * @param string $relyingParty
      * @param list<ScopeList> $paramMap
@@ -48,8 +49,8 @@ class RbacStoreAdapter implements RbacStoreRepository
                 new SecurityScopeFilter(
                     resource: $resource->name,
                     relyingParty: $party
-                    )
-                );
+                )
+            );
             $existing = [...$scopes];
 
 
@@ -58,21 +59,21 @@ class RbacStoreAdapter implements RbacStoreRepository
 
                 if ($match === null) {
                     $att = new SecurityScopeAttributes();
-                    $att->uid( Random::comb() );
-                    $att->relyingParty( $party );
-                    $att->resource( $resource->name );
-                    $att->enabled( true );
-                    $att->scope( $scope->name );
-                    $att->kind( $this->convertKind($scope->kind) );
-                    $att->visibility( 'EXPLICIT' );
+                    $att->uid(Random::comb());
+                    $att->relyingParty($party);
+                    $att->resource($resource->name);
+                    $att->enabled(true);
+                    $att->scope($scope->name);
+                    $att->kind($this->convertKind($scope->kind));
+                    $att->visibility('EXPLICIT');
                     $this->writeScopes->create(
-                        SecurityScope::create( $att )
+                        SecurityScope::create($att)
                     );
                 } else {
                     // ya existe, se elimina de la lista para no volver a tocarlo
                     $existing = array_filter(
                         $existing,
-                        fn(SecurityScope $s) => $s->getScope() !== $scope->name
+                        fn (SecurityScope $s) => $s->getScope() !== $scope->name
                     );
                 }
             }
@@ -100,7 +101,7 @@ class RbacStoreAdapter implements RbacStoreRepository
     public function granted(string $relyingParty): array
     {
         $party = $this->parties->findOneByCode($relyingParty);
-        if( !$party ) {
+        if (!$party) {
             throw new NotFoundException('.');
         }
         return $party ? $this->grantedForRely($party) : [];
@@ -112,7 +113,7 @@ class RbacStoreAdapter implements RbacStoreRepository
     private function grantedForRely(RelyingParty $party): array
     {
         $scopeFilter = new SecurityScopeFilter(relyingParty: $party);
-        
+
         $secScopes = $this->scopes->list($scopeFilter);
         if (empty($secScopes)) {
             return [];
