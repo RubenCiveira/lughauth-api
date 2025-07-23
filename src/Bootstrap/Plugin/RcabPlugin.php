@@ -10,7 +10,6 @@ use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Rcab\Resource\Infrastructure\Driver\PermissionCheck;
 use Civi\Lughauth\Features\Rcab\Resource\Infrastructure\Driver\ResourceRegister;
-use Civi\Lughauth\Features\Rcab\Resource\Domain\Scope;
 
 class RcabPlugin extends MicroPlugin
 {
