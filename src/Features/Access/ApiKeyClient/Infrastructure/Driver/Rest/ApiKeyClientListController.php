@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\List\ApiKeyClientListUsecase;
@@ -22,7 +23,6 @@ class ApiKeyClientListController
 
     public function __construct(
         private readonly ApiKeyClientListUsecase $listUsecase,
-        private readonly ApiKeyClientRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -52,7 +52,7 @@ class ApiKeyClientListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapApiKeyClient($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapApiKeyClient($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -82,6 +82,27 @@ class ApiKeyClientListController
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapApiKeyClient(ApiKeyClientAttributes $value): ApiKeyClientApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Api key client");
+        $span = $this->startSpan("Map entity to output dto for Api key client");
+        try {
+            $dto = new ApiKeyClientApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->key = $value->getKey();
+            $dto->enabled = $value->getEnabled();
+            $dto->scopes = $value->getScopes();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -11,10 +11,12 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderFilter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCursor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\TenantLoginProviderListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Shared\Context;
 
 class TenantLoginProviderListController
 {
@@ -23,7 +25,7 @@ class TenantLoginProviderListController
 
     public function __construct(
         private readonly TenantLoginProviderListUsecase $listUsecase,
-        private readonly TenantLoginProviderRestMapper $mapper,
+        private readonly Context $context,
     ) {
     }
     #[OA\Get(
@@ -56,7 +58,7 @@ class TenantLoginProviderListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapTenantLoginProvider($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapTenantLoginProvider($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -114,6 +116,36 @@ class TenantLoginProviderListController
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenantLoginProvider(TenantLoginProviderAttributes $value): TenantLoginProviderApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant login provider");
+        $span = $this->startSpan("Map entity to output dto for Tenant login provider");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantLoginProviderApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->name = $value->getName();
+            $dto->source = $value->getSource();
+            $dto->disabled = $value->getDisabled();
+            $dto->directAccess = $value->getDirectAccess();
+            $dto->publicKey = $value->getPublicKey();
+            $dto->privateKey = $value->getPrivateKey();
+            $dto->certificate = $value->getCertificate();
+            if ($value->getMetadata()) {
+                $dto->metadata = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+            }
+            $dto->usersEnabledByDefault = $value->getUsersEnabledByDefault();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -11,9 +11,11 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCursor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListUsecase;
+use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class TrustedClientListController
 {
@@ -22,7 +24,7 @@ class TrustedClientListController
 
     public function __construct(
         private readonly TrustedClientListUsecase $listUsecase,
-        private readonly TrustedClientRestMapper $mapper,
+        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(
@@ -53,7 +55,7 @@ class TrustedClientListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapTrustedClient($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapTrustedClient($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -111,6 +113,36 @@ class TrustedClientListController
                 $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTrustedClient(TrustedClientAttributes $value): TrustedClientApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Trusted client");
+        $span = $this->startSpan("Map entity to output dto for Trusted client");
+        try {
+            $dto = new TrustedClientApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->publicAllow = $value->getPublicAllow();
+            $dto->secretOauth = '******';
+            $dto->enabled = $value->getEnabled();
+            $allowedRedirects = [];
+            foreach ($value->getAllowedRedirects() as $item) {
+                $allowedRedirects[] = [
+                  'uid' => $item->uid(),
+                  'url' => $item->getUrl(),
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->allowedRedirects = $allowedRedirects;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

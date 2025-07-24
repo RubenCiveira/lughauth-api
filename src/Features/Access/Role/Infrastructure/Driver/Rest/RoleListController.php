@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
+use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListUsecase;
@@ -23,7 +24,6 @@ class RoleListController
 
     public function __construct(
         private readonly RoleListUsecase $listUsecase,
-        private readonly RoleRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -56,7 +56,7 @@ class RoleListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapRole($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapRole($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -114,6 +114,35 @@ class RoleListController
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapRole(RoleAttributes $value): RoleApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Role");
+        $span = $this->startSpan("Map entity to output dto for Role");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new RoleApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $domains = [];
+            foreach ($value->getDomains() as $item) {
+                $domains[] = [
+                  'uid' => $item->uid(),
+                  'securityDomain' => $item->getSecurityDomain() ? ['$ref' => $item->getSecurityDomain()->uid() ] : null,
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->domains = $domains;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

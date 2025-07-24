@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainFilter;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainCursor;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\List\SecurityDomainListUsecase;
@@ -22,7 +23,6 @@ class SecurityDomainListController
 
     public function __construct(
         private readonly SecurityDomainListUsecase $listUsecase,
-        private readonly SecurityDomainRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -54,7 +54,7 @@ class SecurityDomainListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapSecurityDomain($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapSecurityDomain($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -112,6 +112,29 @@ class SecurityDomainListController
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapSecurityDomain(SecurityDomainAttributes $value): SecurityDomainApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Security domain");
+        $span = $this->startSpan("Map entity to output dto for Security domain");
+        try {
+            $dto = new SecurityDomainApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->level = $value->getLevel();
+            $dto->readAll = $value->getReadAll();
+            $dto->writeAll = $value->getWriteAll();
+            $dto->manageAll = $value->getManageAll();
+            $dto->enabled = $value->getEnabled();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -22,7 +22,6 @@ class TenantLoginProviderTempMetadataUploadController
 
     public function __construct(
         private readonly TenantLoginProviderUploadMetadataUsecase $uploadUsecase,
-        private readonly TenantLoginProviderRestMapper $mapper,
     ) {
     }
     public function uploadTemp(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface

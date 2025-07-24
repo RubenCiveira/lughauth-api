@@ -52,8 +52,7 @@ class UserIdentityListUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new UserIdentityListInputProposal($filter, null));
-            return $this->visibility->countVisibles($input->filter);
+            return $this->visibility->countVisibles($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -70,10 +69,8 @@ class UserIdentityListUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new UserIdentityListInputProposal($filter, $cursor));
-            $slide = $this->visibility->listVisibles($input->filter, $input->cursor);
-            $output = new UserIdentityAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
-            return $this->dispacher->dispatch(new UserIdentityListOutputProposal($output))->slide;
+            $slide = $this->visibility->listVisibles($filter, $cursor);
+            return new UserIdentityAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

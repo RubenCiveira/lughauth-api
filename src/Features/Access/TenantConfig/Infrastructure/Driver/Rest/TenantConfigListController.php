@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCursor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListUsecase;
@@ -23,7 +24,6 @@ class TenantConfigListController
 
     public function __construct(
         private readonly TenantConfigListUsecase $listUsecase,
-        private readonly TenantConfigRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -53,7 +53,7 @@ class TenantConfigListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapTenantConfig($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapTenantConfig($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -83,6 +83,35 @@ class TenantConfigListController
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenantConfig(TenantConfigAttributes $value): TenantConfigApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant config");
+        $span = $this->startSpan("Map entity to output dto for Tenant config");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantConfigApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->innerLabel = $value->getInnerLabel();
+            $dto->forceMfa = $value->getForceMfa();
+            $dto->allowRegister = $value->getAllowRegister();
+            $dto->enableRegisterUsers = $value->getEnableRegisterUsers();
+            $dto->wellcomeEmail = $value->getWellcomeEmail();
+            $dto->registerdEmail = $value->getRegisterdEmail();
+            $dto->disabledUserEmail = $value->getDisabledUserEmail();
+            $dto->enabledUserEmail = $value->getEnabledUserEmail();
+            $dto->allowRecoverPass = $value->getAllowRecoverPass();
+            $dto->recoverPassEmail = $value->getRecoverPassEmail();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

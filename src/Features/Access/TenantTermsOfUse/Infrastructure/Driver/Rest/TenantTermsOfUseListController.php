@@ -9,12 +9,15 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use OpenApi\Attributes as OA;
+use DateTime;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCursor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Shared\Context;
 
 class TenantTermsOfUseListController
 {
@@ -23,7 +26,7 @@ class TenantTermsOfUseListController
 
     public function __construct(
         private readonly TenantTermsOfUseListUsecase $listUsecase,
-        private readonly TenantTermsOfUseRestMapper $mapper,
+        private readonly Context $context,
     ) {
     }
     #[OA\Get(
@@ -53,7 +56,7 @@ class TenantTermsOfUseListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapTenantTermsOfUse($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapTenantTermsOfUse($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -83,6 +86,31 @@ class TenantTermsOfUseListController
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenantTermsOfUse(TenantTermsOfUseAttributes $value): TenantTermsOfUseApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant terms of use");
+        $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantTermsOfUseApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->text = $value->getText();
+            $dto->enabled = $value->getEnabled();
+            if ($value->getAttached()) {
+                $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+            }
+            $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

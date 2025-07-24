@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeFilter;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeCursor;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\List\SecurityScopeListUsecase;
@@ -24,7 +25,6 @@ class SecurityScopeListController
 
     public function __construct(
         private readonly SecurityScopeListUsecase $listUsecase,
-        private readonly SecurityScopeRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -57,7 +57,7 @@ class SecurityScopeListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapSecurityScope($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapSecurityScope($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -87,6 +87,32 @@ class SecurityScopeListController
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapSecurityScope(SecurityScopeAttributes $value): SecurityScopeApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Security scope");
+        $span = $this->startSpan("Map entity to output dto for Security scope");
+        try {
+            $trustedClient = $value->getTrustedClient();
+            $relyingParty = $value->getRelyingParty();
+            $dto = new SecurityScopeApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
+            $dto->resource = $value->getResource();
+            $dto->scope = $value->getScope();
+            $dto->enabled = $value->getEnabled();
+            $dto->kind = $value->getKind();
+            $dto->visibility = $value->getVisibility();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

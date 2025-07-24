@@ -9,8 +9,10 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use OpenApi\Attributes as OA;
+use DateTime;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\List\TenantListUsecase;
@@ -22,7 +24,6 @@ class TenantListController
 
     public function __construct(
         private readonly TenantListUsecase $listUsecase,
-        private readonly TenantRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -55,7 +56,7 @@ class TenantListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapTenant($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapTenant($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -125,6 +126,29 @@ class TenantListController
                 $link['since-domain'] = 'since-domain=' . urlencode($value->sinceDomain());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenant(TenantAttributes $value): TenantApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant");
+        $span = $this->startSpan("Map entity to output dto for Tenant");
+        try {
+            $dto = new TenantApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->root = $value->getRoot();
+            $dto->domain = $value->getDomain();
+            $dto->enabled = $value->getEnabled();
+            $dto->markForDelete = $value->getMarkForDelete();
+            $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

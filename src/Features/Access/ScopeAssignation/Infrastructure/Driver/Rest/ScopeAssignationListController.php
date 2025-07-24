@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationFilter;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationCursor;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\List\ScopeAssignationListUsecase;
@@ -24,7 +25,6 @@ class ScopeAssignationListController
 
     public function __construct(
         private readonly ScopeAssignationListUsecase $listUsecase,
-        private readonly ScopeAssignationRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -56,7 +56,7 @@ class ScopeAssignationListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapScopeAssignation($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapScopeAssignation($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -86,6 +86,27 @@ class ScopeAssignationListController
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapScopeAssignation(ScopeAssignationAttributes $value): ScopeAssignationApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Scope assignation");
+        $span = $this->startSpan("Map entity to output dto for Scope assignation");
+        try {
+            $securityDomain = $value->getSecurityDomain();
+            $securityScope = $value->getSecurityScope();
+            $dto = new ScopeAssignationApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->securityDomain = $securityDomain ? ['$ref' => $securityDomain->uid()] : null;
+            $dto->securityScope = $securityScope ? ['$ref' => $securityScope->uid()] : null;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

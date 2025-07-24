@@ -11,6 +11,7 @@ use Throwable;
 use OpenApi\Attributes as OA;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityCursor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListUsecase;
@@ -25,7 +26,6 @@ class UserIdentityListController
 
     public function __construct(
         private readonly UserIdentityListUsecase $listUsecase,
-        private readonly UserIdentityRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -59,7 +59,7 @@ class UserIdentityListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapper->mapUserIdentity($item), $result->values())];
+            $value = ['items' => array_map(fn ($item) => $this->mapUserIdentity($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -89,6 +89,38 @@ class UserIdentityListController
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             return implode('&', $link);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapUserIdentity(UserIdentityAttributes $value): UserIdentityApiDTO
+    {
+        $this->logDebug("Map entity to output dto for User identity");
+        $span = $this->startSpan("Map entity to output dto for User identity");
+        try {
+            $user = $value->getUser();
+            $relyingParty = $value->getRelyingParty();
+            $trustedClient = $value->getTrustedClient();
+            $dto = new UserIdentityApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->user = $user ? ['$ref' => $user->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
+            $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
+            $roles = [];
+            foreach ($value->getRoles() as $item) {
+                $roles[] = [
+                  'uid' => $item->uid(),
+                  'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->roles = $roles;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

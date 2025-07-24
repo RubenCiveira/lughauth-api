@@ -22,7 +22,6 @@ class TenantTermsOfUseTempAttachedUploadController
 
     public function __construct(
         private readonly TenantTermsOfUseUploadAttachedUsecase $uploadUsecase,
-        private readonly TenantTermsOfUseRestMapper $mapper,
     ) {
     }
     public function uploadTemp(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
