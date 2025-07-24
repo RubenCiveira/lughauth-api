@@ -9,6 +9,10 @@ use Override;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationFilter;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationReadGateway;
+use Civi\Lughauth\Features\Access\ScopeAttributePermission\Domain\Gateway\ScopeAttributePermissionFilter;
+use Civi\Lughauth\Features\Access\ScopeAttributePermission\Domain\Gateway\ScopeAttributePermissionReadGateway;
 use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\Gateway\SecurityAttributeFilter;
 use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\Gateway\SecurityAttributeReadGateway;
 use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\Gateway\SecurityAttributeWriteGateway;
@@ -36,6 +40,8 @@ class RbacStoreAdapter implements RbacStoreRepository
         private readonly SecurityScopeWriteGateway $writeScopes,
         private readonly SecurityAttributeReadGateway $atributes,
         private readonly SecurityAttributeWriteGateway $writeAtributes,
+        private readonly ScopeAssignationReadGateway $assignedScopes,
+        private readonly ScopeAttributePermissionReadGateway $assignesSchemas,
         private readonly SecurityDomainReadGateway $domains
     ) {
     }
@@ -170,21 +176,33 @@ class RbacStoreAdapter implements RbacStoreRepository
         $secDomains = $this->domains->list();
         $secRoles = $this->roles->list();
 
-        $roleSecs = []; // string => list<string>
+        $roleSecs = ['' => [ '-' => ['']]]; // string => list<string>
         foreach ($secRoles as $role) {
             foreach ($role->getDomains() as $roleDomain) {
-                $this->appendArray($role->getName(), $roleDomain->getSecurityDomain()->uid(), 'scope', $roleSecs);
+                $this->appendArray($role->getName(), $roleDomain->getSecurityDomain()->uid(), '-', $roleSecs);
             }
         }
+
+        $domainsIndex = [];
+        foreach ($secDomains as $securityDomain) {
+            $domainsIndex[] = $securityDomain->uid();
+        }
+
+        $allAssignedSchemas = $this->assignesSchemas->list(new ScopeAttributePermissionFilter(
+            securityDomains: $domainsIndex
+        ));
+        $allAssignedScopes = $this->assignedScopes->list(new ScopeAssignationFilter(
+            securityDomains: $domainsIndex
+        ));
 
         $byRole = []; // roleName => list<resource:scope>
         $bySec = [];  // domainUid => list<resource:scope>
 
         foreach ($secScopes as $securityScope) {
+            $allowed = false;
             if ($this->checkPublic($securityScope)) {
-                $this->appendType('-', $securityScope, 'scope', $byRole);
+                $this->appendType('', $securityScope, 'scope', $bySec);
             }
-
             foreach ($secDomains as $securityDomain) {
                 $kind = $securityScope->getKind();
                 if ($kind !== null) {
@@ -194,57 +212,101 @@ class RbacStoreAdapter implements RbacStoreRepository
                         $this->checkManageAll($kind, $securityDomain, $securityScope) ||
                         $this->checkPublic($securityScope) ||
                         $this->checkAuthorized($securityScope);
-
                     if ($allowed) {
                         $this->appendType($securityDomain->uid(), $securityScope, 'scope', $bySec);
-                    } else {
-                        // Check explicit asignation.
+                    }
+                }
+            }
+            if (!$allowed ) {
+                foreach($allAssignedScopes as $assigned) {
+                    if( $assigned->getSecurityScope()->uid() == $securityScope->uid() ) {
+                        $this->appendType($assigned->getSecurityDomain()->uid(), $securityScope, 'scope', $bySec);
                     }
                 }
             }
         }
 
         foreach ($secAttrs as $securityAttributes) {
+            $allowToViewIn = [];
+            $allowToModifyIn = [];
+            $view = false;
+            $modify = false;
             $readVisibility = $securityAttributes->getReadVisibility() ?? 'EXPLICIT';
             $writeVisibility = $securityAttributes->getWriteVisibility() ?? 'EXPLICIT';
             if ($readVisibility === 'PUBLIC') {
-                $this->appendType('-', $securityScope, 'view', $byRole);
+                $this->addAllow(true, '', $allowToViewIn);
+                $view = true;
+            } else if ($readVisibility === 'AUTHORIZED') {
+                $view = true;
             }
             if ($writeVisibility === 'PUBLIC') {
-                $this->appendType('-', $securityScope, 'modify', $byRole);
+                $this->addAllow(true, '', $allowToModifyIn);
+                $modify = true;
+            } else if ($readVisibility === 'AUTHORIZED') {
+                $modify = true;
             }
             foreach ($secDomains as $securityDomain) {
-                $view = true;
-                $modify = true;
-                $view = $view && $securityDomain->getViewAllAttributes();
-                $modify = $view && $securityDomain->getModifyAllAttributes();
-                if (!$view) {
-                    // Chekxk explicit asignation
+                $this->addAllow(false, $securityDomain->uid(), $allowToViewIn);
+                $this->addAllow(false, $securityDomain->uid(), $allowToViewIn);
+                if ($view || $securityDomain->getViewAllAttributes()) {
+                    $this->addAllow(true, $securityDomain->uid(), $allowToViewIn);
                 }
-                if (!$modify) {
-                    // Chekxk explicit asignation
+                if ($modify || $securityDomain->getModifyAllAttributes()) {
+                    $this->addAllow(true, $securityDomain->uid(), $allowToModifyIn);
                 }
             }
-            // $this->appendType($securityDomain->uid(), $securityScope, 'scope', $bySec);
 
+            foreach($allAssignedSchemas as $assigned) {
+                if( $assigned->getSecurityAttribute()->uid() == $securityAttributes->uid() ) {
+                    $on = $assigned->getSecurityDomain()->uid();
+                    $view = $assigned->getPermision() == 'VIEW'
+                                || $assigned->getPermision() == 'MODIFY';
+                    $modify = $assigned->getPermision() == 'MODIFY';
+                    $this->addAllow($view, $on, $allowToViewIn);
+                    $this->addAllow($modify, $on, $allowToModifyIn);
+                }
+            }
+
+            $on = '';
+            $view = $allowToViewIn[$on]??false;
+            $modify = $allowToModifyIn[$on]??false;
+            if( !$view ) {
+                $this->appendType($on, $securityAttributes, 'hidden', $bySec);
+            }
+            if( !$modify ) {
+                $this->appendType($on, $securityAttributes, 'fixed', $bySec);
+            }
+
+            foreach ($secDomains as $domain) {
+                $on = $domain->uid();
+                $view = $allowToViewIn[$on]??false;
+                $modify = $allowToModifyIn[$on]??false;
+                if( !$view ) {
+                    $this->appendType($on, $securityAttributes, 'hidden', $bySec);
+                }
+                if( !$modify ) {
+                    $this->appendType($on, $securityAttributes, 'fixed', $bySec);
+                }
+            }
         }
-
         foreach ($bySec as $domainId => $domainScopes) {
             foreach ($roleSecs as $roleName => $roleDomains) {
-                if (in_array($domainId, $roleDomains['scope'], true)) {
-                    foreach ($domainScopes['scope'] as $domainScope) {
-                        $this->appendArray($roleName, $domainScope, 'scope', $byRole);
+                if( in_array($domainId, $roleDomains['-'], true) ) {
+                    if (isset($domainScopes['scope']) ) {
+                        foreach ($domainScopes['scope'] as $domainScope) {
+                            $this->appendArray($roleName, $domainScope, 'scope', $byRole);
+                        }
                     }
-                }
-                if (in_array($domainId, $roleDomains['view'], true)) {
-                    foreach ($domainScopes['view'] as $domainScope) {
-                        $this->appendArray($roleName, $domainScope, 'view', $byRole);
+                    if (isset($domainScopes['hidden']) ) {
+                         foreach ($domainScopes['hidden'] as $domainScope) {
+                             $this->appendArray($roleName, $domainScope, 'hidden', $byRole);
+                         }
                     }
-                }
-                if (in_array($domainId, $roleDomains['modify'], true)) {
-                    foreach ($domainScopes['modify'] as $domainScope) {
-                        $this->appendArray($roleName, $domainScope, 'modify', $byRole);
-                    }
+                    if (isset($domainScopes['fixed']) ) {
+                         foreach ($domainScopes['fixed'] as $domainScope) {
+                             $this->appendArray($roleName, $domainScope, 'fixed', $byRole);
+                         }
+                     }
                 }
             }
         }
@@ -252,14 +314,24 @@ class RbacStoreAdapter implements RbacStoreRepository
         $grants = [];
         foreach ($byRole as $roleName => $scopes) {
             $grants[] = new RoleGrant(
+                anonimous: '' === $roleName,
                 rolename: $roleName,
-                allowedScopes: array_values(array_unique($scopes['scope'])),
-                hiddenFields: array_values(array_unique($scopes['modify'])),
-                fixedFields: array_values(array_unique($scopes['view']))
+                allowedScopes: isset($scopes['scope']) ? array_values(array_unique($scopes['scope'])): [],
+                hiddenFields: isset($scopes['hidden']) ? array_values(array_unique($scopes['hidden'])) : [],
+                fixedFields: isset($scopes['fixed']) ? array_values(array_unique($scopes['fixed'])) : [],
             );
         }
 
         return $grants;
+    }
+
+    private function addAllow($view, $on, &$allowToViewIn)
+    {
+        if( !isset($allowToViewIn[$on]) ) {
+            $allowToViewIn[$on] = $view;
+        } else if( $view ) {
+            $allowToViewIn[$on] = true;
+        }
     }
 
     private function checkPublic(SecurityScope $securityScope): bool
@@ -290,9 +362,13 @@ class RbacStoreAdapter implements RbacStoreRepository
     /**
      * @param array<string, list<string>> $map
      */
-    private function appendType(string $key, SecurityScope $scope, string $on, array &$map): void
+    private function appendType(string $key, SecurityScope|SecurityAttribute $scope, string $on, array &$map): void
     {
-        $this->appendArray($key, $scope->getResource() . ':' . $scope->getScope(), $on, $map);
+        if( $scope instanceof SecurityScope ) {
+            $this->appendArray($key, $scope->getResource() . ':' . $scope->getScope(), $on, $map);
+        } else {
+            $this->appendArray($key, $scope->getResource() . ':' . $scope->getAttribute(), $on, $map);
+        }
     }
 
     /**

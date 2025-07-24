@@ -12,6 +12,7 @@ class RoleGrant
      * @param array<string, list<string>> $restrictedFields
      */
     public function __construct(
+        public readonly bool $anonimous,
         public readonly string $rolename,
         public readonly array $allowedScopes,
         public readonly array $hiddenFields,
