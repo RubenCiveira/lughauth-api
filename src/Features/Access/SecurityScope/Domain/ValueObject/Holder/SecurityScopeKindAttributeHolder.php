@@ -13,7 +13,7 @@ trait SecurityScopeKindAttributeHolder
     protected SecurityScopeKindVO|string|null $kind = null;
     protected bool $kindAssigned = false;
 
-    public function getKindOrDefault(?SecurityScopeKindVO $kind): SecurityScopeKindVO|string|null
+    public function getKindOrDefault(?SecurityScopeKindVO $kind): ?SecurityScopeKindVO
     {
         return $this->kindAssigned ? ($this->kind !== null ? SecurityScopeKindVO::from($this->kind) : null) : $kind;
     }

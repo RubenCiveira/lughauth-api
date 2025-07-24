@@ -13,7 +13,7 @@ trait TenantConfigForceMfaAttributeHolder
     protected TenantConfigForceMfaVO|bool|null $forceMfa = null;
     protected bool $forceMfaAssigned = false;
 
-    public function getForceMfaOrDefault(?TenantConfigForceMfaVO $forceMfa): TenantConfigForceMfaVO|bool|null
+    public function getForceMfaOrDefault(?TenantConfigForceMfaVO $forceMfa): ?TenantConfigForceMfaVO
     {
         return $this->forceMfaAssigned ? ($this->forceMfa !== null ? TenantConfigForceMfaVO::from($this->forceMfa) : null) : $forceMfa;
     }

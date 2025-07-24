@@ -14,7 +14,7 @@ trait TenantLoginProviderTenantAttributeHolder
     protected TenantLoginProviderTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?TenantLoginProviderTenantVO $tenant): TenantLoginProviderTenantVO|TenantRef|null
+    public function getTenantOrDefault(?TenantLoginProviderTenantVO $tenant): ?TenantLoginProviderTenantVO
     {
         return $this->tenantAssigned ? ($this->tenant !== null ? TenantLoginProviderTenantVO::from($this->tenant) : null) : $tenant;
     }

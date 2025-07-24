@@ -14,7 +14,7 @@ trait SecurityScopeRelyingPartyAttributeHolder
     protected SecurityScopeRelyingPartyVO|RelyingPartyRef|null $relyingParty = null;
     protected bool $relyingPartyAssigned = false;
 
-    public function getRelyingPartyOrDefault(?SecurityScopeRelyingPartyVO $relyingParty): SecurityScopeRelyingPartyVO|RelyingPartyRef|null
+    public function getRelyingPartyOrDefault(?SecurityScopeRelyingPartyVO $relyingParty): ?SecurityScopeRelyingPartyVO
     {
         return $this->relyingPartyAssigned ? ($this->relyingParty !== null ? SecurityScopeRelyingPartyVO::from($this->relyingParty) : null) : $relyingParty;
     }

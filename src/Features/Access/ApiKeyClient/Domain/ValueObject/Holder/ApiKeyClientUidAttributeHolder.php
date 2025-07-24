@@ -13,7 +13,7 @@ trait ApiKeyClientUidAttributeHolder
     protected ApiKeyClientUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?ApiKeyClientUidVO $uid): ApiKeyClientUidVO|string|null
+    public function getUidOrDefault(?ApiKeyClientUidVO $uid): ?ApiKeyClientUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? ApiKeyClientUidVO::from($this->uid) : null) : $uid;
     }

@@ -13,7 +13,7 @@ trait TrustedClientVersionAttributeHolder
     protected TrustedClientVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TrustedClientVersionVO $version): TrustedClientVersionVO|int|null
+    public function getVersionOrDefault(?TrustedClientVersionVO $version): ?TrustedClientVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? TrustedClientVersionVO::from($this->version) : null) : $version;
     }

@@ -14,7 +14,7 @@ trait TenantConfigTenantAttributeHolder
     protected TenantConfigTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?TenantConfigTenantVO $tenant): TenantConfigTenantVO|TenantRef|null
+    public function getTenantOrDefault(?TenantConfigTenantVO $tenant): ?TenantConfigTenantVO
     {
         return $this->tenantAssigned ? ($this->tenant !== null ? TenantConfigTenantVO::from($this->tenant) : null) : $tenant;
     }

@@ -85,22 +85,22 @@ class UserIdentityCreateController
             $value = new UserIdentityCreateParams();
             $value->uid(UserIdentityUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $user = $body['user'] ?? null;
-            if ($user && isset($body->user['$ref'])) {
-                $value->user(UserIdentityUserVO::tryFrom(new UserRef(uid: $body->user['$ref']), $errorsList));
+            if ($user && isset($user['$ref'])) {
+                $value->user(UserIdentityUserVO::tryFrom(new UserRef(uid: $user['$ref']), $errorsList));
             }
             $relyingParty = $body['relyingParty'] ?? null;
-            if ($relyingParty && isset($body->relyingParty['$ref'])) {
-                $value->relyingParty(UserIdentityRelyingPartyVO::tryFrom(new RelyingPartyRef(uid: $body->relyingParty['$ref']), $errorsList));
+            if ($relyingParty && isset($relyingParty['$ref'])) {
+                $value->relyingParty(UserIdentityRelyingPartyVO::tryFrom(new RelyingPartyRef(uid: $relyingParty['$ref']), $errorsList));
             }
             $trustedClient = $body['trustedClient'] ?? null;
-            if ($trustedClient && isset($body->trustedClient['$ref'])) {
-                $value->trustedClient(UserIdentityTrustedClientVO::tryFrom(new TrustedClientRef(uid: $body->trustedClient['$ref']), $errorsList));
+            if ($trustedClient && isset($trustedClient['$ref'])) {
+                $value->trustedClient(UserIdentityTrustedClientVO::tryFrom(new TrustedClientRef(uid: $trustedClient['$ref']), $errorsList));
             }
             $roles = $body['roles'] ?? null;
             $rolesList = [];
-            if (isset($body->roles)) {
-                if (is_array($body->roles)) {
-                    foreach ($body->roles as $item) {
+            if (isset($roles)) {
+                if (is_array($roles)) {
+                    foreach ($roles as $item) {
                         $innerErrorsList = new ConstraintFailList();
                         $innerUid = UserIdentityRolesUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
                         $innerRole = UserIdentityRolesRoleVO::tryFrom(isset($item['role']['$ref']) ? new RoleRef($item['role']['$ref']) : null, $innerErrorsList);

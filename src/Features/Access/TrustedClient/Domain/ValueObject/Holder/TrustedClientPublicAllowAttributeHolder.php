@@ -13,7 +13,7 @@ trait TrustedClientPublicAllowAttributeHolder
     protected TrustedClientPublicAllowVO|bool|null $publicAllow = null;
     protected bool $publicAllowAssigned = false;
 
-    public function getPublicAllowOrDefault(?TrustedClientPublicAllowVO $publicAllow): TrustedClientPublicAllowVO|bool|null
+    public function getPublicAllowOrDefault(?TrustedClientPublicAllowVO $publicAllow): ?TrustedClientPublicAllowVO
     {
         return $this->publicAllowAssigned ? ($this->publicAllow !== null ? TrustedClientPublicAllowVO::from($this->publicAllow) : null) : $publicAllow;
     }

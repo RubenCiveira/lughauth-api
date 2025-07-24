@@ -14,7 +14,7 @@ trait UserIdentityRolesAttributeHolder
     protected UserIdentityRolesVO|UserIdentityRolesListRef| array |null $roles = null;
     protected bool $rolesAssigned = false;
 
-    public function getRolesOrDefault(?UserIdentityRolesVO $roles): UserIdentityRolesVO|UserIdentityRolesListRef| array |null
+    public function getRolesOrDefault(?UserIdentityRolesVO $roles): ?UserIdentityRolesVO
     {
         if ($this->rolesAssigned && $roles) {
             return UserIdentityRolesVO::from($this->roles)->getWithDefaults($roles);

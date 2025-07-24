@@ -14,7 +14,7 @@ trait UserAccessTemporalCodeUserAttributeHolder
     protected UserAccessTemporalCodeUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(?UserAccessTemporalCodeUserVO $user): UserAccessTemporalCodeUserVO|UserRef|null
+    public function getUserOrDefault(?UserAccessTemporalCodeUserVO $user): ?UserAccessTemporalCodeUserVO
     {
         return $this->userAssigned ? ($this->user !== null ? UserAccessTemporalCodeUserVO::from($this->user) : null) : $user;
     }

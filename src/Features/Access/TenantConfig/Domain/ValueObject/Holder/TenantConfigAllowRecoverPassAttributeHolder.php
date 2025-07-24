@@ -13,7 +13,7 @@ trait TenantConfigAllowRecoverPassAttributeHolder
     protected TenantConfigAllowRecoverPassVO|bool|null $allowRecoverPass = null;
     protected bool $allowRecoverPassAssigned = false;
 
-    public function getAllowRecoverPassOrDefault(?TenantConfigAllowRecoverPassVO $allowRecoverPass): TenantConfigAllowRecoverPassVO|bool|null
+    public function getAllowRecoverPassOrDefault(?TenantConfigAllowRecoverPassVO $allowRecoverPass): ?TenantConfigAllowRecoverPassVO
     {
         return $this->allowRecoverPassAssigned ? ($this->allowRecoverPass !== null ? TenantConfigAllowRecoverPassVO::from($this->allowRecoverPass) : null) : $allowRecoverPass;
     }

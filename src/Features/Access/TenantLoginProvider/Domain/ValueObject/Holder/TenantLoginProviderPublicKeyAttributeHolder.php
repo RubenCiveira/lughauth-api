@@ -13,7 +13,7 @@ trait TenantLoginProviderPublicKeyAttributeHolder
     protected TenantLoginProviderPublicKeyVO|string|null $publicKey = null;
     protected bool $publicKeyAssigned = false;
 
-    public function getPublicKeyOrDefault(?TenantLoginProviderPublicKeyVO $publicKey): TenantLoginProviderPublicKeyVO|string|null
+    public function getPublicKeyOrDefault(?TenantLoginProviderPublicKeyVO $publicKey): ?TenantLoginProviderPublicKeyVO
     {
         return $this->publicKeyAssigned ? ($this->publicKey !== null ? TenantLoginProviderPublicKeyVO::from($this->publicKey) : null) : $publicKey;
     }

@@ -13,7 +13,7 @@ trait TenantConfigAllowRegisterAttributeHolder
     protected TenantConfigAllowRegisterVO|bool|null $allowRegister = null;
     protected bool $allowRegisterAssigned = false;
 
-    public function getAllowRegisterOrDefault(?TenantConfigAllowRegisterVO $allowRegister): TenantConfigAllowRegisterVO|bool|null
+    public function getAllowRegisterOrDefault(?TenantConfigAllowRegisterVO $allowRegister): ?TenantConfigAllowRegisterVO
     {
         return $this->allowRegisterAssigned ? ($this->allowRegister !== null ? TenantConfigAllowRegisterVO::from($this->allowRegister) : null) : $allowRegister;
     }

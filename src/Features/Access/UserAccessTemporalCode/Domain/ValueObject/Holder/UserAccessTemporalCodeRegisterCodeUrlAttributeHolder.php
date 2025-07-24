@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeRegisterCodeUrlAttributeHolder
     protected UserAccessTemporalCodeRegisterCodeUrlVO|string|null $registerCodeUrl = null;
     protected bool $registerCodeUrlAssigned = false;
 
-    public function getRegisterCodeUrlOrDefault(?UserAccessTemporalCodeRegisterCodeUrlVO $registerCodeUrl): UserAccessTemporalCodeRegisterCodeUrlVO|string|null
+    public function getRegisterCodeUrlOrDefault(?UserAccessTemporalCodeRegisterCodeUrlVO $registerCodeUrl): ?UserAccessTemporalCodeRegisterCodeUrlVO
     {
         return $this->registerCodeUrlAssigned ? ($this->registerCodeUrl !== null ? UserAccessTemporalCodeRegisterCodeUrlVO::from($this->registerCodeUrl) : null) : $registerCodeUrl;
     }

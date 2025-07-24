@@ -14,7 +14,7 @@ trait TenantTermsOfUseTenantAttributeHolder
     protected TenantTermsOfUseTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?TenantTermsOfUseTenantVO $tenant): TenantTermsOfUseTenantVO|TenantRef|null
+    public function getTenantOrDefault(?TenantTermsOfUseTenantVO $tenant): ?TenantTermsOfUseTenantVO
     {
         return $this->tenantAssigned ? ($this->tenant !== null ? TenantTermsOfUseTenantVO::from($this->tenant) : null) : $tenant;
     }

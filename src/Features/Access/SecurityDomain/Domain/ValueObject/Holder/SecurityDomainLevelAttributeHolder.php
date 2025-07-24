@@ -13,7 +13,7 @@ trait SecurityDomainLevelAttributeHolder
     protected SecurityDomainLevelVO|int|null $level = null;
     protected bool $levelAssigned = false;
 
-    public function getLevelOrDefault(?SecurityDomainLevelVO $level): SecurityDomainLevelVO|int|null
+    public function getLevelOrDefault(?SecurityDomainLevelVO $level): ?SecurityDomainLevelVO
     {
         return $this->levelAssigned ? ($this->level !== null ? SecurityDomainLevelVO::from($this->level) : null) : $level;
     }

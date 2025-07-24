@@ -13,7 +13,7 @@ trait ScopeAssignationUidAttributeHolder
     protected ScopeAssignationUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?ScopeAssignationUidVO $uid): ScopeAssignationUidVO|string|null
+    public function getUidOrDefault(?ScopeAssignationUidVO $uid): ?ScopeAssignationUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? ScopeAssignationUidVO::from($this->uid) : null) : $uid;
     }

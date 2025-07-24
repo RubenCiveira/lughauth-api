@@ -14,7 +14,7 @@ trait UserIdentityRelyingPartyAttributeHolder
     protected UserIdentityRelyingPartyVO|RelyingPartyRef|null $relyingParty = null;
     protected bool $relyingPartyAssigned = false;
 
-    public function getRelyingPartyOrDefault(?UserIdentityRelyingPartyVO $relyingParty): UserIdentityRelyingPartyVO|RelyingPartyRef|null
+    public function getRelyingPartyOrDefault(?UserIdentityRelyingPartyVO $relyingParty): ?UserIdentityRelyingPartyVO
     {
         return $this->relyingPartyAssigned ? ($this->relyingParty !== null ? UserIdentityRelyingPartyVO::from($this->relyingParty) : null) : $relyingParty;
     }

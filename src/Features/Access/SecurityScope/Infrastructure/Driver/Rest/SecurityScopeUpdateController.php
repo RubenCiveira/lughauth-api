@@ -91,12 +91,12 @@ class SecurityScopeUpdateController
             $value = new SecurityScopeUpdateParams();
             $value->uid(SecurityScopeUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $trustedClient = $body['trustedClient'] ?? null;
-            if ($trustedClient && isset($body->trustedClient['$ref'])) {
-                $value->trustedClient(SecurityScopeTrustedClientVO::tryFrom(new TrustedClientRef(uid: $body->trustedClient['$ref']), $errorsList));
+            if ($trustedClient && isset($trustedClient['$ref'])) {
+                $value->trustedClient(SecurityScopeTrustedClientVO::tryFrom(new TrustedClientRef(uid: $trustedClient['$ref']), $errorsList));
             }
             $relyingParty = $body['relyingParty'] ?? null;
-            if ($relyingParty && isset($body->relyingParty['$ref'])) {
-                $value->relyingParty(SecurityScopeRelyingPartyVO::tryFrom(new RelyingPartyRef(uid: $body->relyingParty['$ref']), $errorsList));
+            if ($relyingParty && isset($relyingParty['$ref'])) {
+                $value->relyingParty(SecurityScopeRelyingPartyVO::tryFrom(new RelyingPartyRef(uid: $relyingParty['$ref']), $errorsList));
             }
             $value->resource(SecurityScopeResourceVO::tryFrom($body['resource'] ?? null, $errorsList));
             $value->scope(SecurityScopeScopeVO::tryFrom($body['scope'] ?? null, $errorsList));

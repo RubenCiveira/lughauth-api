@@ -13,7 +13,7 @@ trait UserEnabledAttributeHolder
     protected UserEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?UserEnabledVO $enabled): UserEnabledVO|bool|null
+    public function getEnabledOrDefault(?UserEnabledVO $enabled): ?UserEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? UserEnabledVO::from($this->enabled) : null) : $enabled;
     }

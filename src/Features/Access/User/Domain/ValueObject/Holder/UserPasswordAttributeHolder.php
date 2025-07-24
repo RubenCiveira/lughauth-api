@@ -13,7 +13,7 @@ trait UserPasswordAttributeHolder
     protected UserPasswordVO|string|null $password = null;
     protected bool $passwordAssigned = false;
 
-    public function getPasswordOrDefault(?UserPasswordVO $password): UserPasswordVO|string|null
+    public function getPasswordOrDefault(?UserPasswordVO $password): ?UserPasswordVO
     {
         return $this->passwordAssigned ? ($this->password !== null ? UserPasswordVO::from($this->password) : null) : $password;
     }

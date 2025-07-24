@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeRegisterCodeExpirationAttributeHolder
     protected UserAccessTemporalCodeRegisterCodeExpirationVO|\DateTimeImmutable|null $registerCodeExpiration = null;
     protected bool $registerCodeExpirationAssigned = false;
 
-    public function getRegisterCodeExpirationOrDefault(?UserAccessTemporalCodeRegisterCodeExpirationVO $registerCodeExpiration): UserAccessTemporalCodeRegisterCodeExpirationVO|\DateTimeImmutable|null
+    public function getRegisterCodeExpirationOrDefault(?UserAccessTemporalCodeRegisterCodeExpirationVO $registerCodeExpiration): ?UserAccessTemporalCodeRegisterCodeExpirationVO
     {
         return $this->registerCodeExpirationAssigned ? ($this->registerCodeExpiration !== null ? UserAccessTemporalCodeRegisterCodeExpirationVO::from($this->registerCodeExpiration) : null) : $registerCodeExpiration;
     }

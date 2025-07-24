@@ -14,7 +14,7 @@ trait UserAcceptedTermnsOfUseConditionsAttributeHolder
     protected UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef|null $conditions = null;
     protected bool $conditionsAssigned = false;
 
-    public function getConditionsOrDefault(?UserAcceptedTermnsOfUseConditionsVO $conditions): UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef|null
+    public function getConditionsOrDefault(?UserAcceptedTermnsOfUseConditionsVO $conditions): ?UserAcceptedTermnsOfUseConditionsVO
     {
         return $this->conditionsAssigned ? ($this->conditions !== null ? UserAcceptedTermnsOfUseConditionsVO::from($this->conditions) : null) : $conditions;
     }

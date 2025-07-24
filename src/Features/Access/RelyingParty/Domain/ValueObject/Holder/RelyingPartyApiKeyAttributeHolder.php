@@ -13,7 +13,7 @@ trait RelyingPartyApiKeyAttributeHolder
     protected RelyingPartyApiKeyVO|string|null $apiKey = null;
     protected bool $apiKeyAssigned = false;
 
-    public function getApiKeyOrDefault(?RelyingPartyApiKeyVO $apiKey): RelyingPartyApiKeyVO|string|null
+    public function getApiKeyOrDefault(?RelyingPartyApiKeyVO $apiKey): ?RelyingPartyApiKeyVO
     {
         return $this->apiKeyAssigned ? ($this->apiKey !== null ? RelyingPartyApiKeyVO::from($this->apiKey) : null) : $apiKey;
     }

@@ -30,20 +30,32 @@ class RelyingPartyUpdateParams
 
     public function __construct(RelyingPartyAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->code($att->code);
-        $this->apiKey($att->apiKey);
-        $this->enabled($att->enabled);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->code($att->getCodeOrDefault(null));
+            $this->apiKey($att->getApiKeyOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): RelyingPartyAttributes
     {
         $att = new RelyingPartyAttributes();
-        $att->uid($this->uid);
-        $att->code($this->code);
-        $att->apiKey($this->apiKey);
-        $att->enabled($this->enabled);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->code) {
+            $att->code($this->code);
+        }
+        if ($this->apiKey) {
+            $att->apiKey($this->apiKey);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

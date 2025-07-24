@@ -68,8 +68,8 @@ class TenantLoginProviderUploadMetadataUsecase
                 throw new UnauthorizedException($allow->reason);
             }
             $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataCheck($binary));
-            $input = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataEnrich($binary));
-            return $this->writer->temporalStoreMetadata($input->file);
+            $input = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataEnrich($binary, $binary));
+            return $this->writer->temporalStoreMetadata($input->getResult());
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

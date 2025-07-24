@@ -13,7 +13,7 @@ trait UserNameAttributeHolder
     protected UserNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?UserNameVO $name): UserNameVO|string|null
+    public function getNameOrDefault(?UserNameVO $name): ?UserNameVO
     {
         return $this->nameAssigned ? ($this->name !== null ? UserNameVO::from($this->name) : null) : $name;
     }

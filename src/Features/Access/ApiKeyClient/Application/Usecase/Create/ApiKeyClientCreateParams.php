@@ -33,22 +33,36 @@ class ApiKeyClientCreateParams
 
     public function __construct(ApiKeyClientAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->code($att->code);
-        $this->key($att->key);
-        $this->enabled($att->enabled);
-        $this->scopes($att->scopes);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->code($att->getCodeOrDefault(null));
+            $this->key($att->getKeyOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->scopes($att->getScopesOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): ApiKeyClientAttributes
     {
         $att = new ApiKeyClientAttributes();
-        $att->uid($this->uid);
-        $att->code($this->code);
-        $att->key($this->key);
-        $att->enabled($this->enabled);
-        $att->scopes($this->scopes);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->code) {
+            $att->code($this->code);
+        }
+        if ($this->key) {
+            $att->key($this->key);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->scopes) {
+            $att->scopes($this->scopes);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

@@ -14,7 +14,7 @@ trait RoleTenantAttributeHolder
     protected RoleTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?RoleTenantVO $tenant): RoleTenantVO|TenantRef|null
+    public function getTenantOrDefault(?RoleTenantVO $tenant): ?RoleTenantVO
     {
         return $this->tenantAssigned ? ($this->tenant !== null ? RoleTenantVO::from($this->tenant) : null) : $tenant;
     }

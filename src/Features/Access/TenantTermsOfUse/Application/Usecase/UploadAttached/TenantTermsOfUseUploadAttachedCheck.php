@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class TenantTermsOfUseUploadAttachedCheck
 {
-    public function __construct(BinaryContent $content)
+    public function __construct(public readonly BinaryContent $content)
     {
     }
     public function reject(RuntimeException|ConstraintFail $fail)

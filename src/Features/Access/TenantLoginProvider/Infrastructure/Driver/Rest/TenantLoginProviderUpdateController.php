@@ -95,8 +95,8 @@ class TenantLoginProviderUpdateController
             $value = new TenantLoginProviderUpdateParams();
             $value->uid(TenantLoginProviderUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($body->tenant['$ref'])) {
-                $value->tenant(TenantLoginProviderTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            if ($tenant && isset($tenant['$ref'])) {
+                $value->tenant(TenantLoginProviderTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
             }
             $value->name(TenantLoginProviderNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $value->source(TenantLoginProviderSourceVO::tryFrom($body['source'] ?? null, $errorsList));

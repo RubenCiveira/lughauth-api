@@ -54,36 +54,64 @@ class TenantConfigRetrieveResult
 
     public function __construct(TenantConfigAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->tenant($att->tenant);
-        $this->innerLabel($att->innerLabel);
-        $this->forceMfa($att->forceMfa);
-        $this->allowRegister($att->allowRegister);
-        $this->enableRegisterUsers($att->enableRegisterUsers);
-        $this->wellcomeEmail($att->wellcomeEmail);
-        $this->registerdEmail($att->registerdEmail);
-        $this->disabledUserEmail($att->disabledUserEmail);
-        $this->enabledUserEmail($att->enabledUserEmail);
-        $this->allowRecoverPass($att->allowRecoverPass);
-        $this->recoverPassEmail($att->recoverPassEmail);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->tenant($att->getTenantOrDefault(null));
+            $this->innerLabel($att->getInnerLabelOrDefault(null));
+            $this->forceMfa($att->getForceMfaOrDefault(null));
+            $this->allowRegister($att->getAllowRegisterOrDefault(null));
+            $this->enableRegisterUsers($att->getEnableRegisterUsersOrDefault(null));
+            $this->wellcomeEmail($att->getWellcomeEmailOrDefault(null));
+            $this->registerdEmail($att->getRegisterdEmailOrDefault(null));
+            $this->disabledUserEmail($att->getDisabledUserEmailOrDefault(null));
+            $this->enabledUserEmail($att->getEnabledUserEmailOrDefault(null));
+            $this->allowRecoverPass($att->getAllowRecoverPassOrDefault(null));
+            $this->recoverPassEmail($att->getRecoverPassEmailOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): TenantConfigAttributes
     {
         $att = new TenantConfigAttributes();
-        $att->uid($this->uid);
-        $att->tenant($this->tenant);
-        $att->innerLabel($this->innerLabel);
-        $att->forceMfa($this->forceMfa);
-        $att->allowRegister($this->allowRegister);
-        $att->enableRegisterUsers($this->enableRegisterUsers);
-        $att->wellcomeEmail($this->wellcomeEmail);
-        $att->registerdEmail($this->registerdEmail);
-        $att->disabledUserEmail($this->disabledUserEmail);
-        $att->enabledUserEmail($this->enabledUserEmail);
-        $att->allowRecoverPass($this->allowRecoverPass);
-        $att->recoverPassEmail($this->recoverPassEmail);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->tenant) {
+            $att->tenant($this->tenant);
+        }
+        if ($this->innerLabel) {
+            $att->innerLabel($this->innerLabel);
+        }
+        if ($this->forceMfa) {
+            $att->forceMfa($this->forceMfa);
+        }
+        if ($this->allowRegister) {
+            $att->allowRegister($this->allowRegister);
+        }
+        if ($this->enableRegisterUsers) {
+            $att->enableRegisterUsers($this->enableRegisterUsers);
+        }
+        if ($this->wellcomeEmail) {
+            $att->wellcomeEmail($this->wellcomeEmail);
+        }
+        if ($this->registerdEmail) {
+            $att->registerdEmail($this->registerdEmail);
+        }
+        if ($this->disabledUserEmail) {
+            $att->disabledUserEmail($this->disabledUserEmail);
+        }
+        if ($this->enabledUserEmail) {
+            $att->enabledUserEmail($this->enabledUserEmail);
+        }
+        if ($this->allowRecoverPass) {
+            $att->allowRecoverPass($this->allowRecoverPass);
+        }
+        if ($this->recoverPassEmail) {
+            $att->recoverPassEmail($this->recoverPassEmail);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

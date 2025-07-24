@@ -14,7 +14,7 @@ trait ScopeAssignationSecurityScopeAttributeHolder
     protected ScopeAssignationSecurityScopeVO|SecurityScopeRef|null $securityScope = null;
     protected bool $securityScopeAssigned = false;
 
-    public function getSecurityScopeOrDefault(?ScopeAssignationSecurityScopeVO $securityScope): ScopeAssignationSecurityScopeVO|SecurityScopeRef|null
+    public function getSecurityScopeOrDefault(?ScopeAssignationSecurityScopeVO $securityScope): ?ScopeAssignationSecurityScopeVO
     {
         return $this->securityScopeAssigned ? ($this->securityScope !== null ? ScopeAssignationSecurityScopeVO::from($this->securityScope) : null) : $securityScope;
     }

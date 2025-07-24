@@ -14,7 +14,7 @@ trait RoleDomainsSecurityDomainAttributeHolder
     protected RoleDomainsSecurityDomainVO|SecurityDomainRef|null $securityDomain = null;
     protected bool $securityDomainAssigned = false;
 
-    public function getSecurityDomainOrDefault(?RoleDomainsSecurityDomainVO $securityDomain): RoleDomainsSecurityDomainVO|SecurityDomainRef|null
+    public function getSecurityDomainOrDefault(?RoleDomainsSecurityDomainVO $securityDomain): ?RoleDomainsSecurityDomainVO
     {
         return $this->securityDomainAssigned ? ($this->securityDomain !== null ? RoleDomainsSecurityDomainVO::from($this->securityDomain) : null) : $securityDomain;
     }

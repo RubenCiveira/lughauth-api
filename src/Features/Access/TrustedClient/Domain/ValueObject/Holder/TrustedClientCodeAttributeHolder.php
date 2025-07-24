@@ -13,7 +13,7 @@ trait TrustedClientCodeAttributeHolder
     protected TrustedClientCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(?TrustedClientCodeVO $code): TrustedClientCodeVO|string|null
+    public function getCodeOrDefault(?TrustedClientCodeVO $code): ?TrustedClientCodeVO
     {
         return $this->codeAssigned ? ($this->code !== null ? TrustedClientCodeVO::from($this->code) : null) : $code;
     }

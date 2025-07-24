@@ -13,7 +13,7 @@ trait UserBlockedUntilAttributeHolder
     protected UserBlockedUntilVO|\DateTimeImmutable|null $blockedUntil = null;
     protected bool $blockedUntilAssigned = false;
 
-    public function getBlockedUntilOrDefault(?UserBlockedUntilVO $blockedUntil): UserBlockedUntilVO|\DateTimeImmutable|null
+    public function getBlockedUntilOrDefault(?UserBlockedUntilVO $blockedUntil): ?UserBlockedUntilVO
     {
         return $this->blockedUntilAssigned ? ($this->blockedUntil !== null ? UserBlockedUntilVO::from($this->blockedUntil) : null) : $blockedUntil;
     }

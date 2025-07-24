@@ -13,7 +13,7 @@ trait UserUseSecondFactorsAttributeHolder
     protected UserUseSecondFactorsVO|bool|null $useSecondFactors = null;
     protected bool $useSecondFactorsAssigned = false;
 
-    public function getUseSecondFactorsOrDefault(?UserUseSecondFactorsVO $useSecondFactors): UserUseSecondFactorsVO|bool|null
+    public function getUseSecondFactorsOrDefault(?UserUseSecondFactorsVO $useSecondFactors): ?UserUseSecondFactorsVO
     {
         return $this->useSecondFactorsAssigned ? ($this->useSecondFactors !== null ? UserUseSecondFactorsVO::from($this->useSecondFactors) : null) : $useSecondFactors;
     }

@@ -13,7 +13,7 @@ trait TenantLoginProviderSourceAttributeHolder
     protected TenantLoginProviderSourceVO|string|null $source = null;
     protected bool $sourceAssigned = false;
 
-    public function getSourceOrDefault(?TenantLoginProviderSourceVO $source): TenantLoginProviderSourceVO|string|null
+    public function getSourceOrDefault(?TenantLoginProviderSourceVO $source): ?TenantLoginProviderSourceVO
     {
         return $this->sourceAssigned ? ($this->source !== null ? TenantLoginProviderSourceVO::from($this->source) : null) : $source;
     }

@@ -13,7 +13,7 @@ trait UserTemporalPasswordAttributeHolder
     protected UserTemporalPasswordVO|bool|null $temporalPassword = null;
     protected bool $temporalPasswordAssigned = false;
 
-    public function getTemporalPasswordOrDefault(?UserTemporalPasswordVO $temporalPassword): UserTemporalPasswordVO|bool|null
+    public function getTemporalPasswordOrDefault(?UserTemporalPasswordVO $temporalPassword): ?UserTemporalPasswordVO
     {
         return $this->temporalPasswordAssigned ? ($this->temporalPassword !== null ? UserTemporalPasswordVO::from($this->temporalPassword) : null) : $temporalPassword;
     }

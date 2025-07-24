@@ -36,24 +36,40 @@ class TenantTermsOfUseCreateResult
 
     public function __construct(TenantTermsOfUseAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->tenant($att->tenant);
-        $this->text($att->text);
-        $this->enabled($att->enabled);
-        $this->attached($att->attached);
-        $this->activationDate($att->activationDate);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->tenant($att->getTenantOrDefault(null));
+            $this->text($att->getTextOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->attached($att->getAttachedOrDefault(null));
+            $this->activationDate($att->getActivationDateOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): TenantTermsOfUseAttributes
     {
         $att = new TenantTermsOfUseAttributes();
-        $att->uid($this->uid);
-        $att->tenant($this->tenant);
-        $att->text($this->text);
-        $att->enabled($this->enabled);
-        $att->attached($this->attached);
-        $att->activationDate($this->activationDate);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->tenant) {
+            $att->tenant($this->tenant);
+        }
+        if ($this->text) {
+            $att->text($this->text);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->attached) {
+            $att->attached($this->attached);
+        }
+        if ($this->activationDate) {
+            $att->activationDate($this->activationDate);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

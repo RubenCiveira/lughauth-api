@@ -13,7 +13,7 @@ trait RelyingPartyCodeAttributeHolder
     protected RelyingPartyCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(?RelyingPartyCodeVO $code): RelyingPartyCodeVO|string|null
+    public function getCodeOrDefault(?RelyingPartyCodeVO $code): ?RelyingPartyCodeVO
     {
         return $this->codeAssigned ? ($this->code !== null ? RelyingPartyCodeVO::from($this->code) : null) : $code;
     }

@@ -83,14 +83,14 @@ class RoleCreateController
             $value->uid(RoleUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $value->name(RoleNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($body->tenant['$ref'])) {
-                $value->tenant(RoleTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            if ($tenant && isset($tenant['$ref'])) {
+                $value->tenant(RoleTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
             }
             $domains = $body['domains'] ?? null;
             $domainsList = [];
-            if (isset($body->domains)) {
-                if (is_array($body->domains)) {
-                    foreach ($body->domains as $item) {
+            if (isset($domains)) {
+                if (is_array($domains)) {
+                    foreach ($domains as $item) {
                         $innerErrorsList = new ConstraintFailList();
                         $innerUid = RoleDomainsUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
                         $innerSecurityDomain = RoleDomainsSecurityDomainVO::tryFrom(isset($item['securityDomain']['$ref']) ? new SecurityDomainRef($item['securityDomain']['$ref']) : null, $innerErrorsList);

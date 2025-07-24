@@ -13,7 +13,7 @@ trait SecurityDomainUidAttributeHolder
     protected SecurityDomainUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?SecurityDomainUidVO $uid): SecurityDomainUidVO|string|null
+    public function getUidOrDefault(?SecurityDomainUidVO $uid): ?SecurityDomainUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? SecurityDomainUidVO::from($this->uid) : null) : $uid;
     }

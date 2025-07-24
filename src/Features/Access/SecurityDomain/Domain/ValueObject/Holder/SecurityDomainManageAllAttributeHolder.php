@@ -13,7 +13,7 @@ trait SecurityDomainManageAllAttributeHolder
     protected SecurityDomainManageAllVO|bool|null $manageAll = null;
     protected bool $manageAllAssigned = false;
 
-    public function getManageAllOrDefault(?SecurityDomainManageAllVO $manageAll): SecurityDomainManageAllVO|bool|null
+    public function getManageAllOrDefault(?SecurityDomainManageAllVO $manageAll): ?SecurityDomainManageAllVO
     {
         return $this->manageAllAssigned ? ($this->manageAll !== null ? SecurityDomainManageAllVO::from($this->manageAll) : null) : $manageAll;
     }

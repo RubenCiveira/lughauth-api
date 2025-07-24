@@ -13,7 +13,7 @@ trait RoleUidAttributeHolder
     protected RoleUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?RoleUidVO $uid): RoleUidVO|string|null
+    public function getUidOrDefault(?RoleUidVO $uid): ?RoleUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? RoleUidVO::from($this->uid) : null) : $uid;
     }

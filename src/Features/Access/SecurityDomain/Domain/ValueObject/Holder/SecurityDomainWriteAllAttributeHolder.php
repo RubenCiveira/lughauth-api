@@ -13,7 +13,7 @@ trait SecurityDomainWriteAllAttributeHolder
     protected SecurityDomainWriteAllVO|bool|null $writeAll = null;
     protected bool $writeAllAssigned = false;
 
-    public function getWriteAllOrDefault(?SecurityDomainWriteAllVO $writeAll): SecurityDomainWriteAllVO|bool|null
+    public function getWriteAllOrDefault(?SecurityDomainWriteAllVO $writeAll): ?SecurityDomainWriteAllVO
     {
         return $this->writeAllAssigned ? ($this->writeAll !== null ? SecurityDomainWriteAllVO::from($this->writeAll) : null) : $writeAll;
     }

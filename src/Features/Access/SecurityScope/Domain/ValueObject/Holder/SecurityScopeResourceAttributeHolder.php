@@ -13,7 +13,7 @@ trait SecurityScopeResourceAttributeHolder
     protected SecurityScopeResourceVO|string|null $resource = null;
     protected bool $resourceAssigned = false;
 
-    public function getResourceOrDefault(?SecurityScopeResourceVO $resource): SecurityScopeResourceVO|string|null
+    public function getResourceOrDefault(?SecurityScopeResourceVO $resource): ?SecurityScopeResourceVO
     {
         return $this->resourceAssigned ? ($this->resource !== null ? SecurityScopeResourceVO::from($this->resource) : null) : $resource;
     }

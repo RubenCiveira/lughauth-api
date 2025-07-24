@@ -10,7 +10,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 class TenantLoginProviderUploadMetadataEnrich
 {
     public function __construct(
-        BinaryContent $current,
+        public readonly BinaryContent $current,
         private BinaryContent $result
     ) {
     }

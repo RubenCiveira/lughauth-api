@@ -42,28 +42,48 @@ class SecurityScopeDisableResult
 
     public function __construct(SecurityScopeAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->trustedClient($att->trustedClient);
-        $this->relyingParty($att->relyingParty);
-        $this->resource($att->resource);
-        $this->scope($att->scope);
-        $this->enabled($att->enabled);
-        $this->kind($att->kind);
-        $this->visibility($att->visibility);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->trustedClient($att->getTrustedClientOrDefault(null));
+            $this->relyingParty($att->getRelyingPartyOrDefault(null));
+            $this->resource($att->getResourceOrDefault(null));
+            $this->scope($att->getScopeOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->kind($att->getKindOrDefault(null));
+            $this->visibility($att->getVisibilityOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): SecurityScopeAttributes
     {
         $att = new SecurityScopeAttributes();
-        $att->uid($this->uid);
-        $att->trustedClient($this->trustedClient);
-        $att->relyingParty($this->relyingParty);
-        $att->resource($this->resource);
-        $att->scope($this->scope);
-        $att->enabled($this->enabled);
-        $att->kind($this->kind);
-        $att->visibility($this->visibility);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->trustedClient) {
+            $att->trustedClient($this->trustedClient);
+        }
+        if ($this->relyingParty) {
+            $att->relyingParty($this->relyingParty);
+        }
+        if ($this->resource) {
+            $att->resource($this->resource);
+        }
+        if ($this->scope) {
+            $att->scope($this->scope);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->kind) {
+            $att->kind($this->kind);
+        }
+        if ($this->visibility) {
+            $att->visibility($this->visibility);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

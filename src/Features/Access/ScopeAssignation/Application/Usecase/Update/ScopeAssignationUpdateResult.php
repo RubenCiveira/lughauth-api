@@ -27,18 +27,28 @@ class ScopeAssignationUpdateResult
 
     public function __construct(ScopeAssignationAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->securityDomain($att->securityDomain);
-        $this->securityScope($att->securityScope);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->securityDomain($att->getSecurityDomainOrDefault(null));
+            $this->securityScope($att->getSecurityScopeOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): ScopeAssignationAttributes
     {
         $att = new ScopeAssignationAttributes();
-        $att->uid($this->uid);
-        $att->securityDomain($this->securityDomain);
-        $att->securityScope($this->securityScope);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->securityDomain) {
+            $att->securityDomain($this->securityDomain);
+        }
+        if ($this->securityScope) {
+            $att->securityScope($this->securityScope);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

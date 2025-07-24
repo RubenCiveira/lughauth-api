@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeTempSecondFactorSeedExpirationAttributeHolder
     protected UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $tempSecondFactorSeedExpiration = null;
     protected bool $tempSecondFactorSeedExpirationAssigned = false;
 
-    public function getTempSecondFactorSeedExpirationOrDefault(?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO $tempSecondFactorSeedExpiration): UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null
+    public function getTempSecondFactorSeedExpirationOrDefault(?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO $tempSecondFactorSeedExpiration): ?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     {
         return $this->tempSecondFactorSeedExpirationAssigned ? ($this->tempSecondFactorSeedExpiration !== null ? UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($this->tempSecondFactorSeedExpiration) : null) : $tempSecondFactorSeedExpiration;
     }

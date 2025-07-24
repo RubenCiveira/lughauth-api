@@ -13,7 +13,7 @@ trait SecurityDomainEnabledAttributeHolder
     protected SecurityDomainEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?SecurityDomainEnabledVO $enabled): SecurityDomainEnabledVO|bool|null
+    public function getEnabledOrDefault(?SecurityDomainEnabledVO $enabled): ?SecurityDomainEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? SecurityDomainEnabledVO::from($this->enabled) : null) : $enabled;
     }

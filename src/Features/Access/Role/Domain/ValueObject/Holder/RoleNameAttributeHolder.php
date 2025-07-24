@@ -13,7 +13,7 @@ trait RoleNameAttributeHolder
     protected RoleNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?RoleNameVO $name): RoleNameVO|string|null
+    public function getNameOrDefault(?RoleNameVO $name): ?RoleNameVO
     {
         return $this->nameAssigned ? ($this->name !== null ? RoleNameVO::from($this->name) : null) : $name;
     }

@@ -13,7 +13,7 @@ trait TenantTermsOfUseAttachedAttributeHolder
     protected TenantTermsOfUseAttachedVO|string|null $attached = null;
     protected bool $attachedAssigned = false;
 
-    public function getAttachedOrDefault(?TenantTermsOfUseAttachedVO $attached): TenantTermsOfUseAttachedVO|string|null
+    public function getAttachedOrDefault(?TenantTermsOfUseAttachedVO $attached): ?TenantTermsOfUseAttachedVO
     {
         return $this->attachedAssigned ? ($this->attached !== null ? TenantTermsOfUseAttachedVO::from($this->attached) : null) : $attached;
     }

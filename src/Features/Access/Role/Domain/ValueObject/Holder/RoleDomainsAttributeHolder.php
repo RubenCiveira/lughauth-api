@@ -14,7 +14,7 @@ trait RoleDomainsAttributeHolder
     protected RoleDomainsVO|RoleDomainsListRef| array |null $domains = null;
     protected bool $domainsAssigned = false;
 
-    public function getDomainsOrDefault(?RoleDomainsVO $domains): RoleDomainsVO|RoleDomainsListRef| array |null
+    public function getDomainsOrDefault(?RoleDomainsVO $domains): ?RoleDomainsVO
     {
         if ($this->domainsAssigned && $domains) {
             return RoleDomainsVO::from($this->domains)->getWithDefaults($domains);

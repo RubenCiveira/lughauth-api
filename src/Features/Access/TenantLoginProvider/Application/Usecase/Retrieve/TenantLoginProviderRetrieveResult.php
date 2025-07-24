@@ -51,34 +51,60 @@ class TenantLoginProviderRetrieveResult
 
     public function __construct(TenantLoginProviderAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->tenant($att->tenant);
-        $this->name($att->name);
-        $this->source($att->source);
-        $this->disabled($att->disabled);
-        $this->directAccess($att->directAccess);
-        $this->publicKey($att->publicKey);
-        $this->privateKey($att->privateKey);
-        $this->certificate($att->certificate);
-        $this->metadata($att->metadata);
-        $this->usersEnabledByDefault($att->usersEnabledByDefault);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->tenant($att->getTenantOrDefault(null));
+            $this->name($att->getNameOrDefault(null));
+            $this->source($att->getSourceOrDefault(null));
+            $this->disabled($att->getDisabledOrDefault(null));
+            $this->directAccess($att->getDirectAccessOrDefault(null));
+            $this->publicKey($att->getPublicKeyOrDefault(null));
+            $this->privateKey($att->getPrivateKeyOrDefault(null));
+            $this->certificate($att->getCertificateOrDefault(null));
+            $this->metadata($att->getMetadataOrDefault(null));
+            $this->usersEnabledByDefault($att->getUsersEnabledByDefaultOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): TenantLoginProviderAttributes
     {
         $att = new TenantLoginProviderAttributes();
-        $att->uid($this->uid);
-        $att->tenant($this->tenant);
-        $att->name($this->name);
-        $att->source($this->source);
-        $att->disabled($this->disabled);
-        $att->directAccess($this->directAccess);
-        $att->publicKey($this->publicKey);
-        $att->privateKey($this->privateKey);
-        $att->certificate($this->certificate);
-        $att->metadata($this->metadata);
-        $att->usersEnabledByDefault($this->usersEnabledByDefault);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->tenant) {
+            $att->tenant($this->tenant);
+        }
+        if ($this->name) {
+            $att->name($this->name);
+        }
+        if ($this->source) {
+            $att->source($this->source);
+        }
+        if ($this->disabled) {
+            $att->disabled($this->disabled);
+        }
+        if ($this->directAccess) {
+            $att->directAccess($this->directAccess);
+        }
+        if ($this->publicKey) {
+            $att->publicKey($this->publicKey);
+        }
+        if ($this->privateKey) {
+            $att->privateKey($this->privateKey);
+        }
+        if ($this->certificate) {
+            $att->certificate($this->certificate);
+        }
+        if ($this->metadata) {
+            $att->metadata($this->metadata);
+        }
+        if ($this->usersEnabledByDefault) {
+            $att->usersEnabledByDefault($this->usersEnabledByDefault);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

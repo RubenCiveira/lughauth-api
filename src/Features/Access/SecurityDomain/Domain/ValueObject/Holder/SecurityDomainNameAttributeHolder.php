@@ -13,7 +13,7 @@ trait SecurityDomainNameAttributeHolder
     protected SecurityDomainNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?SecurityDomainNameVO $name): SecurityDomainNameVO|string|null
+    public function getNameOrDefault(?SecurityDomainNameVO $name): ?SecurityDomainNameVO
     {
         return $this->nameAssigned ? ($this->name !== null ? SecurityDomainNameVO::from($this->name) : null) : $name;
     }

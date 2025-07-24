@@ -13,7 +13,7 @@ trait SecurityScopeUidAttributeHolder
     protected SecurityScopeUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?SecurityScopeUidVO $uid): SecurityScopeUidVO|string|null
+    public function getUidOrDefault(?SecurityScopeUidVO $uid): ?SecurityScopeUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? SecurityScopeUidVO::from($this->uid) : null) : $uid;
     }

@@ -13,7 +13,7 @@ trait UserAcceptedTermnsOfUseAcceptDateAttributeHolder
     protected UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null $acceptDate = null;
     protected bool $acceptDateAssigned = false;
 
-    public function getAcceptDateOrDefault(?UserAcceptedTermnsOfUseAcceptDateVO $acceptDate): UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null
+    public function getAcceptDateOrDefault(?UserAcceptedTermnsOfUseAcceptDateVO $acceptDate): ?UserAcceptedTermnsOfUseAcceptDateVO
     {
         return $this->acceptDateAssigned ? ($this->acceptDate !== null ? UserAcceptedTermnsOfUseAcceptDateVO::from($this->acceptDate) : null) : $acceptDate;
     }

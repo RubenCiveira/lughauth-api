@@ -13,7 +13,7 @@ trait TenantLoginProviderDisabledAttributeHolder
     protected TenantLoginProviderDisabledVO|bool|null $disabled = null;
     protected bool $disabledAssigned = false;
 
-    public function getDisabledOrDefault(?TenantLoginProviderDisabledVO $disabled): TenantLoginProviderDisabledVO|bool|null
+    public function getDisabledOrDefault(?TenantLoginProviderDisabledVO $disabled): ?TenantLoginProviderDisabledVO
     {
         return $this->disabledAssigned ? ($this->disabled !== null ? TenantLoginProviderDisabledVO::from($this->disabled) : null) : $disabled;
     }

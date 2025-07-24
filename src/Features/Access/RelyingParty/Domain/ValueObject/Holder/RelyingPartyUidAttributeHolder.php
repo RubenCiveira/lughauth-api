@@ -13,7 +13,7 @@ trait RelyingPartyUidAttributeHolder
     protected RelyingPartyUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?RelyingPartyUidVO $uid): RelyingPartyUidVO|string|null
+    public function getUidOrDefault(?RelyingPartyUidVO $uid): ?RelyingPartyUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? RelyingPartyUidVO::from($this->uid) : null) : $uid;
     }

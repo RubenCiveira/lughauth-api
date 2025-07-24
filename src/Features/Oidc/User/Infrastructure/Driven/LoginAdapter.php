@@ -194,7 +194,7 @@ class LoginAdapter implements LoginRepository
         if ($tc = $this->identities->retrieve($identityFilter)) {
             foreach ($tc->getRoles() as $role) {
                 $ref = $role->getRole();
-                $theRole = $this->roles->enrich($ref);
+                $theRole = $this->roles->resolve($ref);
                 if ($theRole) {
                     $roles[] = $theRole->getName();
                 }

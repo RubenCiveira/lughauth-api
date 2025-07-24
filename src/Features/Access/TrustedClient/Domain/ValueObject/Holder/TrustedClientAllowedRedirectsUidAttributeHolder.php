@@ -13,7 +13,7 @@ trait TrustedClientAllowedRedirectsUidAttributeHolder
     protected TrustedClientAllowedRedirectsUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?TrustedClientAllowedRedirectsUidVO $uid): TrustedClientAllowedRedirectsUidVO|string|null
+    public function getUidOrDefault(?TrustedClientAllowedRedirectsUidVO $uid): ?TrustedClientAllowedRedirectsUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? TrustedClientAllowedRedirectsUidVO::from($this->uid) : null) : $uid;
     }

@@ -36,24 +36,40 @@ class TrustedClientEnableResult
 
     public function __construct(TrustedClientAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->code($att->code);
-        $this->publicAllow($att->publicAllow);
-        $this->secretOauth($att->secretOauth);
-        $this->enabled($att->enabled);
-        $this->allowedRedirects($att->allowedRedirects);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->code($att->getCodeOrDefault(null));
+            $this->publicAllow($att->getPublicAllowOrDefault(null));
+            $this->secretOauth($att->getSecretOauthOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->allowedRedirects($att->getAllowedRedirectsOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): TrustedClientAttributes
     {
         $att = new TrustedClientAttributes();
-        $att->uid($this->uid);
-        $att->code($this->code);
-        $att->publicAllow($this->publicAllow);
-        $att->secretOauth($this->secretOauth);
-        $att->enabled($this->enabled);
-        $att->allowedRedirects($this->allowedRedirects);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->code) {
+            $att->code($this->code);
+        }
+        if ($this->publicAllow) {
+            $att->publicAllow($this->publicAllow);
+        }
+        if ($this->secretOauth) {
+            $att->secretOauth($this->secretOauth);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->allowedRedirects) {
+            $att->allowedRedirects($this->allowedRedirects);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

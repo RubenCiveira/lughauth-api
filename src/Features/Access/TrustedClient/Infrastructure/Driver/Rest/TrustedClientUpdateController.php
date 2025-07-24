@@ -103,9 +103,9 @@ class TrustedClientUpdateController
             $value->enabled(TrustedClientEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
             $allowedRedirects = $body['allowedRedirects'] ?? null;
             $allowedRedirectsList = [];
-            if (isset($body->allowedRedirects)) {
-                if (is_array($body->allowedRedirects)) {
-                    foreach ($body->allowedRedirects as $item) {
+            if (isset($allowedRedirects)) {
+                if (is_array($allowedRedirects)) {
+                    foreach ($allowedRedirects as $item) {
                         $innerErrorsList = new ConstraintFailList();
                         $innerUid = TrustedClientAllowedRedirectsUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
                         $innerUrl = TrustedClientAllowedRedirectsUrlVO::tryFrom($item['url'] ? ''.$item['url'] : null, $innerErrorsList);

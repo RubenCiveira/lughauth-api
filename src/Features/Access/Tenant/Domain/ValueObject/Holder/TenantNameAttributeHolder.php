@@ -13,7 +13,7 @@ trait TenantNameAttributeHolder
     protected TenantNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?TenantNameVO $name): TenantNameVO|string|null
+    public function getNameOrDefault(?TenantNameVO $name): ?TenantNameVO
     {
         return $this->nameAssigned ? ($this->name !== null ? TenantNameVO::from($this->name) : null) : $name;
     }

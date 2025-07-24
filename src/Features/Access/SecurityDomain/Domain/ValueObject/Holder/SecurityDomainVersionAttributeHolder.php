@@ -13,7 +13,7 @@ trait SecurityDomainVersionAttributeHolder
     protected SecurityDomainVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?SecurityDomainVersionVO $version): SecurityDomainVersionVO|int|null
+    public function getVersionOrDefault(?SecurityDomainVersionVO $version): ?SecurityDomainVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? SecurityDomainVersionVO::from($this->version) : null) : $version;
     }

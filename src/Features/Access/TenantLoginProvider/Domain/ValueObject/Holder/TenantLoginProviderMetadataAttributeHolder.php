@@ -13,7 +13,7 @@ trait TenantLoginProviderMetadataAttributeHolder
     protected TenantLoginProviderMetadataVO|string|null $metadata = null;
     protected bool $metadataAssigned = false;
 
-    public function getMetadataOrDefault(?TenantLoginProviderMetadataVO $metadata): TenantLoginProviderMetadataVO|string|null
+    public function getMetadataOrDefault(?TenantLoginProviderMetadataVO $metadata): ?TenantLoginProviderMetadataVO
     {
         return $this->metadataAssigned ? ($this->metadata !== null ? TenantLoginProviderMetadataVO::from($this->metadata) : null) : $metadata;
     }

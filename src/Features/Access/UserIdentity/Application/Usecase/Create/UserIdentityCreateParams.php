@@ -33,22 +33,36 @@ class UserIdentityCreateParams
 
     public function __construct(UserIdentityAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->user($att->user);
-        $this->relyingParty($att->relyingParty);
-        $this->trustedClient($att->trustedClient);
-        $this->roles($att->roles);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->user($att->getUserOrDefault(null));
+            $this->relyingParty($att->getRelyingPartyOrDefault(null));
+            $this->trustedClient($att->getTrustedClientOrDefault(null));
+            $this->roles($att->getRolesOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): UserIdentityAttributes
     {
         $att = new UserIdentityAttributes();
-        $att->uid($this->uid);
-        $att->user($this->user);
-        $att->relyingParty($this->relyingParty);
-        $att->trustedClient($this->trustedClient);
-        $att->roles($this->roles);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->user) {
+            $att->user($this->user);
+        }
+        if ($this->relyingParty) {
+            $att->relyingParty($this->relyingParty);
+        }
+        if ($this->trustedClient) {
+            $att->trustedClient($this->trustedClient);
+        }
+        if ($this->roles) {
+            $att->roles($this->roles);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

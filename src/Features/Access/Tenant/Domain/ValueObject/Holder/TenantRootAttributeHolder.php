@@ -13,7 +13,7 @@ trait TenantRootAttributeHolder
     protected TenantRootVO|bool|null $root = null;
     protected bool $rootAssigned = false;
 
-    public function getRootOrDefault(?TenantRootVO $root): TenantRootVO|bool|null
+    public function getRootOrDefault(?TenantRootVO $root): ?TenantRootVO
     {
         return $this->rootAssigned ? ($this->root !== null ? TenantRootVO::from($this->root) : null) : $root;
     }

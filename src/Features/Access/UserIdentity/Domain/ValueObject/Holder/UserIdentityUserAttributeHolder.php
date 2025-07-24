@@ -14,7 +14,7 @@ trait UserIdentityUserAttributeHolder
     protected UserIdentityUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(?UserIdentityUserVO $user): UserIdentityUserVO|UserRef|null
+    public function getUserOrDefault(?UserIdentityUserVO $user): ?UserIdentityUserVO
     {
         return $this->userAssigned ? ($this->user !== null ? UserIdentityUserVO::from($this->user) : null) : $user;
     }

@@ -69,7 +69,7 @@ class TenantTermsOfUseUploadAttachedUsecase
             }
             $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedCheck($binary));
             $input = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedEnrich($binary, $binary));
-            return $this->writer->temporalStoreAttached($input->file);
+            return $this->writer->temporalStoreAttached($input->getResult());
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

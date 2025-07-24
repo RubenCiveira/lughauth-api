@@ -13,7 +13,7 @@ trait UserAcceptedTermnsOfUseUidAttributeHolder
     protected UserAcceptedTermnsOfUseUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?UserAcceptedTermnsOfUseUidVO $uid): UserAcceptedTermnsOfUseUidVO|string|null
+    public function getUidOrDefault(?UserAcceptedTermnsOfUseUidVO $uid): ?UserAcceptedTermnsOfUseUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? UserAcceptedTermnsOfUseUidVO::from($this->uid) : null) : $uid;
     }

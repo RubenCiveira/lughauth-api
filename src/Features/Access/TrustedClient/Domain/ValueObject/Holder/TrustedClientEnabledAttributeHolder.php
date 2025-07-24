@@ -13,7 +13,7 @@ trait TrustedClientEnabledAttributeHolder
     protected TrustedClientEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?TrustedClientEnabledVO $enabled): TrustedClientEnabledVO|bool|null
+    public function getEnabledOrDefault(?TrustedClientEnabledVO $enabled): ?TrustedClientEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? TrustedClientEnabledVO::from($this->enabled) : null) : $enabled;
     }

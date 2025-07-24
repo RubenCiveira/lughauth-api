@@ -13,7 +13,7 @@ trait TenantConfigRecoverPassEmailAttributeHolder
     protected TenantConfigRecoverPassEmailVO|string|null $recoverPassEmail = null;
     protected bool $recoverPassEmailAssigned = false;
 
-    public function getRecoverPassEmailOrDefault(?TenantConfigRecoverPassEmailVO $recoverPassEmail): TenantConfigRecoverPassEmailVO|string|null
+    public function getRecoverPassEmailOrDefault(?TenantConfigRecoverPassEmailVO $recoverPassEmail): ?TenantConfigRecoverPassEmailVO
     {
         return $this->recoverPassEmailAssigned ? ($this->recoverPassEmail !== null ? TenantConfigRecoverPassEmailVO::from($this->recoverPassEmail) : null) : $recoverPassEmail;
     }

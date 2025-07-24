@@ -13,7 +13,7 @@ trait TenantConfigRegisterdEmailAttributeHolder
     protected TenantConfigRegisterdEmailVO|string|null $registerdEmail = null;
     protected bool $registerdEmailAssigned = false;
 
-    public function getRegisterdEmailOrDefault(?TenantConfigRegisterdEmailVO $registerdEmail): TenantConfigRegisterdEmailVO|string|null
+    public function getRegisterdEmailOrDefault(?TenantConfigRegisterdEmailVO $registerdEmail): ?TenantConfigRegisterdEmailVO
     {
         return $this->registerdEmailAssigned ? ($this->registerdEmail !== null ? TenantConfigRegisterdEmailVO::from($this->registerdEmail) : null) : $registerdEmail;
     }

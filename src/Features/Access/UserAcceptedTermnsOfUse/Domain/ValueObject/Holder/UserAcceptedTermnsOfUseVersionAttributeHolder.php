@@ -13,7 +13,7 @@ trait UserAcceptedTermnsOfUseVersionAttributeHolder
     protected UserAcceptedTermnsOfUseVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserAcceptedTermnsOfUseVersionVO $version): UserAcceptedTermnsOfUseVersionVO|int|null
+    public function getVersionOrDefault(?UserAcceptedTermnsOfUseVersionVO $version): ?UserAcceptedTermnsOfUseVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? UserAcceptedTermnsOfUseVersionVO::from($this->version) : null) : $version;
     }

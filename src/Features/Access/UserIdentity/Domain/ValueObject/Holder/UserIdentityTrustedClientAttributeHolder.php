@@ -14,7 +14,7 @@ trait UserIdentityTrustedClientAttributeHolder
     protected UserIdentityTrustedClientVO|TrustedClientRef|null $trustedClient = null;
     protected bool $trustedClientAssigned = false;
 
-    public function getTrustedClientOrDefault(?UserIdentityTrustedClientVO $trustedClient): UserIdentityTrustedClientVO|TrustedClientRef|null
+    public function getTrustedClientOrDefault(?UserIdentityTrustedClientVO $trustedClient): ?UserIdentityTrustedClientVO
     {
         return $this->trustedClientAssigned ? ($this->trustedClient !== null ? UserIdentityTrustedClientVO::from($this->trustedClient) : null) : $trustedClient;
     }

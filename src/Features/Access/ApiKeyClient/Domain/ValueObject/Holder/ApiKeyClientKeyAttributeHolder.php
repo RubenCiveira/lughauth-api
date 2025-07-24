@@ -13,7 +13,7 @@ trait ApiKeyClientKeyAttributeHolder
     protected ApiKeyClientKeyVO|string|null $key = null;
     protected bool $keyAssigned = false;
 
-    public function getKeyOrDefault(?ApiKeyClientKeyVO $key): ApiKeyClientKeyVO|string|null
+    public function getKeyOrDefault(?ApiKeyClientKeyVO $key): ?ApiKeyClientKeyVO
     {
         return $this->keyAssigned ? ($this->key !== null ? ApiKeyClientKeyVO::from($this->key) : null) : $key;
     }

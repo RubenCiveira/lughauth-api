@@ -13,7 +13,7 @@ trait TenantLoginProviderCertificateAttributeHolder
     protected TenantLoginProviderCertificateVO|string|null $certificate = null;
     protected bool $certificateAssigned = false;
 
-    public function getCertificateOrDefault(?TenantLoginProviderCertificateVO $certificate): TenantLoginProviderCertificateVO|string|null
+    public function getCertificateOrDefault(?TenantLoginProviderCertificateVO $certificate): ?TenantLoginProviderCertificateVO
     {
         return $this->certificateAssigned ? ($this->certificate !== null ? TenantLoginProviderCertificateVO::from($this->certificate) : null) : $certificate;
     }

@@ -13,7 +13,7 @@ trait TrustedClientSecretOauthAttributeHolder
     protected TrustedClientSecretOauthVO|string|null $secretOauth = null;
     protected bool $secretOauthAssigned = false;
 
-    public function getSecretOauthOrDefault(?TrustedClientSecretOauthVO $secretOauth): TrustedClientSecretOauthVO|string|null
+    public function getSecretOauthOrDefault(?TrustedClientSecretOauthVO $secretOauth): ?TrustedClientSecretOauthVO
     {
         return $this->secretOauthAssigned ? ($this->secretOauth !== null ? TrustedClientSecretOauthVO::from($this->secretOauth) : null) : $secretOauth;
     }

@@ -13,7 +13,7 @@ trait TenantConfigEnableRegisterUsersAttributeHolder
     protected TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null;
     protected bool $enableRegisterUsersAssigned = false;
 
-    public function getEnableRegisterUsersOrDefault(?TenantConfigEnableRegisterUsersVO $enableRegisterUsers): TenantConfigEnableRegisterUsersVO|bool|null
+    public function getEnableRegisterUsersOrDefault(?TenantConfigEnableRegisterUsersVO $enableRegisterUsers): ?TenantConfigEnableRegisterUsersVO
     {
         return $this->enableRegisterUsersAssigned ? ($this->enableRegisterUsers !== null ? TenantConfigEnableRegisterUsersVO::from($this->enableRegisterUsers) : null) : $enableRegisterUsers;
     }

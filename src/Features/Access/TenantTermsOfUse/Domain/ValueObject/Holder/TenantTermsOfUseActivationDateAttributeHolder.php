@@ -13,7 +13,7 @@ trait TenantTermsOfUseActivationDateAttributeHolder
     protected TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $activationDate = null;
     protected bool $activationDateAssigned = false;
 
-    public function getActivationDateOrDefault(?TenantTermsOfUseActivationDateVO $activationDate): TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null
+    public function getActivationDateOrDefault(?TenantTermsOfUseActivationDateVO $activationDate): ?TenantTermsOfUseActivationDateVO
     {
         return $this->activationDateAssigned ? ($this->activationDate !== null ? TenantTermsOfUseActivationDateVO::from($this->activationDate) : null) : $activationDate;
     }

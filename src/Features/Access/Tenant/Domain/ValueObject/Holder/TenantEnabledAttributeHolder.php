@@ -13,7 +13,7 @@ trait TenantEnabledAttributeHolder
     protected TenantEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?TenantEnabledVO $enabled): TenantEnabledVO|bool|null
+    public function getEnabledOrDefault(?TenantEnabledVO $enabled): ?TenantEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? TenantEnabledVO::from($this->enabled) : null) : $enabled;
     }

@@ -13,7 +13,7 @@ trait TenantMarkForDeleteAttributeHolder
     protected TenantMarkForDeleteVO|bool|null $markForDelete = null;
     protected bool $markForDeleteAssigned = false;
 
-    public function getMarkForDeleteOrDefault(?TenantMarkForDeleteVO $markForDelete): TenantMarkForDeleteVO|bool|null
+    public function getMarkForDeleteOrDefault(?TenantMarkForDeleteVO $markForDelete): ?TenantMarkForDeleteVO
     {
         return $this->markForDeleteAssigned ? ($this->markForDelete !== null ? TenantMarkForDeleteVO::from($this->markForDelete) : null) : $markForDelete;
     }

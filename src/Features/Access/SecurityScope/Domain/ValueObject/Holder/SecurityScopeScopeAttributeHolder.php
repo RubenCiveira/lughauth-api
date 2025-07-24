@@ -13,7 +13,7 @@ trait SecurityScopeScopeAttributeHolder
     protected SecurityScopeScopeVO|string|null $scope = null;
     protected bool $scopeAssigned = false;
 
-    public function getScopeOrDefault(?SecurityScopeScopeVO $scope): SecurityScopeScopeVO|string|null
+    public function getScopeOrDefault(?SecurityScopeScopeVO $scope): ?SecurityScopeScopeVO
     {
         return $this->scopeAssigned ? ($this->scope !== null ? SecurityScopeScopeVO::from($this->scope) : null) : $scope;
     }

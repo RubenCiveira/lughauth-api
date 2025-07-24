@@ -13,7 +13,7 @@ trait ApiKeyClientCodeAttributeHolder
     protected ApiKeyClientCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(?ApiKeyClientCodeVO $code): ApiKeyClientCodeVO|string|null
+    public function getCodeOrDefault(?ApiKeyClientCodeVO $code): ?ApiKeyClientCodeVO
     {
         return $this->codeAssigned ? ($this->code !== null ? ApiKeyClientCodeVO::from($this->code) : null) : $code;
     }

@@ -13,7 +13,7 @@ trait TenantDomainAttributeHolder
     protected TenantDomainVO|string|null $domain = null;
     protected bool $domainAssigned = false;
 
-    public function getDomainOrDefault(?TenantDomainVO $domain): TenantDomainVO|string|null
+    public function getDomainOrDefault(?TenantDomainVO $domain): ?TenantDomainVO
     {
         return $this->domainAssigned ? ($this->domain !== null ? TenantDomainVO::from($this->domain) : null) : $domain;
     }

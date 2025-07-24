@@ -13,7 +13,7 @@ trait TrustedClientAllowedRedirectsUrlAttributeHolder
     protected TrustedClientAllowedRedirectsUrlVO|string|null $url = null;
     protected bool $urlAssigned = false;
 
-    public function getUrlOrDefault(?TrustedClientAllowedRedirectsUrlVO $url): TrustedClientAllowedRedirectsUrlVO|string|null
+    public function getUrlOrDefault(?TrustedClientAllowedRedirectsUrlVO $url): ?TrustedClientAllowedRedirectsUrlVO
     {
         return $this->urlAssigned ? ($this->url !== null ? TrustedClientAllowedRedirectsUrlVO::from($this->url) : null) : $url;
     }

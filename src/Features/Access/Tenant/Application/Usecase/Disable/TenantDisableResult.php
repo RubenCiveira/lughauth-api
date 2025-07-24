@@ -39,26 +39,44 @@ class TenantDisableResult
 
     public function __construct(TenantAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->name($att->name);
-        $this->root($att->root);
-        $this->domain($att->domain);
-        $this->enabled($att->enabled);
-        $this->markForDelete($att->markForDelete);
-        $this->markForDeleteTime($att->markForDeleteTime);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->name($att->getNameOrDefault(null));
+            $this->root($att->getRootOrDefault(null));
+            $this->domain($att->getDomainOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->markForDelete($att->getMarkForDeleteOrDefault(null));
+            $this->markForDeleteTime($att->getMarkForDeleteTimeOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): TenantAttributes
     {
         $att = new TenantAttributes();
-        $att->uid($this->uid);
-        $att->name($this->name);
-        $att->root($this->root);
-        $att->domain($this->domain);
-        $att->enabled($this->enabled);
-        $att->markForDelete($this->markForDelete);
-        $att->markForDeleteTime($this->markForDeleteTime);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->name) {
+            $att->name($this->name);
+        }
+        if ($this->root) {
+            $att->root($this->root);
+        }
+        if ($this->domain) {
+            $att->domain($this->domain);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->markForDelete) {
+            $att->markForDelete($this->markForDelete);
+        }
+        if ($this->markForDeleteTime) {
+            $att->markForDeleteTime($this->markForDeleteTime);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

@@ -13,7 +13,7 @@ trait UserProviderAttributeHolder
     protected UserProviderVO|string|null $provider = null;
     protected bool $providerAssigned = false;
 
-    public function getProviderOrDefault(?UserProviderVO $provider): UserProviderVO|string|null
+    public function getProviderOrDefault(?UserProviderVO $provider): ?UserProviderVO
     {
         return $this->providerAssigned ? ($this->provider !== null ? UserProviderVO::from($this->provider) : null) : $provider;
     }

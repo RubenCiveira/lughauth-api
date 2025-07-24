@@ -13,7 +13,7 @@ trait SecurityScopeVersionAttributeHolder
     protected SecurityScopeVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?SecurityScopeVersionVO $version): SecurityScopeVersionVO|int|null
+    public function getVersionOrDefault(?SecurityScopeVersionVO $version): ?SecurityScopeVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? SecurityScopeVersionVO::from($this->version) : null) : $version;
     }

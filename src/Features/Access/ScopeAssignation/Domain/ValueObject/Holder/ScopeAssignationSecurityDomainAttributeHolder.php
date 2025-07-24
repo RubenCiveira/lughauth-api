@@ -14,7 +14,7 @@ trait ScopeAssignationSecurityDomainAttributeHolder
     protected ScopeAssignationSecurityDomainVO|SecurityDomainRef|null $securityDomain = null;
     protected bool $securityDomainAssigned = false;
 
-    public function getSecurityDomainOrDefault(?ScopeAssignationSecurityDomainVO $securityDomain): ScopeAssignationSecurityDomainVO|SecurityDomainRef|null
+    public function getSecurityDomainOrDefault(?ScopeAssignationSecurityDomainVO $securityDomain): ?ScopeAssignationSecurityDomainVO
     {
         return $this->securityDomainAssigned ? ($this->securityDomain !== null ? ScopeAssignationSecurityDomainVO::from($this->securityDomain) : null) : $securityDomain;
     }

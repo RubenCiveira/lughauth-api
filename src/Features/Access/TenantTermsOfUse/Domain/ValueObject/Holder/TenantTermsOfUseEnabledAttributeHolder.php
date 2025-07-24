@@ -13,7 +13,7 @@ trait TenantTermsOfUseEnabledAttributeHolder
     protected TenantTermsOfUseEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?TenantTermsOfUseEnabledVO $enabled): TenantTermsOfUseEnabledVO|bool|null
+    public function getEnabledOrDefault(?TenantTermsOfUseEnabledVO $enabled): ?TenantTermsOfUseEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? TenantTermsOfUseEnabledVO::from($this->enabled) : null) : $enabled;
     }

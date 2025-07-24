@@ -14,7 +14,7 @@ trait SecurityScopeTrustedClientAttributeHolder
     protected SecurityScopeTrustedClientVO|TrustedClientRef|null $trustedClient = null;
     protected bool $trustedClientAssigned = false;
 
-    public function getTrustedClientOrDefault(?SecurityScopeTrustedClientVO $trustedClient): SecurityScopeTrustedClientVO|TrustedClientRef|null
+    public function getTrustedClientOrDefault(?SecurityScopeTrustedClientVO $trustedClient): ?SecurityScopeTrustedClientVO
     {
         return $this->trustedClientAssigned ? ($this->trustedClient !== null ? SecurityScopeTrustedClientVO::from($this->trustedClient) : null) : $trustedClient;
     }

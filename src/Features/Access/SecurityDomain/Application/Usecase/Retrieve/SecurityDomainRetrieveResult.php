@@ -39,26 +39,44 @@ class SecurityDomainRetrieveResult
 
     public function __construct(SecurityDomainAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->name($att->name);
-        $this->level($att->level);
-        $this->readAll($att->readAll);
-        $this->writeAll($att->writeAll);
-        $this->manageAll($att->manageAll);
-        $this->enabled($att->enabled);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->name($att->getNameOrDefault(null));
+            $this->level($att->getLevelOrDefault(null));
+            $this->readAll($att->getReadAllOrDefault(null));
+            $this->writeAll($att->getWriteAllOrDefault(null));
+            $this->manageAll($att->getManageAllOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): SecurityDomainAttributes
     {
         $att = new SecurityDomainAttributes();
-        $att->uid($this->uid);
-        $att->name($this->name);
-        $att->level($this->level);
-        $att->readAll($this->readAll);
-        $att->writeAll($this->writeAll);
-        $att->manageAll($this->manageAll);
-        $att->enabled($this->enabled);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->name) {
+            $att->name($this->name);
+        }
+        if ($this->level) {
+            $att->level($this->level);
+        }
+        if ($this->readAll) {
+            $att->readAll($this->readAll);
+        }
+        if ($this->writeAll) {
+            $att->writeAll($this->writeAll);
+        }
+        if ($this->manageAll) {
+            $att->manageAll($this->manageAll);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

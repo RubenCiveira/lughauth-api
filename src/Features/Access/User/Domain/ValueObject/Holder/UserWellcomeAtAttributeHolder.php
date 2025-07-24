@@ -13,7 +13,7 @@ trait UserWellcomeAtAttributeHolder
     protected UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null;
     protected bool $wellcomeAtAssigned = false;
 
-    public function getWellcomeAtOrDefault(?UserWellcomeAtVO $wellcomeAt): UserWellcomeAtVO|\DateTimeImmutable|null
+    public function getWellcomeAtOrDefault(?UserWellcomeAtVO $wellcomeAt): ?UserWellcomeAtVO
     {
         return $this->wellcomeAtAssigned ? ($this->wellcomeAt !== null ? UserWellcomeAtVO::from($this->wellcomeAt) : null) : $wellcomeAt;
     }

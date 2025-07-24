@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeRecoveryCodeAttributeHolder
     protected UserAccessTemporalCodeRecoveryCodeVO|string|null $recoveryCode = null;
     protected bool $recoveryCodeAssigned = false;
 
-    public function getRecoveryCodeOrDefault(?UserAccessTemporalCodeRecoveryCodeVO $recoveryCode): UserAccessTemporalCodeRecoveryCodeVO|string|null
+    public function getRecoveryCodeOrDefault(?UserAccessTemporalCodeRecoveryCodeVO $recoveryCode): ?UserAccessTemporalCodeRecoveryCodeVO
     {
         return $this->recoveryCodeAssigned ? ($this->recoveryCode !== null ? UserAccessTemporalCodeRecoveryCodeVO::from($this->recoveryCode) : null) : $recoveryCode;
     }

@@ -13,7 +13,7 @@ trait TenantTermsOfUseTextAttributeHolder
     protected TenantTermsOfUseTextVO|string|null $text = null;
     protected bool $textAssigned = false;
 
-    public function getTextOrDefault(?TenantTermsOfUseTextVO $text): TenantTermsOfUseTextVO|string|null
+    public function getTextOrDefault(?TenantTermsOfUseTextVO $text): ?TenantTermsOfUseTextVO
     {
         return $this->textAssigned ? ($this->text !== null ? TenantTermsOfUseTextVO::from($this->text) : null) : $text;
     }

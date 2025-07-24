@@ -13,7 +13,7 @@ trait ScopeAssignationVersionAttributeHolder
     protected ScopeAssignationVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?ScopeAssignationVersionVO $version): ScopeAssignationVersionVO|int|null
+    public function getVersionOrDefault(?ScopeAssignationVersionVO $version): ?ScopeAssignationVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? ScopeAssignationVersionVO::from($this->version) : null) : $version;
     }

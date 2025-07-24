@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder
     protected UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts = null;
     protected bool $failedLoginAttemptsAssigned = false;
 
-    public function getFailedLoginAttemptsOrDefault(?UserAccessTemporalCodeFailedLoginAttemptsVO $failedLoginAttempts): UserAccessTemporalCodeFailedLoginAttemptsVO|int|null
+    public function getFailedLoginAttemptsOrDefault(?UserAccessTemporalCodeFailedLoginAttemptsVO $failedLoginAttempts): ?UserAccessTemporalCodeFailedLoginAttemptsVO
     {
         return $this->failedLoginAttemptsAssigned ? ($this->failedLoginAttempts !== null ? UserAccessTemporalCodeFailedLoginAttemptsVO::from($this->failedLoginAttempts) : null) : $failedLoginAttempts;
     }

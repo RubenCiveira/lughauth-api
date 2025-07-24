@@ -13,7 +13,7 @@ trait ApiKeyClientEnabledAttributeHolder
     protected ApiKeyClientEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?ApiKeyClientEnabledVO $enabled): ApiKeyClientEnabledVO|bool|null
+    public function getEnabledOrDefault(?ApiKeyClientEnabledVO $enabled): ?ApiKeyClientEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? ApiKeyClientEnabledVO::from($this->enabled) : null) : $enabled;
     }

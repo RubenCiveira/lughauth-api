@@ -13,7 +13,7 @@ trait ApiKeyClientVersionAttributeHolder
     protected ApiKeyClientVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?ApiKeyClientVersionVO $version): ApiKeyClientVersionVO|int|null
+    public function getVersionOrDefault(?ApiKeyClientVersionVO $version): ?ApiKeyClientVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? ApiKeyClientVersionVO::from($this->version) : null) : $version;
     }

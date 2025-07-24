@@ -13,7 +13,7 @@ trait TenantConfigDisabledUserEmailAttributeHolder
     protected TenantConfigDisabledUserEmailVO|string|null $disabledUserEmail = null;
     protected bool $disabledUserEmailAssigned = false;
 
-    public function getDisabledUserEmailOrDefault(?TenantConfigDisabledUserEmailVO $disabledUserEmail): TenantConfigDisabledUserEmailVO|string|null
+    public function getDisabledUserEmailOrDefault(?TenantConfigDisabledUserEmailVO $disabledUserEmail): ?TenantConfigDisabledUserEmailVO
     {
         return $this->disabledUserEmailAssigned ? ($this->disabledUserEmail !== null ? TenantConfigDisabledUserEmailVO::from($this->disabledUserEmail) : null) : $disabledUserEmail;
     }

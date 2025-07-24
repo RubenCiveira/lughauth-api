@@ -86,8 +86,8 @@ class UserCreateController
             $value = new UserCreateParams();
             $value->uid(UserUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($body->tenant['$ref'])) {
-                $value->tenant(UserTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            if ($tenant && isset($tenant['$ref'])) {
+                $value->tenant(UserTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
             }
             $value->name(UserNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $readPassword = $body['password'] ?? '******';

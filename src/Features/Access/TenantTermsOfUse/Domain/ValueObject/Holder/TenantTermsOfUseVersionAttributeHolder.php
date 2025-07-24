@@ -13,7 +13,7 @@ trait TenantTermsOfUseVersionAttributeHolder
     protected TenantTermsOfUseVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TenantTermsOfUseVersionVO $version): TenantTermsOfUseVersionVO|int|null
+    public function getVersionOrDefault(?TenantTermsOfUseVersionVO $version): ?TenantTermsOfUseVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? TenantTermsOfUseVersionVO::from($this->version) : null) : $version;
     }

@@ -13,7 +13,7 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
     protected TenantLoginProviderUsersEnabledByDefaultVO|bool|null $usersEnabledByDefault = null;
     protected bool $usersEnabledByDefaultAssigned = false;
 
-    public function getUsersEnabledByDefaultOrDefault(?TenantLoginProviderUsersEnabledByDefaultVO $usersEnabledByDefault): TenantLoginProviderUsersEnabledByDefaultVO|bool|null
+    public function getUsersEnabledByDefaultOrDefault(?TenantLoginProviderUsersEnabledByDefaultVO $usersEnabledByDefault): ?TenantLoginProviderUsersEnabledByDefaultVO
     {
         return $this->usersEnabledByDefaultAssigned ? ($this->usersEnabledByDefault !== null ? TenantLoginProviderUsersEnabledByDefaultVO::from($this->usersEnabledByDefault) : null) : $usersEnabledByDefault;
     }

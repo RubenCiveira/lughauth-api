@@ -86,12 +86,12 @@ class ScopeAssignationUpdateController
             $value = new ScopeAssignationUpdateParams();
             $value->uid(ScopeAssignationUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $securityDomain = $body['securityDomain'] ?? null;
-            if ($securityDomain && isset($body->securityDomain['$ref'])) {
-                $value->securityDomain(ScopeAssignationSecurityDomainVO::tryFrom(new SecurityDomainRef(uid: $body->securityDomain['$ref']), $errorsList));
+            if ($securityDomain && isset($securityDomain['$ref'])) {
+                $value->securityDomain(ScopeAssignationSecurityDomainVO::tryFrom(new SecurityDomainRef(uid: $securityDomain['$ref']), $errorsList));
             }
             $securityScope = $body['securityScope'] ?? null;
-            if ($securityScope && isset($body->securityScope['$ref'])) {
-                $value->securityScope(ScopeAssignationSecurityScopeVO::tryFrom(new SecurityScopeRef(uid: $body->securityScope['$ref']), $errorsList));
+            if ($securityScope && isset($securityScope['$ref'])) {
+                $value->securityScope(ScopeAssignationSecurityScopeVO::tryFrom(new SecurityScopeRef(uid: $securityScope['$ref']), $errorsList));
             }
             $value->version(ScopeAssignationVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {

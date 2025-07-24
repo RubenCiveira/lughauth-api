@@ -54,36 +54,64 @@ class UserUpdateResult
 
     public function __construct(UserAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->tenant($att->tenant);
-        $this->name($att->name);
-        $this->password($att->password);
-        $this->email($att->email);
-        $this->wellcomeAt($att->wellcomeAt);
-        $this->enabled($att->enabled);
-        $this->temporalPassword($att->temporalPassword);
-        $this->useSecondFactors($att->useSecondFactors);
-        $this->secondFactorSeed($att->secondFactorSeed);
-        $this->blockedUntil($att->blockedUntil);
-        $this->provider($att->provider);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->tenant($att->getTenantOrDefault(null));
+            $this->name($att->getNameOrDefault(null));
+            $this->password($att->getPasswordOrDefault(null));
+            $this->email($att->getEmailOrDefault(null));
+            $this->wellcomeAt($att->getWellcomeAtOrDefault(null));
+            $this->enabled($att->getEnabledOrDefault(null));
+            $this->temporalPassword($att->getTemporalPasswordOrDefault(null));
+            $this->useSecondFactors($att->getUseSecondFactorsOrDefault(null));
+            $this->secondFactorSeed($att->getSecondFactorSeedOrDefault(null));
+            $this->blockedUntil($att->getBlockedUntilOrDefault(null));
+            $this->provider($att->getProviderOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): UserAttributes
     {
         $att = new UserAttributes();
-        $att->uid($this->uid);
-        $att->tenant($this->tenant);
-        $att->name($this->name);
-        $att->password($this->password);
-        $att->email($this->email);
-        $att->wellcomeAt($this->wellcomeAt);
-        $att->enabled($this->enabled);
-        $att->temporalPassword($this->temporalPassword);
-        $att->useSecondFactors($this->useSecondFactors);
-        $att->secondFactorSeed($this->secondFactorSeed);
-        $att->blockedUntil($this->blockedUntil);
-        $att->provider($this->provider);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->tenant) {
+            $att->tenant($this->tenant);
+        }
+        if ($this->name) {
+            $att->name($this->name);
+        }
+        if ($this->password) {
+            $att->password($this->password);
+        }
+        if ($this->email) {
+            $att->email($this->email);
+        }
+        if ($this->wellcomeAt) {
+            $att->wellcomeAt($this->wellcomeAt);
+        }
+        if ($this->enabled) {
+            $att->enabled($this->enabled);
+        }
+        if ($this->temporalPassword) {
+            $att->temporalPassword($this->temporalPassword);
+        }
+        if ($this->useSecondFactors) {
+            $att->useSecondFactors($this->useSecondFactors);
+        }
+        if ($this->secondFactorSeed) {
+            $att->secondFactorSeed($this->secondFactorSeed);
+        }
+        if ($this->blockedUntil) {
+            $att->blockedUntil($this->blockedUntil);
+        }
+        if ($this->provider) {
+            $att->provider($this->provider);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)

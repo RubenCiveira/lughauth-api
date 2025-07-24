@@ -13,7 +13,7 @@ trait SecurityScopeVisibilityAttributeHolder
     protected SecurityScopeVisibilityVO|string|null $visibility = null;
     protected bool $visibilityAssigned = false;
 
-    public function getVisibilityOrDefault(?SecurityScopeVisibilityVO $visibility): SecurityScopeVisibilityVO|string|null
+    public function getVisibilityOrDefault(?SecurityScopeVisibilityVO $visibility): ?SecurityScopeVisibilityVO
     {
         return $this->visibilityAssigned ? ($this->visibility !== null ? SecurityScopeVisibilityVO::from($this->visibility) : null) : $visibility;
     }

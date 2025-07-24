@@ -13,7 +13,7 @@ trait ApiKeyClientScopesAttributeHolder
     protected ApiKeyClientScopesVO|string|null $scopes = null;
     protected bool $scopesAssigned = false;
 
-    public function getScopesOrDefault(?ApiKeyClientScopesVO $scopes): ApiKeyClientScopesVO|string|null
+    public function getScopesOrDefault(?ApiKeyClientScopesVO $scopes): ?ApiKeyClientScopesVO
     {
         return $this->scopesAssigned ? ($this->scopes !== null ? ApiKeyClientScopesVO::from($this->scopes) : null) : $scopes;
     }

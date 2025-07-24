@@ -13,7 +13,7 @@ trait RelyingPartyVersionAttributeHolder
     protected RelyingPartyVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?RelyingPartyVersionVO $version): RelyingPartyVersionVO|int|null
+    public function getVersionOrDefault(?RelyingPartyVersionVO $version): ?RelyingPartyVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? RelyingPartyVersionVO::from($this->version) : null) : $version;
     }

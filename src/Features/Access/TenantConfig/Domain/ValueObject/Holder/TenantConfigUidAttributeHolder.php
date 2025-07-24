@@ -13,7 +13,7 @@ trait TenantConfigUidAttributeHolder
     protected TenantConfigUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?TenantConfigUidVO $uid): TenantConfigUidVO|string|null
+    public function getUidOrDefault(?TenantConfigUidVO $uid): ?TenantConfigUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? TenantConfigUidVO::from($this->uid) : null) : $uid;
     }

@@ -13,7 +13,7 @@ trait SecurityDomainReadAllAttributeHolder
     protected SecurityDomainReadAllVO|bool|null $readAll = null;
     protected bool $readAllAssigned = false;
 
-    public function getReadAllOrDefault(?SecurityDomainReadAllVO $readAll): SecurityDomainReadAllVO|bool|null
+    public function getReadAllOrDefault(?SecurityDomainReadAllVO $readAll): ?SecurityDomainReadAllVO
     {
         return $this->readAllAssigned ? ($this->readAll !== null ? SecurityDomainReadAllVO::from($this->readAll) : null) : $readAll;
     }

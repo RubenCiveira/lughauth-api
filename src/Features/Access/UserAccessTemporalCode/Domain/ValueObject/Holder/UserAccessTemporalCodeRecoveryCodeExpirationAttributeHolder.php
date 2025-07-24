@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder
     protected UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null $recoveryCodeExpiration = null;
     protected bool $recoveryCodeExpirationAssigned = false;
 
-    public function getRecoveryCodeExpirationOrDefault(?UserAccessTemporalCodeRecoveryCodeExpirationVO $recoveryCodeExpiration): UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null
+    public function getRecoveryCodeExpirationOrDefault(?UserAccessTemporalCodeRecoveryCodeExpirationVO $recoveryCodeExpiration): ?UserAccessTemporalCodeRecoveryCodeExpirationVO
     {
         return $this->recoveryCodeExpirationAssigned ? ($this->recoveryCodeExpiration !== null ? UserAccessTemporalCodeRecoveryCodeExpirationVO::from($this->recoveryCodeExpiration) : null) : $recoveryCodeExpiration;
     }

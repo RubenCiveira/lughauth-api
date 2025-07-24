@@ -91,8 +91,8 @@ class TenantTermsOfUseUpdateController
             $value = new TenantTermsOfUseUpdateParams();
             $value->uid(TenantTermsOfUseUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($body->tenant['$ref'])) {
-                $value->tenant(TenantTermsOfUseTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            if ($tenant && isset($tenant['$ref'])) {
+                $value->tenant(TenantTermsOfUseTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
             }
             $value->text(TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList));
             $value->enabled(TenantTermsOfUseEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));

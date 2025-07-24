@@ -13,7 +13,7 @@ trait SecurityScopeEnabledAttributeHolder
     protected SecurityScopeEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?SecurityScopeEnabledVO $enabled): SecurityScopeEnabledVO|bool|null
+    public function getEnabledOrDefault(?SecurityScopeEnabledVO $enabled): ?SecurityScopeEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? SecurityScopeEnabledVO::from($this->enabled) : null) : $enabled;
     }

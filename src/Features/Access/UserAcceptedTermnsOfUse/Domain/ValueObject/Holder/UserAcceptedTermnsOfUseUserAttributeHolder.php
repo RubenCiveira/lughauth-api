@@ -14,7 +14,7 @@ trait UserAcceptedTermnsOfUseUserAttributeHolder
     protected UserAcceptedTermnsOfUseUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(?UserAcceptedTermnsOfUseUserVO $user): UserAcceptedTermnsOfUseUserVO|UserRef|null
+    public function getUserOrDefault(?UserAcceptedTermnsOfUseUserVO $user): ?UserAcceptedTermnsOfUseUserVO
     {
         return $this->userAssigned ? ($this->user !== null ? UserAcceptedTermnsOfUseUserVO::from($this->user) : null) : $user;
     }

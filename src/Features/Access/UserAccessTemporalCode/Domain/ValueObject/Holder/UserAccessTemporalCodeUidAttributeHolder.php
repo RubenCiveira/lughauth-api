@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeUidAttributeHolder
     protected UserAccessTemporalCodeUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?UserAccessTemporalCodeUidVO $uid): UserAccessTemporalCodeUidVO|string|null
+    public function getUidOrDefault(?UserAccessTemporalCodeUidVO $uid): ?UserAccessTemporalCodeUidVO
     {
         return $this->uidAssigned ? ($this->uid !== null ? UserAccessTemporalCodeUidVO::from($this->uid) : null) : $uid;
     }

@@ -13,7 +13,7 @@ trait RelyingPartyEnabledAttributeHolder
     protected RelyingPartyEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?RelyingPartyEnabledVO $enabled): RelyingPartyEnabledVO|bool|null
+    public function getEnabledOrDefault(?RelyingPartyEnabledVO $enabled): ?RelyingPartyEnabledVO
     {
         return $this->enabledAssigned ? ($this->enabled !== null ? RelyingPartyEnabledVO::from($this->enabled) : null) : $enabled;
     }

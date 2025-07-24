@@ -13,7 +13,7 @@ trait UserIdentityVersionAttributeHolder
     protected UserIdentityVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserIdentityVersionVO $version): UserIdentityVersionVO|int|null
+    public function getVersionOrDefault(?UserIdentityVersionVO $version): ?UserIdentityVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? UserIdentityVersionVO::from($this->version) : null) : $version;
     }

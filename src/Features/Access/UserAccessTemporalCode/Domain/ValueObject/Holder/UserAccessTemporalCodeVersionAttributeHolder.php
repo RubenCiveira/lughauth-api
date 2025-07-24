@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeVersionAttributeHolder
     protected UserAccessTemporalCodeVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserAccessTemporalCodeVersionVO $version): UserAccessTemporalCodeVersionVO|int|null
+    public function getVersionOrDefault(?UserAccessTemporalCodeVersionVO $version): ?UserAccessTemporalCodeVersionVO
     {
         return $this->versionAssigned ? ($this->version !== null ? UserAccessTemporalCodeVersionVO::from($this->version) : null) : $version;
     }

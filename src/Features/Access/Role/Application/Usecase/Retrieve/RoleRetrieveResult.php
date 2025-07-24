@@ -30,20 +30,32 @@ class RoleRetrieveResult
 
     public function __construct(RoleAttributes|null $att = null)
     {
-        $this->uid($att->uid);
-        $this->name($att->name);
-        $this->tenant($att->tenant);
-        $this->domains($att->domains);
-        $this->version($att->version);
+        if ($att) {
+            $this->uid($att->getUidOrDefault(null));
+            $this->name($att->getNameOrDefault(null));
+            $this->tenant($att->getTenantOrDefault(null));
+            $this->domains($att->getDomainsOrDefault(null));
+            $this->version($att->getVersionOrDefault(null));
+        }
     }
     public function toAttributes(): RoleAttributes
     {
         $att = new RoleAttributes();
-        $att->uid($this->uid);
-        $att->name($this->name);
-        $att->tenant($this->tenant);
-        $att->domains($this->domains);
-        $att->version($this->version);
+        if ($this->uid) {
+            $att->uid($this->uid);
+        }
+        if ($this->name) {
+            $att->name($this->name);
+        }
+        if ($this->tenant) {
+            $att->tenant($this->tenant);
+        }
+        if ($this->domains) {
+            $att->domains($this->domains);
+        }
+        if ($this->version) {
+            $att->version($this->version);
+        }
         return $att;
     }
     public function unset($field)
