@@ -11,6 +11,8 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\Secur
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainReadAllAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainWriteAllAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainManageAllAttributeHolder;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainViewAllAttributesAttributeHolder;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainModificaAllAttributesAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
@@ -23,6 +25,8 @@ class SecurityDomainDisableResult
     use SecurityDomainReadAllAttributeHolder;
     use SecurityDomainWriteAllAttributeHolder;
     use SecurityDomainManageAllAttributeHolder;
+    use SecurityDomainViewAllAttributesAttributeHolder;
+    use SecurityDomainModificaAllAttributesAttributeHolder;
     use SecurityDomainEnabledAttributeHolder;
     use SecurityDomainVersionAttributeHolder;
 
@@ -33,6 +37,8 @@ class SecurityDomainDisableResult
       'readAll' => 'unsetReadAll',
       'writeAll' => 'unsetWriteAll',
       'manageAll' => 'unsetManageAll',
+      'viewAllAttributes' => 'unsetViewAllAttributes',
+      'modificaAllAttributes' => 'unsetModificaAllAttributes',
       'enabled' => 'unsetEnabled',
       'version' => 'unsetVersion',
     ];
@@ -46,6 +52,8 @@ class SecurityDomainDisableResult
             $this->readAll($att->getReadAllOrDefault(null));
             $this->writeAll($att->getWriteAllOrDefault(null));
             $this->manageAll($att->getManageAllOrDefault(null));
+            $this->viewAllAttributes($att->getViewAllAttributesOrDefault(null));
+            $this->modificaAllAttributes($att->getModificaAllAttributesOrDefault(null));
             $this->enabled($att->getEnabledOrDefault(null));
             $this->version($att->getVersionOrDefault(null));
         }
@@ -71,6 +79,12 @@ class SecurityDomainDisableResult
         if ($this->manageAll) {
             $att->manageAll($this->manageAll);
         }
+        if ($this->viewAllAttributes) {
+            $att->viewAllAttributes($this->viewAllAttributes);
+        }
+        if ($this->modificaAllAttributes) {
+            $att->modificaAllAttributes($this->modificaAllAttributes);
+        }
         if ($this->enabled) {
             $att->enabled($this->enabled);
         }
@@ -93,6 +107,8 @@ class SecurityDomainDisableResult
         $this->withDefaultReadAll();
         $this->withDefaultWriteAll();
         $this->withDefaultManageAll();
+        $this->withDefaultViewAllAttributes();
+        $this->withDefaultModificaAllAttributes();
         $this->withDefaultEnabled();
         $this->withDefaultVersion();
         return $this;

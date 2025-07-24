@@ -11,9 +11,9 @@ final class SecurityScopeKindVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'MANAGE';
+        $value = 'READ';
         $ref = SecurityScopeKindVO::from($value);
-        $this->assertEquals('MANAGE', $ref->value());
+        $this->assertEquals('READ', $ref->value());
         $other = SecurityScopeKindVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = SecurityScopeKindVO::from($ref);

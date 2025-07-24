@@ -20,8 +20,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
 
@@ -55,8 +55,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
         $other = new SecurityScope(
@@ -101,8 +101,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
 
@@ -137,8 +137,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
         $other = new SecurityScope(
@@ -185,8 +185,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
 
@@ -220,8 +220,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
         $sourceEnabled = true;
@@ -246,8 +246,8 @@ final class SecurityScopeUnitTest extends TestCase
             resource: 'one',
             scope: 'one',
             enabled: true,
-            kind: 'MANAGE',
-            visibility: 'EXPLICIT',
+            kind: 'READ',
+            visibility: 'PUBLIC',
             version: 1,
         );
         $sourceEnabled = false;

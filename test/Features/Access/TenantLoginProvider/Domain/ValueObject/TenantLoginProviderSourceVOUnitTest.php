@@ -11,9 +11,9 @@ final class TenantLoginProviderSourceVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'SAML';
+        $value = 'GOOGLE';
         $ref = TenantLoginProviderSourceVO::from($value);
-        $this->assertEquals('SAML', $ref->value());
+        $this->assertEquals('GOOGLE', $ref->value());
         $other = TenantLoginProviderSourceVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TenantLoginProviderSourceVO::from($ref);

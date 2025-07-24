@@ -53,6 +53,20 @@ class SecurityDomainApiDTO
     )]
     public ?bool $manageAll;
     #[OA\Property(
+        property: "viewAllAttributes",
+        title: "view all attributes",
+        description:"Allow to read on every scope",
+        type: "string"
+    )]
+    public ?bool $viewAllAttributes;
+    #[OA\Property(
+        property: "modificaAllAttributes",
+        title: "modifica all attributes",
+        description:"Allow to write on every scope",
+        type: "string"
+    )]
+    public ?bool $modificaAllAttributes;
+    #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"Una marca que permite quitar el acceso a una cuenta sin borrarla",

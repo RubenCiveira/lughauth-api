@@ -18,6 +18,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );
@@ -37,6 +39,10 @@ final class SecurityDomainUnitTest extends TestCase
         $this->assertTrue($one->isWriteAllChanged());
         $this->assertEquals($one->getManageAll(), $other->getManageAll());
         $this->assertTrue($one->isManageAllChanged());
+        $this->assertEquals($one->getViewAllAttributes(), $other->getViewAllAttributes());
+        $this->assertTrue($one->isViewAllAttributesChanged());
+        $this->assertEquals($one->getModificaAllAttributes(), $other->getModificaAllAttributes());
+        $this->assertTrue($one->isModificaAllAttributesChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -50,6 +56,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );
@@ -60,6 +68,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: false,
             writeAll: false,
             manageAll: false,
+            viewAllAttributes: false,
+            modificaAllAttributes: false,
             enabled: false,
             version: 2,
         );
@@ -79,6 +89,10 @@ final class SecurityDomainUnitTest extends TestCase
         $this->assertTrue($one->isWriteAllChanged($base));
         $this->assertEquals($one->getManageAll(), $other->getManageAll());
         $this->assertTrue($one->isManageAllChanged($base));
+        $this->assertEquals($one->getViewAllAttributes(), $other->getViewAllAttributes());
+        $this->assertTrue($one->isViewAllAttributesChanged($base));
+        $this->assertEquals($one->getModificaAllAttributes(), $other->getModificaAllAttributes());
+        $this->assertTrue($one->isModificaAllAttributesChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -92,6 +106,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );
@@ -111,6 +127,10 @@ final class SecurityDomainUnitTest extends TestCase
         $this->assertTrue($one->isWriteAllChanged());
         $this->assertEquals($one->getManageAll(), $other->getManageAll());
         $this->assertTrue($one->isManageAllChanged());
+        $this->assertEquals($one->getViewAllAttributes(), $other->getViewAllAttributes());
+        $this->assertTrue($one->isViewAllAttributesChanged());
+        $this->assertEquals($one->getModificaAllAttributes(), $other->getModificaAllAttributes());
+        $this->assertTrue($one->isModificaAllAttributesChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -125,6 +145,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );
@@ -135,6 +157,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: false,
             writeAll: false,
             manageAll: false,
+            viewAllAttributes: false,
+            modificaAllAttributes: false,
             enabled: false,
             version: 2,
         );
@@ -154,6 +178,10 @@ final class SecurityDomainUnitTest extends TestCase
         $this->assertTrue($one->isWriteAllChanged($base));
         $this->assertEquals($one->getManageAll(), $other->getManageAll());
         $this->assertTrue($one->isManageAllChanged($base));
+        $this->assertEquals($one->getViewAllAttributes(), $other->getViewAllAttributes());
+        $this->assertTrue($one->isViewAllAttributesChanged($base));
+        $this->assertEquals($one->getModificaAllAttributes(), $other->getModificaAllAttributes());
+        $this->assertTrue($one->isModificaAllAttributesChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -169,6 +197,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );
@@ -188,6 +218,10 @@ final class SecurityDomainUnitTest extends TestCase
         $this->assertTrue($one->isWriteAllChanged());
         $this->assertEquals($one->getManageAll(), $other->getManageAll());
         $this->assertTrue($one->isManageAllChanged());
+        $this->assertEquals($one->getViewAllAttributes(), $other->getViewAllAttributes());
+        $this->assertTrue($one->isViewAllAttributesChanged());
+        $this->assertEquals($one->getModificaAllAttributes(), $other->getModificaAllAttributes());
+        $this->assertTrue($one->isModificaAllAttributesChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -201,6 +235,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );
@@ -226,6 +262,8 @@ final class SecurityDomainUnitTest extends TestCase
             readAll: true,
             writeAll: true,
             manageAll: true,
+            viewAllAttributes: true,
+            modificaAllAttributes: true,
             enabled: true,
             version: 1,
         );

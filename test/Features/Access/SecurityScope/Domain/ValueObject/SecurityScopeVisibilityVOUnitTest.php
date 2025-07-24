@@ -11,9 +11,9 @@ final class SecurityScopeVisibilityVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'EXPLICIT';
+        $value = 'PUBLIC';
         $ref = SecurityScopeVisibilityVO::from($value);
-        $this->assertEquals('EXPLICIT', $ref->value());
+        $this->assertEquals('PUBLIC', $ref->value());
         $other = SecurityScopeVisibilityVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = SecurityScopeVisibilityVO::from($ref);

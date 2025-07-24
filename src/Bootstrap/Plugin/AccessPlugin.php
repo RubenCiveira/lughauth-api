@@ -7,9 +7,11 @@ namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\RolePlugin;
+use Civi\Lughauth\Features\Access\SecurityAttribute\Infrastructure\Driver\SecurityAttributePlugin;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\UserIdentityPlugin;
+use Civi\Lughauth\Features\Access\ScopeAttributePermission\Infrastructure\Driver\ScopeAttributePermissionPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
 use Civi\Lughauth\Features\Access\SecurityDomain\Infrastructure\Driver\SecurityDomainPlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
@@ -26,9 +28,11 @@ class AccessPlugin extends AggregatedMicroPlugin
     {
         parent::__construct([
           new RolePlugin(),
+          new SecurityAttributePlugin(),
           new RelyingPartyPlugin(),
           new TrustedClientPlugin(),
           new UserIdentityPlugin(),
+          new ScopeAttributePermissionPlugin(),
           new TenantConfigPlugin(),
           new SecurityDomainPlugin(),
           new ApiKeyClientPlugin(),

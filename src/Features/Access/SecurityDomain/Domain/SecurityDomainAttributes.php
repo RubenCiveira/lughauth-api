@@ -17,6 +17,10 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\Secur
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainWriteAllVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainManageAllAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainManageAllVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainViewAllAttributesAttributeHolder;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainViewAllAttributesVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainModificaAllAttributesAttributeHolder;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainModificaAllAttributesVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainEnabledVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Holder\SecurityDomainVersionAttributeHolder;
@@ -31,6 +35,8 @@ class SecurityDomainAttributes
     use SecurityDomainReadAllAttributeHolder;
     use SecurityDomainWriteAllAttributeHolder;
     use SecurityDomainManageAllAttributeHolder;
+    use SecurityDomainViewAllAttributesAttributeHolder;
+    use SecurityDomainModificaAllAttributesAttributeHolder;
     use SecurityDomainEnabledAttributeHolder;
     use SecurityDomainVersionAttributeHolder;
 
@@ -41,6 +47,8 @@ class SecurityDomainAttributes
       'readAll' => 'unsetReadAll',
       'writeAll' => 'unsetWriteAll',
       'manageAll' => 'unsetManageAll',
+      'viewAllAttributes' => 'unsetViewAllAttributes',
+      'modificaAllAttributes' => 'unsetModificaAllAttributes',
       'enabled' => 'unsetEnabled',
       'version' => 'unsetVersion',
     ];
@@ -54,6 +62,8 @@ class SecurityDomainAttributes
         $readAll = SecurityDomainReadAllVO::tryFrom($this->readAll, $errors);
         $writeAll = SecurityDomainWriteAllVO::tryFrom($this->writeAll, $errors);
         $manageAll = SecurityDomainManageAllVO::tryFrom($this->manageAll, $errors);
+        $viewAllAttributes = SecurityDomainViewAllAttributesVO::tryFrom($this->viewAllAttributes, $errors);
+        $modificaAllAttributes = SecurityDomainModificaAllAttributesVO::tryFrom($this->modificaAllAttributes, $errors);
         $enabled = SecurityDomainEnabledVO::tryFrom($this->enabled, $errors);
         $version = SecurityDomainVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
@@ -65,6 +75,8 @@ class SecurityDomainAttributes
             readAll: $readAll,
             writeAll: $writeAll,
             manageAll: $manageAll,
+            viewAllAttributes: $viewAllAttributes,
+            modificaAllAttributes: $modificaAllAttributes,
             enabled: $enabled,
             version: $version,
         );
@@ -79,6 +91,8 @@ class SecurityDomainAttributes
         $this->withAssertedReadAllRules($value, $errorsList);
         $this->withAssertedWriteAllRules($value, $errorsList);
         $this->withAssertedManageAllRules($value, $errorsList);
+        $this->withAssertedViewAllAttributesRules($value, $errorsList);
+        $this->withAssertedModificaAllAttributesRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
@@ -100,6 +114,8 @@ class SecurityDomainAttributes
         $this->withDefaultReadAll();
         $this->withDefaultWriteAll();
         $this->withDefaultManageAll();
+        $this->withDefaultViewAllAttributes();
+        $this->withDefaultModificaAllAttributes();
         $this->withDefaultEnabled();
         $this->withDefaultVersion();
         return $this;

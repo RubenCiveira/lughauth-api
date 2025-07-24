@@ -632,6 +632,320 @@ paths:
                 $ref: '#/components/schemas/ScopeAssignationApiDTO'
         404:
           description: 'Not found'
+  /api/me/acl/access/scope-attribute-permissions:
+    get:
+      tags:
+        - 'Scope attribute permission access control'
+      description: Allows
+      operationId: f4754df4cdd1680363216414c30a8911
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/scope-attribute-permissions/{uid}':
+    get:
+      tags:
+        - 'Scope attribute permission access control'
+      description: Allows
+      operationId: 9742c54b50463be8bee3e393188679fa
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/scope-attribute-permissions:
+    get:
+      tags:
+        - 'Scope attribute permission'
+      description: Create
+      operationId: f01a88f3b15ab9e93554eb4a605ec881
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAttributePermissionApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Scope attribute permission'
+      description: Create
+      operationId: 99f74d538fa7dd68cc56942ffb745b21
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/scope-attribute-permissions/{uid}':
+    put:
+      tags:
+        - 'Scope attribute permission'
+      description: 'Update the value'
+      operationId: 6994853f2cc0cbf6e8e1259d6cbd6581
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Scope attribute permission'
+      description: 'Delete the record'
+      operationId: b1ddef77255dd1c1a631420712c6d39d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/scope-attribute-permissions{uid}':
+    get:
+      tags:
+        - 'Scope attribute permission'
+      description: Create
+      operationId: d6d12cdbbaf5ba58a4d7470118d570f6
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/security-attributes:
+    get:
+      tags:
+        - 'Security attribute access control'
+      description: Allows
+      operationId: 10f37757bcd4381e284394dee0c1a41d
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/security-attributes/{uid}':
+    get:
+      tags:
+        - 'Security attribute access control'
+      description: Allows
+      operationId: f9d23d5c3a24f1215d2c62980c31b6f3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/security-attributes:
+    get:
+      tags:
+        - 'Security attribute'
+      description: Create
+      operationId: d7316d54c7bcf29f2822305c0df7c1de
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Security attribute'
+      description: Create
+      operationId: 15ca8042d40ace0d3e2e98eccfc349a2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityAttributeApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/security-attributes/{uid}':
+    put:
+      tags:
+        - 'Security attribute'
+      description: 'Update the value'
+      operationId: 1c31e460148cbfe3487ef669d995bf92
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityAttributeApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Security attribute'
+      description: 'Delete the record'
+      operationId: c0e2284613a5c6ebbf89d2d07bca8b20
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-attributes/{uid}/disable':
+    patch:
+      tags:
+        - 'Security attribute'
+      description: 'Update the value'
+      operationId: 5d0416b08b8579e1aea53370b70f385c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-attributes/{uid}/enable':
+    patch:
+      tags:
+        - 'Security attribute'
+      description: 'Update the value'
+      operationId: 4cd32242d776406e34d1d1604dee41b4
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/security-attributes{uid}':
+    get:
+      tags:
+        - 'Security attribute'
+      description: Create
+      operationId: 9ab3b4961ad7c7a66ea2af2da1df75c1
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/security-domains:
     get:
       tags:
@@ -2344,6 +2658,125 @@ components:
           description: 'A link to retrieve next page'
           type: string
       type: object
+    ScopeAttributePermissionApiDTO:
+      title: 'Scope attribute permission'
+      description: 'Witch scopes are assigned to the security domain'
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de scope attribute permission'
+          type: string
+        securityDomain:
+          title: 'security domain'
+          description: 'El security domain de scope attribute permission'
+          properties:
+            $ref:
+              type: string
+          type: object
+        securityAttribute:
+          title: 'security attribute'
+          description: 'El security attribute de scope attribute permission'
+          properties:
+            $ref:
+              type: string
+          type: object
+        permision:
+          title: permision
+          description: 'El permision de scope attribute permission'
+          type: string
+          enum:
+            - VIEW
+            - MODIFY
+        version:
+          title: version
+          description: 'Campo con el número de version de scope attribute permission para controlar bloqueos optimistas'
+          type: string
+      type: object
+    ScopeAttributePermissionApiListDTO:
+      title: 'Scope attribute permission'
+      description: 'Witch scopes are assigned to the security domain'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ScopeAttributePermissionApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    SecurityAttributeApiDTO:
+      title: 'Security attribute'
+      description: 'each of the allow scopes for the application.'
+      properties:
+        uid:
+          title: uid
+          description: 'A uid string to identify the entity'
+          type: string
+        trustedClient:
+          title: 'trusted client'
+          description: 'El trusted client de security attribute'
+          properties:
+            $ref:
+              type: string
+          type: object
+        relyingParty:
+          title: 'relying party'
+          description: 'El relying party de security attribute'
+          properties:
+            $ref:
+              type: string
+          type: object
+        resource:
+          title: resource
+          description: 'A label group key to show the scope'
+          type: string
+        attribute:
+          title: attribute
+          description: 'A label to show the scope'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de security attribute'
+          type: string
+        readVisibility:
+          title: 'read visibility'
+          description: 'El read visibility de security attribute'
+          type: string
+          enum:
+            - PUBLIC
+            - AUTHORIZED
+            - EXPLICIT
+        writeVisibility:
+          title: 'write visibility'
+          description: 'El write visibility de security attribute'
+          type: string
+          enum:
+            - PUBLIC
+            - AUTHORIZED
+            - EXPLICIT
+        version:
+          title: version
+          description: 'Campo con el número de version de security attribute para controlar bloqueos optimistas'
+          type: string
+      type: object
+    SecurityAttributeApiListDTO:
+      title: 'Security attribute'
+      description: 'each of the allow scopes for the application.'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityAttributeApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     SecurityDomainApiDTO:
       title: 'Security domain'
       description: 'A security domain is a set of allow over security scopes. Each security domain mark what an user can do over diferente applications of the stack.'
@@ -2370,6 +2803,14 @@ components:
           type: string
         manageAll:
           title: 'manage all'
+          description: 'Allow to write on every scope'
+          type: string
+        viewAllAttributes:
+          title: 'view all attributes'
+          description: 'Allow to read on every scope'
+          type: string
+        modificaAllAttributes:
+          title: 'modifica all attributes'
           description: 'Allow to write on every scope'
           type: string
         enabled:
@@ -2912,6 +3353,18 @@ tags:
   -
     name: 'Scope assignation'
     description: 'Scope assignation'
+  -
+    name: 'Scope attribute permission access control'
+    description: 'Scope attribute permission access control'
+  -
+    name: 'Scope attribute permission'
+    description: 'Scope attribute permission'
+  -
+    name: 'Security attribute access control'
+    description: 'Security attribute access control'
+  -
+    name: 'Security attribute'
+    description: 'Security attribute'
   -
     name: 'Security domain access control'
     description: 'Security domain access control'
