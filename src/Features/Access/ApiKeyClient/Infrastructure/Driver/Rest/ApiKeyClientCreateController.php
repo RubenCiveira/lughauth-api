@@ -13,6 +13,15 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateUsecase;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientUidVO;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientCodeVO;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientEnabledVO;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientScopesVO;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateParams;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateResult;
 
 class ApiKeyClientCreateController
 {
@@ -22,7 +31,6 @@ class ApiKeyClientCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly ApiKeyClientCreateUsecase $createUsecase,
-        private readonly ApiKeyClientRestMapper $mapper,
     ) {
     }
     #[OA\Post(
@@ -41,10 +49,10 @@ class ApiKeyClientCreateController
         $span = $this->startSpan("Create Api key client");
         $this->sql->begin();
         try {
-            $value = $this->mapper->readApiKeyClient($request);
+            $value = $this->readApiKeyClient($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapper->mapApiKeyClient($result);
+            $value = $this->mapApiKeyClient($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
@@ -53,6 +61,52 @@ class ApiKeyClientCreateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readApiKeyClient(ServerRequestInterface $request): ApiKeyClientCreateParams
+    {
+        $this->logDebug("Read entity for Api key client");
+        $span = $this->startSpan("Read entity for Api key client");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new ApiKeyClientCreateParams();
+            $value->uid(ApiKeyClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $value->code(ApiKeyClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
+            $value->key(ApiKeyClientKeyVO::tryFrom($body['key'] ?? null, $errorsList));
+            $value->enabled(ApiKeyClientEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->scopes(ApiKeyClientScopesVO::tryFrom($body['scopes'] ?? null, $errorsList));
+            $value->version(ApiKeyClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapApiKeyClient(ApiKeyClientCreateResult $value): ApiKeyClientApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Api key client");
+        $span = $this->startSpan("Map entity to output dto for Api key client");
+        try {
+            $dto = new ApiKeyClientApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->key = $value->getKey();
+            $dto->enabled = $value->getEnabled();
+            $dto->scopes = $value->getScopes();
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

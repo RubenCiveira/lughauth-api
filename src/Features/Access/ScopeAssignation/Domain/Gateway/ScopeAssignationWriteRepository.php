@@ -16,6 +16,7 @@ interface ScopeAssignationWriteRepository
     public function create(ScopeAssignation $entity, ?Closure $verify = null): ScopeAssignation;
     public function update(ScopeAssignationRef $ref, ScopeAssignation $entity): ScopeAssignation;
     public function delete(ScopeAssignation $entity): bool;
+    public function resolveForUpdate(ScopeAssignationRef $ref): ?ScopeAssignation;
     public function listForUpdate(?ScopeAssignationFilter $filter = null, ?ScopeAssignationCursor $cursor = null): ScopeAssignationSlide;
     public function retrieveForUpdate(ScopeAssignationFilter $filter): ?ScopeAssignation;
     public function existsForUpdate(?ScopeAssignationFilter $filter): bool;

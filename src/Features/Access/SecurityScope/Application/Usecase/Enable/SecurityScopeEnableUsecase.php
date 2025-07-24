@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
-use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeAttributes;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Service\Visibility\SecurityScopeVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -43,7 +42,7 @@ class SecurityScopeEnableUsecase
             $span->end();
         }
     }
-    public function enable(string $uid): SecurityScopeAttributes
+    public function enable(string $uid): SecurityScopeEnableResult
     {
         $this->logDebug("Run Enable usecase for Security scope");
         $span = $this->startSpan("Run Enable usecase for Security scope");
@@ -53,14 +52,14 @@ class SecurityScopeEnableUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new SecurityScopeEnableInputProposal($ref));
-            if (!$original = $this->visibility->retrieveVisibleForUpdate($input->ref)) {
+            if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
+            $this->dispacher->dispatch(new SecurityScopeEnableCheck($original));
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new SecurityScopeEnableOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityScopeEnableResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

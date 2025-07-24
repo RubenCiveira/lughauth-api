@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantUidVO;
 class TenantRef
 {
     private readonly TenantUidVO $_uid;
-    public ?Tenant $_private_enrich = null;
+    public ?Tenant $_private_resolve = null;
     public function __construct(TenantUidVO|string $uid)
     {
         $this->_uid = TenantUidVO::from($uid);

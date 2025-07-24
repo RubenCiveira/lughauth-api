@@ -31,6 +31,11 @@ class ScopeAssignationWriteRepositoryAdapter implements ScopeAssignationWriteRep
     ) {
     }
     #[Override]
+    public function resolveForUpdate(ScopeAssignationRef $ref): ?ScopeAssignation
+    {
+        return $this->conn->retrieve(new ScopeAssignationFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?ScopeAssignationFilter $filter = null, ?ScopeAssignationCursor $sort = null): ScopeAssignationSlide
     {
         $this->logDebug("Count for Scope assignation on adapter ");

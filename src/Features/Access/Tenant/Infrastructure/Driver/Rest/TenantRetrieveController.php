@@ -9,10 +9,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Retrieve\TenantRetrieveUsecase;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Retrieve\TenantRetrieveResult;
 
 class TenantRetrieveController
 {
@@ -21,7 +23,6 @@ class TenantRetrieveController
 
     public function __construct(
         private readonly TenantRetrieveUsecase $retrieveUsecase,
-        private readonly TenantRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +47,33 @@ class TenantRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapTenant($result);
+            $value = $this->mapTenant($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenant(TenantRetrieveResult $value): TenantApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant");
+        $span = $this->startSpan("Map entity to output dto for Tenant");
+        try {
+            $dto = new TenantApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->root = $value->getRoot();
+            $dto->domain = $value->getDomain();
+            $dto->enabled = $value->getEnabled();
+            $dto->markForDelete = $value->getMarkForDelete();
+            $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

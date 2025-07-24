@@ -9,10 +9,13 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveUsecase;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveResult;
 
 class UserRetrieveController
 {
@@ -21,7 +24,7 @@ class UserRetrieveController
 
     public function __construct(
         private readonly UserRetrieveUsecase $retrieveUsecase,
-        private readonly UserRestMapper $mapper,
+        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(
@@ -46,10 +49,39 @@ class UserRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapUser($result);
+            $value = $this->mapUser($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapUser(UserRetrieveResult $value): UserApiDTO
+    {
+        $this->logDebug("Map entity to output dto for User");
+        $span = $this->startSpan("Map entity to output dto for User");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new UserApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->name = $value->getName();
+            $dto->password = '******';
+            $dto->email = $value->getEmail();
+            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
+            $dto->enabled = $value->getEnabled();
+            $dto->temporalPassword = $value->getTemporalPassword();
+            $dto->useSecondFactors = $value->getUseSecondFactors();
+            $dto->secondFactorSeed = '******';
+            $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
+            $dto->provider = $value->getProvider();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

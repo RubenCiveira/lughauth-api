@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleVisibilityService;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
-use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class RoleCreateUsecase
             $span->end();
         }
     }
-    public function create(RoleAttributes $attributes): RoleAttributes
+    public function create(RoleCreateParams $params): RoleCreateResult
     {
         $this->logDebug("Run create usecase for Role");
         $span = $this->startSpan("Run create usecase for Role");
@@ -51,15 +50,18 @@ class RoleCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new RoleCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new RoleCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new RoleCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = Role::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new RoleCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new RoleCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

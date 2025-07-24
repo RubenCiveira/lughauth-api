@@ -28,14 +28,14 @@ class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermns
     ) {
     }
     #[Override]
-    public function enrich(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse
+    public function resolve(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse
     {
         if ($ref instanceof UserAcceptedTermnsOfUse) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $sort = null): UserAcceptedTermnsOfUseSlide

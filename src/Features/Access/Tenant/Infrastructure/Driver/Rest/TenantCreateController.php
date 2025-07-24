@@ -9,10 +9,22 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateUsecase;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantUidVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantNameVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantDomainVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteTimeVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateParams;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateResult;
 
 class TenantCreateController
 {
@@ -22,7 +34,6 @@ class TenantCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly TenantCreateUsecase $createUsecase,
-        private readonly TenantRestMapper $mapper,
     ) {
     }
     #[OA\Post(
@@ -41,10 +52,10 @@ class TenantCreateController
         $span = $this->startSpan("Create Tenant");
         $this->sql->begin();
         try {
-            $value = $this->mapper->readTenant($request);
+            $value = $this->readTenant($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapper->mapTenant($result);
+            $value = $this->mapTenant($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
@@ -53,6 +64,56 @@ class TenantCreateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readTenant(ServerRequestInterface $request): TenantCreateParams
+    {
+        $this->logDebug("Read entity for Tenant");
+        $span = $this->startSpan("Read entity for Tenant");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new TenantCreateParams();
+            $value->uid(TenantUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $value->name(TenantNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $value->root(TenantRootVO::tryFrom($body['root'] ?? null, $errorsList));
+            $value->domain(TenantDomainVO::tryFrom($body['domain'] ?? null, $errorsList));
+            $value->enabled(TenantEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->markForDelete(TenantMarkForDeleteVO::tryFrom($body['markForDelete'] ?? null, $errorsList));
+            $value->markForDeleteTime(TenantMarkForDeleteTimeVO::tryFrom($body['markForDeleteTime'] ?? null, $errorsList));
+            $value->version(TenantVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapTenant(TenantCreateResult $value): TenantApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant");
+        $span = $this->startSpan("Map entity to output dto for Tenant");
+        try {
+            $dto = new TenantApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->root = $value->getRoot();
+            $dto->domain = $value->getDomain();
+            $dto->enabled = $value->getEnabled();
+            $dto->markForDelete = $value->getMarkForDelete();
+            $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

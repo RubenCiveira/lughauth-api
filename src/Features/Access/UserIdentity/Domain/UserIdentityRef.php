@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityUi
 class UserIdentityRef
 {
     private readonly UserIdentityUidVO $_uid;
-    public ?UserIdentity $_private_enrich = null;
+    public ?UserIdentity $_private_resolve = null;
     public function __construct(UserIdentityUidVO|string $uid)
     {
         $this->_uid = UserIdentityUidVO::from($uid);

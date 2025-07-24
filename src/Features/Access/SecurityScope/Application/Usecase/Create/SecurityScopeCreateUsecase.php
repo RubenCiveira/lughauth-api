@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Service\Visibility\SecurityScopeVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScope;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeWriteGateway;
-use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class SecurityScopeCreateUsecase
             $span->end();
         }
     }
-    public function create(SecurityScopeAttributes $attributes): SecurityScopeAttributes
+    public function create(SecurityScopeCreateParams $params): SecurityScopeCreateResult
     {
         $this->logDebug("Run create usecase for Security scope");
         $span = $this->startSpan("Run create usecase for Security scope");
@@ -51,15 +50,18 @@ class SecurityScopeCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new SecurityScopeCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new SecurityScopeCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new SecurityScopeCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = SecurityScope::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new SecurityScopeCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityScopeCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

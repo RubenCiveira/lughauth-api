@@ -16,6 +16,7 @@ interface TenantLoginProviderWriteRepository
     public function create(TenantLoginProvider $entity, ?Closure $verify = null): TenantLoginProvider;
     public function update(TenantLoginProviderRef $ref, TenantLoginProvider $entity): TenantLoginProvider;
     public function delete(TenantLoginProvider $entity): bool;
+    public function resolveForUpdate(TenantLoginProviderRef $ref): ?TenantLoginProvider;
     public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide;
     public function retrieveForUpdate(TenantLoginProviderFilter $filter): ?TenantLoginProvider;
     public function existsForUpdate(?TenantLoginProviderFilter $filter): bool;

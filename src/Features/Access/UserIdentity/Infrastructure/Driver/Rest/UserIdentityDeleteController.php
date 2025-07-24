@@ -31,7 +31,6 @@ class UserIdentityDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly UserIdentityDeleteUsecase $deleteUsecase,
-        private readonly UserIdentityRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

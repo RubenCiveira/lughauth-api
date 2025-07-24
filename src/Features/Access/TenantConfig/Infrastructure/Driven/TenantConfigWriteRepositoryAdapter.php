@@ -30,6 +30,11 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(TenantConfigRef $ref): ?TenantConfig
+    {
+        return $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?TenantConfigFilter $filter = null, ?TenantConfigCursor $sort = null): TenantConfigSlide
     {
         $this->logDebug("Count for Tenant config on adapter ");

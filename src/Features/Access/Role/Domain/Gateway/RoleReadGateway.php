@@ -18,9 +18,9 @@ class RoleReadGateway
     {
         $this->repository = $repository ?? $container->get(RoleReadRepositoryAdapter::class);
     }
-    public function enrich(RoleRef $ref): ?Role
+    public function resolve(RoleRef $ref): ?Role
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?RoleFilter $filter = null, ?RoleCursor $cursor = null): RoleSlide
     {

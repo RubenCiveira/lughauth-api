@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleUidVO;
 class RoleRef
 {
     private readonly RoleUidVO $_uid;
-    public ?Role $_private_enrich = null;
+    public ?Role $_private_resolve = null;
     public function __construct(RoleUidVO|string $uid)
     {
         $this->_uid = RoleUidVO::from($uid);

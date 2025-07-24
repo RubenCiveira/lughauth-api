@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderVisibilityService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -43,7 +42,7 @@ class TenantLoginProviderEnableUsecase
             $span->end();
         }
     }
-    public function enable(string $uid): TenantLoginProviderAttributes
+    public function enable(string $uid): TenantLoginProviderEnableResult
     {
         $this->logDebug("Run Enable usecase for Tenant login provider");
         $span = $this->startSpan("Run Enable usecase for Tenant login provider");
@@ -53,14 +52,14 @@ class TenantLoginProviderEnableUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new TenantLoginProviderEnableInputProposal($ref));
-            if (!$original = $this->visibility->retrieveVisibleForUpdate($input->ref)) {
+            if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
+            $this->dispacher->dispatch(new TenantLoginProviderEnableCheck($original));
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantLoginProviderEnableOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantLoginProviderEnableResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

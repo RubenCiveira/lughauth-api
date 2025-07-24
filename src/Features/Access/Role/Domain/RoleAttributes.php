@@ -51,12 +51,6 @@ class RoleAttributes
             version: $version,
         );
     }
-    public function unset($field)
-    {
-        if (isset(self::UNSETS[$field])) {
-            call_user_func([$this, self::UNSETS[$field]]);
-        }
-    }
     public function withAssertedRules(): RoleAttributes
     {
         $value = new RoleAttributes();
@@ -70,6 +64,12 @@ class RoleAttributes
             throw $errorsList->asConstraintException();
         }
         return $value;
+    }
+    public function unset($field)
+    {
+        if (isset(self::UNSETS[$field])) {
+            call_user_func([$this, self::UNSETS[$field]]);
+        }
     }
     public function withDefaults(): RoleAttributes
     {

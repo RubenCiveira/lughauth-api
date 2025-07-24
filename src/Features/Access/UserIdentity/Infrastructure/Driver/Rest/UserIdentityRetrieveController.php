@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveUsecase;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveResult;
 
 class UserIdentityRetrieveController
 {
@@ -21,7 +22,6 @@ class UserIdentityRetrieveController
 
     public function __construct(
         private readonly UserIdentityRetrieveUsecase $retrieveUsecase,
-        private readonly UserIdentityRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,42 @@ class UserIdentityRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapUserIdentity($result);
+            $value = $this->mapUserIdentity($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapUserIdentity(UserIdentityRetrieveResult $value): UserIdentityApiDTO
+    {
+        $this->logDebug("Map entity to output dto for User identity");
+        $span = $this->startSpan("Map entity to output dto for User identity");
+        try {
+            $user = $value->getUser();
+            $relyingParty = $value->getRelyingParty();
+            $trustedClient = $value->getTrustedClient();
+            $dto = new UserIdentityApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->user = $user ? ['$ref' => $user->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
+            $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
+            $roles = [];
+            foreach ($value->getRoles() as $item) {
+                $roles[] = [
+                  'uid' => $item->uid(),
+                  'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->roles = $roles;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

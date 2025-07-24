@@ -10,7 +10,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainReadGateway;
@@ -56,7 +55,7 @@ class SecurityDomainRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): SecurityDomainAttributes
+    public function retrieve(string $uid): SecurityDomainRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for Security domain");
         $span = $this->startSpan("Run retrieve usecase for Security domain");
@@ -69,9 +68,8 @@ class SecurityDomainRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new SecurityDomainRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new SecurityDomainRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityDomainRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

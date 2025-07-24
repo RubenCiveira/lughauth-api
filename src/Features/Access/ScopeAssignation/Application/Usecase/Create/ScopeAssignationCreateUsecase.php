@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Service\Visibility\ScopeAssignationVisibilityService;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignation;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationWriteGateway;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class ScopeAssignationCreateUsecase
             $span->end();
         }
     }
-    public function create(ScopeAssignationAttributes $attributes): ScopeAssignationAttributes
+    public function create(ScopeAssignationCreateParams $params): ScopeAssignationCreateResult
     {
         $this->logDebug("Run create usecase for Scope assignation");
         $span = $this->startSpan("Run create usecase for Scope assignation");
@@ -51,15 +50,18 @@ class ScopeAssignationCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new ScopeAssignationCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new ScopeAssignationCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new ScopeAssignationCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = ScopeAssignation::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new ScopeAssignationCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new ScopeAssignationCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientVisibilityService;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -43,7 +42,7 @@ class ApiKeyClientEnableUsecase
             $span->end();
         }
     }
-    public function enable(string $uid): ApiKeyClientAttributes
+    public function enable(string $uid): ApiKeyClientEnableResult
     {
         $this->logDebug("Run Enable usecase for Api key client");
         $span = $this->startSpan("Run Enable usecase for Api key client");
@@ -53,14 +52,14 @@ class ApiKeyClientEnableUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new ApiKeyClientEnableInputProposal($ref));
-            if (!$original = $this->visibility->retrieveVisibleForUpdate($input->ref)) {
+            if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
+            $this->dispacher->dispatch(new ApiKeyClientEnableCheck($original));
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new ApiKeyClientEnableOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new ApiKeyClientEnableResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

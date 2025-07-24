@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 class TrustedClientRef
 {
     private readonly TrustedClientUidVO $_uid;
-    public ?TrustedClient $_private_enrich = null;
+    public ?TrustedClient $_private_resolve = null;
     public function __construct(TrustedClientUidVO|string $uid)
     {
         $this->_uid = TrustedClientUidVO::from($uid);

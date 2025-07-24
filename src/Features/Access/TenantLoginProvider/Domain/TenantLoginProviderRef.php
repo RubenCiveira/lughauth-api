@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 class TenantLoginProviderRef
 {
     private readonly TenantLoginProviderUidVO $_uid;
-    public ?TenantLoginProvider $_private_enrich = null;
+    public ?TenantLoginProvider $_private_resolve = null;
     public function __construct(TenantLoginProviderUidVO|string $uid)
     {
         $this->_uid = TenantLoginProviderUidVO::from($uid);

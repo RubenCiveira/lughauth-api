@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 
 interface RelyingPartyReadRepository
 {
-    public function enrich(RelyingPartyRef $ref): ?RelyingParty;
+    public function resolve(RelyingPartyRef $ref): ?RelyingParty;
     public function list(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide;
     public function retrieve(RelyingPartyFilter $filter): ?RelyingParty;
     public function exists(RelyingPartyFilter $filter): bool;

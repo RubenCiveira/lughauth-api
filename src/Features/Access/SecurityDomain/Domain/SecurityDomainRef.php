@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDoma
 class SecurityDomainRef
 {
     private readonly SecurityDomainUidVO $_uid;
-    public ?SecurityDomain $_private_enrich = null;
+    public ?SecurityDomain $_private_resolve = null;
     public function __construct(SecurityDomainUidVO|string $uid)
     {
         $this->_uid = SecurityDomainUidVO::from($uid);

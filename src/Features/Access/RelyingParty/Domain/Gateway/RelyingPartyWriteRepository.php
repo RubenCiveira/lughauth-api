@@ -14,6 +14,7 @@ interface RelyingPartyWriteRepository
     public function create(RelyingParty $entity, ?Closure $verify = null): RelyingParty;
     public function update(RelyingPartyRef $ref, RelyingParty $entity): RelyingParty;
     public function delete(RelyingParty $entity): bool;
+    public function resolveForUpdate(RelyingPartyRef $ref): ?RelyingParty;
     public function listForUpdate(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide;
     public function retrieveForUpdate(RelyingPartyFilter $filter): ?RelyingParty;
     public function existsForUpdate(?RelyingPartyFilter $filter): bool;

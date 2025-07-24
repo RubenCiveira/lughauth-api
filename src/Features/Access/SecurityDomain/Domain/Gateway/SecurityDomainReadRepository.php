@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
 
 interface SecurityDomainReadRepository
 {
-    public function enrich(SecurityDomainRef $ref): ?SecurityDomain;
+    public function resolve(SecurityDomainRef $ref): ?SecurityDomain;
     public function list(?SecurityDomainFilter $filter = null, ?SecurityDomainCursor $cursor = null): SecurityDomainSlide;
     public function retrieve(SecurityDomainFilter $filter): ?SecurityDomain;
     public function exists(SecurityDomainFilter $filter): bool;

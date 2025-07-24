@@ -10,8 +10,8 @@ test:
 	vendor/bin/phpunit  --log-junit $(REPORT_DIR)/test-report.xml
 
 format:
-	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/
-	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix test/
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/  --config=php-cs.dist
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix test/  --config=php-cs.dist
 
 lint:
 	mkdir -p $(REPORT_DIR)

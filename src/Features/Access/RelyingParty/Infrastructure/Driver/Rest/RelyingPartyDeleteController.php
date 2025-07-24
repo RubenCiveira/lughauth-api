@@ -28,7 +28,6 @@ class RelyingPartyDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly RelyingPartyDeleteUsecase $deleteUsecase,
-        private readonly RelyingPartyRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

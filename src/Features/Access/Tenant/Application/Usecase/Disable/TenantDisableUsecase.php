@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -43,7 +42,7 @@ class TenantDisableUsecase
             $span->end();
         }
     }
-    public function disable(string $uid): TenantAttributes
+    public function disable(string $uid): TenantDisableResult
     {
         $this->logDebug("Run Disable usecase for Tenant");
         $span = $this->startSpan("Run Disable usecase for Tenant");
@@ -53,14 +52,14 @@ class TenantDisableUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new TenantDisableInputProposal($ref));
-            if (!$original = $this->visibility->retrieveVisibleForUpdate($input->ref)) {
+            if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
+            $this->dispacher->dispatch(new TenantDisableCheck($original));
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantDisableOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantDisableResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

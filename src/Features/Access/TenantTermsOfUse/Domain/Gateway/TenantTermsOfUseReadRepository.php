@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
 
 interface TenantTermsOfUseReadRepository
 {
-    public function enrich(TenantTermsOfUseRef $ref): ?TenantTermsOfUse;
+    public function resolve(TenantTermsOfUseRef $ref): ?TenantTermsOfUse;
     public function list(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $cursor = null): TenantTermsOfUseSlide;
     public function retrieve(TenantTermsOfUseFilter $filter): ?TenantTermsOfUse;
     public function exists(TenantTermsOfUseFilter $filter): bool;

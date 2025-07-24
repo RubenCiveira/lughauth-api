@@ -26,14 +26,14 @@ class UserIdentityReadRepositoryAdapter implements UserIdentityReadRepository
     ) {
     }
     #[Override]
-    public function enrich(UserIdentityRef $ref): ?UserIdentity
+    public function resolve(UserIdentityRef $ref): ?UserIdentity
     {
         if ($ref instanceof UserIdentity) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new UserIdentityFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserIdentityFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?UserIdentityFilter $filter = null, ?UserIdentityCursor $sort = null): UserIdentitySlide

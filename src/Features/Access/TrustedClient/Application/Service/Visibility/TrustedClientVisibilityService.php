@@ -32,6 +32,21 @@ class TrustedClientVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(TrustedClient $content): TrustedClientAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Trusted client");
+        $span = $this->startSpan("Prepare hidratation to visible data for Trusted client");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new TrustedClientExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(TrustedClientAttributes $attributes, ?TrustedClient $original = null): TrustedClientAttributes
     {
         $this->logDebug("Copy with fixed for Trusted client");

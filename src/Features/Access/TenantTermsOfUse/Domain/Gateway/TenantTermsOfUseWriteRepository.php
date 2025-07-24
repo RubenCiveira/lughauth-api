@@ -15,6 +15,7 @@ interface TenantTermsOfUseWriteRepository
     public function create(TenantTermsOfUse $entity, ?Closure $verify = null): TenantTermsOfUse;
     public function update(TenantTermsOfUseRef $ref, TenantTermsOfUse $entity): TenantTermsOfUse;
     public function delete(TenantTermsOfUse $entity): bool;
+    public function resolveForUpdate(TenantTermsOfUseRef $ref): ?TenantTermsOfUse;
     public function listForUpdate(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $cursor = null): TenantTermsOfUseSlide;
     public function retrieveForUpdate(TenantTermsOfUseFilter $filter): ?TenantTermsOfUse;
     public function existsForUpdate(?TenantTermsOfUseFilter $filter): bool;

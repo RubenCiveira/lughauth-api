@@ -30,6 +30,11 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
     ) {
     }
     #[Override]
+    public function resolveForUpdate(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode
+    {
+        return $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $sort = null): UserAccessTemporalCodeSlide
     {
         $this->logDebug("Count for User access temporal code on adapter ");

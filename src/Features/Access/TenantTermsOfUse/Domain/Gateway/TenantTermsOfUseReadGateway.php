@@ -18,9 +18,9 @@ class TenantTermsOfUseReadGateway
     {
         $this->repository = $repository ?? $container->get(TenantTermsOfUseReadRepositoryAdapter::class);
     }
-    public function enrich(TenantTermsOfUseRef $ref): ?TenantTermsOfUse
+    public function resolve(TenantTermsOfUseRef $ref): ?TenantTermsOfUse
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $cursor = null): TenantTermsOfUseSlide
     {

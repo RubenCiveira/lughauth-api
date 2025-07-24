@@ -14,6 +14,20 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateUsecase;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeUidVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeTrustedClientVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeRelyingPartyVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeResourceVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeScopeVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeEnabledVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeKindVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeVisibilityVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScopeVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateParams;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Update\SecurityScopeUpdateResult;
 
 class SecurityScopeUpdateController
 {
@@ -23,7 +37,6 @@ class SecurityScopeUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly SecurityScopeUpdateUsecase $updateUsecase,
-        private readonly SecurityScopeRestMapper $mapper,
     ) {
     }
     #[OA\Put(
@@ -52,10 +65,10 @@ class SecurityScopeUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->mapper->readSecurityScope($request);
+            $value = $this->readSecurityScope($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapper->mapSecurityScope($result);
+            $value = $this->mapSecurityScope($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -64,6 +77,66 @@ class SecurityScopeUpdateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readSecurityScope(ServerRequestInterface $request): SecurityScopeUpdateParams
+    {
+        $this->logDebug("Read entity for Security scope");
+        $span = $this->startSpan("Read entity for Security scope");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new SecurityScopeUpdateParams();
+            $value->uid(SecurityScopeUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $trustedClient = $body['trustedClient'] ?? null;
+            if ($trustedClient && isset($body->trustedClient['$ref'])) {
+                $value->trustedClient(SecurityScopeTrustedClientVO::tryFrom(new TrustedClientRef(uid: $body->trustedClient['$ref']), $errorsList));
+            }
+            $relyingParty = $body['relyingParty'] ?? null;
+            if ($relyingParty && isset($body->relyingParty['$ref'])) {
+                $value->relyingParty(SecurityScopeRelyingPartyVO::tryFrom(new RelyingPartyRef(uid: $body->relyingParty['$ref']), $errorsList));
+            }
+            $value->resource(SecurityScopeResourceVO::tryFrom($body['resource'] ?? null, $errorsList));
+            $value->scope(SecurityScopeScopeVO::tryFrom($body['scope'] ?? null, $errorsList));
+            $value->enabled(SecurityScopeEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->kind(SecurityScopeKindVO::tryFrom($body['kind'] ?? null, $errorsList));
+            $value->visibility(SecurityScopeVisibilityVO::tryFrom($body['visibility'] ?? null, $errorsList));
+            $value->version(SecurityScopeVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapSecurityScope(SecurityScopeUpdateResult $value): SecurityScopeApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Security scope");
+        $span = $this->startSpan("Map entity to output dto for Security scope");
+        try {
+            $trustedClient = $value->getTrustedClient();
+            $relyingParty = $value->getRelyingParty();
+            $dto = new SecurityScopeApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
+            $dto->resource = $value->getResource();
+            $dto->scope = $value->getScope();
+            $dto->enabled = $value->getEnabled();
+            $dto->kind = $value->getKind();
+            $dto->visibility = $value->getVisibility();
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\SecurityScope\Domain\ValueObject\SecurityScope
 class SecurityScopeRef
 {
     private readonly SecurityScopeUidVO $_uid;
-    public ?SecurityScope $_private_enrich = null;
+    public ?SecurityScope $_private_resolve = null;
     public function __construct(SecurityScopeUidVO|string $uid)
     {
         $this->_uid = SecurityScopeUidVO::from($uid);

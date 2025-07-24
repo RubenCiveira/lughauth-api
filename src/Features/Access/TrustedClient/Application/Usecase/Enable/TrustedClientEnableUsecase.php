@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientVisibilityService;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -43,7 +42,7 @@ class TrustedClientEnableUsecase
             $span->end();
         }
     }
-    public function enable(string $uid): TrustedClientAttributes
+    public function enable(string $uid): TrustedClientEnableResult
     {
         $this->logDebug("Run Enable usecase for Trusted client");
         $span = $this->startSpan("Run Enable usecase for Trusted client");
@@ -53,14 +52,14 @@ class TrustedClientEnableUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new TrustedClientEnableInputProposal($ref));
-            if (!$original = $this->visibility->retrieveVisibleForUpdate($input->ref)) {
+            if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
+            $this->dispacher->dispatch(new TrustedClientEnableCheck($original));
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TrustedClientEnableOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TrustedClientEnableResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

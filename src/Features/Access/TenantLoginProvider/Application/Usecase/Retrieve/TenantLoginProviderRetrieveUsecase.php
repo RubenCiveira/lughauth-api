@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderVisibilityService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
@@ -57,7 +56,7 @@ class TenantLoginProviderRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): TenantLoginProviderAttributes
+    public function retrieve(string $uid): TenantLoginProviderRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for Tenant login provider");
         $span = $this->startSpan("Run retrieve usecase for Tenant login provider");
@@ -70,9 +69,8 @@ class TenantLoginProviderRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new TenantLoginProviderRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new TenantLoginProviderRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantLoginProviderRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

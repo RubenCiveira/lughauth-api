@@ -26,14 +26,14 @@ class TrustedClientReadRepositoryAdapter implements TrustedClientReadRepository
     ) {
     }
     #[Override]
-    public function enrich(TrustedClientRef $ref): ?TrustedClient
+    public function resolve(TrustedClientRef $ref): ?TrustedClient
     {
         if ($ref instanceof TrustedClient) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $sort = null): TrustedClientSlide

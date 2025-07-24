@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveUsecase;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveResult;
 
 class RelyingPartyRetrieveController
 {
@@ -21,7 +22,6 @@ class RelyingPartyRetrieveController
 
     public function __construct(
         private readonly RelyingPartyRetrieveUsecase $retrieveUsecase,
-        private readonly RelyingPartyRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,30 @@ class RelyingPartyRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapRelyingParty($result);
+            $value = $this->mapRelyingParty($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapRelyingParty(RelyingPartyRetrieveResult $value): RelyingPartyApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Relying party");
+        $span = $this->startSpan("Map entity to output dto for Relying party");
+        try {
+            $dto = new RelyingPartyApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->apiKey = $value->getApiKey();
+            $dto->enabled = $value->getEnabled();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

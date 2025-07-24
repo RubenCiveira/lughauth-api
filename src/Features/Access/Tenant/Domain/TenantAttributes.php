@@ -69,12 +69,6 @@ class TenantAttributes
             version: $version,
         );
     }
-    public function unset($field)
-    {
-        if (isset(self::UNSETS[$field])) {
-            call_user_func([$this, self::UNSETS[$field]]);
-        }
-    }
     public function withAssertedRules(): TenantAttributes
     {
         $value = new TenantAttributes();
@@ -91,6 +85,12 @@ class TenantAttributes
             throw $errorsList->asConstraintException();
         }
         return $value;
+    }
+    public function unset($field)
+    {
+        if (isset(self::UNSETS[$field])) {
+            call_user_func([$this, self::UNSETS[$field]]);
+        }
     }
     public function withDefaults(): TenantAttributes
     {

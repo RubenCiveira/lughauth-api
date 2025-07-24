@@ -28,14 +28,14 @@ class ScopeAssignationReadRepositoryAdapter implements ScopeAssignationReadRepos
     ) {
     }
     #[Override]
-    public function enrich(ScopeAssignationRef $ref): ?ScopeAssignation
+    public function resolve(ScopeAssignationRef $ref): ?ScopeAssignation
     {
         if ($ref instanceof ScopeAssignation) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new ScopeAssignationFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new ScopeAssignationFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?ScopeAssignationFilter $filter = null, ?ScopeAssignationCursor $sort = null): ScopeAssignationSlide

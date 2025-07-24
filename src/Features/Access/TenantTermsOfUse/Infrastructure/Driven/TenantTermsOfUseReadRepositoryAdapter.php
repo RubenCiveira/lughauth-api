@@ -31,14 +31,14 @@ class TenantTermsOfUseReadRepositoryAdapter implements TenantTermsOfUseReadRepos
     ) {
     }
     #[Override]
-    public function enrich(TenantTermsOfUseRef $ref): ?TenantTermsOfUse
+    public function resolve(TenantTermsOfUseRef $ref): ?TenantTermsOfUse
     {
         if ($ref instanceof TenantTermsOfUse) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $sort = null): TenantTermsOfUseSlide

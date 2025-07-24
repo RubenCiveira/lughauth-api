@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityVisibilityService;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteGateway;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class UserIdentityCreateUsecase
             $span->end();
         }
     }
-    public function create(UserIdentityAttributes $attributes): UserIdentityAttributes
+    public function create(UserIdentityCreateParams $params): UserIdentityCreateResult
     {
         $this->logDebug("Run create usecase for User identity");
         $span = $this->startSpan("Run create usecase for User identity");
@@ -51,15 +50,18 @@ class UserIdentityCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new UserIdentityCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new UserIdentityCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new UserIdentityCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = UserIdentity::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new UserIdentityCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new UserIdentityCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

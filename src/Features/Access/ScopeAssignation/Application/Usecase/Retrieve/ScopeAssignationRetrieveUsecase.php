@@ -10,7 +10,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationAttributes;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationRef;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Service\Visibility\ScopeAssignationVisibilityService;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\Gateway\ScopeAssignationReadGateway;
@@ -56,7 +55,7 @@ class ScopeAssignationRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): ScopeAssignationAttributes
+    public function retrieve(string $uid): ScopeAssignationRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for Scope assignation");
         $span = $this->startSpan("Run retrieve usecase for Scope assignation");
@@ -69,9 +68,8 @@ class ScopeAssignationRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new ScopeAssignationRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new ScopeAssignationRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new ScopeAssignationRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

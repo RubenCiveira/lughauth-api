@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseVisibilityService;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class TenantTermsOfUseUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, TenantTermsOfUseAttributes $attributes): TenantTermsOfUseAttributes
+    public function update(string $uid, TenantTermsOfUseUpdateParams $params): TenantTermsOfUseUpdateResult
     {
         $this->logDebug("Run update usecase for Tenant terms of use");
         $span = $this->startSpan("Run update usecase for Tenant terms of use");
@@ -69,11 +68,14 @@ class TenantTermsOfUseUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TenantTermsOfUseUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new TenantTermsOfUseUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new TenantTermsOfUseUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantTermsOfUseUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantTermsOfUseUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

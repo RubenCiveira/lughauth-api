@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
 
 interface TenantConfigReadRepository
 {
-    public function enrich(TenantConfigRef $ref): ?TenantConfig;
+    public function resolve(TenantConfigRef $ref): ?TenantConfig;
     public function list(?TenantConfigFilter $filter = null, ?TenantConfigCursor $cursor = null): TenantConfigSlide;
     public function retrieve(TenantConfigFilter $filter): ?TenantConfig;
     public function exists(TenantConfigFilter $filter): bool;

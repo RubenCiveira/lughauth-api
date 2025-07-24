@@ -17,9 +17,9 @@ class SecurityScopeReadGateway
     {
         $this->repository = $repository ?? $container->get(SecurityScopeReadRepositoryAdapter::class);
     }
-    public function enrich(SecurityScopeRef $ref): ?SecurityScope
+    public function resolve(SecurityScopeRef $ref): ?SecurityScope
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?SecurityScopeFilter $filter = null, ?SecurityScopeCursor $cursor = null): SecurityScopeSlide
     {

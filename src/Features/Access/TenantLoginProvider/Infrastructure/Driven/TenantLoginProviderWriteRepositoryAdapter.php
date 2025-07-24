@@ -35,6 +35,11 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     ) {
     }
     #[Override]
+    public function resolveForUpdate(TenantLoginProviderRef $ref): ?TenantLoginProvider
+    {
+        return $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $sort = null): TenantLoginProviderSlide
     {
         $this->logDebug("Count for Tenant login provider on adapter ");

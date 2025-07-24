@@ -17,9 +17,9 @@ class TenantReadGateway
     {
         $this->repository = $repository ?? $container->get(TenantReadRepositoryAdapter::class);
     }
-    public function enrich(TenantRef $ref): ?Tenant
+    public function resolve(TenantRef $ref): ?Tenant
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?TenantFilter $filter = null, ?TenantCursor $cursor = null): TenantSlide
     {

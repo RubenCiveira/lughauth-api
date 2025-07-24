@@ -29,7 +29,6 @@ class RoleDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly RoleDeleteUsecase $deleteUsecase,
-        private readonly RoleRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

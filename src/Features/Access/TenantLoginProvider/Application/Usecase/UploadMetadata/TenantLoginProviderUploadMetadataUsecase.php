@@ -7,8 +7,8 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
-use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Security\Allow;
+use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderVisibilityService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
@@ -67,9 +67,9 @@ class TenantLoginProviderUploadMetadataUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataInputProposal($binary));
-            $output = $this->writer->temporalStoreMetadata($input->file);
-            return $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataOutputProposal($output))->key;
+            $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataCheck($binary));
+            $input = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataEnrich($binary));
+            return $this->writer->temporalStoreMetadata($input->file);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

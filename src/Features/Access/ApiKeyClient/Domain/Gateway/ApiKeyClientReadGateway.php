@@ -17,9 +17,9 @@ class ApiKeyClientReadGateway
     {
         $this->repository = $repository ?? $container->get(ApiKeyClientReadRepositoryAdapter::class);
     }
-    public function enrich(ApiKeyClientRef $ref): ?ApiKeyClient
+    public function resolve(ApiKeyClientRef $ref): ?ApiKeyClient
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide
     {

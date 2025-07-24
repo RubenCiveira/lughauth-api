@@ -9,10 +9,29 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateUsecase;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUidVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTenantVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserNameVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateParams;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateResult;
 
 class UserCreateController
 {
@@ -22,7 +41,7 @@ class UserCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly UserCreateUsecase $createUsecase,
-        private readonly UserRestMapper $mapper,
+        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Post(
@@ -41,10 +60,10 @@ class UserCreateController
         $span = $this->startSpan("Create User");
         $this->sql->begin();
         try {
-            $value = $this->mapper->readUser($request);
+            $value = $this->readUser($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapper->mapUser($result);
+            $value = $this->mapUser($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
@@ -53,6 +72,76 @@ class UserCreateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readUser(ServerRequestInterface $request): UserCreateParams
+    {
+        $this->logDebug("Read entity for User");
+        $span = $this->startSpan("Read entity for User");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new UserCreateParams();
+            $value->uid(UserUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $tenant = $body['tenant'] ?? null;
+            if ($tenant && isset($body->tenant['$ref'])) {
+                $value->tenant(UserTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            }
+            $value->name(UserNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $readPassword = $body['password'] ?? '******';
+            if ($readPassword && '******' !== $readPassword) {
+                $value->password(UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList));
+            }
+            $value->email(UserEmailVO::tryFrom($body['email'] ?? null, $errorsList));
+            $value->wellcomeAt(UserWellcomeAtVO::tryFrom($body['wellcomeAt'] ?? null, $errorsList));
+            $value->enabled(UserEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->temporalPassword(UserTemporalPasswordVO::tryFrom($body['temporalPassword'] ?? null, $errorsList));
+            $value->useSecondFactors(UserUseSecondFactorsVO::tryFrom($body['useSecondFactors'] ?? null, $errorsList));
+            $readSecondFactorSeed = $body['secondFactorSeed'] ?? '******';
+            if ($readSecondFactorSeed && '******' !== $readSecondFactorSeed) {
+                $value->secondFactorSeed(UserSecondFactorSeedVO::tryFromPlainText($this->cypherService, $readSecondFactorSeed, $errorsList));
+            }
+            $value->blockedUntil(UserBlockedUntilVO::tryFrom($body['blockedUntil'] ?? null, $errorsList));
+            $value->provider(UserProviderVO::tryFrom($body['provider'] ?? null, $errorsList));
+            $value->version(UserVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapUser(UserCreateResult $value): UserApiDTO
+    {
+        $this->logDebug("Map entity to output dto for User");
+        $span = $this->startSpan("Map entity to output dto for User");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new UserApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->name = $value->getName();
+            $dto->password = '******';
+            $dto->email = $value->getEmail();
+            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
+            $dto->enabled = $value->getEnabled();
+            $dto->temporalPassword = $value->getTemporalPassword();
+            $dto->useSecondFactors = $value->getUseSecondFactors();
+            $dto->secondFactorSeed = '******';
+            $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
+            $dto->provider = $value->getProvider();
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

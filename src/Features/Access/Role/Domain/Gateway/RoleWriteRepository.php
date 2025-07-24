@@ -15,6 +15,7 @@ interface RoleWriteRepository
     public function create(Role $entity, ?Closure $verify = null): Role;
     public function update(RoleRef $ref, Role $entity): Role;
     public function delete(Role $entity): bool;
+    public function resolveForUpdate(RoleRef $ref): ?Role;
     public function listForUpdate(?RoleFilter $filter = null, ?RoleCursor $cursor = null): RoleSlide;
     public function retrieveForUpdate(RoleFilter $filter): ?Role;
     public function existsForUpdate(?RoleFilter $filter): bool;

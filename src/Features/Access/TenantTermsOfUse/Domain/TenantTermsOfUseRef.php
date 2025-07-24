@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 class TenantTermsOfUseRef
 {
     private readonly TenantTermsOfUseUidVO $_uid;
-    public ?TenantTermsOfUse $_private_enrich = null;
+    public ?TenantTermsOfUse $_private_resolve = null;
     public function __construct(TenantTermsOfUseUidVO|string $uid)
     {
         $this->_uid = TenantTermsOfUseUidVO::from($uid);

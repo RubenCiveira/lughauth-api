@@ -27,14 +27,14 @@ class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalC
     ) {
     }
     #[Override]
-    public function enrich(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode
+    public function resolve(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode
     {
         if ($ref instanceof UserAccessTemporalCode) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $sort = null): UserAccessTemporalCodeSlide

@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveUsecase;
+use Civi\Lughauth\Features\Access\SecurityScope\Application\Usecase\Retrieve\SecurityScopeRetrieveResult;
 
 class SecurityScopeRetrieveController
 {
@@ -21,7 +22,6 @@ class SecurityScopeRetrieveController
 
     public function __construct(
         private readonly SecurityScopeRetrieveUsecase $retrieveUsecase,
-        private readonly SecurityScopeRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,36 @@ class SecurityScopeRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapSecurityScope($result);
+            $value = $this->mapSecurityScope($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapSecurityScope(SecurityScopeRetrieveResult $value): SecurityScopeApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Security scope");
+        $span = $this->startSpan("Map entity to output dto for Security scope");
+        try {
+            $trustedClient = $value->getTrustedClient();
+            $relyingParty = $value->getRelyingParty();
+            $dto = new SecurityScopeApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
+            $dto->resource = $value->getResource();
+            $dto->scope = $value->getScope();
+            $dto->enabled = $value->getEnabled();
+            $dto->kind = $value->getKind();
+            $dto->visibility = $value->getVisibility();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

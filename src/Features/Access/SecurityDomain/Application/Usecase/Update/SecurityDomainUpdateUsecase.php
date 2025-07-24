@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class SecurityDomainUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, SecurityDomainAttributes $attributes): SecurityDomainAttributes
+    public function update(string $uid, SecurityDomainUpdateParams $params): SecurityDomainUpdateResult
     {
         $this->logDebug("Run update usecase for Security domain");
         $span = $this->startSpan("Run update usecase for Security domain");
@@ -69,11 +68,14 @@ class SecurityDomainUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new SecurityDomainUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new SecurityDomainUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new SecurityDomainUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new SecurityDomainUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityDomainUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

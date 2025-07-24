@@ -30,7 +30,6 @@ class ScopeAssignationDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly ScopeAssignationDeleteUsecase $deleteUsecase,
-        private readonly ScopeAssignationRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

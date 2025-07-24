@@ -10,7 +10,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
@@ -56,7 +55,7 @@ class TenantRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): TenantAttributes
+    public function retrieve(string $uid): TenantRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for Tenant");
         $span = $this->startSpan("Run retrieve usecase for Tenant");
@@ -69,9 +68,8 @@ class TenantRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new TenantRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new TenantRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

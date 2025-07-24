@@ -36,6 +36,21 @@ class RoleVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(Role $content): RoleAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Role");
+        $span = $this->startSpan("Prepare hidratation to visible data for Role");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new RoleExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(RoleAttributes $attributes, ?Role $original = null): RoleAttributes
     {
         $this->logDebug("Copy with fixed for Role");

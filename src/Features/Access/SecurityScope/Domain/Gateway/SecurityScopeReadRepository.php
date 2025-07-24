@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
 
 interface SecurityScopeReadRepository
 {
-    public function enrich(SecurityScopeRef $ref): ?SecurityScope;
+    public function resolve(SecurityScopeRef $ref): ?SecurityScope;
     public function list(?SecurityScopeFilter $filter = null, ?SecurityScopeCursor $cursor = null): SecurityScopeSlide;
     public function retrieve(SecurityScopeFilter $filter): ?SecurityScope;
     public function exists(SecurityScopeFilter $filter): bool;

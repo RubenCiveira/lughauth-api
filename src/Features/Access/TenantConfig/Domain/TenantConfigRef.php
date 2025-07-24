@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigUi
 class TenantConfigRef
 {
     private readonly TenantConfigUidVO $_uid;
-    public ?TenantConfig $_private_enrich = null;
+    public ?TenantConfig $_private_resolve = null;
     public function __construct(TenantConfigUidVO|string $uid)
     {
         $this->_uid = TenantConfigUidVO::from($uid);

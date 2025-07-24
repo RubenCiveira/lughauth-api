@@ -26,14 +26,14 @@ class SecurityScopeReadRepositoryAdapter implements SecurityScopeReadRepository
     ) {
     }
     #[Override]
-    public function enrich(SecurityScopeRef $ref): ?SecurityScope
+    public function resolve(SecurityScopeRef $ref): ?SecurityScope
     {
         if ($ref instanceof SecurityScope) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new SecurityScopeFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new SecurityScopeFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?SecurityScopeFilter $filter = null, ?SecurityScopeCursor $sort = null): SecurityScopeSlide

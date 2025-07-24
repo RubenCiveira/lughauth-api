@@ -28,7 +28,6 @@ class TrustedClientDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly TrustedClientDeleteUsecase $deleteUsecase,
-        private readonly TrustedClientRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

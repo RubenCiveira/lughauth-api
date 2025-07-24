@@ -18,9 +18,9 @@ class UserAccessTemporalCodeReadGateway
     {
         $this->repository = $repository ?? $container->get(UserAccessTemporalCodeReadRepositoryAdapter::class);
     }
-    public function enrich(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode
+    public function resolve(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide
     {

@@ -29,6 +29,11 @@ class SecurityScopeWriteRepositoryAdapter implements SecurityScopeWriteRepositor
     ) {
     }
     #[Override]
+    public function resolveForUpdate(SecurityScopeRef $ref): ?SecurityScope
+    {
+        return $this->conn->retrieve(new SecurityScopeFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?SecurityScopeFilter $filter = null, ?SecurityScopeCursor $sort = null): SecurityScopeSlide
     {
         $this->logDebug("Count for Security scope on adapter ");

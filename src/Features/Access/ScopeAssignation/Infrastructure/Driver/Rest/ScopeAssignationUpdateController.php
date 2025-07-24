@@ -14,6 +14,15 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateUsecase;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ValueObject\ScopeAssignationUidVO;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ValueObject\ScopeAssignationSecurityDomainVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ValueObject\ScopeAssignationSecurityScopeVO;
+use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ValueObject\ScopeAssignationVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateParams;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Update\ScopeAssignationUpdateResult;
 
 class ScopeAssignationUpdateController
 {
@@ -23,7 +32,6 @@ class ScopeAssignationUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly ScopeAssignationUpdateUsecase $updateUsecase,
-        private readonly ScopeAssignationRestMapper $mapper,
     ) {
     }
     #[OA\Put(
@@ -52,10 +60,10 @@ class ScopeAssignationUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->mapper->readScopeAssignation($request);
+            $value = $this->readScopeAssignation($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapper->mapScopeAssignation($result);
+            $value = $this->mapScopeAssignation($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -64,6 +72,56 @@ class ScopeAssignationUpdateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readScopeAssignation(ServerRequestInterface $request): ScopeAssignationUpdateParams
+    {
+        $this->logDebug("Read entity for Scope assignation");
+        $span = $this->startSpan("Read entity for Scope assignation");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new ScopeAssignationUpdateParams();
+            $value->uid(ScopeAssignationUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $securityDomain = $body['securityDomain'] ?? null;
+            if ($securityDomain && isset($body->securityDomain['$ref'])) {
+                $value->securityDomain(ScopeAssignationSecurityDomainVO::tryFrom(new SecurityDomainRef(uid: $body->securityDomain['$ref']), $errorsList));
+            }
+            $securityScope = $body['securityScope'] ?? null;
+            if ($securityScope && isset($body->securityScope['$ref'])) {
+                $value->securityScope(ScopeAssignationSecurityScopeVO::tryFrom(new SecurityScopeRef(uid: $body->securityScope['$ref']), $errorsList));
+            }
+            $value->version(ScopeAssignationVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapScopeAssignation(ScopeAssignationUpdateResult $value): ScopeAssignationApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Scope assignation");
+        $span = $this->startSpan("Map entity to output dto for Scope assignation");
+        try {
+            $securityDomain = $value->getSecurityDomain();
+            $securityScope = $value->getSecurityScope();
+            $dto = new ScopeAssignationApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->securityDomain = $securityDomain ? ['$ref' => $securityDomain->uid()] : null;
+            $dto->securityScope = $securityScope ? ['$ref' => $securityScope->uid()] : null;
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

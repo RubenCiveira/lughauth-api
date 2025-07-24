@@ -31,6 +31,11 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
     ) {
     }
     #[Override]
+    public function resolveForUpdate(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse
+    {
+        return $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $sort = null): UserAcceptedTermnsOfUseSlide
     {
         $this->logDebug("Count for User accepted termns of use on adapter ");

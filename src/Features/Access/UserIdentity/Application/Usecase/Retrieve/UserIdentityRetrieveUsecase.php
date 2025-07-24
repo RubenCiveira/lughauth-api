@@ -10,7 +10,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityVisibilityService;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
@@ -56,7 +55,7 @@ class UserIdentityRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): UserIdentityAttributes
+    public function retrieve(string $uid): UserIdentityRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for User identity");
         $span = $this->startSpan("Run retrieve usecase for User identity");
@@ -69,9 +68,8 @@ class UserIdentityRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new UserIdentityRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new UserIdentityRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new UserIdentityRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

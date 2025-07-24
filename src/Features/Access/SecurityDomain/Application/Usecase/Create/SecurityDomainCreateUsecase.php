@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomain;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainWriteGateway;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class SecurityDomainCreateUsecase
             $span->end();
         }
     }
-    public function create(SecurityDomainAttributes $attributes): SecurityDomainAttributes
+    public function create(SecurityDomainCreateParams $params): SecurityDomainCreateResult
     {
         $this->logDebug("Run create usecase for Security domain");
         $span = $this->startSpan("Run create usecase for Security domain");
@@ -51,15 +50,18 @@ class SecurityDomainCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new SecurityDomainCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new SecurityDomainCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new SecurityDomainCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = SecurityDomain::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new SecurityDomainCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityDomainCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

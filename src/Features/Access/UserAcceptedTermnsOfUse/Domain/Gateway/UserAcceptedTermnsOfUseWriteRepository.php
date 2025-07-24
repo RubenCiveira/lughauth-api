@@ -16,6 +16,7 @@ interface UserAcceptedTermnsOfUseWriteRepository
     public function create(UserAcceptedTermnsOfUse $entity, ?Closure $verify = null): UserAcceptedTermnsOfUse;
     public function update(UserAcceptedTermnsOfUseRef $ref, UserAcceptedTermnsOfUse $entity): UserAcceptedTermnsOfUse;
     public function delete(UserAcceptedTermnsOfUse $entity): bool;
+    public function resolveForUpdate(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse;
     public function listForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $cursor = null): UserAcceptedTermnsOfUseSlide;
     public function retrieveForUpdate(UserAcceptedTermnsOfUseFilter $filter): ?UserAcceptedTermnsOfUse;
     public function existsForUpdate(?UserAcceptedTermnsOfUseFilter $filter): bool;

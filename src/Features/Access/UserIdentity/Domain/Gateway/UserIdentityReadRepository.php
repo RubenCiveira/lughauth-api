@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
 
 interface UserIdentityReadRepository
 {
-    public function enrich(UserIdentityRef $ref): ?UserIdentity;
+    public function resolve(UserIdentityRef $ref): ?UserIdentity;
     public function list(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide;
     public function retrieve(UserIdentityFilter $filter): ?UserIdentity;
     public function exists(UserIdentityFilter $filter): bool;

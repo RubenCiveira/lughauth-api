@@ -33,6 +33,21 @@ class UserVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(User $content): UserAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for User");
+        $span = $this->startSpan("Prepare hidratation to visible data for User");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new UserExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(UserAttributes $attributes, ?User $original = null): UserAttributes
     {
         $this->logDebug("Copy with fixed for User");

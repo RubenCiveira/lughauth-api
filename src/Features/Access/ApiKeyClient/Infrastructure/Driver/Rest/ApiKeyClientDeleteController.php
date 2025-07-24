@@ -28,7 +28,6 @@ class ApiKeyClientDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly ApiKeyClientDeleteUsecase $deleteUsecase,
-        private readonly ApiKeyClientRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

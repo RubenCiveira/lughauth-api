@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientVisibilityService;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class TrustedClientCreateUsecase
             $span->end();
         }
     }
-    public function create(TrustedClientAttributes $attributes): TrustedClientAttributes
+    public function create(TrustedClientCreateParams $params): TrustedClientCreateResult
     {
         $this->logDebug("Run create usecase for Trusted client");
         $span = $this->startSpan("Run create usecase for Trusted client");
@@ -51,15 +50,18 @@ class TrustedClientCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TrustedClientCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new TrustedClientCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new TrustedClientCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = TrustedClient::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TrustedClientCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TrustedClientCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

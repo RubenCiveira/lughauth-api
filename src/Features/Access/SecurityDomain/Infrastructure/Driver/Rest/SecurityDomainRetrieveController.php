@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Retrieve\SecurityDomainRetrieveUsecase;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Retrieve\SecurityDomainRetrieveResult;
 
 class SecurityDomainRetrieveController
 {
@@ -21,7 +22,6 @@ class SecurityDomainRetrieveController
 
     public function __construct(
         private readonly SecurityDomainRetrieveUsecase $retrieveUsecase,
-        private readonly SecurityDomainRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,33 @@ class SecurityDomainRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapSecurityDomain($result);
+            $value = $this->mapSecurityDomain($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapSecurityDomain(SecurityDomainRetrieveResult $value): SecurityDomainApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Security domain");
+        $span = $this->startSpan("Map entity to output dto for Security domain");
+        try {
+            $dto = new SecurityDomainApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->level = $value->getLevel();
+            $dto->readAll = $value->getReadAll();
+            $dto->writeAll = $value->getWriteAll();
+            $dto->manageAll = $value->getManageAll();
+            $dto->enabled = $value->getEnabled();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

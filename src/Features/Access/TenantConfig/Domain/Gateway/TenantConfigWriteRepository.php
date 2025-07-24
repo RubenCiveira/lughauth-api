@@ -15,6 +15,7 @@ interface TenantConfigWriteRepository
     public function create(TenantConfig $entity, ?Closure $verify = null): TenantConfig;
     public function update(TenantConfigRef $ref, TenantConfig $entity): TenantConfig;
     public function delete(TenantConfig $entity): bool;
+    public function resolveForUpdate(TenantConfigRef $ref): ?TenantConfig;
     public function listForUpdate(?TenantConfigFilter $filter = null, ?TenantConfigCursor $cursor = null): TenantConfigSlide;
     public function retrieveForUpdate(TenantConfigFilter $filter): ?TenantConfig;
     public function existsForUpdate(?TenantConfigFilter $filter): bool;

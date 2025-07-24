@@ -27,14 +27,14 @@ class TenantConfigReadRepositoryAdapter implements TenantConfigReadRepository
     ) {
     }
     #[Override]
-    public function enrich(TenantConfigRef $ref): ?TenantConfig
+    public function resolve(TenantConfigRef $ref): ?TenantConfig
     {
         if ($ref instanceof TenantConfig) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?TenantConfigFilter $filter = null, ?TenantConfigCursor $sort = null): TenantConfigSlide

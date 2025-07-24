@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveUsecase;
+use Civi\Lughauth\Features\Access\ScopeAssignation\Application\Usecase\Retrieve\ScopeAssignationRetrieveResult;
 
 class ScopeAssignationRetrieveController
 {
@@ -21,7 +22,6 @@ class ScopeAssignationRetrieveController
 
     public function __construct(
         private readonly ScopeAssignationRetrieveUsecase $retrieveUsecase,
-        private readonly ScopeAssignationRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,31 @@ class ScopeAssignationRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapScopeAssignation($result);
+            $value = $this->mapScopeAssignation($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapScopeAssignation(ScopeAssignationRetrieveResult $value): ScopeAssignationApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Scope assignation");
+        $span = $this->startSpan("Map entity to output dto for Scope assignation");
+        try {
+            $securityDomain = $value->getSecurityDomain();
+            $securityScope = $value->getSecurityScope();
+            $dto = new ScopeAssignationApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->securityDomain = $securityDomain ? ['$ref' => $securityDomain->uid()] : null;
+            $dto->securityScope = $securityScope ? ['$ref' => $securityScope->uid()] : null;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

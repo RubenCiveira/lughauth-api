@@ -33,6 +33,21 @@ class TenantLoginProviderVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(TenantLoginProvider $content): TenantLoginProviderAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Tenant login provider");
+        $span = $this->startSpan("Prepare hidratation to visible data for Tenant login provider");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new TenantLoginProviderExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(TenantLoginProviderAttributes $attributes, ?TenantLoginProvider $original = null): TenantLoginProviderAttributes
     {
         $this->logDebug("Copy with fixed for Tenant login provider");

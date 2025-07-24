@@ -9,11 +9,14 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Value\StreamResource;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveUsecase;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveResult;
 
 class TenantTermsOfUseRetrieveController
 {
@@ -22,7 +25,7 @@ class TenantTermsOfUseRetrieveController
 
     public function __construct(
         private readonly TenantTermsOfUseRetrieveUsecase $retrieveUsecase,
-        private readonly TenantTermsOfUseRestMapper $mapper,
+        private readonly Context $context,
     ) {
     }
     #[OA\Get(
@@ -47,7 +50,7 @@ class TenantTermsOfUseRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapTenantTermsOfUse($result);
+            $value = $this->mapTenantTermsOfUse($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -77,6 +80,31 @@ class TenantTermsOfUseRetrieveController
                                ->withHeader('Content-Length', (string)$fileSize);
             $stream = new StreamResource($resource);
             return $response->withBody($stream);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenantTermsOfUse(TenantTermsOfUseRetrieveResult $value): TenantTermsOfUseApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant terms of use");
+        $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantTermsOfUseApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->text = $value->getText();
+            $dto->enabled = $value->getEnabled();
+            if ($value->getAttached()) {
+                $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+            }
+            $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

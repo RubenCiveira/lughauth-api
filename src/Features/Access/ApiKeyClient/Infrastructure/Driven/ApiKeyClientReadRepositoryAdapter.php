@@ -26,14 +26,14 @@ class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadRepository
     ) {
     }
     #[Override]
-    public function enrich(ApiKeyClientRef $ref): ?ApiKeyClient
+    public function resolve(ApiKeyClientRef $ref): ?ApiKeyClient
     {
         if ($ref instanceof ApiKeyClient) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $sort = null): ApiKeyClientSlide

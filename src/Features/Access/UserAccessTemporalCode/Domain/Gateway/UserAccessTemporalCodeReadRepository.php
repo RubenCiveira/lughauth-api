@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 
 interface UserAccessTemporalCodeReadRepository
 {
-    public function enrich(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode;
+    public function resolve(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode;
     public function list(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide;
     public function retrieve(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode;
     public function exists(UserAccessTemporalCodeFilter $filter): bool;

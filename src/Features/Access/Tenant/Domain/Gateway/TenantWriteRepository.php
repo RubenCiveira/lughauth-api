@@ -14,6 +14,7 @@ interface TenantWriteRepository
     public function create(Tenant $entity, ?Closure $verify = null): Tenant;
     public function update(TenantRef $ref, Tenant $entity): Tenant;
     public function delete(Tenant $entity): bool;
+    public function resolveForUpdate(TenantRef $ref): ?Tenant;
     public function listForUpdate(?TenantFilter $filter = null, ?TenantCursor $cursor = null): TenantSlide;
     public function retrieveForUpdate(TenantFilter $filter): ?Tenant;
     public function existsForUpdate(?TenantFilter $filter): bool;

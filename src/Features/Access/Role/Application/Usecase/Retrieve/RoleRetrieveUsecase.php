@@ -10,7 +10,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleVisibilityService;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
@@ -56,7 +55,7 @@ class RoleRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): RoleAttributes
+    public function retrieve(string $uid): RoleRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for Role");
         $span = $this->startSpan("Run retrieve usecase for Role");
@@ -69,9 +68,8 @@ class RoleRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new RoleRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new RoleRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new RoleRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

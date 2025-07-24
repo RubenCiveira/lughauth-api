@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class TenantUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, TenantAttributes $attributes): TenantAttributes
+    public function update(string $uid, TenantUpdateParams $params): TenantUpdateResult
     {
         $this->logDebug("Run update usecase for Tenant");
         $span = $this->startSpan("Run update usecase for Tenant");
@@ -69,11 +68,14 @@ class TenantUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TenantUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new TenantUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new TenantUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

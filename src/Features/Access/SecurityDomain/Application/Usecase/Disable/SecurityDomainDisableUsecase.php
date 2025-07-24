@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainAttributes;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Service\Visibility\SecurityDomainVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -43,7 +42,7 @@ class SecurityDomainDisableUsecase
             $span->end();
         }
     }
-    public function disable(string $uid): SecurityDomainAttributes
+    public function disable(string $uid): SecurityDomainDisableResult
     {
         $this->logDebug("Run Disable usecase for Security domain");
         $span = $this->startSpan("Run Disable usecase for Security domain");
@@ -53,14 +52,14 @@ class SecurityDomainDisableUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new SecurityDomainDisableInputProposal($ref));
-            if (!$original = $this->visibility->retrieveVisibleForUpdate($input->ref)) {
+            if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
+            $this->dispacher->dispatch(new SecurityDomainDisableCheck($original));
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new SecurityDomainDisableOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityDomainDisableResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

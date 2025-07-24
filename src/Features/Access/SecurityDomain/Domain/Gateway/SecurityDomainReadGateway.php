@@ -17,9 +17,9 @@ class SecurityDomainReadGateway
     {
         $this->repository = $repository ?? $container->get(SecurityDomainReadRepositoryAdapter::class);
     }
-    public function enrich(SecurityDomainRef $ref): ?SecurityDomain
+    public function resolve(SecurityDomainRef $ref): ?SecurityDomain
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?SecurityDomainFilter $filter = null, ?SecurityDomainCursor $cursor = null): SecurityDomainSlide
     {

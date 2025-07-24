@@ -14,6 +14,7 @@ interface SecurityDomainWriteRepository
     public function create(SecurityDomain $entity, ?Closure $verify = null): SecurityDomain;
     public function update(SecurityDomainRef $ref, SecurityDomain $entity): SecurityDomain;
     public function delete(SecurityDomain $entity): bool;
+    public function resolveForUpdate(SecurityDomainRef $ref): ?SecurityDomain;
     public function listForUpdate(?SecurityDomainFilter $filter = null, ?SecurityDomainCursor $cursor = null): SecurityDomainSlide;
     public function retrieveForUpdate(SecurityDomainFilter $filter): ?SecurityDomain;
     public function existsForUpdate(?SecurityDomainFilter $filter): bool;

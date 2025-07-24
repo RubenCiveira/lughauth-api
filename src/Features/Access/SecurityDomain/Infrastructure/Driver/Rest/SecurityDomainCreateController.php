@@ -13,6 +13,17 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Create\SecurityDomainCreateUsecase;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainUidVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainNameVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainLevelVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainReadAllVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainWriteAllVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainManageAllVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainEnabledVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Create\SecurityDomainCreateParams;
+use Civi\Lughauth\Features\Access\SecurityDomain\Application\Usecase\Create\SecurityDomainCreateResult;
 
 class SecurityDomainCreateController
 {
@@ -22,7 +33,6 @@ class SecurityDomainCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly SecurityDomainCreateUsecase $createUsecase,
-        private readonly SecurityDomainRestMapper $mapper,
     ) {
     }
     #[OA\Post(
@@ -41,10 +51,10 @@ class SecurityDomainCreateController
         $span = $this->startSpan("Create Security domain");
         $this->sql->begin();
         try {
-            $value = $this->mapper->readSecurityDomain($request);
+            $value = $this->readSecurityDomain($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapper->mapSecurityDomain($result);
+            $value = $this->mapSecurityDomain($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
@@ -53,6 +63,56 @@ class SecurityDomainCreateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readSecurityDomain(ServerRequestInterface $request): SecurityDomainCreateParams
+    {
+        $this->logDebug("Read entity for Security domain");
+        $span = $this->startSpan("Read entity for Security domain");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new SecurityDomainCreateParams();
+            $value->uid(SecurityDomainUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $value->name(SecurityDomainNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $value->level(SecurityDomainLevelVO::tryFrom($body['level'] ?? null, $errorsList));
+            $value->readAll(SecurityDomainReadAllVO::tryFrom($body['readAll'] ?? null, $errorsList));
+            $value->writeAll(SecurityDomainWriteAllVO::tryFrom($body['writeAll'] ?? null, $errorsList));
+            $value->manageAll(SecurityDomainManageAllVO::tryFrom($body['manageAll'] ?? null, $errorsList));
+            $value->enabled(SecurityDomainEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->version(SecurityDomainVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapSecurityDomain(SecurityDomainCreateResult $value): SecurityDomainApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Security domain");
+        $span = $this->startSpan("Map entity to output dto for Security domain");
+        try {
+            $dto = new SecurityDomainApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->level = $value->getLevel();
+            $dto->readAll = $value->getReadAll();
+            $dto->writeAll = $value->getWriteAll();
+            $dto->manageAll = $value->getManageAll();
+            $dto->enabled = $value->getEnabled();
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

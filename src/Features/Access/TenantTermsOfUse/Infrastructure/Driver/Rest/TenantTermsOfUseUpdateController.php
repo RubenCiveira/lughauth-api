@@ -9,11 +9,24 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateUsecase;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseUidVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseActivationDateVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateParams;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateResult;
 
 class TenantTermsOfUseUpdateController
 {
@@ -23,7 +36,7 @@ class TenantTermsOfUseUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly TenantTermsOfUseUpdateUsecase $updateUsecase,
-        private readonly TenantTermsOfUseRestMapper $mapper,
+        private readonly Context $context,
     ) {
     }
     #[OA\Put(
@@ -52,10 +65,10 @@ class TenantTermsOfUseUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->mapper->readTenantTermsOfUse($request);
+            $value = $this->readTenantTermsOfUse($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapper->mapTenantTermsOfUse($result);
+            $value = $this->mapTenantTermsOfUse($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -64,6 +77,64 @@ class TenantTermsOfUseUpdateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readTenantTermsOfUse(ServerRequestInterface $request): TenantTermsOfUseUpdateParams
+    {
+        $this->logDebug("Read entity for Tenant terms of use");
+        $span = $this->startSpan("Read entity for Tenant terms of use");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new TenantTermsOfUseUpdateParams();
+            $value->uid(TenantTermsOfUseUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $tenant = $body['tenant'] ?? null;
+            if ($tenant && isset($body->tenant['$ref'])) {
+                $value->tenant(TenantTermsOfUseTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            }
+            $value->text(TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList));
+            $value->enabled(TenantTermsOfUseEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $attached = $body['attached'] ?? null;
+            $preffixAttached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/-/temp-attached?temp=';
+            if ($attached && strpos($attached, $preffixAttached) === 0) {
+                $value->attached(TenantTermsOfUseAttachedVO::tryFromTemporal(base64_decode(substr($attached, strlen($preffixAttached))), $errorsList));
+            }
+            $value->activationDate(TenantTermsOfUseActivationDateVO::tryFrom($body['activationDate'] ?? null, $errorsList));
+            $value->version(TenantTermsOfUseVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapTenantTermsOfUse(TenantTermsOfUseUpdateResult $value): TenantTermsOfUseApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant terms of use");
+        $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantTermsOfUseApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->text = $value->getText();
+            $dto->enabled = $value->getEnabled();
+            if ($value->getAttached()) {
+                $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+            }
+            $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveUsecase;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveResult;
 
 class RoleRetrieveController
 {
@@ -21,7 +22,6 @@ class RoleRetrieveController
 
     public function __construct(
         private readonly RoleRetrieveUsecase $retrieveUsecase,
-        private readonly RoleRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,39 @@ class RoleRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapRole($result);
+            $value = $this->mapRole($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapRole(RoleRetrieveResult $value): RoleApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Role");
+        $span = $this->startSpan("Map entity to output dto for Role");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new RoleApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $domains = [];
+            foreach ($value->getDomains() as $item) {
+                $domains[] = [
+                  'uid' => $item->uid(),
+                  'securityDomain' => $item->getSecurityDomain() ? ['$ref' => $item->getSecurityDomain()->uid() ] : null,
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->domains = $domains;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

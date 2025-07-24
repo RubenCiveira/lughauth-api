@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\User
 class UserAccessTemporalCodeRef
 {
     private readonly UserAccessTemporalCodeUidVO $_uid;
-    public ?UserAccessTemporalCode $_private_enrich = null;
+    public ?UserAccessTemporalCode $_private_resolve = null;
     public function __construct(UserAccessTemporalCodeUidVO|string $uid)
     {
         $this->_uid = UserAccessTemporalCodeUidVO::from($uid);

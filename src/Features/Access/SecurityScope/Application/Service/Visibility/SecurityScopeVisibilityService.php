@@ -35,6 +35,21 @@ class SecurityScopeVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(SecurityScope $content): SecurityScopeAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Security scope");
+        $span = $this->startSpan("Prepare hidratation to visible data for Security scope");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new SecurityScopeExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(SecurityScopeAttributes $attributes, ?SecurityScope $original = null): SecurityScopeAttributes
     {
         $this->logDebug("Copy with fixed for Security scope");

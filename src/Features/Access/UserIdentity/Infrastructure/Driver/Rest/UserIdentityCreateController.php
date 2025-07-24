@@ -13,6 +13,25 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateUsecase;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityUidVO;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityUserVO;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRelyingPartyVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityTrustedClientVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesVO;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesUidVO;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesRoleVO;
+use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesVersionVO;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesItem;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesListRef;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateParams;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateResult;
 
 class UserIdentityCreateController
 {
@@ -22,7 +41,6 @@ class UserIdentityCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly UserIdentityCreateUsecase $createUsecase,
-        private readonly UserIdentityRestMapper $mapper,
     ) {
     }
     #[OA\Post(
@@ -41,10 +59,10 @@ class UserIdentityCreateController
         $span = $this->startSpan("Create User identity");
         $this->sql->begin();
         try {
-            $value = $this->mapper->readUserIdentity($request);
+            $value = $this->readUserIdentity($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapper->mapUserIdentity($result);
+            $value = $this->mapUserIdentity($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
@@ -53,6 +71,95 @@ class UserIdentityCreateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readUserIdentity(ServerRequestInterface $request): UserIdentityCreateParams
+    {
+        $this->logDebug("Read entity for User identity");
+        $span = $this->startSpan("Read entity for User identity");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new UserIdentityCreateParams();
+            $value->uid(UserIdentityUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $user = $body['user'] ?? null;
+            if ($user && isset($body->user['$ref'])) {
+                $value->user(UserIdentityUserVO::tryFrom(new UserRef(uid: $body->user['$ref']), $errorsList));
+            }
+            $relyingParty = $body['relyingParty'] ?? null;
+            if ($relyingParty && isset($body->relyingParty['$ref'])) {
+                $value->relyingParty(UserIdentityRelyingPartyVO::tryFrom(new RelyingPartyRef(uid: $body->relyingParty['$ref']), $errorsList));
+            }
+            $trustedClient = $body['trustedClient'] ?? null;
+            if ($trustedClient && isset($body->trustedClient['$ref'])) {
+                $value->trustedClient(UserIdentityTrustedClientVO::tryFrom(new TrustedClientRef(uid: $body->trustedClient['$ref']), $errorsList));
+            }
+            $roles = $body['roles'] ?? null;
+            $rolesList = [];
+            if (isset($body->roles)) {
+                if (is_array($body->roles)) {
+                    foreach ($body->roles as $item) {
+                        $innerErrorsList = new ConstraintFailList();
+                        $innerUid = UserIdentityRolesUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerRole = UserIdentityRolesRoleVO::tryFrom(isset($item['role']['$ref']) ? new RoleRef($item['role']['$ref']) : null, $innerErrorsList);
+                        $innerVersion = UserIdentityRolesVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        if (!$innerErrorsList->hasErrors()) {
+                            $rolesList[] = new UserIdentityRolesItem(
+                                uid: $innerUid,
+                                role: $innerRole,
+                                version: $innerVersion,
+                            );
+                        } else {
+                            $errorsList->add($innerErrorsList);
+                        }
+                    }
+                } else {
+                    $errorsList->add(new ConstraintFail('not-array', ['roles'], $roles, ['array']));
+                }
+            }
+            $value->roles(UserIdentityRolesVO::from(UserIdentityRolesListRef::fromArray($rolesList)));
+            $value->version(UserIdentityVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapUserIdentity(UserIdentityCreateResult $value): UserIdentityApiDTO
+    {
+        $this->logDebug("Map entity to output dto for User identity");
+        $span = $this->startSpan("Map entity to output dto for User identity");
+        try {
+            $user = $value->getUser();
+            $relyingParty = $value->getRelyingParty();
+            $trustedClient = $value->getTrustedClient();
+            $dto = new UserIdentityApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->user = $user ? ['$ref' => $user->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
+            $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
+            $roles = [];
+            foreach ($value->getRoles() as $item) {
+                $roles[] = [
+                  'uid' => $item->uid(),
+                  'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->roles = $roles;
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

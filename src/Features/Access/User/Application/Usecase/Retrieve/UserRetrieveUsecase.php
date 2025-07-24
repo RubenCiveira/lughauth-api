@@ -10,7 +10,6 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
-use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserVisibilityService;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
@@ -56,7 +55,7 @@ class UserRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieve(string $uid): UserAttributes
+    public function retrieve(string $uid): UserRetrieveResult
     {
         $this->logDebug("Run retrieve usecase for User");
         $span = $this->startSpan("Run retrieve usecase for User");
@@ -69,9 +68,8 @@ class UserRetrieveUsecase
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->dispacher->dispatch(new UserRetrieveInputProposal($result))->ref;
-            $output = $this->visibility->copyWithHidden($input->toAttributes());
-            return $this->dispacher->dispatch(new UserRetrieveOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new UserRetrieveResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -19,9 +19,9 @@ class UserAcceptedTermnsOfUseReadGateway
     {
         $this->repository = $repository ?? $container->get(UserAcceptedTermnsOfUseReadRepositoryAdapter::class);
     }
-    public function enrich(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse
+    public function resolve(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $cursor = null): UserAcceptedTermnsOfUseSlide
     {

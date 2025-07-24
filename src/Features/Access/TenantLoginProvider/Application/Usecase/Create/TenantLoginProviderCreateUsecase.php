@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderVisibilityService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class TenantLoginProviderCreateUsecase
             $span->end();
         }
     }
-    public function create(TenantLoginProviderAttributes $attributes): TenantLoginProviderAttributes
+    public function create(TenantLoginProviderCreateParams $params): TenantLoginProviderCreateResult
     {
         $this->logDebug("Run create usecase for Tenant login provider");
         $span = $this->startSpan("Run create usecase for Tenant login provider");
@@ -51,15 +50,18 @@ class TenantLoginProviderCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TenantLoginProviderCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new TenantLoginProviderCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new TenantLoginProviderCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = TenantLoginProvider::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantLoginProviderCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantLoginProviderCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

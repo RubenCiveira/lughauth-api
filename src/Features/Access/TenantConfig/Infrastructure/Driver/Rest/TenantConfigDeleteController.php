@@ -29,7 +29,6 @@ class TenantConfigDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly TenantConfigDeleteUsecase $deleteUsecase,
-        private readonly TenantConfigRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

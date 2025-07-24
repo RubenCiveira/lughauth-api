@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 
 interface UserReadRepository
 {
-    public function enrich(UserRef $ref): ?User;
+    public function resolve(UserRef $ref): ?User;
     public function list(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide;
     public function retrieve(UserFilter $filter): ?User;
     public function exists(UserFilter $filter): bool;

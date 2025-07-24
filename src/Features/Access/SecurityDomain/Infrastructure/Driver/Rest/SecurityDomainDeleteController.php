@@ -28,7 +28,6 @@ class SecurityDomainDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly SecurityDomainDeleteUsecase $deleteUsecase,
-        private readonly SecurityDomainRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

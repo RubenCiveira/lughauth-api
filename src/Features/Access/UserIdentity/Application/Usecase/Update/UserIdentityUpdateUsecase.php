@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityVisibilityService;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class UserIdentityUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, UserIdentityAttributes $attributes): UserIdentityAttributes
+    public function update(string $uid, UserIdentityUpdateParams $params): UserIdentityUpdateResult
     {
         $this->logDebug("Run update usecase for User identity");
         $span = $this->startSpan("Run update usecase for User identity");
@@ -69,11 +68,14 @@ class UserIdentityUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new UserIdentityUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new UserIdentityUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new UserIdentityUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new UserIdentityUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new UserIdentityUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

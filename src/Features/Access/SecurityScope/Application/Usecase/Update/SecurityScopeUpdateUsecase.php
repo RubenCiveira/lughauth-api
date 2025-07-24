@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeRef;
-use Civi\Lughauth\Features\Access\SecurityScope\Domain\SecurityScopeAttributes;
 use Civi\Lughauth\Features\Access\SecurityScope\Application\Service\Visibility\SecurityScopeVisibilityService;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class SecurityScopeUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, SecurityScopeAttributes $attributes): SecurityScopeAttributes
+    public function update(string $uid, SecurityScopeUpdateParams $params): SecurityScopeUpdateResult
     {
         $this->logDebug("Run update usecase for Security scope");
         $span = $this->startSpan("Run update usecase for Security scope");
@@ -69,11 +68,14 @@ class SecurityScopeUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new SecurityScopeUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new SecurityScopeUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new SecurityScopeUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new SecurityScopeUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new SecurityScopeUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

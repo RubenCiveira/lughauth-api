@@ -30,7 +30,6 @@ class SecurityScopeDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly SecurityScopeDeleteUsecase $deleteUsecase,
-        private readonly SecurityScopeRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

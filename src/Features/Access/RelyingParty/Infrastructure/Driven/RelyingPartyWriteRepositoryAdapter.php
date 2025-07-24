@@ -29,6 +29,11 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(RelyingPartyRef $ref): ?RelyingParty
+    {
+        return $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $sort = null): RelyingPartySlide
     {
         $this->logDebug("Count for Relying party on adapter ");

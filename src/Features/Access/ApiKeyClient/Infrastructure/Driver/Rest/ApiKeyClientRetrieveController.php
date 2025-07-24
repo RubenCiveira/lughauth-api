@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveUsecase;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveResult;
 
 class ApiKeyClientRetrieveController
 {
@@ -21,7 +22,6 @@ class ApiKeyClientRetrieveController
 
     public function __construct(
         private readonly ApiKeyClientRetrieveUsecase $retrieveUsecase,
-        private readonly ApiKeyClientRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,31 @@ class ApiKeyClientRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapApiKeyClient($result);
+            $value = $this->mapApiKeyClient($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapApiKeyClient(ApiKeyClientRetrieveResult $value): ApiKeyClientApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Api key client");
+        $span = $this->startSpan("Map entity to output dto for Api key client");
+        try {
+            $dto = new ApiKeyClientApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->key = $value->getKey();
+            $dto->enabled = $value->getEnabled();
+            $dto->scopes = $value->getScopes();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

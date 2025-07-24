@@ -30,6 +30,21 @@ class RelyingPartyVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(RelyingParty $content): RelyingPartyAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Relying party");
+        $span = $this->startSpan("Prepare hidratation to visible data for Relying party");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new RelyingPartyExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(RelyingPartyAttributes $attributes, ?RelyingParty $original = null): RelyingPartyAttributes
     {
         $this->logDebug("Copy with fixed for Relying party");

@@ -29,6 +29,11 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(TenantRef $ref): ?Tenant
+    {
+        return $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?TenantFilter $filter = null, ?TenantCursor $sort = null): TenantSlide
     {
         $this->logDebug("Count for Tenant on adapter ");

@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ScopeAssignationRef;
 
 interface ScopeAssignationReadRepository
 {
-    public function enrich(ScopeAssignationRef $ref): ?ScopeAssignation;
+    public function resolve(ScopeAssignationRef $ref): ?ScopeAssignation;
     public function list(?ScopeAssignationFilter $filter = null, ?ScopeAssignationCursor $cursor = null): ScopeAssignationSlide;
     public function retrieve(ScopeAssignationFilter $filter): ?ScopeAssignation;
     public function exists(ScopeAssignationFilter $filter): bool;

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\ScopeAssignation\Domain\ValueObject\ScopeAssig
 class ScopeAssignationRef
 {
     private readonly ScopeAssignationUidVO $_uid;
-    public ?ScopeAssignation $_private_enrich = null;
+    public ?ScopeAssignation $_private_resolve = null;
     public function __construct(ScopeAssignationUidVO|string $uid)
     {
         $this->_uid = ScopeAssignationUidVO::from($uid);

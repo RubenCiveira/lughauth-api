@@ -18,9 +18,9 @@ class UserReadGateway
     {
         $this->repository = $repository ?? $container->get(UserReadRepositoryAdapter::class);
     }
-    public function enrich(UserRef $ref): ?User
+    public function resolve(UserRef $ref): ?User
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide
     {

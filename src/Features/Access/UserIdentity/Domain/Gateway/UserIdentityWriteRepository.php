@@ -14,6 +14,7 @@ interface UserIdentityWriteRepository
     public function create(UserIdentity $entity, ?Closure $verify = null): UserIdentity;
     public function update(UserIdentityRef $ref, UserIdentity $entity): UserIdentity;
     public function delete(UserIdentity $entity): bool;
+    public function resolveForUpdate(UserIdentityRef $ref): ?UserIdentity;
     public function listForUpdate(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide;
     public function retrieveForUpdate(UserIdentityFilter $filter): ?UserIdentity;
     public function existsForUpdate(?UserIdentityFilter $filter): bool;

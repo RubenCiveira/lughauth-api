@@ -15,6 +15,7 @@ interface UserWriteRepository
     public function create(User $entity, ?Closure $verify = null): User;
     public function update(UserRef $ref, User $entity): User;
     public function delete(User $entity): bool;
+    public function resolveForUpdate(UserRef $ref): ?User;
     public function listForUpdate(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide;
     public function retrieveForUpdate(UserFilter $filter): ?User;
     public function existsForUpdate(?UserFilter $filter): bool;

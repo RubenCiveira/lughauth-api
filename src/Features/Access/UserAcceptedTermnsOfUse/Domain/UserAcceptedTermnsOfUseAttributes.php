@@ -51,12 +51,6 @@ class UserAcceptedTermnsOfUseAttributes
             version: $version,
         );
     }
-    public function unset($field)
-    {
-        if (isset(self::UNSETS[$field])) {
-            call_user_func([$this, self::UNSETS[$field]]);
-        }
-    }
     public function withAssertedRules(): UserAcceptedTermnsOfUseAttributes
     {
         $value = new UserAcceptedTermnsOfUseAttributes();
@@ -70,6 +64,12 @@ class UserAcceptedTermnsOfUseAttributes
             throw $errorsList->asConstraintException();
         }
         return $value;
+    }
+    public function unset($field)
+    {
+        if (isset(self::UNSETS[$field])) {
+            call_user_func([$this, self::UNSETS[$field]]);
+        }
     }
     public function withDefaults(): UserAcceptedTermnsOfUseAttributes
     {

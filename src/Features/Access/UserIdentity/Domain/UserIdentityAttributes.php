@@ -57,12 +57,6 @@ class UserIdentityAttributes
             version: $version,
         );
     }
-    public function unset($field)
-    {
-        if (isset(self::UNSETS[$field])) {
-            call_user_func([$this, self::UNSETS[$field]]);
-        }
-    }
     public function withAssertedRules(): UserIdentityAttributes
     {
         $value = new UserIdentityAttributes();
@@ -77,6 +71,12 @@ class UserIdentityAttributes
             throw $errorsList->asConstraintException();
         }
         return $value;
+    }
+    public function unset($field)
+    {
+        if (isset(self::UNSETS[$field])) {
+            call_user_func([$this, self::UNSETS[$field]]);
+        }
     }
     public function withDefaults(): UserIdentityAttributes
     {

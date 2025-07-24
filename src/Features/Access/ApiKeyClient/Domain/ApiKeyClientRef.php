@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientUi
 class ApiKeyClientRef
 {
     private readonly ApiKeyClientUidVO $_uid;
-    public ?ApiKeyClient $_private_enrich = null;
+    public ?ApiKeyClient $_private_resolve = null;
     public function __construct(ApiKeyClientUidVO|string $uid)
     {
         $this->_uid = ApiKeyClientUidVO::from($uid);

@@ -7,8 +7,8 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Upl
 
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Throwable;
-use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Security\Allow;
+use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseVisibilityService;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
@@ -67,9 +67,9 @@ class TenantTermsOfUseUploadAttachedUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedInputProposal($binary));
-            $output = $this->writer->temporalStoreAttached($input->file);
-            return $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedOutputProposal($output))->key;
+            $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedCheck($binary));
+            $input = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedEnrich($binary, $binary));
+            return $this->writer->temporalStoreAttached($input->file);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

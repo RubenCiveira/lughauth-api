@@ -13,6 +13,8 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveUsecase;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveResult;
 
 class TrustedClientRetrieveController
 {
@@ -21,7 +23,7 @@ class TrustedClientRetrieveController
 
     public function __construct(
         private readonly TrustedClientRetrieveUsecase $retrieveUsecase,
-        private readonly TrustedClientRestMapper $mapper,
+        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Get(
@@ -46,10 +48,40 @@ class TrustedClientRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapTrustedClient($result);
+            $value = $this->mapTrustedClient($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTrustedClient(TrustedClientRetrieveResult $value): TrustedClientApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Trusted client");
+        $span = $this->startSpan("Map entity to output dto for Trusted client");
+        try {
+            $dto = new TrustedClientApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->publicAllow = $value->getPublicAllow();
+            $dto->secretOauth = '******';
+            $dto->enabled = $value->getEnabled();
+            $allowedRedirects = [];
+            foreach ($value->getAllowedRedirects() as $item) {
+                $allowedRedirects[] = [
+                  'uid' => $item->uid(),
+                  'url' => $item->getUrl(),
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->allowedRedirects = $allowedRedirects;
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

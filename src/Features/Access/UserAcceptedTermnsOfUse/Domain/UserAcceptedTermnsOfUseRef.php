@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Use
 class UserAcceptedTermnsOfUseRef
 {
     private readonly UserAcceptedTermnsOfUseUidVO $_uid;
-    public ?UserAcceptedTermnsOfUse $_private_enrich = null;
+    public ?UserAcceptedTermnsOfUse $_private_resolve = null;
     public function __construct(UserAcceptedTermnsOfUseUidVO|string $uid)
     {
         $this->_uid = UserAcceptedTermnsOfUseUidVO::from($uid);

@@ -30,6 +30,21 @@ class ApiKeyClientVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(ApiKeyClient $content): ApiKeyClientAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Api key client");
+        $span = $this->startSpan("Prepare hidratation to visible data for Api key client");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new ApiKeyClientExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(ApiKeyClientAttributes $attributes, ?ApiKeyClient $original = null): ApiKeyClientAttributes
     {
         $this->logDebug("Copy with fixed for Api key client");

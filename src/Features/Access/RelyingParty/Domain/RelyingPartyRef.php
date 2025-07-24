@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyUi
 class RelyingPartyRef
 {
     private readonly RelyingPartyUidVO $_uid;
-    public ?RelyingParty $_private_enrich = null;
+    public ?RelyingParty $_private_resolve = null;
     public function __construct(RelyingPartyUidVO|string $uid)
     {
         $this->_uid = RelyingPartyUidVO::from($uid);

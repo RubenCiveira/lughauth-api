@@ -14,6 +14,7 @@ interface SecurityScopeWriteRepository
     public function create(SecurityScope $entity, ?Closure $verify = null): SecurityScope;
     public function update(SecurityScopeRef $ref, SecurityScope $entity): SecurityScope;
     public function delete(SecurityScope $entity): bool;
+    public function resolveForUpdate(SecurityScopeRef $ref): ?SecurityScope;
     public function listForUpdate(?SecurityScopeFilter $filter = null, ?SecurityScopeCursor $cursor = null): SecurityScopeSlide;
     public function retrieveForUpdate(SecurityScopeFilter $filter): ?SecurityScope;
     public function existsForUpdate(?SecurityScopeFilter $filter): bool;

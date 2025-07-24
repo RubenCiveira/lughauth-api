@@ -14,6 +14,14 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateUsecase;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyUidVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyCodeVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyApiKeyVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEnabledVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateParams;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateResult;
 
 class RelyingPartyUpdateController
 {
@@ -23,7 +31,6 @@ class RelyingPartyUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly RelyingPartyUpdateUsecase $updateUsecase,
-        private readonly RelyingPartyRestMapper $mapper,
     ) {
     }
     #[OA\Put(
@@ -52,10 +59,10 @@ class RelyingPartyUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->mapper->readRelyingParty($request);
+            $value = $this->readRelyingParty($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapper->mapRelyingParty($result);
+            $value = $this->mapRelyingParty($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -64,6 +71,50 @@ class RelyingPartyUpdateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readRelyingParty(ServerRequestInterface $request): RelyingPartyUpdateParams
+    {
+        $this->logDebug("Read entity for Relying party");
+        $span = $this->startSpan("Read entity for Relying party");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new RelyingPartyUpdateParams();
+            $value->uid(RelyingPartyUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $value->code(RelyingPartyCodeVO::tryFrom($body['code'] ?? null, $errorsList));
+            $value->apiKey(RelyingPartyApiKeyVO::tryFrom($body['apiKey'] ?? null, $errorsList));
+            $value->enabled(RelyingPartyEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->version(RelyingPartyVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapRelyingParty(RelyingPartyUpdateResult $value): RelyingPartyApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Relying party");
+        $span = $this->startSpan("Map entity to output dto for Relying party");
+        try {
+            $dto = new RelyingPartyApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->apiKey = $value->getApiKey();
+            $dto->enabled = $value->getEnabled();
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

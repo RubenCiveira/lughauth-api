@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 
 interface TenantLoginProviderReadRepository
 {
-    public function enrich(TenantLoginProviderRef $ref): ?TenantLoginProvider;
+    public function resolve(TenantLoginProviderRef $ref): ?TenantLoginProvider;
     public function list(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide;
     public function retrieve(TenantLoginProviderFilter $filter): ?TenantLoginProvider;
     public function exists(TenantLoginProviderFilter $filter): bool;

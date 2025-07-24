@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 interface TenantReadRepository
 {
-    public function enrich(TenantRef $ref): ?Tenant;
+    public function resolve(TenantRef $ref): ?Tenant;
     public function list(?TenantFilter $filter = null, ?TenantCursor $cursor = null): TenantSlide;
     public function retrieve(TenantFilter $filter): ?Tenant;
     public function exists(TenantFilter $filter): bool;

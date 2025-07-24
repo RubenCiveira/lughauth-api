@@ -32,14 +32,14 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
     ) {
     }
     #[Override]
-    public function enrich(TenantLoginProviderRef $ref): ?TenantLoginProvider
+    public function resolve(TenantLoginProviderRef $ref): ?TenantLoginProvider
     {
         if ($ref instanceof TenantLoginProvider) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $sort = null): TenantLoginProviderSlide

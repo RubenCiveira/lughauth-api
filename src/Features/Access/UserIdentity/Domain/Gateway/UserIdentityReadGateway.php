@@ -17,9 +17,9 @@ class UserIdentityReadGateway
     {
         $this->repository = $repository ?? $container->get(UserIdentityReadRepositoryAdapter::class);
     }
-    public function enrich(UserIdentityRef $ref): ?UserIdentity
+    public function resolve(UserIdentityRef $ref): ?UserIdentity
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide
     {

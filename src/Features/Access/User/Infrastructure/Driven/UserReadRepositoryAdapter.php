@@ -27,14 +27,14 @@ class UserReadRepositoryAdapter implements UserReadRepository
     ) {
     }
     #[Override]
-    public function enrich(UserRef $ref): ?User
+    public function resolve(UserRef $ref): ?User
     {
         if ($ref instanceof User) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?UserFilter $filter = null, ?UserCursor $sort = null): UserSlide

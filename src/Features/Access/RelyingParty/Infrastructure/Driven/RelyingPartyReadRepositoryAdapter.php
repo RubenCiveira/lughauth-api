@@ -26,14 +26,14 @@ class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadRepository
     ) {
     }
     #[Override]
-    public function enrich(RelyingPartyRef $ref): ?RelyingParty
+    public function resolve(RelyingPartyRef $ref): ?RelyingParty
     {
         if ($ref instanceof RelyingParty) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $sort = null): RelyingPartySlide

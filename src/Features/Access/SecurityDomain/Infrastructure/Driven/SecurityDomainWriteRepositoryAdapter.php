@@ -29,6 +29,11 @@ class SecurityDomainWriteRepositoryAdapter implements SecurityDomainWriteReposit
     ) {
     }
     #[Override]
+    public function resolveForUpdate(SecurityDomainRef $ref): ?SecurityDomain
+    {
+        return $this->conn->retrieve(new SecurityDomainFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?SecurityDomainFilter $filter = null, ?SecurityDomainCursor $sort = null): SecurityDomainSlide
     {
         $this->logDebug("Count for Security domain on adapter ");

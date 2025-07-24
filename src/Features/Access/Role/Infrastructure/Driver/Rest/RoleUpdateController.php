@@ -14,6 +14,22 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateUsecase;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleUidVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleTenantVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsUidVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsSecurityDomainVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVersionVO;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsItem;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateParams;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateResult;
 
 class RoleUpdateController
 {
@@ -23,7 +39,6 @@ class RoleUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly RoleUpdateUsecase $updateUsecase,
-        private readonly RoleRestMapper $mapper,
     ) {
     }
     #[OA\Put(
@@ -52,10 +67,10 @@ class RoleUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->mapper->readRole($request);
+            $value = $this->readRole($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapper->mapRole($result);
+            $value = $this->mapRole($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -64,6 +79,85 @@ class RoleUpdateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readRole(ServerRequestInterface $request): RoleUpdateParams
+    {
+        $this->logDebug("Read entity for Role");
+        $span = $this->startSpan("Read entity for Role");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new RoleUpdateParams();
+            $value->uid(RoleUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $value->name(RoleNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $tenant = $body['tenant'] ?? null;
+            if ($tenant && isset($body->tenant['$ref'])) {
+                $value->tenant(RoleTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            }
+            $domains = $body['domains'] ?? null;
+            $domainsList = [];
+            if (isset($body->domains)) {
+                if (is_array($body->domains)) {
+                    foreach ($body->domains as $item) {
+                        $innerErrorsList = new ConstraintFailList();
+                        $innerUid = RoleDomainsUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerSecurityDomain = RoleDomainsSecurityDomainVO::tryFrom(isset($item['securityDomain']['$ref']) ? new SecurityDomainRef($item['securityDomain']['$ref']) : null, $innerErrorsList);
+                        $innerVersion = RoleDomainsVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        if (!$innerErrorsList->hasErrors()) {
+                            $domainsList[] = new RoleDomainsItem(
+                                uid: $innerUid,
+                                securityDomain: $innerSecurityDomain,
+                                version: $innerVersion,
+                            );
+                        } else {
+                            $errorsList->add($innerErrorsList);
+                        }
+                    }
+                } else {
+                    $errorsList->add(new ConstraintFail('not-array', ['domains'], $domains, ['array']));
+                }
+            }
+            $value->domains(RoleDomainsVO::from(RoleDomainsListRef::fromArray($domainsList)));
+            $value->version(RoleVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapRole(RoleUpdateResult $value): RoleApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Role");
+        $span = $this->startSpan("Map entity to output dto for Role");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new RoleApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->name = $value->getName();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $domains = [];
+            foreach ($value->getDomains() as $item) {
+                $domains[] = [
+                  'uid' => $item->uid(),
+                  'securityDomain' => $item->getSecurityDomain() ? ['$ref' => $item->getSecurityDomain()->uid() ] : null,
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->domains = $domains;
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

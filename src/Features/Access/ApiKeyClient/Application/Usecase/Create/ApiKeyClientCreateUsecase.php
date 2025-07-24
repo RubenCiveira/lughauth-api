@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientVisibilityService;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class ApiKeyClientCreateUsecase
             $span->end();
         }
     }
-    public function create(ApiKeyClientAttributes $attributes): ApiKeyClientAttributes
+    public function create(ApiKeyClientCreateParams $params): ApiKeyClientCreateResult
     {
         $this->logDebug("Run create usecase for Api key client");
         $span = $this->startSpan("Run create usecase for Api key client");
@@ -51,15 +50,18 @@ class ApiKeyClientCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new ApiKeyClientCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new ApiKeyClientCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new ApiKeyClientCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = ApiKeyClient::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new ApiKeyClientCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new ApiKeyClientCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

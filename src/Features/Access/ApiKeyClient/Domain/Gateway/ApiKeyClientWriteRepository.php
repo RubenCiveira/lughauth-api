@@ -14,6 +14,7 @@ interface ApiKeyClientWriteRepository
     public function create(ApiKeyClient $entity, ?Closure $verify = null): ApiKeyClient;
     public function update(ApiKeyClientRef $ref, ApiKeyClient $entity): ApiKeyClient;
     public function delete(ApiKeyClient $entity): bool;
+    public function resolveForUpdate(ApiKeyClientRef $ref): ?ApiKeyClient;
     public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide;
     public function retrieveForUpdate(ApiKeyClientFilter $filter): ?ApiKeyClient;
     public function existsForUpdate(?ApiKeyClientFilter $filter): bool;

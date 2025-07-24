@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderVisibilityService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class TenantLoginProviderUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, TenantLoginProviderAttributes $attributes): TenantLoginProviderAttributes
+    public function update(string $uid, TenantLoginProviderUpdateParams $params): TenantLoginProviderUpdateResult
     {
         $this->logDebug("Run update usecase for Tenant login provider");
         $span = $this->startSpan("Run update usecase for Tenant login provider");
@@ -69,11 +68,14 @@ class TenantLoginProviderUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TenantLoginProviderUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new TenantLoginProviderUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new TenantLoginProviderUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantLoginProviderUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantLoginProviderUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

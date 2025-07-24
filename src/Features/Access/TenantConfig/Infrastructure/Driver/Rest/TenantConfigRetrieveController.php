@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveUsecase;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveResult;
 
 class TenantConfigRetrieveController
 {
@@ -21,7 +22,6 @@ class TenantConfigRetrieveController
 
     public function __construct(
         private readonly TenantConfigRetrieveUsecase $retrieveUsecase,
-        private readonly TenantConfigRestMapper $mapper,
     ) {
     }
     #[OA\Get(
@@ -46,10 +46,39 @@ class TenantConfigRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapper->mapTenantConfig($result);
+            $value = $this->mapTenantConfig($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function mapTenantConfig(TenantConfigRetrieveResult $value): TenantConfigApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant config");
+        $span = $this->startSpan("Map entity to output dto for Tenant config");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantConfigApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->innerLabel = $value->getInnerLabel();
+            $dto->forceMfa = $value->getForceMfa();
+            $dto->allowRegister = $value->getAllowRegister();
+            $dto->enableRegisterUsers = $value->getEnableRegisterUsers();
+            $dto->wellcomeEmail = $value->getWellcomeEmail();
+            $dto->registerdEmail = $value->getRegisterdEmail();
+            $dto->disabledUserEmail = $value->getDisabledUserEmail();
+            $dto->enabledUserEmail = $value->getEnabledUserEmail();
+            $dto->allowRecoverPass = $value->getAllowRecoverPass();
+            $dto->recoverPassEmail = $value->getRecoverPassEmail();
+            $dto->version = $value->getVersion();
+            return $dto;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

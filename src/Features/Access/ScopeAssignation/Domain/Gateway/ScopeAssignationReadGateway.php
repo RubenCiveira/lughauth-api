@@ -19,9 +19,9 @@ class ScopeAssignationReadGateway
     {
         $this->repository = $repository ?? $container->get(ScopeAssignationReadRepositoryAdapter::class);
     }
-    public function enrich(ScopeAssignationRef $ref): ?ScopeAssignation
+    public function resolve(ScopeAssignationRef $ref): ?ScopeAssignation
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?ScopeAssignationFilter $filter = null, ?ScopeAssignationCursor $cursor = null): ScopeAssignationSlide
     {

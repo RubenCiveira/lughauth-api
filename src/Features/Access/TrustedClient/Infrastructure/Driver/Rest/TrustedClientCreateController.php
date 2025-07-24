@@ -13,6 +13,23 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateUsecase;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUidVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateParams;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateResult;
 
 class TrustedClientCreateController
 {
@@ -22,7 +39,7 @@ class TrustedClientCreateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly TrustedClientCreateUsecase $createUsecase,
-        private readonly TrustedClientRestMapper $mapper,
+        private readonly AesCypherService $cypherService,
     ) {
     }
     #[OA\Post(
@@ -41,10 +58,10 @@ class TrustedClientCreateController
         $span = $this->startSpan("Create Trusted client");
         $this->sql->begin();
         try {
-            $value = $this->mapper->readTrustedClient($request);
+            $value = $this->readTrustedClient($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapper->mapTrustedClient($result);
+            $value = $this->mapTrustedClient($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
@@ -53,6 +70,88 @@ class TrustedClientCreateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readTrustedClient(ServerRequestInterface $request): TrustedClientCreateParams
+    {
+        $this->logDebug("Read entity for Trusted client");
+        $span = $this->startSpan("Read entity for Trusted client");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new TrustedClientCreateParams();
+            $value->uid(TrustedClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $value->code(TrustedClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
+            $value->publicAllow(TrustedClientPublicAllowVO::tryFrom($body['publicAllow'] ?? null, $errorsList));
+            $readSecretOauth = $body['secretOauth'] ?? '******';
+            if ($readSecretOauth && '******' !== $readSecretOauth) {
+                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
+            }
+            $value->enabled(TrustedClientEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $allowedRedirects = $body['allowedRedirects'] ?? null;
+            $allowedRedirectsList = [];
+            if (isset($body->allowedRedirects)) {
+                if (is_array($body->allowedRedirects)) {
+                    foreach ($body->allowedRedirects as $item) {
+                        $innerErrorsList = new ConstraintFailList();
+                        $innerUid = TrustedClientAllowedRedirectsUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerUrl = TrustedClientAllowedRedirectsUrlVO::tryFrom($item['url'] ? ''.$item['url'] : null, $innerErrorsList);
+                        $innerVersion = TrustedClientAllowedRedirectsVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        if (!$innerErrorsList->hasErrors()) {
+                            $allowedRedirectsList[] = new TrustedClientAllowedRedirectsItem(
+                                uid: $innerUid,
+                                url: $innerUrl,
+                                version: $innerVersion,
+                            );
+                        } else {
+                            $errorsList->add($innerErrorsList);
+                        }
+                    }
+                } else {
+                    $errorsList->add(new ConstraintFail('not-array', ['allowedRedirects'], $allowedRedirects, ['array']));
+                }
+            }
+            $value->allowedRedirects(TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList)));
+            $value->version(TrustedClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapTrustedClient(TrustedClientCreateResult $value): TrustedClientApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Trusted client");
+        $span = $this->startSpan("Map entity to output dto for Trusted client");
+        try {
+            $dto = new TrustedClientApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->code = $value->getCode();
+            $dto->publicAllow = $value->getPublicAllow();
+            $dto->secretOauth = '******';
+            $dto->enabled = $value->getEnabled();
+            $allowedRedirects = [];
+            foreach ($value->getAllowedRedirects() as $item) {
+                $allowedRedirects[] = [
+                  'uid' => $item->uid(),
+                  'url' => $item->getUrl(),
+                  'version' => $item->getVersion(),
+                 ];
+            }
+            $dto->allowedRedirects = $allowedRedirects;
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }

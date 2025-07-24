@@ -30,6 +30,11 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(RoleRef $ref): ?Role
+    {
+        return $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?RoleFilter $filter = null, ?RoleCursor $sort = null): RoleSlide
     {
         $this->logDebug("Count for Role on adapter ");

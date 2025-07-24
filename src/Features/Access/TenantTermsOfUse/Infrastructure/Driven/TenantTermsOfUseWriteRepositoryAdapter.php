@@ -34,6 +34,11 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
     ) {
     }
     #[Override]
+    public function resolveForUpdate(TenantTermsOfUseRef $ref): ?TenantTermsOfUse
+    {
+        return $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $sort = null): TenantTermsOfUseSlide
     {
         $this->logDebug("Count for Tenant terms of use on adapter ");

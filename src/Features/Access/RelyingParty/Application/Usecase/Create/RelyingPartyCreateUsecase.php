@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class RelyingPartyCreateUsecase
             $span->end();
         }
     }
-    public function create(RelyingPartyAttributes $attributes): RelyingPartyAttributes
+    public function create(RelyingPartyCreateParams $params): RelyingPartyCreateResult
     {
         $this->logDebug("Run create usecase for Relying party");
         $span = $this->startSpan("Run create usecase for Relying party");
@@ -51,15 +50,18 @@ class RelyingPartyCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new RelyingPartyCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new RelyingPartyCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new RelyingPartyCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = RelyingParty::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new RelyingPartyCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new RelyingPartyCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

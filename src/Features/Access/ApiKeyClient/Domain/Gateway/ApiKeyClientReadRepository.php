@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 
 interface ApiKeyClientReadRepository
 {
-    public function enrich(ApiKeyClientRef $ref): ?ApiKeyClient;
+    public function resolve(ApiKeyClientRef $ref): ?ApiKeyClient;
     public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide;
     public function retrieve(ApiKeyClientFilter $filter): ?ApiKeyClient;
     public function exists(ApiKeyClientFilter $filter): bool;

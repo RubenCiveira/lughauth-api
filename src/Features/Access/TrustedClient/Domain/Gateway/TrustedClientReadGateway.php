@@ -17,9 +17,9 @@ class TrustedClientReadGateway
     {
         $this->repository = $repository ?? $container->get(TrustedClientReadRepositoryAdapter::class);
     }
-    public function enrich(TrustedClientRef $ref): ?TrustedClient
+    public function resolve(TrustedClientRef $ref): ?TrustedClient
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide
     {

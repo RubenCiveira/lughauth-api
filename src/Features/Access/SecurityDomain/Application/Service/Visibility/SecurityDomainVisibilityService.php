@@ -30,6 +30,21 @@ class SecurityDomainVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(SecurityDomain $content): SecurityDomainAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Security domain");
+        $span = $this->startSpan("Prepare hidratation to visible data for Security domain");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new SecurityDomainExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(SecurityDomainAttributes $attributes, ?SecurityDomain $original = null): SecurityDomainAttributes
     {
         $this->logDebug("Copy with fixed for Security domain");

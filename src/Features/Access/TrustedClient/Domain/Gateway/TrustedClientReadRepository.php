@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 
 interface TrustedClientReadRepository
 {
-    public function enrich(TrustedClientRef $ref): ?TrustedClient;
+    public function resolve(TrustedClientRef $ref): ?TrustedClient;
     public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide;
     public function retrieve(TrustedClientFilter $filter): ?TrustedClient;
     public function exists(TrustedClientFilter $filter): bool;

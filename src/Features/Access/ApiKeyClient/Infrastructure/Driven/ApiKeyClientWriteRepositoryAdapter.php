@@ -29,6 +29,11 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(ApiKeyClientRef $ref): ?ApiKeyClient
+    {
+        return $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $sort = null): ApiKeyClientSlide
     {
         $this->logDebug("Count for Api key client on adapter ");

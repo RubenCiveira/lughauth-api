@@ -19,9 +19,9 @@ class TenantLoginProviderReadGateway
     {
         $this->repository = $repository ?? $container->get(TenantLoginProviderReadRepositoryAdapter::class);
     }
-    public function enrich(TenantLoginProviderRef $ref): ?TenantLoginProvider
+    public function resolve(TenantLoginProviderRef $ref): ?TenantLoginProvider
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide
     {

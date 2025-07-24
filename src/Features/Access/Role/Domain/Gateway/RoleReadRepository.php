@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 
 interface RoleReadRepository
 {
-    public function enrich(RoleRef $ref): ?Role;
+    public function resolve(RoleRef $ref): ?Role;
     public function list(?RoleFilter $filter = null, ?RoleCursor $cursor = null): RoleSlide;
     public function retrieve(RoleFilter $filter): ?Role;
     public function exists(RoleFilter $filter): bool;

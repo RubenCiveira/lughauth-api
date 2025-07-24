@@ -14,6 +14,7 @@ interface TrustedClientWriteRepository
     public function create(TrustedClient $entity, ?Closure $verify = null): TrustedClient;
     public function update(TrustedClientRef $ref, TrustedClient $entity): TrustedClient;
     public function delete(TrustedClient $entity): bool;
+    public function resolveForUpdate(TrustedClientRef $ref): ?TrustedClient;
     public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide;
     public function retrieveForUpdate(TrustedClientFilter $filter): ?TrustedClient;
     public function existsForUpdate(?TrustedClientFilter $filter): bool;

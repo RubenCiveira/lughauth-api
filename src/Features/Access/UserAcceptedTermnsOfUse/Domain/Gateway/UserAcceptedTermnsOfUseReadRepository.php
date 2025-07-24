@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTer
 
 interface UserAcceptedTermnsOfUseReadRepository
 {
-    public function enrich(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse;
+    public function resolve(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse;
     public function list(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $cursor = null): UserAcceptedTermnsOfUseSlide;
     public function retrieve(UserAcceptedTermnsOfUseFilter $filter): ?UserAcceptedTermnsOfUse;
     public function exists(UserAcceptedTermnsOfUseFilter $filter): bool;

@@ -27,14 +27,14 @@ class RoleReadRepositoryAdapter implements RoleReadRepository
     ) {
     }
     #[Override]
-    public function enrich(RoleRef $ref): ?Role
+    public function resolve(RoleRef $ref): ?Role
     {
         if ($ref instanceof Role) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?RoleFilter $filter = null, ?RoleCursor $sort = null): RoleSlide

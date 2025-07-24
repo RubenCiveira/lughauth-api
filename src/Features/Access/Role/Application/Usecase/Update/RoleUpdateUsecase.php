@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
-use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleVisibilityService;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class RoleUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, RoleAttributes $attributes): RoleAttributes
+    public function update(string $uid, RoleUpdateParams $params): RoleUpdateResult
     {
         $this->logDebug("Run update usecase for Role");
         $span = $this->startSpan("Run update usecase for Role");
@@ -69,11 +68,14 @@ class RoleUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new RoleUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new RoleUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new RoleUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new RoleUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new RoleUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

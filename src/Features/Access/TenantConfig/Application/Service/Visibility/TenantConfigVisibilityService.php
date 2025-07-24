@@ -33,6 +33,21 @@ class TenantConfigVisibilityService
     ) {
     }
 
+    public function prepareVisibleData(TenantConfig $content): TenantConfigAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Tenant config");
+        $span = $this->startSpan("Prepare hidratation to visible data for Tenant config");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new TenantConfigExposeProposal($content, $attributes));
+            return $result->getAttributes();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     public function copyWithFixed(TenantConfigAttributes $attributes, ?TenantConfig $original = null): TenantConfigAttributes
     {
         $this->logDebug("Copy with fixed for Tenant config");

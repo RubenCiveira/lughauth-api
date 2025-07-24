@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigVisibilityService;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -56,7 +55,7 @@ class TenantConfigUpdateUsecase
             $span->end();
         }
     }
-    public function update(string $uid, TenantConfigAttributes $attributes): TenantConfigAttributes
+    public function update(string $uid, TenantConfigUpdateParams $params): TenantConfigUpdateResult
     {
         $this->logDebug("Run update usecase for Tenant config");
         $span = $this->startSpan("Run update usecase for Tenant config");
@@ -69,11 +68,14 @@ class TenantConfigUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TenantConfigUpdateInputProposal($ref, $attributes))->attributes);
+            $this->dispacher->dispatch(new TenantConfigUpdateCheck($params, $original));
+            $enriched = $this->dispacher->dispatch(new TenantConfigUpdateEnrich($params, $original, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->replace($input);
             $result = $this->writer->update($original, $modified);
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantConfigUpdateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantConfigUpdateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

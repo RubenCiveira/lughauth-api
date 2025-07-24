@@ -15,6 +15,7 @@ interface UserAccessTemporalCodeWriteRepository
     public function create(UserAccessTemporalCode $entity, ?Closure $verify = null): UserAccessTemporalCode;
     public function update(UserAccessTemporalCodeRef $ref, UserAccessTemporalCode $entity): UserAccessTemporalCode;
     public function delete(UserAccessTemporalCode $entity): bool;
+    public function resolveForUpdate(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode;
     public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide;
     public function retrieveForUpdate(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode;
     public function existsForUpdate(?UserAccessTemporalCodeFilter $filter): bool;

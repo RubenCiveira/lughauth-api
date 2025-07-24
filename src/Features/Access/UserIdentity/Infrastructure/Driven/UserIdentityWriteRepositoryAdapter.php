@@ -29,6 +29,11 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(UserIdentityRef $ref): ?UserIdentity
+    {
+        return $this->conn->retrieve(new UserIdentityFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?UserIdentityFilter $filter = null, ?UserIdentityCursor $sort = null): UserIdentitySlide
     {
         $this->logDebug("Count for User identity on adapter ");

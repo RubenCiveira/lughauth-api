@@ -29,7 +29,6 @@ class TenantTermsOfUseDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly TenantTermsOfUseDeleteUsecase $deleteUsecase,
-        private readonly TenantTermsOfUseRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

@@ -12,7 +12,6 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseVisibilityService;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,7 +41,7 @@ class TenantTermsOfUseCreateUsecase
             $span->end();
         }
     }
-    public function create(TenantTermsOfUseAttributes $attributes): TenantTermsOfUseAttributes
+    public function create(TenantTermsOfUseCreateParams $params): TenantTermsOfUseCreateResult
     {
         $this->logDebug("Run create usecase for Tenant terms of use");
         $span = $this->startSpan("Run create usecase for Tenant terms of use");
@@ -51,15 +50,18 @@ class TenantTermsOfUseCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $input = $this->visibility->copyWithFixed($this->dispacher->dispatch(new TenantTermsOfUseCreateInputProposal($attributes))->attributes);
+            $this->dispacher->dispatch(new TenantTermsOfUseCreateCheck($params));
+            $enriched = $this->dispacher->dispatch(new TenantTermsOfUseCreateEnrich($params, $params->toAttributes()));
+            $attributes = $enriched->getResult();
+            $input = $this->visibility->copyWithFixed($attributes);
             $entity = TenantTermsOfUse::create($input);
             $result = $this->writer->create(
                 $entity,
                 fn ($created) =>
                             $this->visibility->checkVisibility($created)
             );
-            $output = $this->visibility->copyWithHidden($result->toAttributes());
-            return $this->dispacher->dispatch(new TenantTermsOfUseCreateOutputProposal($output))->attributes;
+            $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
+            return new TenantTermsOfUseCreateResult($output);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

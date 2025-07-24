@@ -29,7 +29,6 @@ class TenantLoginProviderDeleteController
         private readonly SqlTemplate $sql,
         private readonly Runner $runner,
         private readonly TenantLoginProviderDeleteUsecase $deleteUsecase,
-        private readonly TenantLoginProviderRestMapper $mapper,
     ) {
     }
     #[OA\Delete(

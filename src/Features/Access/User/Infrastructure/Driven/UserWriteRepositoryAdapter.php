@@ -30,6 +30,11 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
     ) {
     }
     #[Override]
+    public function resolveForUpdate(UserRef $ref): ?User
+    {
+        return $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?UserFilter $filter = null, ?UserCursor $sort = null): UserSlide
     {
         $this->logDebug("Count for User on adapter ");

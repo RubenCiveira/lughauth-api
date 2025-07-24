@@ -26,14 +26,14 @@ class SecurityDomainReadRepositoryAdapter implements SecurityDomainReadRepositor
     ) {
     }
     #[Override]
-    public function enrich(SecurityDomainRef $ref): ?SecurityDomain
+    public function resolve(SecurityDomainRef $ref): ?SecurityDomain
     {
         if ($ref instanceof SecurityDomain) {
             return $ref;
-        } elseif (!$ref->_private_enrich) {
-            $ref->_private_enrich = $this->conn->retrieve(new SecurityDomainFilter(uids: [ $ref->uid() ]));
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new SecurityDomainFilter(uids: [ $ref->uid() ]));
         }
-        return $ref->_private_enrich;
+        return $ref->_private_resolve;
     }
     #[Override]
     public function list(?SecurityDomainFilter $filter = null, ?SecurityDomainCursor $sort = null): SecurityDomainSlide

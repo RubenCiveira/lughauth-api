@@ -29,6 +29,11 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
     ) {
     }
     #[Override]
+    public function resolveForUpdate(TrustedClientRef $ref): ?TrustedClient
+    {
+        return $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
+    }
+    #[Override]
     public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $sort = null): TrustedClientSlide
     {
         $this->logDebug("Count for Trusted client on adapter ");

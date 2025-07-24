@@ -17,9 +17,9 @@ class RelyingPartyReadGateway
     {
         $this->repository = $repository ?? $container->get(RelyingPartyReadRepositoryAdapter::class);
     }
-    public function enrich(RelyingPartyRef $ref): ?RelyingParty
+    public function resolve(RelyingPartyRef $ref): ?RelyingParty
     {
-        return $this->repository->enrich($ref);
+        return $this->repository->resolve($ref);
     }
     public function list(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide
     {

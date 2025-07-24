@@ -57,12 +57,6 @@ class ApiKeyClientAttributes
             version: $version,
         );
     }
-    public function unset($field)
-    {
-        if (isset(self::UNSETS[$field])) {
-            call_user_func([$this, self::UNSETS[$field]]);
-        }
-    }
     public function withAssertedRules(): ApiKeyClientAttributes
     {
         $value = new ApiKeyClientAttributes();
@@ -77,6 +71,12 @@ class ApiKeyClientAttributes
             throw $errorsList->asConstraintException();
         }
         return $value;
+    }
+    public function unset($field)
+    {
+        if (isset(self::UNSETS[$field])) {
+            call_user_func([$this, self::UNSETS[$field]]);
+        }
     }
     public function withDefaults(): ApiKeyClientAttributes
     {

@@ -69,12 +69,6 @@ class SecurityDomainAttributes
             version: $version,
         );
     }
-    public function unset($field)
-    {
-        if (isset(self::UNSETS[$field])) {
-            call_user_func([$this, self::UNSETS[$field]]);
-        }
-    }
     public function withAssertedRules(): SecurityDomainAttributes
     {
         $value = new SecurityDomainAttributes();
@@ -91,6 +85,12 @@ class SecurityDomainAttributes
             throw $errorsList->asConstraintException();
         }
         return $value;
+    }
+    public function unset($field)
+    {
+        if (isset(self::UNSETS[$field])) {
+            call_user_func([$this, self::UNSETS[$field]]);
+        }
     }
     public function withDefaults(): SecurityDomainAttributes
     {

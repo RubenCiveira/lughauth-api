@@ -14,6 +14,23 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateUsecase;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUidVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderTenantVO;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderNameVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDisabledVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDirectAccessVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPublicKeyVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPrivateKeyVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderCertificateVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUsersEnabledByDefaultVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderVersionVO;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateParams;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateResult;
 
 class TenantLoginProviderUpdateController
 {
@@ -23,7 +40,7 @@ class TenantLoginProviderUpdateController
     public function __construct(
         private readonly SqlTemplate $sql,
         private readonly TenantLoginProviderUpdateUsecase $updateUsecase,
-        private readonly TenantLoginProviderRestMapper $mapper,
+        private readonly Context $context,
     ) {
     }
     #[OA\Put(
@@ -52,10 +69,10 @@ class TenantLoginProviderUpdateController
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $value = $this->mapper->readTenantLoginProvider($request);
+            $value = $this->readTenantLoginProvider($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapper->mapTenantLoginProvider($result);
+            $value = $this->mapTenantLoginProvider($result);
             $response->getBody()->write(json_encode($value));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
@@ -64,6 +81,74 @@ class TenantLoginProviderUpdateController
             throw $ex;
         } finally {
             $this->sql->close();
+            $span->end();
+        }
+    }
+
+    private function readTenantLoginProvider(ServerRequestInterface $request): TenantLoginProviderUpdateParams
+    {
+        $this->logDebug("Read entity for Tenant login provider");
+        $span = $this->startSpan("Read entity for Tenant login provider");
+        try {
+            $body = $request->getParsedBody();
+            $errorsList = new ConstraintFailList();
+            $value = new TenantLoginProviderUpdateParams();
+            $value->uid(TenantLoginProviderUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $tenant = $body['tenant'] ?? null;
+            if ($tenant && isset($body->tenant['$ref'])) {
+                $value->tenant(TenantLoginProviderTenantVO::tryFrom(new TenantRef(uid: $body->tenant['$ref']), $errorsList));
+            }
+            $value->name(TenantLoginProviderNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $value->source(TenantLoginProviderSourceVO::tryFrom($body['source'] ?? null, $errorsList));
+            $value->disabled(TenantLoginProviderDisabledVO::tryFrom($body['disabled'] ?? null, $errorsList));
+            $value->directAccess(TenantLoginProviderDirectAccessVO::tryFrom($body['directAccess'] ?? null, $errorsList));
+            $value->publicKey(TenantLoginProviderPublicKeyVO::tryFrom($body['publicKey'] ?? null, $errorsList));
+            $value->privateKey(TenantLoginProviderPrivateKeyVO::tryFrom($body['privateKey'] ?? null, $errorsList));
+            $value->certificate(TenantLoginProviderCertificateVO::tryFrom($body['certificate'] ?? null, $errorsList));
+            $metadata = $body['metadata'] ?? null;
+            $preffixMetadata = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-metadata?temp=';
+            if ($metadata && strpos($metadata, $preffixMetadata) === 0) {
+                $value->metadata(TenantLoginProviderMetadataVO::tryFromTemporal(base64_decode(substr($metadata, strlen($preffixMetadata))), $errorsList));
+            }
+            $value->usersEnabledByDefault(TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($body['usersEnabledByDefault'] ?? null, $errorsList));
+            $value->version(TenantLoginProviderVersionVO::tryFrom($body['version'] ?? null, $errorsList));
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $value;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function mapTenantLoginProvider(TenantLoginProviderUpdateResult $value): TenantLoginProviderApiDTO
+    {
+        $this->logDebug("Map entity to output dto for Tenant login provider");
+        $span = $this->startSpan("Map entity to output dto for Tenant login provider");
+        try {
+            $tenant = $value->getTenant();
+            $dto = new TenantLoginProviderApiDTO();
+            $dto->uid = $value->getUid();
+            $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->name = $value->getName();
+            $dto->source = $value->getSource();
+            $dto->disabled = $value->getDisabled();
+            $dto->directAccess = $value->getDirectAccess();
+            $dto->publicKey = $value->getPublicKey();
+            $dto->privateKey = $value->getPrivateKey();
+            $dto->certificate = $value->getCertificate();
+            if ($value->getMetadata()) {
+                $dto->metadata = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+            }
+            $dto->usersEnabledByDefault = $value->getUsersEnabledByDefault();
+            $dto->version = $value->getVersion();
+            return $dto;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
             $span->end();
         }
     }
