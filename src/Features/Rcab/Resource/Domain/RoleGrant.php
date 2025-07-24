@@ -14,7 +14,8 @@ class RoleGrant
     public function __construct(
         public readonly string $rolename,
         public readonly array $allowedScopes,
-        public readonly array $restrictedFields
+        public readonly array $hiddenFields,
+        public readonly array $fixedFields
     ) {
     }
 }

@@ -9,6 +9,11 @@ use Override;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
+use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\Gateway\SecurityAttributeFilter;
+use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\Gateway\SecurityAttributeReadGateway;
+use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\Gateway\SecurityAttributeWriteGateway;
+use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\SecurityAttribute;
+use Civi\Lughauth\Features\Access\SecurityAttribute\Domain\SecurityAttributeAttributes;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\Gateway\SecurityDomainReadGateway;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomain;
 use Civi\Lughauth\Features\Access\SecurityScope\Domain\Gateway\SecurityScopeFilter;
@@ -29,6 +34,8 @@ class RbacStoreAdapter implements RbacStoreRepository
         private readonly RoleReadGateway $roles,
         private readonly SecurityScopeReadGateway $scopes,
         private readonly SecurityScopeWriteGateway $writeScopes,
+        private readonly SecurityAttributeReadGateway $atributes,
+        private readonly SecurityAttributeWriteGateway $writeAtributes,
         private readonly SecurityDomainReadGateway $domains
     ) {
     }
@@ -91,6 +98,48 @@ class RbacStoreAdapter implements RbacStoreRepository
     #[Override]
     public function registerSchema(string $relyingParty, array $paramMap): void
     {
+        $party = $this->parties->findOneByCode($relyingParty);
+        if ($party === null) {
+            return;
+        }
+        foreach ($paramMap as $scopeList) {
+            $resource = $scopeList->resource;
+            $scopes = $this->writeAtributes->listForUpdate(
+                new SecurityAttributeFilter(
+                    resource: $resource->name,
+                    relyingParty: $party
+                )
+            );
+            $existing = [...$scopes];
+
+            foreach ($scopeList->scopes as $scope) {
+                $match = $this->findMatchingScope($existing, $scope->name);
+
+                if ($match === null) {
+                    $att = new SecurityAttributeAttributes();
+                    $att->uid(Random::comb());
+                    $att->relyingParty($party);
+                    $att->resource($resource->name);
+                    $att->enabled(true);
+                    $att->attribute($scope->name);
+                    $att->readVisibility('EXPLICIT');
+                    $att->writeVisibility('EXPLICIT');
+                    $this->writeAtributes->create(
+                        SecurityAttribute::create($att)
+                    );
+                } else {
+                    // ya existe, se elimina de la lista para no volver a tocarlo
+                    $existing = array_filter(
+                        $existing,
+                        fn (SecurityScope $s) => $s->getScope() !== $scope->name
+                    );
+                }
+            }
+
+            foreach ($existing as $remaining) {
+                $this->writeAtributes->update($remaining, $remaining->enable());
+            }
+        }
     }
 
     /**
@@ -112,10 +161,9 @@ class RbacStoreAdapter implements RbacStoreRepository
      */
     private function grantedForRely(RelyingParty $party): array
     {
-        $scopeFilter = new SecurityScopeFilter(relyingParty: $party);
-
-        $secScopes = $this->scopes->list($scopeFilter);
-        if (empty($secScopes)) {
+        $secScopes = $this->scopes->list(new SecurityScopeFilter(relyingParty: $party));
+        $secAttrs = $this->atributes->list(new SecurityAttributeFilter(relyingParty: $party));
+        if (empty($secScopes) && empty($secScopes)) {
             return [];
         }
 
@@ -125,7 +173,7 @@ class RbacStoreAdapter implements RbacStoreRepository
         $roleSecs = []; // string => list<string>
         foreach ($secRoles as $role) {
             foreach ($role->getDomains() as $roleDomain) {
-                $this->appendArray($role->getName(), $roleDomain->getSecurityDomain()->uid(), $roleSecs);
+                $this->appendArray($role->getName(), $roleDomain->getSecurityDomain()->uid(), 'scope', $roleSecs);
             }
         }
 
@@ -134,7 +182,7 @@ class RbacStoreAdapter implements RbacStoreRepository
 
         foreach ($secScopes as $securityScope) {
             if ($this->checkPublic($securityScope)) {
-                $this->appendType('-', $securityScope, $byRole);
+                $this->appendType('-', $securityScope, 'scope', $byRole);
             }
 
             foreach ($secDomains as $securityDomain) {
@@ -145,21 +193,57 @@ class RbacStoreAdapter implements RbacStoreRepository
                         $this->checkWriteAll($kind, $securityDomain, $securityScope) ||
                         $this->checkManageAll($kind, $securityDomain, $securityScope) ||
                         $this->checkPublic($securityScope) ||
-                        $this->checkAuthorized($securityScope) ||
-                        $this->checkExplicit();
+                        $this->checkAuthorized($securityScope);
 
                     if ($allowed) {
-                        $this->appendType($securityDomain->uid(), $securityScope, $bySec);
+                        $this->appendType($securityDomain->uid(), $securityScope, 'scope', $bySec);
+                    } else {
+                        // Check explicit asignation.
                     }
                 }
             }
         }
 
+        foreach($secAttrs as $securityAttributes) {
+            $readVisibility = $securityAttributes->getReadVisibility() ?? 'EXPLICIT';
+            $writeVisibility = $securityAttributes->getWriteVisibility() ?? 'EXPLICIT';
+            if( $readVisibility === 'PUBLIC') {
+                $this->appendType('-', $securityScope, 'view', $byRole);
+            }
+            if( $writeVisibility === 'PUBLIC') {
+                $this->appendType('-', $securityScope, 'modify', $byRole);
+            }
+            foreach ($secDomains as $securityDomain) {
+                $view = true;
+                $modify = true;
+                $view = $view && $securityDomain->getViewAllAttributes();
+                $modify = $view && $securityDomain->getModifyAllAttributes();
+                if( !$view ) {
+                    // Chekxk explicit asignation
+                }
+                if( !$modify ) {
+                    // Chekxk explicit asignation
+                }
+            }
+            // $this->appendType($securityDomain->uid(), $securityScope, 'scope', $bySec);
+
+        }
+
         foreach ($bySec as $domainId => $domainScopes) {
             foreach ($roleSecs as $roleName => $roleDomains) {
-                if (in_array($domainId, $roleDomains, true)) {
-                    foreach ($domainScopes as $domainScope) {
-                        $this->appendArray($roleName, $domainScope, $byRole);
+                if (in_array($domainId, $roleDomains['scope'], true)) {
+                    foreach ($domainScopes['scope'] as $domainScope) {
+                        $this->appendArray($roleName, $domainScope, 'scope', $byRole);
+                    }
+                }
+                if (in_array($domainId, $roleDomains['view'], true)) {
+                    foreach ($domainScopes['view'] as $domainScope) {
+                        $this->appendArray($roleName, $domainScope, 'view', $byRole);
+                    }
+                }
+                if (in_array($domainId, $roleDomains['modify'], true)) {
+                    foreach ($domainScopes['modify'] as $domainScope) {
+                        $this->appendArray($roleName, $domainScope, 'modify', $byRole);
                     }
                 }
             }
@@ -169,8 +253,9 @@ class RbacStoreAdapter implements RbacStoreRepository
         foreach ($byRole as $roleName => $scopes) {
             $grants[] = new RoleGrant(
                 rolename: $roleName,
-                allowedScopes: array_values(array_unique($scopes)),
-                restrictedFields: []
+                allowedScopes: array_values(array_unique($scopes['scope'])),
+                hiddenFields: array_values(array_unique($scopes['modify'])),
+                fixedFields: array_values(array_unique($scopes['view']))
             );
         }
 
@@ -185,11 +270,6 @@ class RbacStoreAdapter implements RbacStoreRepository
     private function checkAuthorized(SecurityScope $securityScope): bool
     {
         return ($securityScope->getVisibility() ?? 'EXPLICIT') === 'AUTHORIZED';
-    }
-
-    private function checkExplicit(): bool
-    {
-        return false;
     }
 
     private function checkReadAll(string $kind, SecurityDomain $domain, SecurityScope $scope): bool
@@ -210,20 +290,23 @@ class RbacStoreAdapter implements RbacStoreRepository
     /**
      * @param array<string, list<string>> $map
      */
-    private function appendType(string $key, SecurityScope $scope, array &$map): void
+    private function appendType(string $key, SecurityScope $scope, string $on, array &$map): void
     {
-        $this->appendArray($key, $scope->getResource() . ':' . $scope->getScope(), $map);
+        $this->appendArray($key, $scope->getResource() . ':' . $scope->getScope(), $on, $map);
     }
 
     /**
      * @param array<string, list<string>> $map
      */
-    private function appendArray(string $key, string $value, array &$map): void
+    private function appendArray(string $key, string $value, string $on, array &$map): void
     {
         if (!array_key_exists($key, $map)) {
             $map[$key] = [];
         }
-        $map[$key][] = $value;
+        if( !isset($map[$key][$on]) ) {
+            $map[$key][$on] = [];
+        }
+        $map[$key][$on][] = $value;
     }
 
     private function findMatchingScope(array $scopes, string $name): ?SecurityScope

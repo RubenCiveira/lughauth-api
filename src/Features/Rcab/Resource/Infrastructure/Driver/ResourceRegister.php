@@ -46,7 +46,7 @@ class ResourceRegister
 
     public function registerSchemas(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $apiKey = $request->getHeaderLine('API-Key');
+        $apiKey = $request->getHeaderLine('x-api-Key');
         $json = json_decode((string) $request->getBody(), true);
 
         if (!is_array($json)) {
@@ -59,16 +59,34 @@ class ResourceRegister
         }
 
         try {
-            $properties = array_map(
-                fn (array $item) => new Property($item['name'], $item['description']),
-                $json
-            );
+            $properties = array_map([$this, 'hydrateSchemaList'], $json);
             $this->schemaStore->registerSchema($trust, $properties);
         } catch (\Throwable $e) {
             return $this->badRequest($response, $e->getMessage());
         }
 
         return $response->withStatus(204);
+    }
+
+    private function hydrateSchemaList(array $data): ScopeList
+    {
+        if (!isset($data['resource'], $data['schemas']) || !is_array($data['schemas'])) {
+            throw new \InvalidArgumentException("ScopeList must include 'resource' and 'scopes'.");
+        }
+
+        $resource = new Resource(
+            $data['resource']['name'] ?? throw new \InvalidArgumentException("Missing resource name."),
+            $data['resource']['description'] ?? ''
+        );
+
+        $scopes = array_map(function (array $scopeData): Property {
+            return new Property(
+                $scopeData['name'] ?? throw new \InvalidArgumentException("Missing scope name."),
+                $scopeData['description'] ?? ''
+            );
+        }, $data['schemas']);
+
+        return new ScopeList($resource, $scopes);
     }
 
     private function hydrateScopeList(array $data): ScopeList
