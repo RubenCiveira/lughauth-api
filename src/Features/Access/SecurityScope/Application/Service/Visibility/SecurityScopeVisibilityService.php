@@ -53,7 +53,7 @@ class SecurityScopeVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new SecurityScopePresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new SecurityScopePresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -210,7 +210,7 @@ class SecurityScopeVisibilityService
         $this->logDebug("Check fields to fix for Security scope");
         $span = $this->startSpan("Check fields for fix for Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeFixedFieldsProposal(SecurityScope::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new SecurityScopeCollectNonEditableFields(SecurityScope::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -225,7 +225,7 @@ class SecurityScopeVisibilityService
         $this->logDebug("Check fields to hide for Security scope");
         $span = $this->startSpan("Check fields to hide for  Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new SecurityScopeCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -259,7 +259,7 @@ class SecurityScopeVisibilityService
         $this->logDebug("Compose visibility filter for Security scope");
         $span = $this->startSpan("Compose visibility filter for  Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new SecurityScopeRestrictFilterToVisibility($filter));
             return $result->securityScopeFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -273,7 +273,7 @@ class SecurityScopeVisibilityService
         $this->logDebug("Check if item is visible for Security scope");
         $span = $this->startSpan("Check if item is visible for  Security scope");
         try {
-            $result = $this->dispacher->dispatch(new SecurityScopeVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new SecurityScopeVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -288,7 +288,7 @@ class SecurityScopeVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Security scope");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new SecurityScopeExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new SecurityScopeEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

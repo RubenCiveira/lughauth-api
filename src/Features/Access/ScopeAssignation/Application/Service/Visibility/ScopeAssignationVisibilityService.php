@@ -53,7 +53,7 @@ class ScopeAssignationVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new ScopeAssignationPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new ScopeAssignationPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -210,7 +210,7 @@ class ScopeAssignationVisibilityService
         $this->logDebug("Check fields to fix for Scope assignation");
         $span = $this->startSpan("Check fields for fix for Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationFixedFieldsProposal(ScopeAssignation::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new ScopeAssignationCollectNonEditableFields(ScopeAssignation::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -225,7 +225,7 @@ class ScopeAssignationVisibilityService
         $this->logDebug("Check fields to hide for Scope assignation");
         $span = $this->startSpan("Check fields to hide for  Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new ScopeAssignationCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -259,7 +259,7 @@ class ScopeAssignationVisibilityService
         $this->logDebug("Compose visibility filter for Scope assignation");
         $span = $this->startSpan("Compose visibility filter for  Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new ScopeAssignationRestrictFilterToVisibility($filter));
             return $result->scopeAssignationFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -273,7 +273,7 @@ class ScopeAssignationVisibilityService
         $this->logDebug("Check if item is visible for Scope assignation");
         $span = $this->startSpan("Check if item is visible for  Scope assignation");
         try {
-            $result = $this->dispacher->dispatch(new ScopeAssignationVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new ScopeAssignationVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -288,7 +288,7 @@ class ScopeAssignationVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Scope assignation");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new ScopeAssignationExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new ScopeAssignationEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -36,6 +36,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\T
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Delete\TenantLoginProviderDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -57,6 +59,8 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, TenantLoginProviderExcludingdRoot::class);
     }
     public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup)
     {

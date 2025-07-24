@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Fields;
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserFixedFieldsProposal;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -19,7 +19,7 @@ class UserExcludingdRoot
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserFixedFieldsProposal $event): UserFixedFieldsProposal
+    public function __invoke(UserCollectNonEditableFields $event): UserCollectNonEditableFields
     {
         $this->logDebug("Check UserExcludingdRoot User");
         $span = $this->startSpan("Check UserExcludingdRoot User");

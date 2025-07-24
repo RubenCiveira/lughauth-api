@@ -50,7 +50,7 @@ class TrustedClientVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new TrustedClientPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new TrustedClientPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -207,7 +207,7 @@ class TrustedClientVisibilityService
         $this->logDebug("Check fields to fix for Trusted client");
         $span = $this->startSpan("Check fields for fix for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientFixedFieldsProposal(TrustedClient::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new TrustedClientCollectNonEditableFields(TrustedClient::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -222,7 +222,7 @@ class TrustedClientVisibilityService
         $this->logDebug("Check fields to hide for Trusted client");
         $span = $this->startSpan("Check fields to hide for  Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new TrustedClientCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -253,7 +253,7 @@ class TrustedClientVisibilityService
         $this->logDebug("Compose visibility filter for Trusted client");
         $span = $this->startSpan("Compose visibility filter for  Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new TrustedClientRestrictFilterToVisibility($filter));
             return $result->trustedClientFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -282,7 +282,7 @@ class TrustedClientVisibilityService
         $this->logDebug("Check if item is visible for Trusted client");
         $span = $this->startSpan("Check if item is visible for  Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new TrustedClientVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -297,7 +297,7 @@ class TrustedClientVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Trusted client");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new TrustedClientExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new TrustedClientEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

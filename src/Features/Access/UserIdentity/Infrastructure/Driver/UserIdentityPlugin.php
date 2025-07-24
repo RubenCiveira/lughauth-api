@@ -27,6 +27,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserId
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityRestrictFilterToVisibility;
 
 class UserIdentityPlugin extends MicroPlugin
 {
@@ -47,6 +48,7 @@ class UserIdentityPlugin extends MicroPlugin
         $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(UserIdentityRestrictFilterToVisibility::class, TenantAccesible::class);
     }
     public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup)
     {

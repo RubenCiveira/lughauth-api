@@ -48,7 +48,7 @@ class SecurityDomainVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new SecurityDomainPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new SecurityDomainPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -205,7 +205,7 @@ class SecurityDomainVisibilityService
         $this->logDebug("Check fields to fix for Security domain");
         $span = $this->startSpan("Check fields for fix for Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainFixedFieldsProposal(SecurityDomain::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new SecurityDomainCollectNonEditableFields(SecurityDomain::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -220,7 +220,7 @@ class SecurityDomainVisibilityService
         $this->logDebug("Check fields to hide for Security domain");
         $span = $this->startSpan("Check fields to hide for  Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new SecurityDomainCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -248,7 +248,7 @@ class SecurityDomainVisibilityService
         $this->logDebug("Compose visibility filter for Security domain");
         $span = $this->startSpan("Compose visibility filter for  Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new SecurityDomainRestrictFilterToVisibility($filter));
             return $result->securityDomainFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -262,7 +262,7 @@ class SecurityDomainVisibilityService
         $this->logDebug("Check if item is visible for Security domain");
         $span = $this->startSpan("Check if item is visible for  Security domain");
         try {
-            $result = $this->dispacher->dispatch(new SecurityDomainVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new SecurityDomainVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -277,7 +277,7 @@ class SecurityDomainVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Security domain");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new SecurityDomainExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new SecurityDomainEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

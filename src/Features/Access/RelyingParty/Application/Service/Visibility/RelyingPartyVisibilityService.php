@@ -48,7 +48,7 @@ class RelyingPartyVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new RelyingPartyPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new RelyingPartyPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -205,7 +205,7 @@ class RelyingPartyVisibilityService
         $this->logDebug("Check fields to fix for Relying party");
         $span = $this->startSpan("Check fields for fix for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyFixedFieldsProposal(RelyingParty::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new RelyingPartyCollectNonEditableFields(RelyingParty::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -220,7 +220,7 @@ class RelyingPartyVisibilityService
         $this->logDebug("Check fields to hide for Relying party");
         $span = $this->startSpan("Check fields to hide for  Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new RelyingPartyCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -248,7 +248,7 @@ class RelyingPartyVisibilityService
         $this->logDebug("Compose visibility filter for Relying party");
         $span = $this->startSpan("Compose visibility filter for  Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new RelyingPartyRestrictFilterToVisibility($filter));
             return $result->relyingPartyFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -262,7 +262,7 @@ class RelyingPartyVisibilityService
         $this->logDebug("Check if item is visible for Relying party");
         $span = $this->startSpan("Check if item is visible for  Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new RelyingPartyVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -277,7 +277,7 @@ class RelyingPartyVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Relying party");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new RelyingPartyExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new RelyingPartyEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

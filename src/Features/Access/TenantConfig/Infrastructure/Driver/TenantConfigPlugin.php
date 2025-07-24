@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Update\Tenant
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigCollectNonEditableFields;
 
 class TenantConfigPlugin extends MicroPlugin
 {
@@ -48,6 +50,8 @@ class TenantConfigPlugin extends MicroPlugin
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantConfigListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantConfigDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(TenantConfigCollectNonEditableFields::class, TenantConfigExcludingdRoot::class);
     }
     public function setRoutesForTenantConfigAcl(RouteCollectorProxy $tenantConfigGroup)
     {

@@ -51,7 +51,7 @@ class UserVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new UserPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new UserPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -208,7 +208,7 @@ class UserVisibilityService
         $this->logDebug("Check fields to fix for User");
         $span = $this->startSpan("Check fields for fix for User");
         try {
-            $result = $this->dispacher->dispatch(new UserFixedFieldsProposal(User::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new UserCollectNonEditableFields(User::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -223,7 +223,7 @@ class UserVisibilityService
         $this->logDebug("Check fields to hide for User");
         $span = $this->startSpan("Check fields to hide for  User");
         try {
-            $result = $this->dispacher->dispatch(new UserHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new UserCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -254,7 +254,7 @@ class UserVisibilityService
         $this->logDebug("Compose visibility filter for User");
         $span = $this->startSpan("Compose visibility filter for  User");
         try {
-            $result = $this->dispacher->dispatch(new UserFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new UserRestrictFilterToVisibility($filter));
             return $result->userFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -268,7 +268,7 @@ class UserVisibilityService
         $this->logDebug("Check if item is visible for User");
         $span = $this->startSpan("Check if item is visible for  User");
         try {
-            $result = $this->dispacher->dispatch(new UserVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new UserVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -283,7 +283,7 @@ class UserVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for User");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new UserExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new UserEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

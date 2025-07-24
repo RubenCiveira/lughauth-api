@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Filter;
 use Throwable;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserFilterProposal;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -20,7 +20,7 @@ class TenantAccesible
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(UserFilterProposal $event): UserFilterProposal
+    public function __invoke(UserRestrictFilterToVisibility $event): UserRestrictFilterToVisibility
     {
         $this->logDebug("Check TenantAccesible User");
         $span = $this->startSpan("Check TenantAccesible User");

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Policy\Fields;
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleFixedFieldsProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleCollectNonEditableFields;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -19,7 +19,7 @@ class RoleExcludingdRoot
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(RoleFixedFieldsProposal $event): RoleFixedFieldsProposal
+    public function __invoke(RoleCollectNonEditableFields $event): RoleCollectNonEditableFields
     {
         $this->logDebug("Check RoleExcludingdRoot Role");
         $span = $this->startSpan("Check RoleExcludingdRoot Role");

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fiel
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseFixedFieldsProposal;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -19,7 +19,7 @@ class TenantTermsOfUseExcludingdRoot
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantTermsOfUseFixedFieldsProposal $event): TenantTermsOfUseFixedFieldsProposal
+    public function __invoke(TenantTermsOfUseCollectNonEditableFields $event): TenantTermsOfUseCollectNonEditableFields
     {
         $this->logDebug("Check TenantTermsOfUseExcludingdRoot Tenant terms of use");
         $span = $this->startSpan("Check TenantTermsOfUseExcludingdRoot Tenant terms of use");

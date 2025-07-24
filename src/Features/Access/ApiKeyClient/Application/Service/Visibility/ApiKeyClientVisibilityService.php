@@ -48,7 +48,7 @@ class ApiKeyClientVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new ApiKeyClientPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new ApiKeyClientPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -205,7 +205,7 @@ class ApiKeyClientVisibilityService
         $this->logDebug("Check fields to fix for Api key client");
         $span = $this->startSpan("Check fields for fix for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientFixedFieldsProposal(ApiKeyClient::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new ApiKeyClientCollectNonEditableFields(ApiKeyClient::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -220,7 +220,7 @@ class ApiKeyClientVisibilityService
         $this->logDebug("Check fields to hide for Api key client");
         $span = $this->startSpan("Check fields to hide for  Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new ApiKeyClientCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -248,7 +248,7 @@ class ApiKeyClientVisibilityService
         $this->logDebug("Compose visibility filter for Api key client");
         $span = $this->startSpan("Compose visibility filter for  Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new ApiKeyClientRestrictFilterToVisibility($filter));
             return $result->apiKeyClientFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -262,7 +262,7 @@ class ApiKeyClientVisibilityService
         $this->logDebug("Check if item is visible for Api key client");
         $span = $this->startSpan("Check if item is visible for  Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new ApiKeyClientVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -277,7 +277,7 @@ class ApiKeyClientVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Api key client");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new ApiKeyClientExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new ApiKeyClientEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

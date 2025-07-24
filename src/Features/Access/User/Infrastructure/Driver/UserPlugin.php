@@ -46,6 +46,8 @@ use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllo
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
 
 class UserPlugin extends MicroPlugin
 {
@@ -76,6 +78,8 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserEnableAllowDecision::class, EnableUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, UnlockUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
+        $bus->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(UserCollectNonEditableFields::class, UserExcludingdRoot::class);
     }
     public function setRoutesForUserAcl(RouteCollectorProxy $userGroup)
     {

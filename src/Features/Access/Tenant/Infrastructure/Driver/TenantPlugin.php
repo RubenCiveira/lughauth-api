@@ -38,6 +38,7 @@ use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\List\TenantListAllo
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantRestrictFilterToVisibility;
 
 class TenantPlugin extends MicroPlugin
 {
@@ -63,6 +64,7 @@ class TenantPlugin extends MicroPlugin
         $bus->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TenantRestrictFilterToVisibility::class, TenantAccesible::class);
     }
     public function setRoutesForTenantAcl(RouteCollectorProxy $tenantGroup)
     {

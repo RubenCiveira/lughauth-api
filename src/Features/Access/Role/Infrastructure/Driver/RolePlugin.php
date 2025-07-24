@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllo
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleCollectNonEditableFields;
 
 class RolePlugin extends MicroPlugin
 {
@@ -48,6 +50,8 @@ class RolePlugin extends MicroPlugin
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(RoleRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(RoleCollectNonEditableFields::class, RoleExcludingdRoot::class);
     }
     public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup)
     {

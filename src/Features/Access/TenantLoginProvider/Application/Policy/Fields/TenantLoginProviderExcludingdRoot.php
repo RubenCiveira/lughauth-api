@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\F
 
 use Throwable;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderFixedFieldsProposal;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -19,7 +19,7 @@ class TenantLoginProviderExcludingdRoot
     public function __construct(private readonly Context $context)
     {
     }
-    public function __invoke(TenantLoginProviderFixedFieldsProposal $event): TenantLoginProviderFixedFieldsProposal
+    public function __invoke(TenantLoginProviderCollectNonEditableFields $event): TenantLoginProviderCollectNonEditableFields
     {
         $this->logDebug("Check TenantLoginProviderExcludingdRoot Tenant login provider");
         $span = $this->startSpan("Check TenantLoginProviderExcludingdRoot Tenant login provider");

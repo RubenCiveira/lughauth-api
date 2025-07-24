@@ -36,6 +36,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\Tena
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseRestrictFilterToVisibility;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -57,6 +59,8 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(TenantTermsOfUseCollectNonEditableFields::class, TenantTermsOfUseExcludingdRoot::class);
     }
     public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup)
     {

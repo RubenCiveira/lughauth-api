@@ -58,7 +58,7 @@ class UserIdentityVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new UserIdentityPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new UserIdentityPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -215,7 +215,7 @@ class UserIdentityVisibilityService
         $this->logDebug("Check fields to fix for User identity");
         $span = $this->startSpan("Check fields for fix for User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityFixedFieldsProposal(UserIdentity::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new UserIdentityCollectNonEditableFields(UserIdentity::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -230,7 +230,7 @@ class UserIdentityVisibilityService
         $this->logDebug("Check fields to hide for User identity");
         $span = $this->startSpan("Check fields to hide for  User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new UserIdentityCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -270,7 +270,7 @@ class UserIdentityVisibilityService
         $this->logDebug("Compose visibility filter for User identity");
         $span = $this->startSpan("Compose visibility filter for  User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new UserIdentityRestrictFilterToVisibility($filter));
             return $result->userIdentityFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -302,7 +302,7 @@ class UserIdentityVisibilityService
         $this->logDebug("Check if item is visible for User identity");
         $span = $this->startSpan("Check if item is visible for  User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new UserIdentityVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -317,7 +317,7 @@ class UserIdentityVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for User identity");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new UserIdentityExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new UserIdentityEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

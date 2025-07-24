@@ -48,7 +48,7 @@ class TenantVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new TenantPresetProposal($attributes, $original));
+            $result = $this->dispacher->dispatch(new TenantPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -205,7 +205,7 @@ class TenantVisibilityService
         $this->logDebug("Check fields to fix for Tenant");
         $span = $this->startSpan("Check fields for fix for Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantFixedFieldsProposal(Tenant::calculatedFields(), $ref));
+            $result = $this->dispacher->dispatch(new TenantCollectNonEditableFields(Tenant::calculatedFields(), $ref));
             return array_merge($this->fieldsToHide($ref), $result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -220,7 +220,7 @@ class TenantVisibilityService
         $this->logDebug("Check fields to hide for Tenant");
         $span = $this->startSpan("Check fields to hide for  Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantHideFieldsProposal([], $ref));
+            $result = $this->dispacher->dispatch(new TenantCollectNonVisibleFields([], $ref));
             return $result->fields;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -248,7 +248,7 @@ class TenantVisibilityService
         $this->logDebug("Compose visibility filter for Tenant");
         $span = $this->startSpan("Compose visibility filter for  Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantFilterProposal($filter));
+            $result = $this->dispacher->dispatch(new TenantRestrictFilterToVisibility($filter));
             return $result->tenantFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -262,7 +262,7 @@ class TenantVisibilityService
         $this->logDebug("Check if item is visible for Tenant");
         $span = $this->startSpan("Check if item is visible for  Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantVisibilityProposal(true, $value));
+            $result = $this->dispacher->dispatch(new TenantVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -277,7 +277,7 @@ class TenantVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Tenant");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new TenantExposeProposal($content, $inlist, $attributes));
+            $result = $this->dispacher->dispatch(new TenantEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
