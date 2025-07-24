@@ -12,6 +12,7 @@ class TrustedClientExposeProposal
 {
     public function __construct(
         public readonly TrustedClient $trustedClient,
+        public readonly bool $inlist,
         private TrustedClientAttributes $trustedClientAttributes
     ) {
     }

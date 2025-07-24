@@ -12,6 +12,7 @@ class UserExposeProposal
 {
     public function __construct(
         public readonly User $user,
+        public readonly bool $inlist,
         private UserAttributes $userAttributes
     ) {
     }

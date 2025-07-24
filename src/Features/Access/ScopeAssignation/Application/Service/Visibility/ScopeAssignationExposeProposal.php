@@ -12,6 +12,7 @@ class ScopeAssignationExposeProposal
 {
     public function __construct(
         public readonly ScopeAssignation $scopeAssignation,
+        public readonly bool $inlist,
         private ScopeAssignationAttributes $scopeAssignationAttributes
     ) {
     }

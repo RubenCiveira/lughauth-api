@@ -32,20 +32,13 @@ class TrustedClientVisibilityService
     ) {
     }
 
+    public function prepareVisibleDataInList(TrustedClient $content): TrustedClientAttributes
+    {
+        return $this->prepareVisibleDataCallback($content, true);
+    }
     public function prepareVisibleData(TrustedClient $content): TrustedClientAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Trusted client");
-        $span = $this->startSpan("Prepare hidratation to visible data for Trusted client");
-        try {
-            $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new TrustedClientExposeProposal($content, $attributes));
-            return $result->getAttributes();
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
+        return $this->prepareVisibleDataCallback($content, false);
     }
     public function copyWithFixed(TrustedClientAttributes $attributes, ?TrustedClient $original = null): TrustedClientAttributes
     {
@@ -291,6 +284,21 @@ class TrustedClientVisibilityService
         try {
             $result = $this->dispacher->dispatch(new TrustedClientVisibilityProposal(true, $value));
             return $result->visible;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function prepareVisibleDataCallback(TrustedClient $content, bool $inlist): TrustedClientAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Trusted client");
+        $span = $this->startSpan("Prepare hidratation to visible data for Trusted client");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new TrustedClientExposeProposal($content, $inlist, $attributes));
+            return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -12,6 +12,7 @@ class RoleExposeProposal
 {
     public function __construct(
         public readonly Role $role,
+        public readonly bool $inlist,
         private RoleAttributes $roleAttributes
     ) {
     }

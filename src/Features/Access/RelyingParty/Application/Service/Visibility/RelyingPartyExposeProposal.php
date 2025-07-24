@@ -12,6 +12,7 @@ class RelyingPartyExposeProposal
 {
     public function __construct(
         public readonly RelyingParty $relyingParty,
+        public readonly bool $inlist,
         private RelyingPartyAttributes $relyingPartyAttributes
     ) {
     }

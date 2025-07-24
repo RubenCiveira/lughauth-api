@@ -70,7 +70,7 @@ class TenantLoginProviderListUsecase
                 throw new UnauthorizedException($allow->reason);
             }
             $slide = $this->visibility->listVisibles($filter, $cursor);
-            return new TenantLoginProviderAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($item->toAttributes()), $slide->values()));
+            return new TenantLoginProviderAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($item)), $slide->values()));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

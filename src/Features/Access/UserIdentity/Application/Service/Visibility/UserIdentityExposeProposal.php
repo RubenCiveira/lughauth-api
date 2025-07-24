@@ -12,6 +12,7 @@ class UserIdentityExposeProposal
 {
     public function __construct(
         public readonly UserIdentity $userIdentity,
+        public readonly bool $inlist,
         private UserIdentityAttributes $userIdentityAttributes
     ) {
     }

@@ -12,6 +12,7 @@ class SecurityScopeExposeProposal
 {
     public function __construct(
         public readonly SecurityScope $securityScope,
+        public readonly bool $inlist,
         private SecurityScopeAttributes $securityScopeAttributes
     ) {
     }

@@ -12,6 +12,7 @@ class ApiKeyClientExposeProposal
 {
     public function __construct(
         public readonly ApiKeyClient $apiKeyClient,
+        public readonly bool $inlist,
         private ApiKeyClientAttributes $apiKeyClientAttributes
     ) {
     }

@@ -12,6 +12,7 @@ class TenantLoginProviderExposeProposal
 {
     public function __construct(
         public readonly TenantLoginProvider $tenantLoginProvider,
+        public readonly bool $inlist,
         private TenantLoginProviderAttributes $tenantLoginProviderAttributes
     ) {
     }

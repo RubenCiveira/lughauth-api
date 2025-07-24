@@ -33,20 +33,13 @@ class TenantLoginProviderVisibilityService
     ) {
     }
 
+    public function prepareVisibleDataInList(TenantLoginProvider $content): TenantLoginProviderAttributes
+    {
+        return $this->prepareVisibleDataCallback($content, true);
+    }
     public function prepareVisibleData(TenantLoginProvider $content): TenantLoginProviderAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Tenant login provider");
-        $span = $this->startSpan("Prepare hidratation to visible data for Tenant login provider");
-        try {
-            $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new TenantLoginProviderExposeProposal($content, $attributes));
-            return $result->getAttributes();
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
+        return $this->prepareVisibleDataCallback($content, false);
     }
     public function copyWithFixed(TenantLoginProviderAttributes $attributes, ?TenantLoginProvider $original = null): TenantLoginProviderAttributes
     {
@@ -277,6 +270,21 @@ class TenantLoginProviderVisibilityService
         try {
             $result = $this->dispacher->dispatch(new TenantLoginProviderVisibilityProposal(true, $value));
             return $result->visible;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function prepareVisibleDataCallback(TenantLoginProvider $content, bool $inlist): TenantLoginProviderAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Tenant login provider");
+        $span = $this->startSpan("Prepare hidratation to visible data for Tenant login provider");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new TenantLoginProviderExposeProposal($content, $inlist, $attributes));
+            return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

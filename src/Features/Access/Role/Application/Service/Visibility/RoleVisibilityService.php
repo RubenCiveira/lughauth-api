@@ -36,20 +36,13 @@ class RoleVisibilityService
     ) {
     }
 
+    public function prepareVisibleDataInList(Role $content): RoleAttributes
+    {
+        return $this->prepareVisibleDataCallback($content, true);
+    }
     public function prepareVisibleData(Role $content): RoleAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Role");
-        $span = $this->startSpan("Prepare hidratation to visible data for Role");
-        try {
-            $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new RoleExposeProposal($content, $attributes));
-            return $result->getAttributes();
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
+        return $this->prepareVisibleDataCallback($content, false);
     }
     public function copyWithFixed(RoleAttributes $attributes, ?Role $original = null): RoleAttributes
     {
@@ -301,6 +294,21 @@ class RoleVisibilityService
         try {
             $result = $this->dispacher->dispatch(new RoleVisibilityProposal(true, $value));
             return $result->visible;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function prepareVisibleDataCallback(Role $content, bool $inlist): RoleAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Role");
+        $span = $this->startSpan("Prepare hidratation to visible data for Role");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new RoleExposeProposal($content, $inlist, $attributes));
+            return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

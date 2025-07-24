@@ -12,6 +12,7 @@ class TenantConfigExposeProposal
 {
     public function __construct(
         public readonly TenantConfig $tenantConfig,
+        public readonly bool $inlist,
         private TenantConfigAttributes $tenantConfigAttributes
     ) {
     }

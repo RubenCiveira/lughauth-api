@@ -33,20 +33,13 @@ class UserVisibilityService
     ) {
     }
 
+    public function prepareVisibleDataInList(User $content): UserAttributes
+    {
+        return $this->prepareVisibleDataCallback($content, true);
+    }
     public function prepareVisibleData(User $content): UserAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for User");
-        $span = $this->startSpan("Prepare hidratation to visible data for User");
-        try {
-            $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new UserExposeProposal($content, $attributes));
-            return $result->getAttributes();
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
+        return $this->prepareVisibleDataCallback($content, false);
     }
     public function copyWithFixed(UserAttributes $attributes, ?User $original = null): UserAttributes
     {
@@ -277,6 +270,21 @@ class UserVisibilityService
         try {
             $result = $this->dispacher->dispatch(new UserVisibilityProposal(true, $value));
             return $result->visible;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function prepareVisibleDataCallback(User $content, bool $inlist): UserAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for User");
+        $span = $this->startSpan("Prepare hidratation to visible data for User");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new UserExposeProposal($content, $inlist, $attributes));
+            return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

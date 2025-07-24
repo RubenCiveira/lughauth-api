@@ -12,6 +12,7 @@ class TenantExposeProposal
 {
     public function __construct(
         public readonly Tenant $tenant,
+        public readonly bool $inlist,
         private TenantAttributes $tenantAttributes
     ) {
     }

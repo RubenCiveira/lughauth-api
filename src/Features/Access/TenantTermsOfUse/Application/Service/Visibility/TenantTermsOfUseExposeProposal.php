@@ -12,6 +12,7 @@ class TenantTermsOfUseExposeProposal
 {
     public function __construct(
         public readonly TenantTermsOfUse $tenantTermsOfUse,
+        public readonly bool $inlist,
         private TenantTermsOfUseAttributes $tenantTermsOfUseAttributes
     ) {
     }

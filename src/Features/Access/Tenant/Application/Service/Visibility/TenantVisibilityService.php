@@ -30,20 +30,13 @@ class TenantVisibilityService
     ) {
     }
 
+    public function prepareVisibleDataInList(Tenant $content): TenantAttributes
+    {
+        return $this->prepareVisibleDataCallback($content, true);
+    }
     public function prepareVisibleData(Tenant $content): TenantAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Tenant");
-        $span = $this->startSpan("Prepare hidratation to visible data for Tenant");
-        try {
-            $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new TenantExposeProposal($content, $attributes));
-            return $result->getAttributes();
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
+        return $this->prepareVisibleDataCallback($content, false);
     }
     public function copyWithFixed(TenantAttributes $attributes, ?Tenant $original = null): TenantAttributes
     {
@@ -271,6 +264,21 @@ class TenantVisibilityService
         try {
             $result = $this->dispacher->dispatch(new TenantVisibilityProposal(true, $value));
             return $result->visible;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function prepareVisibleDataCallback(Tenant $content, bool $inlist): TenantAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Tenant");
+        $span = $this->startSpan("Prepare hidratation to visible data for Tenant");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new TenantExposeProposal($content, $inlist, $attributes));
+            return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

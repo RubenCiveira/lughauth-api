@@ -35,20 +35,13 @@ class ScopeAssignationVisibilityService
     ) {
     }
 
+    public function prepareVisibleDataInList(ScopeAssignation $content): ScopeAssignationAttributes
+    {
+        return $this->prepareVisibleDataCallback($content, true);
+    }
     public function prepareVisibleData(ScopeAssignation $content): ScopeAssignationAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Scope assignation");
-        $span = $this->startSpan("Prepare hidratation to visible data for Scope assignation");
-        try {
-            $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new ScopeAssignationExposeProposal($content, $attributes));
-            return $result->getAttributes();
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
+        return $this->prepareVisibleDataCallback($content, false);
     }
     public function copyWithFixed(ScopeAssignationAttributes $attributes, ?ScopeAssignation $original = null): ScopeAssignationAttributes
     {
@@ -282,6 +275,21 @@ class ScopeAssignationVisibilityService
         try {
             $result = $this->dispacher->dispatch(new ScopeAssignationVisibilityProposal(true, $value));
             return $result->visible;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    private function prepareVisibleDataCallback(ScopeAssignation $content, bool $inlist): ScopeAssignationAttributes
+    {
+        $this->logDebug("Prepare hidratation to visible data for Scope assignation");
+        $span = $this->startSpan("Prepare hidratation to visible data for Scope assignation");
+        try {
+            $attributes = $content->toAttributes();
+            $result = $this->dispacher->dispatch(new ScopeAssignationExposeProposal($content, $inlist, $attributes));
+            return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

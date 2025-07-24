@@ -12,6 +12,7 @@ class SecurityDomainExposeProposal
 {
     public function __construct(
         public readonly SecurityDomain $securityDomain,
+        public readonly bool $inlist,
         private SecurityDomainAttributes $securityDomainAttributes
     ) {
     }
