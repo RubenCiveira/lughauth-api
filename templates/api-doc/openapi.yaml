@@ -2809,8 +2809,8 @@ components:
           title: 'view all attributes'
           description: 'Allow to read on every scope'
           type: string
-        modificaAllAttributes:
-          title: 'modifica all attributes'
+        modifyAllAttributes:
+          title: 'modify all attributes'
           description: 'Allow to write on every scope'
           type: string
         enabled:

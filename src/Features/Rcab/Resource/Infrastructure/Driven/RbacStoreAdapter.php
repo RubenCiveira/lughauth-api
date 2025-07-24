@@ -204,13 +204,13 @@ class RbacStoreAdapter implements RbacStoreRepository
             }
         }
 
-        foreach($secAttrs as $securityAttributes) {
+        foreach ($secAttrs as $securityAttributes) {
             $readVisibility = $securityAttributes->getReadVisibility() ?? 'EXPLICIT';
             $writeVisibility = $securityAttributes->getWriteVisibility() ?? 'EXPLICIT';
-            if( $readVisibility === 'PUBLIC') {
+            if ($readVisibility === 'PUBLIC') {
                 $this->appendType('-', $securityScope, 'view', $byRole);
             }
-            if( $writeVisibility === 'PUBLIC') {
+            if ($writeVisibility === 'PUBLIC') {
                 $this->appendType('-', $securityScope, 'modify', $byRole);
             }
             foreach ($secDomains as $securityDomain) {
@@ -218,10 +218,10 @@ class RbacStoreAdapter implements RbacStoreRepository
                 $modify = true;
                 $view = $view && $securityDomain->getViewAllAttributes();
                 $modify = $view && $securityDomain->getModifyAllAttributes();
-                if( !$view ) {
+                if (!$view) {
                     // Chekxk explicit asignation
                 }
-                if( !$modify ) {
+                if (!$modify) {
                     // Chekxk explicit asignation
                 }
             }
@@ -303,7 +303,7 @@ class RbacStoreAdapter implements RbacStoreRepository
         if (!array_key_exists($key, $map)) {
             $map[$key] = [];
         }
-        if( !isset($map[$key][$on]) ) {
+        if (!isset($map[$key][$on])) {
             $map[$key][$on] = [];
         }
         $map[$key][$on][] = $value;

@@ -127,7 +127,7 @@ class SecurityDomainDisableController
             $dto->writeAll = $value->getWriteAll();
             $dto->manageAll = $value->getManageAll();
             $dto->viewAllAttributes = $value->getViewAllAttributes();
-            $dto->modificaAllAttributes = $value->getModificaAllAttributes();
+            $dto->modifyAllAttributes = $value->getModifyAllAttributes();
             $dto->enabled = $value->getEnabled();
             $dto->version = $value->getVersion();
             return $dto;

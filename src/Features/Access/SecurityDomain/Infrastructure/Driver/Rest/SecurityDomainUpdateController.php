@@ -21,7 +21,7 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDoma
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainWriteAllVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainManageAllVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainViewAllAttributesVO;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainModificaAllAttributesVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainModifyAllAttributesVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainEnabledVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -95,7 +95,7 @@ class SecurityDomainUpdateController
             $value->writeAll(SecurityDomainWriteAllVO::tryFrom($body['writeAll'] ?? null, $errorsList));
             $value->manageAll(SecurityDomainManageAllVO::tryFrom($body['manageAll'] ?? null, $errorsList));
             $value->viewAllAttributes(SecurityDomainViewAllAttributesVO::tryFrom($body['viewAllAttributes'] ?? null, $errorsList));
-            $value->modificaAllAttributes(SecurityDomainModificaAllAttributesVO::tryFrom($body['modificaAllAttributes'] ?? null, $errorsList));
+            $value->modifyAllAttributes(SecurityDomainModifyAllAttributesVO::tryFrom($body['modifyAllAttributes'] ?? null, $errorsList));
             $value->enabled(SecurityDomainEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
             $value->version(SecurityDomainVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
@@ -122,7 +122,7 @@ class SecurityDomainUpdateController
             $dto->writeAll = $value->getWriteAll();
             $dto->manageAll = $value->getManageAll();
             $dto->viewAllAttributes = $value->getViewAllAttributes();
-            $dto->modificaAllAttributes = $value->getModificaAllAttributes();
+            $dto->modifyAllAttributes = $value->getModifyAllAttributes();
             $dto->enabled = $value->getEnabled();
             $dto->version = $value->getVersion();
             return $dto;

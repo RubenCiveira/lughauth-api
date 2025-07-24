@@ -118,7 +118,7 @@ class SecurityDomainPdoConnector
         $span = $this->startSpan("Execute insert sql query for Security domain");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_security_domain" ( "uid", "name", "level", "read_all", "write_all", "manage_all", "view_all_attributes", "modifica_all_attributes", "enabled", "version") VALUES ( :uid, :name, :level, :readAll, :writeAll, :manageAll, :viewAllAttributes, :modificaAllAttributes, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "access_security_domain" ( "uid", "name", "level", "read_all", "write_all", "manage_all", "view_all_attributes", "modify_all_attributes", "enabled", "version") VALUES ( :uid, :name, :level, :readAll, :writeAll, :manageAll, :viewAllAttributes, :modifyAllAttributes, :enabled, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'level', value: $entity->getLevel(), type: SqlParam::INT),
@@ -126,7 +126,7 @@ class SecurityDomainPdoConnector
                      new SqlParam(name: 'writeAll', value: $entity->getWriteAll(), type: SqlParam::BOOL),
                      new SqlParam(name: 'manageAll', value: $entity->getManageAll(), type: SqlParam::BOOL),
                      new SqlParam(name: 'viewAllAttributes', value: $entity->getViewAllAttributes(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'modificaAllAttributes', value: $entity->getModificaAllAttributes(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'modifyAllAttributes', value: $entity->getModifyAllAttributes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -155,7 +155,7 @@ class SecurityDomainPdoConnector
         $span = $this->startSpan("Execute update sql query for Security domain");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_security_domain" SET "name" = :name , "level" = :level , "read_all" = :readAll , "write_all" = :writeAll , "manage_all" = :manageAll , "view_all_attributes" = :viewAllAttributes , "modifica_all_attributes" = :modificaAllAttributes , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_security_domain" SET "name" = :name , "level" = :level , "read_all" = :readAll , "write_all" = :writeAll , "manage_all" = :manageAll , "view_all_attributes" = :viewAllAttributes , "modify_all_attributes" = :modifyAllAttributes , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'level', value: $update->getLevel(), type: SqlParam::INT),
@@ -163,7 +163,7 @@ class SecurityDomainPdoConnector
                      new SqlParam(name: 'writeAll', value: $update->getWriteAll(), type: SqlParam::BOOL),
                      new SqlParam(name: 'manageAll', value: $update->getManageAll(), type: SqlParam::BOOL),
                      new SqlParam(name: 'viewAllAttributes', value: $update->getViewAllAttributes(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'modificaAllAttributes', value: $update->getModificaAllAttributes(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'modifyAllAttributes', value: $update->getModifyAllAttributes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
@@ -379,7 +379,7 @@ class SecurityDomainPdoConnector
                 writeAll: isset($row['write_all']) ? !! $row['write_all'] : null,
                 manageAll: isset($row['manage_all']) ? !! $row['manage_all'] : null,
                 viewAllAttributes: isset($row['view_all_attributes']) ? !! $row['view_all_attributes'] : null,
-                modificaAllAttributes: isset($row['modifica_all_attributes']) ? !! $row['modifica_all_attributes'] : null,
+                modifyAllAttributes: isset($row['modify_all_attributes']) ? !! $row['modify_all_attributes'] : null,
                 enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
                 version: $row['version'] ?? null,
             );

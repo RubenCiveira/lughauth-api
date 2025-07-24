@@ -60,12 +60,12 @@ class SecurityDomainApiDTO
     )]
     public ?bool $viewAllAttributes;
     #[OA\Property(
-        property: "modificaAllAttributes",
-        title: "modifica all attributes",
+        property: "modifyAllAttributes",
+        title: "modify all attributes",
         description:"Allow to write on every scope",
         type: "string"
     )]
-    public ?bool $modificaAllAttributes;
+    public ?bool $modifyAllAttributes;
     #[OA\Property(
         property: "enabled",
         title: "enabled",

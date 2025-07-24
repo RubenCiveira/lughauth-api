@@ -18,8 +18,8 @@ use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDoma
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Accesor\SecurityDomainManageAllAccesor;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainViewAllAttributesVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Accesor\SecurityDomainViewAllAttributesAccesor;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainModificaAllAttributesVO;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Accesor\SecurityDomainModificaAllAttributesAccesor;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainModifyAllAttributesVO;
+use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Accesor\SecurityDomainModifyAllAttributesAccesor;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainEnabledVO;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\Accesor\SecurityDomainEnabledAccesor;
 use Civi\Lughauth\Features\Access\SecurityDomain\Domain\ValueObject\SecurityDomainVersionVO;
@@ -39,7 +39,7 @@ class SecurityDomain extends SecurityDomainRef
     use SecurityDomainWriteAllAccesor;
     use SecurityDomainManageAllAccesor;
     use SecurityDomainViewAllAttributesAccesor;
-    use SecurityDomainModificaAllAttributesAccesor;
+    use SecurityDomainModifyAllAttributesAccesor;
     use SecurityDomainEnabledAccesor;
     use SecurityDomainVersionAccesor;
     private array $recordedEvents = [];
@@ -52,7 +52,7 @@ class SecurityDomain extends SecurityDomainRef
         SecurityDomainWriteAllVO|bool|null $writeAll = null,
         SecurityDomainManageAllVO|bool|null $manageAll = null,
         SecurityDomainViewAllAttributesVO|bool|null $viewAllAttributes = null,
-        SecurityDomainModificaAllAttributesVO|bool|null $modificaAllAttributes = null,
+        SecurityDomainModifyAllAttributesVO|bool|null $modifyAllAttributes = null,
         SecurityDomainEnabledVO|bool|null $enabled = null,
         SecurityDomainVersionVO|int|null $version = null,
     ) {
@@ -63,7 +63,7 @@ class SecurityDomain extends SecurityDomainRef
         $this->_writeAll = null === $writeAll ? SecurityDomainWriteAllVO::empty() : SecurityDomainWriteAllVO::from($writeAll);
         $this->_manageAll = null === $manageAll ? SecurityDomainManageAllVO::empty() : SecurityDomainManageAllVO::from($manageAll);
         $this->_viewAllAttributes = null === $viewAllAttributes ? SecurityDomainViewAllAttributesVO::empty() : SecurityDomainViewAllAttributesVO::from($viewAllAttributes);
-        $this->_modificaAllAttributes = null === $modificaAllAttributes ? SecurityDomainModificaAllAttributesVO::empty() : SecurityDomainModificaAllAttributesVO::from($modificaAllAttributes);
+        $this->_modifyAllAttributes = null === $modifyAllAttributes ? SecurityDomainModifyAllAttributesVO::empty() : SecurityDomainModifyAllAttributesVO::from($modifyAllAttributes);
         $this->_enabled = null === $enabled ? SecurityDomainEnabledVO::empty() : SecurityDomainEnabledVO::from($enabled);
         $this->_version = null === $version ? SecurityDomainVersionVO::empty() : SecurityDomainVersionVO::from($version);
     }
@@ -76,7 +76,7 @@ class SecurityDomain extends SecurityDomainRef
         $value->_writeAll = $values->getWriteAllOrDefault($this->_writeAll);
         $value->_manageAll = $values->getManageAllOrDefault($this->_manageAll);
         $value->_viewAllAttributes = $values->getViewAllAttributesOrDefault($this->_viewAllAttributes);
-        $value->_modificaAllAttributes = $values->getModificaAllAttributesOrDefault($this->_modificaAllAttributes);
+        $value->_modifyAllAttributes = $values->getModifyAllAttributesOrDefault($this->_modifyAllAttributes);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
         $value->_version = $values->getVersionOrDefault($this->_version);
         return $value;
@@ -131,7 +131,7 @@ class SecurityDomain extends SecurityDomainRef
           ->writeAll($this->_writeAll)
           ->manageAll($this->_manageAll)
           ->viewAllAttributes($this->_viewAllAttributes)
-          ->modificaAllAttributes($this->_modificaAllAttributes)
+          ->modifyAllAttributes($this->_modifyAllAttributes)
           ->enabled($this->_enabled)
           ->version($this->_version);
     }
