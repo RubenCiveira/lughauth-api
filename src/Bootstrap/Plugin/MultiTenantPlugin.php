@@ -21,7 +21,7 @@ class MultiTenantPlugin extends AggregatedMicroPlugin
     public function __construct()
     {
         parent::__construct([
-          new OidcPlugin(), new RcabPlugin()
+          new OidcPlugin(), new RbacPlugin()
         ]);
     }
     #[Override]

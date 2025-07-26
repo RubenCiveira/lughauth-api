@@ -8,10 +8,10 @@ namespace Civi\Lughauth\Bootstrap\Plugin;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Features\Rcab\Resource\Infrastructure\Driver\PermissionCheck;
-use Civi\Lughauth\Features\Rcab\Resource\Infrastructure\Driver\ResourceRegister;
+use Civi\Lughauth\Features\Rbac\Resource\Infrastructure\Driver\PermissionCheck;
+use Civi\Lughauth\Features\Rbac\Resource\Infrastructure\Driver\ResourceRegister;
 
-class RcabPlugin extends MicroPlugin
+class RbacPlugin extends MicroPlugin
 {
     #[Override]
     public function registerRoutes(RouteCollectorProxy $app)
