@@ -9,15 +9,41 @@ class MatchRule
 {
     public function __construct(
         private string $effect, // allow / deny
-        private string $type,   // actions / attributes
+        private string $type,   // e.g. actions / attributes:view / attributes:modify
         private array $items,
         private Condition $condition
     ) {}
 
-    public function getEffect(): string { return $this->effect; }
-    public function getType(): string { return $this->type; }
-    public function getItems(): array { return $this->items; }
-    public function getCondition(): Condition { return $this->condition; }
+    public function getEffect(): string
+    {
+        return $this->effect;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
+    }
+
+    public function getMainType(): string
+    {
+        return explode(':', $this->type)[0];
+    }
+
+    public function getSubType(): ?string
+    {
+        $parts = explode(':', $this->type);
+        return $parts[1] ?? null;
+    }
+
+    public function getItems(): array
+    {
+        return $this->items;
+    }
+
+    public function getCondition(): Condition
+    {
+        return $this->condition;
+    }
 
     public static function fromArray(array $data): self
     {

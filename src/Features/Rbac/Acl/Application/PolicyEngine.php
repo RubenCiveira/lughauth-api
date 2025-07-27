@@ -33,19 +33,27 @@ class PolicyEngine
                 $editable = [];
 
                 foreach ($declared['attributes'] ?? [] as $field) {
-                    $viewRules = $resRules->getAttributes();
-                    $editRules = $resRules->getAttributes();
+                    $canView = $this->isAllowed(
+                        $field,
+                        $resRules->getAttributes(),
+                        $effectiveRoles,
+                        'attributes:view'
+                    );
 
-                    if ($this->isAllowed($field, $viewRules, $effectiveRoles, 'view')) {
-                        $viewable[] = $field;
-                    }
-                    if ($this->isAllowed($field, $editRules, $effectiveRoles, 'modify')) {
-                        $editable[] = $field;
-                    }
+                    $canEdit = $this->isAllowed(
+                        $field,
+                        $resRules->getAttributes(),
+                        $effectiveRoles,
+                        'attributes:modify'
+                    );
+
+                    if ($canView) $viewable[] = $field;
+                    if ($canView && $canEdit) $editable[] = $field;
                 }
 
                 $result[$role][$resource] = [
                     'hidden' => array_values(array_diff($declared['attributes'], $viewable)),
+                    // 'readonly' => array_values(array_diff($declared['attributes'], $editable)),
                     'readonly' => array_values(array_diff($viewable, $editable)),
                 ];
             }
@@ -59,8 +67,9 @@ class PolicyEngine
         $r = $this->ruleSet->getRole($role);
         $all = [$role];
         if ($r) {
-            foreach ($r->getInherits() as $parent)
+            foreach ($r->getInherits() as $parent) {
                 $all = array_merge($all, $this->getEffectiveRoles($parent));
+            }
         }
         return array_unique($all);
     }
@@ -69,13 +78,19 @@ class PolicyEngine
         string $field,
         array $rules,
         array $roles,
-        string $action
+        string $type
     ): bool {
-        $matching = array_filter($rules, function (MatchRule $rule) use ($field, $roles, $action) {
-            if ($rule->getType() !== 'attributes') return false;
-            if (!in_array($field, $rule->getItems()) && !in_array('*', $rule->getItems())) return false;
-            foreach ($roles as $r)
-                if ($rule->getCondition()->matches($r) && in_array($action, $rule->getItems(), true)) return true;
+        $matching = array_filter($rules, function (MatchRule $rule) use ($field, $roles, $type) {
+            if ($rule->getType() !== $type) return false;
+            if (!in_array($field, $rule->getItems(), true) && !in_array('*', $rule->getItems(), true)) {
+                return false;
+            }
+
+            foreach ($roles as $r) {
+                if ($rule->getCondition()->matches($r)) {
+                    return true;
+                }
+            }
             return false;
         });
 

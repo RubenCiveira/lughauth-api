@@ -11,18 +11,44 @@ class ResourceRules
         private string $name,
         private array $actions = [],
         private array $attributes = []
-    ) {}
+    ) {
+    }
 
-    public function getName(): string { return $this->name; }
-    /** @return MatchRule[] */ public function getActions(): array { return $this->actions; }
-    /** @return MatchRule[] */ public function getAttributes(): array { return $this->attributes; }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    /** @return MatchRule[] */
+    public function getActions(): array
+    {
+        return $this->actions;
+    }
+
+    /** @return MatchRule[] */
+    public function getAttributes(): array
+    {
+        return array_filter(
+            $this->attributes,
+            fn (MatchRule $r) =>
+            str_starts_with($r->getType(), 'attributes:')
+        );
+    }
 
     public static function fromArray(string $name, array $data): self
     {
-        return new self(
-            $name,
-            array_map(fn($r) => MatchRule::fromArray($r), $data['actions'] ?? []),
-            array_map(fn($r) => MatchRule::fromArray($r), $data['attributes'] ?? [])
-        );
+        $actions = array_map(fn ($r) => MatchRule::fromArray($r), $data['actions'] ?? []);
+
+        $attributeRules = [];
+        foreach ($data as $key => $rules) {
+            if (str_starts_with($key, 'attributes:')) {
+                $attributeRules = array_merge(
+                    $attributeRules,
+                    array_map(fn ($r) => MatchRule::fromArray($r), $rules)
+                );
+            }
+        }
+
+        return new self($name, $actions, $attributeRules);
     }
 }

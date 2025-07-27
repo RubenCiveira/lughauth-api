@@ -15,7 +15,9 @@ class Condition
 
     public function matches(string $role): bool
     {
-        if ($this->field !== 'role') return false;
+        if ($this->field !== 'role') {
+            return false;
+        }
 
         return match ($this->operator) {
             '==' => $role === $this->value,
@@ -36,5 +38,20 @@ class Condition
     public function toArray(): array
     {
         return [$this->operator => [$this->field => $this->value]];
+    }
+
+    public function getOperator(): string
+    {
+        return $this->operator;
+    }
+
+    public function getField(): string
+    {
+        return $this->field;
+    }
+
+    public function getValue(): array|string
+    {
+        return $this->value;
     }
 }

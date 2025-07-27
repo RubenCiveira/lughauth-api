@@ -15,8 +15,12 @@ class DslParser
         $resources = [];
         $matches = [];
 
-        $current = fn() => $tokens[$pos] ?? '';
-        $next = fn() => $tokens[$pos++] ?? '';
+        $current = function () use (&$tokens, &$pos) {
+            return $tokens[$pos] ?? '';
+        };
+        $next = function () use (&$tokens, &$pos) {
+            return $tokens[$pos++] ?? '';
+        };
         $expect = function (string $expected) use (&$next) {
             $token = $next();
             if ($token !== $expected) {
@@ -27,34 +31,50 @@ class DslParser
         while ($pos < count($tokens)) {
             $token = $current();
             if ($token === 'role') {
-                $next(); $role = $next(); $expect('extends'); $parent = $next(); $expect(';');
+                $next();
+                $role = $next();
+                $expect('extends');
+                $parent = $next();
+                $expect(';');
                 $roles[$role]['inherits'][] = $parent;
             } elseif ($token === 'resource') {
-                $next(); $res = $next(); $expect('extends'); $parent = $next(); $expect(';');
+                $next();
+                $res = $next();
+                $expect('extends');
+                $parent = $next();
+                $expect(';');
                 $resources[$res]['inherits'][] = $parent;
             } elseif ($token === 'match') {
-                $next(); $res = $next(); $expect('{');
+                $next(); // skip 'match'
+                $res = $next();
+                $expect('{');
+
                 $matchData = [];
+
                 while ($current() !== '}') {
-                    $section = $next(); $expect('{'); $rules = [];
-                    while ($current() !== '}') {
-                        $effect = $next(); $items = [];
-                        while ($current() !== 'if') {
-                            $token = $next(); if ($token !== ',') $items[] = $token;
-                        }
-                        $expect('if'); $condTokens = [];
-                        while ($current() !== ';') $condTokens[] = $next();
-                        $expect(';');
-                        $rules[] = [
-                            'effect' => $effect,
-                            'type' => $section,
-                            'items' => $items,
-                            'condition' => $this->parseCondition($condTokens)
-                        ];
+                    $section = $next();
+                    $expect('{');
+
+                    // Si viene directamente un 'allow', es una sección plana
+                    if (in_array($current(), ['allow', 'deny'])) {
+                        $rules = $this->parseRulesBlock($current, $next, $expect, $section);
+                        $matchData[$section] = $rules;
+                        $expect('}');
+                        continue;
                     }
+
+                    // Si vienen secciones internas como 'view', 'modify'...
+                    while ($current() !== '}') {
+                        $subsection = $next(); // ej. 'view', 'modify'
+                        $expect('{');
+                        $rules = $this->parseRulesBlock($current, $next, $expect, "$section:$subsection");
+                        $expect('}');
+                        $matchData["$section:$subsection"] = $rules;
+                    }
+
                     $expect('}');
-                    $matchData[$section] = $rules;
                 }
+
                 $expect('}');
                 $matches[$res] = $matchData;
             } else {
@@ -69,10 +89,46 @@ class DslParser
         ];
     }
 
+    private function parseRulesBlock(
+        callable $current,
+        callable $next,
+        callable $expect,
+        string $type
+    ): array {
+        $rules = [];
+
+        while (!in_array($current(), ['}', ''])) {
+            $effect = $next(); // allow / deny
+            $items = [];
+            while ($current() !== 'if') {
+                $token = $next();
+                if ($token !== ',') {
+                    $items[] = $token;
+                }
+            }
+            $expect('if');
+
+            $condTokens = [];
+            while ($current() !== ';') {
+                $condTokens[] = $next();
+            }
+            $expect(';');
+
+            $rules[] = [
+                'effect' => $effect,
+                'type' => $type,
+                'items' => $items,
+                'condition' => $this->parseCondition($condTokens)
+            ];
+        }
+
+        return $rules;
+    }
+
     private function tokenize(string $input): array
     {
         $input = preg_replace('/([{}();,])/', ' $1 ', $input);
-        return array_values(array_filter(preg_split('/\s+/', trim($input))));
+        return array_values(array_filter(preg_split('/\\s+/', trim($input))));
     }
 
     private function parseCondition(array $tokens): array
@@ -84,14 +140,19 @@ class DslParser
             $values = [];
             while ($tokens) {
                 $val = array_shift($tokens);
-                if ($val === ')') break;
-                if ($val !== ',') $values[] = trim($val, '"');
+                if ($val === ')') {
+                    break;
+                }
+                if ($val !== ',') {
+                    $values[] = trim($val, '"');
+                }
             }
             return ['in' => [$lhs => $values]];
         } elseif (in_array($op, ['==', '!='])) {
             $rhs = trim(array_shift($tokens), '"');
             return [$op => [$lhs => $rhs]];
         }
+
         throw new \RuntimeException("Unsupported condition operator: $op");
     }
 }

@@ -15,28 +15,47 @@ class RuleSet
     public static function fromArray(array $data): self
     {
         $roles = [];
-        foreach ($data['roles'] ?? [] as $name => $r)
+        foreach ($data['roles'] ?? [] as $name => $r) {
             $roles[] = RoleRule::fromArray($name, $r);
+        }
 
         $resources = [];
-        foreach ($data['matches'] ?? [] as $name => $r)
+        foreach ($data['matches'] ?? [] as $name => $r) {
             $resources[] = ResourceRules::fromArray($name, $r);
+        }
 
         return new self($roles, $resources);
     }
 
     public function getRole(string $name): ?RoleRule
     {
-        foreach ($this->roles as $r) if ($r->getName() === $name) return $r;
+        foreach ($this->roles as $r) {
+            if ($r->getName() === $name) {
+                return $r;
+            }
+        }
         return null;
     }
 
     public function getResource(string $name): ?ResourceRules
     {
-        foreach ($this->resources as $r) if ($r->getName() === $name) return $r;
+        foreach ($this->resources as $r) {
+            if ($r->getName() === $name) {
+                return $r;
+            }
+        }
         return null;
     }
 
-    /** @return RoleRule[] */ public function getRoles(): array { return $this->roles; }
-    /** @return ResourceRules[] */ public function getResources(): array { return $this->resources; }
+    /** @return RoleRule[] */
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    /** @return ResourceRules[] */
+    public function getResources(): array
+    {
+        return $this->resources;
+    }
 }
