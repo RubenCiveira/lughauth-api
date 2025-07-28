@@ -53,7 +53,7 @@ class AuditMiddleware implements MiddlewareInterface
                 tenant_id, session_id, client_id, user_agent,
                 request_method, request_path, action_type
             ) VALUES (
-                :id, :created_at, :actor_id, :actor_type, :actor_ip,
+                :id, :occurred_at, :actor_id, :actor_type, :actor_ip,
                 :tenant_id, :session_id, :client_id, :user_agent,
                 :method, :path, :action_type
             )'
@@ -74,7 +74,7 @@ class AuditMiddleware implements MiddlewareInterface
             'method' => $method,
             'path' => (string) $request->getUri()->getPath(),
             'action_type' => $method . ' ' . $request->getUri()->getPath(),
-            'created_at' => $now
+            'occurred_at' => $now
         ]);
 
         $changes = $this->context->consumeChanges();
@@ -130,8 +130,8 @@ class AuditMiddleware implements MiddlewareInterface
             SELECT aa.*, ac.*
             FROM _audit_action aa
             LEFT JOIN _audit_change ac ON ac.action_id = aa.id
-            WHERE aa.created_at < :cutoff
-            ORDER BY aa.created_at ASC
+            WHERE aa.occurred_at < :cutoff
+            ORDER BY aa.occurred_at ASC
         ");
         $stmt->execute(['cutoff' => $cutoffStr]);
 
