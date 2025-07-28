@@ -13,6 +13,12 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\Relying
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyApiKeyVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEnabledVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyScopesAttributeHolder;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyScopesVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartySchemasAttributeHolder;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartySchemasVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyPoliciesAttributeHolder;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyPoliciesVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -23,6 +29,9 @@ class RelyingPartyAttributes
     use RelyingPartyCodeAttributeHolder;
     use RelyingPartyApiKeyAttributeHolder;
     use RelyingPartyEnabledAttributeHolder;
+    use RelyingPartyScopesAttributeHolder;
+    use RelyingPartySchemasAttributeHolder;
+    use RelyingPartyPoliciesAttributeHolder;
     use RelyingPartyVersionAttributeHolder;
 
     private const UNSETS = [
@@ -30,6 +39,9 @@ class RelyingPartyAttributes
       'code' => 'unsetCode',
       'apiKey' => 'unsetApiKey',
       'enabled' => 'unsetEnabled',
+      'scopes' => 'unsetScopes',
+      'schemas' => 'unsetSchemas',
+      'policies' => 'unsetPolicies',
       'version' => 'unsetVersion',
     ];
 
@@ -40,6 +52,9 @@ class RelyingPartyAttributes
         $code = RelyingPartyCodeVO::tryFrom($this->code, $errors);
         $apiKey = RelyingPartyApiKeyVO::tryFrom($this->apiKey, $errors);
         $enabled = RelyingPartyEnabledVO::tryFrom($this->enabled, $errors);
+        $scopes = RelyingPartyScopesVO::tryFrom($this->scopes, $errors);
+        $schemas = RelyingPartySchemasVO::tryFrom($this->schemas, $errors);
+        $policies = RelyingPartyPoliciesVO::tryFrom($this->policies, $errors);
         $version = RelyingPartyVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -48,6 +63,9 @@ class RelyingPartyAttributes
             code: $code,
             apiKey: $apiKey,
             enabled: $enabled,
+            scopes: $scopes,
+            schemas: $schemas,
+            policies: $policies,
             version: $version,
         );
     }
@@ -59,6 +77,9 @@ class RelyingPartyAttributes
         $this->withAssertedCodeRules($value, $errorsList);
         $this->withAssertedApiKeyRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
+        $this->withAssertedScopesRules($value, $errorsList);
+        $this->withAssertedSchemasRules($value, $errorsList);
+        $this->withAssertedPoliciesRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -77,6 +98,9 @@ class RelyingPartyAttributes
         $this->withDefaultCode();
         $this->withDefaultApiKey();
         $this->withDefaultEnabled();
+        $this->withDefaultScopes();
+        $this->withDefaultSchemas();
+        $this->withDefaultPolicies();
         $this->withDefaultVersion();
         return $this;
     }

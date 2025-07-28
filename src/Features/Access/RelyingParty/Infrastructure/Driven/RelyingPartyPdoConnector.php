@@ -118,11 +118,14 @@ class RelyingPartyPdoConnector
         $span = $this->startSpan("Execute insert sql query for Relying party");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_relying_party" ( "uid", "code", "api_key", "enabled", "version") VALUES ( :uid, :code, :apiKey, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "access_relying_party" ( "uid", "code", "api_key", "enabled", "scopes", "schemas", "policies", "version") VALUES ( :uid, :code, :apiKey, :enabled, :scopes, :schemas, :policies, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'apiKey', value: $entity->getApiKey(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'scopes', value: $entity->getScopes(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'schemas', value: $entity->getSchemas(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'policies', value: $entity->getPolicies(), type: SqlParam::TEXT),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
             } catch (NotUniqueException $ex) {
@@ -150,11 +153,14 @@ class RelyingPartyPdoConnector
         $span = $this->startSpan("Execute update sql query for Relying party");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_relying_party" SET "code" = :code , "api_key" = :apiKey , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_relying_party" SET "code" = :code , "api_key" = :apiKey , "enabled" = :enabled , "scopes" = :scopes , "schemas" = :schemas , "policies" = :policies , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'apiKey', value: $update->getApiKey(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'scopes', value: $update->getScopes(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'schemas', value: $update->getSchemas(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'policies', value: $update->getPolicies(), type: SqlParam::TEXT),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
@@ -375,6 +381,9 @@ class RelyingPartyPdoConnector
                 code: $row['code'] ?? null,
                 apiKey: $row['api_key'] ?? null,
                 enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
+                scopes: $row['scopes'] ?? null,
+                schemas: $row['schemas'] ?? null,
+                policies: $row['policies'] ?? null,
                 version: $row['version'] ?? null,
             );
         } catch (Throwable $ex) {

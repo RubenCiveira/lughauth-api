@@ -15,19 +15,18 @@ use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserId
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserIdentityDeleteController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityFilterProposal;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsAutenticatedListAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityRestrictFilterToVisibility;
 
 class UserIdentityPlugin extends MicroPlugin
 {
@@ -36,19 +35,16 @@ class UserIdentityPlugin extends MicroPlugin
     {
         $app->group('/api/access/identity', [$this, 'setRoutesForUserIdentity']);
         $app->group('/api/me/acl/access/identity', [$this, 'setRoutesForUserIdentityAcl']);
-        $app->group('/api/access/user-identities', [$this, 'setRoutesForUserIdentity']);
-        $app->group('/api/me/acl/access/user-identities', [$this, 'setRoutesForUserIdentityAcl']);
     }
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(UserIdentityFilterProposal::class, TenantAccesible::class);
+        $bus->registerListener(UserIdentityRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(UserIdentityCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(UserIdentityUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(UserIdentityRestrictFilterToVisibility::class, TenantAccesible::class);
     }
     public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup)
     {

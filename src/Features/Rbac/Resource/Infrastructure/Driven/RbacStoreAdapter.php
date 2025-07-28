@@ -217,9 +217,9 @@ class RbacStoreAdapter implements RbacStoreRepository
                     }
                 }
             }
-            if (!$allowed ) {
-                foreach($allAssignedScopes as $assigned) {
-                    if( $assigned->getSecurityScope()->uid() == $securityScope->uid() ) {
+            if (!$allowed) {
+                foreach ($allAssignedScopes as $assigned) {
+                    if ($assigned->getSecurityScope()->uid() == $securityScope->uid()) {
                         $this->appendType($assigned->getSecurityDomain()->uid(), $securityScope, 'scope', $bySec);
                     }
                 }
@@ -236,13 +236,13 @@ class RbacStoreAdapter implements RbacStoreRepository
             if ($readVisibility === 'PUBLIC') {
                 $this->addAllow(true, '', $allowToViewIn);
                 $view = true;
-            } else if ($readVisibility === 'AUTHORIZED') {
+            } elseif ($readVisibility === 'AUTHORIZED') {
                 $view = true;
             }
             if ($writeVisibility === 'PUBLIC') {
                 $this->addAllow(true, '', $allowToModifyIn);
                 $modify = true;
-            } else if ($readVisibility === 'AUTHORIZED') {
+            } elseif ($readVisibility === 'AUTHORIZED') {
                 $modify = true;
             }
             foreach ($secDomains as $securityDomain) {
@@ -256,8 +256,8 @@ class RbacStoreAdapter implements RbacStoreRepository
                 }
             }
 
-            foreach($allAssignedSchemas as $assigned) {
-                if( $assigned->getSecurityAttribute()->uid() == $securityAttributes->uid() ) {
+            foreach ($allAssignedSchemas as $assigned) {
+                if ($assigned->getSecurityAttribute()->uid() == $securityAttributes->uid()) {
                     $on = $assigned->getSecurityDomain()->uid();
                     $view = $assigned->getPermision() == 'VIEW'
                                 || $assigned->getPermision() == 'MODIFY';
@@ -268,45 +268,45 @@ class RbacStoreAdapter implements RbacStoreRepository
             }
 
             $on = '';
-            $view = $allowToViewIn[$on]??false;
-            $modify = $allowToModifyIn[$on]??false;
-            if( !$view ) {
+            $view = $allowToViewIn[$on] ?? false;
+            $modify = $allowToModifyIn[$on] ?? false;
+            if (!$view) {
                 $this->appendType($on, $securityAttributes, 'hidden', $bySec);
             }
-            if( !$modify ) {
+            if (!$modify) {
                 $this->appendType($on, $securityAttributes, 'fixed', $bySec);
             }
 
             foreach ($secDomains as $domain) {
                 $on = $domain->uid();
-                $view = $allowToViewIn[$on]??false;
-                $modify = $allowToModifyIn[$on]??false;
-                if( !$view ) {
+                $view = $allowToViewIn[$on] ?? false;
+                $modify = $allowToModifyIn[$on] ?? false;
+                if (!$view) {
                     $this->appendType($on, $securityAttributes, 'hidden', $bySec);
                 }
-                if( !$modify ) {
+                if (!$modify) {
                     $this->appendType($on, $securityAttributes, 'fixed', $bySec);
                 }
             }
         }
         foreach ($bySec as $domainId => $domainScopes) {
             foreach ($roleSecs as $roleName => $roleDomains) {
-                if( in_array($domainId, $roleDomains['-'], true) ) {
-                    if (isset($domainScopes['scope']) ) {
+                if (in_array($domainId, $roleDomains['-'], true)) {
+                    if (isset($domainScopes['scope'])) {
                         foreach ($domainScopes['scope'] as $domainScope) {
                             $this->appendArray($roleName, $domainScope, 'scope', $byRole);
                         }
                     }
-                    if (isset($domainScopes['hidden']) ) {
-                         foreach ($domainScopes['hidden'] as $domainScope) {
-                             $this->appendArray($roleName, $domainScope, 'hidden', $byRole);
-                         }
+                    if (isset($domainScopes['hidden'])) {
+                        foreach ($domainScopes['hidden'] as $domainScope) {
+                            $this->appendArray($roleName, $domainScope, 'hidden', $byRole);
+                        }
                     }
-                    if (isset($domainScopes['fixed']) ) {
-                         foreach ($domainScopes['fixed'] as $domainScope) {
-                             $this->appendArray($roleName, $domainScope, 'fixed', $byRole);
-                         }
-                     }
+                    if (isset($domainScopes['fixed'])) {
+                        foreach ($domainScopes['fixed'] as $domainScope) {
+                            $this->appendArray($roleName, $domainScope, 'fixed', $byRole);
+                        }
+                    }
                 }
             }
         }
@@ -316,7 +316,7 @@ class RbacStoreAdapter implements RbacStoreRepository
             $grants[] = new RoleGrant(
                 anonimous: '' === $roleName,
                 rolename: $roleName,
-                allowedScopes: isset($scopes['scope']) ? array_values(array_unique($scopes['scope'])): [],
+                allowedScopes: isset($scopes['scope']) ? array_values(array_unique($scopes['scope'])) : [],
                 hiddenFields: isset($scopes['hidden']) ? array_values(array_unique($scopes['hidden'])) : [],
                 fixedFields: isset($scopes['fixed']) ? array_values(array_unique($scopes['fixed'])) : [],
             );
@@ -327,9 +327,9 @@ class RbacStoreAdapter implements RbacStoreRepository
 
     private function addAllow($view, $on, &$allowToViewIn)
     {
-        if( !isset($allowToViewIn[$on]) ) {
+        if (!isset($allowToViewIn[$on])) {
             $allowToViewIn[$on] = $view;
-        } else if( $view ) {
+        } elseif ($view) {
             $allowToViewIn[$on] = true;
         }
     }
@@ -364,7 +364,7 @@ class RbacStoreAdapter implements RbacStoreRepository
      */
     private function appendType(string $key, SecurityScope|SecurityAttribute $scope, string $on, array &$map): void
     {
-        if( $scope instanceof SecurityScope ) {
+        if ($scope instanceof SecurityScope) {
             $this->appendArray($key, $scope->getResource() . ':' . $scope->getScope(), $on, $map);
         } else {
             $this->appendArray($key, $scope->getResource() . ':' . $scope->getAttribute(), $on, $map);

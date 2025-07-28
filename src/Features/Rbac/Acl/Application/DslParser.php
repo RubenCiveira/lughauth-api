@@ -34,9 +34,12 @@ class DslParser
                 $next();
                 $role = $next();
                 $expect('extends');
-                $parent = $next();
+                $parents = [];
+                do {
+                    $parents[] = $next();
+                } while ($current() === ',' && $next());
                 $expect(';');
-                $roles[$role]['inherits'][] = $parent;
+                $roles[$role]['inherits'] = $parents;
             } elseif ($token === 'resource') {
                 $next();
                 $res = $next();
@@ -109,11 +112,18 @@ class DslParser
             $expect('if');
 
             $condTokens = [];
-            while ($current() !== ';') {
+            while (!in_array($current(), [';', '}'])) {
+                if ($current() === '') {
+                    throw new \RuntimeException("Unexpected end of input while parsing condition");
+                }
                 $condTokens[] = $next();
             }
-            $expect(';');
 
+            // Si el próximo token es ';', consumirlo.
+            // Si es '}', permitirlo, pero dejarlo al parseador padre.
+            if ($current() === ';') {
+                $expect(';');
+            }
             $rules[] = [
                 'effect' => $effect,
                 'type' => $type,
@@ -133,8 +143,32 @@ class DslParser
 
     private function parseCondition(array $tokens): array
     {
+        // Condición tipo flag: if @authenticated;
+        if (count($tokens) === 1 && str_starts_with($tokens[0], '@')) {
+            return ['flag' => $tokens[0]];
+        }
+
         $lhs = array_shift($tokens);
         $op = array_shift($tokens);
+
+        // Soporte para "not in"
+        if ($op === 'not' && $tokens[0] === 'in') {
+            array_shift($tokens); // remove 'in'
+            array_shift($tokens); // remove '('
+            $values = [];
+            while ($tokens) {
+                $val = array_shift($tokens);
+                if ($val === ')') {
+                    break;
+                }
+                if ($val !== ',') {
+                    $values[] = trim($val, '"');
+                }
+            }
+            return ['not_in' => [$lhs => $values]];
+        }
+
+        // Soporte para "in"
         if ($op === 'in') {
             array_shift($tokens); // remove '('
             $values = [];
@@ -148,7 +182,10 @@ class DslParser
                 }
             }
             return ['in' => [$lhs => $values]];
-        } elseif (in_array($op, ['==', '!='])) {
+        }
+
+        // Comparaciones == o !=
+        if (in_array($op, ['==', '!='])) {
             $rhs = trim(array_shift($tokens), '"');
             return [$op => [$lhs => $rhs]];
         }

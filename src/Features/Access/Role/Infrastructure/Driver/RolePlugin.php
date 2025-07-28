@@ -15,22 +15,20 @@ use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleUpdateCont
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleDeleteController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleFilterProposal;
+use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Fields\RoleExcludingdRoot;
-use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleFixedFieldsProposal;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleCollectNonEditableFields;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
 
 class RolePlugin extends MicroPlugin
 {
@@ -43,15 +41,13 @@ class RolePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(RoleFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(RoleFixedFieldsProposal::class, RoleExcludingdRoot::class);
+        $bus->registerListener(RoleRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(RoleCollectNonEditableFields::class, RoleExcludingdRoot::class);
         $bus->registerListener(RoleCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RoleUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(RoleRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(RoleCollectNonEditableFields::class, RoleExcludingdRoot::class);
     }
     public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup)
     {

@@ -48,14 +48,32 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'viewer' => [
                 'article' => [
-                    'hidden' => ['author'],
-                    'readonly' => ['title', 'content']
+                    'view' => ['title', 'content'],
+                    'modify' => []
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
-    public function stestInheritedModify()
+    public function testInheritedModify()
     {
         $dsl = <<<DSL
             role editor extends viewer;
@@ -85,10 +103,83 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'editor' => [
                 'article' => [
-                    'hidden' => ['author'],
-                    'readonly' => ['title']
+                    'view' => ['title', 'content'],
+                    'modify' => ['content']
                 ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
+        ], $result);
+    }
+
+    public function testAllAllowedForAdmin()
+    {
+        $dsl = <<<DSL
+          match * {
+              actions {
+                  allow * if role == "ADMIN"
+              }
+              attributes {
+                  view {
+                      allow * if role == "ADMIN"
+                  }
+                  modify {
+                      allow * if role == "ADMIN"
+                  }
+              }
+          }
+      DSL;
+        $engine = new PolicyEngine();
+        $engine->setRoles(['ADMIN']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+          'article' => [
+            'attributes' => ['title', 'content', 'author']
             ]
+          ]);
+
+        $result = $engine->expand();
+        $this->assertEquals([
+            'ADMIN' => [
+                'article' => [
+                    'view' => ['title', 'content', 'author'],
+                    'modify' => ['title', 'content', 'author']
+                ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
@@ -122,10 +213,28 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'editor' => [
                 'article' => [
-                    'hidden' => ['author'],
-                    'readonly' => ['title']
+                    'view' => ['title', 'content'],
+                    'modify' => ['content']
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
@@ -155,13 +264,30 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'guest' => [
                 'article' => [
-                    'hidden' => ['title', 'content'],
-                    'readonly' => []
+                    'view' => [],
+                    'modify' => []
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
-
 
     public function testModifyInheritedFromEditor()
     {
@@ -192,10 +318,28 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'editor' => [
                 'article' => [
-                    'hidden' => ['author'],
-                    'readonly' => ['title']
+                    'view' => ['title', 'content'],
+                    'modify' => ['content']
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
@@ -224,10 +368,28 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'editor' => [
                 'article' => [
-                    'hidden' => ['author'],
-                    'readonly' => ['title', 'content']
+                    'view' => ['title', 'content'],
+                    'modify' => []
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'article' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
@@ -258,10 +420,28 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'admin' => [
                 'config' => [
-                    'hidden' => [],
-                    'readonly' => ['hiddenSetting']
+                    'view' => ['setting1', 'setting2', 'hiddenSetting'],
+                    'modify' => ['setting1', 'setting2']
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'config' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'config' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'config' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
@@ -294,16 +474,34 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'editor' => [
                 'report' => [
-                    'hidden' => ['summary'],
-                    'readonly' => []
+                    'view' => ['fullText'],
+                    'modify' => ['fullText']
                 ]
             ],
             'auditor' => [
                 'report' => [
-                    'hidden' => ['fullText'],
-                    'readonly' => ['summary']
+                    'view' => ['summary'],
+                    'modify' => []
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'report' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'report' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'report' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
 
@@ -331,10 +529,152 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals([
             'guest' => [
                 'dashboard' => [
-                    'hidden' => ['stats', 'metrics'],
-                    'readonly' => []
+                    'view' => [],
+                    'modify' => []
                 ]
-            ]
+            ],
+            '@everyone' => [
+              'dashboard' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@authenticated' => [
+              'dashboard' => [
+                'view' => [],
+                'modify' => []
+              ]
+            ],
+            '@anonymous' => [
+              'dashboard' => [
+                'view' => [],
+                'modify' => []
+              ]
+          ]
         ], $result);
     }
+
+    public function testSpecialFlagsInConditions()
+    {
+        $dsl = <<<DSL
+            match article {
+                attributes {
+                    view {
+                        allow title if @everyone;
+                        allow content if @authenticated;
+                        allow author if role == "admin";
+                        deny content if @anonymous;
+                    }
+                }
+            }
+        DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'article' => ['attributes' => ['title', 'content', 'author']]
+        ]);
+
+        $engine->setRoles([]);
+        $resultAnon = $engine->expand();
+
+        $this->assertEquals([
+            '@everyone' => [
+                'article' => [
+                    'view' => ['title', 'content'],
+                    'modify' => []
+                ]
+            ],
+            '@authenticated' => [
+                'article' => [
+                    'view' => ['title', 'content'],
+                    'modify' => []
+                ]
+            ],
+            '@anonymous' => [
+                'article' => [
+                    'view' => ['title'],
+                    'modify' => []
+                ]
+            ]
+        ], $resultAnon);
+    }
+
+    public function testRoleNotIn()
+    {
+        $dsl = <<<DSL
+        match config {
+            attributes {
+                view {
+                    allow setting1, setting2 if role not in ("guest");
+                }
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['admin']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'config' => ['attributes' => ['setting1', 'setting2']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['setting1', 'setting2'], $result['admin']['config']['view']);
+    }
+
+    public function testWildcardWithPartialDeny()
+    {
+        $dsl = <<<DSL
+        match user {
+            attributes {
+                view {
+                    allow * if role == "admin";
+                    deny email if role == "admin";
+                }
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['admin']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'user' => ['attributes' => ['name', 'email', 'address']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['name', 'address'], $result['admin']['user']['view']);
+    }
+
+    public function testMultipleInheritance()
+    {
+        $dsl = <<<DSL
+        role editor extends viewer, contributor;
+        role viewer extends guest;
+
+        match article {
+            attributes {
+                view {
+                    allow title if role == "viewer";
+                    allow summary if role == "contributor";
+                }
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['editor']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'article' => ['attributes' => ['title', 'summary']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['title', 'summary'], $result['editor']['article']['view']);
+    }
+
 }

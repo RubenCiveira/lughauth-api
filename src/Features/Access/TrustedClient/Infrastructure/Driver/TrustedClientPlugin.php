@@ -18,18 +18,18 @@ use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\Trust
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\IsAutenticatedListAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 
 class TrustedClientPlugin extends MicroPlugin

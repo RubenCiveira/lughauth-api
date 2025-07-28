@@ -68,15 +68,6 @@ class RoleRetrieveController
             $dto->uid = $value->getUid();
             $dto->name = $value->getName();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
-            $domains = [];
-            foreach ($value->getDomains() as $item) {
-                $domains[] = [
-                  'uid' => $item->uid(),
-                  'securityDomain' => $item->getSecurityDomain() ? ['$ref' => $item->getSecurityDomain()->uid() ] : null,
-                  'version' => $item->getVersion(),
-                 ];
-            }
-            $dto->domains = $domains;
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

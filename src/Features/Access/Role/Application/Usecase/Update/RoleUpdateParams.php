@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\Role\Application\Usecase\Update;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleUidAttributeHolder;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleNameAttributeHolder;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleTenantAttributeHolder;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleDomainsAttributeHolder;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 
@@ -17,14 +16,12 @@ class RoleUpdateParams
     use RoleUidAttributeHolder;
     use RoleNameAttributeHolder;
     use RoleTenantAttributeHolder;
-    use RoleDomainsAttributeHolder;
     use RoleVersionAttributeHolder;
 
     private const UNSETS = [
       'uid' => 'unsetUid',
       'name' => 'unsetName',
       'tenant' => 'unsetTenant',
-      'domains' => 'unsetDomains',
       'version' => 'unsetVersion',
     ];
 
@@ -34,7 +31,6 @@ class RoleUpdateParams
             $this->uid($att->getUidOrDefault(null));
             $this->name($att->getNameOrDefault(null));
             $this->tenant($att->getTenantOrDefault(null));
-            $this->domains($att->getDomainsOrDefault(null));
             $this->version($att->getVersionOrDefault(null));
         }
     }
@@ -49,9 +45,6 @@ class RoleUpdateParams
         }
         if ($this->tenant) {
             $att->tenant($this->tenant);
-        }
-        if ($this->domains) {
-            $att->domains($this->domains);
         }
         if ($this->version) {
             $att->version($this->version);
@@ -69,7 +62,6 @@ class RoleUpdateParams
         $this->withDefaultUid();
         $this->withDefaultName();
         $this->withDefaultTenant();
-        $this->withDefaultDomains();
         $this->withDefaultVersion();
         return $this;
     }

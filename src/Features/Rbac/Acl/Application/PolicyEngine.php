@@ -14,24 +14,71 @@ class PolicyEngine
     private RuleSet $ruleSet;
     private array $resources = [];
 
-    public function setRoles(array $roles): void { $this->roles = $roles; }
-    public function setRuleSet(RuleSet $ruleSet): void { $this->ruleSet = $ruleSet; }
-    public function setResources(array $resources): void { $this->resources = $resources; }
+    public function setRoles(array $roles): void
+    {
+        $this->roles = $roles;
+    }
+
+    public function setRuleSet(RuleSet $ruleSet): void
+    {
+        $this->ruleSet = $ruleSet;
+    }
+
+    public function setResources(array $resources): void
+    {
+        $this->resources = $resources;
+    }
 
     public function expand(): array
     {
         $result = [];
+        $baseRoles = $this->roles;
+        $expandedRoles = [];
 
-        foreach ($this->roles as $role) {
-            $effectiveRoles = $this->getEffectiveRoles($role);
+        foreach ($baseRoles as $role) {
+            $effective = $this->getEffectiveRoles($role);
 
+            if (!in_array('@everyone', $effective, true)) {
+                $effective[] = '@everyone';
+            }
+
+            if ($role === '@anonymous') {
+                $effective[] = '@anonymous';
+            } else {
+                $effective[] = '@authenticated';
+            }
+
+            $expandedRoles[$role] = array_unique($effective);
+        }
+
+        // Asegurar que los pseudoroles estén presentes también como claves en la salida
+        foreach (['@everyone', '@authenticated', '@anonymous'] as $pseudo) {
+            if (!array_key_exists($pseudo, $expandedRoles)) {
+                if ($pseudo === '@everyone') {
+                    $expandedRoles[$pseudo] = ['@everyone'];
+                } elseif ($pseudo === '@authenticated') {
+                    $expandedRoles[$pseudo] = ['@authenticated', '@everyone'];
+                } elseif ($pseudo === '@anonymous') {
+                    $expandedRoles[$pseudo] = ['@anonymous', '@everyone'];
+                }
+            }
+        }
+
+        foreach ($expandedRoles as $role => $effectiveRoles) {
             foreach ($this->resources as $resource => $declared) {
-                $resRules = $this->ruleSet->getResource($resource);
-                if (!$resRules) continue;
-
+                $rulesList = $this->ruleSet->getMatchingResources($resource);
+                if (empty($rulesList)) {
+                    continue;
+                }
+                $resRules = array_shift($rulesList);
+                foreach ($rulesList as $extra) {
+                    $resRules = $resRules->merge($extra);
+                }
+                if (!$resRules) {
+                    continue;
+                }
                 $viewable = [];
                 $editable = [];
-
                 foreach ($declared['attributes'] ?? [] as $field) {
                     $canView = $this->isAllowed(
                         $field,
@@ -39,26 +86,25 @@ class PolicyEngine
                         $effectiveRoles,
                         'attributes:view'
                     );
-
                     $canEdit = $this->isAllowed(
                         $field,
                         $resRules->getAttributes(),
                         $effectiveRoles,
                         'attributes:modify'
                     );
-
-                    if ($canView) $viewable[] = $field;
-                    if ($canView && $canEdit) $editable[] = $field;
+                    if ($canView) {
+                        $viewable[] = $field;
+                    }
+                    if ($canView && $canEdit) {
+                        $editable[] = $field;
+                    }
                 }
-
                 $result[$role][$resource] = [
-                    'hidden' => array_values(array_diff($declared['attributes'], $viewable)),
-                    // 'readonly' => array_values(array_diff($declared['attributes'], $editable)),
-                    'readonly' => array_values(array_diff($viewable, $editable)),
+                    'view' => $viewable,
+                    'modify' => $editable,
                 ];
             }
         }
-
         return $result;
     }
 
@@ -81,7 +127,9 @@ class PolicyEngine
         string $type
     ): bool {
         $matching = array_filter($rules, function (MatchRule $rule) use ($field, $roles, $type) {
-            if ($rule->getType() !== $type) return false;
+            if ($rule->getType() !== $type) {
+                return false;
+            }
             if (!in_array($field, $rule->getItems(), true) && !in_array('*', $rule->getItems(), true)) {
                 return false;
             }
@@ -94,7 +142,9 @@ class PolicyEngine
             return false;
         });
 
-        if (empty($matching)) return false;
+        if (empty($matching)) {
+            return false;
+        }
 
         $anyDeny = false;
         $allAllow = true;
@@ -102,12 +152,15 @@ class PolicyEngine
         foreach ($matching as $rule) {
             foreach ($roles as $r) {
                 if ($rule->getCondition()->matches($r)) {
-                    if ($rule->getEffect() === 'deny') $anyDeny = true;
-                    if ($rule->getEffect() !== 'allow') $allAllow = false;
+                    if ($rule->getEffect() === 'deny') {
+                        $anyDeny = true;
+                    }
+                    if ($rule->getEffect() !== 'allow') {
+                        $allAllow = false;
+                    }
                 }
             }
         }
-
         return !$anyDeny && $allAllow;
     }
 }

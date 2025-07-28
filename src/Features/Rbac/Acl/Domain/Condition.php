@@ -8,50 +8,56 @@ namespace Civi\Lughauth\Features\Rbac\Acl\Domain;
 class Condition
 {
     public function __construct(
-        private string $operator,
-        private string $field,
-        private array|string $value
+        private readonly array $data
     ) {}
-
-    public function matches(string $role): bool
-    {
-        if ($this->field !== 'role') {
-            return false;
-        }
-
-        return match ($this->operator) {
-            '==' => $role === $this->value,
-            '!=' => $role !== $this->value,
-            'in' => in_array($role, (array) $this->value, true),
-            default => false,
-        };
-    }
 
     public static function fromArray(array $data): self
     {
-        $op = key($data);
-        $field = key($data[$op]);
-        $value = $data[$op][$field];
-        return new self($op, $field, $value);
+        // Normaliza role == "X" en role in ["X"]
+        if (isset($data['==']) && isset($data['==']['role'])) {
+            $data = ['in' => ['role' => [$data['==']['role']]]];
+        }
+
+        // Normaliza role != "X" en role not_in ["X"]
+        if (isset($data['!=']) && isset($data['!=']['role'])) {
+            $data = ['not_in' => ['role' => [$data['!=']['role']]]];
+        }
+
+        // Normaliza role in "X" en array (por si acaso alguien mete solo un valor)
+        if (isset($data['in']['role']) && !is_array($data['in']['role'])) {
+            $data['in']['role'] = [$data['in']['role']];
+        }
+
+        if (isset($data['not_in']['role']) && !is_array($data['not_in']['role'])) {
+            $data['not_in']['role'] = [$data['not_in']['role']];
+        }
+
+        return new self($data);
     }
 
     public function toArray(): array
     {
-        return [$this->operator => [$this->field => $this->value]];
+        return $this->data;
     }
 
-    public function getOperator(): string
+    public function matches(string $role): bool
     {
-        return $this->operator;
-    }
+        if (isset($this->data['flag'])) {
+            return match ($this->data['flag']) {
+                '@everyone'     => true,
+                '@authenticated' => $role !== '@anonymous',
+                '@anonymous'     => $role === '@anonymous',
+                default => false,
+            };
+        }
 
-    public function getField(): string
-    {
-        return $this->field;
-    }
+        if (isset($this->data['in']['role'])) {
+            return in_array($role, $this->data['in']['role'], true);
+        }
 
-    public function getValue(): array|string
-    {
-        return $this->value;
+        if (isset($this->data['not_in']['role'])) {
+            return !in_array($role, $this->data['not_in']['role'], true);
+        }
+        return false;
     }
 }

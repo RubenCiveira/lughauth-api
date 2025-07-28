@@ -11,8 +11,6 @@ use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleNameAttribu
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleTenantAttributeHolder;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleTenantVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleDomainsAttributeHolder;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -22,14 +20,12 @@ class RoleAttributes
     use RoleUidAttributeHolder;
     use RoleNameAttributeHolder;
     use RoleTenantAttributeHolder;
-    use RoleDomainsAttributeHolder;
     use RoleVersionAttributeHolder;
 
     private const UNSETS = [
       'uid' => 'unsetUid',
       'name' => 'unsetName',
       'tenant' => 'unsetTenant',
-      'domains' => 'unsetDomains',
       'version' => 'unsetVersion',
     ];
 
@@ -39,7 +35,6 @@ class RoleAttributes
         $uid = RoleUidVO::tryFrom($this->uid, $errors);
         $name = RoleNameVO::tryFrom($this->name, $errors);
         $tenant = RoleTenantVO::tryFrom($this->tenant, $errors);
-        $domains = RoleDomainsVO::tryFrom($this->domains, $errors);
         $version = RoleVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -47,7 +42,6 @@ class RoleAttributes
             uid: $uid,
             name: $name,
             tenant: $tenant,
-            domains: $domains,
             version: $version,
         );
     }
@@ -58,7 +52,6 @@ class RoleAttributes
         $this->withAssertedUidRules($value, $errorsList);
         $this->withAssertedNameRules($value, $errorsList);
         $this->withAssertedTenantRules($value, $errorsList);
-        $this->withAssertedDomainsRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -76,7 +69,6 @@ class RoleAttributes
         $this->withDefaultUid();
         $this->withDefaultName();
         $this->withDefaultTenant();
-        $this->withDefaultDomains();
         $this->withDefaultVersion();
         return $this;
     }

@@ -34,7 +34,6 @@ class RoleApiDTO
     ]
     )]
     public ?array $tenant;
-    public ?array $domains;
     #[OA\Property(
         property: "version",
         title: "version",

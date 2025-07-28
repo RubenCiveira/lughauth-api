@@ -10,10 +10,17 @@ class RoleRule
     public function __construct(
         private string $name,
         private array $inherits = []
-    ) {}
+    ) {
+    }
 
-    public function getName(): string { return $this->name; }
-    public function getInherits(): array { return $this->inherits; }
+    public function getName(): string
+    {
+        return $this->name;
+    }
+    public function getInherits(): array
+    {
+        return $this->inherits;
+    }
 
     public static function fromArray(string $name, array $data): self
     {

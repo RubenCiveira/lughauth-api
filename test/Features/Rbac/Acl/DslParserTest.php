@@ -8,6 +8,34 @@ use Civi\Lughauth\Features\Rbac\Acl\Application\DslParser;
 
 final class DslParserTest extends TestCase
 {
+    public function testLoadMatcherAll()
+    {
+        $dsl = <<<DSL
+          match * {
+              actions {
+                  allow * if role == "ADMIN"
+              }
+              attributes {
+                  view {
+                      allow * if role == "ADMIN"
+                  }
+                  modify {
+                      allow * if role == "ADMIN"
+                  }
+              }
+          }
+      DSL;
+
+        $parser = new DslParser();
+        $result = $parser->parse($dsl);
+
+        $this->assertArrayHasKey('matches', $result);
+        $this->assertArrayHasKey('*', $result['matches']);
+        $this->assertArrayHasKey('actions', $result['matches']['*']);
+        $this->assertArrayHasKey('attributes:view', $result['matches']['*']);
+        $this->assertArrayHasKey('attributes:modify', $result['matches']['*']);
+    }
+
     public function testParseRoleInheritance(): void
     {
         $dsl = <<<DSL
@@ -91,7 +119,7 @@ final class DslParserTest extends TestCase
               actions {
                 allow update if role == "admin";
                 allow read if role in ("admin", "viewer");
-                deny delete if role != "admin";
+                deny delete if role not in ("admin");
               }
             }
         DSL;
@@ -102,7 +130,7 @@ final class DslParserTest extends TestCase
         $actions = $result['matches']['config']['actions'];
         $this->assertEquals(['==' => ['role' => 'admin']], $actions[0]['condition']);
         $this->assertEquals(['in' => ['role' => ['admin', 'viewer']]], $actions[1]['condition']);
-        $this->assertEquals(['!=' => ['role' => 'admin']], $actions[2]['condition']);
+        $this->assertEquals(['not_in' => ['role' => ['admin']]], $actions[2]['condition']);
     }
 
     public function testParseAttributeBlocksAreTaggedCorrectly(): void
@@ -142,5 +170,35 @@ final class DslParserTest extends TestCase
         $this->assertEquals('deny', $match['attributes:modify'][1]['effect']);
     }
 
-    
+    public function testParseSpecialFlags(): void
+    {
+        $dsl = <<<DSL
+        match resource {
+            actions {
+                allow read if @everyone;
+                allow write if @authenticated;
+                deny delete if @anonymous;
+            }
+        }
+    DSL;
+
+        $parser = new DslParser();
+        $result = $parser->parse($dsl);
+
+        $actions = $result['matches']['resource']['actions'];
+
+        $this->assertCount(3, $actions);
+
+        $this->assertEquals('allow', $actions[0]['effect']);
+        $this->assertEquals(['read'], $actions[0]['items']);
+        $this->assertEquals(['flag' => '@everyone'], $actions[0]['condition']);
+
+        $this->assertEquals('allow', $actions[1]['effect']);
+        $this->assertEquals(['write'], $actions[1]['items']);
+        $this->assertEquals(['flag' => '@authenticated'], $actions[1]['condition']);
+
+        $this->assertEquals('deny', $actions[2]['effect']);
+        $this->assertEquals(['delete'], $actions[2]['items']);
+        $this->assertEquals(['flag' => '@anonymous'], $actions[2]['condition']);
+    }
 }

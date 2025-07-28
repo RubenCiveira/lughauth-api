@@ -12,7 +12,8 @@ class MatchRule
         private string $type,   // e.g. actions / attributes:view / attributes:modify
         private array $items,
         private Condition $condition
-    ) {}
+    ) {
+    }
 
     public function getEffect(): string
     {

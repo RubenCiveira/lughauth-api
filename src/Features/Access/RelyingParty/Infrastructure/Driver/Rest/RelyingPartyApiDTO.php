@@ -39,6 +39,27 @@ class RelyingPartyApiDTO
     )]
     public ?bool $enabled;
     #[OA\Property(
+        property: "scopes",
+        title: "scopes",
+        description:"El scopes de relying party",
+        type: "string"
+    )]
+    public ?string $scopes;
+    #[OA\Property(
+        property: "schemas",
+        title: "schemas",
+        description:"El schemas de relying party",
+        type: "string"
+    )]
+    public ?string $schemas;
+    #[OA\Property(
+        property: "policies",
+        title: "policies",
+        description:"El policies de relying party",
+        type: "string"
+    )]
+    public ?string $policies;
+    #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de relying party para controlar bloqueos optimistas",

@@ -15,22 +15,20 @@ use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\Tenant
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\TenantConfigDeleteController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigFilterProposal;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\TenantConfigExcludingdRoot;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigFixedFieldsProposal;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create\TenantConfigCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Update\TenantConfigUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigCollectNonEditableFields;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create\TenantConfigCreateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Update\TenantConfigUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
 
 class TenantConfigPlugin extends MicroPlugin
 {
@@ -43,15 +41,13 @@ class TenantConfigPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(TenantConfigFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(TenantConfigFixedFieldsProposal::class, TenantConfigExcludingdRoot::class);
+        $bus->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(TenantConfigCollectNonEditableFields::class, TenantConfigExcludingdRoot::class);
         $bus->registerListener(TenantConfigCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantConfigUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantConfigListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantConfigDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantConfigCollectNonEditableFields::class, TenantConfigExcludingdRoot::class);
     }
     public function setRoutesForTenantConfigAcl(RouteCollectorProxy $tenantConfigGroup)
     {

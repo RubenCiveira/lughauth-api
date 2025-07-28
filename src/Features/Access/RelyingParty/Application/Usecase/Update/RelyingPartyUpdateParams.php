@@ -9,6 +9,9 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\Relying
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyCodeAttributeHolder;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyApiKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyEnabledAttributeHolder;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyScopesAttributeHolder;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartySchemasAttributeHolder;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyPoliciesAttributeHolder;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 
@@ -18,6 +21,9 @@ class RelyingPartyUpdateParams
     use RelyingPartyCodeAttributeHolder;
     use RelyingPartyApiKeyAttributeHolder;
     use RelyingPartyEnabledAttributeHolder;
+    use RelyingPartyScopesAttributeHolder;
+    use RelyingPartySchemasAttributeHolder;
+    use RelyingPartyPoliciesAttributeHolder;
     use RelyingPartyVersionAttributeHolder;
 
     private const UNSETS = [
@@ -25,6 +31,9 @@ class RelyingPartyUpdateParams
       'code' => 'unsetCode',
       'apiKey' => 'unsetApiKey',
       'enabled' => 'unsetEnabled',
+      'scopes' => 'unsetScopes',
+      'schemas' => 'unsetSchemas',
+      'policies' => 'unsetPolicies',
       'version' => 'unsetVersion',
     ];
 
@@ -35,6 +44,9 @@ class RelyingPartyUpdateParams
             $this->code($att->getCodeOrDefault(null));
             $this->apiKey($att->getApiKeyOrDefault(null));
             $this->enabled($att->getEnabledOrDefault(null));
+            $this->scopes($att->getScopesOrDefault(null));
+            $this->schemas($att->getSchemasOrDefault(null));
+            $this->policies($att->getPoliciesOrDefault(null));
             $this->version($att->getVersionOrDefault(null));
         }
     }
@@ -53,6 +65,15 @@ class RelyingPartyUpdateParams
         if ($this->enabled) {
             $att->enabled($this->enabled);
         }
+        if ($this->scopes) {
+            $att->scopes($this->scopes);
+        }
+        if ($this->schemas) {
+            $att->schemas($this->schemas);
+        }
+        if ($this->policies) {
+            $att->policies($this->policies);
+        }
         if ($this->version) {
             $att->version($this->version);
         }
@@ -70,6 +91,9 @@ class RelyingPartyUpdateParams
         $this->withDefaultCode();
         $this->withDefaultApiKey();
         $this->withDefaultEnabled();
+        $this->withDefaultScopes();
+        $this->withDefaultSchemas();
+        $this->withDefaultPolicies();
         $this->withDefaultVersion();
         return $this;
     }

@@ -18,26 +18,24 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempMetadataUploadController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderFilterProposal;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Fields\TenantLoginProviderExcludingdRoot;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderFixedFieldsProposal;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\List\IsAutenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Retrieve\TenantLoginProviderRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\TenantLoginProviderListAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Delete\TenantLoginProviderDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Retrieve\TenantLoginProviderRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\TenantLoginProviderListAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Delete\TenantLoginProviderDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -50,8 +48,8 @@ class TenantLoginProviderPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(TenantLoginProviderFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(TenantLoginProviderFixedFieldsProposal::class, TenantLoginProviderExcludingdRoot::class);
+        $bus->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, TenantLoginProviderExcludingdRoot::class);
         $bus->registerListener(TenantLoginProviderCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantLoginProviderUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantLoginProviderRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
@@ -59,8 +57,6 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, TenantLoginProviderExcludingdRoot::class);
     }
     public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup)
     {

@@ -130,6 +130,9 @@ class RelyingPartyListController
             $dto->code = $value->getCode();
             $dto->apiKey = $value->getApiKey();
             $dto->enabled = $value->getEnabled();
+            $dto->scopes = $value->getScopes();
+            $dto->schemas = $value->getSchemas();
+            $dto->policies = $value->getPolicies();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

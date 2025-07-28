@@ -18,36 +18,34 @@ use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserEnableCont
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserUnlockController;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserFilterProposal;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Fields\UserExcludingdRoot;
-use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserFixedFieldsProposal;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Create\CreateUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update\UpdateUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\RetrieveUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\ListUserOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\IsAutenticatedListAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\DeleteUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable\DisableUserOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\EnableUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\UnlockUserOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAutenticatedUnlockAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAutenticatedUnlockAllow;
 
 class UserPlugin extends MicroPlugin
 {
@@ -60,8 +58,8 @@ class UserPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
-        $bus->registerListener(UserFilterProposal::class, TenantAccesible::class);
-        $bus->registerListener(UserFixedFieldsProposal::class, UserExcludingdRoot::class);
+        $bus->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
+        $bus->registerListener(UserCollectNonEditableFields::class, UserExcludingdRoot::class);
         $bus->registerListener(UserCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(UserCreateAllowDecision::class, CreateUserOnlyForRootAllow::class);
         $bus->registerListener(UserUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
@@ -78,8 +76,6 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserEnableAllowDecision::class, EnableUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, UnlockUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
-        $bus->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(UserCollectNonEditableFields::class, UserExcludingdRoot::class);
     }
     public function setRoutesForUserAcl(RouteCollectorProxy $userGroup)
     {

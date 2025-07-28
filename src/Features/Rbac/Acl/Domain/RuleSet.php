@@ -10,7 +10,8 @@ class RuleSet
     public function __construct(
         private array $roles,
         private array $resources
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {
@@ -36,6 +37,32 @@ class RuleSet
         }
         return null;
     }
+
+    public function getMatchingResources(string $resourceName): array
+    {
+        $matches = [];
+
+        foreach ($this->resources as $rules) {
+            $pattern = $rules->getName();
+            if ($pattern === $resourceName) {
+                $matches[] = $rules;
+            } elseif (str_starts_with($pattern, '/')) {
+                // Regex match
+                if (@preg_match($pattern, $resourceName)) {
+                    $matches[] = $rules;
+                }
+            } elseif (str_contains($pattern, '*')) {
+                // Wildcard match
+                $regex = '/^' . str_replace('\*', '.*', preg_quote($pattern, '/')) . '$/';
+                if (preg_match($regex, $resourceName)) {
+                    $matches[] = $rules;
+                }
+            }
+        }
+
+        return $matches;
+    }
+
 
     public function getResource(string $name): ?ResourceRules
     {

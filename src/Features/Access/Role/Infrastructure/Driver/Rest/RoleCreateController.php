@@ -17,14 +17,6 @@ use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleUidVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleTenantVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsUidVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsSecurityDomainVO;
-use Civi\Lughauth\Features\Access\SecurityDomain\Domain\SecurityDomainRef;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsVersionVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsItem;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleDomainsListRef;
-use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateParams;
@@ -86,30 +78,6 @@ class RoleCreateController
             if ($tenant && isset($tenant['$ref'])) {
                 $value->tenant(RoleTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
             }
-            $domains = $body['domains'] ?? null;
-            $domainsList = [];
-            if (isset($domains)) {
-                if (is_array($domains)) {
-                    foreach ($domains as $item) {
-                        $innerErrorsList = new ConstraintFailList();
-                        $innerUid = RoleDomainsUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
-                        $innerSecurityDomain = RoleDomainsSecurityDomainVO::tryFrom(isset($item['securityDomain']['$ref']) ? new SecurityDomainRef($item['securityDomain']['$ref']) : null, $innerErrorsList);
-                        $innerVersion = RoleDomainsVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
-                        if (!$innerErrorsList->hasErrors()) {
-                            $domainsList[] = new RoleDomainsItem(
-                                uid: $innerUid,
-                                securityDomain: $innerSecurityDomain,
-                                version: $innerVersion,
-                            );
-                        } else {
-                            $errorsList->add($innerErrorsList);
-                        }
-                    }
-                } else {
-                    $errorsList->add(new ConstraintFail('not-array', ['domains'], $domains, ['array']));
-                }
-            }
-            $value->domains(RoleDomainsVO::from(RoleDomainsListRef::fromArray($domainsList)));
             $value->version(RoleVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -132,15 +100,6 @@ class RoleCreateController
             $dto->uid = $value->getUid();
             $dto->name = $value->getName();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
-            $domains = [];
-            foreach ($value->getDomains() as $item) {
-                $domains[] = [
-                  'uid' => $item->uid(),
-                  'securityDomain' => $item->getSecurityDomain() ? ['$ref' => $item->getSecurityDomain()->uid() ] : null,
-                  'version' => $item->getVersion(),
-                 ];
-            }
-            $dto->domains = $domains;
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {
