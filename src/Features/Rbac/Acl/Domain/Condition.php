@@ -9,7 +9,8 @@ class Condition
 {
     public function __construct(
         private readonly array $data
-    ) {}
+    ) {
+    }
 
     public static function fromArray(array $data): self
     {
