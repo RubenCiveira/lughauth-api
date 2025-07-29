@@ -49,6 +49,7 @@ use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
 use Civi\Lughauth\Shared\Infrastructure\Log\FileJsonTraceExporter;
 use Civi\Lughauth\Shared\Infrastructure\Log\TraceContextProcessor;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ErrorsPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ManagementPlugin;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\AccessControlMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
@@ -137,9 +138,6 @@ class Micro
         // Middleware para parsear json
         $this->app->addBodyParsingMiddleware();
 
-        // Middleware que asegura que el realm y el usuario admin existan
-        // $this->app->add(EnsureRealmInitializedMiddleware::class);
-
         $this->app->add(AccessControlMiddleware::class);
         $this->app->add(JwtVerifierMiddleware::class);
         $this->app->add(HttpCompressionMiddleware::class);
@@ -170,6 +168,7 @@ class Micro
         $this->interfaces = [];
         $this->register(new ErrorsPlugin());
         $this->register(new ManagementPlugin());
+        $this->register(new GenericSecurityPlugin() );
         return $this->app;
     }
 
