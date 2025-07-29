@@ -36,13 +36,13 @@ class RbacStoreAdapter implements RbacStoreRepository
             return;
         }
         $data = [];
-        foreach($paramMap as $item) {
-            if( isset($item->resource->name) ) {
+        foreach ($paramMap as $item) {
+            if (isset($item->resource->name)) {
                 // 'documents' => ['attributes' => [], 'actions' => ['edit', 'delete']]
-                if( !isset($data[$item->resource->name]) ) {
+                if (!isset($data[$item->resource->name])) {
                     $data[$item->resource->name] = [];
                 }
-                foreach($item->scopes as $scope) {
+                foreach ($item->scopes as $scope) {
                     $data[$item->resource->name][] = $scope->name;
                 }
                 $data[$item->resource->name] = array_unique($data[$item->resource->name]);
@@ -65,12 +65,12 @@ class RbacStoreAdapter implements RbacStoreRepository
             return;
         }
         $data = [];
-        foreach($paramMap as $item) {
-            if( isset($item->resource->name) ) {
-                if( !isset($data[$item->resource->name]) ) {
+        foreach ($paramMap as $item) {
+            if (isset($item->resource->name)) {
+                if (!isset($data[$item->resource->name])) {
                     $data[$item->resource->name] = [];
                 }
-                foreach($item->scopes as $schemas) {
+                foreach ($item->scopes as $schemas) {
                     $data[$item->resource->name][] = $schemas->name;
                 }
                 $data[$item->resource->name] = array_unique($data[$item->resource->name]);
@@ -121,21 +121,25 @@ class RbacStoreAdapter implements RbacStoreRepository
         $engine->setRoles($roles);
         $engine->setResources($resources);
         $expand = $engine->expand();
-        foreach($expand as $key=>$his) {
-            foreach($his as $res=>$info) {
+        foreach ($expand as $key => $his) {
+            foreach ($his as $res => $info) {
                 $expand[$key][$res]['attributes'] = [];
-                foreach($resources[$res]['attributes'] as $field) {
-                    $expand[$key][$res]['attributes'][$field] = [
-                        'view' => in_array($field, $expand[$key][$res]['view']) ? true : false, 
-                        'modify' => in_array($field, $expand[$key][$res]['modify']) ? true : false,
-                    ];
+                if( isset($resources[$res]['attributes']) ) {
+                    foreach ($resources[$res]['attributes'] as $field) {
+                        $expand[$key][$res]['attributes'][$field] = [
+                            'view' => in_array($field, $expand[$key][$res]['view']) ? true : false,
+                            'modify' => in_array($field, $expand[$key][$res]['modify']) ? true : false,
+                        ];
+                    }
                 }
-                foreach($resources[$res]['actions'] as $field) {
-                    $expand[$key][$res]['scope'][$field] = in_array($field, $expand[$key][$res]['actions']) ? true : false;
+                if( isset($resources[$res]['actions']) ) {
+                    foreach ($resources[$res]['actions'] as $field) {
+                        $expand[$key][$res]['scope'][$field] = in_array($field, $expand[$key][$res]['actions']) ? true : false;
+                    }
                 }
-                unset( $expand[$key][$res]['view']);
-                unset( $expand[$key][$res]['modify']);
-                unset( $expand[$key][$res]['actions']);
+                unset($expand[$key][$res]['view']);
+                unset($expand[$key][$res]['modify']);
+                unset($expand[$key][$res]['actions']);
             }
         }
         return $expand;
