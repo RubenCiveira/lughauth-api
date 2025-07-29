@@ -35,7 +35,8 @@ class RbacStoreAdapter implements RbacStoreRepository
         if ($party === null) {
             return;
         }
-        $data = [];
+        $json = json_decode($party->getScopes(), true);
+        $data = is_array($json) ? $json : [];
         foreach ($paramMap as $item) {
             if (isset($item->resource->name)) {
                 // 'documents' => ['attributes' => [], 'actions' => ['edit', 'delete']]
@@ -64,7 +65,8 @@ class RbacStoreAdapter implements RbacStoreRepository
         if ($party === null) {
             return;
         }
-        $data = [];
+        $json = json_decode($party->getSchemas(), true);
+        $data = is_array($json) ? $json : [];
         foreach ($paramMap as $item) {
             if (isset($item->resource->name)) {
                 if (!isset($data[$item->resource->name])) {
