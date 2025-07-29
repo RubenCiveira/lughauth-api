@@ -124,7 +124,7 @@ class RbacStoreAdapter implements RbacStoreRepository
         foreach ($expand as $key => $his) {
             foreach ($his as $res => $info) {
                 $expand[$key][$res]['attributes'] = [];
-                if( isset($resources[$res]['attributes']) ) {
+                if (isset($resources[$res]['attributes'])) {
                     foreach ($resources[$res]['attributes'] as $field) {
                         $expand[$key][$res]['attributes'][$field] = [
                             'view' => in_array($field, $expand[$key][$res]['view']) ? true : false,
@@ -132,7 +132,7 @@ class RbacStoreAdapter implements RbacStoreRepository
                         ];
                     }
                 }
-                if( isset($resources[$res]['actions']) ) {
+                if (isset($resources[$res]['actions'])) {
                     foreach ($resources[$res]['actions'] as $field) {
                         $expand[$key][$res]['scope'][$field] = in_array($field, $expand[$key][$res]['actions']) ? true : false;
                     }

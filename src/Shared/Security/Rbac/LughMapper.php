@@ -17,7 +17,6 @@ class LughMapper
     private readonly ?string $authUrl;
     private readonly ?string $apiKey;
 
-    // Tiene que descargar y mantener sincronizado el repositorio de claves publicas.
     public function __construct(
         private readonly AppConfig $config,
         private readonly Context $context,
