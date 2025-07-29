@@ -12,5 +12,6 @@ class RelyingPartyEnableEvent extends RelyingPartyUpdateEvent
     public function __construct(
         public readonly RelyingParty $payload
     ) {
+        parent::__construct($payload);
     }
 }

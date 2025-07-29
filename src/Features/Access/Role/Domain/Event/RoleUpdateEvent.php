@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\Role\Domain\Event;
 
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 
-class RoleUpdateEvent
+class RoleUpdateEvent extends RoleEvent
 {
     public function __construct(
         public readonly Role $payload
     ) {
+        parent::__construct($payload);
     }
 }

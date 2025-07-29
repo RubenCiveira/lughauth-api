@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\Tenant\Domain\Event;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 
-class TenantDeleteEvent
+class TenantDeleteEvent extends TenantEvent
 {
     public function __construct(
         public readonly Tenant $payload
     ) {
+        parent::__construct($payload);
     }
 }

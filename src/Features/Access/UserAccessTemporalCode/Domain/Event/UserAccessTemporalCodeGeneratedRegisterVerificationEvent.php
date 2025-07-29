@@ -12,5 +12,6 @@ class UserAccessTemporalCodeGeneratedRegisterVerificationEvent extends UserAcces
     public function __construct(
         public readonly UserAccessTemporalCode $payload
     ) {
+        parent::__construct($payload);
     }
 }

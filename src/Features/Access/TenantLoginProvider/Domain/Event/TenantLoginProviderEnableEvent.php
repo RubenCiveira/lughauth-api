@@ -12,5 +12,6 @@ class TenantLoginProviderEnableEvent extends TenantLoginProviderUpdateEvent
     public function __construct(
         public readonly TenantLoginProvider $payload
     ) {
+        parent::__construct($payload);
     }
 }

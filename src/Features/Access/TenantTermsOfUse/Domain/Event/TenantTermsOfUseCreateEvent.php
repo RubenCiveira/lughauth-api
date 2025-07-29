@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event;
 
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 
-class TenantTermsOfUseCreateEvent
+class TenantTermsOfUseCreateEvent extends TenantTermsOfUseEvent
 {
     public function __construct(
         public readonly TenantTermsOfUse $payload
     ) {
+        parent::__construct($payload);
     }
 }

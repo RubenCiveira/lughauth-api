@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Domain\Event;
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 
-class RelyingPartyDeleteEvent extends RelyingPartyEvent
+class RelyingPartyEvent
 {
     public function __construct(
         public readonly RelyingParty $payload
     ) {
-        parent::__construct($payload);
     }
 }

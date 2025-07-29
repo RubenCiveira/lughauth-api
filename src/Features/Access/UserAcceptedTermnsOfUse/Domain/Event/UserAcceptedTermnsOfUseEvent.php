@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Event;
 
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 
-class UserAcceptedTermnsOfUseCreateEvent extends UserAcceptedTermnsOfUseEvent
+class UserAcceptedTermnsOfUseEvent
 {
     public function __construct(
         public readonly UserAcceptedTermnsOfUse $payload
     ) {
-        parent::__construct($payload);
     }
 }

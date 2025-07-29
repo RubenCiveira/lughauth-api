@@ -12,5 +12,6 @@ class TenantTermsOfUseDisableEvent extends TenantTermsOfUseUpdateEvent
     public function __construct(
         public readonly TenantTermsOfUse $payload
     ) {
+        parent::__construct($payload);
     }
 }

@@ -12,5 +12,6 @@ class TenantEnableEvent extends TenantUpdateEvent
     public function __construct(
         public readonly Tenant $payload
     ) {
+        parent::__construct($payload);
     }
 }

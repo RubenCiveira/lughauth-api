@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Domain\Event;
 
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 
-class TenantConfigUpdateEvent
+class TenantConfigUpdateEvent extends TenantConfigEvent
 {
     public function __construct(
         public readonly TenantConfig $payload
     ) {
+        parent::__construct($payload);
     }
 }

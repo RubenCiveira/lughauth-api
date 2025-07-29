@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Event;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 
-class TenantLoginProviderUpdateEvent
+class TenantLoginProviderUpdateEvent extends TenantLoginProviderEvent
 {
     public function __construct(
         public readonly TenantLoginProvider $payload
     ) {
+        parent::__construct($payload);
     }
 }

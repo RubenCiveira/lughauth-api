@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Event;
 
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 
-class ApiKeyClientCreateEvent extends ApiKeyClientEvent
+class ApiKeyClientEvent
 {
     public function __construct(
         public readonly ApiKeyClient $payload
     ) {
-        parent::__construct($payload);
     }
 }

@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 
-class UserAccessTemporalCodeDeleteEvent
+class UserAccessTemporalCodeDeleteEvent extends UserAccessTemporalCodeEvent
 {
     public function __construct(
         public readonly UserAccessTemporalCode $payload
     ) {
+        parent::__construct($payload);
     }
 }

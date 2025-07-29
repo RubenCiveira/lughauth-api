@@ -12,5 +12,6 @@ class TrustedClientDisableEvent extends TrustedClientUpdateEvent
     public function __construct(
         public readonly TrustedClient $payload
     ) {
+        parent::__construct($payload);
     }
 }

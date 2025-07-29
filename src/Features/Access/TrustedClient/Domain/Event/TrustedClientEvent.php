@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Event;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
-class TrustedClientDeleteEvent extends TrustedClientEvent
+class TrustedClientEvent
 {
     public function __construct(
         public readonly TrustedClient $payload
     ) {
-        parent::__construct($payload);
     }
 }

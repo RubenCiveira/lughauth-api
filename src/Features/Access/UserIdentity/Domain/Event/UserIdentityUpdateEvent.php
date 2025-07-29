@@ -7,10 +7,11 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Event;
 
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 
-class UserIdentityUpdateEvent
+class UserIdentityUpdateEvent extends UserIdentityEvent
 {
     public function __construct(
         public readonly UserIdentity $payload
     ) {
+        parent::__construct($payload);
     }
 }

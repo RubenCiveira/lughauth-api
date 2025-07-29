@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Access\User\Domain\Event;
 
 use Civi\Lughauth\Features\Access\User\Domain\User;
 
-class UserDisableEvent extends UserUpdateEvent
+class UserEvent
 {
     public function __construct(
         public readonly User $payload
     ) {
-        parent::__construct($payload);
     }
 }

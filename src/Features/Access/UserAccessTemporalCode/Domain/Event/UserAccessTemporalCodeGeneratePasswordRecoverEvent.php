@@ -13,5 +13,6 @@ class UserAccessTemporalCodeGeneratePasswordRecoverEvent extends UserAccessTempo
         public readonly UserAccessTemporalCode $payload,
         public readonly string|null $url
     ) {
+        parent::__construct($payload);
     }
 }

@@ -12,5 +12,6 @@ class UserUnlockEvent extends UserUpdateEvent
     public function __construct(
         public readonly User $payload
     ) {
+        parent::__construct($payload);
     }
 }

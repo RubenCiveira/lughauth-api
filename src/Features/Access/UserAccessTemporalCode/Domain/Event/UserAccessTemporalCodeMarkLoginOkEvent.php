@@ -12,5 +12,6 @@ class UserAccessTemporalCodeMarkLoginOkEvent extends UserAccessTemporalCodeUpdat
     public function __construct(
         public readonly UserAccessTemporalCode $payload
     ) {
+        parent::__construct($payload);
     }
 }

@@ -12,5 +12,6 @@ class ApiKeyClientEnableEvent extends ApiKeyClientUpdateEvent
     public function __construct(
         public readonly ApiKeyClient $payload
     ) {
+        parent::__construct($payload);
     }
 }

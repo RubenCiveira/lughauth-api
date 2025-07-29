@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 
-class UserAccessTemporalCodeResetPasswordRecoverEvent extends UserAccessTemporalCodeUpdateEvent
+class UserAccessTemporalCodeEvent
 {
     public function __construct(
         public readonly UserAccessTemporalCode $payload
     ) {
-        parent::__construct($payload);
     }
 }
