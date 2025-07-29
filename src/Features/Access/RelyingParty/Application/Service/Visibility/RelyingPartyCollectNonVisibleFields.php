@@ -5,17 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility;
 
+use Override;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
+use Civi\Lughauth\Shared\Security\FieldsAccess;
 
-class RelyingPartyCollectNonVisibleFields
+class RelyingPartyCollectNonVisibleFields extends FieldsAccess
 {
     public function __construct(
         public array $fields,
         public readonly ?RelyingPartyRef $relyingPartyRef
     ) {
+        parent::__construct($fields);
     }
-    public function with(string... $fields)
+    #[Override]
+    public function accessMode(): string
     {
-        $this->fields = [...$this->fields, ...$fields];
+        return "modify";
+    }  #[Override]
+    public function resourceName(): string
+    {
+        return "relying-party";
     }
 }

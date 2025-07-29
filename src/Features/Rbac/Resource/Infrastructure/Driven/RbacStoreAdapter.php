@@ -36,11 +36,11 @@ class RbacStoreAdapter implements RbacStoreRepository
             return;
         }
         $json = $party->getScopes() ?? "";
-        if( $json ) {
-            $paramMap = array_merge( json_decode($json, true), $paramMap);
+        if ($json) {
+            $paramMap = array_merge(json_decode($json, true), $paramMap);
         }
         $att = new RelyingPartyAttributes();
-        $att->scopes( json_encode($paramMap) );
+        $att->scopes(json_encode($paramMap));
         $this->parties->update($party, $party->replace($att));
     }
 
@@ -56,11 +56,11 @@ class RbacStoreAdapter implements RbacStoreRepository
             return;
         }
         $json = $party->getSchemas() ?? "";
-        if( $json ) {
-            $paramMap = array_merge( json_decode($json, true), $paramMap);
+        if ($json) {
+            $paramMap = array_merge(json_decode($json, true), $paramMap);
         }
         $att = new RelyingPartyAttributes();
-        $att->schemas( json_encode($paramMap) );
+        $att->schemas(json_encode($paramMap));
         $this->parties->update($party, $party->replace($att));
     }
 
@@ -76,29 +76,29 @@ class RbacStoreAdapter implements RbacStoreRepository
             return [];
         }
         $dsl = $party->getPolicies();
-        if( !$dsl ) {
+        if (!$dsl) {
             return [];
         }
         $secRoles = $this->roles->list();
         $roles = [];
         $scopes = [];
         $schemas = [];
-        foreach($secRoles as $secRole) {
+        foreach ($secRoles as $secRole) {
             $roles[] = $secRole->getName();
         }
-        if( $party->getScopes() ) {
+        if ($party->getScopes()) {
             $scopes = json_decode($party->getScopes(), true);
         }
-        if( $party->getSchemas() ) {
+        if ($party->getSchemas()) {
             $schemas = json_decode($party->getSchemas(), true);
         }
         $resources = [];
-        foreach($scopes as $scc) {
-            if( $scc['resource']['name'] && is_array($scc['scopes']) ) {
-                if( !$resources[ $scc['resource']['name'] ] ) {
+        foreach ($scopes as $scc) {
+            if ($scc['resource']['name'] && is_array($scc['scopes'])) {
+                if (!$resources[ $scc['resource']['name'] ]) {
                     $resources[ $scc['resource']['name'] ] = ['scopes' => [], 'attributes' => []];
                 }
-                foreach($scc['scopes'] as $scc) {
+                foreach ($scc['scopes'] as $scc) {
                     $resources[ $scc['resource']['name'] ]['scopes'] = [];
                 }
             }

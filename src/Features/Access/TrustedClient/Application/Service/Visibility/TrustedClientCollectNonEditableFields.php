@@ -5,17 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility;
 
+use Override;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
+use Civi\Lughauth\Shared\Security\FieldsAccess;
 
-class TrustedClientCollectNonEditableFields
+class TrustedClientCollectNonEditableFields extends FieldsAccess
 {
     public function __construct(
         public array $fields,
         public readonly ?TrustedClientRef $trustedClientRef
     ) {
+        parent::__construct($fields);
     }
-    public function with(string... $fields)
+    #[Override]
+    public function accessMode(): string
     {
-        $this->fields = [...$this->fields, ...$fields];
+        return "modify";
+    }  #[Override]
+    public function resourceName(): string
+    {
+        return "trusted-client";
     }
 }

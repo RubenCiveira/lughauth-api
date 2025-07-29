@@ -5,17 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility;
 
+use Override;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
+use Civi\Lughauth\Shared\Security\FieldsAccess;
 
-class TenantTermsOfUseCollectNonEditableFields
+class TenantTermsOfUseCollectNonEditableFields extends FieldsAccess
 {
     public function __construct(
         public array $fields,
         public readonly ?TenantTermsOfUseRef $tenantTermsOfUseRef
     ) {
+        parent::__construct($fields);
     }
-    public function with(string... $fields)
+    #[Override]
+    public function accessMode(): string
     {
-        $this->fields = [...$this->fields, ...$fields];
+        return "modify";
+    }  #[Override]
+    public function resourceName(): string
+    {
+        return "tenant-terms-of-use";
     }
 }
