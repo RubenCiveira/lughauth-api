@@ -30,18 +30,15 @@ class LughMapper
 
     public function hiddenFields(Identity $user, string $resource): array
     {
-        $data = $this->load();
-        return [];
+        return $this->fields($this->load(), $user, $resource, 'view');
     }
     public function uneditableFields(Identity $user, string $resource): array
     {
-        $data = $this->load();
-        return [];
+        return $this->fields($this->load(), $user, $resource, 'view');
     }
     public function allow(Identity $user, string $resource, string $action): bool
     {
-        $data = $this->load();
-        return $this->isAllowed($data, ['ADMIN'], $resource, 'scope', $action);
+        return $this->isAllowed($this->load(), $user, $resource, 'scope', $action);
     }
 
     private function load()
@@ -49,8 +46,25 @@ class LughMapper
         return json_decode($this->getGrants(), true);
     }
 
-    private function isAllowed(array $grants, array $roles, string $resource, string $on, string $with): bool
+    private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
+        $roles = [...$user->roles, '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
+        $hiddens = [];
+        foreach ($roles as $role) {
+            if (isset($grants[$role][$resource]) && $grants[$role][$resource]['attributes']) {
+                foreach ($grants[$role][$resource]['attributes'] as $field => $info) {
+                    if (!$info[$on]) {
+                        $hiddens[] = $field;
+                    }
+                }
+            }
+        }
+        return $hiddens;
+    }
+
+    private function isAllowed(array $grants, Identity $user, string $resource, string $on, string $with): bool
+    {
+        $roles = [...$user->roles, '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with]) {
                 return true;
@@ -62,7 +76,7 @@ class LughMapper
     private function getGrants()
     {
         $cache_key = 'lught.grants';
-        if ($this->cache->has($cache_key)) {
+        if (false && $this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
             $request = $this->requestFactory->createRequest('GET', $this->authUrl . '/grant');
