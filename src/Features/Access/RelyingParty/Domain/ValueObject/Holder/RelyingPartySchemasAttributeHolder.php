@@ -35,6 +35,9 @@ trait RelyingPartySchemasAttributeHolder
     }
     protected function withDefaultSchemas(): void
     {
+        if ($this->schemas === null) {
+            $this->schemas = '""';
+        }
     }
     protected function withAssertedSchemasRules(self $value, ConstraintFailList $errorsList): void
     {

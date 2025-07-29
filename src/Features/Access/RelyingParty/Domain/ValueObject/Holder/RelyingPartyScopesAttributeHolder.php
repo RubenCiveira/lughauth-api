@@ -35,6 +35,9 @@ trait RelyingPartyScopesAttributeHolder
     }
     protected function withDefaultScopes(): void
     {
+        if ($this->scopes === null) {
+            $this->scopes = '""';
+        }
     }
     protected function withAssertedScopesRules(self $value, ConstraintFailList $errorsList): void
     {
