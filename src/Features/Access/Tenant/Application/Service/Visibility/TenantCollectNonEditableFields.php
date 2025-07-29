@@ -21,7 +21,8 @@ class TenantCollectNonEditableFields extends FieldsAccess
     public function accessMode(): string
     {
         return "modify";
-    }  #[Override]
+    }
+    #[Override]
     public function resourceName(): string
     {
         return "tenant";

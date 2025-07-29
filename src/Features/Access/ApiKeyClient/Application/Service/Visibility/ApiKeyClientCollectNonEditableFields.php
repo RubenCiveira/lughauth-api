@@ -21,7 +21,8 @@ class ApiKeyClientCollectNonEditableFields extends FieldsAccess
     public function accessMode(): string
     {
         return "modify";
-    }  #[Override]
+    }
+    #[Override]
     public function resourceName(): string
     {
         return "api-key-client";

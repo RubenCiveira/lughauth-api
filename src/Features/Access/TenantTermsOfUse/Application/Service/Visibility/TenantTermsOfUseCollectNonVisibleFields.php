@@ -21,7 +21,8 @@ class TenantTermsOfUseCollectNonVisibleFields extends FieldsAccess
     public function accessMode(): string
     {
         return "modify";
-    }  #[Override]
+    }
+    #[Override]
     public function resourceName(): string
     {
         return "tenant-terms-of-use";

@@ -21,7 +21,8 @@ class TenantLoginProviderCollectNonEditableFields extends FieldsAccess
     public function accessMode(): string
     {
         return "modify";
-    }  #[Override]
+    }
+    #[Override]
     public function resourceName(): string
     {
         return "tenant-login-provider";

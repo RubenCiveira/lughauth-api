@@ -21,7 +21,8 @@ class UserIdentityCollectNonVisibleFields extends FieldsAccess
     public function accessMode(): string
     {
         return "modify";
-    }  #[Override]
+    }
+    #[Override]
     public function resourceName(): string
     {
         return "user-identity";
