@@ -33,7 +33,7 @@ class TenantConfigCreateUsecase
         $span = $this->startSpan("Check allow of create usecase for Tenant config");
         try {
             $result = $this->dispacher->dispatch(new TenantConfigCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

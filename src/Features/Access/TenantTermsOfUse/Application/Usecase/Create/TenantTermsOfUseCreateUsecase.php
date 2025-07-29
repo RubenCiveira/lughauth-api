@@ -33,7 +33,7 @@ class TenantTermsOfUseCreateUsecase
         $span = $this->startSpan("Check allow of create usecase for Tenant terms of use");
         try {
             $result = $this->dispacher->dispatch(new TenantTermsOfUseCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

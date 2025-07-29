@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\AllowDecision;
 class RoleCreateAllowDecision extends AllowDecision
 {
     public function __construct(
-        public Allow $allow
+        Allow $allow
     ) {
         parent::__construct($allow);
     }

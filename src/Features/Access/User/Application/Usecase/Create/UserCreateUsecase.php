@@ -33,7 +33,7 @@ class UserCreateUsecase
         $span = $this->startSpan("Check allow of create usecase for User");
         try {
             $result = $this->dispacher->dispatch(new UserCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
