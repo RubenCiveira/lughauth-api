@@ -123,12 +123,19 @@ class RbacStoreAdapter implements RbacStoreRepository
         $expand = $engine->expand();
         foreach($expand as $key=>$his) {
             foreach($his as $res=>$info) {
-                $expand[$key][$res]['attributes'] = [ 
-                    'all' => $resources[$res]['attributes'],
-                    'visible' => $expand[$key][$res]['view'],
-                    'editable' => $expand[$key][$res]['modify'] ];
+                $expand[$key][$res]['attributes'] = [];
+                foreach($resources[$res]['attributes'] as $field) {
+                    $expand[$key][$res]['attributes'][$field] = [
+                        'view' => in_array($field, $expand[$key][$res]['view']) ? true : false, 
+                        'modify' => in_array($field, $expand[$key][$res]['modify']) ? true : false,
+                    ];
+                }
+                foreach($resources[$res]['actions'] as $field) {
+                    $expand[$key][$res]['scope'][$field] = in_array($field, $expand[$key][$res]['actions']) ? true : false;
+                }
                 unset( $expand[$key][$res]['view']);
                 unset( $expand[$key][$res]['modify']);
+                unset( $expand[$key][$res]['actions']);
             }
         }
         return $expand;

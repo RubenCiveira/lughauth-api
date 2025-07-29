@@ -5,12 +5,21 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Security\Rbac;
 
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\FieldsAccess;
 
 class FieldsListener
 {
+    public function __construct(private readonly Context $context, private readonly Handler $handler)
+    {
+    }
     public function __invoke(FieldsAccess $proposal): FieldsAccess
     {
+        if( 'view' == $proposal->accessMode() ) {
+            $proposal->withAll( $this->handler->hiddenFields($this->context->getIdentity(), $proposal->resourceName())  );
+        } else {
+            $proposal->withAll( $this->handler->uneditableFields($this->context->getIdentity(), $proposal->resourceName())  );
+        }
         return $proposal;
     }
 }

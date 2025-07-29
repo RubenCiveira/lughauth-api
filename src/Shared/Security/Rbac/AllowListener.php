@@ -5,12 +5,19 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Security\Rbac;
 
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
 class AllowListener
 {
+    public function __construct(private readonly Context $context, private readonly Handler $handler)
+    {
+    }
     public function __invoke(AllowDecision $proposal): AllowDecision
     {
+        if( !$this->handler->allow($this->context->getIdentity(), $proposal->resourceName(), $proposal->actionName()) ) {
+            $proposal->deny();
+        }
         return $proposal;
     }
 }
