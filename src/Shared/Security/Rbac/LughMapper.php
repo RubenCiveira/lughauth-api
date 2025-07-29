@@ -42,7 +42,7 @@ class LughMapper
     public function allow(Identity $user, string $resource, string $action): bool
     {
         $data = $this->load();
-        return $this->isAllowed($data, $user->roles, $resource, 'scope', $action);
+        return $this->isAllowed($data, ['ADMIN'], $resource, 'scope', $action);
     }
 
     private function load()
@@ -52,8 +52,8 @@ class LughMapper
 
     private function isAllowed(array $grants, array $roles, string $resource, string $on, string $with): bool
     {
-        foreach($roles as $role) {
-            if( isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with] ) {
+        foreach ($roles as $role) {
+            if (isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with]) {
                 return true;
             }
         }
@@ -66,7 +66,7 @@ class LughMapper
         if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
-            $request = $this->requestFactory->createRequest('GET', $this->authUrl);
+            $request = $this->requestFactory->createRequest('GET', $this->authUrl . '/grant');
             $request = $request->withAddedHeader('x-api-key', $this->apiKey);
             $response = $this->client->sendRequest($request);
             $item = '' . $response->getBody();

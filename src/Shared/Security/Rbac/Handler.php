@@ -12,7 +12,7 @@ class Handler
     public function __construct(private readonly LughMapper $mapper)
     {
     }
-    
+
     public function hiddenFields(Identity $user, string $resource): array
     {
         return $this->mapper->hiddenFields($user, $resource);

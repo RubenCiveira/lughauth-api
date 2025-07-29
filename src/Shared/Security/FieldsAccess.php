@@ -16,8 +16,12 @@ abstract class FieldsAccess
         $this->fields = [...$this->fields, ...$fields];
     }
 
+    public function withAll(array $fields)
+    {
+        $this->fields = [...$this->fields, ...$fields];
+    }
+
     abstract public function accessMode(): string;
 
     abstract public function resourceName(): string;
-
 }

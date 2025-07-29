@@ -38,7 +38,7 @@ class JwtVerifierMiddleware
         private readonly RequestFactoryInterface $requestFactory,
         private readonly ClientInterface $client
     ) {
-        $this->jwksUrl = $config->get('security.jwt.verify.publickey.location');
+        $this->jwksUrl = $config->get('security.jwt.verify.publickey.location', '-');
         $this->requiredIssuer = $config->get('security.jwt.verify.issuer');
         $this->requiredAudiences = $config->get('security.jwt.verify.audiences');
         $this->rolesPath = $config->get('security.jwt.verify.path.roles');
@@ -46,13 +46,15 @@ class JwtVerifierMiddleware
 
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $auth = $request->getHeader('Authorization');
-        if ($auth && $this->jwksUrl !== '-' && str_starts_with($auth[0], 'Bearer ')) {
-            $this->verifyAuth(substr($auth[0], 7), Identity::AUTH_SCOPE_BOTH);
-        } elseif (isset($_COOKIE['Authorization']) && 'GET' == $request->getMethod()) {
-            $this->verifyAuth($_COOKIE['Authorization'], Identity::AUTH_SCOPE_READ);
-        } elseif (isset($_GET['Authorization']) && 'GET' == $request->getMethod()) {
-            $this->verifyAuth($_GET['Authorization'], Identity::AUTH_SCOPE_READ);
+        if ($this->jwksUrl !== '-') {
+            $auth = $request->getHeader('Authorization');
+            if ($auth && str_starts_with($auth[0], 'Bearer ')) {
+                $this->verifyAuth(substr($auth[0], 7), Identity::AUTH_SCOPE_BOTH);
+            } elseif (isset($_COOKIE['Authorization']) && 'GET' == $request->getMethod()) {
+                $this->verifyAuth($_COOKIE['Authorization'], Identity::AUTH_SCOPE_READ);
+            } elseif (isset($_GET['Authorization']) && 'GET' == $request->getMethod()) {
+                $this->verifyAuth($_GET['Authorization'], Identity::AUTH_SCOPE_READ);
+            }
         }
         return $handler->handle($request);
     }

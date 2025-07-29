@@ -19,6 +19,11 @@ abstract class AllowDecision
 
     abstract public function resourceName(): string;
 
+    public function isAllowed(): bool
+    {
+        return $this->allow->allowed;
+    }
+
     public function getAllow(): Allow
     {
         return $this->allow;

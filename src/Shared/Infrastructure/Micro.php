@@ -168,7 +168,7 @@ class Micro
         $this->interfaces = [];
         $this->register(new ErrorsPlugin());
         $this->register(new ManagementPlugin());
-        $this->register(new GenericSecurityPlugin() );
+        $this->register(new GenericSecurityPlugin());
         return $this->app;
     }
 

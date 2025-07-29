@@ -15,10 +15,10 @@ class FieldsListener
     }
     public function __invoke(FieldsAccess $proposal): FieldsAccess
     {
-        if( 'view' == $proposal->accessMode() ) {
-            $proposal->withAll( $this->handler->hiddenFields($this->context->getIdentity(), $proposal->resourceName())  );
+        if ('view' == $proposal->accessMode()) {
+            $proposal->withAll($this->handler->hiddenFields($this->context->getIdentity(), $proposal->resourceName()));
         } else {
-            $proposal->withAll( $this->handler->uneditableFields($this->context->getIdentity(), $proposal->resourceName())  );
+            $proposal->withAll($this->handler->uneditableFields($this->context->getIdentity(), $proposal->resourceName()));
         }
         return $proposal;
     }

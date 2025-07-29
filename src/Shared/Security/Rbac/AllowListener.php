@@ -15,7 +15,7 @@ class AllowListener
     }
     public function __invoke(AllowDecision $proposal): AllowDecision
     {
-        if( !$this->handler->allow($this->context->getIdentity(), $proposal->resourceName(), $proposal->actionName()) ) {
+        if (!$this->handler->allow($this->context->getIdentity(), $proposal->resourceName(), $proposal->actionName())) {
             $proposal->deny();
         }
         return $proposal;
