@@ -24,7 +24,9 @@ class StartupProcessor
 
     private array $executors = [];
 
-    public function __construct(private readonly LoggerInterface $logger){}
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
 
     public function register(Closure|StartupProcess $command, int $order = 0)
     {

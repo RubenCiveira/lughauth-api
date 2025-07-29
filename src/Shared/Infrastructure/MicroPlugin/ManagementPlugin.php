@@ -56,7 +56,7 @@ class ManagementPlugin extends MicroPlugin
     #[Override]
     public function registerStartup(StartupProcessor $container): void
     {
-        $container->register( function(ContainerInterface $container) {
+        $container->register(function (ContainerInterface $container) {
             $migrations = $container->get(MigrationManagement::class);
             $callback = $migrations->set();
             $callback();

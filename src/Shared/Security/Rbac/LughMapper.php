@@ -35,7 +35,7 @@ class LughMapper
     {
         $toScopes = [];
         $toAttributes = [];
-        foreach($this->registereds as $reg) {
+        foreach ($this->registereds as $reg) {
             $toScopes[] = [
                 'resource' => $reg['resource'],
                 'scopes' => $reg['scopes']
@@ -49,7 +49,7 @@ class LughMapper
                 ->withAddedHeader('x-api-key', $this->apiKey)
                 ->withBody($this->streamFactory->createStream(json_encode($toScopes)));
         $this->client->sendRequest($request);
-            
+
         $request = $this->requestFactory->createRequest('GET', $this->authUrl . '/resource/schema')
                 ->withAddedHeader('x-api-key', $this->apiKey)
                 ->withBody($this->streamFactory->createStream(json_encode($toAttributes)));
@@ -59,16 +59,16 @@ class LughMapper
 
     public function registerResourceAction(string $resource, string $action, string $kind)
     {
-        if( !isset($this->registereds[$resource])) {
-            $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description'=>$resource],
+        if (!isset($this->registereds[$resource])) {
+            $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description' => $resource],
                     'schemas' => [], 'scopes' => []];
         }
         $this->registereds[$resource]['scopes'] = ['name' => $action, 'description' => $action, 'kind' => $kind];
     }
     public function registerResourceAttribute(string $resource, string $attribute, string $kind)
     {
-        if( !isset($this->registereds[$resource])) {
-            $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description'=>$resource],
+        if (!isset($this->registereds[$resource])) {
+            $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description' => $resource],
                     'schemas' => [], 'scopes' => []];
         }
         $this->registereds[$resource]['schemas'] = ['name' => $attribute, 'description' => $$attribute, 'kind' => $kind];
@@ -93,7 +93,7 @@ class LughMapper
 
     private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
-        $roles = [...$user->roles??[], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
         $hiddens = [];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource]['attributes']) {
@@ -109,7 +109,7 @@ class LughMapper
 
     private function isAllowed(array $grants, Identity $user, string $resource, string $on, string $with): bool
     {
-        $roles = [...$user->roles??[], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with]) {
                 return true;

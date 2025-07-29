@@ -30,7 +30,7 @@ class GenericSecurityPlugin extends MicroPlugin
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
     {
-        $processor->register(function(ContainerInterface $container){
+        $processor->register(function (ContainerInterface $container) {
             $handler = $container->get(Handler::class);
             $handler->flush();
         }, GenericSecurityPlugin::STARTUP_ORDER);
