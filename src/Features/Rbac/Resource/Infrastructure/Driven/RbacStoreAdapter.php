@@ -35,12 +35,21 @@ class RbacStoreAdapter implements RbacStoreRepository
         if ($party === null) {
             return;
         }
-        $json = $party->getScopes() ?? "";
-        if ($json) {
-            $paramMap = array_merge(json_decode($json, true), $paramMap);
+        $data = [];
+        foreach($paramMap as $item) {
+            if( isset($item->resource->name) ) {
+                // 'documents' => ['attributes' => [], 'actions' => ['edit', 'delete']]
+                if( !isset($data[$item->resource->name]) ) {
+                    $data[$item->resource->name] = [];
+                }
+                foreach($item->scopes as $scope) {
+                    $data[$item->resource->name][] = $scope->name;
+                }
+                $data[$item->resource->name] = array_unique($data[$item->resource->name]);
+            }
         }
         $att = new RelyingPartyAttributes();
-        $att->scopes(json_encode($paramMap));
+        $att->scopes(json_encode($data));
         $this->parties->update($party, $party->replace($att));
     }
 
@@ -55,12 +64,20 @@ class RbacStoreAdapter implements RbacStoreRepository
         if ($party === null) {
             return;
         }
-        $json = $party->getSchemas() ?? "";
-        if ($json) {
-            $paramMap = array_merge(json_decode($json, true), $paramMap);
+        $data = [];
+        foreach($paramMap as $item) {
+            if( isset($item->resource->name) ) {
+                if( !isset($data[$item->resource->name]) ) {
+                    $data[$item->resource->name] = [];
+                }
+                foreach($item->scopes as $schemas) {
+                    $data[$item->resource->name][] = $schemas->name;
+                }
+                $data[$item->resource->name] = array_unique($data[$item->resource->name]);
+            }
         }
         $att = new RelyingPartyAttributes();
-        $att->schemas(json_encode($paramMap));
+        $att->schemas(json_encode($data));
         $this->parties->update($party, $party->replace($att));
     }
 
@@ -93,23 +110,28 @@ class RbacStoreAdapter implements RbacStoreRepository
             $schemas = json_decode($party->getSchemas(), true);
         }
         $resources = [];
-        foreach ($scopes as $scc) {
-            if ($scc['resource']['name'] && is_array($scc['scopes'])) {
-                if (!$resources[ $scc['resource']['name'] ]) {
-                    $resources[ $scc['resource']['name'] ] = ['scopes' => [], 'attributes' => []];
-                }
-                foreach ($scc['scopes'] as $scc) {
-                    $resources[ $scc['resource']['name'] ]['scopes'] = [];
-                }
-            }
+        foreach ($scopes as $name => $scc) {
+            $resources[$name]['actions'] = $scc;
+        }
+        foreach ($schemas as $name => $scc) {
+            $resources[$name]['attributes'] = $scc;
         }
         $engine = new PolicyEngine();
         $engine->setRuleSet($this->parseRules($dsl));
         $engine->setRoles($roles);
-        $engine->setResources([
-            'article' => ['attributes' => ['title', 'content', 'author']]
-        ]);
-        return $engine->expand();
+        $engine->setResources($resources);
+        $expand = $engine->expand();
+        foreach($expand as $key=>$his) {
+            foreach($his as $res=>$info) {
+                $expand[$key][$res]['attributes'] = [ 
+                    'all' => $resources[$res]['attributes'],
+                    'visible' => $expand[$key][$res]['view'],
+                    'editable' => $expand[$key][$res]['modify'] ];
+                unset( $expand[$key][$res]['view']);
+                unset( $expand[$key][$res]['modify']);
+            }
+        }
+        return $expand;
     }
     private function parseRules(string $dsl): RuleSet
     {
