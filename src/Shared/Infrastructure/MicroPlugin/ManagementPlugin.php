@@ -22,6 +22,7 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Collector\LogCollector;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\TraceCollector;
 use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
 use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 
 class ManagementPlugin extends MicroPlugin
 {
@@ -53,10 +54,12 @@ class ManagementPlugin extends MicroPlugin
     }
 
     #[Override]
-    public function onStartup(ContainerInterface $container): void
+    public function registerStartup(StartupProcessor $container): void
     {
-        $migrations = $container->get(MigrationManagement::class);
-        $callback = $migrations->set();
-        $callback();
+        $container->register( function(ContainerInterface $container) {
+            $migrations = $container->get(MigrationManagement::class);
+            $callback = $migrations->set();
+            $callback();
+        });
     }
 }

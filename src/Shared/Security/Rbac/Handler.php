@@ -5,24 +5,62 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Security\Rbac;
 
+use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Security\Identity;
 
 class Handler
 {
-    public function __construct(private readonly LughMapper $mapper)
-    {
+    private int $mode = 0;
+    public function __construct(
+        AppConfig $config,
+        private readonly LughMapper $mapper
+    ) {
+        if ('-' != $config->get('security.rbac.lugh.location', '-')) {
+            $this->mode = 1;
+        }
     }
 
+    public function flush()
+    {
+        if ($this->mode == 1) {
+            $this->mapper->flush();
+        }
+    }
+
+    public function registerResourceAction(string $resource, string $action, string $kind)
+    {
+        if ($this->mode == 1) {
+            $this->mapper->registerResourceAction($resource, $action, $kind);
+        }
+    }
+    public function registerResourceAttribute(string $resource, string $attribute, string $kind)
+    {
+        if ($this->mode == 1) {
+            $this->mapper->registerResourceAttribute($resource, $attribute, $kind);
+        }
+    }
     public function hiddenFields(Identity $user, string $resource): array
     {
-        return $this->mapper->hiddenFields($user, $resource);
+        if ($this->mode == 1) {
+            return $this->mapper->hiddenFields($user, $resource);
+        } else {
+            return [];
+        }
     }
     public function uneditableFields(Identity $user, string $resource): array
     {
-        return $this->mapper->uneditableFields($user, $resource);
+        if ($this->mode == 1) {
+            return $this->mapper->uneditableFields($user, $resource);
+        } else {
+            return [];
+        }
     }
     public function allow(Identity $user, string $resource, string $action): bool
     {
-        return $this->mapper->allow($user, $resource, $action);
+        if ($this->mode == 1) {
+            return $this->mapper->allow($user, $resource, $action);
+        } else {
+            return true;
+        }
     }
 }

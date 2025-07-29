@@ -12,13 +12,28 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 use Civi\Lughauth\Shared\Security\Rbac\AllowListener;
 use Civi\Lughauth\Shared\Security\Rbac\FieldsListener;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
+use Psr\Container\ContainerInterface;
 
 class GenericSecurityPlugin extends MicroPlugin
 {
+    public const STARTUP_ORDER = 1000;
+
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(AllowDecision::class, AllowListener::class);
         $bus->registerListener(FieldsAccess::class, FieldsListener::class);
     }
+
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function(ContainerInterface $container){
+            $handler = $container->get(Handler::class);
+            $handler->flush();
+        }, GenericSecurityPlugin::STARTUP_ORDER);
+    }
+
 }

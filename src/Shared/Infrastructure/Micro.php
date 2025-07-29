@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Shared\Infrastructure;
 
 use PDO;
 use Exception;
-use Throwable;
 use DateInterval;
 use DI\ContainerBuilder;
 use Slim\App;
@@ -187,20 +186,11 @@ class Micro
                 if ($this->container->has(LoggerInterface::class)) {
                     $logger = $this->container->get(LoggerInterface::class);
                 }
+                $processor = new StartupProcessor($logger);
                 foreach ($this->startups as $startup) {
-                    try {
-                        $startup->onStartup($this->container);
-                    } catch (Throwable $th) {
-                        if ($logger) {
-                            $logger->error('Error with startup ' . $th->getMessage(), [
-                                'trace' => $th->getTraceAsString()
-                            ]);
-                        } else {
-                            error_log('Error with startup ' . $th->getMessage());
-                            error_log('Trace: ' . $th->getTraceAsString());
-                        }
-                    }
+                    $startup->registerStartup($processor);
                 }
+                $processor->run($this->container);
                 file_put_contents($startUpFile, '1');
             }
             flock($lockFile, LOCK_UN);

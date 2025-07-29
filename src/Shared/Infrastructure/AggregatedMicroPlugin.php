@@ -53,10 +53,10 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
 
 
     #[Override]
-    public function onStartup(ContainerInterface $container): void
+    public function registerStartup(StartupProcessor $processor): void
     {
         foreach ($this->delegated as $del) {
-            $del->onStartup($container);
+            $del->registerStartup($processor);
         }
     }
 }
