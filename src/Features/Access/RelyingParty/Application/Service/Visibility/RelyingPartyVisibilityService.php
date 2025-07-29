@@ -206,7 +206,7 @@ class RelyingPartyVisibilityService
         $span = $this->startSpan("Check fields for fix for Relying party");
         try {
             $result = $this->dispacher->dispatch(new RelyingPartyCollectNonEditableFields(RelyingParty::calculatedFields(), $ref));
-            return array_merge($this->fieldsToHide($ref), $result->fields);
+            return array_unique(array_merge($this->fieldsToHide($ref), $result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -221,7 +221,7 @@ class RelyingPartyVisibilityService
         $span = $this->startSpan("Check fields to hide for  Relying party");
         try {
             $result = $this->dispacher->dispatch(new RelyingPartyCollectNonVisibleFields([], $ref));
-            return $result->fields;
+            return array_unique($result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

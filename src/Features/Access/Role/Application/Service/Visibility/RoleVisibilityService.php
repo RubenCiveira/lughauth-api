@@ -209,7 +209,7 @@ class RoleVisibilityService
         $span = $this->startSpan("Check fields for fix for Role");
         try {
             $result = $this->dispacher->dispatch(new RoleCollectNonEditableFields(Role::calculatedFields(), $ref));
-            return array_merge($this->fieldsToHide($ref), $result->fields);
+            return array_unique(array_merge($this->fieldsToHide($ref), $result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -224,7 +224,7 @@ class RoleVisibilityService
         $span = $this->startSpan("Check fields to hide for  Role");
         try {
             $result = $this->dispacher->dispatch(new RoleCollectNonVisibleFields([], $ref));
-            return $result->fields;
+            return array_unique($result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

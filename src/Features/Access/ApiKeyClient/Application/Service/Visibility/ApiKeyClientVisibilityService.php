@@ -206,7 +206,7 @@ class ApiKeyClientVisibilityService
         $span = $this->startSpan("Check fields for fix for Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientCollectNonEditableFields(ApiKeyClient::calculatedFields(), $ref));
-            return array_merge($this->fieldsToHide($ref), $result->fields);
+            return array_unique(array_merge($this->fieldsToHide($ref), $result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -221,7 +221,7 @@ class ApiKeyClientVisibilityService
         $span = $this->startSpan("Check fields to hide for  Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientCollectNonVisibleFields([], $ref));
-            return $result->fields;
+            return array_unique($result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

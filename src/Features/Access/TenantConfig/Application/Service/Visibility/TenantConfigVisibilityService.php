@@ -209,7 +209,7 @@ class TenantConfigVisibilityService
         $span = $this->startSpan("Check fields for fix for Tenant config");
         try {
             $result = $this->dispacher->dispatch(new TenantConfigCollectNonEditableFields(TenantConfig::calculatedFields(), $ref));
-            return array_merge($this->fieldsToHide($ref), $result->fields);
+            return array_unique(array_merge($this->fieldsToHide($ref), $result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -224,7 +224,7 @@ class TenantConfigVisibilityService
         $span = $this->startSpan("Check fields to hide for  Tenant config");
         try {
             $result = $this->dispacher->dispatch(new TenantConfigCollectNonVisibleFields([], $ref));
-            return $result->fields;
+            return array_unique($result->fields);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

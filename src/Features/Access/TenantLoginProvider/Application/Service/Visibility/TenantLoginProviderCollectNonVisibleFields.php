@@ -20,7 +20,7 @@ class TenantLoginProviderCollectNonVisibleFields extends FieldsAccess
     #[Override]
     public function accessMode(): string
     {
-        return "modify";
+        return "view";
     }
     #[Override]
     public function resourceName(): string
