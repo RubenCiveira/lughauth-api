@@ -49,25 +49,29 @@ class PolicyEngineTest extends TestCase
             'viewer' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -104,25 +108,29 @@ class PolicyEngineTest extends TestCase
             'editor' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => ['content']
+                    'modify' => ['content'],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -159,25 +167,29 @@ class PolicyEngineTest extends TestCase
             'ADMIN' => [
                 'article' => [
                     'view' => ['title', 'content', 'author'],
-                    'modify' => ['title', 'content', 'author']
-                ]
+                    'modify' => ['title', 'content', 'author'],
+                    'actions' => []
+                  ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -214,25 +226,29 @@ class PolicyEngineTest extends TestCase
             'editor' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => ['content']
+                    'modify' => ['content'],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -265,25 +281,29 @@ class PolicyEngineTest extends TestCase
             'guest' => [
                 'article' => [
                     'view' => [],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -310,7 +330,8 @@ class PolicyEngineTest extends TestCase
         $engine->setRoles(['editor']);
         $engine->setRuleSet($this->parseRules($dsl));
         $engine->setResources([
-            'article' => ['attributes' => ['title', 'content', 'author']]
+            'article' => ['attributes' => ['title', 'content', 'author'],
+                    'actions' => []]
         ]);
 
         $result = $engine->expand();
@@ -319,25 +340,29 @@ class PolicyEngineTest extends TestCase
             'editor' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => ['content']
+                    'modify' => ['content'],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -360,7 +385,8 @@ class PolicyEngineTest extends TestCase
         $engine->setRoles(['editor']);
         $engine->setRuleSet($this->parseRules($dsl));
         $engine->setResources([
-            'article' => ['attributes' => ['title', 'content', 'author']]
+            'article' => ['attributes' => ['title', 'content', 'author'],
+                    'actions' => []]
         ]);
 
         $result = $engine->expand();
@@ -369,25 +395,29 @@ class PolicyEngineTest extends TestCase
             'editor' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'article' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -421,25 +451,29 @@ class PolicyEngineTest extends TestCase
             'admin' => [
                 'config' => [
                     'view' => ['setting1', 'setting2', 'hiddenSetting'],
-                    'modify' => ['setting1', 'setting2']
+                    'modify' => ['setting1', 'setting2'],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'config' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'config' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'config' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -466,7 +500,8 @@ class PolicyEngineTest extends TestCase
         $engine->setRoles(['editor', 'auditor']);
         $engine->setRuleSet($this->parseRules($dsl));
         $engine->setResources([
-            'report' => ['attributes' => ['summary', 'fullText']]
+            'report' => ['attributes' => ['summary', 'fullText'],
+                    'actions' => []]
         ]);
 
         $result = $engine->expand();
@@ -475,31 +510,36 @@ class PolicyEngineTest extends TestCase
             'editor' => [
                 'report' => [
                     'view' => ['fullText'],
-                    'modify' => ['fullText']
+                    'modify' => ['fullText'],
+                    'actions' => []
                 ]
             ],
             'auditor' => [
                 'report' => [
                     'view' => ['summary'],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'report' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'report' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'report' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -530,25 +570,29 @@ class PolicyEngineTest extends TestCase
             'guest' => [
                 'dashboard' => [
                     'view' => [],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@everyone' => [
               'dashboard' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@authenticated' => [
               'dashboard' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
             ],
             '@anonymous' => [
               'dashboard' => [
                 'view' => [],
-                'modify' => []
+                'modify' => [],
+                    'actions' => []
               ]
           ]
         ], $result);
@@ -582,19 +626,22 @@ class PolicyEngineTest extends TestCase
             '@everyone' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@authenticated' => [
                 'article' => [
                     'view' => ['title', 'content'],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ],
             '@anonymous' => [
                 'article' => [
                     'view' => ['title'],
-                    'modify' => []
+                    'modify' => [],
+                    'actions' => []
                 ]
             ]
         ], $resultAnon);
@@ -677,4 +724,140 @@ class PolicyEngineTest extends TestCase
         $this->assertEquals(['title', 'summary'], $result['editor']['article']['view']);
     }
 
+    public function testAllowActionsExplicit()
+    {
+        $dsl = <<<DSL
+        match invoice {
+            actions {
+                allow download, archive if role == accountant;
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['accountant']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'invoice' => ['attributes' => [], 'actions' => ['download', 'archive', 'delete']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['download', 'archive'], $result['accountant']['invoice']['actions']);
+    }
+
+    public function testAllowAllActionsWildcard()
+    {
+        $dsl = <<<DSL
+        match invoice {
+            actions {
+                allow * if role == admin;
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['admin']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'invoice' => ['attributes' => [], 'actions' => ['download', 'archive', 'delete']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['download', 'archive', 'delete'], $result['admin']['invoice']['actions']);
+    }
+
+    public function testWildcardActionAllowWithSpecificDeny()
+    {
+        $dsl = <<<DSL
+        match adminPanel {
+            actions {
+                allow * if role == admin;
+                deny delete if role == admin;
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['admin']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'adminPanel' => ['attributes' => [], 'actions' => ['view', 'edit', 'delete']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['view', 'edit'], $result['admin']['adminPanel']['actions']);
+    }
+
+    public function testMultipleRolesCombineActionPermissions()
+    {
+        $dsl = <<<DSL
+        match reports {
+            actions {
+                allow download if role == viewer;
+                allow archive if role == editor;
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['viewer', 'editor']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'reports' => ['attributes' => [], 'actions' => ['download', 'archive', 'delete']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['download'], $result['viewer']['reports']['actions']);
+        $this->assertEquals(['archive'], $result['editor']['reports']['actions']);
+    }
+
+    public function testNoActionRulesMeansNoActionsAllowed()
+    {
+        $dsl = <<<DSL
+        match files {
+            attributes {
+                view {
+                    allow name if role == user;
+                }
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['user']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'files' => ['attributes' => ['name'], 'actions' => ['download', 'delete']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals([], $result['user']['files']['actions']);
+    }
+
+    public function testActionAllowForNotInRole()
+    {
+        $dsl = <<<DSL
+        match documents {
+            actions {
+                allow edit if role not in ("guest");
+            }
+        }
+    DSL;
+
+        $engine = new PolicyEngine();
+        $engine->setRoles(['editor']);
+        $engine->setRuleSet($this->parseRules($dsl));
+        $engine->setResources([
+            'documents' => ['attributes' => [], 'actions' => ['edit', 'delete']]
+        ]);
+
+        $result = $engine->expand();
+
+        $this->assertEquals(['edit'], $result['editor']['documents']['actions']);
+    }
 }

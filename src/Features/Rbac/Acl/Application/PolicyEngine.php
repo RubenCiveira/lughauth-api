@@ -79,6 +79,21 @@ class PolicyEngine
                 }
                 $viewable = [];
                 $editable = [];
+                $actionsAllowed = [];
+
+                foreach ($declared['actions'] ?? [] as $action) {
+                    $canExecute = $this->isAllowed(
+                        $action,
+                        $resRules->getActions(),
+                        $effectiveRoles,
+                        'actions'
+                    );
+                    if ($canExecute) {
+                        $actionsAllowed[] = $action;
+                    }
+                }
+                $actionsAllowed = array_unique($actionsAllowed);
+                $result[$role][$resource]['actions'] = $actionsAllowed;
                 foreach ($declared['attributes'] ?? [] as $field) {
                     $canView = $this->isAllowed(
                         $field,
@@ -102,6 +117,7 @@ class PolicyEngine
                 $result[$role][$resource] = [
                     'view' => $viewable,
                     'modify' => $editable,
+                    'actions' => $actionsAllowed,
                 ];
             }
         }
