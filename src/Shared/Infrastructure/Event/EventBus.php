@@ -5,26 +5,47 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Event;
 
-use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Psr\Container\ContainerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
+use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 
 class EventBus implements EventListenersRegistrarInterface
 {
-    public readonly EventDispatcher $dispacher;
+    public readonly EventDispatcher $base;
+    public readonly EventDispatcherInterface $dispacher;
 
     public function __construct(private readonly ContainerInterface $container)
     {
-        $this->dispacher = new EventDispatcher();
+        $this->base = new EventDispatcher();
+        $this->dispacher = new HierarchicalDispatcher($this->base);
+
     }
 
     public function registerListener(string $event, string $type): void
     {
         $container = $this->container;
-        $this->dispacher->addListener($event, function (mixed $event) use ($type, $container) {
+        $this->base->addListener($event, function (mixed $event) use ($type, $container) {
             $instance = $container->get($type);
             $response = call_user_func($instance, $event);
             return $response ? $response : $event;
         });
+    }
+}
+
+
+class HierarchicalDispatcher implements EventDispatcherInterface
+{
+    public function __construct(private EventDispatcherInterface $dispatcher)
+    {
+    }
+
+    public function dispatch(object $event)
+    {
+        $result = $event;
+        foreach (class_parents($event) + class_implements($event) + [get_class($event)] as $eventName) {
+            $result = $this->dispatcher->dispatch($event, $eventName);
+        }
+        return $result;
     }
 }
