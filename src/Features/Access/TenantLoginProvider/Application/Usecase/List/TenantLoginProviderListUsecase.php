@@ -35,7 +35,7 @@ class TenantLoginProviderListUsecase
         $span = $this->startSpan("Check allow of list usecase for Tenant login provider");
         try {
             $result = $this->dispacher->dispatch(new TenantLoginProviderListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

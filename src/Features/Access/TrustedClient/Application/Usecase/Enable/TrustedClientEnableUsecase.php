@@ -34,7 +34,7 @@ class TrustedClientEnableUsecase
         $span = $this->startSpan("Check allow of Enable usecase for Trusted client");
         try {
             $result = $this->dispacher->dispatch(new TrustedClientEnableAllowDecision(Allow::allowed('enable', 'Allowed to Trusted client by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

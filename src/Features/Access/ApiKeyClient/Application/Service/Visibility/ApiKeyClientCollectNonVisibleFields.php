@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 class ApiKeyClientCollectNonVisibleFields extends FieldsAccess
 {
     public function __construct(
-        public array $fields,
+        array $fields,
         public readonly ?ApiKeyClientRef $apiKeyClientRef
     ) {
         parent::__construct($fields);

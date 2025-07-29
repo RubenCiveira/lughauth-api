@@ -34,7 +34,7 @@ class RelyingPartyDisableUsecase
         $span = $this->startSpan("Check allow of Disable usecase for Relying party");
         try {
             $result = $this->dispacher->dispatch(new RelyingPartyDisableAllowDecision(Allow::allowed('disable', 'Allowed to Relying party by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

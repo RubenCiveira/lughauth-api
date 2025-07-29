@@ -11,8 +11,9 @@ use Civi\Lughauth\Shared\Security\AllowDecision;
 class UserEnableAllowDecision extends AllowDecision
 {
     public function __construct(
-        public Allow $allow
+        Allow $allow
     ) {
+        parent::__construct($allow);
     }
     public function actionName(): string
     {

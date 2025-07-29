@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class UnlockUserOnlyForRootAllow
         $span = $this->startSpan("Check UnlockUserOnlyForRootAllow User");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('unlock', 'Enabled for user UnlockUserOnlyForRoot') : Allow::disallowed('unlock', 'Disabled if not UnlockUserOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not UnlockUserOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

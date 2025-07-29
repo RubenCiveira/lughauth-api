@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class EnableUserOnlyForRootAllow
         $span = $this->startSpan("Check EnableUserOnlyForRootAllow User");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('enable', 'Enabled for user EnableUserOnlyForRoot') : Allow::disallowed('enable', 'Disabled if not EnableUserOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not EnableUserOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

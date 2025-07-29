@@ -34,7 +34,7 @@ class ApiKeyClientRetrieveUsecase
         $span = $this->startSpan("Check allow of retrieve usecase for Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

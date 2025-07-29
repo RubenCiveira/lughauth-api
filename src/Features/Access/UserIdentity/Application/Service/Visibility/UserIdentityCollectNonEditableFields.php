@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 class UserIdentityCollectNonEditableFields extends FieldsAccess
 {
     public function __construct(
-        public array $fields,
+        array $fields,
         public readonly ?UserIdentityRef $userIdentityRef
     ) {
         parent::__construct($fields);

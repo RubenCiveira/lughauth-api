@@ -34,7 +34,7 @@ class TenantTermsOfUseDeleteUsecase
         $span = $this->startSpan("Check allow of delete usecase for Tenant terms of use");
         try {
             $result = $this->dispacher->dispatch(new TenantTermsOfUseDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 class TenantConfigCollectNonEditableFields extends FieldsAccess
 {
     public function __construct(
-        public array $fields,
+        array $fields,
         public readonly ?TenantConfigRef $tenantConfigRef
     ) {
         parent::__construct($fields);

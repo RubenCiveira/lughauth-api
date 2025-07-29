@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\D
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedDisableAllow
         $span = $this->startSpan("Check IsAutenticatedDisableAllow Trusted client");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('disable', 'Enabled for user IsAutenticatedDisable') : Allow::disallowed('disable', 'Disabled if not IsAutenticatedDisable');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedDisable');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

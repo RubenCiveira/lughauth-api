@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 class TenantTermsOfUseCollectNonVisibleFields extends FieldsAccess
 {
     public function __construct(
-        public array $fields,
+        array $fields,
         public readonly ?TenantTermsOfUseRef $tenantTermsOfUseRef
     ) {
         parent::__construct($fields);

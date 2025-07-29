@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedEnableAllow
         $span = $this->startSpan("Check IsAutenticatedEnableAllow Tenant");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('enable', 'Enabled for user IsAutenticatedEnable') : Allow::disallowed('enable', 'Disabled if not IsAutenticatedEnable');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedEnable');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

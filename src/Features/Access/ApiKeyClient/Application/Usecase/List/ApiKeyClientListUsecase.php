@@ -35,7 +35,7 @@ class ApiKeyClientListUsecase
         $span = $this->startSpan("Check allow of list usecase for Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

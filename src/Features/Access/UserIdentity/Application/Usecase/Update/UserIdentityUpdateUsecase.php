@@ -34,7 +34,7 @@ class UserIdentityUpdateUsecase
         $span = $this->startSpan("Check allow update usecase for User identity");
         try {
             $result = $this->dispacher->dispatch(new UserIdentityUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -34,7 +34,7 @@ class ApiKeyClientDeleteUsecase
         $span = $this->startSpan("Check allow of delete usecase for Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

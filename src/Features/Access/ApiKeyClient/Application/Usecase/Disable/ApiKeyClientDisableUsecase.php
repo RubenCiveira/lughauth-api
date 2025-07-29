@@ -34,7 +34,7 @@ class ApiKeyClientDisableUsecase
         $span = $this->startSpan("Check allow of Disable usecase for Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientDisableAllowDecision(Allow::allowed('disable', 'Allowed to Api key client by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

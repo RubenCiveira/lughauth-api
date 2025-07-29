@@ -35,7 +35,7 @@ class TrustedClientListUsecase
         $span = $this->startSpan("Check allow of list usecase for Trusted client");
         try {
             $result = $this->dispacher->dispatch(new TrustedClientListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 class RelyingPartyCollectNonVisibleFields extends FieldsAccess
 {
     public function __construct(
-        public array $fields,
+        array $fields,
         public readonly ?RelyingPartyRef $relyingPartyRef
     ) {
         parent::__construct($fields);

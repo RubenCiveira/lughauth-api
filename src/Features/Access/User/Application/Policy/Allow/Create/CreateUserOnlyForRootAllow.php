@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Create;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class CreateUserOnlyForRootAllow
         $span = $this->startSpan("Check CreateUserOnlyForRootAllow User");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('create', 'Enabled for user CreateUserOnlyForRoot') : Allow::disallowed('create', 'Disabled if not CreateUserOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not CreateUserOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

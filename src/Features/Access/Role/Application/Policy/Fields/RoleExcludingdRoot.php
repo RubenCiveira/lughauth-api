@@ -26,7 +26,7 @@ class RoleExcludingdRoot
         try {
             $userContext = $this->context->getIdentity();
             if (!$userContext->hasAnyRole('ROOT')) {
-                $event->fields = [...$event->fields, ['tenant']];
+                $event->withAll(['tenant']);
             }
             return $event;
         } catch (Throwable $ex) {

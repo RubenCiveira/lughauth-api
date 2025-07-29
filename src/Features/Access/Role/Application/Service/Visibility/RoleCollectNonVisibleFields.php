@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Security\FieldsAccess;
 class RoleCollectNonVisibleFields extends FieldsAccess
 {
     public function __construct(
-        public array $fields,
+        array $fields,
         public readonly ?RoleRef $roleRef
     ) {
         parent::__construct($fields);

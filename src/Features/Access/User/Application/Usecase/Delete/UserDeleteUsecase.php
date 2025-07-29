@@ -34,7 +34,7 @@ class UserDeleteUsecase
         $span = $this->startSpan("Check allow of delete usecase for User");
         try {
             $result = $this->dispacher->dispatch(new UserDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class UpdateUserOnlyForRootAllow
         $span = $this->startSpan("Check UpdateUserOnlyForRootAllow User");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('update', 'Enabled for user UpdateUserOnlyForRoot') : Allow::disallowed('update', 'Disabled if not UpdateUserOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not UpdateUserOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

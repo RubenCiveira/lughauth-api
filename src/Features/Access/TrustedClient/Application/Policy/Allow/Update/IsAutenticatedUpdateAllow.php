@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\U
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedUpdateAllow
         $span = $this->startSpan("Check IsAutenticatedUpdateAllow Trusted client");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('update', 'Enabled for user IsAutenticatedUpdate') : Allow::disallowed('update', 'Disabled if not IsAutenticatedUpdate');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedUpdate');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

@@ -13,6 +13,7 @@ class UserCreateAllowDecision extends AllowDecision
     public function __construct(
         public Allow $allow
     ) {
+        parent::__construct($allow);
     }
     public function actionName(): string
     {

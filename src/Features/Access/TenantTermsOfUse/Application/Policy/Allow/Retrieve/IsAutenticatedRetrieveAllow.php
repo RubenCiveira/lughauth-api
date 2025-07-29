@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allo
 use Throwable;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedRetrieveAllow
         $span = $this->startSpan("Check IsAutenticatedRetrieveAllow Tenant terms of use");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('retrieve', 'Enabled for user IsAutenticatedRetrieve') : Allow::disallowed('retrieve', 'Disabled if not IsAutenticatedRetrieve');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedRetrieve');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

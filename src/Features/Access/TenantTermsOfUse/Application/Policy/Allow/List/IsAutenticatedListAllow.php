@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allo
 use Throwable;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedListAllow
         $span = $this->startSpan("Check IsAutenticatedListAllow Tenant terms of use");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('list', 'Enabled for user IsAutenticatedList') : Allow::disallowed('list', 'Disabled if not IsAutenticatedList');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedList');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

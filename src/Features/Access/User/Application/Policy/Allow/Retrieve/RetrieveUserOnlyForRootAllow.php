@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class RetrieveUserOnlyForRootAllow
         $span = $this->startSpan("Check RetrieveUserOnlyForRootAllow User");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('retrieve', 'Enabled for user RetrieveUserOnlyForRoot') : Allow::disallowed('retrieve', 'Disabled if not RetrieveUserOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not RetrieveUserOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

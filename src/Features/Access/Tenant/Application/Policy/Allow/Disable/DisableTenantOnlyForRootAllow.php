@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class DisableTenantOnlyForRootAllow
         $span = $this->startSpan("Check DisableTenantOnlyForRootAllow Tenant");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('disable', 'Enabled for user DisableTenantOnlyForRoot') : Allow::disallowed('disable', 'Disabled if not DisableTenantOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not DisableTenantOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

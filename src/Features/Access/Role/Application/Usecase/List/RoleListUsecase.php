@@ -35,7 +35,7 @@ class RoleListUsecase
         $span = $this->startSpan("Check allow of list usecase for Role");
         try {
             $result = $this->dispacher->dispatch(new RoleListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

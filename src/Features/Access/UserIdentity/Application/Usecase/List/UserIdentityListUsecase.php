@@ -35,7 +35,7 @@ class UserIdentityListUsecase
         $span = $this->startSpan("Check allow of list usecase for User identity");
         try {
             $result = $this->dispacher->dispatch(new UserIdentityListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

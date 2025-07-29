@@ -34,7 +34,7 @@ class TenantLoginProviderEnableUsecase
         $span = $this->startSpan("Check allow of Enable usecase for Tenant login provider");
         try {
             $result = $this->dispacher->dispatch(new TenantLoginProviderEnableAllowDecision(Allow::allowed('enable', 'Allowed to Tenant login provider by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

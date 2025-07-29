@@ -34,7 +34,7 @@ class UserIdentityRetrieveUsecase
         $span = $this->startSpan("Check allow of retrieve usecase for User identity");
         try {
             $result = $this->dispacher->dispatch(new UserIdentityRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

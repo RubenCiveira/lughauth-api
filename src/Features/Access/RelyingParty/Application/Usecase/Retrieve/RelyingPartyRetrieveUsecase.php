@@ -34,7 +34,7 @@ class RelyingPartyRetrieveUsecase
         $span = $this->startSpan("Check allow of retrieve usecase for Relying party");
         try {
             $result = $this->dispacher->dispatch(new RelyingPartyRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

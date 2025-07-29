@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\A
 use Throwable;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedEnableAllow
         $span = $this->startSpan("Check IsAutenticatedEnableAllow Tenant login provider");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('enable', 'Enabled for user IsAutenticatedEnable') : Allow::disallowed('enable', 'Disabled if not IsAutenticatedEnable');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedEnable');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

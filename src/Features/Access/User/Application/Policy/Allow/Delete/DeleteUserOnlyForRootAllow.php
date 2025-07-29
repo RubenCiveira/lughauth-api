@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class DeleteUserOnlyForRootAllow
         $span = $this->startSpan("Check DeleteUserOnlyForRootAllow User");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('delete', 'Enabled for user DeleteUserOnlyForRoot') : Allow::disallowed('delete', 'Disabled if not DeleteUserOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not DeleteUserOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

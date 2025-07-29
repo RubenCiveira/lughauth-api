@@ -34,7 +34,7 @@ class UserEnableUsecase
         $span = $this->startSpan("Check allow of Enable usecase for User");
         try {
             $result = $this->dispacher->dispatch(new UserEnableAllowDecision(Allow::allowed('enable', 'Allowed to User by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

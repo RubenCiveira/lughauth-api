@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Cr
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class IsAutenticatedCreateAllow
         $span = $this->startSpan("Check IsAutenticatedCreateAllow Relying party");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = !$userContext->anonimous;
-                $allowed = $belongs ? Allow::allowed('create', 'Enabled for user IsAutenticatedCreate') : Allow::disallowed('create', 'Disabled if not IsAutenticatedCreate');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! !$userContext->anonimous) {
+                    $proposal->deny('Disabled if not IsAutenticatedCreate');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

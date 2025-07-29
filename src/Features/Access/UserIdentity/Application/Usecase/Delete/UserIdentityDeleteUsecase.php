@@ -34,7 +34,7 @@ class UserIdentityDeleteUsecase
         $span = $this->startSpan("Check allow of delete usecase for User identity");
         try {
             $result = $this->dispacher->dispatch(new UserIdentityDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

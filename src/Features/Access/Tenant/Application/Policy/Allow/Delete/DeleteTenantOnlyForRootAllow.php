@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,10 +25,10 @@ class DeleteTenantOnlyForRootAllow
         $span = $this->startSpan("Check DeleteTenantOnlyForRootAllow Tenant");
         try {
             $userContext = $this->context->getIdentity();
-            if ($proposal->allow->allowed) {
-                $belongs = $userContext->hasAnyRole('ROOT');
-                $allowed = $belongs ? Allow::allowed('delete', 'Enabled for user DeleteTenantOnlyForRoot') : Allow::disallowed('delete', 'Disabled if not DeleteTenantOnlyForRoot');
-                $proposal->allow = $allowed;
+            if ($proposal->isAllowed()) {
+                if (! $userContext->hasAnyRole('ROOT')) {
+                    $proposal->deny('Disabled if not DeleteTenantOnlyForRoot');
+                }
             }
             return $proposal;
         } catch (Throwable $ex) {

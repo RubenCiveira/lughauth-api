@@ -34,7 +34,7 @@ class ApiKeyClientUpdateUsecase
         $span = $this->startSpan("Check allow update usecase for Api key client");
         try {
             $result = $this->dispacher->dispatch(new ApiKeyClientUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
-            return $result->allow;
+            return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
