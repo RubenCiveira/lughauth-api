@@ -85,20 +85,20 @@ class LughMapper
     }
     public function hiddenFields(Identity $user, string $resource): array
     {
-        return $this->fields($this->load(), $user, $resource, 'view');
+        return $this->fields($this->load($user), $user, $resource, 'view');
     }
     public function uneditableFields(Identity $user, string $resource): array
     {
-        return $this->fields($this->load(), $user, $resource, 'modify');
+        return $this->fields($this->load($user), $user, $resource, 'modify');
     }
     public function allow(Identity $user, string $resource, string $action): bool
     {
-        return $this->isAllowed($this->load(), $user, $resource, 'scope', $action);
+        return $this->isAllowed($this->load($user), $user, $resource, 'scope', $action);
     }
 
-    private function load()
+    private function load(Identity $user)
     {
-        return json_decode($this->getGrants(), true);
+        return json_decode($this->getGrants($user), true);
     }
 
     private function fields(array $grants, Identity $user, string $resource, string $on): array
@@ -116,8 +116,6 @@ class LughMapper
                 }
             }
         }
-        $all = array_unique($all);
-        $visibles = array_unique($visibles);
         return array_diff($all, $visibles);
     }
 
@@ -132,13 +130,17 @@ class LughMapper
         return false;
     }
 
-    private function getGrants()
+    private function getGrants(Identity $user)
     {
-        $cache_key = 'lught.grants';
+        $cache_key = 'lught.grants' . ($user->tenant ? '.' . $user->tenant : '');
         if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
-            $request = $this->requestFactory->createRequest('GET', $this->authUrl . '/grant');
+            $url = $this->authUrl . '/grant';
+            if( $user->tenant ) {
+                $url .= '?tenant=' . urlencode( $user->tenant );
+            }
+            $request = $this->requestFactory->createRequest('GET', $url);
             $request = $request->withAddedHeader('x-api-key', $this->apiKey);
             $response = $this->client->sendRequest($request);
             $item = '' . $response->getBody();
