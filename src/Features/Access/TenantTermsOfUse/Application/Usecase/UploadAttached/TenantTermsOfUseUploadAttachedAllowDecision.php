@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\UploadAttached;
 
+use Override;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
@@ -15,11 +16,13 @@ class TenantTermsOfUseUploadAttachedAllowDecision extends AllowDecision
     ) {
         parent::__construct($allow);
     }
+    #[Override]
     public function actionName(): string
     {
         return "upload-attached";
     }
 
+    #[Override]
     public function resourceName(): string
     {
         return "tenant-terms-of-use";

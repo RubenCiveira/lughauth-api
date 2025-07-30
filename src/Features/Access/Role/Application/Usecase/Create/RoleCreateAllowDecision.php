@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Role\Application\Usecase\Create;
 
+use Override;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
@@ -15,11 +16,13 @@ class RoleCreateAllowDecision extends AllowDecision
     ) {
         parent::__construct($allow);
     }
+    #[Override]
     public function actionName(): string
     {
         return "create";
     }
 
+    #[Override]
     public function resourceName(): string
     {
         return "role";

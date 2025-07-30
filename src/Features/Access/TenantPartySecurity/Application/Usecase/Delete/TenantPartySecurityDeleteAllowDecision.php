@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Usecase\Delete;
 
+use Override;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
@@ -15,11 +16,13 @@ class TenantPartySecurityDeleteAllowDecision extends AllowDecision
     ) {
         parent::__construct($allow);
     }
+    #[Override]
     public function actionName(): string
     {
         return "delete";
     }
 
+    #[Override]
     public function resourceName(): string
     {
         return "tenant-party-security";

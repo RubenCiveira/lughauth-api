@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve;
 
+use Override;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
@@ -15,11 +16,13 @@ class ApiKeyClientRetrieveAllowDecision extends AllowDecision
     ) {
         parent::__construct($allow);
     }
+    #[Override]
     public function actionName(): string
     {
         return "retrieve";
     }
 
+    #[Override]
     public function resourceName(): string
     {
         return "api-key-client";
