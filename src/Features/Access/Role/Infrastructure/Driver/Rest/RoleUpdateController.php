@@ -85,9 +85,8 @@ class RoleUpdateController
             $value = new RoleUpdateParams();
             $value->uid(RoleUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $value->name(RoleNameVO::tryFrom($body['name'] ?? null, $errorsList));
-            $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($tenant['$ref'])) {
-                $value->tenant(RoleTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
+            if (in_array('tenant', array_keys($body))) {
+                $value->tenant(RoleTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $value->version(RoleVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
