@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Override;
 use DateInterval;
 use DateTimeImmutable;
@@ -21,6 +23,7 @@ class ChangePasswordAdapter implements ChangePasswordRepository
 {
     public function __construct(
         private readonly UserLoaderAdapter $users,
+        private readonly TenantConfigReadGateway $configs,
         private readonly UserWriteGateway $repository,
         private readonly UserAccessTemporalCodeWriteGateway $codes,
         private readonly AesCypherService $cypher,
@@ -40,7 +43,9 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     #[Override]
     public function allowRecover(string $tenant): bool
     {
-        return true;
+        $theTenant = $this->users->checkTenant($tenant, '-');
+        $conf = $this->configs->findOneByTenant($theTenant);
+        return ($conf && $conf->getAllowRecoverPass());
     }
     #[Override]
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string

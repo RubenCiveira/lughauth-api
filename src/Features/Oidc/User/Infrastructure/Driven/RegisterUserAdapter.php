@@ -13,7 +13,7 @@ class RegisterUserAdapter implements RegisterUserRepository
     #[Override]
     public function allowRegister(string $tenant): bool
     {
-        return true;
+        return false;
     }
 
     #[Override]
