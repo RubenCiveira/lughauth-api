@@ -209,7 +209,7 @@ class TenantLoginProviderVisibilityService
         $span = $this->startSpan("Check fields for fix for Tenant login provider");
         try {
             $result = $this->dispacher->dispatch(new TenantLoginProviderCollectNonEditableFields(TenantLoginProvider::calculatedFields(), $ref));
-            return array_unique(array_merge($this->fieldsToHide($ref), $result->fields));
+            return array_values(array_unique(array_merge($this->fieldsToHide($ref), $result->fields)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -224,7 +224,7 @@ class TenantLoginProviderVisibilityService
         $span = $this->startSpan("Check fields to hide for  Tenant login provider");
         try {
             $result = $this->dispacher->dispatch(new TenantLoginProviderCollectNonVisibleFields([], $ref));
-            return array_unique($result->fields);
+            return array_values(array_unique($result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

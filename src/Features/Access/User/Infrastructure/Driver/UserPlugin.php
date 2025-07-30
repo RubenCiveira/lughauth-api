@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\User\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserAllowController;
@@ -16,7 +17,10 @@ use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserDeleteCont
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserDisableController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserEnableController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserUnlockController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccesible;
@@ -76,6 +80,34 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserEnableAllowDecision::class, EnableUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, UnlockUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("user", "list", "READ");
+            $handler->registerResourceAction("user", "create", "WRITE");
+            $handler->registerResourceAction("user", "retrieve", "READ");
+            $handler->registerResourceAction("user", "update", "WRITE");
+            $handler->registerResourceAction("user", "delete", "WRITE");
+            $handler->registerResourceAction("user", "disable", "WRITE");
+            $handler->registerResourceAction("user", "enable", "WRITE");
+            $handler->registerResourceAction("user", "unlock", "WRITE");
+
+            $handler->registerResourceAttribute("user", "tenant", "MANAGE");
+            $handler->registerResourceAttribute("user", "name", "MANAGE");
+            $handler->registerResourceAttribute("user", "password", "MANAGE");
+            $handler->registerResourceAttribute("user", "email", "MANAGE");
+            $handler->registerResourceAttribute("user", "wellcomeAt", "MANAGE");
+            $handler->registerResourceAttribute("user", "enabled", "MANAGE");
+            $handler->registerResourceAttribute("user", "temporalPassword", "MANAGE");
+            $handler->registerResourceAttribute("user", "useSecondFactors", "MANAGE");
+            $handler->registerResourceAttribute("user", "secondFactorSeed", "MANAGE");
+            $handler->registerResourceAttribute("user", "blockedUntil", "MANAGE");
+            $handler->registerResourceAttribute("user", "provider", "MANAGE");
+            $handler->registerResourceAttribute("user", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForUserAcl(RouteCollectorProxy $userGroup)
     {

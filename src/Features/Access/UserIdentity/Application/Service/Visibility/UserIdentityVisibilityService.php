@@ -216,7 +216,7 @@ class UserIdentityVisibilityService
         $span = $this->startSpan("Check fields for fix for User identity");
         try {
             $result = $this->dispacher->dispatch(new UserIdentityCollectNonEditableFields(UserIdentity::calculatedFields(), $ref));
-            return array_unique(array_merge($this->fieldsToHide($ref), $result->fields));
+            return array_values(array_unique(array_merge($this->fieldsToHide($ref), $result->fields)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -231,7 +231,7 @@ class UserIdentityVisibilityService
         $span = $this->startSpan("Check fields to hide for  User identity");
         try {
             $result = $this->dispacher->dispatch(new UserIdentityCollectNonVisibleFields([], $ref));
-            return array_unique($result->fields);
+            return array_values(array_unique($result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

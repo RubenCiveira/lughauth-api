@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Role\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleAllowController;
@@ -13,7 +14,10 @@ use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleCreateCont
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleRetrieveController;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleUpdateController;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleDeleteController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Filter\TenantAccesible;
@@ -48,6 +52,22 @@ class RolePlugin extends MicroPlugin
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("role", "list", "READ");
+            $handler->registerResourceAction("role", "create", "WRITE");
+            $handler->registerResourceAction("role", "retrieve", "READ");
+            $handler->registerResourceAction("role", "update", "WRITE");
+            $handler->registerResourceAction("role", "delete", "WRITE");
+
+            $handler->registerResourceAttribute("role", "name", "MANAGE");
+            $handler->registerResourceAttribute("role", "tenant", "MANAGE");
+            $handler->registerResourceAttribute("role", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup)
     {

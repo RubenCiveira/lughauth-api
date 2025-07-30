@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKeyClientAllowController;
@@ -15,7 +16,10 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKey
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKeyClientDeleteController;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKeyClientEnableController;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKeyClientDisableController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
@@ -50,6 +54,26 @@ class ApiKeyClientPlugin extends MicroPlugin
         $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(ApiKeyClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(ApiKeyClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("api-key-client", "list", "READ");
+            $handler->registerResourceAction("api-key-client", "create", "WRITE");
+            $handler->registerResourceAction("api-key-client", "retrieve", "READ");
+            $handler->registerResourceAction("api-key-client", "update", "WRITE");
+            $handler->registerResourceAction("api-key-client", "delete", "WRITE");
+            $handler->registerResourceAction("api-key-client", "enable", "WRITE");
+            $handler->registerResourceAction("api-key-client", "disable", "WRITE");
+
+            $handler->registerResourceAttribute("api-key-client", "code", "MANAGE");
+            $handler->registerResourceAttribute("api-key-client", "key", "MANAGE");
+            $handler->registerResourceAttribute("api-key-client", "enabled", "MANAGE");
+            $handler->registerResourceAttribute("api-key-client", "scopes", "MANAGE");
+            $handler->registerResourceAttribute("api-key-client", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForApiKeyClientAcl(RouteCollectorProxy $apiKeyClientGroup)
     {

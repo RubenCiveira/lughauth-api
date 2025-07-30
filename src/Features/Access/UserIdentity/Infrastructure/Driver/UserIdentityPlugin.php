@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserIdentityAllowController;
@@ -13,7 +14,10 @@ use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserId
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserIdentityRetrieveController;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserIdentityUpdateController;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserIdentityDeleteController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Filter\TenantAccesible;
@@ -45,6 +49,24 @@ class UserIdentityPlugin extends MicroPlugin
         $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("user-identity", "list", "READ");
+            $handler->registerResourceAction("user-identity", "create", "WRITE");
+            $handler->registerResourceAction("user-identity", "retrieve", "READ");
+            $handler->registerResourceAction("user-identity", "update", "WRITE");
+            $handler->registerResourceAction("user-identity", "delete", "WRITE");
+
+            $handler->registerResourceAttribute("user-identity", "user", "MANAGE");
+            $handler->registerResourceAttribute("user-identity", "relyingParty", "MANAGE");
+            $handler->registerResourceAttribute("user-identity", "trustedClient", "MANAGE");
+            $handler->registerResourceAttribute("user-identity", "roles", "MANAGE");
+            $handler->registerResourceAttribute("user-identity", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup)
     {

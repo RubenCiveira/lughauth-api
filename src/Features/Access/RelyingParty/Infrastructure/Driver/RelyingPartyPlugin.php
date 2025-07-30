@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\RelyingPartyAllowController;
@@ -15,7 +16,10 @@ use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\Relyin
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\RelyingPartyDeleteController;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\RelyingPartyEnableController;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\RelyingPartyDisableController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowDecision;
@@ -50,6 +54,28 @@ class RelyingPartyPlugin extends MicroPlugin
         $bus->registerListener(RelyingPartyDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("relying-party", "list", "READ");
+            $handler->registerResourceAction("relying-party", "create", "WRITE");
+            $handler->registerResourceAction("relying-party", "retrieve", "READ");
+            $handler->registerResourceAction("relying-party", "update", "WRITE");
+            $handler->registerResourceAction("relying-party", "delete", "WRITE");
+            $handler->registerResourceAction("relying-party", "enable", "WRITE");
+            $handler->registerResourceAction("relying-party", "disable", "WRITE");
+
+            $handler->registerResourceAttribute("relying-party", "code", "MANAGE");
+            $handler->registerResourceAttribute("relying-party", "apiKey", "MANAGE");
+            $handler->registerResourceAttribute("relying-party", "enabled", "MANAGE");
+            $handler->registerResourceAttribute("relying-party", "scopes", "MANAGE");
+            $handler->registerResourceAttribute("relying-party", "schemas", "MANAGE");
+            $handler->registerResourceAttribute("relying-party", "policies", "MANAGE");
+            $handler->registerResourceAttribute("relying-party", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForRelyingPartyAcl(RouteCollectorProxy $relyingPartyGroup)
     {

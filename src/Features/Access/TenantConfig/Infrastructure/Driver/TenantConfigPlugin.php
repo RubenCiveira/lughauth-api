@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\TenantConfigAllowController;
@@ -13,7 +14,10 @@ use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\Tenant
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\TenantConfigRetrieveController;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\TenantConfigUpdateController;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\TenantConfigDeleteController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccesible;
@@ -48,6 +52,31 @@ class TenantConfigPlugin extends MicroPlugin
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantConfigListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantConfigDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("tenant-config", "list", "READ");
+            $handler->registerResourceAction("tenant-config", "create", "WRITE");
+            $handler->registerResourceAction("tenant-config", "retrieve", "READ");
+            $handler->registerResourceAction("tenant-config", "update", "WRITE");
+            $handler->registerResourceAction("tenant-config", "delete", "WRITE");
+
+            $handler->registerResourceAttribute("tenant-config", "tenant", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "innerLabel", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "forceMfa", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "allowRegister", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "enableRegisterUsers", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "wellcomeEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "registerdEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "disabledUserEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "enabledUserEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "allowRecoverPass", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "recoverPassEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantConfigAcl(RouteCollectorProxy $tenantConfigGroup)
     {

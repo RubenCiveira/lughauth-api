@@ -17,7 +17,7 @@ class TenantLoginProviderUploadMetadataAllowDecision extends AllowDecision
     }
     public function actionName(): string
     {
-        return "update";
+        return "upload-metadata";
     }
 
     public function resourceName(): string

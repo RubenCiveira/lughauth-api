@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\TrustedClientAllowController;
@@ -15,7 +16,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\Trust
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\TrustedClientDeleteController;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\TrustedClientEnableController;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\TrustedClientDisableController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowDecision;
@@ -50,6 +54,27 @@ class TrustedClientPlugin extends MicroPlugin
         $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("trusted-client", "list", "READ");
+            $handler->registerResourceAction("trusted-client", "create", "WRITE");
+            $handler->registerResourceAction("trusted-client", "retrieve", "READ");
+            $handler->registerResourceAction("trusted-client", "update", "WRITE");
+            $handler->registerResourceAction("trusted-client", "delete", "WRITE");
+            $handler->registerResourceAction("trusted-client", "enable", "WRITE");
+            $handler->registerResourceAction("trusted-client", "disable", "WRITE");
+
+            $handler->registerResourceAttribute("trusted-client", "code", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "publicAllow", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "secretOauth", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "enabled", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTrustedClientAcl(RouteCollectorProxy $trustedClientGroup)
     {

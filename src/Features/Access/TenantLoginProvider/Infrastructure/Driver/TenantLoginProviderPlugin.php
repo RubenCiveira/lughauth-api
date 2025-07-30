@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderAllowController;
@@ -16,7 +17,10 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderEnableController;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderDisableController;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempMetadataUploadController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccesible;
@@ -57,6 +61,32 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("tenant-login-provider", "list", "READ");
+            $handler->registerResourceAction("tenant-login-provider", "create", "WRITE");
+            $handler->registerResourceAction("tenant-login-provider", "retrieve", "READ");
+            $handler->registerResourceAction("tenant-login-provider", "update", "WRITE");
+            $handler->registerResourceAction("tenant-login-provider", "delete", "WRITE");
+            $handler->registerResourceAction("tenant-login-provider", "enable", "WRITE");
+            $handler->registerResourceAction("tenant-login-provider", "disable", "WRITE");
+
+            $handler->registerResourceAttribute("tenant-login-provider", "tenant", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "name", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "source", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "disabled", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "directAccess", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "publicKey", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "privateKey", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "certificate", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "metadata", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "usersEnabledByDefault", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup)
     {

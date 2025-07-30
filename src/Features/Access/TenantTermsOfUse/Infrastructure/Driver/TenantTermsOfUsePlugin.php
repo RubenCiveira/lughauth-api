@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver;
 
+use Psr\Container\ContainerInterface;
 use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseAllowController;
@@ -16,7 +17,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\Te
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseEnableController;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseDisableController;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseTempAttachedUploadController;
+use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccesible;
@@ -57,6 +61,27 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+    }
+    #[Override]
+    public function registerStartup(StartupProcessor $processor): void
+    {
+        $processor->register(function (ContainerInterface $container) {
+            $handler = $container->get(Handler::class);
+            $handler->registerResourceAction("tenant-terms-of-use", "list", "READ");
+            $handler->registerResourceAction("tenant-terms-of-use", "create", "WRITE");
+            $handler->registerResourceAction("tenant-terms-of-use", "retrieve", "READ");
+            $handler->registerResourceAction("tenant-terms-of-use", "update", "WRITE");
+            $handler->registerResourceAction("tenant-terms-of-use", "delete", "WRITE");
+            $handler->registerResourceAction("tenant-terms-of-use", "enable", "WRITE");
+            $handler->registerResourceAction("tenant-terms-of-use", "disable", "WRITE");
+
+            $handler->registerResourceAttribute("tenant-terms-of-use", "tenant", "MANAGE");
+            $handler->registerResourceAttribute("tenant-terms-of-use", "text", "MANAGE");
+            $handler->registerResourceAttribute("tenant-terms-of-use", "enabled", "MANAGE");
+            $handler->registerResourceAttribute("tenant-terms-of-use", "attached", "MANAGE");
+            $handler->registerResourceAttribute("tenant-terms-of-use", "activationDate", "MANAGE");
+            $handler->registerResourceAttribute("tenant-terms-of-use", "version", "MANAGE");
+        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup)
     {

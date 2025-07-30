@@ -17,7 +17,7 @@ class TenantTermsOfUseUploadAttachedAllowDecision extends AllowDecision
     }
     public function actionName(): string
     {
-        return "update";
+        return "upload-attached";
     }
 
     public function resourceName(): string
