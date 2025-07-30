@@ -39,8 +39,8 @@ class RbacStoreGateway
      * @param string $relyingParty
      * @return list<RoleGrant>
      */
-    public function granted(string $relyingParty): array
+    public function granted( ?string $tenant, string $relyingParty): array
     {
-        return $this->repository->granted($relyingParty);
+        return $this->repository->granted($tenant, $relyingParty);
     }
 }

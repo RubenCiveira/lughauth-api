@@ -19,6 +19,8 @@ class PermissionCheck
     public function getForRoles(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $apiKey = $request->getHeaderLine('x-api-Key');
+        $params = $request->getQueryParams();
+        $tenant = $params['tenant'] ?? null;
 
         $rely = $this->verifier->findOptional($apiKey);
         if ($rely === null) {
@@ -28,7 +30,7 @@ class PermissionCheck
             return $response->withStatus(403)->withHeader('Content-Type', 'application/json');
         }
 
-        $granted = $this->schemaStore->granted($rely);
+        $granted = $this->schemaStore->granted($tenant, $rely);
         $response->getBody()->write(json_encode($granted));
 
         return $response->withHeader('Content-Type', 'application/json');

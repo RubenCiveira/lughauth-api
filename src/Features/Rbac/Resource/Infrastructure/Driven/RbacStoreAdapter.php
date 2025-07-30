@@ -10,6 +10,8 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGa
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Gateway\TenantPartySecurityReadGateway;
 use Civi\Lughauth\Features\Rbac\Acl\Application\DslParser;
 use Civi\Lughauth\Features\Rbac\Acl\Application\PolicyEngine;
 use Civi\Lughauth\Features\Rbac\Acl\Domain\RuleSet;
@@ -21,6 +23,7 @@ class RbacStoreAdapter implements RbacStoreRepository
     public function __construct(
         private readonly RelyingPartyWriteGateway $parties,
         private readonly RelyingPartyReadGateway $readParties,
+        private readonly TenantPartySecurityReadGateway $tenantSecurity,
         private readonly RoleReadGateway $roles,
     ) {
     }
@@ -88,13 +91,19 @@ class RbacStoreAdapter implements RbacStoreRepository
      * @return list<RoleGrant>
      */
     #[Override]
-    public function granted(string $relyingParty): array
+    public function granted(?string $tenant, string $relyingParty): array
     {
         $party = $this->readParties->findOneByCode($relyingParty);
-        if ($party === null) {
-            return [];
+        $dsl = '';
+        if ($party !== null) {
+            $dsl .= $party->getPolicies();
         }
-        $dsl = $party->getPolicies();
+        if( $tenant ) {
+            $specific = $this->tenantSecurity->findOneByTenantAndRelyingParty(new TenantRef($tenant), $party);
+            if( $specific !== null ) {
+                $dsl .= $specific->getPolicies();
+            }
+        }
         if (!$dsl) {
             return [];
         }
