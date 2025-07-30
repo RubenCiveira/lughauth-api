@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 class UserIdentityDeleteEvent extends UserIdentityEvent
 {
     public function __construct(
-        public readonly UserIdentity $payload
+        UserIdentity $payload
     ) {
         parent::__construct($payload);
     }

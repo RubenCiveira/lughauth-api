@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 class TenantTermsOfUseDisableEvent extends TenantTermsOfUseUpdateEvent
 {
     public function __construct(
-        public readonly TenantTermsOfUse $payload
+        TenantTermsOfUse $payload
     ) {
         parent::__construct($payload);
     }

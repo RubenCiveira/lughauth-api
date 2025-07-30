@@ -93,9 +93,8 @@ class TenantConfigUpdateController
             $errorsList = new ConstraintFailList();
             $value = new TenantConfigUpdateParams();
             $value->uid(TenantConfigUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($tenant['$ref'])) {
-                $value->tenant(TenantConfigTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
+            if (in_array('tenant', array_keys($body))) {
+                $value->tenant(TenantConfigTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $value->innerLabel(TenantConfigInnerLabelVO::tryFrom($body['innerLabel'] ?? null, $errorsList));
             $value->forceMfa(TenantConfigForceMfaVO::tryFrom($body['forceMfa'] ?? null, $errorsList));

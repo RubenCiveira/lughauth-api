@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\Role;
 class RoleDeleteEvent extends RoleEvent
 {
     public function __construct(
-        public readonly Role $payload
+        Role $payload
     ) {
         parent::__construct($payload);
     }

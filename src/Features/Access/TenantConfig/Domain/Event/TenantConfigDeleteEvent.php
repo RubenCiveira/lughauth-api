@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 class TenantConfigDeleteEvent extends TenantConfigEvent
 {
     public function __construct(
-        public readonly TenantConfig $payload
+        TenantConfig $payload
     ) {
         parent::__construct($payload);
     }

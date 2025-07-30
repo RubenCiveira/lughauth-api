@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 class RelyingPartyEnableEvent extends RelyingPartyUpdateEvent
 {
     public function __construct(
-        public readonly RelyingParty $payload
+        RelyingParty $payload
     ) {
         parent::__construct($payload);
     }

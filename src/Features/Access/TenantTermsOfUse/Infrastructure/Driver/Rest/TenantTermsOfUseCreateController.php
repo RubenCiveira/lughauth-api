@@ -79,9 +79,8 @@ class TenantTermsOfUseCreateController
             $errorsList = new ConstraintFailList();
             $value = new TenantTermsOfUseCreateParams();
             $value->uid(TenantTermsOfUseUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($tenant['$ref'])) {
-                $value->tenant(TenantTermsOfUseTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
+            if (in_array('tenant', array_keys($body))) {
+                $value->tenant(TenantTermsOfUseTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $value->text(TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList));
             $value->enabled(TenantTermsOfUseEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));

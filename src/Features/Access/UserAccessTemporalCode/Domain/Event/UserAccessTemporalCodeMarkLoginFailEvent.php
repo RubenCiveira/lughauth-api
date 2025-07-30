@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 class UserAccessTemporalCodeMarkLoginFailEvent extends UserAccessTemporalCodeUpdateEvent
 {
     public function __construct(
-        public readonly UserAccessTemporalCode $payload
+        UserAccessTemporalCode $payload
     ) {
         parent::__construct($payload);
     }

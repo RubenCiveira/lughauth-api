@@ -96,9 +96,8 @@ class UserUpdateController
             $errorsList = new ConstraintFailList();
             $value = new UserUpdateParams();
             $value->uid(UserUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $tenant = $body['tenant'] ?? null;
-            if ($tenant && isset($tenant['$ref'])) {
-                $value->tenant(UserTenantVO::tryFrom(new TenantRef(uid: $tenant['$ref']), $errorsList));
+            if (in_array('tenant', array_keys($body))) {
+                $value->tenant(UserTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $value->name(UserNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $readPassword = $body['password'] ?? '******';

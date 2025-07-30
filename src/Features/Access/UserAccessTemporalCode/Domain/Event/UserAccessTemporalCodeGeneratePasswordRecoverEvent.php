@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 class UserAccessTemporalCodeGeneratePasswordRecoverEvent extends UserAccessTemporalCodeUpdateEvent
 {
     public function __construct(
-        public readonly UserAccessTemporalCode $payload,
+        UserAccessTemporalCode $payload,
         public readonly string|null $url
     ) {
         parent::__construct($payload);

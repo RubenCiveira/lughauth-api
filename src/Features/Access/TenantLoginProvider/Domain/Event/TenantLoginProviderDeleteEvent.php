@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 class TenantLoginProviderDeleteEvent extends TenantLoginProviderEvent
 {
     public function __construct(
-        public readonly TenantLoginProvider $payload
+        TenantLoginProvider $payload
     ) {
         parent::__construct($payload);
     }
