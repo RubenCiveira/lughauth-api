@@ -9,6 +9,7 @@ use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\RolePlugin;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
+use Civi\Lughauth\Features\Access\TenantPartySecurity\Infrastructure\Driver\TenantPartySecurityPlugin;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\UserIdentityPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
@@ -25,6 +26,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new RolePlugin(),
           new RelyingPartyPlugin(),
           new TrustedClientPlugin(),
+          new TenantPartySecurityPlugin(),
           new UserIdentityPlugin(),
           new TenantConfigPlugin(),
           new ApiKeyClientPlugin(),
