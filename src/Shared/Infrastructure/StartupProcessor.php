@@ -34,14 +34,17 @@ class StartupProcessor
         if (!isset($this->executors[$pos])) {
             $this->executors[$pos] = [];
         }
-
         $this->executors[$pos][] = $command;
     }
 
     public function run(ContainerInterface $container)
     {
-        $executors = [...$this->executors];
-        sort($executors);
+        $keys = array_keys($this->executors);
+        sort($keys);
+        $executors = [];
+        foreach ($keys as $key) {
+            $executors[$key] = [...$this->executors[$key]];
+        }
         foreach ($executors as $execs) {
             foreach ($execs as $process) {
                 try {

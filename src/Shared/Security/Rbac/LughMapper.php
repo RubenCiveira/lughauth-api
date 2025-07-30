@@ -12,6 +12,7 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Identity;
 use Psr\Http\Message\StreamFactoryInterface;
+use Psr\Log\LoggerInterface;
 
 class LughMapper
 {
@@ -23,6 +24,7 @@ class LughMapper
         private readonly AppConfig $config,
         private readonly Context $context,
         private readonly CacheInterface $cache,
+        private readonly LoggerInterface $logger,
         private readonly RequestFactoryInterface $requestFactory,
         private readonly StreamFactoryInterface $streamFactory,
         private readonly ClientInterface $client
@@ -35,25 +37,33 @@ class LughMapper
     {
         $toScopes = [];
         $toAttributes = [];
+
         foreach ($this->registereds as $reg) {
+            $res = $reg['resource']['name'];
             $toScopes[] = [
-                'resource' => $reg['resource'],
+                'resource' => ['name' => $res, 'description' => $res],
                 'scopes' => $reg['scopes']
             ];
             $toAttributes[] = [
-                'resource' => $reg['resource'],
+                'resource' => ['name' => $res, 'description' => $res],
                 'schemas' => $reg['schemas']
             ];
         }
         $request = $this->requestFactory->createRequest('POST', $this->authUrl . '/resource/scope')
                 ->withAddedHeader('x-api-key', $this->apiKey)
                 ->withBody($this->streamFactory->createStream(json_encode($toScopes)));
-        $this->client->sendRequest($request);
+        $response = $this->client->sendRequest($request);
+        if ($response->getStatusCode() !== 204) {
+            $this->logger->error('Error making the scope register on '. $this->authUrl . ':' . $response->getBody());
+        }
 
-        $request = $this->requestFactory->createRequest('GET', $this->authUrl . '/resource/schema')
+        $request = $this->requestFactory->createRequest('POST', $this->authUrl . '/resource/schema')
                 ->withAddedHeader('x-api-key', $this->apiKey)
                 ->withBody($this->streamFactory->createStream(json_encode($toAttributes)));
-        $this->client->sendRequest($request);
+        $response = $this->client->sendRequest($request);
+        if ($response->getStatusCode() !== 204) {
+            $this->logger->error('Error making the scope register on '. $this->authUrl . ':' . $response->getBody());
+        }
     }
 
 
@@ -63,7 +73,7 @@ class LughMapper
             $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description' => $resource],
                     'schemas' => [], 'scopes' => []];
         }
-        $this->registereds[$resource]['scopes'] = ['name' => $action, 'description' => $action, 'kind' => $kind];
+        $this->registereds[$resource]['scopes'][] = ['name' => $action, 'description' => $action, 'kind' => $kind];
     }
     public function registerResourceAttribute(string $resource, string $attribute, string $kind)
     {
@@ -71,7 +81,7 @@ class LughMapper
             $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description' => $resource],
                     'schemas' => [], 'scopes' => []];
         }
-        $this->registereds[$resource]['schemas'] = ['name' => $attribute, 'description' => $$attribute, 'kind' => $kind];
+        $this->registereds[$resource]['schemas'][] = ['name' => $attribute, 'description' => $attribute, 'kind' => $kind];
     }
     public function hiddenFields(Identity $user, string $resource): array
     {
@@ -79,7 +89,7 @@ class LughMapper
     }
     public function uneditableFields(Identity $user, string $resource): array
     {
-        return $this->fields($this->load(), $user, $resource, 'view');
+        return $this->fields($this->load(), $user, $resource, 'modify');
     }
     public function allow(Identity $user, string $resource, string $action): bool
     {
@@ -94,17 +104,21 @@ class LughMapper
     private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
         $roles = [...$user->roles ?? [], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
-        $hiddens = [];
+        $all = [];
+        $visibles = [];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource]['attributes']) {
                 foreach ($grants[$role][$resource]['attributes'] as $field => $info) {
-                    if (!$info[$on]) {
-                        $hiddens[] = $field;
+                    $all[] = $field;
+                    if ($info[$on]) {
+                        $visibles[] = $field;
                     }
                 }
             }
         }
-        return $hiddens;
+        $all = array_unique($all);
+        $visibles = array_unique($visibles);
+        return array_diff($all, $visibles);
     }
 
     private function isAllowed(array $grants, Identity $user, string $resource, string $on, string $with): bool
@@ -121,7 +135,7 @@ class LughMapper
     private function getGrants()
     {
         $cache_key = 'lught.grants';
-        if (false && $this->cache->has($cache_key)) {
+        if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
             $request = $this->requestFactory->createRequest('GET', $this->authUrl . '/grant');
