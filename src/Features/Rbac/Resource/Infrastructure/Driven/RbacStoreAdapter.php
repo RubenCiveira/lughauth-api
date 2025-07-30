@@ -98,9 +98,9 @@ class RbacStoreAdapter implements RbacStoreRepository
         if ($party !== null) {
             $dsl .= $party->getPolicies();
         }
-        if( $tenant ) {
+        if ($tenant) {
             $specific = $this->tenantSecurity->findOneByTenantAndRelyingParty(new TenantRef($tenant), $party);
-            if( $specific !== null ) {
+            if ($specific !== null) {
                 $dsl .= $specific->getPolicies();
             }
         }

@@ -137,8 +137,8 @@ class LughMapper
             return $this->cache->get($cache_key);
         } else {
             $url = $this->authUrl . '/grant';
-            if( $user->tenant ) {
-                $url .= '?tenant=' . urlencode( $user->tenant );
+            if ($user->tenant) {
+                $url .= '?tenant=' . urlencode($user->tenant);
             }
             $request = $this->requestFactory->createRequest('GET', $url);
             $request = $request->withAddedHeader('x-api-key', $this->apiKey);
