@@ -98,16 +98,6 @@ class FileJsonTraceExporter implements SpanExporterInterface
 
     private function rotateIfNeeded(): void
     {
-        $today = date($this->dateFormat);
-        if ($this->currentDate !== $today) {
-            $this->currentDate = $today;
-            $this->currentFile = $this->resolveFilename();
-            $this->cleanupOldFiles();
-        }
-    }
-
-    private function cleanupOldFiles(): void
-    {
         if ($this->maxFiles === 0) {
             return;
         }
