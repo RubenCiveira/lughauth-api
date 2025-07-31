@@ -61,15 +61,14 @@ class RegisterUserAdapter implements RegisterUserRepository
             if ($conf && $conf->getAllowRecoverPass()) {
                 $theTenant = $this->users->checkTenant($tenant, '-');
                 $terms = $this->users->loadTenantTerms($theTenant);
-                // creamos el usuario pero sin habilitar.
-                $att = new UserAttributes();
-                $att->uid( $this->randomizer->comb() );
-                $att->name( $email );
-                $att->password( UserPasswordVO::fromPlainText($this->cypher, $password));
-                $att->email( $email );
-                $att->tenant( $theTenant );
-                $att->enabled( $conf->getEnableRegisterUsers() );
-                $theUser = $this->repository->create( User::create( $att ) );
+                $theUser = $this->repository->create( User::registerPending(
+                    uid:  $this->randomizer->comb(),
+                    name: $email,
+                    email: $email,
+                    cypher: $this->cypher,
+                    password: $password,
+                    tenant: $theTenant
+                ) );
                 if( $terms ) {
                     $acepted = new UserAcceptedTermnsOfUseAttributes();
                     $acepted->uid(Random::comb());

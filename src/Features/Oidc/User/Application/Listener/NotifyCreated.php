@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Application\Listener;
 
-use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserRegisterAcceptedEvent;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Application\Usecase\SendMessage;
 
@@ -15,7 +15,7 @@ class NotifyCreated
     {
 
     }
-    public function __invoke(UserCreateEvent $auth)
+    public function __invoke(UserRegisterAcceptedEvent $auth)
     {
         $message = new Message(
             targetName: 'Ruben Civeira',
