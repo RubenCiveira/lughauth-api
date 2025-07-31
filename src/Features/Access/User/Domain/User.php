@@ -167,41 +167,37 @@ class User extends UserRef
     }
     public static function registerAccepted(string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
     {
-        $calculated = clone $values;
-        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
-        $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $calculated->approved(ApprovedCalculator::calculateApproved());
-        $calculated->rejected(RejectedCalculator::calculateRejected());
-        $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
-        $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
-        $calculated->provider(ProviderCalculator::calculateProvider());
-        $value = $calculated->build();
-        $value->_name = UserNameVO::from($name);
-        $value->_email = UserEmailVO::from($email);
-        $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
-        $value->_tenant = UserTenantVO::from($tenant);
-        $value->_enabled = UserEnabledVO::from(true);
-        $value->_approved = UserApprovedVO::from(true);
+        $attributes = new UserAttributes();
+        $attributes->name(UserNameVO::from($name));
+        $attributes->email(UserEmailVO::from($email));
+        $attributes->password(UserPasswordVO::fromPlainText($cypher, $password));
+        $attributes->tenant(UserTenantVO::from($tenant));
+        $attributes->enabled(UserEnabledVO::from(true));
+        $attributes->approved(UserApprovedVO::from(true));
+        $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $attributes->rejected(RejectedCalculator::calculateRejected());
+        $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
+        $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
+        $attributes->provider(ProviderCalculator::calculateProvider());
+        $value = $attributes->build();
         $value->recordedEvents[] = new UserRegisterAcceptedEvent(payload: $value);
         return $value;
     }
     public static function registerPending(string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
     {
-        $calculated = clone $values;
-        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
-        $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $calculated->approved(ApprovedCalculator::calculateApproved());
-        $calculated->rejected(RejectedCalculator::calculateRejected());
-        $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
-        $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
-        $calculated->provider(ProviderCalculator::calculateProvider());
-        $value = $calculated->build();
-        $value->_name = UserNameVO::from($name);
-        $value->_email = UserEmailVO::from($email);
-        $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
-        $value->_tenant = UserTenantVO::from($tenant);
-        $value->_enabled = UserEnabledVO::from(true);
-        $value->_approved = UserApprovedVO::from(false);
+        $attributes = new UserAttributes();
+        $attributes->name(UserNameVO::from($name));
+        $attributes->email(UserEmailVO::from($email));
+        $attributes->password(UserPasswordVO::fromPlainText($cypher, $password));
+        $attributes->tenant(UserTenantVO::from($tenant));
+        $attributes->enabled(UserEnabledVO::from(true));
+        $attributes->approved(UserApprovedVO::from(false));
+        $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $attributes->rejected(RejectedCalculator::calculateRejected());
+        $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
+        $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
+        $attributes->provider(ProviderCalculator::calculateProvider());
+        $value = $attributes->build();
         $value->recordedEvents[] = new UserRegisterPendingEvent(payload: $value);
         return $value;
     }
