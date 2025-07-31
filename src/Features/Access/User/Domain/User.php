@@ -18,6 +18,10 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserWellcomeAtAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserEnabledAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApprovedVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserApprovedAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRejectedVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserRejectedAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserTemporalPasswordAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
@@ -32,12 +36,18 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserVersionAccesor;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\WellcomeAtCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\EnabledCalculator;
+use Civi\Lughauth\Features\Access\User\Domain\Formula\ApprovedCalculator;
+use Civi\Lughauth\Features\Access\User\Domain\Formula\RejectedCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\SecondFactorSeedCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\BlockedUntilCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\ProviderCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserUpdateEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserDeleteEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserRegisterAcceptedEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserRegisterPendingEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserAcceptEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserRejectEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserDisableEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserEnableEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserUnlockEvent;
@@ -55,6 +65,8 @@ class User extends UserRef
     use UserEmailAccesor;
     use UserWellcomeAtAccesor;
     use UserEnabledAccesor;
+    use UserApprovedAccesor;
+    use UserRejectedAccesor;
     use UserTemporalPasswordAccesor;
     use UserUseSecondFactorsAccesor;
     use UserSecondFactorSeedAccesor;
@@ -71,6 +83,8 @@ class User extends UserRef
         UserEmailVO|string|null $email = null,
         UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null,
         UserEnabledVO|bool|null $enabled = null,
+        UserApprovedVO|bool|null $approved = null,
+        UserRejectedVO|bool|null $rejected = null,
         UserTemporalPasswordVO|bool|null $temporalPassword = null,
         UserUseSecondFactorsVO|bool|null $useSecondFactors = null,
         UserSecondFactorSeedVO|string|null $secondFactorSeed = null,
@@ -85,6 +99,8 @@ class User extends UserRef
         $this->_email = null === $email ? UserEmailVO::empty() : UserEmailVO::from($email);
         $this->_wellcomeAt = null === $wellcomeAt ? UserWellcomeAtVO::empty() : UserWellcomeAtVO::from($wellcomeAt);
         $this->_enabled = null === $enabled ? UserEnabledVO::empty() : UserEnabledVO::from($enabled);
+        $this->_approved = null === $approved ? UserApprovedVO::empty() : UserApprovedVO::from($approved);
+        $this->_rejected = null === $rejected ? UserRejectedVO::empty() : UserRejectedVO::from($rejected);
         $this->_temporalPassword = null === $temporalPassword ? UserTemporalPasswordVO::empty() : UserTemporalPasswordVO::from($temporalPassword);
         $this->_useSecondFactors = null === $useSecondFactors ? UserUseSecondFactorsVO::empty() : UserUseSecondFactorsVO::from($useSecondFactors);
         $this->_secondFactorSeed = null === $secondFactorSeed ? UserSecondFactorSeedVO::empty() : UserSecondFactorSeedVO::from($secondFactorSeed);
@@ -101,6 +117,8 @@ class User extends UserRef
         $value->_email = $values->getEmailOrDefault($this->_email);
         $value->_wellcomeAt = $values->getWellcomeAtOrDefault($this->_wellcomeAt);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
+        $value->_approved = $values->getApprovedOrDefault($this->_approved);
+        $value->_rejected = $values->getRejectedOrDefault($this->_rejected);
         $value->_temporalPassword = $values->getTemporalPasswordOrDefault($this->_temporalPassword);
         $value->_useSecondFactors = $values->getUseSecondFactorsOrDefault($this->_useSecondFactors);
         $value->_secondFactorSeed = $values->getSecondFactorSeedOrDefault($this->_secondFactorSeed);
@@ -111,13 +129,15 @@ class User extends UserRef
     }
     public static function calculatedFields(): array
     {
-        return [ 'wellcomeAt', 'enabled', 'secondFactorSeed', 'blockedUntil', 'provider'];
+        return [ 'wellcomeAt', 'enabled', 'approved', 'rejected', 'secondFactorSeed', 'blockedUntil', 'provider'];
     }
     public static function create(UserAttributes $values): User
     {
         $calculated = clone $values;
         $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
         $calculated->enabled(EnabledCalculator::calculateEnabled());
+        $calculated->approved(ApprovedCalculator::calculateApproved());
+        $calculated->rejected(RejectedCalculator::calculateRejected());
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $calculated->provider(ProviderCalculator::calculateProvider());
@@ -130,6 +150,8 @@ class User extends UserRef
         $calculated = clone $values;
         $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt($this));
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
+        $calculated->approved(ApprovedCalculator::calculateApproved($this));
+        $calculated->rejected(RejectedCalculator::calculateRejected($this));
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed($this));
         $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil($this));
         $calculated->provider(ProviderCalculator::calculateProvider($this));
@@ -141,6 +163,60 @@ class User extends UserRef
     {
         $value = clone $this;
         $value->recordedEvents[] = new UserDeleteEvent($value);
+        return $value;
+    }
+    public static function registerAccepted(string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
+    {
+        $calculated = clone $values;
+        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $calculated->enabled(EnabledCalculator::calculateEnabled());
+        $calculated->approved(ApprovedCalculator::calculateApproved());
+        $calculated->rejected(RejectedCalculator::calculateRejected());
+        $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
+        $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
+        $calculated->provider(ProviderCalculator::calculateProvider());
+        $value = $calculated->build();
+        $value->_name = UserNameVO::from($name);
+        $value->_email = UserEmailVO::from($email);
+        $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
+        $value->_tenant = UserTenantVO::from($tenant);
+        $value->_enabled = UserEnabledVO::from(true);
+        $value->_approved = UserApprovedVO::from(true);
+        $value->recordedEvents[] = new UserRegisterAcceptedEvent(payload: $value);
+        return $value;
+    }
+    public static function registerPending(string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
+    {
+        $calculated = clone $values;
+        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $calculated->enabled(EnabledCalculator::calculateEnabled());
+        $calculated->approved(ApprovedCalculator::calculateApproved());
+        $calculated->rejected(RejectedCalculator::calculateRejected());
+        $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
+        $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
+        $calculated->provider(ProviderCalculator::calculateProvider());
+        $value = $calculated->build();
+        $value->_name = UserNameVO::from($name);
+        $value->_email = UserEmailVO::from($email);
+        $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
+        $value->_tenant = UserTenantVO::from($tenant);
+        $value->_enabled = UserEnabledVO::from(true);
+        $value->_approved = UserApprovedVO::from(false);
+        $value->recordedEvents[] = new UserRegisterPendingEvent(payload: $value);
+        return $value;
+    }
+    public function accept(): User
+    {
+        $value = clone $this;
+        $value->_approved = UserApprovedVO::from(true);
+        $value->recordedEvents[] = new UserAcceptEvent(payload: $value);
+        return $value;
+    }
+    public function reject(): User
+    {
+        $value = clone $this;
+        $value->_rejected = UserRejectedVO::from(true);
+        $value->recordedEvents[] = new UserRejectEvent(payload: $value);
         return $value;
     }
     public function disable(): User
@@ -197,6 +273,8 @@ class User extends UserRef
           ->email($this->_email)
           ->wellcomeAt($this->_wellcomeAt)
           ->enabled($this->_enabled)
+          ->approved($this->_approved)
+          ->rejected($this->_rejected)
           ->temporalPassword($this->_temporalPassword)
           ->useSecondFactors($this->_useSecondFactors)
           ->secondFactorSeed($this->_secondFactorSeed)

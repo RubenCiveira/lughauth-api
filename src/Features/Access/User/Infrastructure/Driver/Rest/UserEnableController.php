@@ -133,6 +133,8 @@ class UserEnableController
             $dto->email = $value->getEmail();
             $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
             $dto->enabled = $value->getEnabled();
+            $dto->approved = $value->getApproved();
+            $dto->rejected = $value->getRejected();
             $dto->temporalPassword = $value->getTemporalPassword();
             $dto->useSecondFactors = $value->getUseSecondFactors();
             $dto->secondFactorSeed = '******';

@@ -15,6 +15,8 @@ use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListUsecase;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateUsecase;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteUsecase;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveUsecase;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Accept\UserAcceptUsecase;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectUsecase;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableUsecase;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableUsecase;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockUsecase;
@@ -33,6 +35,8 @@ class UserAllowController
         private readonly UserUpdateUsecase $updateUsecase,
         private readonly UserDeleteUsecase $deleteUsecase,
         private readonly UserRetrieveUsecase $retrieveUsecase,
+        private readonly UserAcceptUsecase $acceptUsecase,
+        private readonly UserRejectUsecase $rejectUsecase,
         private readonly UserDisableUsecase $disableUsecase,
         private readonly UserEnableUsecase $enableUsecase,
         private readonly UserUnlockUsecase $unlockUsecase,
@@ -59,6 +63,8 @@ class UserAllowController
                 $this->updateUsecase->allowUpdate(),
               $this->deleteUsecase->allowDelete(),
               $this->retrieveUsecase->allowRetrieve(),
+              $this->acceptUsecase->allowAccept(),
+              $this->rejectUsecase->allowReject(),
               $this->disableUsecase->allowDisable(),
               $this->enableUsecase->allowEnable(),
               $this->unlockUsecase->allowUnlock(),
@@ -105,6 +111,8 @@ class UserAllowController
                 $this->updateUsecase->allowUpdate($ref),
               $this->deleteUsecase->allowDelete($ref),
               $this->retrieveUsecase->allowRetrieve($ref),
+              $this->acceptUsecase->allowAccept($ref),
+              $this->rejectUsecase->allowReject($ref),
               $this->disableUsecase->allowDisable($ref),
               $this->enableUsecase->allowEnable($ref),
               $this->unlockUsecase->allowUnlock($ref),

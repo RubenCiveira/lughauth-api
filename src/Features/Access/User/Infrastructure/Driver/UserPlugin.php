@@ -17,6 +17,8 @@ use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserDeleteCont
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserDisableController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserEnableController;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserUnlockController;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserAcceptController;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserRejectController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
@@ -50,6 +52,12 @@ use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\EnableUse
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\UnlockUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAutenticatedUnlockAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Accept\IsAutenticatedAcceptAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Accept\UserAcceptAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Accept\AcceptUserOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\RejectUserOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectAllowDecision;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\IsAutenticatedRejectAllow;
 
 class UserPlugin extends MicroPlugin
 {
@@ -80,6 +88,10 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserEnableAllowDecision::class, EnableUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, UnlockUserOnlyForRootAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
+        $bus->registerListener(UserAcceptAllowDecision::class, IsAutenticatedAcceptAllow::class);
+        $bus->registerListener(UserAcceptAllowDecision::class, AcceptUserOnlyForRootAllow::class);
+        $bus->registerListener(UserRejectAllowDecision::class, RejectUserOnlyForRootAllow::class);
+        $bus->registerListener(UserRejectAllowDecision::class, IsAutenticatedRejectAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -91,6 +103,8 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAction("user", "retrieve", "READ");
             $handler->registerResourceAction("user", "update", "WRITE");
             $handler->registerResourceAction("user", "delete", "WRITE");
+            $handler->registerResourceAction("user", "accept", "WRITE");
+            $handler->registerResourceAction("user", "reject", "WRITE");
             $handler->registerResourceAction("user", "disable", "WRITE");
             $handler->registerResourceAction("user", "enable", "WRITE");
             $handler->registerResourceAction("user", "unlock", "WRITE");
@@ -101,6 +115,8 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user", "email", "MANAGE");
             $handler->registerResourceAttribute("user", "wellcomeAt", "MANAGE");
             $handler->registerResourceAttribute("user", "enabled", "MANAGE");
+            $handler->registerResourceAttribute("user", "approved", "MANAGE");
+            $handler->registerResourceAttribute("user", "rejected", "MANAGE");
             $handler->registerResourceAttribute("user", "temporalPassword", "MANAGE");
             $handler->registerResourceAttribute("user", "useSecondFactors", "MANAGE");
             $handler->registerResourceAttribute("user", "secondFactorSeed", "MANAGE");
@@ -132,5 +148,11 @@ class UserPlugin extends MicroPlugin
         $userGroup->patch('/~/unlock', [UserUnlockController::class, 'unlockAllForQuery']);
         $userGroup->patch('/{uid}/unlock', [UserUnlockController::class, 'unlock']);
         $userGroup->get('/~/unlock-status/{uid}', [UserUnlockController::class, 'checkUnlockAllForQueryStatus']);
+        $userGroup->patch('/~/accept', [UserAcceptController::class, 'acceptAllForQuery']);
+        $userGroup->patch('/{uid}/accept', [UserAcceptController::class, 'accept']);
+        $userGroup->get('/~/accept-status/{uid}', [UserAcceptController::class, 'checkAcceptAllForQueryStatus']);
+        $userGroup->patch('/~/reject', [UserRejectController::class, 'rejectAllForQuery']);
+        $userGroup->patch('/{uid}/reject', [UserRejectController::class, 'reject']);
+        $userGroup->get('/~/reject-status/{uid}', [UserRejectController::class, 'checkRejectAllForQueryStatus']);
     }
 }

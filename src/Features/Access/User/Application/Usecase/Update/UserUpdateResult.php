@@ -12,6 +12,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAtt
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApprovedAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserRejectedAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserUseSecondFactorsAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserSecondFactorSeedAttributeHolder;
@@ -29,6 +31,8 @@ class UserUpdateResult
     use UserEmailAttributeHolder;
     use UserWellcomeAtAttributeHolder;
     use UserEnabledAttributeHolder;
+    use UserApprovedAttributeHolder;
+    use UserRejectedAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
     use UserUseSecondFactorsAttributeHolder;
     use UserSecondFactorSeedAttributeHolder;
@@ -44,6 +48,8 @@ class UserUpdateResult
       'email' => 'unsetEmail',
       'wellcomeAt' => 'unsetWellcomeAt',
       'enabled' => 'unsetEnabled',
+      'approved' => 'unsetApproved',
+      'rejected' => 'unsetRejected',
       'temporalPassword' => 'unsetTemporalPassword',
       'useSecondFactors' => 'unsetUseSecondFactors',
       'secondFactorSeed' => 'unsetSecondFactorSeed',
@@ -62,6 +68,8 @@ class UserUpdateResult
             $this->email($att->getEmailOrDefault(null));
             $this->wellcomeAt($att->getWellcomeAtOrDefault(null));
             $this->enabled($att->getEnabledOrDefault(null));
+            $this->approved($att->getApprovedOrDefault(null));
+            $this->rejected($att->getRejectedOrDefault(null));
             $this->temporalPassword($att->getTemporalPasswordOrDefault(null));
             $this->useSecondFactors($att->getUseSecondFactorsOrDefault(null));
             $this->secondFactorSeed($att->getSecondFactorSeedOrDefault(null));
@@ -93,6 +101,12 @@ class UserUpdateResult
         }
         if ($this->enabled) {
             $att->enabled($this->enabled);
+        }
+        if ($this->approved) {
+            $att->approved($this->approved);
+        }
+        if ($this->rejected) {
+            $att->rejected($this->rejected);
         }
         if ($this->temporalPassword) {
             $att->temporalPassword($this->temporalPassword);
@@ -129,6 +143,8 @@ class UserUpdateResult
         $this->withDefaultEmail();
         $this->withDefaultWellcomeAt();
         $this->withDefaultEnabled();
+        $this->withDefaultApproved();
+        $this->withDefaultRejected();
         $this->withDefaultTemporalPassword();
         $this->withDefaultUseSecondFactors();
         $this->withDefaultSecondFactorSeed();

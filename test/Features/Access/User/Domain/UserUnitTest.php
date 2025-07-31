@@ -21,6 +21,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -60,6 +62,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -75,6 +79,8 @@ final class UserUnitTest extends TestCase
             email: 'other@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             enabled: false,
+            approved: false,
+            rejected: false,
             temporalPassword: false,
             useSecondFactors: false,
             secondFactorSeed: 'cyphered://ocyphered',
@@ -114,6 +120,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -154,6 +162,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -169,6 +179,8 @@ final class UserUnitTest extends TestCase
             email: 'other@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             enabled: false,
+            approved: false,
+            rejected: false,
             temporalPassword: false,
             useSecondFactors: false,
             secondFactorSeed: 'cyphered://ocyphered',
@@ -210,6 +222,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -238,6 +252,70 @@ final class UserUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
+    public function test_accept_modify(): void
+    {
+        // @Arrange
+        $source = new User(
+            uid: 'one',
+            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            name: 'one',
+            password: 'cyphered://cypher',
+            email: 'one@fakemail.net',
+            wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            enabled: true,
+            approved: true,
+            rejected: true,
+            temporalPassword: true,
+            useSecondFactors: true,
+            secondFactorSeed: 'cyphered://cypher',
+            blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            provider: 'one',
+            version: 1,
+        );
+        $sourceApproved = false;
+        $targetApproved = true;
+        $source = $source->withApproved($sourceApproved);
+
+        // @Act
+        $target = $source->accept();
+
+        // @Assert
+        $this->assertEquals(false, $source->getApproved());
+        $this->assertEquals($targetApproved, $target->getApproved());
+        $this->assertNotEquals($sourceApproved, $target->getApproved());
+    }
+    public function test_reject_modify(): void
+    {
+        // @Arrange
+        $source = new User(
+            uid: 'one',
+            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            name: 'one',
+            password: 'cyphered://cypher',
+            email: 'one@fakemail.net',
+            wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            enabled: true,
+            approved: true,
+            rejected: true,
+            temporalPassword: true,
+            useSecondFactors: true,
+            secondFactorSeed: 'cyphered://cypher',
+            blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            provider: 'one',
+            version: 1,
+        );
+        $sourceRejected = false;
+        $targetRejected = true;
+        $source = $source->withRejected($sourceRejected);
+
+        // @Act
+        $target = $source->reject();
+
+        // @Assert
+        $this->assertEquals(false, $source->getRejected());
+        $this->assertEquals($targetRejected, $target->getRejected());
+        $this->assertNotEquals($sourceRejected, $target->getRejected());
+    }
     public function test_disable_modify(): void
     {
         // @Arrange
@@ -249,6 +327,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -279,6 +359,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -309,6 +391,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -339,6 +423,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -369,6 +455,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',
@@ -406,6 +494,8 @@ final class UserUnitTest extends TestCase
             email: 'one@fakemail.net',
             wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             enabled: true,
+            approved: true,
+            rejected: true,
             temporalPassword: true,
             useSecondFactors: true,
             secondFactorSeed: 'cyphered://cypher',

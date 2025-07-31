@@ -63,6 +63,20 @@ class UserApiDTO
     )]
     public ?bool $enabled;
     #[OA\Property(
+        property: "approved",
+        title: "approved",
+        description:"El approved de user",
+        type: "string"
+    )]
+    public ?bool $approved;
+    #[OA\Property(
+        property: "rejected",
+        title: "rejected",
+        description:"El rejected de user",
+        type: "string"
+    )]
+    public ?bool $rejected;
+    #[OA\Property(
         property: "temporalPassword",
         title: "temporal password",
         description:"El temporal password de user",

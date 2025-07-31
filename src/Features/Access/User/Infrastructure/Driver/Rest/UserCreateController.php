@@ -23,6 +23,8 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApprovedVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRejectedVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
@@ -96,6 +98,8 @@ class UserCreateController
             $value->email(UserEmailVO::tryFrom($body['email'] ?? null, $errorsList));
             $value->wellcomeAt(UserWellcomeAtVO::tryFrom($body['wellcomeAt'] ?? null, $errorsList));
             $value->enabled(UserEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
+            $value->approved(UserApprovedVO::tryFrom($body['approved'] ?? null, $errorsList));
+            $value->rejected(UserRejectedVO::tryFrom($body['rejected'] ?? null, $errorsList));
             $value->temporalPassword(UserTemporalPasswordVO::tryFrom($body['temporalPassword'] ?? null, $errorsList));
             $value->useSecondFactors(UserUseSecondFactorsVO::tryFrom($body['useSecondFactors'] ?? null, $errorsList));
             $readSecondFactorSeed = $body['secondFactorSeed'] ?? '******';
@@ -130,6 +134,8 @@ class UserCreateController
             $dto->email = $value->getEmail();
             $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
             $dto->enabled = $value->getEnabled();
+            $dto->approved = $value->getApproved();
+            $dto->rejected = $value->getRejected();
             $dto->temporalPassword = $value->getTemporalPassword();
             $dto->useSecondFactors = $value->getUseSecondFactors();
             $dto->secondFactorSeed = '******';
