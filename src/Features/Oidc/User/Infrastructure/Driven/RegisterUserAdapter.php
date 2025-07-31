@@ -5,26 +5,87 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
+use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Override;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserRepository;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
+use Civi\Lughauth\Shared\Exception\NotUniqueException;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Value\Random;
+use DateTimeImmutable;
 
 class RegisterUserAdapter implements RegisterUserRepository
 {
+    public function __construct(
+        private readonly UserLoaderAdapter $users,
+        private readonly TenantConfigReadGateway $configs,
+        private readonly UserWriteGateway $repository,
+        private readonly UserAccessTemporalCodeWriteGateway $codes,
+        private readonly AesCypherService $cypher,
+        private readonly UserAcceptedTermnsOfUseWriteGateway $writerUserTerms,
+        private readonly Random $randomizer,
+    ) {
+    }
+
     #[Override]
     public function allowRegister(string $tenant): bool
     {
-        return true;
+        $theTenant = $this->users->checkTenant($tenant, '-');
+        $conf = $this->configs->findOneByTenant($theTenant);
+        return ($conf && $conf->getAllowRecoverPass());
     }
 
     #[Override]
     public function getRegisterConsent(string $tenant): ?string
     {
-        return null;
+        $theTenant = $this->users->checkTenant($tenant, '-');
+        $terms = $this->users->loadTenantTerms($theTenant);
+        return $terms ? $terms->getText() : '';
     }
 
     #[Override]
     public function requestForRegister(string $url, string $tenant, string $email, string $password)
     {
+        $theTenant = $this->users->checkTenant($tenant, '-');
+        $conf = $this->configs->findOneByTenant($theTenant);
+        try {
+            if ($conf && $conf->getAllowRecoverPass()) {
+                $theTenant = $this->users->checkTenant($tenant, '-');
+                $terms = $this->users->loadTenantTerms($theTenant);
+                // creamos el usuario pero sin habilitar.
+                $att = new UserAttributes();
+                $att->uid( $this->randomizer->comb() );
+                $att->name( $email );
+                $att->password( UserPasswordVO::fromPlainText($this->cypher, $password));
+                $att->email( $email );
+                $att->tenant( $theTenant );
+                $att->enabled( $conf->getEnableRegisterUsers() );
+                $theUser = $this->repository->create( User::create( $att ) );
+                if( $terms ) {
+                    $acepted = new UserAcceptedTermnsOfUseAttributes();
+                    $acepted->uid(Random::comb());
+                    $acepted->user($theUser);
+                    $acepted->conditions($terms);
+                    $acepted->acceptDate(new DateTimeImmutable());
+                    $this->writerUserTerms->create(UserAcceptedTermnsOfUse::create($acepted));
+                }
+                // es necesario enviar un email de registro, y marcar que ha aceptado condiciones.
+            }
+        } catch(ConstraintException $ex) {
+            // Noting to do on a not-unique
+            if( !$ex->includeViolationCode('not-unique')) {
+                throw $ex;
+            }
+        }
     }
 
     #[Override]
