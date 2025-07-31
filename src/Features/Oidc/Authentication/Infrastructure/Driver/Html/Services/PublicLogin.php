@@ -40,9 +40,9 @@ class PublicLogin
         return $this->userRegisterGateway->allowRegister($tenant);
     }
 
-    public function getPendingConsent(string $tenant): ?string
+    public function getRegisterConsent(string $tenant): ?string
     {
-        return $this->userRegisterGateway->getPendingConsent($tenant);
+        return $this->userRegisterGateway->getRegisterConsent($tenant);
     }
 
     public function askRegisterUser(

@@ -10,11 +10,13 @@ use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Management\OidcMigrationProvider;
 use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyLogin;
 use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyRecover;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
+use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyCreated;
 
 class MultiTenantPlugin extends AggregatedMicroPlugin
 {
@@ -29,6 +31,7 @@ class MultiTenantPlugin extends AggregatedMicroPlugin
     {
         parent::registerEvents($bus);
         $bus->registerListener(AuthenticationResult::class, NotifyLogin::class);
+        $bus->registerListener(UserCreateEvent::class, NotifyCreated::class);
         $bus->registerListener(UserAccessTemporalCodeGeneratePasswordRecoverEvent::class, NotifyRecover::class);
     }
 

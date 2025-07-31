@@ -17,6 +17,6 @@ class NotUniqueException extends \RuntimeException
      */
     public function __construct(\Exception $ex)
     {
-        parent::__construct($ex->getMessage(), $ex->getCode(), $ex);
+        parent::__construct($ex->getMessage(), 0, $ex);
     }
 }

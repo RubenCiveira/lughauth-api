@@ -37,7 +37,7 @@ class MailSenderAdapter implements MailSenderRepository
     {
         $mail = new PHPMailer();
         $mail->isSMTP();
-        $mail->SMTPDebug = SMTP::DEBUG_SERVER;
+        $mail->SMTPDebug = SMTP::DEBUG_CONNECTION;
         $mail->Host = $this->host;
         $mail->Port = $this->port;
         if ($this->tls) {
@@ -59,8 +59,12 @@ class MailSenderAdapter implements MailSenderRepository
             $mail->Body = $message->txtContent;
         }
         $mail->AddAddress($message->targetAddress, $message->targetName);
-        if (!$mail->Send()) {
-            throw new Exception($mail->ErrorInfo);
+        ob_start();
+        $result = $mail->send();
+        $trace = ob_get_clean();
+        ob_end_clean();
+        if (!$result) {
+            throw new Exception($mail->ErrorInfo . ": " . $trace);
         }
     }
 }

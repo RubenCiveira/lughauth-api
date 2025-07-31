@@ -29,7 +29,7 @@ class ConsentAdapter implements ConsentRepository
     {
         $theTenant = $this->users->checkTenant($tenant, $username);
         $terms = $this->users->loadTenantTerms($theTenant);
-        return $terms->getText();
+        return $terms ? $terms->getText() : null;
     }
 
     #[Override]

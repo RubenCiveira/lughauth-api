@@ -20,9 +20,9 @@ class RegisterUserGateway
         return $this->repository->allowRegister($tenant);
     }
 
-    public function getPendingConsent(string $tenant): ?string
+    public function getRegisterConsent(string $tenant): ?string
     {
-        return $this->repository->getPendingConsent($tenant);
+        return $this->repository->getRegisterConsent($tenant);
     }
 
     public function requestForRegister(string $url, string $tenant, string $email, string $password)

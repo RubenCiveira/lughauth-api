@@ -58,7 +58,7 @@ recoverpass:
 
 registeruser:
   ask:
-    title: Recuperar clave
+    title: Registrar usuario
     help: Indique su username o su correo, y si existe se le adjuntarán las instrucciones para resetear la constraseña.
     error-format: "Error: {0}"
     email: Email:

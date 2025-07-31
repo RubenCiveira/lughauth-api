@@ -18,9 +18,9 @@ class RegisterUserUsecase
         return $this->gateway->allowRegister($tenant);
     }
 
-    public function getPendingConsent(string $tenant): ?string
+    public function getRegisterConsent(string $tenant): ?string
     {
-        return $this->gateway->getPendingConsent($tenant);
+        return $this->gateway->getRegisterConsent($tenant);
     }
 
     public function requestForRegister(string $url, string $tenant, string $email, string $password)

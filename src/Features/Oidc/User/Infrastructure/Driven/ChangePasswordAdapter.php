@@ -5,8 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
-use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Override;
 use DateInterval;
 use DateTimeImmutable;
@@ -14,6 +12,7 @@ use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
@@ -35,10 +34,14 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     public function requestForChange(string $url, string $tenant, string $username): void
     {
         $verify = md5($this->randomizer->comb());
-        $theTenant = $this->users->checkTenant($tenant, $username);
-        $theUser = $this->users->checkUserNameOrEmail($theTenant, $username);
-        $code = $this->users->userCodeForUpdate($theUser);
-        $this->users->updateCode($code->generatePasswordRecover(str_ends_with($url, '=') ? $url . $verify : $url, $verify, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+        try {
+            $theTenant = $this->users->checkTenant($tenant, $username);
+            $theUser = $this->users->checkUserNameOrEmail($theTenant, $username);
+            $code = $this->users->userCodeForUpdate($theUser);
+            $this->users->updateCode($code->generatePasswordRecover(str_ends_with($url, '=') ? $url . $verify : $url, $verify, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+        } catch(LoginException $_le) {
+            // User or tenant dont exists...
+        }
     }
     #[Override]
     public function allowRecover(string $tenant): bool

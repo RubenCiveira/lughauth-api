@@ -124,7 +124,9 @@ class DelegateLoginAdapter implements DelegateLoginRepository
 
     private function loadProvider(TenantLoginProvider $provider): ?DelegatedLoginProvider
     {
-        if ($provider->getSource() == 'GOOGLE') {
+        if( $provider->getDisabled() ) {
+            return null;
+        } else if ($provider->getSource() == 'GOOGLE') {
             return
                 new GoogleOAuthProvider(
                     $this->conf,

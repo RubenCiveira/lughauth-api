@@ -66,9 +66,9 @@ class RegisterUserForm implements AuthorizationForm
         mixed $body
     ): PublicLoginAuthResponse {
         if (isset($body['user'])) {
-            $user = $body['user'];
-            $accept = $body['accept'];
-            $pass  = $this->securer->decrypt($body["pass"]);
+            $user = $body['user'] ?? '';
+            $accept = $body['accept'] ?? false;
+            $pass  = $this->securer->decrypt($body["pass"] ?? '');
             if ($accept !== 'accept') {
                 throw new LoginException(AuthenticationResult::unknowUser($tenant, $user, 'conditions_requierd'));
             } else {
@@ -101,7 +101,7 @@ class RegisterUserForm implements AuthorizationForm
         $pass = $translator->get("registeruser.ask.password");
 
         $accept = '<input type="hidden" name="accept" value="accept" />';
-        if ($terms = $this->publicLogin->getPendingConsent($tenant)) {
+        if ($terms = $this->publicLogin->getRegisterConsent($tenant)) {
             $accept = '<input type="checkbox" name="accept" value="accept" />' .
                             '<textarea type="text" readonly>' . $terms . '</textarea>';
         }

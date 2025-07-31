@@ -11,7 +11,13 @@ interface ChangePasswordRepository
 
     public function allowRecover(string $tenant): bool;
 
+    /**
+     * When a non auth user try to recover his password
+     */
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string;
 
+    /**
+     * When an auth user is forced by policy to change his current password
+     */
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool;
 }

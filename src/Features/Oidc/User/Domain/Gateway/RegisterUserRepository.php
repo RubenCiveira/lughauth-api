@@ -9,7 +9,7 @@ interface RegisterUserRepository
 {
     public function allowRegister(string $tenant): bool;
 
-    public function getPendingConsent(string $tenant): ?string;
+    public function getRegisterConsent(string $tenant): ?string;
 
     public function requestForRegister(string $url, string $tenant, string $email, string $password);
 
