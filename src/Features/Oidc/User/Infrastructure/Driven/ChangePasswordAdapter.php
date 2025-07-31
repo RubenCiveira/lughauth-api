@@ -39,7 +39,7 @@ class ChangePasswordAdapter implements ChangePasswordRepository
             $theUser = $this->users->checkUserNameOrEmail($theTenant, $username);
             $code = $this->users->userCodeForUpdate($theUser);
             $this->users->updateCode($code->generatePasswordRecover(str_ends_with($url, '=') ? $url . $verify : $url, $verify, new DateTimeImmutable()->add(new DateInterval("P1D"))));
-        } catch(LoginException $_le) {
+        } catch (LoginException $_le) {
             // User or tenant dont exists...
         }
     }

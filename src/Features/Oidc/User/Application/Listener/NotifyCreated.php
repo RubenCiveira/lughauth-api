@@ -8,7 +8,6 @@ namespace Civi\Lughauth\Features\Oidc\User\Application\Listener;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Application\Usecase\SendMessage;
-use Throwable;
 
 class NotifyCreated
 {
