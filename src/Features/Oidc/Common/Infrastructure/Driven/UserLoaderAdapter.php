@@ -92,13 +92,33 @@ class UserLoaderAdapter
     /**
      * @return array{0: User, 1: UserAccessTemporalCode}
      */
-    public function checkUserByCode(Tenant $tenant, string $code): array
+    public function checkUserByRecoveryCode(Tenant $tenant, string $code): array
     {
         if ($recover = $this->codeWriter->findOneForUpdateByRecoveryCode($code)) {
             if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid())) {
                 if ($tenant->uid() === $theUser->getTenant()->uid()) {
                     $username = $theUser->getName();
                     $this->checkLookupUser($tenant, $theUser, $username);
+                    return [$theUser, $recover];
+                }
+            }
+        }
+        throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $code));
+    }
+
+    /**
+     * @return array{0: User, 1: UserAccessTemporalCode}
+     */
+    public function checkUserByRegisterCode(Tenant $tenant, string $code): array
+    {
+        if ($recover = $this->codeWriter->findOneForUpdateByRegisterCode($code)) {
+            if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid())) {
+                if ($tenant->uid() === $theUser->getTenant()->uid()) {
+                    $username = $theUser->getName();
+                    $user = $this->users->findOneByTenantAndName($tenant, $username);
+                    if( $user->getApprove() !== UserApproveOptions::UNVERIFIED ) {
+                        throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
+                    }
                     return [$theUser, $recover];
                 }
             }

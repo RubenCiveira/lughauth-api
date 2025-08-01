@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\User\Domain;
 
 enum UserApproveOptions: string
 {
+    case UNVERIFIED = 'unverified';
     case PENDING = 'pending';
     case ACCEPTED = 'accepted';
     case REJECTED = 'rejected';

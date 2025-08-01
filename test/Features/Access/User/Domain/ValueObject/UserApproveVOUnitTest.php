@@ -12,9 +12,9 @@ final class UserApproveVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = UserApproveOptions::PENDING;
+        $value = UserApproveOptions::UNVERIFIED;
         $ref = UserApproveVO::from($value);
-        $this->assertEquals(UserApproveOptions::PENDING, $ref->value());
+        $this->assertEquals(UserApproveOptions::UNVERIFIED, $ref->value());
         $other = UserApproveVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserApproveVO::from($ref);

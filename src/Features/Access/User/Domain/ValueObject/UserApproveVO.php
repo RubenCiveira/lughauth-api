@@ -62,6 +62,9 @@ class UserApproveVO
     }
     private static function readFromString(string $enumString): ?UserApproveOptions
     {
+        if (in_array($enumString, ['uNVERIFIED', 'UNVERIFIED', 'unverified'])) {
+            return UserApproveOptions::UNVERIFIED;
+        }
         if (in_array($enumString, ['pENDING', 'pending', 'PENDING'])) {
             return UserApproveOptions::PENDING;
         }

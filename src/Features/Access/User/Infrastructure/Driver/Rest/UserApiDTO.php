@@ -68,7 +68,7 @@ class UserApiDTO
         title: "approve",
         description:"El approve de user",
         type: "string",
-        enum: ["PENDING","ACCEPTED","REJECTED"]
+        enum: ["UNVERIFIED","PENDING","ACCEPTED","REJECTED"]
     )]
     public ?UserApproveOptions $approve;
     #[OA\Property(

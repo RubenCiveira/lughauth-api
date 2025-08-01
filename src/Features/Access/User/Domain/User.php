@@ -41,8 +41,8 @@ use Civi\Lughauth\Features\Access\User\Domain\Formula\ProviderCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserUpdateEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserDeleteEvent;
-use Civi\Lughauth\Features\Access\User\Domain\Event\UserRegisterAcceptedEvent;
-use Civi\Lughauth\Features\Access\User\Domain\Event\UserRegisterPendingEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserRegisterEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserVerifyEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserAcceptEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserRejectEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserDisableEvent;
@@ -156,7 +156,7 @@ class User extends UserRef
         $value->recordedEvents[] = new UserDeleteEvent($value);
         return $value;
     }
-    public static function registerAccepted(string $uid, string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
+    public static function register(string $uid, string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
     {
         $attributes = new UserAttributes();
         $attributes->uid(UserUidVO::from($uid));
@@ -165,31 +165,20 @@ class User extends UserRef
         $attributes->password(UserPasswordVO::fromPlainText($cypher, $password));
         $attributes->tenant(UserTenantVO::from($tenant));
         $attributes->enabled(UserEnabledVO::from(true));
-        $attributes->approve(UserApproveVO::from(UserApproveOptions::ACCEPTED));
+        $attributes->approve(UserApproveVO::from(UserApproveOptions::UNVERIFIED));
         $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
         $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $attributes->provider(ProviderCalculator::calculateProvider());
         $value = $attributes->build();
-        $value->recordedEvents[] = new UserRegisterAcceptedEvent(payload: $value);
+        $value->recordedEvents[] = new UserRegisterEvent(payload: $value);
         return $value;
     }
-    public static function registerPending(string $uid, string $name, string|null $email, AesCypherService $cypher, string $password, TenantRef $tenant): User
+    public function verify(UserApproveOptions|null $approve): User
     {
-        $attributes = new UserAttributes();
-        $attributes->uid(UserUidVO::from($uid));
-        $attributes->name(UserNameVO::from($name));
-        $attributes->email(UserEmailVO::from($email));
-        $attributes->password(UserPasswordVO::fromPlainText($cypher, $password));
-        $attributes->tenant(UserTenantVO::from($tenant));
-        $attributes->enabled(UserEnabledVO::from(true));
-        $attributes->approve(UserApproveVO::from(UserApproveOptions::PENDING));
-        $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
-        $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
-        $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
-        $attributes->provider(ProviderCalculator::calculateProvider());
-        $value = $attributes->build();
-        $value->recordedEvents[] = new UserRegisterPendingEvent(payload: $value);
+        $value = clone $this;
+        $value->_approve = UserApproveVO::from($approve);
+        $value->recordedEvents[] = new UserVerifyEvent(payload: $value);
         return $value;
     }
     public function accept(): User

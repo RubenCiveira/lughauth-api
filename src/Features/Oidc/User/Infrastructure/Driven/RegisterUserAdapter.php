@@ -5,20 +5,23 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
+use Override;
+use DateInterval;
+use DateTimeImmutable;
+use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
+use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
-use Override;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserRepository;
-use Civi\Lughauth\Shared\Exception\ConstraintException;
-use Civi\Lughauth\Shared\Security\AesCypherService;
-use Civi\Lughauth\Shared\Value\Random;
-use DateTimeImmutable;
 
 class RegisterUserAdapter implements RegisterUserRepository
 {
@@ -58,7 +61,7 @@ class RegisterUserAdapter implements RegisterUserRepository
             if ($conf && $conf->getAllowRecoverPass()) {
                 $theTenant = $this->users->checkTenant($tenant, '-');
                 $terms = $this->users->loadTenantTerms($theTenant);
-                $theUser = $this->repository->create(User::registerPending(
+                $theUser = $this->repository->create(User::register(
                     uid:  $this->randomizer->comb(),
                     name: $email,
                     email: $email,
@@ -74,12 +77,25 @@ class RegisterUserAdapter implements RegisterUserRepository
                     $acepted->acceptDate(new DateTimeImmutable());
                     $this->writerUserTerms->create(UserAcceptedTermnsOfUse::create($acepted));
                 }
-                // es necesario enviar un email de registro, y marcar que ha aceptado condiciones.
+                $code = $this->users->userCodeForUpdate($theUser);
+                $verify = md5($this->randomizer->comb());
+                $this->users->updateCode($code->generatedRegisterVerification($verify, str_ends_with($url, '=') ? $url . $verify : $url, new DateTimeImmutable()->add(new DateInterval("P1D"))));
             }
         } catch (ConstraintException $ex) {
             // Noting to do on a not-unique
             if (!$ex->includeViolationCode('not-unique')) {
                 throw $ex;
+            } else {
+                $theUser = $this->repository->findOneForUpdateByTenantAndName($theTenant, $email);
+                if ($theUser->getApprove() == UserApproveOptions::UNVERIFIED) {
+                    $att = $theUser->toAttributes();
+                    $att->password(UserPasswordVO::fromPlainText($this->cypher, $password));
+                    $updated = $this->repository->update($theUser, $theUser->replace($att));
+                    $code = $this->users->userCodeForUpdate($updated);
+                    $verify = md5($this->randomizer->comb());
+                    // str_ends_with($url, '=') ? $url . $verify : $url
+                    $this->users->updateCode($code->generatedRegisterVerification($verify, 'every', new DateTimeImmutable()->add(new DateInterval("P1D"))));
+                }
             }
         }
     }
@@ -87,6 +103,15 @@ class RegisterUserAdapter implements RegisterUserRepository
     #[Override]
     public function verifyRegister(string $tenant, string $code): ?string
     {
-        return $code === '1111' ? 'juan' : null;
+        $theTenant = $this->users->checkTenant($tenant, '-');
+        [$user, $userCode] = $this->users->checkUserByRegisterCode($theTenant, $code);
+        if ($code !== $userCode->getRegisterCode()) {
+            return null;
+        }
+        $conf = $this->configs->findOneByTenant($theTenant);        
+        $this->repository->update($user, $user->verify( 
+            $conf?->getEnableRegisterUsers() ? UserApproveOptions::ACCEPTED : UserApproveOptions::PENDING) );
+        $this->codes->update($userCode, $userCode->resetRegisterVerification());
+        return $user->getName();
     }
 }

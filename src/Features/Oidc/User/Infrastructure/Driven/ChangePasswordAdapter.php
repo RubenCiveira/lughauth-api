@@ -54,12 +54,12 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string
     {
         $theTenant = $this->users->checkTenant($tenant, $code);
-        [$user, $userCode] = $this->users->checkUserByCode($theTenant, $code);
+        [$user, $userCode] = $this->users->checkUserByRecoveryCode($theTenant, $code);
         if ($code !== $userCode->getRecoveryCode()) {
             return null;
         }
-        $changed = $user->changePassword($this->cypher, $newPass);
-        $this->repository->update($user, $changed);
+        $this->codes->update($userCode, $userCode->resetPasswordRecover());
+        $this->repository->update($user, $user->changePassword($this->cypher, $newPass));
         return $user->getName();
     }
 
