@@ -8,8 +8,6 @@ namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
-use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
@@ -18,7 +16,6 @@ use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Override;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserRepository;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
-use Civi\Lughauth\Shared\Exception\NotUniqueException;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Value\Random;
 use DateTimeImmutable;
@@ -61,15 +58,15 @@ class RegisterUserAdapter implements RegisterUserRepository
             if ($conf && $conf->getAllowRecoverPass()) {
                 $theTenant = $this->users->checkTenant($tenant, '-');
                 $terms = $this->users->loadTenantTerms($theTenant);
-                $theUser = $this->repository->create( User::registerPending(
+                $theUser = $this->repository->create(User::registerPending(
                     uid:  $this->randomizer->comb(),
                     name: $email,
                     email: $email,
                     cypher: $this->cypher,
                     password: $password,
                     tenant: $theTenant
-                ) );
-                if( $terms ) {
+                ));
+                if ($terms) {
                     $acepted = new UserAcceptedTermnsOfUseAttributes();
                     $acepted->uid(Random::comb());
                     $acepted->user($theUser);
@@ -79,9 +76,9 @@ class RegisterUserAdapter implements RegisterUserRepository
                 }
                 // es necesario enviar un email de registro, y marcar que ha aceptado condiciones.
             }
-        } catch(ConstraintException $ex) {
+        } catch (ConstraintException $ex) {
             // Noting to do on a not-unique
-            if( !$ex->includeViolationCode('not-unique')) {
+            if (!$ex->includeViolationCode('not-unique')) {
                 throw $ex;
             }
         }

@@ -132,7 +132,7 @@ class UserLoaderAdapter
                 throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
             }
         }
-        if( UserApproveOptions::ACCEPTED !== $theUser->getApprove() ) {
+        if (UserApproveOptions::ACCEPTED !== $theUser->getApprove()) {
             $this->unacceptedUser($tenant->getName(), $username);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
         }
