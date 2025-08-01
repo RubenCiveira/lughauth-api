@@ -36,6 +36,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccess
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGenerateMfaTemporalCodeEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeResetMfaTemporalCodeEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratedRegisterVerificationEvent;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeResetRegisterVerificationEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeResetPasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
@@ -165,6 +166,15 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->_registerCodeUrl = UserAccessTemporalCodeRegisterCodeUrlVO::from($registerCodeUrl);
         $value->_registerCodeExpiration = UserAccessTemporalCodeRegisterCodeExpirationVO::from($registerCodeExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGeneratedRegisterVerificationEvent(payload: $value);
+        return $value;
+    }
+    public function resetRegisterVerification(): UserAccessTemporalCode
+    {
+        $value = clone $this;
+        $value->_registerCode = UserAccessTemporalCodeRegisterCodeVO::from(null);
+        $value->_registerCodeUrl = UserAccessTemporalCodeRegisterCodeUrlVO::from(null);
+        $value->_registerCodeExpiration = UserAccessTemporalCodeRegisterCodeExpirationVO::from(null);
+        $value->recordedEvents[] = new UserAccessTemporalCodeResetRegisterVerificationEvent(payload: $value);
         return $value;
     }
     public function generatePasswordRecover(string|null $url, string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode

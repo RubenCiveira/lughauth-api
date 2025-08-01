@@ -437,6 +437,46 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertEquals((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')), $target->getRegisterCodeExpiration());
         $this->assertNotEquals($sourceRegisterCodeExpiration, $target->getRegisterCodeExpiration());
     }
+    public function test_reset_register_verification_modify(): void
+    {
+        // @Arrange
+        $source = new UserAccessTemporalCode(
+            uid: 'one',
+            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            failedLoginAttempts: 1,
+            registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            recoveryCode: 'one',
+            recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+        $sourceRegisterCode = 'one';
+        $targetRegisterCode = null;
+        $source = $source->withRegisterCode($sourceRegisterCode);
+        $sourceRegisterCodeUrl = 'one';
+        $targetRegisterCodeUrl = null;
+        $source = $source->withRegisterCodeUrl($sourceRegisterCodeUrl);
+        $sourceRegisterCodeExpiration = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
+        $targetRegisterCodeExpiration = null;
+        $source = $source->withRegisterCodeExpiration($sourceRegisterCodeExpiration);
+
+        // @Act
+        $target = $source->resetRegisterVerification();
+
+        // @Assert
+        $this->assertEquals('one', $source->getRegisterCode());
+        $this->assertEquals($targetRegisterCode, $target->getRegisterCode());
+        $this->assertNotEquals($sourceRegisterCode, $target->getRegisterCode());
+        $this->assertEquals('one', $source->getRegisterCodeUrl());
+        $this->assertEquals($targetRegisterCodeUrl, $target->getRegisterCodeUrl());
+        $this->assertNotEquals($sourceRegisterCodeUrl, $target->getRegisterCodeUrl());
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $source->getRegisterCodeExpiration());
+        $this->assertEquals($targetRegisterCodeExpiration, $target->getRegisterCodeExpiration());
+        $this->assertNotEquals($sourceRegisterCodeExpiration, $target->getRegisterCodeExpiration());
+    }
     public function test_generate_password_recover_modify(): void
     {
         // @Arrange
