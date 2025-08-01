@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeAttributes;
@@ -131,6 +132,10 @@ class UserLoaderAdapter
                 throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
             }
         }
+        if( UserApproveOptions::ACCEPTED !== $theUser->getApprove() ) {
+            $this->unacceptedUser($tenant->getName(), $username);
+            throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
+        }
         return $theUser;
     }
 
@@ -147,6 +152,11 @@ class UserLoaderAdapter
     private function inexistentUser(string $tenant, string $user)
     {
         $this->logError('Try login on an inexistent user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
+    }
+
+    private function unacceptedUser(string $tenant, string $user)
+    {
+        $this->logError('Try login with a disabled user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
     }
 
     private function disabledUser(string $tenant, string $user)
