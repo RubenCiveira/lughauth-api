@@ -18,7 +18,6 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderNameVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDisabledVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDirectAccessVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPublicKeyVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPrivateKeyVO;
@@ -87,8 +86,7 @@ class TenantLoginProviderCreateController
                 $value->tenant(TenantLoginProviderTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $value->name(TenantLoginProviderNameVO::tryFrom($body['name'] ?? null, $errorsList));
-            $value->source(TenantLoginProviderSourceVO::tryFrom($body['source'] ?? null, $errorsList));
-            $value->disabled(TenantLoginProviderDisabledVO::tryFrom($body['disabled'] ?? null, $errorsList));
+            $value->source(TenantLoginProviderSourceVO::tryFrom(isset($body['source']) ? strtoupper($body['source']) : null, $errorsList));
             $value->directAccess(TenantLoginProviderDirectAccessVO::tryFrom($body['directAccess'] ?? null, $errorsList));
             $value->publicKey(TenantLoginProviderPublicKeyVO::tryFrom($body['publicKey'] ?? null, $errorsList));
             $value->privateKey(TenantLoginProviderPrivateKeyVO::tryFrom($body['privateKey'] ?? null, $errorsList));
@@ -122,7 +120,6 @@ class TenantLoginProviderCreateController
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->name = $value->getName();
             $dto->source = $value->getSource();
-            $dto->disabled = $value->getDisabled();
             $dto->directAccess = $value->getDirectAccess();
             $dto->publicKey = $value->getPublicKey();
             $dto->privateKey = $value->getPrivateKey();

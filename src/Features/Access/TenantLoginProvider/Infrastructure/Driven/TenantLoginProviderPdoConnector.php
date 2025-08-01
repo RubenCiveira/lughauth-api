@@ -21,6 +21,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
 
 class TenantLoginProviderPdoConnector
@@ -124,7 +125,7 @@ class TenantLoginProviderPdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'source', value: $entity->getSource(), type: SqlParam::STR),
+                     new SqlParam(name: 'source', value: $entity->getSource()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'disabled', value: $entity->getDisabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'directAccess', value: $entity->getDirectAccess(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicKey', value: $entity->getPublicKey(), type: SqlParam::STR),
@@ -163,7 +164,7 @@ class TenantLoginProviderPdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'source', value: $update->getSource(), type: SqlParam::STR),
+                     new SqlParam(name: 'source', value: $update->getSource()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'disabled', value: $update->getDisabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'directAccess', value: $update->getDirectAccess(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicKey', value: $update->getPublicKey(), type: SqlParam::STR),
@@ -391,7 +392,7 @@ class TenantLoginProviderPdoConnector
                 uid: $row['uid'] ?? null,
                 tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
                 name: $row['name'] ?? null,
-                source: $row['source'] ?? null,
+                source: TenantLoginProviderSourceVO::fromString($row['source'] ?? ''),
                 disabled: isset($row['disabled']) ? !! $row['disabled'] : null,
                 directAccess: isset($row['direct_access']) ? !! $row['direct_access'] : null,
                 publicKey: $row['public_key'] ?? null,

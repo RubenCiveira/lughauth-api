@@ -9,7 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
-use DateTime;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
@@ -18,9 +17,6 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantUidVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantNameVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantDomainVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteTimeVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateParams;
@@ -80,9 +76,6 @@ class TenantCreateController
             $value->name(TenantNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $value->root(TenantRootVO::tryFrom($body['root'] ?? null, $errorsList));
             $value->domain(TenantDomainVO::tryFrom($body['domain'] ?? null, $errorsList));
-            $value->enabled(TenantEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
-            $value->markForDelete(TenantMarkForDeleteVO::tryFrom($body['markForDelete'] ?? null, $errorsList));
-            $value->markForDeleteTime(TenantMarkForDeleteTimeVO::tryFrom($body['markForDeleteTime'] ?? null, $errorsList));
             $value->version(TenantVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -105,9 +98,6 @@ class TenantCreateController
             $dto->name = $value->getName();
             $dto->root = $value->getRoot();
             $dto->domain = $value->getDomain();
-            $dto->enabled = $value->getEnabled();
-            $dto->markForDelete = $value->getMarkForDelete();
-            $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

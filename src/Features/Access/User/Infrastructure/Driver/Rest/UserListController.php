@@ -9,7 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use OpenApi\Attributes as OA;
-use DateTime;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
@@ -137,15 +136,8 @@ class UserListController
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
-            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
-            $dto->enabled = $value->getEnabled();
-            $dto->approved = $value->getApproved();
-            $dto->rejected = $value->getRejected();
             $dto->temporalPassword = $value->getTemporalPassword();
             $dto->useSecondFactors = $value->getUseSecondFactors();
-            $dto->secondFactorSeed = '******';
-            $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
-            $dto->provider = $value->getProvider();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

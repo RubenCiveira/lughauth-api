@@ -12,6 +12,6 @@ class SchemasCalculator
 {
     public static function calculateSchemas(?RelyingParty $original = null): RelyingPartySchemasVO
     {
-        return $original ? $original->schemas() : RelyingPartySchemasVO::from("");
+        return $original ? $original->schemas() : RelyingPartySchemasVO::from('""');
     }
 }

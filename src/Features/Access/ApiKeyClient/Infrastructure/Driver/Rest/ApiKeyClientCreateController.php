@@ -16,7 +16,6 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKey
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientUidVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientCodeVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientEnabledVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientScopesVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -76,7 +75,6 @@ class ApiKeyClientCreateController
             $value->uid(ApiKeyClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $value->code(ApiKeyClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
             $value->key(ApiKeyClientKeyVO::tryFrom($body['key'] ?? null, $errorsList));
-            $value->enabled(ApiKeyClientEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
             $value->scopes(ApiKeyClientScopesVO::tryFrom($body['scopes'] ?? null, $errorsList));
             $value->version(ApiKeyClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
@@ -99,7 +97,6 @@ class ApiKeyClientCreateController
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->key = $value->getKey();
-            $dto->enabled = $value->getEnabled();
             $dto->scopes = $value->getScopes();
             $dto->version = $value->getVersion();
             return $dto;

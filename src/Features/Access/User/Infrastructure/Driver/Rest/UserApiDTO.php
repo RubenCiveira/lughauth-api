@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest;
 
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 
 #[OA\Schema(title: "User", description: "user")]
 class UserApiDTO
@@ -63,19 +64,13 @@ class UserApiDTO
     )]
     public ?bool $enabled;
     #[OA\Property(
-        property: "approved",
-        title: "approved",
-        description:"El approved de user",
-        type: "string"
+        property: "approve",
+        title: "approve",
+        description:"El approve de user",
+        type: "string",
+        enum: ["PENDING","ACCEPTED","REJECTED"]
     )]
-    public ?bool $approved;
-    #[OA\Property(
-        property: "rejected",
-        title: "rejected",
-        description:"El rejected de user",
-        type: "string"
-    )]
-    public ?bool $rejected;
+    public ?UserApproveOptions $approve;
     #[OA\Property(
         property: "temporalPassword",
         title: "temporal password",

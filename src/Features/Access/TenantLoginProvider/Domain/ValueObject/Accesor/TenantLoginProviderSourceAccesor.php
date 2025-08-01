@@ -6,11 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
 trait TenantLoginProviderSourceAccesor
 {
     private TenantLoginProviderSourceVO $_source;
-    public function getSource(): string
+    public function getSource(): TenantLoginProviderSourceOptions
     {
         return $this->_source->value();
     }
@@ -22,7 +23,7 @@ trait TenantLoginProviderSourceAccesor
     {
         return $this->_source->value() !== ($original ? $original->_source->value() : null);
     }
-    public function withSource(TenantLoginProviderSourceVO|string $source): self
+    public function withSource(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $source): self
     {
         $copy = clone $this;
         $copy->_source = TenantLoginProviderSourceVO::from($source);

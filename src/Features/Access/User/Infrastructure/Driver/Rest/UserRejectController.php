@@ -9,7 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
-use DateTime;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
@@ -131,15 +130,8 @@ class UserRejectController
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
-            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
-            $dto->enabled = $value->getEnabled();
-            $dto->approved = $value->getApproved();
-            $dto->rejected = $value->getRejected();
             $dto->temporalPassword = $value->getTemporalPassword();
             $dto->useSecondFactors = $value->getUseSecondFactors();
-            $dto->secondFactorSeed = '******';
-            $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
-            $dto->provider = $value->getProvider();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

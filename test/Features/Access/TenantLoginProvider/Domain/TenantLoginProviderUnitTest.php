@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 
@@ -16,7 +17,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',
@@ -60,7 +61,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',
@@ -74,7 +75,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'other',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
             name: 'other',
-            source: 'GITHUB',
+            source: TenantLoginProviderSourceOptions::GITHUB,
             disabled: false,
             directAccess: false,
             publicKey: 'other',
@@ -118,7 +119,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',
@@ -163,7 +164,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',
@@ -177,7 +178,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'other',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
             name: 'other',
-            source: 'GITHUB',
+            source: TenantLoginProviderSourceOptions::GITHUB,
             disabled: false,
             directAccess: false,
             publicKey: 'other',
@@ -223,7 +224,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',
@@ -267,7 +268,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',
@@ -296,7 +297,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             uid: 'one',
             tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
             name: 'one',
-            source: 'GOOGLE',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
             directAccess: true,
             publicKey: 'one',

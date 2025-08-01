@@ -6,14 +6,15 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
 final class TenantLoginProviderSourceVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 'GOOGLE';
+        $value = TenantLoginProviderSourceOptions::GOOGLE;
         $ref = TenantLoginProviderSourceVO::from($value);
-        $this->assertEquals('GOOGLE', $ref->value());
+        $this->assertEquals(TenantLoginProviderSourceOptions::GOOGLE, $ref->value());
         $other = TenantLoginProviderSourceVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TenantLoginProviderSourceVO::from($ref);

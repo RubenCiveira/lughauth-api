@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject;
 
+use Exception;
+use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
@@ -22,7 +24,11 @@ class TenantMarkForDeleteTimeVO
         } else {
             // If is not a ValueObject, validation is need and exception throw
             $errorsList = new ConstraintFailList();
-            return self::tryFrom($value, $errorsList);
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $candidate;
         }
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantMarkForDeleteTimeVO
@@ -46,15 +52,15 @@ class TenantMarkForDeleteTimeVO
             return null;
         }
     }
-    private static function readFromString(string $dateString): ?\DateTimeImmutable
+    private static function readFromString(string $dateString): ?DateTimeImmutable
     {
         // Expresión regular para ISO 8601 (con milisegundos y UTC)
         $iso8601Pattern = '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/';
         // Validar que la cadena coincida con el formato ISO 8601
         if (preg_match($iso8601Pattern, $dateString)) {
             try {
-                return new \DateTimeImmutable($dateString);
-            } catch (\Exception $e) {
+                return new DateTimeImmutable($dateString);
+            } catch (Exception $e) {
                 return null; // Retorna null si no es una fecha válida
             }
         } else {

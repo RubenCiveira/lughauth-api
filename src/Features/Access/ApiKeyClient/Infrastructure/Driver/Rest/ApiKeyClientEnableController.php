@@ -123,7 +123,6 @@ class ApiKeyClientEnableController
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->key = $value->getKey();
-            $dto->enabled = $value->getEnabled();
             $dto->scopes = $value->getScopes();
             $dto->version = $value->getVersion();
             return $dto;

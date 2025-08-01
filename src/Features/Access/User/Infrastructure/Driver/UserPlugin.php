@@ -115,8 +115,7 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user", "email", "MANAGE");
             $handler->registerResourceAttribute("user", "wellcomeAt", "MANAGE");
             $handler->registerResourceAttribute("user", "enabled", "MANAGE");
-            $handler->registerResourceAttribute("user", "approved", "MANAGE");
-            $handler->registerResourceAttribute("user", "rejected", "MANAGE");
+            $handler->registerResourceAttribute("user", "approve", "MANAGE");
             $handler->registerResourceAttribute("user", "temporalPassword", "MANAGE");
             $handler->registerResourceAttribute("user", "useSecondFactors", "MANAGE");
             $handler->registerResourceAttribute("user", "secondFactorSeed", "MANAGE");

@@ -19,10 +19,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtA
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApprovedAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApprovedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserRejectedAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRejectedVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserUseSecondFactorsAttributeHolder;
@@ -46,8 +44,7 @@ class UserAttributes
     use UserEmailAttributeHolder;
     use UserWellcomeAtAttributeHolder;
     use UserEnabledAttributeHolder;
-    use UserApprovedAttributeHolder;
-    use UserRejectedAttributeHolder;
+    use UserApproveAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
     use UserUseSecondFactorsAttributeHolder;
     use UserSecondFactorSeedAttributeHolder;
@@ -63,8 +60,7 @@ class UserAttributes
       'email' => 'unsetEmail',
       'wellcomeAt' => 'unsetWellcomeAt',
       'enabled' => 'unsetEnabled',
-      'approved' => 'unsetApproved',
-      'rejected' => 'unsetRejected',
+      'approve' => 'unsetApprove',
       'temporalPassword' => 'unsetTemporalPassword',
       'useSecondFactors' => 'unsetUseSecondFactors',
       'secondFactorSeed' => 'unsetSecondFactorSeed',
@@ -83,8 +79,7 @@ class UserAttributes
         $email = UserEmailVO::tryFrom($this->email, $errors);
         $wellcomeAt = UserWellcomeAtVO::tryFrom($this->wellcomeAt, $errors);
         $enabled = UserEnabledVO::tryFrom($this->enabled, $errors);
-        $approved = UserApprovedVO::tryFrom($this->approved, $errors);
-        $rejected = UserRejectedVO::tryFrom($this->rejected, $errors);
+        $approve = UserApproveVO::tryFrom($this->approve, $errors);
         $temporalPassword = UserTemporalPasswordVO::tryFrom($this->temporalPassword, $errors);
         $useSecondFactors = UserUseSecondFactorsVO::tryFrom($this->useSecondFactors, $errors);
         $secondFactorSeed = UserSecondFactorSeedVO::tryFrom($this->secondFactorSeed, $errors);
@@ -101,8 +96,7 @@ class UserAttributes
             email: $email,
             wellcomeAt: $wellcomeAt,
             enabled: $enabled,
-            approved: $approved,
-            rejected: $rejected,
+            approve: $approve,
             temporalPassword: $temporalPassword,
             useSecondFactors: $useSecondFactors,
             secondFactorSeed: $secondFactorSeed,
@@ -122,8 +116,7 @@ class UserAttributes
         $this->withAssertedEmailRules($value, $errorsList);
         $this->withAssertedWellcomeAtRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
-        $this->withAssertedApprovedRules($value, $errorsList);
-        $this->withAssertedRejectedRules($value, $errorsList);
+        $this->withAssertedApproveRules($value, $errorsList);
         $this->withAssertedTemporalPasswordRules($value, $errorsList);
         $this->withAssertedUseSecondFactorsRules($value, $errorsList);
         $this->withAssertedSecondFactorSeedRules($value, $errorsList);
@@ -150,8 +143,7 @@ class UserAttributes
         $this->withDefaultEmail();
         $this->withDefaultWellcomeAt();
         $this->withDefaultEnabled();
-        $this->withDefaultApproved();
-        $this->withDefaultRejected();
+        $this->withDefaultApprove();
         $this->withDefaultTemporalPassword();
         $this->withDefaultUseSecondFactors();
         $this->withDefaultSecondFactorSeed();

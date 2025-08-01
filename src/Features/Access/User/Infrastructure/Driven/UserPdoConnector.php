@@ -23,6 +23,7 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
 
 class UserPdoConnector
@@ -123,7 +124,7 @@ class UserPdoConnector
         $span = $this->startSpan("Execute insert sql query for User");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_user" ( "uid", "tenant", "name", "password", "email", "wellcome_at", "enabled", "approved", "rejected", "temporal_password", "use_second_factors", "second_factor_seed", "blocked_until", "provider", "version") VALUES ( :uid, :tenant, :name, :password, :email, :wellcomeAt, :enabled, :approved, :rejected, :temporalPassword, :useSecondFactors, :secondFactorSeed, :blockedUntil, :provider, :version)', [
+                $this->db->execute('INSERT INTO "access_user" ( "uid", "tenant", "name", "password", "email", "wellcome_at", "enabled", "approve", "temporal_password", "use_second_factors", "second_factor_seed", "blocked_until", "provider", "version") VALUES ( :uid, :tenant, :name, :password, :email, :wellcomeAt, :enabled, :approve, :temporalPassword, :useSecondFactors, :secondFactorSeed, :blockedUntil, :provider, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
@@ -131,8 +132,7 @@ class UserPdoConnector
                      new SqlParam(name: 'email', value: $entity->getEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'wellcomeAt', value: $entity->getWellcomeAt(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'approved', value: $entity->getApproved(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'rejected', value: $entity->getRejected(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'approve', value: $entity->getApprove()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'temporalPassword', value: $entity->getTemporalPassword(), type: SqlParam::BOOL),
                      new SqlParam(name: 'useSecondFactors', value: $entity->getUseSecondFactors(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secondFactorSeed', value: $entity->getCypheredSecondFactorSeed($this->cypher), type: SqlParam::STR),
@@ -165,7 +165,7 @@ class UserPdoConnector
         $span = $this->startSpan("Execute update sql query for User");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_user" SET "tenant" = :tenant , "name" = :name , "password" = :password , "email" = :email , "wellcome_at" = :wellcomeAt , "enabled" = :enabled , "approved" = :approved , "rejected" = :rejected , "temporal_password" = :temporalPassword , "use_second_factors" = :useSecondFactors , "second_factor_seed" = :secondFactorSeed , "blocked_until" = :blockedUntil , "provider" = :provider , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_user" SET "tenant" = :tenant , "name" = :name , "password" = :password , "email" = :email , "wellcome_at" = :wellcomeAt , "enabled" = :enabled , "approve" = :approve , "temporal_password" = :temporalPassword , "use_second_factors" = :useSecondFactors , "second_factor_seed" = :secondFactorSeed , "blocked_until" = :blockedUntil , "provider" = :provider , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
@@ -173,8 +173,7 @@ class UserPdoConnector
                      new SqlParam(name: 'email', value: $update->getEmail(), type: SqlParam::STR),
                      new SqlParam(name: 'wellcomeAt', value: $update->getWellcomeAt(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'approved', value: $update->getApproved(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'rejected', value: $update->getRejected(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'approve', value: $update->getApprove()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'temporalPassword', value: $update->getTemporalPassword(), type: SqlParam::BOOL),
                      new SqlParam(name: 'useSecondFactors', value: $update->getUseSecondFactors(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secondFactorSeed', value: $update->getCypheredSecondFactorSeed($this->cypher), type: SqlParam::STR),
@@ -409,8 +408,7 @@ class UserPdoConnector
                 email: $row['email'] ?? null,
                 wellcomeAt: $row['wellcome_at'] ? new \DateTimeImmutable($row['wellcome_at']) : null,
                 enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
-                approved: isset($row['approved']) ? !! $row['approved'] : null,
-                rejected: isset($row['rejected']) ? !! $row['rejected'] : null,
+                approve: isset($row['approve']) && $row['approve'] ? UserApproveVO::fromString($row['approve']) : UserApproveVO::empty(),
                 temporalPassword: isset($row['temporal_password']) ? !! $row['temporal_password'] : null,
                 useSecondFactors: isset($row['use_second_factors']) ? !! $row['use_second_factors'] : null,
                 secondFactorSeed: isset($row['second_factor_seed']) && $row['second_factor_seed'] ? UserSecondFactorSeedVO::fromCypheredText($this->cypher, $row['second_factor_seed']) : UserSecondFactorSeedVO::empty(),

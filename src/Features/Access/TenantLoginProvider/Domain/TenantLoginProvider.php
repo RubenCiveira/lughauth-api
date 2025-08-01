@@ -57,7 +57,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         TenantLoginProviderUidVO|string $uid,
         TenantLoginProviderTenantVO|TenantRef $tenant,
         TenantLoginProviderNameVO|string $name,
-        TenantLoginProviderSourceVO|string $source,
+        TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $source,
         TenantLoginProviderUsersEnabledByDefaultVO|bool $usersEnabledByDefault,
         TenantLoginProviderDisabledVO|bool|null $disabled = null,
         TenantLoginProviderDirectAccessVO|bool|null $directAccess = null,

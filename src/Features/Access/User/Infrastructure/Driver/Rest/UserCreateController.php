@@ -9,7 +9,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
-use DateTime;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
@@ -21,15 +20,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserNameVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApprovedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserRejectedVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateParams;
@@ -96,18 +88,8 @@ class UserCreateController
                 $value->password(UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList));
             }
             $value->email(UserEmailVO::tryFrom($body['email'] ?? null, $errorsList));
-            $value->wellcomeAt(UserWellcomeAtVO::tryFrom($body['wellcomeAt'] ?? null, $errorsList));
-            $value->enabled(UserEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
-            $value->approved(UserApprovedVO::tryFrom($body['approved'] ?? null, $errorsList));
-            $value->rejected(UserRejectedVO::tryFrom($body['rejected'] ?? null, $errorsList));
             $value->temporalPassword(UserTemporalPasswordVO::tryFrom($body['temporalPassword'] ?? null, $errorsList));
             $value->useSecondFactors(UserUseSecondFactorsVO::tryFrom($body['useSecondFactors'] ?? null, $errorsList));
-            $readSecondFactorSeed = $body['secondFactorSeed'] ?? '******';
-            if ($readSecondFactorSeed && '******' !== $readSecondFactorSeed) {
-                $value->secondFactorSeed(UserSecondFactorSeedVO::tryFromPlainText($this->cypherService, $readSecondFactorSeed, $errorsList));
-            }
-            $value->blockedUntil(UserBlockedUntilVO::tryFrom($body['blockedUntil'] ?? null, $errorsList));
-            $value->provider(UserProviderVO::tryFrom($body['provider'] ?? null, $errorsList));
             $value->version(UserVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -132,15 +114,8 @@ class UserCreateController
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
-            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
-            $dto->enabled = $value->getEnabled();
-            $dto->approved = $value->getApproved();
-            $dto->rejected = $value->getRejected();
             $dto->temporalPassword = $value->getTemporalPassword();
             $dto->useSecondFactors = $value->getUseSecondFactors();
-            $dto->secondFactorSeed = '******';
-            $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
-            $dto->provider = $value->getProvider();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

@@ -17,9 +17,6 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\Relyin
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyUidVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyCodeVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyApiKeyVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEnabledVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyScopesVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartySchemasVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyPoliciesVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -89,9 +86,6 @@ class RelyingPartyUpdateController
             $value->uid(RelyingPartyUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $value->code(RelyingPartyCodeVO::tryFrom($body['code'] ?? null, $errorsList));
             $value->apiKey(RelyingPartyApiKeyVO::tryFrom($body['apiKey'] ?? null, $errorsList));
-            $value->enabled(RelyingPartyEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
-            $value->scopes(RelyingPartyScopesVO::tryFrom($body['scopes'] ?? null, $errorsList));
-            $value->schemas(RelyingPartySchemasVO::tryFrom($body['schemas'] ?? null, $errorsList));
             $value->policies(RelyingPartyPoliciesVO::tryFrom($body['policies'] ?? null, $errorsList));
             $value->version(RelyingPartyVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
@@ -114,9 +108,6 @@ class RelyingPartyUpdateController
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->apiKey = $value->getApiKey();
-            $dto->enabled = $value->getEnabled();
-            $dto->scopes = $value->getScopes();
-            $dto->schemas = $value->getSchemas();
             $dto->policies = $value->getPolicies();
             $dto->version = $value->getVersion();
             return $dto;

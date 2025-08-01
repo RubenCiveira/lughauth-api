@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest;
 
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
 #[OA\Schema(title: "Tenant login provider", description: "Represents a login identity provider (e.g., Google, GitHub, SAML) configured for a tenant. Enables federated authentication integration.")]
 class TenantLoginProviderApiDTO
@@ -41,7 +42,7 @@ class TenantLoginProviderApiDTO
         type: "string",
         enum: ["GOOGLE","GITHUB","SAML"]
     )]
-    public ?string $source;
+    public ?TenantLoginProviderSourceOptions $source;
     #[OA\Property(
         property: "disabled",
         title: "disabled",

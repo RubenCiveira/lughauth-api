@@ -12,6 +12,6 @@ class ScopesCalculator
 {
     public static function calculateScopes(?RelyingParty $original = null): RelyingPartyScopesVO
     {
-        return $original ? $original->scopes() : RelyingPartyScopesVO::from("");
+        return $original ? $original->scopes() : RelyingPartyScopesVO::from('""');
     }
 }

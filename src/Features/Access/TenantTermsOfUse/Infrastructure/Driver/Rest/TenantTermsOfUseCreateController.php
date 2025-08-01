@@ -18,7 +18,6 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseActivationDateVO;
@@ -83,7 +82,6 @@ class TenantTermsOfUseCreateController
                 $value->tenant(TenantTermsOfUseTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $value->text(TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList));
-            $value->enabled(TenantTermsOfUseEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
             $attached = $body['attached'] ?? null;
             $preffixAttached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/-/temp-attached?temp=';
             if ($attached && strpos($attached, $preffixAttached) === 0) {
@@ -112,7 +110,6 @@ class TenantTermsOfUseCreateController
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->text = $value->getText();
-            $dto->enabled = $value->getEnabled();
             if ($value->getAttached()) {
                 $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
             }

@@ -19,7 +19,11 @@ class UserAccessTemporalCodeUserVO
         } else {
             // If is not a ValueObject, validation is need and exception throw
             $errorsList = new ConstraintFailList();
-            return self::tryFrom($value, $errorsList);
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            return $candidate;
         }
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAccessTemporalCodeUserVO

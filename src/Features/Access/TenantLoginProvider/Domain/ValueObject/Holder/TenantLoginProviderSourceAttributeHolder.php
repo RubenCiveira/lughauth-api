@@ -7,23 +7,24 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\H
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
 trait TenantLoginProviderSourceAttributeHolder
 {
-    protected TenantLoginProviderSourceVO|string|null $source = null;
+    protected TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions|null $source = null;
     protected bool $sourceAssigned = false;
 
     public function getSourceOrDefault(?TenantLoginProviderSourceVO $source): ?TenantLoginProviderSourceVO
     {
         return $this->sourceAssigned ? ($this->source !== null ? TenantLoginProviderSourceVO::from($this->source) : null) : $source;
     }
-    public function source(TenantLoginProviderSourceVO|string|null $source): static
+    public function source(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions|null $source): static
     {
         $this->source = $source;
         $this->sourceAssigned = true;
         return $this;
     }
-    public function getSource(): ?string
+    public function getSource(): ?TenantLoginProviderSourceOptions
     {
         return is_a($this->source, TenantLoginProviderSourceVO::class) ? $this->source->value() : $this->source;
     }

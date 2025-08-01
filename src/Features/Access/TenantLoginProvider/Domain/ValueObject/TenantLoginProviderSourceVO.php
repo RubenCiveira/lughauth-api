@@ -7,11 +7,20 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
-use Civi\Lughauth\Shared\Value\Validation\Rule\In;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
 class TenantLoginProviderSourceVO
 {
-    public static function from(TenantLoginProviderSourceVO|string $value): TenantLoginProviderSourceVO
+    public static function fromString(string $value): TenantLoginProviderSourceVO
+    {
+        $errorsList = new ConstraintFailList();
+        $candidate = self::tryFrom($value, $errorsList);
+        if ($errorsList->hasErrors()) {
+            throw $errorsList->asConstraintException();
+        }
+        return $candidate;
+    }
+    public static function from(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $value): TenantLoginProviderSourceVO
     {
         if (is_a($value, TenantLoginProviderSourceVO::class)) {
             // If is a ValueObject, its already validated
@@ -32,34 +41,40 @@ class TenantLoginProviderSourceVO
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('source', $fail));
-                    $valid = false;
-                }
+            if ($typed = self::readFromString($value)) {
+                return self::tryFrom($typed, $list);
+            } else {
+                $list->add(new ConstraintFail('wrong_format', ['source'], [$value], ['TenantLoginProviderSourceOptions']));
+                return null;
             }
-            return $valid ? new TenantLoginProviderSourceVO($value) : null;
+        } elseif (is_a($value, TenantLoginProviderSourceOptions::class)) {
+            return new TenantLoginProviderSourceVO($value);
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['source'], [$value], ['string']));
+            $list->add(new ConstraintFail('wrong_type', ['source'], [$value], ['TenantLoginProviderSourceOptions']));
             return null;
         }
     }
-    public static function rules(): array
+    private static function readFromString(string $enumString): ?TenantLoginProviderSourceOptions
     {
-        return [
-          new In(['GOOGLE', 'GITHUB', 'SAML']),
-        ];
+        if (in_array($enumString, ['gOOGLE', 'google', 'GOOGLE'])) {
+            return TenantLoginProviderSourceOptions::GOOGLE;
+        }
+        if (in_array($enumString, ['github', 'GITHUB', 'gITHUB'])) {
+            return TenantLoginProviderSourceOptions::GITHUB;
+        }
+        if (in_array($enumString, ['saml', 'sAML', 'SAML'])) {
+            return TenantLoginProviderSourceOptions::SAML;
+        }
+        return null;
     }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly string $source
+        private readonly TenantLoginProviderSourceOptions $source
     ) {
     }
-    public function value(): string
+    public function value(): TenantLoginProviderSourceOptions
     {
         return $this->source;
     }
