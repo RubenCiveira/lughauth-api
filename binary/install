@@ -1,0 +1,7 @@
+#!/usr/bin/env php
+<?php
+require __DIR__ . '/../vendor/autoload.php';
+
+use Civi\Lughauth\Bootstrap\Install;
+// Aquí podrías usar Symfony Console o una clase simple
+Install::bootstrap();

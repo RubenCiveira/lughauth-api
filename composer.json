@@ -3,7 +3,7 @@
   "minimum-stability": "dev",
   "prefer-stable": true,
   "bin": [
-    "bin/install"
+    "binary/install"
   ],
   "scripts": {
     "post-install-cmd": [

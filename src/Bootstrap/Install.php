@@ -62,6 +62,11 @@ class Install
         if ($lock) {
             unlink($lock);
         }
+        $assets = realpath(__DIR__ . '/../../public/.assets');
+        if( $assets && is_dir($assets )) {
+            exec("rm -rf " . escapeshellarg($assets));
+            echo " - Cache directory cleared: $assets\n";
+        }
         self::openApi();
         self::compileDi();
         echo "==== Borrar flags\n";
