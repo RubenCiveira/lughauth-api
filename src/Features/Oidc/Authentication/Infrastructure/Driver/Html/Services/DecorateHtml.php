@@ -21,17 +21,17 @@ class DecorateHtml
         Context $context,
         private readonly TwigBuilder $builder
     ) {
-        $this->assetsPath = $config->get('oidc.theme.path', $context->getBaseUrl() . '/oauth/themes/');
+        $this->assetsPath = $config->get('oidc.theme.path', $context->getBaseUrl() . '/');
     }
 
     public function getFullPage(RequestInterface $request, string $title, string $innerContent, string $locale): string
     {
         $usedTheme = 'corporate';
         $srcDir = __DIR__ . "/../Themes/{$usedTheme}/";
-        $targetDir = realpath('.') . "/oauth/themes/{$usedTheme}";
+        $targetDir = realpath('.') . "/.assets/oidc/{$usedTheme}";
         $this->dumpTheme( $srcDir, $targetDir );
         // Index vars.
-        $theme = "{$this->assetsPath}{$usedTheme}";
+        $theme = "{$this->assetsPath}.assets/oidc/{$usedTheme}";
         $callback = require $srcDir . '/index.php';
         return $callback($theme, $title, $innerContent, $locale);
     }
