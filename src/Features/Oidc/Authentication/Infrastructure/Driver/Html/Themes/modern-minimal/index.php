@@ -1,0 +1,72 @@
+<?php
+
+return function (string $theme, string $title, string $innerContent, string $locale): string {
+    return <<<HTML
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>{$title}</title>
+                <link rel="icon" type="image/png" href="{$theme}/style/favicon.png">
+                <link rel="stylesheet" href="{$theme}/style/modern-minimal.css">
+            </head>
+            <body>
+                <div class="container">
+                    <div class="login-card">
+                        <div class="header">
+                            <img src="{$theme}/style/logo.png" alt="Logo" class="logo" />
+                            <h1>Welcome Back</h1>
+                            <p>Sign in to your account</p>
+                        </div>
+                        
+                        <div class="form-content">
+                            <div class="loading"></div>
+                            <div class="in-form">
+                                {$innerContent}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="background-pattern"></div>
+                </div>
+
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const formContent = document.querySelector('.form-content');
+                        const loadingIndicator = document.querySelector('.loading');
+                        
+                        formContent.classList.add('slide-in');
+                        
+                        setTimeout(function() {
+                            const forms = formContent.querySelectorAll('form');
+                            forms.forEach(form => {
+                                function handleFormSubmit(event) {
+                                    event.preventDefault();
+                                    formContent.classList.add('slide-out');
+                                    loadingIndicator.style.display = 'block';
+                                    
+                                    setTimeout(function() {
+                                        form.removeEventListener('submit', handleFormSubmit);
+                                        form.submit();
+                                    }, 500);
+                                }
+                                
+                                const existingSubmitListener = form.onsubmit;
+                                if (existingSubmitListener) {
+                                    form.addEventListener('submit', function(event) {
+                                        existingSubmitListener.call(form, event);
+                                        handleFormSubmit(event);
+                                    });
+                                } else {
+                                    form.addEventListener('submit', handleFormSubmit);
+                                }
+                            });
+                        }, 10);
+                    });
+                </script>
+            </body>
+            </html>
+
+        HTML;
+};

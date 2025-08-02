@@ -9,6 +9,8 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\View\TwigBuilder;
 use Psr\Http\Message\RequestInterface;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 class DecorateHtml
 {
@@ -24,79 +26,43 @@ class DecorateHtml
 
     public function getFullPage(RequestInterface $request, string $title, string $innerContent, string $locale): string
     {
-        // $twig = $this->builder->build($request);
-        // return $twig->render("pages/login.html.twig", [
-        //     'title' => $title,
-        //     'content' => $innerContent,
-        //     'locale' => $locale
-        //     'organizations' => $organizations,
-        // ]);
-        // return "<html><head><title>$title</title></head><body<h1>Decoratin</h1>$innerContent</body></html>";
-        $theme = "{$this->assetsPath}blue";
-        return <<<HTML
-                <html>
-                    <head>
-                        <meta charset="UTF-8">
-                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                        <title>{$title}</title>
-                        <link rel="icon" type="image/png" href="{$theme}/favicon.png">
-                        <link rel="stylesheet" href="{$theme}/styles.css">
-                    </head>
-                    <body>
-                        <div class="container">
-                            <div class="background-image">
-                                <picture>
-                                    <source srcset="{$theme}/background-720.jpg" media="(max-width: 720px)">
-                                    <source srcset="{$theme}/background-1280.jpg" media="(max-width: 1280px)">
-                                    <source srcset="{$theme}/background-1620.jpg" media="(max-width: 1620px)">
-                                    <source srcset="{$theme}/background-5224.jpg" media="(min-width: 1281px)">
-                                    <img src="{$theme}/background-1280.jpg" alt="Fondo" class="background-img" />
-                                </picture>
-                                <div class="overlay-content">
-                                    <img src="{$theme}/logo.png" alt="Logotipo" class="logo" />
-                                    <h2>Hello</h2>
-                                </div>
-                            </div>
-                            <div class="form-content">
-                                <div class="loading">
-                                </div>
-                                <div class="in-form">
-                                    {$innerContent}
-                                </div>
-                            </div>
-                        </div>
-                        <script>
-                            document.addEventListener('DOMContentLoaded', function() {
-                                const formContent = document.querySelector('.form-content');
-                                const loadingIndicator = document.querySelector('.loading');
-                                formContent.classList.add('slide-in');
-                                setTimeout(function() {
-                                    const forms = formContent.querySelectorAll('form');
-                                    forms.forEach(form => {
-                                        function handleFormSubmit(event) {
-                                            event.preventDefault();
-                                            formContent.classList.add('slide-out');
-                                            loadingIndicator.style.display = 'block';
-                                            setTimeout(function() {
-                                                form.removeEventListener('submit', handleFormSubmit);
-                                                form.submit();
-                                             }, 500);
-                                        }
-                                        const existingSubmitListener = form.onsubmit;
-                                        if (existingSubmitListener) {
-                                            form.addEventListener('submit', function(event) {
-                                                existingSubmitListener.call(form, event);
-                                                handleFormSubmit(event);         
-                                            });
-                                        } else {
-                                            form.addEventListener('submit', handleFormSubmit);
-                                        }
-                                    });
-                                }, 10);
-                            }); 
-                        </script>
-                    </body>
-                </html>
-            HTML;
+        $usedTheme = 'corporate';
+        $srcDir = __DIR__ . "/../Themes/{$usedTheme}/";
+        $targetDir = realpath('.') . "/oauth/themes/{$usedTheme}";
+        $this->dumpTheme( $srcDir, $targetDir );
+        // Index vars.
+        $theme = "{$this->assetsPath}{$usedTheme}";
+        $callback = require $srcDir . '/index.php';
+        return $callback($theme, $title, $innerContent, $locale);
+    }
+
+    private function dumpTheme(string $srcDir, string $targetDir)
+    {
+        $allowedExtensions = ['html', 'js', 'css', 'png', 'jpg', 'jpeg', 'webp']; // añade las que necesites
+
+        if (!is_dir($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($srcDir, RecursiveDirectoryIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+
+        foreach ($iterator as $item) {
+            $relativePath = substr($item->getPathname(), strlen($srcDir) );
+            $destPath = $targetDir . DIRECTORY_SEPARATOR . $relativePath;
+
+            if ($item->isDir()) {
+                if (!is_dir($destPath)) {
+                    mkdir($destPath, 0777, true);
+                }
+            } else {
+                $ext = pathinfo($item->getFilename(), PATHINFO_EXTENSION);
+                if (in_array($ext, $allowedExtensions)) {
+                    copy($item->getPathname(), $destPath);
+                }
+            }
+        }
     }
 }
