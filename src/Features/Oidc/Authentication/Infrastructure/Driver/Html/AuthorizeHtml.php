@@ -102,7 +102,7 @@ class AuthorizeHtml
         $prompt = $query['prompt'] ?? '';
         $audiences = $query['audience'] ?? '';
         $cookies = $request->getCookieParams();
-        $session = $cookies['AUTH_SESSION_ID'];
+        $session = $cookies['AUTH_SESSION_ID'] ?? '';
         $locale = $request->getHeader('accept-language')[0];
 
         $client = $this->verifyClient($clientId, $tenant, $redirect, $scope);
@@ -113,11 +113,7 @@ class AuthorizeHtml
         $sess = $this->publicLogin->loadSession($session, $nonce, $state);
         if ($sess) {
             if ($csid !== $sess->csid) {
-                if ($prompt == 'none') {
-                    return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
-                } else {
-                    return $this->paint('Only refresh from same device', $locale, $base, $tenant, null, $body, null, $request, $response);
-                }
+                return $this->redirectToLogin($request, $response, 'Only refresh from same device', $tenant, $base, $locale, $responseType, $clientId, $state, $redirect, $scope, $nonce, $audiences, $prompt);
             }
             $authRequest = new AuthenticationRequest(client: $client, scope: $scope, redirect: $redirect, responseType: $responseType, audiences: array_values(array_unique([$clientId, ...$audiences ? explode(',', $audiences) : []])));
             $challenges = new AuthorizedChalleges();
@@ -129,11 +125,7 @@ class AuthorizeHtml
             $auth = $this->publicLogin->preAutenticate($authRequest, $challenges, $tenant, $issuer, $csid, $state, $nonce);
             return $this->redirectOk($base, $tenant, $responseType, $redirect, $state, $nonce, $auth, $response, $client, $authRequest);
         } else {
-            if ($prompt == 'none') {
-                return $this->redirectError($base, $tenant, $redirect, 'No session', $response);
-            } else {
-                return $this->redirectError($base, $tenant, $redirect, 'No session', $response);
-            }
+            return $this->redirectToLogin($request, $response, 'No session', $tenant, $base, $locale, $responseType, $clientId, $state, $redirect, $scope, $nonce, $audiences, $prompt);
         }
     }
 
@@ -317,6 +309,40 @@ class AuthorizeHtml
     private function hasResponse($response_type, $token)
     {
         return preg_match('/(?<=^|\s)' . $token . '(?=\s|$)/', $response_type);
+    }
+
+    private function redirectToLogin(
+        RequestInterface $request,
+        ResponseInterface $response,
+        string $message,
+        string $tenant,
+        string $base,
+        string $locale,
+        string $responseType,
+        string $clientId,
+        string $state,
+        string $redirect,
+        string $scope,
+        string $nonce,
+        string $audiences,
+        string $prompt,
+    ) {
+        if ($prompt == 'none') {
+            return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
+        } else {
+            $url = $base."/openid/".$tenant. "/authorize"
+                . "?response_type=".urlencode($responseType)
+                . "&client_id=".urlencode($clientId)
+                . "&state=".urlencode($state)
+                . "&redirect_uri=".urlencode($redirect)
+                . "&scope=".urlencode($scope)
+                . "&nonce=".urlencode($nonce)
+                . "&audience=".urlencode($audiences)
+                . "&prompt=".urlencode($prompt)
+            ;
+            $response = $response->withStatus(302)->withHeader('Location', $url);
+            return $this->clearSession($response, $base, $tenant);
+        }
     }
 
     private function cisdPage(
