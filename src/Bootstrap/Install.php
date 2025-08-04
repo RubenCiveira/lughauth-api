@@ -63,7 +63,7 @@ class Install
             unlink($lock);
         }
         $assets = realpath(__DIR__ . '/../../public/.assets');
-        if( $assets && is_dir($assets )) {
+        if ($assets && is_dir($assets)) {
             exec("rm -rf " . escapeshellarg($assets));
             echo " - Cache directory cleared: $assets\n";
         }

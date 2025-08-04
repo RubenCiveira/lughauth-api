@@ -5,12 +5,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services;
 
+use RecursiveIteratorIterator;
+use RecursiveDirectoryIterator;
+use Psr\Http\Message\RequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\View\TwigBuilder;
-use Psr\Http\Message\RequestInterface;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 
 class DecorateHtml
 {
@@ -29,7 +29,7 @@ class DecorateHtml
         $usedTheme = 'corporate';
         $srcDir = __DIR__ . "/../Themes/{$usedTheme}/";
         $targetDir = realpath('.') . "/.assets/oidc/{$usedTheme}";
-        $this->dumpTheme( $srcDir, $targetDir );
+        $this->dumpTheme($srcDir, $targetDir);
         // Index vars.
         $theme = "{$this->assetsPath}.assets/oidc/{$usedTheme}";
         $callback = require $srcDir . '/index.php';
@@ -50,7 +50,7 @@ class DecorateHtml
         );
 
         foreach ($iterator as $item) {
-            $relativePath = substr($item->getPathname(), strlen($srcDir) );
+            $relativePath = substr($item->getPathname(), strlen($srcDir));
             $destPath = $targetDir . DIRECTORY_SEPARATOR . $relativePath;
 
             if ($item->isDir()) {
