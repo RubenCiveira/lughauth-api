@@ -5,9 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Domain;
 
+use DateInterval;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
-use DateInterval;
 
 class PublicLoginAuthResponse
 {
@@ -29,6 +29,8 @@ class PublicLoginAuthResponse
         return new AuthenticationResult(
             valid: true,
             id: $this->authData['sub'],
+            name: $this->authData['name'],
+            email: $this->authData['email'],
             tenant: $this->authData['tenant'],
             tenantName: $this->authData['tenant-name'],
             scope: $this->authData['scope'],

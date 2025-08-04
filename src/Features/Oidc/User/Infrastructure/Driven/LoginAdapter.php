@@ -50,10 +50,12 @@ class LoginAdapter implements LoginRepository
         AuthorizedChalleges $challenges
     ): AuthenticationResult {
         $theTenant = $this->users->checkTenant($tenant, $challenges->username);
-        $theUser = $this->users->checkUser($theTenant, $challenges->username);
+        $theUser = $this->users->checkUserSubjet($theTenant, $challenges->username);
         return new AuthenticationResult(
             valid: true,
-            id: $challenges->username,
+            id: $theUser->uid(),
+            name: $theUser->getName(),
+            email: $theUser->getEmail(),
             tenant: $theTenant->uid(),
             tenantName: $theTenant->getName(),
             scope: $client->scope,
@@ -88,7 +90,9 @@ class LoginAdapter implements LoginRepository
         $this->markLoginOk($theUser);
         return new AuthenticationResult(
             valid: true,
-            id: $username,
+            id: $theUser->uid(),
+            name: $theUser->getName(),
+            email: $theUser->getEmail(),
             tenant: $theTenant->uid(),
             tenantName: $theTenant->getName(),
             scope: $client->scope,

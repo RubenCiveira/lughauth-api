@@ -190,7 +190,6 @@ class PublicLogin
             $this->userLoginGateway->fillPreAuthenticated($tenant, $request, $keypass),
             $request,
             $keypass,
-            $keypass->username,
             $issuer,
             $csid,
             $state,
@@ -209,14 +208,13 @@ class PublicLogin
         string $state,
         string $nonce
     ): PublicLoginAuthResponse {
-        return $this->saveIt($this->userLoginGateway->validatedUserData($tenant, $username, $password, $request), $request, $keypass, $username, $issuer, $csid, $state, $nonce);
+        return $this->saveIt($this->userLoginGateway->validatedUserData($tenant, $username, $password, $request), $request, $keypass, $issuer, $csid, $state, $nonce);
     }
 
     private function saveIt(
         AuthenticationResult $validation,
         AuthenticationRequest $request,
         AuthorizedChalleges $keypass,
-        string $username,
         string $issuer,
         string $csid,
         string $state,
@@ -230,7 +228,9 @@ class PublicLogin
             'aud' => $this->tokenAudiences($request->client->id, $validation->audiences ?? []),
             'azp' => $request->client->id,
             'iss' => $issuer,
-            'sub' => $username,
+            'sub' => $validation->id,
+            'name' => $validation->name ?? $validation->id,
+            'email' => $validation->email ?? $validation->id,
             'tenant' => $validation->tenant,
             'tenant-name' => $validation->tenantName,
             'scope' => $validation->scope,

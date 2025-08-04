@@ -60,7 +60,8 @@ class Identity
         public readonly ?array $roles = null,
         public readonly ?array $groups = null,
         public readonly ?array $claims = null,
-        public readonly ?string $scope = null
+        public readonly ?string $scope = null,
+        public readonly ?string $email = null,
     ) {
     }
 

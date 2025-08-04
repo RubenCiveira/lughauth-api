@@ -5,15 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\TokenGranter\TokenGranterMediator;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
-use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 
 class TokenController
 {
@@ -33,6 +33,7 @@ class TokenController
         // Get client data
         $withRefresh = true;
         $grant = $params['grant_type'] ?? '';
+        $scopes = $params['scope'] ?? '';
         if ("authorization_code" == $grant) {
             $code = $this->temporals->retrieveTemporalAuthCode($params['code'] ?? '');
             if (!$code) {
@@ -42,6 +43,7 @@ class TokenController
             $auth = $code->data;
             $withRefresh = true;
             $identity = ['nonce' => $code->nonce ];
+            $scopes = $code->request->scope;
         } elseif ("refresh_token" == $grant) {
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
@@ -86,6 +88,12 @@ class TokenController
             'roles' => $auth->roles,
             'groups' => $auth->groups
         ];
+        if( str_contains($scopes, 'profile') ) {
+            $detail['name'] = $auth->name ?? '';
+        }
+        if( str_contains($scopes, 'email') ) {
+            $detail['email'] = $auth->email ?? '';
+        }
         $identity = [...$detail, ...$identity];
         $expiration = new \DateInterval("PT10M");
         $now = new \DateTimeImmutable();

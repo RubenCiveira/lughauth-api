@@ -162,6 +162,8 @@ class TemporalKeysSqlAdapter implements TemporalKeysRepository
             $data = new AuthenticationResult(
                 valid: $res['data']['valid'] ?? false,
                 id: $res['data']['id'] ?? null,
+                name: $res['data']['name'] ?? null,
+                email: $res['data']['email'] ?? null,
                 error: $res['data']['error'] ?? null,
                 tenant: $res['data']['tenant'] ?? null,
                 tenantName: $res['data']['tenantName'] ?? null,

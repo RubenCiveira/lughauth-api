@@ -62,9 +62,11 @@ class AuthenticationResult
         public readonly ?string $tenant = null,
         public readonly ?string $tenantName = null,
         public readonly ?string $scope = null,
-        public readonly array $audiences = [],
+        public readonly ?array $audiences = [],
         public readonly mixed $roles = null,
         public readonly ?array $groups = null,
+        public readonly ?string $name = null,
+        public readonly ?string $email = null
     ) {
     }
 
