@@ -113,7 +113,8 @@ class AuthorizeHtml
         if ($sess) {
             if ($csid !== $sess->csid) {
                 // FIXME: go to login...
-                throw new UnauthorizedException('Only refresh from same server');
+                // throw new UnauthorizedException('Only refresh from same device');
+                return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
             }
             $authRequest = new AuthenticationRequest(client: $client, scope: $scope, redirect: $redirect, responseType: $responseType, audiences: array_values(array_unique([$clientId, ...$audiences ? explode(',', $audiences) : []])));
             $challenges = new AuthorizedChalleges();
