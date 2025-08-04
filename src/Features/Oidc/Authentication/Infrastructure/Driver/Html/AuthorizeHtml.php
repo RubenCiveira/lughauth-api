@@ -99,6 +99,7 @@ class AuthorizeHtml
         $redirect = $query['redirect_uri'];
         $scope = $query['scope'];
         $nonce = $query['nonce'];
+        $prompt = $query['prompt'] ?? '';
         $audiences = $query['audience'] ?? '';
         $cookies = $request->getCookieParams();
         $session = $cookies['AUTH_SESSION_ID'];
@@ -112,9 +113,11 @@ class AuthorizeHtml
         $sess = $this->publicLogin->loadSession($session, $nonce, $state);
         if ($sess) {
             if ($csid !== $sess->csid) {
-                // FIXME: go to login...
-                // throw new UnauthorizedException('Only refresh from same device');
-                return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
+                if( $prompt == 'none' ) {
+                    return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
+                } else {
+                    return $this->paint('Only refresh from same device', $locale, $base, $tenant, null, $body, null, $request, $response);
+                }
             }
             $authRequest = new AuthenticationRequest(client: $client, scope: $scope, redirect: $redirect, responseType: $responseType, audiences: array_values(array_unique([$clientId, ...$audiences ? explode(',', $audiences) : []])));
             $challenges = new AuthorizedChalleges();
@@ -126,7 +129,11 @@ class AuthorizeHtml
             $auth = $this->publicLogin->preAutenticate($authRequest, $challenges, $tenant, $issuer, $csid, $state, $nonce);
             return $this->redirectOk($base, $tenant, $responseType, $redirect, $state, $nonce, $auth, $response, $client, $authRequest);
         } else {
-            return $this->redirectError($base, $tenant, $redirect, 'No session', $response);
+            if( $prompt == 'none' ) {
+                return $this->redirectError($base, $tenant, $redirect, 'No session', $response);
+            } else {
+                return $this->redirectError($base, $tenant, $redirect, 'No session', $response);
+            }
         }
     }
 
