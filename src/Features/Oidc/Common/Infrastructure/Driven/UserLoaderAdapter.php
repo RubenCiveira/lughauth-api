@@ -116,7 +116,7 @@ class UserLoaderAdapter
                 if ($tenant->uid() === $theUser->getTenant()->uid()) {
                     $username = $theUser->getName();
                     $user = $this->users->findOneByTenantAndName($tenant, $username);
-                    if( $user->getApprove() !== UserApproveOptions::UNVERIFIED ) {
+                    if ($user->getApprove() !== UserApproveOptions::UNVERIFIED) {
                         throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
                     }
                     return [$theUser, $recover];
@@ -147,7 +147,7 @@ class UserLoaderAdapter
             $this->inexistentUser($tenant->getName(), $username);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
         }
-        if ($theUser->getTenant()->uid() != $tenant->uid() ) {
+        if ($theUser->getTenant()->uid() != $tenant->uid()) {
             $this->inexistentUser($tenant->getName(), $username);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
         }

@@ -108,9 +108,10 @@ class RegisterUserAdapter implements RegisterUserRepository
         if ($code !== $userCode->getRegisterCode()) {
             return null;
         }
-        $conf = $this->configs->findOneByTenant($theTenant);        
-        $this->repository->update($user, $user->verify( 
-            $conf?->getEnableRegisterUsers() ? UserApproveOptions::ACCEPTED : UserApproveOptions::PENDING) );
+        $conf = $this->configs->findOneByTenant($theTenant);
+        $this->repository->update($user, $user->verify(
+            $conf?->getEnableRegisterUsers() ? UserApproveOptions::ACCEPTED : UserApproveOptions::PENDING
+        ));
         $this->codes->update($userCode, $userCode->resetRegisterVerification());
         return $user->getName();
     }

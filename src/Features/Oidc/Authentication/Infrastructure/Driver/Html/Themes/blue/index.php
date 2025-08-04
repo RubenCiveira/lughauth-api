@@ -1,6 +1,6 @@
 <?php
-return function (string $theme, string $title, string $innerContent, string $locale): string
-{
+
+return function (string $theme, string $title, string $innerContent, string $locale): string {
     return <<<HTML
             <html>
                 <head>

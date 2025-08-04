@@ -113,7 +113,7 @@ class AuthorizeHtml
         $sess = $this->publicLogin->loadSession($session, $nonce, $state);
         if ($sess) {
             if ($csid !== $sess->csid) {
-                if( $prompt == 'none' ) {
+                if ($prompt == 'none') {
                     return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
                 } else {
                     return $this->paint('Only refresh from same device', $locale, $base, $tenant, null, $body, null, $request, $response);
@@ -129,7 +129,7 @@ class AuthorizeHtml
             $auth = $this->publicLogin->preAutenticate($authRequest, $challenges, $tenant, $issuer, $csid, $state, $nonce);
             return $this->redirectOk($base, $tenant, $responseType, $redirect, $state, $nonce, $auth, $response, $client, $authRequest);
         } else {
-            if( $prompt == 'none' ) {
+            if ($prompt == 'none') {
                 return $this->redirectError($base, $tenant, $redirect, 'No session', $response);
             } else {
                 return $this->redirectError($base, $tenant, $redirect, 'No session', $response);

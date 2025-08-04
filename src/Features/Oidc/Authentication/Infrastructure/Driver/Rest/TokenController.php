@@ -88,10 +88,10 @@ class TokenController
             'roles' => $auth->roles,
             'groups' => $auth->groups
         ];
-        if( str_contains($scopes, 'profile') ) {
+        if (str_contains($scopes, 'profile')) {
             $detail['name'] = $auth->name ?? '';
         }
-        if( str_contains($scopes, 'email') ) {
+        if (str_contains($scopes, 'email')) {
             $detail['email'] = $auth->email ?? '';
         }
         $identity = [...$detail, ...$identity];
