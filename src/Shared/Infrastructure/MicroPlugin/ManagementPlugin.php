@@ -20,6 +20,9 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Routes\RoutesManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Trace\TraceManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\LogCollector;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\TraceCollector;
+use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\LoadChangesManagement;
+use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\MarkAckManagement;
+use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\UpdateChangelogManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
 use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
@@ -50,6 +53,9 @@ class ManagementPlugin extends MicroPlugin
             $all[] = $container->get(HistoryManagement::class);
             $all[] = $container->get(AuditManagement::class);
         }
+        $all[] = $container->get(LoadChangesManagement::class);
+        $all[] = $container->get(MarkAckManagement::class);
+        $all[] = $container->get(UpdateChangelogManagement::class);
         return $all;
     }
 
