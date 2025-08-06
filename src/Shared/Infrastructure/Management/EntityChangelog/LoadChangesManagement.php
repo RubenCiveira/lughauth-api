@@ -35,7 +35,7 @@ class LoadChangesManagement implements ManagementInterface
                 return $this->query->getPendingChanges(
                     $params['entity'],
                     $params['queue'],
-                    intval( $params['limit'] )
+                    intval($params['limit'])
                 );
             } else {
                 throw ConstraintException::ofError(
