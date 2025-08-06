@@ -65,6 +65,18 @@ class Role extends RoleRef
         $value->recordedEvents[] = new RoleDeleteEvent($value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $data['name'] = $this->getName();
+        $tenant = $this->getTenant()?->uid();
+        if ($tenant) {
+            $data['tenant'] = ['$ref' => $tenant];
+        }
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): RoleAttributes
     {
         return (new RoleAttributes())

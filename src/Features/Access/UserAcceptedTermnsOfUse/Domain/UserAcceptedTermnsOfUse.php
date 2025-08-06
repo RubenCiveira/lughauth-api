@@ -72,6 +72,22 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
         $value->recordedEvents[] = new UserAcceptedTermnsOfUseDeleteEvent($value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $user = $this->getUser()?->uid();
+        if ($user) {
+            $data['user'] = ['$ref' => $user];
+        }
+        $conditions = $this->getConditions()?->uid();
+        if ($conditions) {
+            $data['conditions'] = ['$ref' => $conditions];
+        }
+        $data['acceptDate'] = $this->getAcceptDate();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): UserAcceptedTermnsOfUseAttributes
     {
         return (new UserAcceptedTermnsOfUseAttributes())

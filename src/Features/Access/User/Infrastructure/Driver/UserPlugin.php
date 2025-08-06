@@ -58,6 +58,8 @@ use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Accept\AcceptUse
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\RejectUserOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\IsAutenticatedRejectAllow;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class UserPlugin extends MicroPlugin
 {
@@ -92,6 +94,7 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserAcceptAllowDecision::class, AcceptUserOnlyForRootAllow::class);
         $bus->registerListener(UserRejectAllowDecision::class, RejectUserOnlyForRootAllow::class);
         $bus->registerListener(UserRejectAllowDecision::class, IsAutenticatedRejectAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, UserChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

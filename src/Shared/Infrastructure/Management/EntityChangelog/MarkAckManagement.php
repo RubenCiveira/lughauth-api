@@ -30,15 +30,23 @@ class MarkAckManagement implements ManagementInterface
     {
         return function (ServerRequestInterface $request): array {
             $params = $request->getQueryParams();
-            if (isset($params['entity']) 
+            if (isset($params['entity'])
                     && isset($params['last-date']) && isset($params['last-entry'])
-                    && isset($params['queque'])) {
-                $this->query->ackChanges($params['entity'], $params['queque'], 
-                    new DateTimeImmutable($params['lastDate']), $params['lastEntry']);
+                    && isset($params['queue'])) {
+                $this->query->ackChanges(
+                    $params['entity'],
+                    $params['queue'],
+                    new DateTimeImmutable($params['last-date']),
+                    $params['last-entry']
+                );
                 return [];
             } else {
-                throw ConstraintException::ofError('E1', 
-                    ['entity', 'last-date', 'last-entry', 'queque'], ['','','',''], ['not-null', 'not-null', 'not-null', 'not-null']);
+                throw ConstraintException::ofError(
+                    'E1',
+                    ['entity', 'last-date', 'last-entry', 'queue'],
+                    ['','','',''],
+                    ['not-null', 'not-null', 'not-null', 'not-null']
+                );
             }
         };
     }

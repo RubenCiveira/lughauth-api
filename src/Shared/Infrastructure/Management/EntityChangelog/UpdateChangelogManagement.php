@@ -27,7 +27,7 @@ class UpdateChangelogManagement implements ManagementInterface
     public function get(): ?Closure
     {
         return function (): array {
-            $this->dispacher->dispatch( new EntityChangeLogSyncEvent() );
+            $this->dispacher->dispatch(new EntityChangeLogSyncEvent());
             return [];
         };
     }

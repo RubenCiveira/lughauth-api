@@ -35,6 +35,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -54,6 +56,7 @@ class TrustedClientPlugin extends MicroPlugin
         $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TrustedClientChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -18,6 +18,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
 {
@@ -27,6 +28,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
     public function __construct(
         private readonly TenantConfigPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -102,6 +104,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -118,6 +121,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -134,6 +138,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('tenant-config', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

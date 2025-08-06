@@ -35,6 +35,8 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
@@ -54,6 +56,7 @@ class ApiKeyClientPlugin extends MicroPlugin
         $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(ApiKeyClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(ApiKeyClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, ApiKeyClientChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

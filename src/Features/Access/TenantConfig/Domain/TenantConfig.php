@@ -119,6 +119,22 @@ class TenantConfig extends TenantConfigRef
         $value->recordedEvents[] = new TenantConfigDeleteEvent($value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $tenant = $this->getTenant()?->uid();
+        if ($tenant) {
+            $data['tenant'] = ['$ref' => $tenant];
+        }
+        $data['innerLabel'] = $this->getInnerLabel();
+        $data['forceMfa'] = $this->getForceMfa();
+        $data['allowRegister'] = $this->getAllowRegister();
+        $data['enableRegisterUsers'] = $this->getEnableRegisterUsers();
+        $data['allowRecoverPass'] = $this->getAllowRecoverPass();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): TenantConfigAttributes
     {
         return (new TenantConfigAttributes())

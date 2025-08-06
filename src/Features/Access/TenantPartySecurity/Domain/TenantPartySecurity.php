@@ -72,6 +72,21 @@ class TenantPartySecurity extends TenantPartySecurityRef
         $value->recordedEvents[] = new TenantPartySecurityDeleteEvent($value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $tenant = $this->getTenant()?->uid();
+        if ($tenant) {
+            $data['tenant'] = ['$ref' => $tenant];
+        }
+        $relyingParty = $this->getRelyingParty()?->uid();
+        if ($relyingParty) {
+            $data['relyingParty'] = ['$ref' => $relyingParty];
+        }
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): TenantPartySecurityAttributes
     {
         return (new TenantPartySecurityAttributes())

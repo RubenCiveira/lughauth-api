@@ -141,6 +141,24 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $value->recordedEvents[] = new TenantLoginProviderDisableEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $tenant = $this->getTenant()?->uid();
+        if ($tenant) {
+            $data['tenant'] = ['$ref' => $tenant];
+        }
+        $data['name'] = $this->getName();
+        $data['source'] = $this->getSource();
+        $data['disabled'] = $this->getDisabled();
+        $data['directAccess'] = $this->getDirectAccess();
+        $data['publicKey'] = $this->getPublicKey();
+        $data['privateKey'] = $this->getPrivateKey();
+        $data['usersEnabledByDefault'] = $this->getUsersEnabledByDefault();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): TenantLoginProviderAttributes
     {
         return (new TenantLoginProviderAttributes())

@@ -80,6 +80,39 @@ class UserIdentity extends UserIdentityRef
         $value->recordedEvents[] = new UserIdentityDeleteEvent($value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $user = $this->getUser()?->uid();
+        if ($user) {
+            $data['user'] = ['$ref' => $user];
+        }
+        $relyingParty = $this->getRelyingParty()?->uid();
+        if ($relyingParty) {
+            $data['relyingParty'] = ['$ref' => $relyingParty];
+        }
+        $trustedClient = $this->getTrustedClient()?->uid();
+        if ($trustedClient) {
+            $data['trustedClient'] = ['$ref' => $trustedClient];
+        }
+        $roles = $this->getRoles();
+        if ($roles) {
+            $data['roles'] = [];
+            foreach ($roles as $row) {
+                $jsonRow = [];
+                $jsonRow['uid'] = $row->uid();
+                $role = $row->getRole()?->uid();
+                if ($role) {
+                    $jsonRow['role'] = ['$ref' => $role];
+                }
+                $jsonRow['version'] = $row->getVersion();
+                $data['roles'][] = $jsonRow;
+            }
+        }
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): UserIdentityAttributes
     {
         return (new UserIdentityAttributes())

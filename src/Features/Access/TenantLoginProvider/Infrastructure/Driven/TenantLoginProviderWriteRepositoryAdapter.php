@@ -22,6 +22,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWriteRepository
 {
@@ -32,6 +33,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         private readonly PdoFileStorage $store,
         private readonly TenantLoginProviderPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -110,6 +112,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             }
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -137,6 +140,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             }
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -157,6 +161,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 $this->store->deleteFile(new FileStoreKey($currMetadata));
             }
             $this->dispach($entity);
+            $this->changelog->recordDeletion('tenant-login-provider', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

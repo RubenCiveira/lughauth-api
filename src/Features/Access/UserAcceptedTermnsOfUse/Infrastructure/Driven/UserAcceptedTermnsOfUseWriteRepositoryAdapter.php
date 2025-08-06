@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTer
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermnsOfUseWriteRepository
 {
@@ -28,6 +29,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
     public function __construct(
         private readonly UserAcceptedTermnsOfUsePdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -103,6 +105,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,6 +122,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -135,6 +139,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('user-accepted-termns-of-use', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

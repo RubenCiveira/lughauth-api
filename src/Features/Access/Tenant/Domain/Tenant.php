@@ -115,6 +115,19 @@ class Tenant extends TenantRef
         $value->recordedEvents[] = new TenantDisableEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $data['name'] = $this->getName();
+        $data['root'] = $this->getRoot();
+        $data['domain'] = $this->getDomain();
+        $data['enabled'] = $this->getEnabled();
+        $data['markForDelete'] = $this->getMarkForDelete();
+        $data['markForDeleteTime'] = $this->getMarkForDeleteTime();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): TenantAttributes
     {
         return (new TenantAttributes())

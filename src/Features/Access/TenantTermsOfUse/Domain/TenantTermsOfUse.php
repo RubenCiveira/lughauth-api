@@ -111,6 +111,19 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         $value->recordedEvents[] = new TenantTermsOfUseDisableEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $tenant = $this->getTenant()?->uid();
+        if ($tenant) {
+            $data['tenant'] = ['$ref' => $tenant];
+        }
+        $data['enabled'] = $this->getEnabled();
+        $data['activationDate'] = $this->getActivationDate();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): TenantTermsOfUseAttributes
     {
         return (new TenantTermsOfUseAttributes())

@@ -42,6 +42,8 @@ use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\EnableT
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\DisableTenantOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantPlugin extends MicroPlugin
 {
@@ -67,6 +69,7 @@ class TenantPlugin extends MicroPlugin
         $bus->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -40,6 +40,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enab
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -61,6 +63,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantTermsOfUseChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

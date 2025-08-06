@@ -239,6 +239,26 @@ class User extends UserRef
         $value->recordedEvents[] = new UserChangePasswordEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $tenant = $this->getTenant()?->uid();
+        if ($tenant) {
+            $data['tenant'] = ['$ref' => $tenant];
+        }
+        $data['name'] = $this->getName();
+        $data['email'] = $this->getEmail();
+        $data['wellcomeAt'] = $this->getWellcomeAt();
+        $data['enabled'] = $this->getEnabled();
+        $data['approve'] = $this->getApprove();
+        $data['temporalPassword'] = $this->getTemporalPassword();
+        $data['useSecondFactors'] = $this->getUseSecondFactors();
+        $data['blockedUntil'] = $this->getBlockedUntil();
+        $data['provider'] = $this->getProvider();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): UserAttributes
     {
         return (new UserAttributes())

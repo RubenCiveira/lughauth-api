@@ -17,6 +17,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepository
 {
@@ -26,6 +27,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
     public function __construct(
         private readonly TrustedClientPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -101,6 +103,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -117,6 +120,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -133,6 +137,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('trusted-client', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

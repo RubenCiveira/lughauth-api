@@ -97,6 +97,17 @@ class ApiKeyClient extends ApiKeyClientRef
         $value->recordedEvents[] = new ApiKeyClientDisableEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $data['code'] = $this->getCode();
+        $data['key'] = $this->getKey();
+        $data['enabled'] = $this->getEnabled();
+        $data['scopes'] = $this->getScopes();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): ApiKeyClientAttributes
     {
         return (new ApiKeyClientAttributes())

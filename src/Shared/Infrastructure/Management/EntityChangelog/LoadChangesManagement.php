@@ -31,16 +31,16 @@ class LoadChangesManagement implements ManagementInterface
             $params = $request->getQueryParams();
             if (isset($params['entity'])
                     && isset($params['limit'])
-                    && isset($params['queque'])) {
+                    && isset($params['queue'])) {
                 return $this->query->getPendingChanges(
-                    $params['user'],
-                    $params['queque'],
-                    $params['limit']
+                    $params['entity'],
+                    $params['queue'],
+                    intval( $params['limit'] )
                 );
             } else {
                 throw ConstraintException::ofError(
                     'E1',
-                    ['entity', 'limit', 'queque'],
+                    ['entity', 'limit', 'queue'],
                     ['','',''],
                     ['not-null', 'not-null', 'not-null']
                 );

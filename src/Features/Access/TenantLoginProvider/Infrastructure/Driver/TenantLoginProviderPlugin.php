@@ -40,6 +40,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\E
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -61,6 +63,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantLoginProviderChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

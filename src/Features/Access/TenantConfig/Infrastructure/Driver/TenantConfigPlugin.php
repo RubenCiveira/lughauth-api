@@ -33,6 +33,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantConfigPlugin extends MicroPlugin
 {
@@ -52,6 +54,7 @@ class TenantConfigPlugin extends MicroPlugin
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantConfigListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantConfigDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantConfigChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

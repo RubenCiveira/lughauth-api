@@ -115,6 +115,16 @@ class RelyingParty extends RelyingPartyRef
         $value->recordedEvents[] = new RelyingPartyDisableEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $data['code'] = $this->getCode();
+        $data['apiKey'] = $this->getApiKey();
+        $data['enabled'] = $this->getEnabled();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): RelyingPartyAttributes
     {
         return (new RelyingPartyAttributes())

@@ -31,6 +31,8 @@ use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class UserIdentityPlugin extends MicroPlugin
 {
@@ -49,6 +51,7 @@ class UserIdentityPlugin extends MicroPlugin
         $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, UserIdentityChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

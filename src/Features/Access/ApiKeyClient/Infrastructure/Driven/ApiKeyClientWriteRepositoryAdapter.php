@@ -17,6 +17,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
 {
@@ -26,6 +27,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
     public function __construct(
         private readonly ApiKeyClientPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -101,6 +103,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -117,6 +120,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -133,6 +137,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('api-key-client', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

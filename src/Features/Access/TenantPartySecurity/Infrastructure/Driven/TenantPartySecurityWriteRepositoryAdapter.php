@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWriteRepository
 {
@@ -28,6 +29,7 @@ class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWr
     public function __construct(
         private readonly TenantPartySecurityPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -103,6 +105,7 @@ class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWr
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('tenant-party-security', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,6 +122,7 @@ class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWr
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('tenant-party-security', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -135,6 +139,7 @@ class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWr
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('tenant-party-security', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

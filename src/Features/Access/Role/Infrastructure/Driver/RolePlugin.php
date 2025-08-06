@@ -33,6 +33,8 @@ use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutentica
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class RolePlugin extends MicroPlugin
 {
@@ -52,6 +54,7 @@ class RolePlugin extends MicroPlugin
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, RoleChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

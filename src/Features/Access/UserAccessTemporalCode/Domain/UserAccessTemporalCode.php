@@ -193,6 +193,24 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->recordedEvents[] = new UserAccessTemporalCodeResetPasswordRecoverEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $user = $this->getUser()?->uid();
+        if ($user) {
+            $data['user'] = ['$ref' => $user];
+        }
+        $data['tempSecondFactorSeedExpiration'] = $this->getTempSecondFactorSeedExpiration();
+        $data['failedLoginAttempts'] = $this->getFailedLoginAttempts();
+        $data['registerCode'] = $this->getRegisterCode();
+        $data['registerCodeUrl'] = $this->getRegisterCodeUrl();
+        $data['registerCodeExpiration'] = $this->getRegisterCodeExpiration();
+        $data['recoveryCode'] = $this->getRecoveryCode();
+        $data['recoveryCodeExpiration'] = $this->getRecoveryCodeExpiration();
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): UserAccessTemporalCodeAttributes
     {
         return (new UserAccessTemporalCodeAttributes())

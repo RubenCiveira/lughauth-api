@@ -17,6 +17,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
 {
@@ -26,6 +27,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
     public function __construct(
         private readonly RelyingPartyPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -101,6 +103,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -117,6 +120,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -133,6 +137,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('relying-party', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

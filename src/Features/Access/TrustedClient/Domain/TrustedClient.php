@@ -104,6 +104,27 @@ class TrustedClient extends TrustedClientRef
         $value->recordedEvents[] = new TrustedClientDisableEvent(payload: $value);
         return $value;
     }
+    public function asPublicJson(): array
+    {
+        $data = [];
+        $data['uid'] = $this->uid();
+        $data['code'] = $this->getCode();
+        $data['publicAllow'] = $this->getPublicAllow();
+        $data['enabled'] = $this->getEnabled();
+        $allowedRedirects = $this->getAllowedRedirects();
+        if ($allowedRedirects) {
+            $data['allowedRedirects'] = [];
+            foreach ($allowedRedirects as $row) {
+                $jsonRow = [];
+                $jsonRow['uid'] = $row->uid();
+                $jsonRow['url'] = $row->getUrl();
+                $jsonRow['version'] = $row->getVersion();
+                $data['allowedRedirects'][] = $jsonRow;
+            }
+        }
+        $data['version'] = $this->getVersion();
+        return $data;
+    }
     public function toAttributes(): TrustedClientAttributes
     {
         return (new TrustedClientAttributes())

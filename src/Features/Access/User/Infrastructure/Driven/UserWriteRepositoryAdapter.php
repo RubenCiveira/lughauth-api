@@ -18,6 +18,7 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
 
 class UserWriteRepositoryAdapter implements UserWriteRepository
 {
@@ -27,6 +28,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
     public function __construct(
         private readonly UserPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
+        private readonly EntityChangeLogService $changelog,
     ) {
     }
     #[Override]
@@ -102,6 +104,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
+            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -118,6 +121,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
+            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -134,6 +138,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
+            $this->changelog->recordDeletion('user', $entity->uid());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

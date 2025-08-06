@@ -15,9 +15,8 @@ class EntityChangeLogService
     {
         foreach ($entities as $entityId => $payload) {
             $stmt = $this->pdo->prepare(
-                'SELECT payload FROM sync_change_log
-             WHERE entity_type = :entity_type AND entity_id = :entity_id
-             ORDER BY changed_at DESC, id DESC LIMIT 1'
+                'SELECT payload FROM _audit_changelog
+             WHERE entity_type = :entity_type AND entity_id = :entity_id'
             );
 
             $stmt->execute([
@@ -56,7 +55,7 @@ class EntityChangeLogService
         ]);
 
         // Paso 2: si no se actualizó nada, hacemos un INSERT
-        if ($update->rowCount() === 0) {
+        if ($update->rowCount() === 0 && !$this->existsInChangelog($entityType, $entityId)) {
             $insert = $this->pdo->prepare(
                 'INSERT INTO _audit_changelog
              (entity_type, entity_id, deleted, changed_at, payload)
@@ -92,7 +91,7 @@ class EntityChangeLogService
             'payload' => $jsonPayload,
         ]);
 
-        if ($update->rowCount() === 0) {
+        if ($update->rowCount() === 0 && !$this->existsInChangelog($entityType, $entityId)) {
             $insert = $this->pdo->prepare(
                 'INSERT INTO _audit_changelog
              (entity_type, entity_id, deleted, changed_at, payload)
@@ -203,7 +202,7 @@ class EntityChangeLogService
         ]);
 
         // Paso 2: si no se actualizó nada, hacemos un INSERT
-        if ($update->rowCount() === 0) {
+        if ($update->rowCount() === 0 && !$this->existsInCursor($clientId, $entityType)) {
             $insert = $this->pdo->prepare(
                 'INSERT INTO _audit_sync_cursor 
              (client_id, entity_type, last_changed_at, last_entity_id)
@@ -217,5 +216,35 @@ class EntityChangeLogService
                 'last_entity_id' => $lastEntityId,
             ]);
         }
+    }
+
+    private function existsInChangelog(string $entityType, string $entityId): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT 1 FROM _audit_changelog
+             WHERE entity_type = :entity_type AND entity_id = :entity_id'
+        );
+
+        $stmt->execute([
+            'entity_type' => $entityType,
+            'entity_id' => $entityId,
+        ]);
+
+        return (bool)$stmt->fetchColumn();
+    }
+
+    private function existsInCursor(string $clientId, string $entityType): bool
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT 1 FROM _audit_sync_cursor
+             WHERE client_id = :client_id AND entity_type = :entity_type'
+        );
+
+        $stmt->execute([
+            'client_id' => $clientId,
+            'entity_type' => $entityType,
+        ]);
+
+        return (bool)$stmt->fetchColumn();
     }
 }

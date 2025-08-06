@@ -35,6 +35,8 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Enable\RelyingPartyEnableAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
@@ -54,6 +56,7 @@ class RelyingPartyPlugin extends MicroPlugin
         $bus->registerListener(RelyingPartyDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, RelyingPartyChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
