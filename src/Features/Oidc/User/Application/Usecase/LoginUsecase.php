@@ -19,6 +19,18 @@ class LoginUsecase
     ) {
     }
 
+    public function fillPreLoadById(
+        string $tenant,
+        AuthenticationRequest $client,
+        AuthorizedChalleges $challenges
+    ): AuthenticationResult {
+        $result = $this->gateway->fillPreLoadById($tenant, $client, $challenges);
+        if ($result->valid && !$challenges->session) {
+            $this->dispacher->dispatch($result);
+        }
+        return $result;
+    }
+
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,

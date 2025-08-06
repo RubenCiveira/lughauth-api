@@ -11,6 +11,12 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 
 interface LoginRepository
 {
+    public function fillPreLoadById(
+        string $tenant,
+        AuthenticationRequest $client,
+        AuthorizedChalleges $challenges
+    ): AuthenticationResult;
+
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,

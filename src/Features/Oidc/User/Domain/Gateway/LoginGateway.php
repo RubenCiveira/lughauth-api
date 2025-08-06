@@ -19,6 +19,14 @@ class LoginGateway
         $this->repository = $repository ?? $container->get(LoginAdapter::class);
     }
 
+    public function fillPreLoadById(
+        string $tenant,
+        AuthenticationRequest $client,
+        AuthorizedChalleges $challenges
+    ): AuthenticationResult {
+        return $this->repository->fillPreLoadById($tenant, $client, $challenges);
+    }
+
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,

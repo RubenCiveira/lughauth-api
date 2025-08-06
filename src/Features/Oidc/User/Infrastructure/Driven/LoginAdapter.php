@@ -43,6 +43,29 @@ class LoginAdapter implements LoginRepository
         private readonly RoleReadGateway $roles,
     ) {
     }
+
+    #[Override]
+    public function fillPreLoadById(
+        string $tenant,
+        AuthenticationRequest $client,
+        AuthorizedChalleges $challenges
+    ): AuthenticationResult {
+        $theTenant = $this->users->checkTenant($tenant, $challenges->username);
+        $theUser = $this->users->checkUserSubjet($theTenant, $challenges->username);
+        return new AuthenticationResult(
+            valid: true,
+            id: $theUser->uid(),
+            name: $theUser->getName(),
+            email: $theUser->getEmail(),
+            tenant: $theTenant->uid(),
+            tenantName: $theTenant->getName(),
+            scope: $client->scope,
+            audiences: $client->audiences,
+            roles: $this->loadRoles($client, $theTenant, $theUser),
+            groups: $this->loadGroups($client, $theTenant, $theUser),
+        );
+    }
+
     #[Override]
     public function fillPreAuthenticated(
         string $tenant,
@@ -50,7 +73,7 @@ class LoginAdapter implements LoginRepository
         AuthorizedChalleges $challenges
     ): AuthenticationResult {
         $theTenant = $this->users->checkTenant($tenant, $challenges->username);
-        $theUser = $this->users->checkUserSubjet($theTenant, $challenges->username);
+        $theUser = $this->users->checkUser($theTenant, $challenges->username);
         return new AuthenticationResult(
             valid: true,
             id: $theUser->uid(),

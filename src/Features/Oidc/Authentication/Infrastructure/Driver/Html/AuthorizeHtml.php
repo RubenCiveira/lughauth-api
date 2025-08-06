@@ -122,7 +122,7 @@ class AuthorizeHtml
             $challenges->session = true;
             $issuer = $base . '/openid/' . $tenant;
             // auth-csid
-            $auth = $this->publicLogin->preAutenticate($authRequest, $challenges, $tenant, $issuer, $csid, $state, $nonce);
+            $auth = $this->publicLogin->sessionAutenticated($authRequest, $challenges, $tenant, $issuer, $csid, $state, $nonce);
             return $this->redirectOk($base, $tenant, $responseType, $redirect, $state, $nonce, $auth, $response, $client, $authRequest);
         } else {
             return $this->redirectToLogin($request, $response, 'No session', $tenant, $base, $locale, $responseType, $clientId, $state, $redirect, $scope, $nonce, $audiences, $prompt);

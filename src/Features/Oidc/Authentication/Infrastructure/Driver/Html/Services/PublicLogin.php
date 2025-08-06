@@ -177,6 +177,26 @@ class PublicLogin
         }
     }
 
+    public function sessionAutenticated(
+        AuthenticationRequest $request,
+        AuthorizedChalleges $keypass,
+        string $tenant,
+        string $issuer,
+        string $csid,
+        string $state,
+        string $nonce
+    ): PublicLoginAuthResponse {
+        return $this->saveIt(
+            $this->userLoginGateway->fillPreLoadById($tenant, $request, $keypass),
+            $request,
+            $keypass,
+            $issuer,
+            $csid,
+            $state,
+            $nonce
+        );
+    }
+
     public function preAutenticate(
         AuthenticationRequest $request,
         AuthorizedChalleges $keypass,
