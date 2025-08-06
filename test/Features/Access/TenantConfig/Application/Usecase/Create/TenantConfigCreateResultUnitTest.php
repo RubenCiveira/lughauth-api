@@ -24,17 +24,17 @@ final class TenantConfigCreateResultUnitTest extends TestCase
     public function test(): void
     {
         $value = new TenantConfigCreateResult();
-        $tenantOneValue = $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock();
-        $tenantOtherValue = $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock();
+        $tenantOneValue = new TenantRef('one');
+        $tenantOtherValue = new TenantRef('other');
         $copy = $value->tenant($tenantOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTenant());
-        $this->assertNotEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTenant());
-        $this->assertEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
+        $this->assertEquals(new TenantRef('one'), $value->getTenant());
+        $this->assertNotEquals(new TenantRef('other'), $value->getTenant());
+        $this->assertEquals(new TenantRef('one'), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
+        $this->assertNotEquals(new TenantRef('other'), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
         $value->unsetTenant();
-        $this->assertEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
+        $this->assertEquals(new TenantRef('other'), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
+        $this->assertNotEquals(new TenantRef('one'), $value->getTenantOrDefault(TenantConfigTenantVO::from($tenantOtherValue))->value());
         $innerLabelOneValue = 'one';
         $innerLabelOtherValue = 'other';
         $copy = $value->innerLabel($innerLabelOneValue);

@@ -19,13 +19,13 @@ final class UserIdentityRolesVOUnitTest extends TestCase
     {
         $value = new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('one'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('one')),
             UserIdentityRolesVersionVO::from(1)
         ));
         $ref = UserIdentityRolesVO::from($value);
         $this->assertEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('one'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('one')),
             UserIdentityRolesVersionVO::from(1)
         )), $ref->value());
         $this->assertTrue(!!$ref->find('one'));
@@ -40,7 +40,7 @@ final class UserIdentityRolesVOUnitTest extends TestCase
         $clonedValue = $cloned->value();
         $clonedFilledValue = $clonedFilled->value();
         $this->assertNull($clonedValue->current()->getRole());
-        $this->assertEquals($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock(), $clonedFilledValue->current()->getRole());
+        $this->assertEquals(new RoleRef('one'), $clonedFilledValue->current()->getRole());
         $this->assertNull($clonedValue->current()->getVersion());
         $this->assertEquals(1, $clonedFilledValue->current()->getVersion());
         $other = UserIdentityRolesVO::tryFrom($ref, new ConstraintFailList());

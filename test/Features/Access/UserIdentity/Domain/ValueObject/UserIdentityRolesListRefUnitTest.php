@@ -17,12 +17,12 @@ class UserIdentityRolesListRefUnitTest extends TestCase
     {
         $one = new UserIdentityRolesItem(
             uid: UserIdentityRolesUidVO::from('one'),
-            role: UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            role: UserIdentityRolesRoleVO::from(new RoleRef('one')),
             version: UserIdentityRolesVersionVO::from(1)
         );
         $two = new UserIdentityRolesItem(
             uid: UserIdentityRolesUidVO::from('one'),
-            role: UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            role: UserIdentityRolesRoleVO::from(new RoleRef('one')),
             version: UserIdentityRolesVersionVO::from(1)
         );
         $list = UserIdentityRolesListRef::fromArray([$one, $two]);

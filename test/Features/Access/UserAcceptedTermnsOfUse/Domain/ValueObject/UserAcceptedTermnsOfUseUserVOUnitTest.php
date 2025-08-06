@@ -12,9 +12,9 @@ final class UserAcceptedTermnsOfUseUserVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock();
+        $value = new UserRef('one');
         $ref = UserAcceptedTermnsOfUseUserVO::from($value);
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $ref->value());
+        $this->assertEquals(new UserRef('one'), $ref->value());
         $other = UserAcceptedTermnsOfUseUserVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserAcceptedTermnsOfUseUserVO::from($ref);

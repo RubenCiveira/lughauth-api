@@ -74,6 +74,30 @@ final class RelyingPartyUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new RelyingParty(
+            uid: 'one',
+            code: 'one',
+            apiKey: 'one',
+            enabled: true,
+            scopes: 'one',
+            schemas: 'one',
+            policies: 'one',
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['code']);
+        $this->assertEquals('one', $json['apiKey']);
+        $this->assertEquals(true, $json['enabled']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange

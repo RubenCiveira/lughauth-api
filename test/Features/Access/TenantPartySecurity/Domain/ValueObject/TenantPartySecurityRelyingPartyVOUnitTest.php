@@ -12,9 +12,9 @@ final class TenantPartySecurityRelyingPartyVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock();
+        $value = new RelyingPartyRef('one');
         $ref = TenantPartySecurityRelyingPartyVO::from($value);
-        $this->assertEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(), $ref->value());
+        $this->assertEquals(new RelyingPartyRef('one'), $ref->value());
         $other = TenantPartySecurityRelyingPartyVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TenantPartySecurityRelyingPartyVO::from($ref);

@@ -15,8 +15,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         // @Arrange
         $one = new UserAcceptedTermnsOfUse(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -40,15 +40,15 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         // @Arrange
         $base = new UserAcceptedTermnsOfUse(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $other = new UserAcceptedTermnsOfUse(
             uid: 'other',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['other'])->getMock(),
+            user: new UserRef('other'),
+            conditions: new TenantTermsOfUseRef('other'),
             acceptDate: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
         );
@@ -67,13 +67,34 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new UserAcceptedTermnsOfUse(
+            uid: 'one',
+            user: new UserRef('one'),
+            conditions: new TenantTermsOfUseRef('one'),
+            acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['user']['$ref']);
+        $this->assertEquals('one', $json['conditions']['$ref']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['acceptDate']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new UserAcceptedTermnsOfUse(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
@@ -98,15 +119,15 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
     {
         $base = new UserAcceptedTermnsOfUse(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $other = new UserAcceptedTermnsOfUse(
             uid: 'other',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['other'])->getMock(),
+            user: new UserRef('other'),
+            conditions: new TenantTermsOfUseRef('other'),
             acceptDate: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
         );
@@ -132,8 +153,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         // @Arrange
         $one = new UserAcceptedTermnsOfUse(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            conditions: $this->getMockBuilder(TenantTermsOfUseRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );

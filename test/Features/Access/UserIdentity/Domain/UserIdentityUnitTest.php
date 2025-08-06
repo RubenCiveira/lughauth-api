@@ -22,12 +22,12 @@ final class UserIdentityUnitTest extends TestCase
         // @Arrange
         $one = new UserIdentity(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('one'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('one')),
                 UserIdentityRolesVersionVO::from(1)
             )),
             version: 1,
@@ -54,24 +54,24 @@ final class UserIdentityUnitTest extends TestCase
         // @Arrange
         $base = new UserIdentity(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('one'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('one')),
                 UserIdentityRolesVersionVO::from(1)
             )),
             version: 1,
         );
         $other = new UserIdentity(
             uid: 'other',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['other'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['other'])->getMock(),
+            user: new UserRef('other'),
+            relyingParty: new RelyingPartyRef('other'),
+            trustedClient: new TrustedClientRef('other'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('other'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['other'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('other')),
                 UserIdentityRolesVersionVO::from(2)
             )),
             version: 2,
@@ -93,17 +93,47 @@ final class UserIdentityUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new UserIdentity(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
+                UserIdentityRolesUidVO::from('one'),
+                UserIdentityRolesRoleVO::from(new RoleRef('one')),
+                UserIdentityRolesVersionVO::from(1)
+            )),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['user']['$ref']);
+        $this->assertEquals('one', $json['relyingParty']['$ref']);
+        $this->assertEquals('one', $json['trustedClient']['$ref']);
+        $this->assertEquals('one', $json['roles'][0]['uid']);
+        $this->assertEquals('one', $json['roles'][0]['role']['$ref']);
+        $this->assertEquals(1, $json['roles'][0]['version']);
+        $this->assertCount(1, $json['roles']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new UserIdentity(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('one'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('one')),
                 UserIdentityRolesVersionVO::from(1)
             )),
             version: 1,
@@ -131,24 +161,24 @@ final class UserIdentityUnitTest extends TestCase
     {
         $base = new UserIdentity(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('one'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('one')),
                 UserIdentityRolesVersionVO::from(1)
             )),
             version: 1,
         );
         $other = new UserIdentity(
             uid: 'other',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['other'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['other'])->getMock(),
+            user: new UserRef('other'),
+            relyingParty: new RelyingPartyRef('other'),
+            trustedClient: new TrustedClientRef('other'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('other'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['other'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('other')),
                 UserIdentityRolesVersionVO::from(2)
             )),
             version: 2,
@@ -177,12 +207,12 @@ final class UserIdentityUnitTest extends TestCase
         // @Arrange
         $one = new UserIdentity(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
-            relyingParty: $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(),
-            trustedClient: $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
             roles: new UserIdentityRolesListRef(new UserIdentityRolesItem(
                 UserIdentityRolesUidVO::from('one'),
-                UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+                UserIdentityRolesRoleVO::from(new RoleRef('one')),
                 UserIdentityRolesVersionVO::from(1)
             )),
             version: 1,

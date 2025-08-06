@@ -12,9 +12,9 @@ final class UserIdentityTrustedClientVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock();
+        $value = new TrustedClientRef('one');
         $ref = UserIdentityTrustedClientVO::from($value);
-        $this->assertEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(), $ref->value());
+        $this->assertEquals(new TrustedClientRef('one'), $ref->value());
         $other = UserIdentityTrustedClientVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserIdentityTrustedClientVO::from($ref);

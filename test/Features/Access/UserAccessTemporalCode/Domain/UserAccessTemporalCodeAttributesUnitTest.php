@@ -22,17 +22,17 @@ final class UserAccessTemporalCodeAttributesUnitTest extends TestCase
     public function test(): void
     {
         $value = new UserAccessTemporalCodeAttributes();
-        $userOneValue = $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock();
-        $userOtherValue = $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock();
+        $userOneValue = new UserRef('one');
+        $userOtherValue = new UserRef('other');
         $copy = $value->user($userOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $value->getUser());
-        $this->assertNotEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(), $value->getUser());
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
+        $this->assertEquals(new UserRef('one'), $value->getUser());
+        $this->assertNotEquals(new UserRef('other'), $value->getUser());
+        $this->assertEquals(new UserRef('one'), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
+        $this->assertNotEquals(new UserRef('other'), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
         $value->unsetUser();
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
+        $this->assertEquals(new UserRef('other'), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
+        $this->assertNotEquals(new UserRef('one'), $value->getUserOrDefault(UserAccessTemporalCodeUserVO::from($userOtherValue))->value());
         $tempSecondFactorSeedOneValue = 'cyphered://cypher';
         $tempSecondFactorSeedOtherValue = 'cyphered://ocyphered';
         $copy = $value->tempSecondFactorSeed($tempSecondFactorSeedOneValue);

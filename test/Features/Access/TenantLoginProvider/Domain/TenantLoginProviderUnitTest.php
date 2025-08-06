@@ -15,7 +15,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         // @Arrange
         $one = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
@@ -59,7 +59,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         // @Arrange
         $base = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
@@ -73,7 +73,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         );
         $other = new TenantLoginProvider(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             name: 'other',
             source: TenantLoginProviderSourceOptions::GITHUB,
             disabled: false,
@@ -112,12 +112,45 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new TenantLoginProvider(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            name: 'one',
+            source: TenantLoginProviderSourceOptions::GOOGLE,
+            disabled: true,
+            directAccess: true,
+            publicKey: 'one',
+            privateKey: 'one',
+            certificate: 'one',
+            metadata: 'store://bin',
+            usersEnabledByDefault: true,
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals('one', $json['name']);
+        $this->assertEquals(TenantLoginProviderSourceOptions::GOOGLE, $json['source']);
+        $this->assertEquals(true, $json['disabled']);
+        $this->assertEquals(true, $json['directAccess']);
+        $this->assertEquals('one', $json['publicKey']);
+        $this->assertEquals('one', $json['privateKey']);
+        $this->assertEquals(true, $json['usersEnabledByDefault']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
@@ -162,7 +195,7 @@ final class TenantLoginProviderUnitTest extends TestCase
     {
         $base = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
@@ -176,7 +209,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         );
         $other = new TenantLoginProvider(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             name: 'other',
             source: TenantLoginProviderSourceOptions::GITHUB,
             disabled: false,
@@ -222,7 +255,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         // @Arrange
         $one = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
@@ -266,7 +299,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         // @Arrange
         $source = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,
@@ -295,7 +328,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         // @Arrange
         $source = new TenantLoginProvider(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             source: TenantLoginProviderSourceOptions::GOOGLE,
             disabled: true,

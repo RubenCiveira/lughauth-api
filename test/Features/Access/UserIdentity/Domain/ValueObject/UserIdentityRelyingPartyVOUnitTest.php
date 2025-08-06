@@ -12,9 +12,9 @@ final class UserIdentityRelyingPartyVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock();
+        $value = new RelyingPartyRef('one');
         $ref = UserIdentityRelyingPartyVO::from($value);
-        $this->assertEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(), $ref->value());
+        $this->assertEquals(new RelyingPartyRef('one'), $ref->value());
         $other = UserIdentityRelyingPartyVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserIdentityRelyingPartyVO::from($ref);

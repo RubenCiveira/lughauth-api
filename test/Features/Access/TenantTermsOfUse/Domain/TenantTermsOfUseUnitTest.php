@@ -14,7 +14,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         // @Arrange
         $one = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -43,7 +43,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         // @Arrange
         $base = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -52,7 +52,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         );
         $other = new TenantTermsOfUse(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             text: 'other',
             enabled: false,
             attached: 'store://obin',
@@ -76,12 +76,35 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new TenantTermsOfUse(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            text: 'one',
+            enabled: true,
+            attached: 'store://bin',
+            activationDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals(true, $json['enabled']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['activationDate']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -111,7 +134,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
     {
         $base = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -120,7 +143,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         );
         $other = new TenantTermsOfUse(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             text: 'other',
             enabled: false,
             attached: 'store://obin',
@@ -151,7 +174,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         // @Arrange
         $one = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -180,7 +203,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         // @Arrange
         $source = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -204,7 +227,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         // @Arrange
         $source = new TenantTermsOfUse(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',

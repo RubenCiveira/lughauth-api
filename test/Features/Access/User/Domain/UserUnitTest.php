@@ -16,7 +16,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $one = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -56,7 +56,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $base = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -72,7 +72,7 @@ final class UserUnitTest extends TestCase
         );
         $other = new User(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             name: 'other',
             password: 'cyphered://ocyphered',
             email: 'other@fakemail.net',
@@ -107,12 +107,49 @@ final class UserUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new User(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            name: 'one',
+            password: 'cyphered://cypher',
+            email: 'one@fakemail.net',
+            wellcomeAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            enabled: true,
+            approve: UserApproveOptions::UNVERIFIED,
+            temporalPassword: true,
+            useSecondFactors: true,
+            secondFactorSeed: 'cyphered://cypher',
+            blockedUntil: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            provider: 'one',
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals('one', $json['name']);
+        $this->assertEquals('one@fakemail.net', $json['email']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['wellcomeAt']);
+        $this->assertEquals(true, $json['enabled']);
+        $this->assertEquals(UserApproveOptions::UNVERIFIED, $json['approve']);
+        $this->assertEquals(true, $json['temporalPassword']);
+        $this->assertEquals(true, $json['useSecondFactors']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['blockedUntil']);
+        $this->assertEquals('one', $json['provider']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -153,7 +190,7 @@ final class UserUnitTest extends TestCase
     {
         $base = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -169,7 +206,7 @@ final class UserUnitTest extends TestCase
         );
         $other = new User(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             name: 'other',
             password: 'cyphered://ocyphered',
             email: 'other@fakemail.net',
@@ -211,7 +248,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $one = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -251,7 +288,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -282,7 +319,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -313,7 +350,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -344,7 +381,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -375,7 +412,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -406,7 +443,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -437,7 +474,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -468,7 +505,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',
@@ -506,7 +543,7 @@ final class UserUnitTest extends TestCase
         // @Arrange
         $source = new User(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             name: 'one',
             password: 'cyphered://cypher',
             email: 'one@fakemail.net',

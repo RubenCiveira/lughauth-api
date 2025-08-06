@@ -15,7 +15,7 @@ final class RoleUnitTest extends TestCase
         $one = new Role(
             uid: 'one',
             name: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             version: 1,
         );
 
@@ -37,13 +37,13 @@ final class RoleUnitTest extends TestCase
         $base = new Role(
             uid: 'one',
             name: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             version: 1,
         );
         $other = new Role(
             uid: 'other',
             name: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             version: 2,
         );
 
@@ -59,13 +59,32 @@ final class RoleUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new Role(
+            uid: 'one',
+            name: 'one',
+            tenant: new TenantRef('one'),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['name']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new Role(
             uid: 'one',
             name: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             version: 1,
         );
 
@@ -88,13 +107,13 @@ final class RoleUnitTest extends TestCase
         $base = new Role(
             uid: 'one',
             name: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             version: 1,
         );
         $other = new Role(
             uid: 'other',
             name: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             version: 2,
         );
 
@@ -118,7 +137,7 @@ final class RoleUnitTest extends TestCase
         $one = new Role(
             uid: 'one',
             name: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             version: 1,
         );
 

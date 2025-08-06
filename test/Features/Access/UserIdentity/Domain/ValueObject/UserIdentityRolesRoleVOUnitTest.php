@@ -12,9 +12,9 @@ final class UserIdentityRolesRoleVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = $this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock();
+        $value = new RoleRef('one');
         $ref = UserIdentityRolesRoleVO::from($value);
-        $this->assertEquals($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock(), $ref->value());
+        $this->assertEquals(new RoleRef('one'), $ref->value());
         $other = UserIdentityRolesRoleVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = UserIdentityRolesRoleVO::from($ref);

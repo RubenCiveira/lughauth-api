@@ -14,7 +14,7 @@ final class TenantConfigUnitTest extends TestCase
         // @Arrange
         $one = new TenantConfig(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
             allowRegister: true,
@@ -63,7 +63,7 @@ final class TenantConfigUnitTest extends TestCase
         // @Arrange
         $base = new TenantConfig(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
             allowRegister: true,
@@ -78,7 +78,7 @@ final class TenantConfigUnitTest extends TestCase
         );
         $other = new TenantConfig(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             innerLabel: 'other',
             forceMfa: false,
             allowRegister: false,
@@ -122,12 +122,44 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new TenantConfig(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            innerLabel: 'one',
+            forceMfa: true,
+            allowRegister: true,
+            enableRegisterUsers: true,
+            wellcomeEmail: 'one',
+            registerdEmail: 'one',
+            disabledUserEmail: 'one',
+            enabledUserEmail: 'one',
+            allowRecoverPass: true,
+            recoverPassEmail: 'one',
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals('one', $json['innerLabel']);
+        $this->assertEquals(true, $json['forceMfa']);
+        $this->assertEquals(true, $json['allowRegister']);
+        $this->assertEquals(true, $json['enableRegisterUsers']);
+        $this->assertEquals(true, $json['allowRecoverPass']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new TenantConfig(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
             allowRegister: true,
@@ -177,7 +209,7 @@ final class TenantConfigUnitTest extends TestCase
     {
         $base = new TenantConfig(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
             allowRegister: true,
@@ -192,7 +224,7 @@ final class TenantConfigUnitTest extends TestCase
         );
         $other = new TenantConfig(
             uid: 'other',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['other'])->getMock(),
+            tenant: new TenantRef('other'),
             innerLabel: 'other',
             forceMfa: false,
             allowRegister: false,
@@ -243,7 +275,7 @@ final class TenantConfigUnitTest extends TestCase
         // @Arrange
         $one = new TenantConfig(
             uid: 'one',
-            tenant: $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(),
+            tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
             allowRegister: true,

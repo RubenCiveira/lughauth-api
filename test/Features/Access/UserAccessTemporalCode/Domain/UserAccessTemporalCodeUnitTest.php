@@ -15,7 +15,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $one = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -56,7 +56,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $base = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -69,7 +69,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         );
         $other = new UserAccessTemporalCode(
             uid: 'other',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(),
+            user: new UserRef('other'),
             tempSecondFactorSeed: 'cyphered://ocyphered',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
@@ -105,12 +105,44 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new UserAccessTemporalCode(
+            uid: 'one',
+            user: new UserRef('one'),
+            tempSecondFactorSeed: 'cyphered://cypher',
+            tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            failedLoginAttempts: 1,
+            registerCode: 'one',
+            registerCodeUrl: 'one',
+            registerCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            recoveryCode: 'one',
+            recoveryCodeExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['user']['$ref']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['tempSecondFactorSeedExpiration']);
+        $this->assertEquals(1, $json['failedLoginAttempts']);
+        $this->assertEquals('one', $json['registerCode']);
+        $this->assertEquals('one', $json['registerCodeUrl']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['registerCodeExpiration']);
+        $this->assertEquals('one', $json['recoveryCode']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['recoveryCodeExpiration']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange
         $one = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -152,7 +184,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
     {
         $base = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -165,7 +197,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         );
         $other = new UserAccessTemporalCode(
             uid: 'other',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(),
+            user: new UserRef('other'),
             tempSecondFactorSeed: 'cyphered://ocyphered',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             failedLoginAttempts: 2,
@@ -208,7 +240,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $one = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -249,7 +281,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -277,7 +309,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -305,7 +337,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -333,7 +365,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -368,7 +400,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -402,7 +434,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -442,7 +474,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -482,7 +514,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,
@@ -516,7 +548,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         // @Arrange
         $source = new UserAccessTemporalCode(
             uid: 'one',
-            user: $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(),
+            user: new UserRef('one'),
             tempSecondFactorSeed: 'cyphered://cypher',
             tempSecondFactorSeedExpiration: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             failedLoginAttempts: 1,

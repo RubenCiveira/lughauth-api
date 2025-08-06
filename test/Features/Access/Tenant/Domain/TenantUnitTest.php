@@ -74,6 +74,33 @@ final class TenantUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new Tenant(
+            uid: 'one',
+            name: 'one',
+            root: true,
+            domain: 'one',
+            enabled: true,
+            markForDelete: true,
+            markForDeleteTime: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['name']);
+        $this->assertEquals(true, $json['root']);
+        $this->assertEquals('one', $json['domain']);
+        $this->assertEquals(true, $json['enabled']);
+        $this->assertEquals(true, $json['markForDelete']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['markForDeleteTime']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange

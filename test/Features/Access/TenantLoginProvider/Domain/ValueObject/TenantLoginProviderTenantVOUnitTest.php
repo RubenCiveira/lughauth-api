@@ -12,9 +12,9 @@ final class TenantLoginProviderTenantVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = $this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock();
+        $value = new TenantRef('one');
         $ref = TenantLoginProviderTenantVO::from($value);
-        $this->assertEquals($this->getMockBuilder(TenantRef::class)->setConstructorArgs(['one'])->getMock(), $ref->value());
+        $this->assertEquals(new TenantRef('one'), $ref->value());
         $other = TenantLoginProviderTenantVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TenantLoginProviderTenantVO::from($ref);

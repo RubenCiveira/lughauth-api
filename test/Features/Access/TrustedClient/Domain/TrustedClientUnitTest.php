@@ -92,6 +92,37 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new TrustedClient(
+            uid: 'one',
+            code: 'one',
+            publicAllow: true,
+            secretOauth: 'cyphered://cypher',
+            enabled: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
+            version: 1,
+        );
+
+        // @Act
+        $json = $one->asPublicJson();
+
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['code']);
+        $this->assertEquals(true, $json['publicAllow']);
+        $this->assertEquals(true, $json['enabled']);
+        $this->assertEquals('one', $json['allowedRedirects'][0]['uid']);
+        $this->assertEquals('one', $json['allowedRedirects'][0]['url']);
+        $this->assertEquals(1, $json['allowedRedirects'][0]['version']);
+        $this->assertCount(1, $json['allowedRedirects']);
+        $this->assertEquals(1, $json['version']);
+    }
     public function test_create_store_values(): void
     {
         // @Arrange

@@ -25,80 +25,80 @@ final class UserIdentityRetrieveResultUnitTest extends TestCase
     public function test(): void
     {
         $value = new UserIdentityRetrieveResult();
-        $userOneValue = $this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock();
-        $userOtherValue = $this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock();
+        $userOneValue = new UserRef('one');
+        $userOtherValue = new UserRef('other');
         $copy = $value->user($userOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $value->getUser());
-        $this->assertNotEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(), $value->getUser());
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
+        $this->assertEquals(new UserRef('one'), $value->getUser());
+        $this->assertNotEquals(new UserRef('other'), $value->getUser());
+        $this->assertEquals(new UserRef('one'), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
+        $this->assertNotEquals(new UserRef('other'), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
         $value->unsetUser();
-        $this->assertEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['other'])->getMock(), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(UserRef::class)->setConstructorArgs(['one'])->getMock(), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
-        $relyingPartyOneValue = $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock();
-        $relyingPartyOtherValue = $this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['other'])->getMock();
+        $this->assertEquals(new UserRef('other'), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
+        $this->assertNotEquals(new UserRef('one'), $value->getUserOrDefault(UserIdentityUserVO::from($userOtherValue))->value());
+        $relyingPartyOneValue = new RelyingPartyRef('one');
+        $relyingPartyOtherValue = new RelyingPartyRef('other');
         $copy = $value->relyingParty($relyingPartyOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(), $value->getRelyingParty());
-        $this->assertNotEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['other'])->getMock(), $value->getRelyingParty());
-        $this->assertEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['other'])->getMock(), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingParty());
+        $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingParty());
+        $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
         $value->unsetRelyingParty();
-        $this->assertEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['other'])->getMock(), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(RelyingPartyRef::class)->setConstructorArgs(['one'])->getMock(), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
-        $trustedClientOneValue = $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock();
-        $trustedClientOtherValue = $this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['other'])->getMock();
+        $this->assertEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertNotEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrDefault(UserIdentityRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $trustedClientOneValue = new TrustedClientRef('one');
+        $trustedClientOtherValue = new TrustedClientRef('other');
         $copy = $value->trustedClient($trustedClientOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTrustedClient());
-        $this->assertNotEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTrustedClient());
-        $this->assertEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertEquals(new TrustedClientRef('one'), $value->getTrustedClient());
+        $this->assertNotEquals(new TrustedClientRef('other'), $value->getTrustedClient());
+        $this->assertEquals(new TrustedClientRef('one'), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertNotEquals(new TrustedClientRef('other'), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
         $value->unsetTrustedClient();
-        $this->assertEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['other'])->getMock(), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
-        $this->assertNotEquals($this->getMockBuilder(TrustedClientRef::class)->setConstructorArgs(['one'])->getMock(), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertEquals(new TrustedClientRef('other'), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertNotEquals(new TrustedClientRef('one'), $value->getTrustedClientOrDefault(UserIdentityTrustedClientVO::from($trustedClientOtherValue))->value());
         $rolesOneValue = new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('one'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('one')),
             UserIdentityRolesVersionVO::from(1)
         ));
         $rolesOtherValue = new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('other'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['other'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('other')),
             UserIdentityRolesVersionVO::from(2)
         ));
         $copy = $value->roles($rolesOneValue);
         $this->assertSame($value, $copy);
         $this->assertEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('one'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('one')),
             UserIdentityRolesVersionVO::from(1)
         )), $value->getRoles());
         $this->assertNotEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('other'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['other'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('other')),
             UserIdentityRolesVersionVO::from(2)
         )), $value->getRoles());
         $this->assertEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('one'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('one')),
             UserIdentityRolesVersionVO::from(1)
         )), $value->getRolesOrDefault(UserIdentityRolesVO::from($rolesOtherValue))->value());
         $this->assertNotEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('other'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['other'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('other')),
             UserIdentityRolesVersionVO::from(2)
         )), $value->getRolesOrDefault(UserIdentityRolesVO::from($rolesOtherValue))->value());
         $value->unsetRoles();
         $this->assertEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('other'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['other'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('other')),
             UserIdentityRolesVersionVO::from(2)
         )), $value->getRolesOrDefault(UserIdentityRolesVO::from($rolesOtherValue))->value());
         $this->assertNotEquals(new UserIdentityRolesListRef(new UserIdentityRolesItem(
             UserIdentityRolesUidVO::from('one'),
-            UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            UserIdentityRolesRoleVO::from(new RoleRef('one')),
             UserIdentityRolesVersionVO::from(1)
         )), $value->getRolesOrDefault(UserIdentityRolesVO::from($rolesOtherValue))->value());
         $versionOneValue = 1;

@@ -16,7 +16,7 @@ class UserIdentityRolesItemUnitTest extends TestCase
     {
         $item = new UserIdentityRolesItem(
             uid: UserIdentityRolesUidVO::from('one'),
-            role: UserIdentityRolesRoleVO::from($this->getMockBuilder(RoleRef::class)->setConstructorArgs(['one'])->getMock()),
+            role: UserIdentityRolesRoleVO::from(new RoleRef('one')),
             version: UserIdentityRolesVersionVO::from(1)
         );
         $this->assertEquals('one', $item->uid());
