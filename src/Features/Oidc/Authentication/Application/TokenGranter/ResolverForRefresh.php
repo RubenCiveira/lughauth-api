@@ -35,6 +35,6 @@ class ResolverForRefresh implements TokenGranterStrategy
         $challenges = new AuthorizedChalleges();
         $challenges->session = true;
         $challenges->username = $key;
-        return $this->userLoginGateway->fillPreAuthenticated($tenant, $client, $challenges);
+        return $this->userLoginGateway->fillPreLoadById($tenant, $client, $challenges);
     }
 }
