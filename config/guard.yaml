@@ -6,7 +6,7 @@
   api-key-scope: sync
 /management/entity-changelo-query-ask:
   api-key-scope: sync
-/no-management:
+/management:
   roles: ['ROOT']
   # cidr: ['192.168.0.0/24']
   anonimous: false
