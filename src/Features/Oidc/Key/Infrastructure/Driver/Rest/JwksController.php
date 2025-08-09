@@ -21,7 +21,7 @@ class JwksController
     {
         $tenant = $args['tenant'];
         $key = $tenant . '_public_jwks';
-        if( $this->cacheInterface->has($key) ) {
+        if( !$this->cacheInterface->has($key) ) {
             $data = $this->tokenHandler->keysAsJwks($tenant);
             $this->cacheInterface->set($key, $data, new DateInterval("PT1H"));
         } else {
