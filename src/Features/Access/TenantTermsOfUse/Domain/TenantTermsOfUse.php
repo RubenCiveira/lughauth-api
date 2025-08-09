@@ -101,14 +101,14 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
     {
         $value = clone $this;
         $value->_enabled = TenantTermsOfUseEnabledVO::from(true);
-        $value->recordedEvents[] = new TenantTermsOfUseEnableEvent(payload: $value);
+        $value->recordedEvents[] = new TenantTermsOfUseEnableEvent(payload: $value, original: $this);
         return $value;
     }
     public function disable(): TenantTermsOfUse
     {
         $value = clone $this;
         $value->_enabled = TenantTermsOfUseEnabledVO::from(false);
-        $value->recordedEvents[] = new TenantTermsOfUseDisableEvent(payload: $value);
+        $value->recordedEvents[] = new TenantTermsOfUseDisableEvent(payload: $value, original: $this);
         return $value;
     }
     public function asPublicJson(): array

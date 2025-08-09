@@ -131,14 +131,14 @@ class TenantLoginProvider extends TenantLoginProviderRef
     {
         $value = clone $this;
         $value->_disabled = TenantLoginProviderDisabledVO::from(false);
-        $value->recordedEvents[] = new TenantLoginProviderEnableEvent(payload: $value);
+        $value->recordedEvents[] = new TenantLoginProviderEnableEvent(payload: $value, original: $this);
         return $value;
     }
     public function disable(): TenantLoginProvider
     {
         $value = clone $this;
         $value->_disabled = TenantLoginProviderDisabledVO::from(true);
-        $value->recordedEvents[] = new TenantLoginProviderDisableEvent(payload: $value);
+        $value->recordedEvents[] = new TenantLoginProviderDisableEvent(payload: $value, original: $this);
         return $value;
     }
     public function asPublicJson(): array

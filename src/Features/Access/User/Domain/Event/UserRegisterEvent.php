@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\User\Domain\User;
 class UserRegisterEvent extends UserUpdateEvent
 {
     public function __construct(
-        User $payload
+        User $payload,
+        User $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }

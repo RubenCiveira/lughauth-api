@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 class ApiKeyClientEnableEvent extends ApiKeyClientUpdateEvent
 {
     public function __construct(
-        ApiKeyClient $payload
+        ApiKeyClient $payload,
+        ApiKeyClient $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }

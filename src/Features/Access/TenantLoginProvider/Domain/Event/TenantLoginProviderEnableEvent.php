@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 class TenantLoginProviderEnableEvent extends TenantLoginProviderUpdateEvent
 {
     public function __construct(
-        TenantLoginProvider $payload
+        TenantLoginProvider $payload,
+        TenantLoginProvider $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }

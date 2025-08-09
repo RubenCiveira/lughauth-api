@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 class RelyingPartyDisableEvent extends RelyingPartyUpdateEvent
 {
     public function __construct(
-        RelyingParty $payload
+        RelyingParty $payload,
+        RelyingParty $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }

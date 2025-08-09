@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 class TrustedClientEnableEvent extends TrustedClientUpdateEvent
 {
     public function __construct(
-        TrustedClient $payload
+        TrustedClient $payload,
+        TrustedClient $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }

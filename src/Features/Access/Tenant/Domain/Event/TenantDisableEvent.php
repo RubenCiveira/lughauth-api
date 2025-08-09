@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 class TenantDisableEvent extends TenantUpdateEvent
 {
     public function __construct(
-        Tenant $payload
+        Tenant $payload,
+        Tenant $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }

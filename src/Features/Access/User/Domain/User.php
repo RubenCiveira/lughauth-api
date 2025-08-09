@@ -171,56 +171,56 @@ class User extends UserRef
         $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $attributes->provider(ProviderCalculator::calculateProvider());
         $value = $attributes->build();
-        $value->recordedEvents[] = new UserRegisterEvent(payload: $value);
+        $value->recordedEvents[] = new UserRegisterEvent(payload: $value, original: $this);
         return $value;
     }
     public function verify(UserApproveOptions|null $approve): User
     {
         $value = clone $this;
         $value->_approve = UserApproveVO::from($approve);
-        $value->recordedEvents[] = new UserVerifyEvent(payload: $value);
+        $value->recordedEvents[] = new UserVerifyEvent(payload: $value, original: $this);
         return $value;
     }
     public function accept(): User
     {
         $value = clone $this;
         $value->_approve = UserApproveVO::from(UserApproveOptions::ACCEPTED);
-        $value->recordedEvents[] = new UserAcceptEvent(payload: $value);
+        $value->recordedEvents[] = new UserAcceptEvent(payload: $value, original: $this);
         return $value;
     }
     public function reject(): User
     {
         $value = clone $this;
         $value->_approve = UserApproveVO::from(UserApproveOptions::REJECTED);
-        $value->recordedEvents[] = new UserRejectEvent(payload: $value);
+        $value->recordedEvents[] = new UserRejectEvent(payload: $value, original: $this);
         return $value;
     }
     public function disable(): User
     {
         $value = clone $this;
         $value->_enabled = UserEnabledVO::from(false);
-        $value->recordedEvents[] = new UserDisableEvent(payload: $value);
+        $value->recordedEvents[] = new UserDisableEvent(payload: $value, original: $this);
         return $value;
     }
     public function enable(): User
     {
         $value = clone $this;
         $value->_enabled = UserEnabledVO::from(true);
-        $value->recordedEvents[] = new UserEnableEvent(payload: $value);
+        $value->recordedEvents[] = new UserEnableEvent(payload: $value, original: $this);
         return $value;
     }
     public function unlock(): User
     {
         $value = clone $this;
         $value->_blockedUntil = UserBlockedUntilVO::from(null);
-        $value->recordedEvents[] = new UserUnlockEvent(payload: $value);
+        $value->recordedEvents[] = new UserUnlockEvent(payload: $value, original: $this);
         return $value;
     }
     public function block(\DateTimeImmutable|null $blockedUntil): User
     {
         $value = clone $this;
         $value->_blockedUntil = UserBlockedUntilVO::from($blockedUntil);
-        $value->recordedEvents[] = new UserBlockEvent(payload: $value);
+        $value->recordedEvents[] = new UserBlockEvent(payload: $value, original: $this);
         return $value;
     }
     public function setMfaSeed(AesCypherService $cypher, string|null $secondFactorSeed): User
@@ -228,7 +228,7 @@ class User extends UserRef
         $value = clone $this;
         $value->_secondFactorSeed = UserSecondFactorSeedVO::fromPlainText($cypher, $secondFactorSeed);
         $value->_useSecondFactors = UserUseSecondFactorsVO::from(true);
-        $value->recordedEvents[] = new UserSetMfaSeedEvent(payload: $value);
+        $value->recordedEvents[] = new UserSetMfaSeedEvent(payload: $value, original: $this);
         return $value;
     }
     public function changePassword(AesCypherService $cypher, string $password): User
@@ -236,7 +236,7 @@ class User extends UserRef
         $value = clone $this;
         $value->_password = UserPasswordVO::fromPlainText($cypher, $password);
         $value->_temporalPassword = UserTemporalPasswordVO::from(false);
-        $value->recordedEvents[] = new UserChangePasswordEvent(payload: $value);
+        $value->recordedEvents[] = new UserChangePasswordEvent(payload: $value, original: $this);
         return $value;
     }
     public function asPublicJson(): array

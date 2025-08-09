@@ -10,8 +10,9 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 class UserAccessTemporalCodeResetRegisterVerificationEvent extends UserAccessTemporalCodeUpdateEvent
 {
     public function __construct(
-        UserAccessTemporalCode $payload
+        UserAccessTemporalCode $payload,
+        UserAccessTemporalCode $original
     ) {
-        parent::__construct($payload);
+        parent::__construct($payload, $original);
     }
 }
