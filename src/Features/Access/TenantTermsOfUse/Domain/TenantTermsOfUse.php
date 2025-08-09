@@ -83,7 +83,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new TenantTermsOfUseUpdateEvent($value);
+        $value->recordedEvents[] = new TenantTermsOfUseUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): TenantTermsOfUse

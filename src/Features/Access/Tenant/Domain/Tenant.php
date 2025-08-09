@@ -92,7 +92,7 @@ class Tenant extends TenantRef
         $calculated->markForDelete(MarkForDeleteCalculator::calculateMarkForDelete($this));
         $calculated->markForDeleteTime(MarkForDeleteTimeCalculator::calculateMarkForDeleteTime($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new TenantUpdateEvent($value);
+        $value->recordedEvents[] = new TenantUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): Tenant

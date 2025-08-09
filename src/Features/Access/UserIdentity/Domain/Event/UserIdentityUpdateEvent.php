@@ -10,7 +10,8 @@ use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 class UserIdentityUpdateEvent extends UserIdentityEvent
 {
     public function __construct(
-        UserIdentity $payload
+        UserIdentity $payload,
+        public readonly UserIdentity $original
     ) {
         parent::__construct($payload);
     }

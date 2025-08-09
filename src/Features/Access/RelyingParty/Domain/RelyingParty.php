@@ -92,7 +92,7 @@ class RelyingParty extends RelyingPartyRef
         $calculated->scopes(ScopesCalculator::calculateScopes($this));
         $calculated->schemas(SchemasCalculator::calculateSchemas($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new RelyingPartyUpdateEvent($value);
+        $value->recordedEvents[] = new RelyingPartyUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): RelyingParty

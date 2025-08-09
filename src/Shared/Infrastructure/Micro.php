@@ -38,6 +38,7 @@ use OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditablePdoWrapper;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditMiddleware;
@@ -56,10 +57,14 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\PdoRateLimiterStorage;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\RateLimitMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
+use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 use DI\Container;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\FlockStore;
+use Symfony\Component\Lock\Store\RedisStore;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
@@ -67,15 +72,22 @@ class Micro
 {
     public readonly App $app;
     public readonly EventBus $bus;
+    // public readonly Scheduler $bus;
     public readonly AppConfig $config;
     public readonly MicroConfig $definition;
     public readonly ContainerInterface $container;
     public readonly ErrorMiddleware $errorHandler;
     private array $interfaces = [];
-    private array $startups = [];
 
-    public function __construct(ContainerBuilder $depenencies, ?MicroConfig $def = null)
+    private array $plugins = [];
+
+    public function __construct(private readonly ContainerBuilder $depenencies, private readonly ?MicroConfig $def = null)
     {
+    }
+    private function build(): void
+    {
+        $depenencies = $this->depenencies;
+        $def = $this->def;
         if (!$def) {
             $def = new MicroConfig();
         }
@@ -93,6 +105,7 @@ class Micro
         }
         $this->withContainer($defs, $depenencies);
         $this->withCache($defs);
+        $this->withLock($defs);
         $this->withLogging($defs);
         $this->withDatabase($defs);
         $this->withHttpClient($defs);
@@ -105,6 +118,10 @@ class Micro
         }
         if ($this->definition->withRate) {
             $this->withRate($defs);
+        }
+        foreach ($this->plugins as $base) {
+            $temp = $base->registerServiceDefinition($defs);
+            $defs = [...$defs, ...$temp];
         }
         $depenencies->addDefinitions($defs);
         $depenencies->useAutowiring(true);
@@ -127,7 +144,7 @@ class Micro
         $this->app = AppFactory::create();
         $container->set(App::class, $this->app);
         $this->container = $container;
-        $this->bus = $this->container->get(EventBus::class);
+        // $this->bus = $this->container->get(EventBus::class);
 
         // Opcional: definir base path si tu app no está en "/"
         $scriptName = $_SERVER['SCRIPT_NAME']; // Devuelve algo como "/midashboard/index.php"
@@ -162,17 +179,27 @@ class Micro
             echo $exception->getTraceAsString();
             die();
         });
+        $container->set(ErrorMiddleware::class, $this->errorHandler);
         $this->app->addRoutingMiddleware();
         CorsMiddleware::register($this->app);
         $this->interfaces = [];
         $this->register(new ErrorsPlugin());
         $this->register(new ManagementPlugin());
         $this->register(new GenericSecurityPlugin());
-        return $this->app;
+
+        foreach ($this->plugins as $base) {
+            $base->bindServices($container);
+            $managers = $base->getManagementsInterfaces($this->container);
+            foreach ($managers as $manager) {
+                $this->interfaces[] = $manager;
+            }
+        }
     }
 
     public function run()
     {
+        $this->build();
+
         $this->registerManagers($this->app, $this->container);
         $vardir = __DIR__.'/../../../var/';
         if (!is_dir($vardir)) {
@@ -187,7 +214,7 @@ class Micro
                     $logger = $this->container->get(LoggerInterface::class);
                 }
                 $processor = new StartupProcessor($logger);
-                foreach ($this->startups as $startup) {
+                foreach ($this->plugins as $startup) {
                     $startup->registerStartup($processor);
                 }
                 $processor->run($this->container);
@@ -197,7 +224,20 @@ class Micro
         }
         fclose($lockFile);
 
-        $this->app->run();
+        if (isset($_ENV['CRON'])) {
+            $logger = null;
+            if ($this->container->has(LoggerInterface::class)) {
+                $logger = $this->container->get(LoggerInterface::class);
+            }
+            $logger->info('Start scheduler manager');
+            $manager = $this->container->get(SchedulerManager::class);
+            $locker = $this->container->get(LockFactory::class);
+            $cache = $this->container->get(CacheInterface::class);
+            $manager->run($locker, $cache, $this->container);
+            $logger->info('Scheduler manager ready');
+        } else {
+            $this->app->run();
+        }
         if (function_exists('fastcgi_finish_request')) {
             fastcgi_finish_request();
         }
@@ -205,14 +245,7 @@ class Micro
 
     public function register(MicroPlugin $base)
     {
-        $base->registerRoutes($this->app);
-        $base->registerEvents($this->bus);
-        $base->registerErrorHandler($this->errorHandler);
-        $managers = $base->getManagementsInterfaces($this->container);
-        foreach ($managers as $manager) {
-            $this->interfaces[] = $manager;
-        }
-        $this->startups[] = $base;
+        $this->plugins[] = $base;
     }
 
     private function withTelementry(&$def)
@@ -326,6 +359,18 @@ class Micro
         }
     }
 
+    private function withLock(&$def)
+    {
+        $def[LockFactory::class] = function (AppConfig $conf) {
+            if ("redis" === $conf->get("app.state.vault.engine")) {
+                $store = new RedisStore(new \Redis());
+            } else {
+                $store = new FlockStore();
+            }
+            return new LockFactory($store);
+        };
+    }
+
     private function withLogging(&$def)
     {
         $def[LoggerInterface::class] = function (AppConfig $config, TraceContextProcessor $tracer) {
@@ -346,6 +391,9 @@ class Micro
     {
         $def[EventDispatcherInterface::class] = function (EventBus $bus) {
             return $bus->dispacher;
+        };
+        $def[EventListenersRegistrarInterface::class] = function (EventBus $bus) {
+            return $bus;
         };
     }
 

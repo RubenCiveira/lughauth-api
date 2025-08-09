@@ -74,7 +74,7 @@ class ApiKeyClient extends ApiKeyClientRef
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new ApiKeyClientUpdateEvent($value);
+        $value->recordedEvents[] = new ApiKeyClientUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): ApiKeyClient

@@ -6,17 +6,36 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure;
 
 use Psr\Container\ContainerInterface;
+use DI\Container;
+use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Middleware\ErrorMiddleware;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
+use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 
 abstract class MicroPlugin
 {
+    public function bindServices(Container $container)
+    {
+        $app = $container->get(App::class);
+        $this->registerRoutes($app);
+        $bus = $container->get(EventListenersRegistrarInterface::class);
+        $this->registerEvents($bus);
+        $scheduler = $container->get(SchedulerManager::class);
+        $this->registerSchedulers($scheduler);
+        $error = $container->get(ErrorMiddleware::class);
+        $this->registerErrorHandler($error);
+    }
+
     public function registerRoutes(RouteCollectorProxy $app)
     {
     }
 
     public function registerEvents(EventListenersRegistrarInterface $bus)
+    {
+    }
+
+    public function registerSchedulers(SchedulerManager $bus)
     {
     }
 
@@ -31,5 +50,10 @@ abstract class MicroPlugin
 
     public function registerStartup(StartupProcessor $processor): void
     {
+    }
+
+    public function registerServiceDefinition(array $def): array
+    {
+        return $def;
     }
 }

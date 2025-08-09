@@ -107,68 +107,128 @@ class EntityChangeLogService
         }
     }
 
-    public function getChangesSince(string $entityType, \DateTimeImmutable $since): array
-    {
-        $stmt = $this->pdo->prepare(
-            'SELECT entity_type, entity_id, deleted, changed_at, payload
-             FROM _audit_changelog
-             WHERE entity_type = :entity_type AND changed_at > :since
-             ORDER BY changed_at ASC'
-        );
-
-        $stmt->execute([
-            'entity_type' => $entityType,
-            'since' => $since->format('Y-m-d H:i:s'),
-        ]);
-
-        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-
-        return array_map(fn (array $row) => new EntityChangeLogEntry(
-            $row['entity_type'],
-            $row['entity_id'],
-            (bool)$row['deleted'],
-            new \DateTimeImmutable($row['changed_at']),
-            json_decode($row['payload'], true)
-        ), $rows);
-    }
-
-    public function getPendingChanges(string $entityType, string $clientId, int $limit = 100): array
-    {
+    public function getPendingChanges(
+        string $entityType,
+        string $clientId,
+        int $limit = 100,
+        array $filters = []
+    ): array {
+        // 1) Leer cursor
         $cursor = $this->pdo->prepare(
             'SELECT last_changed_at, last_entity_id
          FROM _audit_sync_cursor
          WHERE client_id = :client_id AND entity_type = :entity_type'
         );
-
         $cursor->execute([
-            'client_id' => $clientId,
-            'entity_type' => $entityType
+            'client_id'   => $clientId,
+            'entity_type' => $entityType,
         ]);
-
         $row = $cursor->fetch(\PDO::FETCH_ASSOC);
 
         $fromDate = $row ? $row['last_changed_at'] : '1970-01-01 00:00:00';
         $fromId   = $row ? $row['last_entity_id'] : '00000000-0000-0000-0000-000000000000';
 
-        $stmt = $this->pdo->prepare(
-            'SELECT * FROM _audit_changelog
-         WHERE entity_type = :entity_type
-           AND (
-             changed_at > :fromDate OR
-             (changed_at = :fromDate AND entity_id > :fromId)
-           )
-         ORDER BY changed_at ASC, entity_id ASC
-         LIMIT :limit'
-        );
+        // 2) Construir SQL base (orden estable por changed_at, entity_id)
+        $sql = '
+        SELECT entity_type, entity_id, deleted, changed_at, payload
+        FROM _audit_changelog
+        WHERE entity_type = :entity_type
+          AND (
+            changed_at > :fromDate OR
+            (changed_at = :fromDate AND entity_id > :fromId)
+          )
+    ';
 
-        $stmt->bindValue(':entity_type', $entityType);
-        $stmt->bindValue(':fromDate', $fromDate);
-        $stmt->bindValue(':fromId', $fromId);
+        $params = [
+            'entity_type' => $entityType,
+            'fromDate'    => $fromDate,
+            'fromId'      => $fromId,
+        ];
+
+        // 3) Añadir filtros portables
+        foreach ($filters as $key => $value) {
+            // $key = "campo.op" (eq|neq|in)
+            $parts = explode('_', $key);
+            $op = array_pop($parts);           // último elemento: eq, neq, in...
+            $field = implode('_', $parts);     // resto unido con "_"
+            $paramBase = 'f_' . preg_replace('/\W+/', '_', $field);
+
+            $jsonExpr = $this->jsonTextExpr($field, $paramBase, $params);
+            $driverHasJson = $jsonExpr !== null;
+
+            switch (strtolower($op)) {
+                case 'eq':
+                    if ($driverHasJson) {
+                        $sql .= " AND $jsonExpr = :$paramBase";
+                        $params[$paramBase] = (string)$value;
+                    } else {
+                        $sql .= " AND payload LIKE :like_$paramBase ESCAPE '\\\\'";
+                        $params["like_$paramBase"] = $this->buildJsonLike($field, (string)$value);
+                    }
+                    break;
+
+                case 'neq':
+                    if ($driverHasJson) {
+                        $sql .= " AND ($jsonExpr IS NULL OR $jsonExpr <> :$paramBase)";
+                        $params[$paramBase] = (string)$value;
+                    } else {
+                        $sql .= " AND payload NOT LIKE :like_$paramBase ESCAPE '\\\\'";
+                        $params["like_$paramBase"] = $this->buildJsonLike($field, (string)$value);
+                    }
+                    break;
+
+                case 'in':
+                    if (!is_iterable($value)) {
+                        throw new \InvalidArgumentException("El operador 'in' requiere un array de valores");
+                    }
+                    if ($driverHasJson) {
+                        $phs = [];
+                        $i = 0;
+                        foreach ($value as $v) {
+                            $ph = "{$paramBase}_$i";
+                            $phs[] = ':' . $ph;
+                            $params[$ph] = (string)$v;
+                            $i++;
+                        }
+                        if ($phs) {
+                            $sql .= " AND $jsonExpr IN (" . implode(',', $phs) . ")";
+                        }
+                    } else {
+                        $likes = [];
+                        $i = 0;
+                        foreach ($value as $v) {
+                            $ph = "like_{$paramBase}_$i";
+                            $likes[] = "payload LIKE :$ph ESCAPE '\\\\'";
+                            $params[$ph] = $this->buildJsonLike($field, (string)$v);
+                            $i++;
+                        }
+                        if ($likes) {
+                            $sql .= ' AND (' . implode(' OR ', $likes) . ')';
+                        }
+                    }
+                    break;
+
+                default:
+                    throw new \InvalidArgumentException("Operador no soportado: $op");
+            }
+        }
+
+        $sql .= ' ORDER BY changed_at ASC, entity_id ASC LIMIT :limit';
+
+        // 4) Preparar y ejecutar
+        $stmt = $this->pdo->prepare($sql);
+
+        // Parámetros escalares
+        foreach ($params as $k => $v) {
+            $stmt->bindValue(':' . $k, $v);
+        }
+        // Límite como int
         $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
-        $stmt->execute();
 
+        $stmt->execute();
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
+        // 5) Mapear resultado
         return array_map(fn ($row) => new EntityChangeLogEntry(
             $row['entity_type'],
             $row['entity_id'],
@@ -246,5 +306,53 @@ class EntityChangeLogService
         ]);
 
         return (bool)$stmt->fetchColumn();
+    }
+
+    private function dbDriver(): string
+    {
+        return $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME); // 'mysql' | 'pgsql' | 'sqlite' | ...
+    }
+
+    private function jsonTextExpr(string $field, string $paramBase, array &$params): ?string
+    {
+        $driver = $this->dbDriver();
+
+        switch ($driver) {
+            case 'mysql':
+                // JSON_UNQUOTE(JSON_EXTRACT(payload, '$.field'))
+                $params["path_$paramBase"] = '$.' . $field;
+                return "JSON_UNQUOTE(JSON_EXTRACT(payload, :path_$paramBase))";
+
+            case 'pgsql':
+                // (payload::json->>'field') con clave parametrizada
+                // En PG se puede parametrizar el segundo operando (text)
+                $params["key_$paramBase"] = $field;
+                return "(payload::json->>:key_$paramBase)";
+
+            case 'sqlite':
+                // json_extract(payload, '$.field')
+                $params["path_$paramBase"] = '$.' . $field;
+                return "json_extract(payload, :path_$paramBase)";
+
+            default:
+                // Fallback: no hay expresión portable -> usar LIKE sobre payload (devuelve null aquí)
+                return null;
+        }
+    }
+
+    /** Construye un patrón LIKE para '"campo":"valor"' con escape seguro. */
+    private function buildJsonLike(string $field, string $value): string
+    {
+        // JSON-encode para meter comillas correctas y escapes de caracteres especiales
+        $f = json_encode((string)$field, JSON_UNESCAPED_UNICODE);   // => "\"campo\""
+        $v = json_encode((string)$value, JSON_UNESCAPED_UNICODE);   // => "\"valor\""
+
+        // Patrón básico: %"campo":"valor"%
+        $pattern = '%' . $f . ':' . $v . '%';
+
+        // Escapar comodines de LIKE por si value trae % o _
+        $pattern = str_replace(['%',  '_'], ['\%', '\_'], $pattern);
+
+        return $pattern;
     }
 }

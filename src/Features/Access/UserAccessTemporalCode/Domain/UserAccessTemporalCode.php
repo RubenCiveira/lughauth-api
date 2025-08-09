@@ -113,7 +113,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $calculated = clone $values;
         $calculated->failedLoginAttempts(FailedLoginAttemptsCalculator::calculateFailedLoginAttempts($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new UserAccessTemporalCodeUpdateEvent($value);
+        $value->recordedEvents[] = new UserAccessTemporalCodeUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): UserAccessTemporalCode

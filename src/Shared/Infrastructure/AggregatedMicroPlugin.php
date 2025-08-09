@@ -10,6 +10,7 @@ use Psr\Container\ContainerInterface;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
+use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 
 abstract class AggregatedMicroPlugin extends MicroPlugin
 {
@@ -34,6 +35,14 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
     }
 
     #[Override]
+    public function registerSchedulers(SchedulerManager $scheduler)
+    {
+        foreach ($this->delegated as $del) {
+            $del->registerSchedulers($scheduler);
+        }
+    }
+
+    #[Override]
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
         $result = [];
@@ -51,12 +60,20 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         }
     }
 
-
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
     {
         foreach ($this->delegated as $del) {
             $del->registerStartup($processor);
         }
+    }
+
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        foreach ($this->delegated as $del) {
+            $def = $del->registerServiceDefinition($def);
+        }
+        return $def;
     }
 }

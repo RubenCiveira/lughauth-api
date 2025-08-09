@@ -10,7 +10,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 class TenantConfigUpdateEvent extends TenantConfigEvent
 {
     public function __construct(
-        TenantConfig $payload
+        TenantConfig $payload,
+        public readonly TenantConfig $original
     ) {
         parent::__construct($payload);
     }

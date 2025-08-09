@@ -10,7 +10,8 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 class UserAccessTemporalCodeUpdateEvent extends UserAccessTemporalCodeEvent
 {
     public function __construct(
-        UserAccessTemporalCode $payload
+        UserAccessTemporalCode $payload,
+        public readonly UserAccessTemporalCode $original
     ) {
         parent::__construct($payload);
     }

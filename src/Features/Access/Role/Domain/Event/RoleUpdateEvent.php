@@ -10,7 +10,8 @@ use Civi\Lughauth\Features\Access\Role\Domain\Role;
 class RoleUpdateEvent extends RoleEvent
 {
     public function __construct(
-        Role $payload
+        Role $payload,
+        public readonly Role $original
     ) {
         parent::__construct($payload);
     }

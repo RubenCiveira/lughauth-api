@@ -56,7 +56,7 @@ class Role extends RoleRef
     public function update(RoleAttributes $values): Role
     {
         $value = $this->replace($values);
-        $value->recordedEvents[] = new RoleUpdateEvent($value);
+        $value->recordedEvents[] = new RoleUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): Role

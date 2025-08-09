@@ -147,7 +147,7 @@ class User extends UserRef
         $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil($this));
         $calculated->provider(ProviderCalculator::calculateProvider($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new UserUpdateEvent($value);
+        $value->recordedEvents[] = new UserUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): User

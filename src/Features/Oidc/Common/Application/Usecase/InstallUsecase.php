@@ -148,6 +148,15 @@ class InstallUsecase
         $apiKey->scopes('collect');
         $created = $this->apiKeys->create(ApiKeyClient::create($apiKey));
         $this->apiKeys->update($created, $created->enable());
+
+        $apiKey = new ApiKeyClientAttributes();
+        $apiKey->uid(Random::comb());
+        $apiKey->code('Initial syn client');
+        $apiKey->key('sck_01jtteh99vbsv4qrj22trvh3wg35g2n3tgkcxngqv0034y2cby7dceaf43');
+        $apiKey->scopes('sync');
+        $created = $this->apiKeys->create(ApiKeyClient::create($apiKey));
+        $this->apiKeys->update($created, $created->enable());
+
     }
 
 }

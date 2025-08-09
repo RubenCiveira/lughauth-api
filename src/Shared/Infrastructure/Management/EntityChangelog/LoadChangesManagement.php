@@ -32,10 +32,17 @@ class LoadChangesManagement implements ManagementInterface
             if (isset($params['entity'])
                     && isset($params['limit'])
                     && isset($params['queue'])) {
+                $filter = [];
+                foreach ($params as $k => $v) {
+                    if (str_starts_with($k, 'filter_')) {
+                        $filter[ substr($k, 7)] = $v;
+                    }
+                }
                 return $this->query->getPendingChanges(
                     $params['entity'],
                     $params['queue'],
-                    intval($params['limit'])
+                    intval($params['limit']),
+                    $filter
                 );
             } else {
                 throw ConstraintException::ofError(

@@ -71,7 +71,7 @@ class UserIdentity extends UserIdentityRef
     public function update(UserIdentityAttributes $values): UserIdentity
     {
         $value = $this->replace($values);
-        $value->recordedEvents[] = new UserIdentityUpdateEvent($value);
+        $value->recordedEvents[] = new UserIdentityUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): UserIdentity

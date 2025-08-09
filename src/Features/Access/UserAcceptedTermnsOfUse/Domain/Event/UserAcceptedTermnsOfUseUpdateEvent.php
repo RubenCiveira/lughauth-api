@@ -10,7 +10,8 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTer
 class UserAcceptedTermnsOfUseUpdateEvent extends UserAcceptedTermnsOfUseEvent
 {
     public function __construct(
-        UserAcceptedTermnsOfUse $payload
+        UserAcceptedTermnsOfUse $payload,
+        public readonly UserAcceptedTermnsOfUse $original
     ) {
         parent::__construct($payload);
     }

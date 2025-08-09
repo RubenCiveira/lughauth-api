@@ -81,7 +81,7 @@ class TrustedClient extends TrustedClientRef
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new TrustedClientUpdateEvent($value);
+        $value->recordedEvents[] = new TrustedClientUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): TrustedClient

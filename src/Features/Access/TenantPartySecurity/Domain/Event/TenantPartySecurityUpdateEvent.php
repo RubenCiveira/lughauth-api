@@ -10,7 +10,8 @@ use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity
 class TenantPartySecurityUpdateEvent extends TenantPartySecurityEvent
 {
     public function __construct(
-        TenantPartySecurity $payload
+        TenantPartySecurity $payload,
+        public readonly TenantPartySecurity $original
     ) {
         parent::__construct($payload);
     }

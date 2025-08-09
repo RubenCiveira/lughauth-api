@@ -61,7 +61,9 @@
     "open-telemetry/exporter-otlp": "*",
     "robthree/twofactorauth": "*",
     "endroid/qr-code": "*",
-    "symfony/cache": "*"
+    "symfony/cache": "*",
+    "dragonmantank/cron-expression": "*",
+    "symfony/lock": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "*",

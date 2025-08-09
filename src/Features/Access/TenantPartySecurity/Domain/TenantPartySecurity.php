@@ -63,7 +63,7 @@ class TenantPartySecurity extends TenantPartySecurityRef
     public function update(TenantPartySecurityAttributes $values): TenantPartySecurity
     {
         $value = $this->replace($values);
-        $value->recordedEvents[] = new TenantPartySecurityUpdateEvent($value);
+        $value->recordedEvents[] = new TenantPartySecurityUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): TenantPartySecurity

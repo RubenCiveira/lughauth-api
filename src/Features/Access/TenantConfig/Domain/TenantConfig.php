@@ -110,7 +110,7 @@ class TenantConfig extends TenantConfigRef
     public function update(TenantConfigAttributes $values): TenantConfig
     {
         $value = $this->replace($values);
-        $value->recordedEvents[] = new TenantConfigUpdateEvent($value);
+        $value->recordedEvents[] = new TenantConfigUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): TenantConfig

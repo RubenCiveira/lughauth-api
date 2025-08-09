@@ -63,7 +63,7 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
     public function update(UserAcceptedTermnsOfUseAttributes $values): UserAcceptedTermnsOfUse
     {
         $value = $this->replace($values);
-        $value->recordedEvents[] = new UserAcceptedTermnsOfUseUpdateEvent($value);
+        $value->recordedEvents[] = new UserAcceptedTermnsOfUseUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): UserAcceptedTermnsOfUse

@@ -113,7 +113,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $calculated = clone $values;
         $calculated->disabled(DisabledCalculator::calculateDisabled($this));
         $value = $this->replace($calculated);
-        $value->recordedEvents[] = new TenantLoginProviderUpdateEvent($value);
+        $value->recordedEvents[] = new TenantLoginProviderUpdateEvent($value, $this);
         return $value;
     }
     public function delete(): TenantLoginProvider
