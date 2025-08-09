@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTer
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermnsOfUseWriteRepository
 {
@@ -29,7 +29,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
     public function __construct(
         private readonly UserAcceptedTermnsOfUsePdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

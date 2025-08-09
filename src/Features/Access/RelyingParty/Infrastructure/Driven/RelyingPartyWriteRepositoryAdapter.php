@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
 {
@@ -27,7 +27,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
     public function __construct(
         private readonly RelyingPartyPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class RoleWriteRepositoryAdapter implements RoleWriteRepository
 {
@@ -28,7 +28,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
     public function __construct(
         private readonly RolePdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

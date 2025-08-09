@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWriteRepository
 {
@@ -29,7 +29,7 @@ class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWr
     public function __construct(
         private readonly TenantPartySecurityPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

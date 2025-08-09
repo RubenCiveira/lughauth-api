@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
 {
@@ -28,7 +28,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
     public function __construct(
         private readonly TenantConfigPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

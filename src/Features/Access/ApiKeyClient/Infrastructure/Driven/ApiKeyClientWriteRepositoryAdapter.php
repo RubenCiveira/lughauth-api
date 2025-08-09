@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
 {
@@ -27,7 +27,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
     public function __construct(
         private readonly ApiKeyClientPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

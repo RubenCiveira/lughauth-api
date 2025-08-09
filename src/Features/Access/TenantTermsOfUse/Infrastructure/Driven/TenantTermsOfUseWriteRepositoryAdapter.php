@@ -21,7 +21,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRepository
 {
@@ -32,7 +32,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
         private readonly PdoFileStorage $store,
         private readonly TenantTermsOfUsePdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

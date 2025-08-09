@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
 {
@@ -27,7 +27,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
     public function __construct(
         private readonly UserIdentityPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

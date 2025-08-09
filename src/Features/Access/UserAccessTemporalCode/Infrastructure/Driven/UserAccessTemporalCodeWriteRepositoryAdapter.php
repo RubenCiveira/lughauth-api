@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporalCodeWriteRepository
 {
@@ -28,7 +28,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
     public function __construct(
         private readonly UserAccessTemporalCodePdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

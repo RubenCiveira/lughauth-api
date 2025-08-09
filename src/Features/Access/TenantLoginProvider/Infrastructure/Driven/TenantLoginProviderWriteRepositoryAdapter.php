@@ -22,7 +22,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
 class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWriteRepository
 {
@@ -33,7 +33,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         private readonly PdoFileStorage $store,
         private readonly TenantLoginProviderPdoConnector $conn,
         private readonly EventDispatcherInterface $dispacher,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
     #[Override]

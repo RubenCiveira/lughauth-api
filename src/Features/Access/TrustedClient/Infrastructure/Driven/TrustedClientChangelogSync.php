@@ -7,8 +7,8 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven;
 
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent;
 
 class TrustedClientChangelogSync
 {
@@ -17,10 +17,10 @@ class TrustedClientChangelogSync
 
     public function __construct(
         private readonly TrustedClientPdoConnector $conn,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
-    public function __invoke(EntityChangeLogSyncEvent $event): EntityChangeLogSyncEvent
+    public function __invoke(EntityChangelogSyncEvent $event): EntityChangelogSyncEvent
     {
         $values = $this->conn->list(null, null);
         $traces = [];

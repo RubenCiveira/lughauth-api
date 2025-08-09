@@ -7,8 +7,8 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Dr
 
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent;
 
 class UserAccessTemporalCodeChangelogSync
 {
@@ -17,10 +17,10 @@ class UserAccessTemporalCodeChangelogSync
 
     public function __construct(
         private readonly UserAccessTemporalCodePdoConnector $conn,
-        private readonly EntityChangeLogService $changelog,
+        private readonly EntityChangelogService $changelog,
     ) {
     }
-    public function __invoke(EntityChangeLogSyncEvent $event): EntityChangeLogSyncEvent
+    public function __invoke(EntityChangelogSyncEvent $event): EntityChangelogSyncEvent
     {
         $values = $this->conn->list(null, null);
         $traces = [];
