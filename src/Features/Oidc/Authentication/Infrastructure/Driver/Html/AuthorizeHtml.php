@@ -71,7 +71,7 @@ class AuthorizeHtml
         $audiences = $query['audience'] ?? '';
         $prompt = $query['prompt'] ?? '';
         $cookies = $request->getCookieParams();
-        $session = $cookies['AUTH_SESSION_ID'] ?? '';
+        $session = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? '';
         $locale = $request->getHeader('accept-language')[0];
 
         // Public login interface => client allowed
@@ -102,7 +102,7 @@ class AuthorizeHtml
         $prompt = $query['prompt'] ?? '';
         $audiences = $query['audience'] ?? '';
         $cookies = $request->getCookieParams();
-        $session = $cookies['AUTH_SESSION_ID'] ?? '';
+        $session = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? '';
         $locale = $request->getHeader('accept-language')[0];
 
         $client = $this->verifyClient($clientId, $tenant, $redirect, $scope);
@@ -228,7 +228,7 @@ class AuthorizeHtml
         AuthenticationRequest $authRequest
     ): ResponseInterface {
         $cookie = new Cookie(
-            name: 'AUTH_SESSION_ID',
+            name: 'AUTH_SESSION_ID_' . strtoupper($tenant),
             value: $auth->getSessionId(),
             path: $base . '/openid/' . $tenant . '/',
             secure: false,
@@ -286,7 +286,7 @@ class AuthorizeHtml
 
     private function clearSession(ResponseInterface $response, string $base, string $tenant): ResponseInterface
     {
-        $authCookie = new Cookie(name: 'AUTH_SESSION_ID', path: $base . '/openid/' . $tenant . '/');
+        $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $base . '/openid/' . $tenant . '/');
         $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $base . '/openid/' . $tenant . '/');
         return $preCookie->remove($authCookie->remove($response));
     }
