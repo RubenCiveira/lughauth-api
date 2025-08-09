@@ -8,17 +8,25 @@ namespace Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use DateInterval;
+use Psr\SimpleCache\CacheInterface;
 
 class JwksController
 {
-    public function __construct(private readonly KeysManagerService $tokenHandler)
+    public function __construct(private readonly KeysManagerService $tokenHandler, private readonly CacheInterface $cacheInterface)
     {
     }
 
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $data = $this->tokenHandler->keysAsJwks($tenant);
+        $key = $tenant . '_public_jwks';
+        if( $this->cacheInterface->has($key) ) {
+            $data = $this->tokenHandler->keysAsJwks($tenant);
+            $this->cacheInterface->set($key, $data, new DateInterval("PT1H"));
+        } else {
+            $data = $this->cacheInterface->get( $key );
+        }
         $response->getBody()->write(json_encode($data));
         return $response->withHeader('Content-Type', 'application/json');
     }
