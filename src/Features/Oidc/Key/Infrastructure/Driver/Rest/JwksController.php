@@ -20,14 +20,19 @@ class JwksController
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $key = $tenant . '_public_jwks';
+        $key = $tenant . '_public_txt_jwks';
         if (!$this->cacheInterface->has($key)) {
             $data = $this->tokenHandler->keysAsJwks($tenant);
-            $this->cacheInterface->set($key, $data, new DateInterval("PT1H"));
+            $txt = json_encode($data);
+            $this->cacheInterface->set($key, $txt, new DateInterval("PT1H"));
         } else {
-            $data = $this->cacheInterface->get($key);
+            $txt = $this->cacheInterface->get($key);
         }
-        $response->getBody()->write(json_encode($data));
-        return $response->withHeader('Content-Type', 'application/json');
+        $etag = '"' . md5($txt) . '"';
+        $response->getBody()->write($txt);
+        return $response
+                    ->withHeader('Etag', $etag)
+                    ->withHeader('Cache-Control', 'public, max-age=3600, immutable')
+                    ->withHeader('Content-Type', 'application/json');
     }
 }
