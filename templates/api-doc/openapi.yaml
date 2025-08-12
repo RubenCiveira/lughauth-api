@@ -990,6 +990,141 @@ paths:
                 $ref: '#/components/schemas/TenantLoginProviderApiDTO'
         404:
           description: 'Not found'
+  /api/me/acl/access/tenant-party-security:
+    get:
+      tags:
+        - 'Tenant party security access control'
+      description: Allows
+      operationId: 5d42ce490ca7a77f079a045bd25ab42b
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/tenant-party-security/{uid}':
+    get:
+      tags:
+        - 'Tenant party security access control'
+      description: Allows
+      operationId: 2fc4c1e8b3610119cf329ee917f5acc9
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/tenant-party-security:
+    get:
+      tags:
+        - 'Tenant party security'
+      description: Create
+      operationId: a578466bc8517dccedab6575e4cfce27
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantPartySecurityApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Tenant party security'
+      description: Create
+      operationId: 2c5dd9b9adb50f9a88a87f01d0997c7e
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/tenant-party-security/{uid}':
+    put:
+      tags:
+        - 'Tenant party security'
+      description: 'Update the value'
+      operationId: 120c75850d592288dc788460634a400f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Tenant party security'
+      description: 'Delete the record'
+      operationId: 4821faa8e38e1d19ef6bf0c7f926bb48
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/tenant-party-security{uid}':
+    get:
+      tags:
+        - 'Tenant party security'
+      description: Create
+      operationId: e1166493c632153bc78ec9d8164cdb60
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/tenants-terms-of-use:
     get:
       tags:
@@ -1348,6 +1483,28 @@ paths:
                 $ref: '#/components/schemas/TrustedClientApiDTO'
         404:
           description: 'Not found'
+  '/api/access/users/{uid}/accept':
+    patch:
+      tags:
+        - User
+      description: 'Update the value'
+      operationId: 8a12c2f79345a56b806313d66c321f71
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/users:
     get:
       tags:
@@ -1489,6 +1646,28 @@ paths:
         - User
       description: 'Update the value'
       operationId: 3bec14fd4e4947ad560d792824a6c728
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/users/{uid}/reject':
+    patch:
+      tags:
+        - User
+      description: 'Update the value'
+      operationId: 40dd2f0c96994dd41ca89d5959a73df1
       parameters:
         -
           name: uid
@@ -2023,6 +2202,52 @@ components:
           description: 'A link to retrieve next page'
           type: string
       type: object
+    TenantPartySecurityApiDTO:
+      title: 'Tenant party security'
+      description: tenant-party-security
+      properties:
+        uid:
+          title: uid
+          description: 'A uid string to identify the entity'
+          type: string
+        tenant:
+          title: tenant
+          description: 'El tenant de tenant party security'
+          properties:
+            $ref:
+              type: string
+          type: object
+        relyingParty:
+          title: 'relying party'
+          description: 'El relying party de tenant party security'
+          properties:
+            $ref:
+              type: string
+          type: object
+        policies:
+          title: policies
+          description: 'El policies de tenant party security'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de tenant party security para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TenantPartySecurityApiListDTO:
+      title: 'Tenant party security'
+      description: tenant-party-security
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantPartySecurityApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
     TenantTermsOfUseApiDTO:
       title: 'Tenant terms of use'
       description: tenant-terms-of-use
@@ -2153,6 +2378,15 @@ components:
           title: enabled
           description: 'A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.'
           type: string
+        approve:
+          title: approve
+          description: 'El approve de user'
+          type: string
+          enum:
+            - UNVERIFIED
+            - PENDING
+            - ACCEPTED
+            - REJECTED
         temporalPassword:
           title: 'temporal password'
           description: 'El temporal password de user'
@@ -2280,6 +2514,12 @@ tags:
     name: 'Tenant login provider'
     description: 'Tenant login provider'
   -
+    name: 'Tenant party security access control'
+    description: 'Tenant party security access control'
+  -
+    name: 'Tenant party security'
+    description: 'Tenant party security'
+  -
     name: 'Tenant terms of use access control'
     description: 'Tenant terms of use access control'
   -
@@ -2292,11 +2532,11 @@ tags:
     name: 'Trusted client'
     description: 'Trusted client'
   -
-    name: 'User access control'
-    description: 'User access control'
-  -
     name: User
     description: User
+  -
+    name: 'User access control'
+    description: 'User access control'
   -
     name: 'User identity access control'
     description: 'User identity access control'
