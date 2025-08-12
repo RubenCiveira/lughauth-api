@@ -131,6 +131,7 @@ class TrustedClientListController
             $dto->code = $value->getCode();
             $dto->publicAllow = $value->getPublicAllow();
             $dto->secretOauth = '******';
+            $dto->enabled = $value->getEnabled();
             $allowedRedirects = [];
             foreach ($value->getAllowedRedirects() as $item) {
                 $allowedRedirects[] = [

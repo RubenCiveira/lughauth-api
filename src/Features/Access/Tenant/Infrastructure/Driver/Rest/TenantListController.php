@@ -9,6 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use OpenApi\Attributes as OA;
+use DateTime;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
@@ -143,6 +144,9 @@ class TenantListController
             $dto->name = $value->getName();
             $dto->root = $value->getRoot();
             $dto->domain = $value->getDomain();
+            $dto->enabled = $value->getEnabled();
+            $dto->markForDelete = $value->getMarkForDelete();
+            $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

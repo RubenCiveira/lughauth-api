@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
@@ -131,6 +132,7 @@ class TrustedClientCreateController
       $dto->code = $value->getCode();
       $dto->publicAllow = $value->getPublicAllow();
       $dto->secretOauth = '******';
+      $dto->enabled = $value->getEnabled();
       $allowedRedirects = [];
       foreach ($value->getAllowedRedirects() as $item) {
         $allowedRedirects[] = [

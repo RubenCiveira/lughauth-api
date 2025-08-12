@@ -120,6 +120,7 @@ class TenantLoginProviderCreateController
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->name = $value->getName();
             $dto->source = $value->getSource();
+            $dto->disabled = $value->getDisabled();
             $dto->directAccess = $value->getDirectAccess();
             $dto->publicKey = $value->getPublicKey();
             $dto->privateKey = $value->getPrivateKey();

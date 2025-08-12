@@ -9,6 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
@@ -98,6 +99,9 @@ class TenantCreateController
             $dto->name = $value->getName();
             $dto->root = $value->getRoot();
             $dto->domain = $value->getDomain();
+            $dto->enabled = $value->getEnabled();
+            $dto->markForDelete = $value->getMarkForDelete();
+            $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {
