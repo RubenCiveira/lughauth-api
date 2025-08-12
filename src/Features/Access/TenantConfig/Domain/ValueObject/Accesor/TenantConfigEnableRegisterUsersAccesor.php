@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEn
 trait TenantConfigEnableRegisterUsersAccesor
 {
     private ?TenantConfigEnableRegisterUsersVO $_enableRegisterUsers = null;
-    public function getEnableRegisterUsers(): ?bool
+    public function isEnableRegisterUsers(): ?bool
     {
         return $this->_enableRegisterUsers?->value();
     }

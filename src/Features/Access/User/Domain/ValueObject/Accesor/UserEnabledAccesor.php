@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 trait UserEnabledAccesor
 {
     private ?UserEnabledVO $_enabled = null;
-    public function getEnabled(): ?bool
+    public function isEnabled(): ?bool
     {
         return $this->_enabled?->value();
     }

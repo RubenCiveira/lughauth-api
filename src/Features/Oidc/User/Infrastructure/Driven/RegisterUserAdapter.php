@@ -41,7 +41,7 @@ class RegisterUserAdapter implements RegisterUserRepository
     {
         $theTenant = $this->users->checkTenant($tenant, '-');
         $conf = $this->configs->findOneByTenant($theTenant);
-        return ($conf && $conf->getAllowRecoverPass());
+        return ($conf && $conf->isAllowRegister());
     }
 
     #[Override]
@@ -58,7 +58,7 @@ class RegisterUserAdapter implements RegisterUserRepository
         $theTenant = $this->users->checkTenant($tenant, '-');
         $conf = $this->configs->findOneByTenant($theTenant);
         try {
-            if ($conf && $conf->getAllowRecoverPass()) {
+            if ($conf && $conf->isAllowRegister()) {
                 $theTenant = $this->users->checkTenant($tenant, '-');
                 $terms = $this->users->loadTenantTerms($theTenant);
                 $theUser = $this->repository->create(User::register(
@@ -110,7 +110,7 @@ class RegisterUserAdapter implements RegisterUserRepository
         }
         $conf = $this->configs->findOneByTenant($theTenant);
         $this->repository->update($user, $user->verify(
-            $conf?->getEnableRegisterUsers() ? UserApproveOptions::ACCEPTED : UserApproveOptions::PENDING
+            $conf?->isEnableRegisterUsers() ? UserApproveOptions::ACCEPTED : UserApproveOptions::PENDING
         ));
         $this->codes->update($userCode, $userCode->resetRegisterVerification());
         return $user->getName();

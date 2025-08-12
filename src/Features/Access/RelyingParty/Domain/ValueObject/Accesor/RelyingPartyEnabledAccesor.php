@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEn
 trait RelyingPartyEnabledAccesor
 {
     private ?RelyingPartyEnabledVO $_enabled = null;
-    public function getEnabled(): ?bool
+    public function isEnabled(): ?bool
     {
         return $this->_enabled?->value();
     }

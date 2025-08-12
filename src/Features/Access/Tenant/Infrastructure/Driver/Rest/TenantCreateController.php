@@ -97,10 +97,10 @@ class TenantCreateController
             $dto = new TenantApiDTO();
             $dto->uid = $value->getUid();
             $dto->name = $value->getName();
-            $dto->root = $value->getRoot();
+            $dto->root = $value->isRoot();
             $dto->domain = $value->getDomain();
-            $dto->enabled = $value->getEnabled();
-            $dto->markForDelete = $value->getMarkForDelete();
+            $dto->enabled = $value->isEnabled();
+            $dto->markForDelete = $value->isMarkForDelete();
             $dto->markForDeleteTime = $value->getMarkForDeleteTime()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();
             return $dto;

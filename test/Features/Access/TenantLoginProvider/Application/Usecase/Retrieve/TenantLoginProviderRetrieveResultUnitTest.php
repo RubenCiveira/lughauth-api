@@ -61,8 +61,8 @@ final class TenantLoginProviderRetrieveResultUnitTest extends TestCase
         $disabledOtherValue = false;
         $copy = $value->disabled($disabledOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getDisabled());
-        $this->assertNotEquals(false, $value->getDisabled());
+        $this->assertEquals(true, $value->isDisabled());
+        $this->assertNotEquals(false, $value->isDisabled());
         $this->assertEquals(true, $value->getDisabledOrDefault(TenantLoginProviderDisabledVO::from($disabledOtherValue))->value());
         $this->assertNotEquals(false, $value->getDisabledOrDefault(TenantLoginProviderDisabledVO::from($disabledOtherValue))->value());
         $value->unsetDisabled();
@@ -72,8 +72,8 @@ final class TenantLoginProviderRetrieveResultUnitTest extends TestCase
         $directAccessOtherValue = false;
         $copy = $value->directAccess($directAccessOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getDirectAccess());
-        $this->assertNotEquals(false, $value->getDirectAccess());
+        $this->assertEquals(true, $value->isDirectAccess());
+        $this->assertNotEquals(false, $value->isDirectAccess());
         $this->assertEquals(true, $value->getDirectAccessOrDefault(TenantLoginProviderDirectAccessVO::from($directAccessOtherValue))->value());
         $this->assertNotEquals(false, $value->getDirectAccessOrDefault(TenantLoginProviderDirectAccessVO::from($directAccessOtherValue))->value());
         $value->unsetDirectAccess();
@@ -127,8 +127,8 @@ final class TenantLoginProviderRetrieveResultUnitTest extends TestCase
         $usersEnabledByDefaultOtherValue = false;
         $copy = $value->usersEnabledByDefault($usersEnabledByDefaultOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getUsersEnabledByDefault());
-        $this->assertNotEquals(false, $value->getUsersEnabledByDefault());
+        $this->assertEquals(true, $value->isUsersEnabledByDefault());
+        $this->assertNotEquals(false, $value->isUsersEnabledByDefault());
         $this->assertEquals(true, $value->getUsersEnabledByDefaultOrDefault(TenantLoginProviderUsersEnabledByDefaultVO::from($usersEnabledByDefaultOtherValue))->value());
         $this->assertNotEquals(false, $value->getUsersEnabledByDefaultOrDefault(TenantLoginProviderUsersEnabledByDefaultVO::from($usersEnabledByDefaultOtherValue))->value());
         $value->unsetUsersEnabledByDefault();

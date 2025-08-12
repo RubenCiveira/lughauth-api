@@ -120,15 +120,15 @@ class TenantLoginProviderCreateController
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->name = $value->getName();
             $dto->source = $value->getSource();
-            $dto->disabled = $value->getDisabled();
-            $dto->directAccess = $value->getDirectAccess();
+            $dto->disabled = $value->isDisabled();
+            $dto->directAccess = $value->isDirectAccess();
             $dto->publicKey = $value->getPublicKey();
             $dto->privateKey = $value->getPrivateKey();
             $dto->certificate = $value->getCertificate();
             if ($value->getMetadata()) {
                 $dto->metadata = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
             }
-            $dto->usersEnabledByDefault = $value->getUsersEnabledByDefault();
+            $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

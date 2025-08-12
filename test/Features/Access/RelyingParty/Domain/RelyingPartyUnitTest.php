@@ -24,8 +24,10 @@ final class RelyingPartyUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = RelyingParty::calculatedFields();
 
         // @Assert
+        $this->assertEquals([ 'enabled', 'scopes', 'schemas'], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
@@ -216,9 +218,9 @@ final class RelyingPartyUnitTest extends TestCase
         $target = $source->enable();
 
         // @Assert
-        $this->assertEquals(false, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(false, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
     public function test_disable_modify(): void
     {
@@ -241,8 +243,8 @@ final class RelyingPartyUnitTest extends TestCase
         $target = $source->disable();
 
         // @Assert
-        $this->assertEquals(true, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(true, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
 }

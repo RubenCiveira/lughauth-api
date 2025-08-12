@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteV
 trait TenantMarkForDeleteAccesor
 {
     private TenantMarkForDeleteVO $_markForDelete;
-    public function getMarkForDelete(): bool
+    public function isMarkForDelete(): bool
     {
         return $this->_markForDelete->value();
     }

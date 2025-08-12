@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 trait TenantLoginProviderUsersEnabledByDefaultAccesor
 {
     private TenantLoginProviderUsersEnabledByDefaultVO $_usersEnabledByDefault;
-    public function getUsersEnabledByDefault(): bool
+    public function isUsersEnabledByDefault(): bool
     {
         return $this->_usersEnabledByDefault->value();
     }

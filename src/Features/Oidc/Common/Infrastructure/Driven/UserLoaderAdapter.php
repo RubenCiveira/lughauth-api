@@ -57,7 +57,7 @@ class UserLoaderAdapter
         $all = $this->terms->list($query);
         foreach ($all as $term) {
             $on = $term->getActivationDate();
-            if (!$on || !$term->getEnabled() || $on > $now) {
+            if (!$on || !$term->isEnabled() || $on > $now) {
                 // No date.
                 continue;
             }
@@ -82,7 +82,7 @@ class UserLoaderAdapter
             $this->inexistentTenant($tenant);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant, $username));
         }
-        if (!$result->getEnabled()) {
+        if (!$result->isEnabled()) {
             $this->disabledTenant($tenant);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant, $username));
         }
@@ -151,7 +151,7 @@ class UserLoaderAdapter
             $this->inexistentUser($tenant->getName(), $username);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
         }
-        if (!$theUser->getEnabled()) {
+        if (!$theUser->isEnabled()) {
             $this->disabledUser($tenant->getName(), $username);
             throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
         }

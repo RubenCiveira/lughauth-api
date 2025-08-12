@@ -37,8 +37,8 @@ final class TrustedClientCreateParamsUnitTest extends TestCase
         $publicAllowOtherValue = false;
         $copy = $value->publicAllow($publicAllowOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getPublicAllow());
-        $this->assertNotEquals(false, $value->getPublicAllow());
+        $this->assertEquals(true, $value->isPublicAllow());
+        $this->assertNotEquals(false, $value->isPublicAllow());
         $this->assertEquals(true, $value->getPublicAllowOrDefault(TrustedClientPublicAllowVO::from($publicAllowOtherValue))->value());
         $this->assertNotEquals(false, $value->getPublicAllowOrDefault(TrustedClientPublicAllowVO::from($publicAllowOtherValue))->value());
         $value->unsetPublicAllow();
@@ -59,8 +59,8 @@ final class TrustedClientCreateParamsUnitTest extends TestCase
         $enabledOtherValue = false;
         $copy = $value->enabled($enabledOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getEnabled());
-        $this->assertNotEquals(false, $value->getEnabled());
+        $this->assertEquals(true, $value->isEnabled());
+        $this->assertNotEquals(false, $value->isEnabled());
         $this->assertEquals(true, $value->getEnabledOrDefault(TrustedClientEnabledVO::from($enabledOtherValue))->value());
         $this->assertNotEquals(false, $value->getEnabledOrDefault(TrustedClientEnabledVO::from($enabledOtherValue))->value());
         $value->unsetEnabled();

@@ -23,7 +23,7 @@ trait TenantMarkForDeleteAttributeHolder
         $this->markForDeleteAssigned = true;
         return $this;
     }
-    public function getMarkForDelete(): ?bool
+    public function isMarkForDelete(): ?bool
     {
         return is_a($this->markForDelete, TenantMarkForDeleteVO::class) ? $this->markForDelete->value() : $this->markForDelete;
     }

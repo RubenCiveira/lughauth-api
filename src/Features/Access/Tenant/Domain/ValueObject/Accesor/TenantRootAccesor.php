@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
 trait TenantRootAccesor
 {
     private ?TenantRootVO $_root = null;
-    public function getRoot(): ?bool
+    public function isRoot(): ?bool
     {
         return $this->_root?->value();
     }

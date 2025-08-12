@@ -68,14 +68,14 @@ class TenantConfigRetrieveController
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->innerLabel = $value->getInnerLabel();
-            $dto->forceMfa = $value->getForceMfa();
-            $dto->allowRegister = $value->getAllowRegister();
-            $dto->enableRegisterUsers = $value->getEnableRegisterUsers();
+            $dto->forceMfa = $value->isForceMfa();
+            $dto->allowRegister = $value->isAllowRegister();
+            $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
             $dto->wellcomeEmail = $value->getWellcomeEmail();
             $dto->registerdEmail = $value->getRegisterdEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();
             $dto->enabledUserEmail = $value->getEnabledUserEmail();
-            $dto->allowRecoverPass = $value->getAllowRecoverPass();
+            $dto->allowRecoverPass = $value->isAllowRecoverPass();
             $dto->recoverPassEmail = $value->getRecoverPassEmail();
             $dto->version = $value->getVersion();
             return $dto;

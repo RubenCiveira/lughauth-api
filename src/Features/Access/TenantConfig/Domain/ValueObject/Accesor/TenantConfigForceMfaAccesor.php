@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigFo
 trait TenantConfigForceMfaAccesor
 {
     private TenantConfigForceMfaVO $_forceMfa;
-    public function getForceMfa(): bool
+    public function isForceMfa(): bool
     {
         return $this->_forceMfa->value();
     }

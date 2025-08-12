@@ -24,8 +24,10 @@ final class TenantTermsOfUseUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = TenantTermsOfUse::calculatedFields();
 
         // @Assert
+        $this->assertEquals([ 'enabled'], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
@@ -218,9 +220,9 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $target = $source->enable();
 
         // @Assert
-        $this->assertEquals(false, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(false, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
     public function test_disable_modify(): void
     {
@@ -242,8 +244,8 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $target = $source->disable();
 
         // @Assert
-        $this->assertEquals(true, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(true, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
 }

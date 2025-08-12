@@ -30,8 +30,10 @@ final class TenantLoginProviderUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = TenantLoginProvider::calculatedFields();
 
         // @Assert
+        $this->assertEquals([ 'disabled'], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
@@ -39,7 +41,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getSource(), $other->getSource());
         $this->assertTrue($one->isSourceChanged());
-        $this->assertEquals($one->getDirectAccess(), $other->getDirectAccess());
+        $this->assertEquals($one->isDirectAccess(), $other->isDirectAccess());
         $this->assertTrue($one->isDirectAccessChanged());
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
         $this->assertTrue($one->isPublicKeyChanged());
@@ -49,7 +51,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
-        $this->assertEquals($one->getUsersEnabledByDefault(), $other->getUsersEnabledByDefault());
+        $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
@@ -97,7 +99,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged($base));
         $this->assertEquals($one->getSource(), $other->getSource());
         $this->assertTrue($one->isSourceChanged($base));
-        $this->assertEquals($one->getDirectAccess(), $other->getDirectAccess());
+        $this->assertEquals($one->isDirectAccess(), $other->isDirectAccess());
         $this->assertTrue($one->isDirectAccessChanged($base));
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
         $this->assertTrue($one->isPublicKeyChanged($base));
@@ -107,7 +109,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged($base));
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged($base));
-        $this->assertEquals($one->getUsersEnabledByDefault(), $other->getUsersEnabledByDefault());
+        $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
@@ -174,7 +176,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getSource(), $other->getSource());
         $this->assertTrue($one->isSourceChanged());
-        $this->assertEquals($one->getDirectAccess(), $other->getDirectAccess());
+        $this->assertEquals($one->isDirectAccess(), $other->isDirectAccess());
         $this->assertTrue($one->isDirectAccessChanged());
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
         $this->assertTrue($one->isPublicKeyChanged());
@@ -184,7 +186,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
-        $this->assertEquals($one->getUsersEnabledByDefault(), $other->getUsersEnabledByDefault());
+        $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
@@ -233,7 +235,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged($base));
         $this->assertEquals($one->getSource(), $other->getSource());
         $this->assertTrue($one->isSourceChanged($base));
-        $this->assertEquals($one->getDirectAccess(), $other->getDirectAccess());
+        $this->assertEquals($one->isDirectAccess(), $other->isDirectAccess());
         $this->assertTrue($one->isDirectAccessChanged($base));
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
         $this->assertTrue($one->isPublicKeyChanged($base));
@@ -243,7 +245,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged($base));
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged($base));
-        $this->assertEquals($one->getUsersEnabledByDefault(), $other->getUsersEnabledByDefault());
+        $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
@@ -279,7 +281,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getSource(), $other->getSource());
         $this->assertTrue($one->isSourceChanged());
-        $this->assertEquals($one->getDirectAccess(), $other->getDirectAccess());
+        $this->assertEquals($one->isDirectAccess(), $other->isDirectAccess());
         $this->assertTrue($one->isDirectAccessChanged());
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
         $this->assertTrue($one->isPublicKeyChanged());
@@ -289,7 +291,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
-        $this->assertEquals($one->getUsersEnabledByDefault(), $other->getUsersEnabledByDefault());
+        $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
@@ -319,9 +321,9 @@ final class TenantLoginProviderUnitTest extends TestCase
         $target = $source->enable();
 
         // @Assert
-        $this->assertEquals(true, $source->getDisabled());
-        $this->assertEquals($targetDisabled, $target->getDisabled());
-        $this->assertNotEquals($sourceDisabled, $target->getDisabled());
+        $this->assertEquals(true, $source->isDisabled());
+        $this->assertEquals($targetDisabled, $target->isDisabled());
+        $this->assertNotEquals($sourceDisabled, $target->isDisabled());
     }
     public function test_disable_modify(): void
     {
@@ -348,8 +350,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $target = $source->disable();
 
         // @Assert
-        $this->assertEquals(false, $source->getDisabled());
-        $this->assertEquals($targetDisabled, $target->getDisabled());
-        $this->assertNotEquals($sourceDisabled, $target->getDisabled());
+        $this->assertEquals(false, $source->isDisabled());
+        $this->assertEquals($targetDisabled, $target->isDisabled());
+        $this->assertNotEquals($sourceDisabled, $target->isDisabled());
     }
 }

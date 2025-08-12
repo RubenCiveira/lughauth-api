@@ -23,8 +23,10 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = UserAcceptedTermnsOfUse::calculatedFields();
 
         // @Assert
+        $this->assertEquals([], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged());

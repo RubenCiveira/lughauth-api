@@ -7,12 +7,11 @@ namespace Civi\Lughauth\Features\Access\User\Domain\Event;
 
 use Civi\Lughauth\Features\Access\User\Domain\User;
 
-class UserRegisterEvent extends UserUpdateEvent
+class UserRegisterEvent extends UserCreateEvent
 {
     public function __construct(
-        User $payload,
-        User $original
+        User $payload
     ) {
-        parent::__construct($payload, $original);
+        parent::__construct($payload);
     }
 }

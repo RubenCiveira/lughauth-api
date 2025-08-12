@@ -23,7 +23,7 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
         $this->usersEnabledByDefaultAssigned = true;
         return $this;
     }
-    public function getUsersEnabledByDefault(): ?bool
+    public function isUsersEnabledByDefault(): ?bool
     {
         return is_a($this->usersEnabledByDefault, TenantLoginProviderUsersEnabledByDefaultVO::class) ? $this->usersEnabledByDefault->value() : $this->usersEnabledByDefault;
     }

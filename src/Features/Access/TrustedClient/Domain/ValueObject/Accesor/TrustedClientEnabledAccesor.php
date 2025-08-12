@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 trait TrustedClientEnabledAccesor
 {
     private TrustedClientEnabledVO $_enabled;
-    public function getEnabled(): bool
+    public function isEnabled(): bool
     {
         return $this->_enabled->value();
     }

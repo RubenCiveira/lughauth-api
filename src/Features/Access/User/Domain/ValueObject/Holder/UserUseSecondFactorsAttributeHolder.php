@@ -23,7 +23,7 @@ trait UserUseSecondFactorsAttributeHolder
         $this->useSecondFactorsAssigned = true;
         return $this;
     }
-    public function getUseSecondFactors(): ?bool
+    public function isUseSecondFactors(): ?bool
     {
         return is_a($this->useSecondFactors, UserUseSecondFactorsVO::class) ? $this->useSecondFactors->value() : $this->useSecondFactors;
     }

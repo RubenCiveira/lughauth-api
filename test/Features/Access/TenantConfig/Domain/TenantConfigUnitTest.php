@@ -30,18 +30,20 @@ final class TenantConfigUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = TenantConfig::calculatedFields();
 
         // @Assert
+        $this->assertEquals([], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
         $this->assertEquals($one->getInnerLabel(), $other->getInnerLabel());
         $this->assertTrue($one->isInnerLabelChanged());
-        $this->assertEquals($one->getForceMfa(), $other->getForceMfa());
+        $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged());
-        $this->assertEquals($one->getAllowRegister(), $other->getAllowRegister());
+        $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged());
-        $this->assertEquals($one->getEnableRegisterUsers(), $other->getEnableRegisterUsers());
+        $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged());
@@ -51,7 +53,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isDisabledUserEmailChanged());
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
         $this->assertTrue($one->isEnabledUserEmailChanged());
-        $this->assertEquals($one->getAllowRecoverPass(), $other->getAllowRecoverPass());
+        $this->assertEquals($one->isAllowRecoverPass(), $other->isAllowRecoverPass());
         $this->assertTrue($one->isAllowRecoverPassChanged());
         $this->assertEquals($one->getRecoverPassEmail(), $other->getRecoverPassEmail());
         $this->assertTrue($one->isRecoverPassEmailChanged());
@@ -101,11 +103,11 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged($base));
         $this->assertEquals($one->getInnerLabel(), $other->getInnerLabel());
         $this->assertTrue($one->isInnerLabelChanged($base));
-        $this->assertEquals($one->getForceMfa(), $other->getForceMfa());
+        $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged($base));
-        $this->assertEquals($one->getAllowRegister(), $other->getAllowRegister());
+        $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged($base));
-        $this->assertEquals($one->getEnableRegisterUsers(), $other->getEnableRegisterUsers());
+        $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged($base));
@@ -115,7 +117,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isDisabledUserEmailChanged($base));
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
         $this->assertTrue($one->isEnabledUserEmailChanged($base));
-        $this->assertEquals($one->getAllowRecoverPass(), $other->getAllowRecoverPass());
+        $this->assertEquals($one->isAllowRecoverPass(), $other->isAllowRecoverPass());
         $this->assertTrue($one->isAllowRecoverPassChanged($base));
         $this->assertEquals($one->getRecoverPassEmail(), $other->getRecoverPassEmail());
         $this->assertTrue($one->isRecoverPassEmailChanged($base));
@@ -182,11 +184,11 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged());
         $this->assertEquals($one->getInnerLabel(), $other->getInnerLabel());
         $this->assertTrue($one->isInnerLabelChanged());
-        $this->assertEquals($one->getForceMfa(), $other->getForceMfa());
+        $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged());
-        $this->assertEquals($one->getAllowRegister(), $other->getAllowRegister());
+        $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged());
-        $this->assertEquals($one->getEnableRegisterUsers(), $other->getEnableRegisterUsers());
+        $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged());
@@ -196,7 +198,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isDisabledUserEmailChanged());
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
         $this->assertTrue($one->isEnabledUserEmailChanged());
-        $this->assertEquals($one->getAllowRecoverPass(), $other->getAllowRecoverPass());
+        $this->assertEquals($one->isAllowRecoverPass(), $other->isAllowRecoverPass());
         $this->assertTrue($one->isAllowRecoverPassChanged());
         $this->assertEquals($one->getRecoverPassEmail(), $other->getRecoverPassEmail());
         $this->assertTrue($one->isRecoverPassEmailChanged());
@@ -247,11 +249,11 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged($base));
         $this->assertEquals($one->getInnerLabel(), $other->getInnerLabel());
         $this->assertTrue($one->isInnerLabelChanged($base));
-        $this->assertEquals($one->getForceMfa(), $other->getForceMfa());
+        $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged($base));
-        $this->assertEquals($one->getAllowRegister(), $other->getAllowRegister());
+        $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged($base));
-        $this->assertEquals($one->getEnableRegisterUsers(), $other->getEnableRegisterUsers());
+        $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged($base));
@@ -261,7 +263,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isDisabledUserEmailChanged($base));
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
         $this->assertTrue($one->isEnabledUserEmailChanged($base));
-        $this->assertEquals($one->getAllowRecoverPass(), $other->getAllowRecoverPass());
+        $this->assertEquals($one->isAllowRecoverPass(), $other->isAllowRecoverPass());
         $this->assertTrue($one->isAllowRecoverPassChanged($base));
         $this->assertEquals($one->getRecoverPassEmail(), $other->getRecoverPassEmail());
         $this->assertTrue($one->isRecoverPassEmailChanged($base));
@@ -298,11 +300,11 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged());
         $this->assertEquals($one->getInnerLabel(), $other->getInnerLabel());
         $this->assertTrue($one->isInnerLabelChanged());
-        $this->assertEquals($one->getForceMfa(), $other->getForceMfa());
+        $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged());
-        $this->assertEquals($one->getAllowRegister(), $other->getAllowRegister());
+        $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged());
-        $this->assertEquals($one->getEnableRegisterUsers(), $other->getEnableRegisterUsers());
+        $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged());
@@ -312,7 +314,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isDisabledUserEmailChanged());
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
         $this->assertTrue($one->isEnabledUserEmailChanged());
-        $this->assertEquals($one->getAllowRecoverPass(), $other->getAllowRecoverPass());
+        $this->assertEquals($one->isAllowRecoverPass(), $other->isAllowRecoverPass());
         $this->assertTrue($one->isAllowRecoverPassChanged());
         $this->assertEquals($one->getRecoverPassEmail(), $other->getRecoverPassEmail());
         $this->assertTrue($one->isRecoverPassEmailChanged());

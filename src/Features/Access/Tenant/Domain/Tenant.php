@@ -105,14 +105,14 @@ class Tenant extends TenantRef
     {
         $value = clone $this;
         $value->_enabled = TenantEnabledVO::from(true);
-        $value->recordedEvents[] = new TenantEnableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TenantEnableEvent($value, original: $this);
         return $value;
     }
     public function disable(): Tenant
     {
         $value = clone $this;
         $value->_enabled = TenantEnabledVO::from(false);
-        $value->recordedEvents[] = new TenantDisableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TenantDisableEvent($value, original: $this);
         return $value;
     }
     public function asPublicJson(): array
@@ -120,10 +120,10 @@ class Tenant extends TenantRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['name'] = $this->getName();
-        $data['root'] = $this->getRoot();
+        $data['root'] = $this->isRoot();
         $data['domain'] = $this->getDomain();
-        $data['enabled'] = $this->getEnabled();
-        $data['markForDelete'] = $this->getMarkForDelete();
+        $data['enabled'] = $this->isEnabled();
+        $data['markForDelete'] = $this->isMarkForDelete();
         $data['markForDeleteTime'] = $this->getMarkForDeleteTime();
         $data['version'] = $this->getVersion();
         return $data;

@@ -23,7 +23,7 @@ trait UserTemporalPasswordAttributeHolder
         $this->temporalPasswordAssigned = true;
         return $this;
     }
-    public function getTemporalPassword(): ?bool
+    public function isTemporalPassword(): ?bool
     {
         return is_a($this->temporalPassword, UserTemporalPasswordVO::class) ? $this->temporalPassword->value() : $this->temporalPassword;
     }

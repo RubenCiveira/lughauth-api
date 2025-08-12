@@ -33,8 +33,8 @@ final class TenantRetrieveResultUnitTest extends TestCase
         $rootOtherValue = false;
         $copy = $value->root($rootOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getRoot());
-        $this->assertNotEquals(false, $value->getRoot());
+        $this->assertEquals(true, $value->isRoot());
+        $this->assertNotEquals(false, $value->isRoot());
         $this->assertEquals(true, $value->getRootOrDefault(TenantRootVO::from($rootOtherValue))->value());
         $this->assertNotEquals(false, $value->getRootOrDefault(TenantRootVO::from($rootOtherValue))->value());
         $value->unsetRoot();
@@ -55,8 +55,8 @@ final class TenantRetrieveResultUnitTest extends TestCase
         $enabledOtherValue = false;
         $copy = $value->enabled($enabledOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getEnabled());
-        $this->assertNotEquals(false, $value->getEnabled());
+        $this->assertEquals(true, $value->isEnabled());
+        $this->assertNotEquals(false, $value->isEnabled());
         $this->assertEquals(true, $value->getEnabledOrDefault(TenantEnabledVO::from($enabledOtherValue))->value());
         $this->assertNotEquals(false, $value->getEnabledOrDefault(TenantEnabledVO::from($enabledOtherValue))->value());
         $value->unsetEnabled();
@@ -66,8 +66,8 @@ final class TenantRetrieveResultUnitTest extends TestCase
         $markForDeleteOtherValue = false;
         $copy = $value->markForDelete($markForDeleteOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getMarkForDelete());
-        $this->assertNotEquals(false, $value->getMarkForDelete());
+        $this->assertEquals(true, $value->isMarkForDelete());
+        $this->assertNotEquals(false, $value->isMarkForDelete());
         $this->assertEquals(true, $value->getMarkForDeleteOrDefault(TenantMarkForDeleteVO::from($markForDeleteOtherValue))->value());
         $this->assertNotEquals(false, $value->getMarkForDeleteOrDefault(TenantMarkForDeleteVO::from($markForDeleteOtherValue))->value());
         $value->unsetMarkForDelete();

@@ -32,12 +32,14 @@ final class TrustedClientUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = TrustedClient::calculatedFields();
 
         // @Assert
+        $this->assertEquals([ 'enabled'], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
-        $this->assertEquals($one->getPublicAllow(), $other->getPublicAllow());
+        $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
@@ -83,7 +85,7 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged($base));
-        $this->assertEquals($one->getPublicAllow(), $other->getPublicAllow());
+        $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
@@ -147,7 +149,7 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
-        $this->assertEquals($one->getPublicAllow(), $other->getPublicAllow());
+        $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
@@ -194,7 +196,7 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged($base));
-        $this->assertEquals($one->getPublicAllow(), $other->getPublicAllow());
+        $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
@@ -229,7 +231,7 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
-        $this->assertEquals($one->getPublicAllow(), $other->getPublicAllow());
+        $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
@@ -262,9 +264,9 @@ final class TrustedClientUnitTest extends TestCase
         $target = $source->enable();
 
         // @Assert
-        $this->assertEquals(false, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(false, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
     public function test_disable_modify(): void
     {
@@ -290,8 +292,8 @@ final class TrustedClientUnitTest extends TestCase
         $target = $source->disable();
 
         // @Assert
-        $this->assertEquals(true, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(true, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
 }

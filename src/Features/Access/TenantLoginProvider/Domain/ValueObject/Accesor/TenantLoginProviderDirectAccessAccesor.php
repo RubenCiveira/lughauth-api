@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 trait TenantLoginProviderDirectAccessAccesor
 {
     private ?TenantLoginProviderDirectAccessVO $_directAccess = null;
-    public function getDirectAccess(): ?bool
+    public function isDirectAccess(): ?bool
     {
         return $this->_directAccess?->value();
     }

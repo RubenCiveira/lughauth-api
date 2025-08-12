@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 trait TenantTermsOfUseEnabledAccesor
 {
     private TenantTermsOfUseEnabledVO $_enabled;
-    public function getEnabled(): bool
+    public function isEnabled(): bool
     {
         return $this->_enabled->value();
     }

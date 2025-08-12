@@ -62,11 +62,11 @@ class DelegateLoginAdapter implements DelegateLoginRepository
             $user->email
         );
         if (!$prev) {
-            $enabled = $existent->getUsersEnabledByDefault();
+            $enabled = $existent->isUsersEnabledByDefault();
             $attr = new UserAttributes();
             $attr->uid(Random::comb());
             $attr->name($user->email);
-            $attr->provider($existent->getSource());
+            $attr->provider($existent->getSource()->value);
             $attr->tenant($theTenant);
             $attr->password(UserPasswordVO::fromPlainText($this->cypher, Random::password()));
             $prev = $this->users->create(User::create($attr));
@@ -124,7 +124,7 @@ class DelegateLoginAdapter implements DelegateLoginRepository
 
     private function loadProvider(TenantLoginProvider $provider): ?DelegatedLoginProvider
     {
-        if ($provider->getDisabled()) {
+        if ($provider->isDisabled()) {
             return null;
         } elseif ($provider->getSource() == 'GOOGLE') {
             return

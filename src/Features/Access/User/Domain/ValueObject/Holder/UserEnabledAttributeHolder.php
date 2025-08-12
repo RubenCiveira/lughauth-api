@@ -23,7 +23,7 @@ trait UserEnabledAttributeHolder
         $this->enabledAssigned = true;
         return $this;
     }
-    public function getEnabled(): ?bool
+    public function isEnabled(): ?bool
     {
         return is_a($this->enabled, UserEnabledVO::class) ? $this->enabled->value() : $this->enabled;
     }

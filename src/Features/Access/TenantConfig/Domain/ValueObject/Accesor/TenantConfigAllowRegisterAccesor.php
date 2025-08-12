@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAl
 trait TenantConfigAllowRegisterAccesor
 {
     private ?TenantConfigAllowRegisterVO $_allowRegister = null;
-    public function getAllowRegister(): ?bool
+    public function isAllowRegister(): ?bool
     {
         return $this->_allowRegister?->value();
     }

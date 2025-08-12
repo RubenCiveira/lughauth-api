@@ -101,14 +101,14 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
     {
         $value = clone $this;
         $value->_enabled = TenantTermsOfUseEnabledVO::from(true);
-        $value->recordedEvents[] = new TenantTermsOfUseEnableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TenantTermsOfUseEnableEvent($value, original: $this);
         return $value;
     }
     public function disable(): TenantTermsOfUse
     {
         $value = clone $this;
         $value->_enabled = TenantTermsOfUseEnabledVO::from(false);
-        $value->recordedEvents[] = new TenantTermsOfUseDisableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TenantTermsOfUseDisableEvent($value, original: $this);
         return $value;
     }
     public function asPublicJson(): array
@@ -119,7 +119,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         if ($tenant) {
             $data['tenant'] = ['$ref' => $tenant];
         }
-        $data['enabled'] = $this->getEnabled();
+        $data['enabled'] = $this->isEnabled();
         $data['activationDate'] = $this->getActivationDate();
         $data['version'] = $this->getVersion();
         return $data;

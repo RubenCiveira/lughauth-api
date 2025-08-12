@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
 trait TenantEnabledAccesor
 {
     private TenantEnabledVO $_enabled;
-    public function getEnabled(): bool
+    public function isEnabled(): bool
     {
         return $this->_enabled->value();
     }

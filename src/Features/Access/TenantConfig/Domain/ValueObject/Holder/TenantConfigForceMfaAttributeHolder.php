@@ -23,7 +23,7 @@ trait TenantConfigForceMfaAttributeHolder
         $this->forceMfaAssigned = true;
         return $this;
     }
-    public function getForceMfa(): ?bool
+    public function isForceMfa(): ?bool
     {
         return is_a($this->forceMfa, TenantConfigForceMfaVO::class) ? $this->forceMfa->value() : $this->forceMfa;
     }

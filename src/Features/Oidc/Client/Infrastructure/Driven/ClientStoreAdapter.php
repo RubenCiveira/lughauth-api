@@ -29,7 +29,7 @@ class ClientStoreAdapter implements ClientStoreRepository
     {
         $existent = $this->clients->findOneByCode($clientId);
         if ($existent) {
-            if (!$existent->getEnabled()) {
+            if (!$existent->isEnabled()) {
                 // Not enabled
                 $this->notEnabled($clientId);
                 return null;
@@ -52,11 +52,11 @@ class ClientStoreAdapter implements ClientStoreRepository
     {
         $existent = $this->clients->findOneByCode($id);
         if ($existent) {
-            if (!$existent->getEnabled()) {
+            if (!$existent->isEnabled()) {
                 $this->notEnabled($id);
                 // Not enabled
                 return null;
-            } elseif (!$existent->getPublicAllow()) {
+            } elseif (!$existent->isPublicAllow()) {
                 // Not public allowed
                 $this->notPublic($id);
                 return null;
@@ -74,11 +74,11 @@ class ClientStoreAdapter implements ClientStoreRepository
     {
         $existent = $this->clients->findOneByCode($id);
         if ($existent) {
-            if (!$existent->getEnabled()) {
+            if (!$existent->isEnabled()) {
                 $this->notEnabled($id);
                 // Not enabled
                 return null;
-            } elseif (!$existent->getPublicAllow()) {
+            } elseif (!$existent->isPublicAllow()) {
                 // Not public allowed
                 $this->notPublic($id);
                 return null;

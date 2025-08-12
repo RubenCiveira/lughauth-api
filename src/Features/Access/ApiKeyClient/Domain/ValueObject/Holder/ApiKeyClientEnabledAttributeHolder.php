@@ -23,7 +23,7 @@ trait ApiKeyClientEnabledAttributeHolder
         $this->enabledAssigned = true;
         return $this;
     }
-    public function getEnabled(): ?bool
+    public function isEnabled(): ?bool
     {
         return is_a($this->enabled, ApiKeyClientEnabledVO::class) ? $this->enabled->value() : $this->enabled;
     }

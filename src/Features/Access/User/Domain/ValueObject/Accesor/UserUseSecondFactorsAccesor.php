@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO
 trait UserUseSecondFactorsAccesor
 {
     private ?UserUseSecondFactorsVO $_useSecondFactors = null;
-    public function getUseSecondFactors(): ?bool
+    public function isUseSecondFactors(): ?bool
     {
         return $this->_useSecondFactors?->value();
     }

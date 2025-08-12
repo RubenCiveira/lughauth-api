@@ -128,10 +128,10 @@ class TenantConfig extends TenantConfigRef
             $data['tenant'] = ['$ref' => $tenant];
         }
         $data['innerLabel'] = $this->getInnerLabel();
-        $data['forceMfa'] = $this->getForceMfa();
-        $data['allowRegister'] = $this->getAllowRegister();
-        $data['enableRegisterUsers'] = $this->getEnableRegisterUsers();
-        $data['allowRecoverPass'] = $this->getAllowRecoverPass();
+        $data['forceMfa'] = $this->isForceMfa();
+        $data['allowRegister'] = $this->isAllowRegister();
+        $data['enableRegisterUsers'] = $this->isEnableRegisterUsers();
+        $data['allowRecoverPass'] = $this->isAllowRecoverPass();
         $data['version'] = $this->getVersion();
         return $data;
     }

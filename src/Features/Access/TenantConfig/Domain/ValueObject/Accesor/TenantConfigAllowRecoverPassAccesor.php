@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAl
 trait TenantConfigAllowRecoverPassAccesor
 {
     private ?TenantConfigAllowRecoverPassVO $_allowRecoverPass = null;
-    public function getAllowRecoverPass(): ?bool
+    public function isAllowRecoverPass(): ?bool
     {
         return $this->_allowRecoverPass?->value();
     }

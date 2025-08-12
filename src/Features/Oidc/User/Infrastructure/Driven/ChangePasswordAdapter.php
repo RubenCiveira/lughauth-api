@@ -48,7 +48,7 @@ class ChangePasswordAdapter implements ChangePasswordRepository
     {
         $theTenant = $this->users->checkTenant($tenant, '-');
         $conf = $this->configs->findOneByTenant($theTenant);
-        return ($conf && $conf->getAllowRecoverPass());
+        return ($conf && $conf->isAllowRecoverPass());
     }
     #[Override]
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string

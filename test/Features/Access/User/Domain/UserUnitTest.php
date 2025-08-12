@@ -33,8 +33,10 @@ final class UserUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = User::calculatedFields();
 
         // @Assert
+        $this->assertEquals([ 'wellcomeAt', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
@@ -44,9 +46,9 @@ final class UserUnitTest extends TestCase
         $this->assertTrue($one->isPasswordChanged());
         $this->assertEquals($one->getEmail(), $other->getEmail());
         $this->assertTrue($one->isEmailChanged());
-        $this->assertEquals($one->getTemporalPassword(), $other->getTemporalPassword());
+        $this->assertEquals($one->isTemporalPassword(), $other->isTemporalPassword());
         $this->assertTrue($one->isTemporalPasswordChanged());
-        $this->assertEquals($one->getUseSecondFactors(), $other->getUseSecondFactors());
+        $this->assertEquals($one->isUseSecondFactors(), $other->isUseSecondFactors());
         $this->assertTrue($one->isUseSecondFactorsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
@@ -100,9 +102,9 @@ final class UserUnitTest extends TestCase
         $this->assertTrue($one->isPasswordChanged($base));
         $this->assertEquals($one->getEmail(), $other->getEmail());
         $this->assertTrue($one->isEmailChanged($base));
-        $this->assertEquals($one->getTemporalPassword(), $other->getTemporalPassword());
+        $this->assertEquals($one->isTemporalPassword(), $other->isTemporalPassword());
         $this->assertTrue($one->isTemporalPasswordChanged($base));
-        $this->assertEquals($one->getUseSecondFactors(), $other->getUseSecondFactors());
+        $this->assertEquals($one->isUseSecondFactors(), $other->isUseSecondFactors());
         $this->assertTrue($one->isUseSecondFactorsChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
@@ -177,9 +179,9 @@ final class UserUnitTest extends TestCase
         $this->assertTrue($one->isPasswordChanged());
         $this->assertEquals($one->getEmail(), $other->getEmail());
         $this->assertTrue($one->isEmailChanged());
-        $this->assertEquals($one->getTemporalPassword(), $other->getTemporalPassword());
+        $this->assertEquals($one->isTemporalPassword(), $other->isTemporalPassword());
         $this->assertTrue($one->isTemporalPasswordChanged());
-        $this->assertEquals($one->getUseSecondFactors(), $other->getUseSecondFactors());
+        $this->assertEquals($one->isUseSecondFactors(), $other->isUseSecondFactors());
         $this->assertTrue($one->isUseSecondFactorsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
@@ -234,9 +236,9 @@ final class UserUnitTest extends TestCase
         $this->assertTrue($one->isPasswordChanged($base));
         $this->assertEquals($one->getEmail(), $other->getEmail());
         $this->assertTrue($one->isEmailChanged($base));
-        $this->assertEquals($one->getTemporalPassword(), $other->getTemporalPassword());
+        $this->assertEquals($one->isTemporalPassword(), $other->isTemporalPassword());
         $this->assertTrue($one->isTemporalPasswordChanged($base));
-        $this->assertEquals($one->getUseSecondFactors(), $other->getUseSecondFactors());
+        $this->assertEquals($one->isUseSecondFactors(), $other->isUseSecondFactors());
         $this->assertTrue($one->isUseSecondFactorsChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
@@ -276,12 +278,32 @@ final class UserUnitTest extends TestCase
         $this->assertTrue($one->isPasswordChanged());
         $this->assertEquals($one->getEmail(), $other->getEmail());
         $this->assertTrue($one->isEmailChanged());
-        $this->assertEquals($one->getTemporalPassword(), $other->getTemporalPassword());
+        $this->assertEquals($one->isTemporalPassword(), $other->isTemporalPassword());
         $this->assertTrue($one->isTemporalPasswordChanged());
-        $this->assertEquals($one->getUseSecondFactors(), $other->getUseSecondFactors());
+        $this->assertEquals($one->isUseSecondFactors(), $other->isUseSecondFactors());
         $this->assertTrue($one->isUseSecondFactorsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
+    }
+    public function test_register_modify(): void
+    {
+        // @Arrange
+        $targetUid = 'other';
+        $targetName = 'other';
+        $targetEmail = 'other@fakemail.net';
+        $cypher = $this->createMock(AesCypherService::class);
+        $targetPassword = 'cyphered://ocyphered';
+        $targetTenant = new TenantRef('other');
+
+        // @Act
+        $target = User::register($targetUid, $targetName, $targetEmail, $cypher, $targetPassword, $targetTenant);
+
+        // @Assert
+        $this->assertEquals('other', $target->uid());
+        $this->assertEquals('other', $target->getName());
+        $this->assertEquals('other@fakemail.net', $target->getEmail());
+        $this->assertEquals('****ed', $target->getPassword());
+        $this->assertEquals(new TenantRef('other'), $target->getTenant());
     }
     public function test_verify_modify(): void
     {
@@ -403,9 +425,9 @@ final class UserUnitTest extends TestCase
         $target = $source->disable();
 
         // @Assert
-        $this->assertEquals(true, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(true, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
     public function test_enable_modify(): void
     {
@@ -434,9 +456,9 @@ final class UserUnitTest extends TestCase
         $target = $source->enable();
 
         // @Assert
-        $this->assertEquals(false, $source->getEnabled());
-        $this->assertEquals($targetEnabled, $target->getEnabled());
-        $this->assertNotEquals($sourceEnabled, $target->getEnabled());
+        $this->assertEquals(false, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
     }
     public function test_unlock_modify(): void
     {
@@ -534,9 +556,9 @@ final class UserUnitTest extends TestCase
         $this->assertEquals('****er', $source->getSecondFactorSeed());
         $this->assertEquals('****ed', $target->getSecondFactorSeed());
         $this->assertNotEquals($sourceSecondFactorSeed, $target->getSecondFactorSeed());
-        $this->assertEquals(false, $source->getUseSecondFactors());
-        $this->assertEquals($targetUseSecondFactors, $target->getUseSecondFactors());
-        $this->assertNotEquals($sourceUseSecondFactors, $target->getUseSecondFactors());
+        $this->assertEquals(false, $source->isUseSecondFactors());
+        $this->assertEquals($targetUseSecondFactors, $target->isUseSecondFactors());
+        $this->assertNotEquals($sourceUseSecondFactors, $target->isUseSecondFactors());
     }
     public function test_change_password_modify(): void
     {
@@ -572,8 +594,8 @@ final class UserUnitTest extends TestCase
         $this->assertEquals('****er', $source->getPassword());
         $this->assertEquals('****ed', $target->getPassword());
         $this->assertNotEquals($sourcePassword, $target->getPassword());
-        $this->assertEquals(true, $source->getTemporalPassword());
-        $this->assertEquals($targetTemporalPassword, $target->getTemporalPassword());
-        $this->assertNotEquals($sourceTemporalPassword, $target->getTemporalPassword());
+        $this->assertEquals(true, $source->isTemporalPassword());
+        $this->assertEquals($targetTemporalPassword, $target->isTemporalPassword());
+        $this->assertNotEquals($sourceTemporalPassword, $target->isTemporalPassword());
     }
 }

@@ -50,8 +50,8 @@ final class TenantConfigRetrieveResultUnitTest extends TestCase
         $forceMfaOtherValue = false;
         $copy = $value->forceMfa($forceMfaOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getForceMfa());
-        $this->assertNotEquals(false, $value->getForceMfa());
+        $this->assertEquals(true, $value->isForceMfa());
+        $this->assertNotEquals(false, $value->isForceMfa());
         $this->assertEquals(true, $value->getForceMfaOrDefault(TenantConfigForceMfaVO::from($forceMfaOtherValue))->value());
         $this->assertNotEquals(false, $value->getForceMfaOrDefault(TenantConfigForceMfaVO::from($forceMfaOtherValue))->value());
         $value->unsetForceMfa();
@@ -61,8 +61,8 @@ final class TenantConfigRetrieveResultUnitTest extends TestCase
         $allowRegisterOtherValue = false;
         $copy = $value->allowRegister($allowRegisterOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getAllowRegister());
-        $this->assertNotEquals(false, $value->getAllowRegister());
+        $this->assertEquals(true, $value->isAllowRegister());
+        $this->assertNotEquals(false, $value->isAllowRegister());
         $this->assertEquals(true, $value->getAllowRegisterOrDefault(TenantConfigAllowRegisterVO::from($allowRegisterOtherValue))->value());
         $this->assertNotEquals(false, $value->getAllowRegisterOrDefault(TenantConfigAllowRegisterVO::from($allowRegisterOtherValue))->value());
         $value->unsetAllowRegister();
@@ -72,8 +72,8 @@ final class TenantConfigRetrieveResultUnitTest extends TestCase
         $enableRegisterUsersOtherValue = false;
         $copy = $value->enableRegisterUsers($enableRegisterUsersOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getEnableRegisterUsers());
-        $this->assertNotEquals(false, $value->getEnableRegisterUsers());
+        $this->assertEquals(true, $value->isEnableRegisterUsers());
+        $this->assertNotEquals(false, $value->isEnableRegisterUsers());
         $this->assertEquals(true, $value->getEnableRegisterUsersOrDefault(TenantConfigEnableRegisterUsersVO::from($enableRegisterUsersOtherValue))->value());
         $this->assertNotEquals(false, $value->getEnableRegisterUsersOrDefault(TenantConfigEnableRegisterUsersVO::from($enableRegisterUsersOtherValue))->value());
         $value->unsetEnableRegisterUsers();
@@ -127,8 +127,8 @@ final class TenantConfigRetrieveResultUnitTest extends TestCase
         $allowRecoverPassOtherValue = false;
         $copy = $value->allowRecoverPass($allowRecoverPassOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getAllowRecoverPass());
-        $this->assertNotEquals(false, $value->getAllowRecoverPass());
+        $this->assertEquals(true, $value->isAllowRecoverPass());
+        $this->assertNotEquals(false, $value->isAllowRecoverPass());
         $this->assertEquals(true, $value->getAllowRecoverPassOrDefault(TenantConfigAllowRecoverPassVO::from($allowRecoverPassOtherValue))->value());
         $this->assertNotEquals(false, $value->getAllowRecoverPassOrDefault(TenantConfigAllowRecoverPassVO::from($allowRecoverPassOtherValue))->value());
         $value->unsetAllowRecoverPass();

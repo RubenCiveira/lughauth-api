@@ -23,8 +23,10 @@ final class TenantPartySecurityUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = TenantPartySecurity::calculatedFields();
 
         // @Assert
+        $this->assertEquals([], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());

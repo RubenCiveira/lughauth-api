@@ -44,8 +44,8 @@ final class TenantTermsOfUseCreateParamsUnitTest extends TestCase
         $enabledOtherValue = false;
         $copy = $value->enabled($enabledOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getEnabled());
-        $this->assertNotEquals(false, $value->getEnabled());
+        $this->assertEquals(true, $value->isEnabled());
+        $this->assertNotEquals(false, $value->isEnabled());
         $this->assertEquals(true, $value->getEnabledOrDefault(TenantTermsOfUseEnabledVO::from($enabledOtherValue))->value());
         $this->assertNotEquals(false, $value->getEnabledOrDefault(TenantTermsOfUseEnabledVO::from($enabledOtherValue))->value());
         $value->unsetEnabled();

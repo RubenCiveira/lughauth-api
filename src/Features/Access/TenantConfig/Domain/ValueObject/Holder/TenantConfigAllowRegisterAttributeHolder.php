@@ -23,7 +23,7 @@ trait TenantConfigAllowRegisterAttributeHolder
         $this->allowRegisterAssigned = true;
         return $this;
     }
-    public function getAllowRegister(): ?bool
+    public function isAllowRegister(): ?bool
     {
         return is_a($this->allowRegister, TenantConfigAllowRegisterVO::class) ? $this->allowRegister->value() : $this->allowRegister;
     }

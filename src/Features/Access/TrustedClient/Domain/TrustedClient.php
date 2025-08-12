@@ -94,14 +94,14 @@ class TrustedClient extends TrustedClientRef
     {
         $value = clone $this;
         $value->_enabled = TrustedClientEnabledVO::from(true);
-        $value->recordedEvents[] = new TrustedClientEnableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TrustedClientEnableEvent($value, original: $this);
         return $value;
     }
     public function disable(): TrustedClient
     {
         $value = clone $this;
         $value->_enabled = TrustedClientEnabledVO::from(false);
-        $value->recordedEvents[] = new TrustedClientDisableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TrustedClientDisableEvent($value, original: $this);
         return $value;
     }
     public function asPublicJson(): array
@@ -109,8 +109,8 @@ class TrustedClient extends TrustedClientRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['code'] = $this->getCode();
-        $data['publicAllow'] = $this->getPublicAllow();
-        $data['enabled'] = $this->getEnabled();
+        $data['publicAllow'] = $this->isPublicAllow();
+        $data['enabled'] = $this->isEnabled();
         $allowedRedirects = $this->getAllowedRedirects();
         if ($allowedRedirects) {
             $data['allowedRedirects'] = [];

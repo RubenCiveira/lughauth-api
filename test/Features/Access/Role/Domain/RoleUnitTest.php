@@ -21,8 +21,10 @@ final class RoleUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = Role::calculatedFields();
 
         // @Assert
+        $this->assertEquals([], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getName(), $other->getName());
         $this->assertTrue($one->isNameChanged());

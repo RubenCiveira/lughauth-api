@@ -23,7 +23,7 @@ trait TenantTermsOfUseEnabledAttributeHolder
         $this->enabledAssigned = true;
         return $this;
     }
-    public function getEnabled(): ?bool
+    public function isEnabled(): ?bool
     {
         return is_a($this->enabled, TenantTermsOfUseEnabledVO::class) ? $this->enabled->value() : $this->enabled;
     }

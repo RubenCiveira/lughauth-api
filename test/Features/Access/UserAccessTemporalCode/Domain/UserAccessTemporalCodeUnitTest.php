@@ -29,8 +29,10 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
 
         // @Act
         $other = $one->toAttributes()->build();
+        $calculated = UserAccessTemporalCode::calculatedFields();
 
         // @Assert
+        $this->assertEquals([ 'failedLoginAttempts'], $calculated);
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged());

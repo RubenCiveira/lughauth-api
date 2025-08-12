@@ -87,14 +87,14 @@ class ApiKeyClient extends ApiKeyClientRef
     {
         $value = clone $this;
         $value->_enabled = ApiKeyClientEnabledVO::from(true);
-        $value->recordedEvents[] = new ApiKeyClientEnableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new ApiKeyClientEnableEvent($value, original: $this);
         return $value;
     }
     public function disable(): ApiKeyClient
     {
         $value = clone $this;
         $value->_enabled = ApiKeyClientEnabledVO::from(false);
-        $value->recordedEvents[] = new ApiKeyClientDisableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new ApiKeyClientDisableEvent($value, original: $this);
         return $value;
     }
     public function asPublicJson(): array
@@ -103,7 +103,7 @@ class ApiKeyClient extends ApiKeyClientRef
         $data['uid'] = $this->uid();
         $data['code'] = $this->getCode();
         $data['key'] = $this->getKey();
-        $data['enabled'] = $this->getEnabled();
+        $data['enabled'] = $this->isEnabled();
         $data['scopes'] = $this->getScopes();
         $data['version'] = $this->getVersion();
         return $data;

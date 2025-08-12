@@ -135,7 +135,7 @@ class LoginAdapter implements LoginRepository
 
     private function checkTemporalPassword(Tenant $tenant, User $user): ?AuthenticationResult
     {
-        return $user->getTemporalPassword() ? AuthenticationResult::newPasswordRequired() : null;
+        return $user->isTemporalPassword() ? AuthenticationResult::newPasswordRequired() : null;
     }
 
     private function checkTerms(Tenant $tenant, User $user): ?AuthenticationResult
@@ -152,16 +152,16 @@ class LoginAdapter implements LoginRepository
         if ($user->getSecondFactorSeed()) {
             return null;
         }
-        if ($user->getUseSecondFactors()) {
+        if ($user->isUseSecondFactors()) {
             return AuthenticationResult::newMfaRequired();
         }
         $conf = $this->configs->findOneByTenant($tenant);
-        return ($conf && $conf->getForceMfa()) ? AuthenticationResult::newMfaRequired() : null;
+        return ($conf && $conf->isForceMfa()) ? AuthenticationResult::newMfaRequired() : null;
     }
 
     private function checkMfa(Tenant $tenant, User $user): ?AuthenticationResult
     {
-        return ($user->getSecondFactorSeed() && $user->getUseSecondFactors()) ? AuthenticationResult::mfaRequired() : null;
+        return ($user->getSecondFactorSeed() && $user->isUseSecondFactors()) ? AuthenticationResult::mfaRequired() : null;
     }
 
     private function markLoginFail(User $user)

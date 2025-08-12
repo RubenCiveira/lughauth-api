@@ -128,7 +128,7 @@ class TenantTermsOfUseEnableController
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->text = $value->getText();
-            $dto->enabled = $value->getEnabled();
+            $dto->enabled = $value->isEnabled();
             if ($value->getAttached()) {
                 $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
             }

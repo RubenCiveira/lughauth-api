@@ -23,7 +23,7 @@ trait TrustedClientPublicAllowAttributeHolder
         $this->publicAllowAssigned = true;
         return $this;
     }
-    public function getPublicAllow(): ?bool
+    public function isPublicAllow(): ?bool
     {
         return is_a($this->publicAllow, TrustedClientPublicAllowVO::class) ? $this->publicAllow->value() : $this->publicAllow;
     }

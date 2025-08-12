@@ -105,14 +105,14 @@ class RelyingParty extends RelyingPartyRef
     {
         $value = clone $this;
         $value->_enabled = RelyingPartyEnabledVO::from(true);
-        $value->recordedEvents[] = new RelyingPartyEnableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new RelyingPartyEnableEvent($value, original: $this);
         return $value;
     }
     public function disable(): RelyingParty
     {
         $value = clone $this;
         $value->_enabled = RelyingPartyEnabledVO::from(false);
-        $value->recordedEvents[] = new RelyingPartyDisableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new RelyingPartyDisableEvent($value, original: $this);
         return $value;
     }
     public function asPublicJson(): array
@@ -121,7 +121,7 @@ class RelyingParty extends RelyingPartyRef
         $data['uid'] = $this->uid();
         $data['code'] = $this->getCode();
         $data['apiKey'] = $this->getApiKey();
-        $data['enabled'] = $this->getEnabled();
+        $data['enabled'] = $this->isEnabled();
         $data['version'] = $this->getVersion();
         return $data;
     }

@@ -23,7 +23,7 @@ trait TenantRootAttributeHolder
         $this->rootAssigned = true;
         return $this;
     }
-    public function getRoot(): ?bool
+    public function isRoot(): ?bool
     {
         return is_a($this->root, TenantRootVO::class) ? $this->root->value() : $this->root;
     }

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 trait TenantLoginProviderDisabledAccesor
 {
     private ?TenantLoginProviderDisabledVO $_disabled = null;
-    public function getDisabled(): ?bool
+    public function isDisabled(): ?bool
     {
         return $this->_disabled?->value();
     }

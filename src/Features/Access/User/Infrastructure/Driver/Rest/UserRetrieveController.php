@@ -74,10 +74,10 @@ class UserRetrieveController
             $dto->password = '******';
             $dto->email = $value->getEmail();
             $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
-            $dto->enabled = $value->getEnabled();
+            $dto->enabled = $value->isEnabled();
             $dto->approve = $value->getApprove();
-            $dto->temporalPassword = $value->getTemporalPassword();
-            $dto->useSecondFactors = $value->getUseSecondFactors();
+            $dto->temporalPassword = $value->isTemporalPassword();
+            $dto->useSecondFactors = $value->isUseSecondFactors();
             $dto->secondFactorSeed = '******';
             $dto->blockedUntil = $value->getBlockedUntil()?->format(DateTime::ATOM);
             $dto->provider = $value->getProvider();

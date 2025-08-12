@@ -131,14 +131,14 @@ class TenantLoginProvider extends TenantLoginProviderRef
     {
         $value = clone $this;
         $value->_disabled = TenantLoginProviderDisabledVO::from(false);
-        $value->recordedEvents[] = new TenantLoginProviderEnableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TenantLoginProviderEnableEvent($value, original: $this);
         return $value;
     }
     public function disable(): TenantLoginProvider
     {
         $value = clone $this;
         $value->_disabled = TenantLoginProviderDisabledVO::from(true);
-        $value->recordedEvents[] = new TenantLoginProviderDisableEvent(payload: $value, original: $this);
+        $value->recordedEvents[] = new TenantLoginProviderDisableEvent($value, original: $this);
         return $value;
     }
     public function asPublicJson(): array
@@ -151,11 +151,11 @@ class TenantLoginProvider extends TenantLoginProviderRef
         }
         $data['name'] = $this->getName();
         $data['source'] = $this->getSource();
-        $data['disabled'] = $this->getDisabled();
-        $data['directAccess'] = $this->getDirectAccess();
+        $data['disabled'] = $this->isDisabled();
+        $data['directAccess'] = $this->isDirectAccess();
         $data['publicKey'] = $this->getPublicKey();
         $data['privateKey'] = $this->getPrivateKey();
-        $data['usersEnabledByDefault'] = $this->getUsersEnabledByDefault();
+        $data['usersEnabledByDefault'] = $this->isUsersEnabledByDefault();
         $data['version'] = $this->getVersion();
         return $data;
     }

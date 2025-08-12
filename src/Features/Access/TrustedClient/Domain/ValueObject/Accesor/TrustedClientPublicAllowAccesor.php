@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 trait TrustedClientPublicAllowAccesor
 {
     private TrustedClientPublicAllowVO $_publicAllow;
-    public function getPublicAllow(): bool
+    public function isPublicAllow(): bool
     {
         return $this->_publicAllow->value();
     }

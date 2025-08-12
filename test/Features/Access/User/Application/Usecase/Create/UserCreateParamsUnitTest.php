@@ -85,8 +85,8 @@ final class UserCreateParamsUnitTest extends TestCase
         $enabledOtherValue = false;
         $copy = $value->enabled($enabledOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getEnabled());
-        $this->assertNotEquals(false, $value->getEnabled());
+        $this->assertEquals(true, $value->isEnabled());
+        $this->assertNotEquals(false, $value->isEnabled());
         $this->assertEquals(true, $value->getEnabledOrDefault(UserEnabledVO::from($enabledOtherValue))->value());
         $this->assertNotEquals(false, $value->getEnabledOrDefault(UserEnabledVO::from($enabledOtherValue))->value());
         $value->unsetEnabled();
@@ -107,8 +107,8 @@ final class UserCreateParamsUnitTest extends TestCase
         $temporalPasswordOtherValue = false;
         $copy = $value->temporalPassword($temporalPasswordOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getTemporalPassword());
-        $this->assertNotEquals(false, $value->getTemporalPassword());
+        $this->assertEquals(true, $value->isTemporalPassword());
+        $this->assertNotEquals(false, $value->isTemporalPassword());
         $this->assertEquals(true, $value->getTemporalPasswordOrDefault(UserTemporalPasswordVO::from($temporalPasswordOtherValue))->value());
         $this->assertNotEquals(false, $value->getTemporalPasswordOrDefault(UserTemporalPasswordVO::from($temporalPasswordOtherValue))->value());
         $value->unsetTemporalPassword();
@@ -118,8 +118,8 @@ final class UserCreateParamsUnitTest extends TestCase
         $useSecondFactorsOtherValue = false;
         $copy = $value->useSecondFactors($useSecondFactorsOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(true, $value->getUseSecondFactors());
-        $this->assertNotEquals(false, $value->getUseSecondFactors());
+        $this->assertEquals(true, $value->isUseSecondFactors());
+        $this->assertNotEquals(false, $value->isUseSecondFactors());
         $this->assertEquals(true, $value->getUseSecondFactorsOrDefault(UserUseSecondFactorsVO::from($useSecondFactorsOtherValue))->value());
         $this->assertNotEquals(false, $value->getUseSecondFactorsOrDefault(UserUseSecondFactorsVO::from($useSecondFactorsOtherValue))->value());
         $value->unsetUseSecondFactors();
