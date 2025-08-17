@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Shared\Infrastructure\EntityChangelog;
 
 class EntityChangelogService
 {
-    public function __construct(private \PDO $pdo)
+    public function __construct(private readonly \PDO $pdo, private readonly EnqueuePublisher $publisher)
     {
     }
 
@@ -18,7 +18,6 @@ class EntityChangelogService
                 'SELECT payload FROM _audit_changelog
              WHERE entity_type = :entity_type AND entity_id = :entity_id'
             );
-
             $stmt->execute([
                 'entity_type' => $entityType,
                 'entity_id' => $entityId,
@@ -35,6 +34,7 @@ class EntityChangelogService
 
     public function recordChange(string $entityType, string $entityId, array $payload): void
     {
+        $this->publisher->emitChange($entityType, $entityId, $payload);
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
@@ -73,6 +73,7 @@ class EntityChangelogService
 
     public function recordDeletion(string $entityType, string $entityId): void
     {
+        $this->publisher->emitDelete($entityType, $entityId);
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $jsonPayload = json_encode([], JSON_UNESCAPED_UNICODE);
 
