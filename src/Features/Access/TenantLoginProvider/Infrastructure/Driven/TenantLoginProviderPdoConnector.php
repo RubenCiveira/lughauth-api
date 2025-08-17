@@ -126,13 +126,13 @@ class TenantLoginProviderPdoConnector
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'source', value: $entity->getSource()?->value, type: SqlParam::STR),
-                     new SqlParam(name: 'disabled', value: $entity->getDisabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'directAccess', value: $entity->getDirectAccess(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'disabled', value: $entity->isDisabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'directAccess', value: $entity->isDirectAccess(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicKey', value: $entity->getPublicKey(), type: SqlParam::STR),
                      new SqlParam(name: 'privateKey', value: $entity->getPrivateKey(), type: SqlParam::STR),
                      new SqlParam(name: 'certificate', value: $entity->getCertificate(), type: SqlParam::TEXT),
                      new SqlParam(name: 'metadata', value: $entity->getMetadata(), type: SqlParam::STR),
-                     new SqlParam(name: 'usersEnabledByDefault', value: $entity->getUsersEnabledByDefault(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'usersEnabledByDefault', value: $entity->isUsersEnabledByDefault(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
             } catch (NotUniqueException $ex) {
@@ -165,13 +165,13 @@ class TenantLoginProviderPdoConnector
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'source', value: $update->getSource()?->value, type: SqlParam::STR),
-                     new SqlParam(name: 'disabled', value: $update->getDisabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'directAccess', value: $update->getDirectAccess(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'disabled', value: $update->isDisabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'directAccess', value: $update->isDirectAccess(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicKey', value: $update->getPublicKey(), type: SqlParam::STR),
                      new SqlParam(name: 'privateKey', value: $update->getPrivateKey(), type: SqlParam::STR),
                      new SqlParam(name: 'certificate', value: $update->getCertificate(), type: SqlParam::TEXT),
                      new SqlParam(name: 'metadata', value: $update->getMetadata(), type: SqlParam::STR),
-                     new SqlParam(name: 'usersEnabledByDefault', value: $update->getUsersEnabledByDefault(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'usersEnabledByDefault', value: $update->isUsersEnabledByDefault(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);

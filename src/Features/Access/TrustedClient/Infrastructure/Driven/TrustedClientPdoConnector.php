@@ -131,9 +131,9 @@ class TrustedClientPdoConnector
                 $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "public_allow", "secret_oauth", "enabled", "version") VALUES ( :uid, :code, :publicAllow, :secretOauth, :enabled, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
-                     new SqlParam(name: 'publicAllow', value: $entity->getPublicAllow(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'publicAllow', value: $entity->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $entity->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
-                     new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
                 $entity = $this->saveChilds($entity);
@@ -165,9 +165,9 @@ class TrustedClientPdoConnector
                 $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
-                     new SqlParam(name: 'publicAllow', value: $update->getPublicAllow(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'publicAllow', value: $update->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
-                     new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);

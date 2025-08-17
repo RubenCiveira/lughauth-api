@@ -121,10 +121,10 @@ class TenantPdoConnector
                 $this->db->execute('INSERT INTO "access_tenant" ( "uid", "name", "root", "domain", "enabled", "mark_for_delete", "mark_for_delete_time", "version") VALUES ( :uid, :name, :root, :domain, :enabled, :markForDelete, :markForDeleteTime, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'root', value: $entity->getRoot(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'root', value: $entity->isRoot(), type: SqlParam::BOOL),
                      new SqlParam(name: 'domain', value: $entity->getDomain(), type: SqlParam::STR),
-                     new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'markForDelete', value: $entity->getMarkForDelete(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'markForDelete', value: $entity->isMarkForDelete(), type: SqlParam::BOOL),
                      new SqlParam(name: 'markForDeleteTime', value: $entity->getMarkForDeleteTime(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -156,10 +156,10 @@ class TenantPdoConnector
                 $result = $this->db->execute('UPDATE "access_tenant" SET "name" = :name , "root" = :root , "domain" = :domain , "enabled" = :enabled , "mark_for_delete" = :markForDelete , "mark_for_delete_time" = :markForDeleteTime , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
-                     new SqlParam(name: 'root', value: $update->getRoot(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'root', value: $update->isRoot(), type: SqlParam::BOOL),
                      new SqlParam(name: 'domain', value: $update->getDomain(), type: SqlParam::STR),
-                     new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'markForDelete', value: $update->getMarkForDelete(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'markForDelete', value: $update->isMarkForDelete(), type: SqlParam::BOOL),
                      new SqlParam(name: 'markForDeleteTime', value: $update->getMarkForDeleteTime(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)

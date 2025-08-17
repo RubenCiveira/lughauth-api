@@ -122,7 +122,7 @@ class ApiKeyClientPdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'key', value: $entity->getKey(), type: SqlParam::STR),
-                     new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'scopes', value: $entity->getScopes(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -155,7 +155,7 @@ class ApiKeyClientPdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'key', value: $update->getKey(), type: SqlParam::STR),
-                     new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'scopes', value: $update->getScopes(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)

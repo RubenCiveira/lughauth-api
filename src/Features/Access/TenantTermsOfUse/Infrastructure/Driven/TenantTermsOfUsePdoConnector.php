@@ -124,7 +124,7 @@ class TenantTermsOfUsePdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'text', value: $entity->getText(), type: SqlParam::TEXT),
-                     new SqlParam(name: 'enabled', value: $entity->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'attached', value: $entity->getAttached(), type: SqlParam::STR),
                      new SqlParam(name: 'activationDate', value: $entity->getActivationDate(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
@@ -158,7 +158,7 @@ class TenantTermsOfUsePdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'text', value: $update->getText(), type: SqlParam::TEXT),
-                     new SqlParam(name: 'enabled', value: $update->getEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'attached', value: $update->getAttached(), type: SqlParam::STR),
                      new SqlParam(name: 'activationDate', value: $update->getActivationDate(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
