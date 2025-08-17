@@ -5,14 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\EntityChangelog;
 
-use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
-use Enqueue\AmqpLib\AmqpConnectionFactory;
 use Exception;
+use Enqueue\AmqpLib\AmqpConnectionFactory;
 use Interop\Amqp\Impl\AmqpBind;
 use Interop\Amqp\Impl\AmqpMessage;
 use Interop\Amqp\Impl\AmqpQueue;
 use Interop\Amqp\Impl\AmqpTopic;
+use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
 class EnqueuePublisher
 {
@@ -23,13 +23,14 @@ class EnqueuePublisher
 
     public function __construct(AppConfig $conf)
     {
-        $this->dns = $conf->get('app.event.queue.dns');
+        $this->dns = $conf->get('event.queue.dns');
         $this->topic = $conf->get('app.event.queue.topic');
     }
 
     public function emitChange(string $entityType, string $entityId, array $payload): void
     {
         try {
+            $this->logError("Try to to emit on " . $this->dns );
             $this->send($entityType, $entityId, $payload);
         } catch(Exception $ex) {
             $this->logError("Unable to emit change " . $ex->getMessage() );
@@ -39,6 +40,7 @@ class EnqueuePublisher
     public function emitDelete(string $entityType, string $entityId): void
     {
         try {
+            $this->logError("Try to to emit on " . $this->dns );
             $this->send($entityType, $entityId, null);
         } catch(Exception $ex) {
             $this->logError("Unable to emit change " . $ex->getMessage() );
@@ -52,7 +54,7 @@ class EnqueuePublisher
                 'dsn' => $this->dns, // %2f = "/" vhost por defecto
             ]);
             $context = $factory->createContext();
-            $exchange = $context->createTopic($this->topic);
+            $exchange = $context->createTopic($this->topic, false, true, false, false);
             $exchange->setType(AmqpTopic::TYPE_DIRECT);
             $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
             $context->declareTopic($exchange);
