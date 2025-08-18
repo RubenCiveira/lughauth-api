@@ -38,7 +38,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
     #[Override]
     public function resolveForUpdate(TenantTermsOfUseRef $ref): ?TenantTermsOfUse
     {
-        return $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+        return $this->conn->retrieveForUpdate(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
     public function listForUpdate(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $sort = null): TenantTermsOfUseSlide
@@ -46,7 +46,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $sort);
             $last = end($values);
             return new TenantTermsOfUseSlide(function ($slide, $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
@@ -78,7 +78,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");
         try {
-            return $this->conn->exists($filter);
+            return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -92,7 +92,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");
         try {
-            return $this->conn->count($filter);
+            return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -111,7 +111,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
             }
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
-            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -139,7 +139,8 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
             }
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson());
+            $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -160,7 +161,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
                 $this->store->deleteFile(new FileStoreKey($currAttached));
             }
             $this->dispach($entity);
-            $this->changelog->recordDeletion('tenant-terms-of-use', $entity->uid());
+            $this->changelog->recordDeletion('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

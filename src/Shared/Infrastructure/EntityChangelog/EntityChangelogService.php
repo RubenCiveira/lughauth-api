@@ -27,14 +27,14 @@ class EntityChangelogService
             $previousPayload = $row ? json_decode($row['payload'], true) : null;
 
             if ($previousPayload !== $payload) {
-                $this->recordChange($entityType, $entityId, $payload);
+                $this->recordChange($entityType, $entityId, $payload, $previousPayload);
             }
         }
     }
 
-    public function recordChange(string $entityType, string $entityId, array $payload): void
+    public function recordChange(string $entityType, string $entityId, array $payload, array $original): void
     {
-        $this->publisher->emitChange($entityType, $entityId, $payload);
+        $this->publisher->emitChange($entityType, $entityId, $payload, $original);
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
 
@@ -71,9 +71,9 @@ class EntityChangelogService
         }
     }
 
-    public function recordDeletion(string $entityType, string $entityId): void
+    public function recordDeletion(string $entityType, string $entityId, array $original): void
     {
-        $this->publisher->emitDelete($entityType, $entityId);
+        $this->publisher->emitDelete($entityType, $entityId, $original);
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $jsonPayload = json_encode([], JSON_UNESCAPED_UNICODE);
 

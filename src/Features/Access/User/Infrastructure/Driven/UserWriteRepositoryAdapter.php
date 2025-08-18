@@ -34,7 +34,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
     #[Override]
     public function resolveForUpdate(UserRef $ref): ?User
     {
-        return $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+        return $this->conn->retrieveForUpdate(new UserFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
     public function listForUpdate(?UserFilter $filter = null, ?UserCursor $sort = null): UserSlide
@@ -42,7 +42,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $sort);
             $last = end($values);
             return new UserSlide(function ($slide, $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
@@ -74,7 +74,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");
         try {
-            return $this->conn->exists($filter);
+            return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -88,7 +88,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");
         try {
-            return $this->conn->count($filter);
+            return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -104,7 +104,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
-            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -121,7 +121,8 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson());
+            $original = ($reference instanceof User) ? $reference : $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -138,7 +139,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
-            $this->changelog->recordDeletion('user', $entity->uid());
+            $this->changelog->recordDeletion('user', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

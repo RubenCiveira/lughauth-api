@@ -27,27 +27,27 @@ class EnqueuePublisher
         $this->topic = $conf->get('app.event.queue.topic');
     }
 
-    public function emitChange(string $entityType, string $entityId, array $payload): void
+    public function emitChange(string $entityType, string $entityId, array $payload, array $original): void
     {
         try {
-            $this->logError("Try to to emit on " . $this->dns );
-            $this->send($entityType, $entityId, $payload);
-        } catch(Exception $ex) {
-            $this->logError("Unable to emit change " . $ex->getMessage() );
+            $this->logError("Try to to emit on " . $this->dns);
+            $this->send($entityType, $entityId, $payload, $original);
+        } catch (Exception $ex) {
+            $this->logError("Unable to emit change " . $ex->getMessage());
         }
     }
 
-    public function emitDelete(string $entityType, string $entityId): void
+    public function emitDelete(string $entityType, string $entityId, array $original): void
     {
         try {
-            $this->logError("Try to to emit on " . $this->dns );
-            $this->send($entityType, $entityId, null);
-        } catch(Exception $ex) {
-            $this->logError("Unable to emit change " . $ex->getMessage() );
+            $this->logError("Try to to emit on " . $this->dns);
+            $this->send($entityType, $entityId, null, $original);
+        } catch (Exception $ex) {
+            $this->logError("Unable to emit change " . $ex->getMessage());
         }
     }
 
-    private function send(string $entityType, string $entityId, ?array $data)
+    private function send(string $entityType, string $entityId, ?array $data, ?array $original)
     {
         if ($this->dns && str_starts_with($this->dns, 'amqp://')) {
             $factory = new AmqpConnectionFactory([
@@ -75,6 +75,9 @@ class EnqueuePublisher
             ];
             if ($data) {
                 $payload['payload'] = $data;
+            }
+            if ($original) {
+                $payload['original'] = $original;
             }
             $message = $context->createMessage(json_encode($payload));
             $message->setContentType('application/json');

@@ -42,6 +42,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\D
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderChangelogSync;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\UploadMetadata\IsAutenticatedUploadMetadataAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\UploadMetadata\TenantLoginProviderUploadMetadataAllowDecision;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -64,6 +66,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(EntityChangeLogSyncEvent::class, TenantLoginProviderChangelogSync::class);
+        $bus->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAutenticatedUploadMetadataAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

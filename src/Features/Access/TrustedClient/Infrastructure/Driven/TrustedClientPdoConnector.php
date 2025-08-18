@@ -45,7 +45,7 @@ class TrustedClientPdoConnector
         $this->logDebug("List query for Trusted client");
         $span = $this->startSpan("List query for Trusted client");
         try {
-            $sqlFilter = $this->filter(false, $filter, $sort, false);
+            $sqlFilter = $this->filter($filter, $sort, false);
             return $this->query($sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -59,8 +59,8 @@ class TrustedClientPdoConnector
         $this->logDebug("List query for update of Trusted client");
         $span = $this->startSpan("List query for update of Trusted client");
         try {
-            $sqlFilter = $this->filter(true, $filter, $sort, false);
-            return $this->query($sqlFilter['query'], $sqlFilter['params']);
+            $sqlFilter = $this->filter($filter, $sort, false);
+            return $this->queryForUpdate($sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -68,12 +68,28 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    public function query(string $query, ?array $params = []): array
+    private function query(string $query, ?array $params = []): array
+    {
+        return $this->theQuery(false, $query, $params);
+    }
+    private function rawQuery(string $query, ?array $params = []): array
+    {
+        return $this->theRawQuery(false, $query, $params);
+    }
+    private function queryForUpdate(string $query, ?array $params = []): array
+    {
+        return $this->theQuery(true, $query, $params);
+    }
+    private function rawQueryForUpdate(string $query, ?array $params = []): array
+    {
+        return $this->theRawQuery(true, $query, $params);
+    }
+    private function theQuery(bool $forUpdate, string $query, ?array $params = []): array
     {
         $this->logDebug("Make query for entities for Trusted client");
         $span = $this->startSpan("Make query for entities for Trusted client");
         try {
-            return $this->queryWithChilds($query, $params);
+            return $this->queryWithChilds($forUpdate, $query, $params);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -81,7 +97,7 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    public function rawQuery(string $query, ?array $params = []): array
+    private function theRawQuery(bool $forUpdate, string $query, ?array $params = []): array
     {
         $this->logDebug("Make raw query for Trusted client");
         $span = $this->startSpan("Make raw query for Trusted client");
@@ -99,8 +115,8 @@ class TrustedClientPdoConnector
         $this->logDebug("Retrieve query for Trusted client");
         $span = $this->startSpan("Retrieve query for Trusted client");
         try {
-            $sqlFilter = $this->filter(false, $filter, null, false);
-            return $this->findOneWithChilds($sqlFilter['query'], $sqlFilter['params']);
+            $sqlFilter = $this->filter($filter, null, false);
+            return $this->findOneWithChilds(false, $sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -113,8 +129,8 @@ class TrustedClientPdoConnector
         $this->logDebug("Retrieve query for update of Trusted client");
         $span = $this->startSpan("Retrieve query for update of Trusted client");
         try {
-            $sqlFilter = $this->filter(true, $filter, null, false);
-            return $this->findOneWithChilds($sqlFilter['query'], $sqlFilter['params']);
+            $sqlFilter = $this->filter($filter, null, false);
+            return $this->findOneWithChilds(true, $sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -212,7 +228,7 @@ class TrustedClientPdoConnector
         $this->logDebug("Execute exists sql query for Trusted client");
         $span = $this->startSpan("Execute exists sql query for Trusted client");
         try {
-            $sqlFilter = $this->filter(false, $filter, null, false);
+            $sqlFilter = $this->filter($filter, null, false);
             return $this->db->exists($sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -226,8 +242,8 @@ class TrustedClientPdoConnector
         $this->logDebug("Execute exists sql query for update of Trusted client");
         $span = $this->startSpan("Execute update sql query for update of Trusted client");
         try {
-            $sqlFilter = $this->filter(false, $filter, null, false);
-            return $this->db->exists($sqlFilter['query'], $sqlFilter['params']);
+            $sqlFilter = $this->filter($filter, null, false);
+            return $this->db->existsForUpdate($sqlFilter['query'], $sqlFilter['params']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -240,7 +256,7 @@ class TrustedClientPdoConnector
         $this->logDebug("Execute count sql query for Trusted client");
         $span = $this->startSpan("Execute count sql query for Trusted client");
         try {
-            $sqlFilter = $this->filter(true, $filter, null, true);
+            $sqlFilter = $this->filter($filter, null, true);
             return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -254,8 +270,8 @@ class TrustedClientPdoConnector
         $this->logDebug("Execute count sql query for update of Trusted client");
         $span = $this->startSpan("Execute count sql query for update of Trusted client");
         try {
-            $sqlFilter = $this->filter(false, $filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            $sqlFilter = $this->filter($filter, null, true);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -283,7 +299,7 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    private function filter(bool $forUpdate, ?TrustedClientFilter $filter, ?TrustedClientCursor $sort, bool $count)
+    private function filter(?TrustedClientFilter $filter, ?TrustedClientCursor $sort, bool $count)
     {
         $this->logDebug("Build query filter of Trusted client");
         $span = $this->startSpan("Build query filter of Trusted client");
@@ -358,7 +374,7 @@ class TrustedClientPdoConnector
               'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_trusted_client"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
-                . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit . ($forUpdate ? " FOR UPDATE" : ""),
+                . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,
               'params' => $params];
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -483,9 +499,9 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    private function queryWithChilds(string $query, ?array $params = []): array
+    private function queryWithChilds(bool $forUpdate, string $query, ?array $params = []): array
     {
-        $values = $this->db->query($query, $params, fn ($row) => $row);
+        $values = $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         $mapped = [];
         $ids = [];
         foreach ($values as $value) {
@@ -493,7 +509,9 @@ class TrustedClientPdoConnector
             $value['allowed_redirects'] = [];
             $mapped[$value['uid']] = $value;
         }
-        $childsAllowedRedirects = $this->db->query('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" in (:parents)', [
+        $childsAllowedRedirects = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" in (:parents)', [
+          new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
+        ]) : $this->db->query('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" in (:parents)', [
           new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
         ]);
         foreach ($childsAllowedRedirects as $childAllowedRedirects) {
@@ -506,11 +524,13 @@ class TrustedClientPdoConnector
         }
         return array_values(array_map(fn ($row) => $this->mapper($row), $mapped));
     }
-    private function findOneWithChilds(string $query, ?array $params = []): ?TrustedClient
+    private function findOneWithChilds(bool $forUpdate, string $query, ?array $params = []): ?TrustedClient
     {
-        if ($value = $this->db->findOne($query, $params, fn ($row) => $row)) {
+        if ($value = $forUpdate ? $this->db->findOne($query, $params, fn ($row) => $row) : $this->db->findOne($query, $params, fn ($row) => $row)) {
             $value['allowed_redirects'] = [];
-            $childsAllowedRedirects = $this->db->query('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" = :parent', [
+            $childsAllowedRedirects = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" = :parent', [
+              new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
+            ]) : $this->db->query('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" = :parent', [
               new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
             ]);
             foreach ($childsAllowedRedirects as $childAllowedRedirects) {

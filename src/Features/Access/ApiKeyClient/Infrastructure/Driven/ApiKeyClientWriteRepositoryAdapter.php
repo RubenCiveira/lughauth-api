@@ -33,7 +33,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
     #[Override]
     public function resolveForUpdate(ApiKeyClientRef $ref): ?ApiKeyClient
     {
-        return $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+        return $this->conn->retrieveForUpdate(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
     public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $sort = null): ApiKeyClientSlide
@@ -41,7 +41,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $sort);
             $last = end($values);
             return new ApiKeyClientSlide(function ($slide, $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
@@ -73,7 +73,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
-            return $this->conn->exists($filter);
+            return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -87,7 +87,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
-            return $this->conn->count($filter);
+            return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -103,7 +103,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
-            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -120,7 +120,8 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson());
+            $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -137,7 +138,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
-            $this->changelog->recordDeletion('api-key-client', $entity->uid());
+            $this->changelog->recordDeletion('api-key-client', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

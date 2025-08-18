@@ -33,7 +33,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
     #[Override]
     public function resolveForUpdate(TenantRef $ref): ?Tenant
     {
-        return $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
+        return $this->conn->retrieveForUpdate(new TenantFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
     public function listForUpdate(?TenantFilter $filter = null, ?TenantCursor $sort = null): TenantSlide
@@ -41,7 +41,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $this->logDebug("Count for Tenant on adapter ");
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $sort);
             $last = end($values);
             return new TenantSlide(function ($slide, $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
@@ -73,7 +73,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $this->logDebug("Count for Tenant on adapter ");
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
-            return $this->conn->exists($filter);
+            return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -87,7 +87,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $this->logDebug("Count for Tenant on adapter ");
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
-            return $this->conn->count($filter);
+            return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -103,7 +103,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispach($entity);
-            $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -120,7 +120,8 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson());
+            $original = ($reference instanceof Tenant) ? $reference : $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
+            $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -137,7 +138,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         try {
             $result = $this->conn->delete($entity);
             $this->dispach($entity);
-            $this->changelog->recordDeletion('tenant', $entity->uid());
+            $this->changelog->recordDeletion('tenant', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

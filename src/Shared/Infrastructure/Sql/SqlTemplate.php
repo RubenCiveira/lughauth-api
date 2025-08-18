@@ -74,6 +74,17 @@ class SqlTemplate
         return $keys;
     }
 
+    public function queryForUpdate($query, array $params, ?Closure $clousure = null): array
+    {
+        $stmt = $this->prepare($query, $params);
+        $stmt->execute();
+        $keys = [];
+        while ($fila = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $keys[] = $clousure ? $clousure($fila) : $fila;
+        }
+        return $keys;
+    }
+
     public function findOne($query, array $params, ?Closure $clousure = null)
     {
         $stmt = $this->prepare($query, $params);
@@ -82,7 +93,22 @@ class SqlTemplate
         return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
     }
 
+    public function findOneForUpdate($query, array $params, ?Closure $clousure = null)
+    {
+        $stmt = $this->prepare($query, $params);
+        $stmt->execute();
+        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
+    }
+
     public function exists($query, array $params): bool
+    {
+        $stmt = $this->prepare($query, $params);
+        $stmt->execute();
+        return !!$stmt->fetch();
+    }
+
+    public function existsForUpdate($query, array $params): bool
     {
         $stmt = $this->prepare($query, $params);
         $stmt->execute();
