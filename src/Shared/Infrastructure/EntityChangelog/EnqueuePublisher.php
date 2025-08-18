@@ -55,17 +55,30 @@ class EnqueuePublisher
             ]);
             $context = $factory->createContext();
             $exchange = $context->createTopic($this->topic, false, true, false, false);
-            $exchange->setType(AmqpTopic::TYPE_DIRECT);
+            $exchange->setType(AmqpTopic::TYPE_TOPIC);
             $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
             $context->declareTopic($exchange);
 
-            $queue = $context->createQueue('events.' . $entityType);
-            $queue->addFlag(AmqpQueue::FLAG_DURABLE);
-            $context->declareQueue($queue);
+            // 2a) Cola por entidad: events.<entityType>
+            $entityQueue = $context->createQueue($this->topic. '.' . $entityType);
+            $entityQueue->addFlag(AmqpQueue::FLAG_DURABLE);
+            $context->declareQueue($entityQueue);
+            // patrón: <entityType>.*
+            $context->bind(new AmqpBind($exchange, $entityQueue, $entityType . '.*' ));
 
-            $routingKey = $entityType . ($data ? '.modify' : '.delete');
-            $context->bind(new AmqpBind($exchange, $queue, $routingKey));
+            // 2b) (Opcional) Cola catch-all: events.all -> '#'
+            $allQueue = $context->createQueue('events.all');
+            $allQueue->addFlag(AmqpQueue::FLAG_DURABLE);
+            $context->declareQueue($allQueue);
+            $context->bind(new AmqpBind($exchange, $allQueue, '#'));
 
+            // $queue = $context->createQueue('events.' . $entityType);
+            // $queue->addFlag(AmqpQueue::FLAG_DURABLE);
+            // $context->declareQueue($queue);
+
+            // $context->bind(new AmqpBind($exchange, $queue, $routingKey));
+            
+            $routingKey =  $entityType . ($data ? '.modify' : '.delete');
             $payload = [
                 'schema' => 'v1',
                 'event'  => $routingKey,
