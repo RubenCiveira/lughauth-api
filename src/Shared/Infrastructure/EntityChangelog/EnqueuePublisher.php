@@ -63,7 +63,7 @@ class EnqueuePublisher
             $queue->addFlag(AmqpQueue::FLAG_DURABLE);
             $context->declareQueue($queue);
 
-            $routingKey = $data ? 'user.modify' : 'user.delete';
+            $routingKey = $entityType . ($data ? '.modify' : '.delete');
             $context->bind(new AmqpBind($exchange, $queue, $routingKey));
 
             $payload = [
