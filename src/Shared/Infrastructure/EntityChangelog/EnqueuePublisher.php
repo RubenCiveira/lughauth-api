@@ -67,7 +67,7 @@ class EnqueuePublisher
             $context->bind(new AmqpBind($exchange, $entityQueue, $entityType . '.*' ));
 
             // 2b) (Opcional) Cola catch-all: events.all -> '#'
-            $allQueue = $context->createQueue('events.all');
+            $allQueue = $context->createQueue($this->topic. '.all');
             $allQueue->addFlag(AmqpQueue::FLAG_DURABLE);
             $context->declareQueue($allQueue);
             $context->bind(new AmqpBind($exchange, $allQueue, '#'));
