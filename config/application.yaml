@@ -7,7 +7,6 @@ app:
       allow-forwarded: true
   event:
     queue:
-      dns: # amqp://guest:guest@localhost:5672/%2f
       topic: lught.events
   rate-limit:
     id: app_global_limit
