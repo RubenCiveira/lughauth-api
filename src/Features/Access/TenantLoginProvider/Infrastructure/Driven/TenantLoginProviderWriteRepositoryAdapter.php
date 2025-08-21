@@ -140,7 +140,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             }
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof TenantLoginProvider) ? $reference : $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof TenantLoginProvider) ? $reference : $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

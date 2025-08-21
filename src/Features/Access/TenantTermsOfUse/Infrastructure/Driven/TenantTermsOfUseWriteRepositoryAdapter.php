@@ -139,7 +139,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
             }
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

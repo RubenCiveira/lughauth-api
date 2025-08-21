@@ -5,13 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class TenantPartySecurityCreateEvent extends TenantPartySecurityEvent
+class TenantPartySecurityCreateEvent extends TenantPartySecurityEvent implements PublicEvent
 {
     public function __construct(
         TenantPartySecurity $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'tenant-party-security.create';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return [];
     }
 }

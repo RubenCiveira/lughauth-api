@@ -5,13 +5,36 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\User\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class UserDeleteEvent extends UserEvent
+class UserDeleteEvent extends UserEvent implements PublicEvent
 {
     public function __construct(
         User $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'user.delete';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return [];
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->payload->asPublicJson();
+        ;
     }
 }

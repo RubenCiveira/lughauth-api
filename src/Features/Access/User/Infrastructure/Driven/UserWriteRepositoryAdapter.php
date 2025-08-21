@@ -121,7 +121,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof User) ? $reference : $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof User) ? $reference : $this->conn->retrieve(new UserFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

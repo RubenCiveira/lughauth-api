@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\Event;
 
 use Exception;
+use DateInterval;
+use DateTimeImmutable;
 use Enqueue\AmqpLib\AmqpConnectionFactory;
 use Interop\Amqp\Impl\AmqpBind;
 use Interop\Amqp\Impl\AmqpMessage;
@@ -17,14 +19,13 @@ use Civi\Lughauth\Shared\Infrastructure\Sql\SqlParam;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TraceContext;
-use DateInterval;
-use DateTimeImmutable;
-use PDO;
 
 class EnqueuePublisher
 {
     use LoggerAwareTrait;
 
+    private readonly ?string $sendRetention;
+    private readonly ?string $stuckRetention;
     private readonly ?string $dns;
     private readonly ?string $topic;
 
@@ -35,6 +36,8 @@ class EnqueuePublisher
     ) {
         $this->dns = $conf->get('event.queue.dns');
         $this->topic = $conf->get('app.event.queue.topic');
+        $this->sendRetention = $conf->get('app.event.queue.retention.send', '1D');
+        $this->stuckRetention = $conf->get('app.event.queue.retention.stuck', '3D');
     }
 
     public function emitChange(PublicEvent $event)
@@ -46,7 +49,7 @@ class EnqueuePublisher
         // Vamos a guardarlo en la bbdd de eventos, y luego emitimos todos los que podamos.
         $payload = $event->payload();
         $original = $event->original();
-        if( count($payload) > 0 ) {
+        if (count($payload) > 0) {
             $diff = [];
             foreach ($payload as $key => $newValue) {
                 $oldValue = $original[$key] ?? null;
@@ -59,13 +62,14 @@ class EnqueuePublisher
         }
         $result = $this->template->execute(<<<SQL
                     insert into _outbox_events 
-                        (status, next_retry, retries, event_id, event_type, schema_version, occurred_at, payload, diff, correlation_id, causation_id)
-                        VALUES ('pending', :next, 0, :event_id, :et, :sv, :occ, :payload, :diff, :cid, :caid)
+                        (status, next_retry, retries, created_at, published_at, event_id, event_type, schema_version, occurred_at, payload, diff, correlation_id, causation_id)
+                        VALUES ('pending', :next, 0, :at, null, :event_id, :et, :sv, :occ, :payload, :diff, :cid, :caid)
                 SQL, [
-                    new SqlParam('next', new DateTimeImmutable(), SqlParam::DATETIME),
+                    new SqlParam('next', new DateTimeImmutable()->sub(new DateInterval('PT1M')), SqlParam::DATETIME),
                     new SqlParam('event_id', bin2hex(random_bytes(16)), SqlParam::TEXT),
                     new SqlParam('et', $event->eventType(), SqlParam::TEXT),
                     new SqlParam('sv', $event->schemaVersion(), SqlParam::TEXT),
+                    new SqlParam('at', new DateTimeImmutable(), SqlParam::DATETIME),
                     new SqlParam('occ', new DateTimeImmutable(), SqlParam::DATETIME),
                     new SqlParam('payload', json_encode($payload), SqlParam::TEXT),
                     new SqlParam('diff', json_encode($diff), SqlParam::TEXT),
@@ -75,14 +79,14 @@ class EnqueuePublisher
         if (!$result) {
             throw new Exception('Unable to store event');
         }
-
-        register_shutdown_function([$this, 'sendEvent']);
+        $this->sendEvents();
+        // register_shutdown_function([$this, 'sendEvents']);
     }
 
     public function sendEvents()
     {
         $values = $this->template->query(<<<SQL
-                select * from _outbox_events where status='pending' and next < :now
+                select * from _outbox_events where status='pending' and next_retry < :now
             SQL, [
                 new SqlParam('now', new DateTimeImmutable(), SqlParam::DATETIME)
             ]);
@@ -90,16 +94,17 @@ class EnqueuePublisher
             try {
                 $this->send($value);
                 $this->template->execute(<<<SQL
-                    update _outbox_events set status='published' where event_id = :event_id
+                    update _outbox_events set status='published', published_at = :published where event_id = :event_id
                 SQL, [
-                    new SqlParam('event_id', $value['event_id'], SqlParam::TEXT)
+                    new SqlParam('event_id', $value['event_id'], SqlParam::TEXT),
+                    new SqlParam('published', new DateTimeImmutable(), SqlParam::DATETIME),
                 ]);
             } catch (Exception $ex) {
                 $retries = intval($value['retries']) + 1;
                 $minutes = pow($retries, 2);
                 $next = new DateTimeImmutable()->add(new DateInterval('PT'.$minutes.'M'));
                 $this->template->execute(<<<SQL
-                    update _outbox_events set retries = :retries, next_retry = :next where event_id = :event_id
+                    update _outbox_events set retries = :retries, next_retry = :next_retry where event_id = :event_id
                 SQL, [
                     new SqlParam('retries', $retries, SqlParam::INT),
                     new SqlParam('next_retry', $next, SqlParam::DATETIME),
@@ -107,6 +112,7 @@ class EnqueuePublisher
                 ]);
             }
         }
+        $this->clearEvents();
     }
 
     private function send(array $data)
@@ -122,12 +128,24 @@ class EnqueuePublisher
             $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
             $context->declareTopic($exchange);
 
-            // 2a) Cola por entidad: events.<entityType>
-            $entityQueue = $context->createQueue($this->topic. '.' . $entityType);
-            $entityQueue->addFlag(AmqpQueue::FLAG_DURABLE);
-            $context->declareQueue($entityQueue);
-            // patrón: <entityType>.*
-            $context->bind(new AmqpBind($exchange, $entityQueue, $entityType . '.*'));
+            // // 2a) Cola por entidad: events.<entityType>
+
+            $join = '';
+            $parts = explode('.', $entityType);
+            foreach($parts as $part) {
+                $join .= $part;
+                // 2a) Cola por entidad: events.<entityType>
+                $joinQueue = $context->createQueue($this->topic. '.' . $join);
+                $joinQueue->addFlag(AmqpQueue::FLAG_DURABLE);
+                $context->declareQueue($joinQueue);
+                // patrón: <entityType>.*
+                if( $join === $entityType ) {
+                    $context->bind(new AmqpBind($exchange, $joinQueue, $join));
+                } else {
+                    $context->bind(new AmqpBind($exchange, $joinQueue, $join . '.*'));
+                }
+                $join .= '.';
+            }
 
             // 2b) (Opcional) Cola catch-all: events.all -> '#'
             $allQueue = $context->createQueue($this->topic. '.all');
@@ -135,16 +153,9 @@ class EnqueuePublisher
             $context->declareQueue($allQueue);
             $context->bind(new AmqpBind($exchange, $allQueue, '#'));
 
-            // $queue = $context->createQueue('events.' . $entityType);
-            // $queue->addFlag(AmqpQueue::FLAG_DURABLE);
-            // $context->declareQueue($queue);
-
-            // $context->bind(new AmqpBind($exchange, $queue, $routingKey));
-
-            $routingKey =  $entityType . ($data ? '.modify' : '.delete');
             $message = $context->createMessage(json_encode($data));
             $message->setContentType('application/json');
-            $message->setRoutingKey($routingKey);
+            $message->setRoutingKey($entityType);
             $message->setDeliveryMode(AmqpMessage::DELIVERY_MODE_PERSISTENT); // <- clave
 
             // 5) Enviar
@@ -153,4 +164,15 @@ class EnqueuePublisher
         }
     }
 
+    private function clearEvents()
+    {
+        $send = new DateTimeImmutable()->sub(new DateInterval('P'.$this->sendRetention));
+        $stuck = new DateTimeImmutable()->sub(new DateInterval('P'.$this->stuckRetention));
+        $this->template->execute(<<<SQL
+            DELETE FROM _outbox_events where (status='published' and occurred_at < :send) or (status!='published' and occurred_at < :stuck )
+            SQL, [
+                new SqlParam('send', $send, SqlParam::DATETIME),
+                new SqlParam('stuck', $stuck, SqlParam::DATETIME),
+            ]);
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
 class TrustedClientEnableEvent extends TrustedClientUpdateEvent
@@ -14,5 +15,25 @@ class TrustedClientEnableEvent extends TrustedClientUpdateEvent
         TrustedClient $original
     ) {
         parent::__construct($payload, $original);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'trusted-client.enable';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->original->asPublicJson();
     }
 }

@@ -19,7 +19,8 @@ class EventBus implements EventListenersRegistrarInterface
     public function __construct(private readonly ContainerInterface $container)
     {
         $this->base = new EventDispatcher();
-        $this->dispacher = new HierarchicalDispatcher($this->base);
+        $publisher = $container->get(EnqueuePublisher::class);
+        $this->dispacher = new HierarchicalDispatcher($this->base, $publisher);
 
     }
 
@@ -28,11 +29,7 @@ class EventBus implements EventListenersRegistrarInterface
         $container = $this->container;
         $this->base->addListener($event, function (mixed $event) use ($type, $container) {
             $instance = $container->get($type);
-            $publisher = $container->get(EnqueuePublisher::class);
             $response = call_user_func($instance, $event);
-            if( $event instanceof PublicEvent) {
-                $publisher->emitChange( $event );
-            }
             return $response ? $response : $event;
         });
     }
@@ -41,7 +38,7 @@ class EventBus implements EventListenersRegistrarInterface
 
 class HierarchicalDispatcher implements EventDispatcherInterface
 {
-    public function __construct(private EventDispatcherInterface $dispatcher)
+    public function __construct(private readonly EventDispatcherInterface $dispatcher, private readonly EnqueuePublisher $publisher)
     {
     }
 
@@ -50,6 +47,9 @@ class HierarchicalDispatcher implements EventDispatcherInterface
         $result = $event;
         foreach (class_parents($event) + class_implements($event) + [get_class($event)] as $eventName) {
             $result = $this->dispatcher->dispatch($event, $eventName);
+        }
+        if ($result instanceof PublicEvent) {
+            $this->publisher->emitChange($result);
         }
         return $result;
     }

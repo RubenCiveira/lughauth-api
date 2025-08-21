@@ -120,7 +120,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof Tenant) ? $reference : $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof Tenant) ? $reference : $this->conn->retrieve(new TenantFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

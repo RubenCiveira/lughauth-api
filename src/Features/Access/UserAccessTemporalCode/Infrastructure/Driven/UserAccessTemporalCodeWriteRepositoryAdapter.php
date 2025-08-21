@@ -121,7 +121,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof UserAccessTemporalCode) ? $reference : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof UserAccessTemporalCode) ? $reference : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

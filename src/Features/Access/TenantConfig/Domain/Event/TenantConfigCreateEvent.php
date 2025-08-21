@@ -5,13 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantConfig\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class TenantConfigCreateEvent extends TenantConfigEvent
+class TenantConfigCreateEvent extends TenantConfigEvent implements PublicEvent
 {
     public function __construct(
         TenantConfig $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'tenant-config.create';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return [];
     }
 }

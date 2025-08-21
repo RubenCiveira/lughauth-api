@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 
 class TenantTermsOfUseDisableEvent extends TenantTermsOfUseUpdateEvent
@@ -14,5 +15,25 @@ class TenantTermsOfUseDisableEvent extends TenantTermsOfUseUpdateEvent
         TenantTermsOfUse $original
     ) {
         parent::__construct($payload, $original);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'tenant-terms-of-use.disable';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->original->asPublicJson();
     }
 }

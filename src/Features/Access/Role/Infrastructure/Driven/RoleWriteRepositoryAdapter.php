@@ -121,7 +121,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof Role) ? $reference : $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof Role) ? $reference : $this->conn->retrieve(new RoleFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

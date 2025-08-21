@@ -5,13 +5,36 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class TenantLoginProviderDeleteEvent extends TenantLoginProviderEvent
+class TenantLoginProviderDeleteEvent extends TenantLoginProviderEvent implements PublicEvent
 {
     public function __construct(
         TenantLoginProvider $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'tenant-login-provider.delete';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return [];
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->payload->asPublicJson();
+        ;
     }
 }

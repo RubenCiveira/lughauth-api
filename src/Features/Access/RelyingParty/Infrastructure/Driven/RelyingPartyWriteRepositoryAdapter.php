@@ -120,7 +120,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof RelyingParty) ? $reference : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof RelyingParty) ? $reference : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

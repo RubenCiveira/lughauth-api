@@ -120,7 +120,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof UserIdentity) ? $reference : $this->conn->retrieve(new UserIdentityFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof UserIdentity) ? $reference : $this->conn->retrieve(new UserIdentityFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

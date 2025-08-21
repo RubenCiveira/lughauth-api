@@ -9,12 +9,12 @@ use Closure;
 use Override;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogService;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
 class LoadChangesManagement implements ManagementInterface
 {
-    public function __construct(private readonly EntityChangeLogService $query)
+    public function __construct(private readonly EntityChangelogService $query)
     {
     }
 

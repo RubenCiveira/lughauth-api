@@ -122,7 +122,7 @@ class TenantPartySecurityWriteRepositoryAdapter implements TenantPartySecurityWr
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof TenantPartySecurity) ? $reference : $this->conn->retrieve(new TenantPartySecurityFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof TenantPartySecurity) ? $reference : $this->conn->retrieve(new TenantPartySecurityFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant-party-security', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

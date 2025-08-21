@@ -5,13 +5,36 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class TenantTermsOfUseDeleteEvent extends TenantTermsOfUseEvent
+class TenantTermsOfUseDeleteEvent extends TenantTermsOfUseEvent implements PublicEvent
 {
     public function __construct(
         TenantTermsOfUse $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'tenant-terms-of-use.delete';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return [];
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->payload->asPublicJson();
+        ;
     }
 }

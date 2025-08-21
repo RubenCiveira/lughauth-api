@@ -5,14 +5,36 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class UserIdentityUpdateEvent extends UserIdentityEvent
+class UserIdentityUpdateEvent extends UserIdentityEvent implements PublicEvent
 {
     public function __construct(
         UserIdentity $payload,
         public readonly UserIdentity $original
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'user-identity.update';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->original->asPublicJson();
     }
 }

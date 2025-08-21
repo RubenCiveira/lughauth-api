@@ -120,7 +120,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof TrustedClient) ? $reference : $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof TrustedClient) ? $reference : $this->conn->retrieve(new TrustedClientFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

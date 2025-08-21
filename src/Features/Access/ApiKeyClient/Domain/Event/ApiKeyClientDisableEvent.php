@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 
 class ApiKeyClientDisableEvent extends ApiKeyClientUpdateEvent
@@ -14,5 +15,25 @@ class ApiKeyClientDisableEvent extends ApiKeyClientUpdateEvent
         ApiKeyClient $original
     ) {
         parent::__construct($payload, $original);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'api-key-client.disable';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return $this->original->asPublicJson();
     }
 }

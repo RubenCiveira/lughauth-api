@@ -120,7 +120,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         try {
             $updated = $this->conn->update($entity);
             $this->dispach($entity);
-            $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+            $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

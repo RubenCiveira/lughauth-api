@@ -5,13 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class ApiKeyClientCreateEvent extends ApiKeyClientEvent
+class ApiKeyClientCreateEvent extends ApiKeyClientEvent implements PublicEvent
 {
     public function __construct(
         ApiKeyClient $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'api-key-client.create';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return [];
     }
 }

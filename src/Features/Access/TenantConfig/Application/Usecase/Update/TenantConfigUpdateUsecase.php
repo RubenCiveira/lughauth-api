@@ -72,7 +72,7 @@ class TenantConfigUpdateUsecase
             $enriched = $this->dispacher->dispatch(new TenantConfigUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
-            $modified = $original->replace($input);
+            $modified = $original->update($input);
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
             return new TenantConfigUpdateResult($output);

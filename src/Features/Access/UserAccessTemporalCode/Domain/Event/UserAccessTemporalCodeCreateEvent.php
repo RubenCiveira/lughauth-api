@@ -5,13 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event;
 
+use Override;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
-class UserAccessTemporalCodeCreateEvent extends UserAccessTemporalCodeEvent
+class UserAccessTemporalCodeCreateEvent extends UserAccessTemporalCodeEvent implements PublicEvent
 {
     public function __construct(
         UserAccessTemporalCode $payload
     ) {
         parent::__construct($payload);
+    }
+    #[Override]
+    public function eventType(): string
+    {
+        return 'user-access-temporal-code.create';
+    }
+    #[Override]
+    public function schemaVersion(): string
+    {
+        return 'v1';
+    }
+    #[Override]
+    public function payload(): array
+    {
+        return $this->payload->asPublicJson();
+    }
+    #[Override]
+    public function original(): array
+    {
+        return [];
     }
 }

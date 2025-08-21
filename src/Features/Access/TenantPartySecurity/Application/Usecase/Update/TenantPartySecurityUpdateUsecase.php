@@ -72,7 +72,7 @@ class TenantPartySecurityUpdateUsecase
             $enriched = $this->dispacher->dispatch(new TenantPartySecurityUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
-            $modified = $original->replace($input);
+            $modified = $original->update($input);
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
             return new TenantPartySecurityUpdateResult($output);
