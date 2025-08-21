@@ -9,6 +9,7 @@ use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
+use Civi\Lughauth\Shared\Event\PublicEvent;
 
 class EventBus implements EventListenersRegistrarInterface
 {
@@ -27,7 +28,11 @@ class EventBus implements EventListenersRegistrarInterface
         $container = $this->container;
         $this->base->addListener($event, function (mixed $event) use ($type, $container) {
             $instance = $container->get($type);
+            $publisher = $container->get(EnqueuePublisher::class);
             $response = call_user_func($instance, $event);
+            if( $event instanceof PublicEvent) {
+                $publisher->emitChange( $event );
+            }
             return $response ? $response : $event;
         });
     }
