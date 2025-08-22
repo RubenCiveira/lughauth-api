@@ -132,14 +132,14 @@ class EnqueuePublisher
 
             $join = '';
             $parts = explode('.', $entityType);
-            foreach($parts as $part) {
+            foreach ($parts as $part) {
                 $join .= $part;
                 // 2a) Cola por entidad: events.<entityType>
                 $joinQueue = $context->createQueue($this->topic. '.' . $join);
                 $joinQueue->addFlag(AmqpQueue::FLAG_DURABLE);
                 $context->declareQueue($joinQueue);
                 // patrón: <entityType>.*
-                if( $join === $entityType ) {
+                if ($join === $entityType) {
                     $context->bind(new AmqpBind($exchange, $joinQueue, $join));
                 } else {
                     $context->bind(new AmqpBind($exchange, $joinQueue, $join . '.*'));
