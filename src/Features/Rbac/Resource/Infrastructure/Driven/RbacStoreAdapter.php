@@ -107,8 +107,8 @@ class RbacStoreAdapter implements RbacStoreRepository
                 $dsl .= $specific->getPolicies();
             }
         }
-        $this->logError("SHOW DSL: ". $dsl);
         if (!$dsl) {
+            $this->logInfo("No dsl");
             return [];
         }
         $secRoles = $this->roles->list();
@@ -131,6 +131,10 @@ class RbacStoreAdapter implements RbacStoreRepository
         }
         foreach ($schemas as $name => $scc) {
             $resources[$name]['attributes'] = $scc;
+        }
+        if( !$resources ) {
+            $this->logInfo("No resources");
+            return [];
         }
         $engine = new PolicyEngine();
         $engine->setRuleSet($this->parseRules($dsl));
