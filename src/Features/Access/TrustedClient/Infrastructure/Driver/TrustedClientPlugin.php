@@ -37,6 +37,13 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientChangelogSync;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\CreateTrustedClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\UpdateTrustedClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\RetrieveTrustedClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\ListTrustedClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\DeleteTrustedClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\EnableTrustedClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\DisableTrustedClientOnlyForRootAllow;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -57,6 +64,13 @@ class TrustedClientPlugin extends MicroPlugin
         $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(EntityChangeLogSyncEvent::class, TrustedClientChangelogSync::class);
+        $bus->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientUpdateAllowDecision::class, UpdateTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientDeleteAllowDecision::class, DeleteTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientEnableAllowDecision::class, EnableTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientDisableAllowDecision::class, DisableTrustedClientOnlyForRootAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -37,6 +37,13 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyChangelogSync;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\CreateRelyingPartyOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Update\UpdateRelyingPartyOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Retrieve\RetrieveRelyingPartyOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\List\ListRelyingPartyOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Delete\DeleteRelyingPartyOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\EnableRelyingPartyOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\DisableRelyingPartyOnlyForRootAllow;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
@@ -57,6 +64,13 @@ class RelyingPartyPlugin extends MicroPlugin
         $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(EntityChangeLogSyncEvent::class, RelyingPartyChangelogSync::class);
+        $bus->registerListener(RelyingPartyCreateAllowDecision::class, CreateRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyUpdateAllowDecision::class, UpdateRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, RetrieveRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyListAllowDecision::class, ListRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyDeleteAllowDecision::class, DeleteRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyEnableAllowDecision::class, EnableRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyDisableAllowDecision::class, DisableRelyingPartyOnlyForRootAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

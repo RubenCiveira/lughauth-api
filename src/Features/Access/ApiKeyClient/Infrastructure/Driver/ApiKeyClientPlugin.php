@@ -37,6 +37,13 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientChangelogSync;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\CreateApiKeyClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Update\UpdateApiKeyClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Retrieve\RetrieveApiKeyClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\List\ListApiKeyClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Delete\DeleteApiKeyClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\EnableApiKeyClientOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\DisableApiKeyClientOnlyForRootAllow;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
@@ -57,6 +64,13 @@ class ApiKeyClientPlugin extends MicroPlugin
         $bus->registerListener(ApiKeyClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(ApiKeyClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(EntityChangeLogSyncEvent::class, ApiKeyClientChangelogSync::class);
+        $bus->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, UpdateApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, DeleteApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientEnableAllowDecision::class, EnableApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientDisableAllowDecision::class, DisableApiKeyClientOnlyForRootAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
