@@ -20,7 +20,7 @@ final class QueueConsumer
      * @param array    $options         ['queueName' => string|null, 'prefetch' => int, 'autoCreateQueue' => bool]
      */
     public function consume(QueueSource $source, callable $handler): ?array
-    {;
+    {
         $ctx = (new AmqpConnectionFactory(['dsn' => $source->dsn]))->createContext();
         $queueName   = $opts['queueName']    ?? $this->defaultQueueName($source->routingKeyMask);
         $declare     = $source->declareQueue;

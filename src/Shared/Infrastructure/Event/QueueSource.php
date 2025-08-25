@@ -5,10 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Event;
 
-
 class QueueSource
 {
-     public function __construct(
+    public function __construct(
         public readonly string $dsn,
         public readonly string $routingKeyMask,
         public readonly string $exchangeName,
@@ -17,5 +16,6 @@ class QueueSource
         public readonly int $maxMessages = 500,
         public readonly int $maxSeconds = 20,
         public readonly int $prefetch = 10
-    ) {}
+    ) {
+    }
 }
