@@ -17,9 +17,12 @@ use Civi\Lughauth\Features\Rbac\Acl\Application\PolicyEngine;
 use Civi\Lughauth\Features\Rbac\Acl\Domain\RuleSet;
 use Civi\Lughauth\Features\Rbac\Resource\Domain\Gateway\RbacStoreRepository;
 use Civi\Lughauth\Features\Rbac\Resource\Domain\RoleGrant;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
 class RbacStoreAdapter implements RbacStoreRepository
 {
+    use LoggerAwareTrait;
+
     public function __construct(
         private readonly RelyingPartyWriteGateway $parties,
         private readonly RelyingPartyReadGateway $readParties,
@@ -104,6 +107,7 @@ class RbacStoreAdapter implements RbacStoreRepository
                 $dsl .= $specific->getPolicies();
             }
         }
+        $this->logError("SHOW DSL: ". $dsl);
         if (!$dsl) {
             return [];
         }
