@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Fields\RoleExcludingdRoot;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
@@ -48,7 +48,7 @@ class RolePlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(RoleRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(RoleCollectNonEditableFields::class, RoleExcludingdRoot::class);
+        $bus->registerListener(RoleCollectNonEditableFields::class, FixTenantExcludingRoot::class);
         $bus->registerListener(RoleCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RoleUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

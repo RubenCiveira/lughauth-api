@@ -192,38 +192,39 @@ class LoginAdapter implements LoginRepository
 
     private function loadRoles(AuthenticationRequest $client, Tenant $tenant, User $user): array
     {
+        $main = $tenant->getName() === 'main';
         $roles = [];
         // Tengo roles para cualquier audiencia
         $forAll = [];
-        $this->rolesFromIdentity(new UserIdentityFilter(user: $user)->withForAllAudiences(true), $forAll);
+        $this->rolesFromIdentity(new UserIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
                 $roles[$audience] = [...$forAll];
-                if ($client = $this->clients->findOneByCode($audience)) {
+                if ($from = $this->clients->findOneByCode($audience)) {
                     $this->rolesFromIdentity(new UserIdentityFilter(
                         user: $user,
-                        trustedClient: $client
-                    ), $roles[$audience]);
+                        trustedClient: $from
+                    ), $main, $roles[$audience]);
                 }
-                if ($party = $this->parties->findOneByCode($audience)) {
+                if ($from = $this->parties->findOneByCode($audience)) {
                     $this->rolesFromIdentity(new UserIdentityFilter(
                         user: $user,
-                        relyingParty: $party
-                    ), $roles[$audience]);
+                        relyingParty: $from
+                    ), $main, $roles[$audience]);
                 }
             }
         }
         return $roles;
     }
 
-    private function rolesFromIdentity(UserIdentityFilter $identityFilter, &$roles)
+    private function rolesFromIdentity(UserIdentityFilter $identityFilter, bool $main, &$roles)
     {
         if ($tc = $this->identities->retrieve($identityFilter)) {
             foreach ($tc->getRoles() as $role) {
                 $ref = $role->getRole();
                 $theRole = $this->roles->resolve($ref);
                 if ($theRole) {
-                    $roles[] = $theRole->getName();
+                    $roles[] = $main ? 'root:' . $theRole->getName() : str_replace(':', '_', $theRole->getName());
                 }
             }
         }

@@ -24,7 +24,7 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Fields\TenantLoginProviderExcludingdRoot;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
@@ -40,10 +40,10 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\E
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\UploadMetadata\IsAutenticatedUploadMetadataAllow;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\UploadMetadata\TenantLoginProviderUploadMetadataAllowDecision;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -57,7 +57,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, TenantLoginProviderExcludingdRoot::class);
+        $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
         $bus->registerListener(TenantLoginProviderCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantLoginProviderUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantLoginProviderRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
@@ -65,8 +65,8 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantLoginProviderChangelogSync::class);
         $bus->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAutenticatedUploadMetadataAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantLoginProviderChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

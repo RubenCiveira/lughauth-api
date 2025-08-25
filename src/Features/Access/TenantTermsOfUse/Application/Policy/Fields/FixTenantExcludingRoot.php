@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibilit
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class TenantTermsOfUseExcludingdRoot
+class FixTenantExcludingRoot
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -21,11 +21,11 @@ class TenantTermsOfUseExcludingdRoot
     }
     public function __invoke(TenantTermsOfUseCollectNonEditableFields $event): TenantTermsOfUseCollectNonEditableFields
     {
-        $this->logDebug("Check TenantTermsOfUseExcludingdRoot Tenant terms of use");
-        $span = $this->startSpan("Check TenantTermsOfUseExcludingdRoot Tenant terms of use");
+        $this->logDebug("Check FixTenantExcludingRoot Tenant terms of use");
+        $span = $this->startSpan("Check FixTenantExcludingRoot Tenant terms of use");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('ROOT')) {
+            if (!$userContext->hasAnyRole('root:admin')) {
                 $event->withAll(['tenant']);
             }
             return $event;

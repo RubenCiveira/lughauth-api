@@ -112,7 +112,8 @@ class RbacStoreAdapter implements RbacStoreRepository
         $scopes = [];
         $schemas = [];
         foreach ($secRoles as $secRole) {
-            $roles[] = $secRole->getName();
+            $roles[] = str_replace(':', '_', $secRole->getName());
+            $roles[] = 'root:' . $secRole->getName();
         }
         if ($party->getScopes()) {
             $scopes = json_decode($party->getScopes(), true);

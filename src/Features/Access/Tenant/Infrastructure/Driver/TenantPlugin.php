@@ -23,9 +23,9 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Create\CreateTenantOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Update\UpdateTenantOnlyForRootAllow;
@@ -33,12 +33,12 @@ use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Retrieve\IsAut
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Retrieve\TenantRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\List\IsAutenticatedListAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\List\TenantListAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete\DeleteTenantOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\EnableTenantOnlyForRootAllow;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\DisableTenantOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
@@ -57,16 +57,16 @@ class TenantPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantCreateAllowDecision::class, CreateTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantUpdateAllowDecision::class, UpdateTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantListAllowDecision::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(TenantDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantDeleteAllowDecision::class, DeleteTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TenantDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
+        $bus->registerListener(TenantEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
         $bus->registerListener(TenantDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(EntityChangeLogSyncEvent::class, TenantChangelogSync::class);

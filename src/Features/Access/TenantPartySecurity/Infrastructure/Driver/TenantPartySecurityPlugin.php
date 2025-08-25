@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Service\Visibility\TenantPartySecurityRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Policy\Fields\TenantPartySecurityExcludingdRoot;
+use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Service\Visibility\TenantPartySecurityCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Usecase\Create\TenantPartySecurityCreateAllowDecision;
@@ -41,8 +41,6 @@ class TenantPartySecurityPlugin extends MicroPlugin
     #[Override]
     public function registerRoutes(RouteCollectorProxy $app)
     {
-        $app->group('/api/tenant-party-security', [$this, 'setRoutesForTenantPartySecurity']);
-        $app->group('/api/me/acl/tenant-party-security', [$this, 'setRoutesForTenantPartySecurityAcl']);
         $app->group('/api/access/tenant-party-security', [$this, 'setRoutesForTenantPartySecurity']);
         $app->group('/api/me/acl/access/tenant-party-security', [$this, 'setRoutesForTenantPartySecurityAcl']);
     }
@@ -50,7 +48,7 @@ class TenantPartySecurityPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantPartySecurityRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantPartySecurityCollectNonEditableFields::class, TenantPartySecurityExcludingdRoot::class);
+        $bus->registerListener(TenantPartySecurityCollectNonEditableFields::class, FixTenantExcludingRoot::class);
         $bus->registerListener(TenantPartySecurityCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantPartySecurityUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantPartySecurityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

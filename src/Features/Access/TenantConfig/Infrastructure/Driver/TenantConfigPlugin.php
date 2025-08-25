@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\TenantConfigExcludingdRoot;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create\TenantConfigCreateAllowDecision;
@@ -48,7 +48,7 @@ class TenantConfigPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantConfigCollectNonEditableFields::class, TenantConfigExcludingdRoot::class);
+        $bus->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
         $bus->registerListener(TenantConfigCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantConfigUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);

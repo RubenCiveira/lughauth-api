@@ -26,7 +26,7 @@ class ListUserOnlyForRootAllow
         try {
             $userContext = $this->context->getIdentity();
             if ($proposal->isAllowed()) {
-                if (! $userContext->hasAnyRole('ROOT')) {
+                if (! $userContext->hasAnyRole('root:admin')) {
                     $proposal->deny('Disabled if not ListUserOnlyForRoot');
                 }
             }

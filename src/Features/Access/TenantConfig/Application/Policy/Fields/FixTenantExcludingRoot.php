@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\Te
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class TenantConfigExcludingdRoot
+class FixTenantExcludingRoot
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -21,11 +21,11 @@ class TenantConfigExcludingdRoot
     }
     public function __invoke(TenantConfigCollectNonEditableFields $event): TenantConfigCollectNonEditableFields
     {
-        $this->logDebug("Check TenantConfigExcludingdRoot Tenant config");
-        $span = $this->startSpan("Check TenantConfigExcludingdRoot Tenant config");
+        $this->logDebug("Check FixTenantExcludingRoot Tenant config");
+        $span = $this->startSpan("Check FixTenantExcludingRoot Tenant config");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('ROOT')) {
+            if (!$userContext->hasAnyRole('root:admin')) {
                 $event->withAll(['tenant']);
             }
             return $event;

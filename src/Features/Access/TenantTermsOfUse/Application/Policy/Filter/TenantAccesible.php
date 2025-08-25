@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible Tenant terms of use");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('ROOT')) {
+            if (!$userContext->hasAnyRole('root:admin')) {
                 if (!$userContext->anonimous && $tenantTenantAccesible = $userContext->tenant) {
                     $event->tenantTermsOfUseFilter = $event->tenantTermsOfUseFilter->withTenantTenantAccesible($tenantTenantAccesible);
                 } else {

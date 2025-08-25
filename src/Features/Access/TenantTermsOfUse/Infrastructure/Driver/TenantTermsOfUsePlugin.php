@@ -24,7 +24,7 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\TenantTermsOfUseExcludingdRoot;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowDecision;
@@ -40,10 +40,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enab
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\UploadAttached\IsAutenticatedUploadAttachedAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\UploadAttached\TenantTermsOfUseUploadAttachedAllowDecision;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseChangelogSync;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -57,7 +57,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantTermsOfUseCollectNonEditableFields::class, TenantTermsOfUseExcludingdRoot::class);
+        $bus->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
         $bus->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
@@ -65,8 +65,8 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
         $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantTermsOfUseChangelogSync::class);
         $bus->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAutenticatedUploadAttachedAllow::class);
+        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantTermsOfUseChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
