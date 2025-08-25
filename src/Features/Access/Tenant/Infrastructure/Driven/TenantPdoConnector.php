@@ -79,7 +79,7 @@ class TenantPdoConnector
         $this->logDebug("Make query for entities for Tenant");
         $span = $this->startSpan("Make query for entities for Tenant");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -92,7 +92,7 @@ class TenantPdoConnector
         $this->logDebug("Make raw query for Tenant");
         $span = $this->startSpan("Make raw query for Tenant");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -307,33 +307,33 @@ class TenantPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_tenant"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_tenant"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "name" like :search)';
+                    $query .= ' and ( "access_tenant"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterName = $filter->name();
                 if ($filterName) {
-                    $query .= ' and "name" = :name';
+                    $query .= ' and "access_tenant"."name" = :name';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
                 $filterDomain = $filter->domain();
                 if ($filterDomain) {
-                    $query .= ' and "domain" = :domain';
+                    $query .= ' and "access_tenant"."domain" = :domain';
                     $params[] = new SqlParam(name: 'domain', value: $filterDomain, type: SqlParam::STR);
                 }
                 if ($filterName = $filter->name()) {
-                    $query .= ' and "name" = :name ';
+                    $query .= ' and "access_tenant"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
                 if ($filterTenantAccesible = $filter->tenantAccesible()) {
-                    $query .= ' and "name" = :tenantAccesible ';
+                    $query .= ' and "access_tenant"."uid" = :tenantAccesible ';
                     $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -349,8 +349,8 @@ class TenantPdoConnector
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" > :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."name" > :sinceName';
+                                $equals .= ' and "tenant"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_tenant"."name" asc';
@@ -358,8 +358,8 @@ class TenantPdoConnector
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" < :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."name" < :sinceName';
+                                $equals .= ' and "tenant"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_tenant"."name" desc';
@@ -367,8 +367,8 @@ class TenantPdoConnector
                         if ($ord === 'domainAsc') {
                             $sortSinceDomain = $sort->sinceDomain();
                             if ($sortSinceDomain) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "domain" > :sinceDomain';
-                                $equals .= ' and "domain" = :sinceDomain';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."domain" > :sinceDomain';
+                                $equals .= ' and "tenant"."domain" = :sinceDomain';
                                 $params[] = new SqlParam(name: 'sinceDomain', value: $sortSinceDomain, type: SqlParam::STR);
                             }
                             $order .= ', "access_tenant"."domain" asc';
@@ -376,8 +376,8 @@ class TenantPdoConnector
                         if ($ord === 'domainDesc') {
                             $sortSinceDomain = $sort->sinceDomain();
                             if ($sortSinceDomain) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "domain" < :sinceDomain';
-                                $equals .= ' and "domain" = :sinceDomain';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."domain" < :sinceDomain';
+                                $equals .= ' and "tenant"."domain" = :sinceDomain';
                                 $params[] = new SqlParam(name: 'sinceDomain', value: $sortSinceDomain, type: SqlParam::STR);
                             }
                             $order .= ', "access_tenant"."domain" desc';
@@ -386,14 +386,14 @@ class TenantPdoConnector
                 } else {
                     $sortSinceUid = $sort->sinceUid();
                     if ($sortSinceUid) {
-                        $query .= ' and  "uid" < :sinceUid';
+                        $query .= ' and  "access_tenant"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
                     $order = ', "access_tenant"."uid" desc';
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_tenant"'
+              'query' => 'SELECT '.($count ? ' count("access_tenant".*) as count ' : '"access_tenant".*').' FROM "access_tenant"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

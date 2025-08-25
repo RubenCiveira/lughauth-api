@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\TenantPartySecurity
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Gateway\TenantPartySecurityWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\TenantPartySecurity\Application\Policy\Formula\TenantCalculator;
 
 class TenantPartySecurityCreateUsecase
 {
@@ -21,6 +22,7 @@ class TenantPartySecurityCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
+        private readonly TenantCalculator $tenantFormula,
         private readonly EventDispatcherInterface $dispacher,
         private readonly TenantPartySecurityVisibilityService $visibility,
         private readonly TenantPartySecurityWriteGateway $writer
@@ -54,6 +56,7 @@ class TenantPartySecurityCreateUsecase
             $enriched = $this->dispacher->dispatch(new TenantPartySecurityCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
+            $input->tenant($this->tenantFormula->calculateTenant($input));
             $entity = TenantPartySecurity::create($input);
             $result = $this->writer->create(
                 $entity,

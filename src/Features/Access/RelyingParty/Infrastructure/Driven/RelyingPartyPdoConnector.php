@@ -79,7 +79,7 @@ class RelyingPartyPdoConnector
         $this->logDebug("Make query for entities for Relying party");
         $span = $this->startSpan("Make query for entities for Relying party");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -92,7 +92,7 @@ class RelyingPartyPdoConnector
         $this->logDebug("Make raw query for Relying party");
         $span = $this->startSpan("Make raw query for Relying party");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -307,33 +307,33 @@ class RelyingPartyPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_relying_party"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_relying_party"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "code" like :search)';
+                    $query .= ' and ( "access_relying_party"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
                 if ($filterCode) {
-                    $query .= ' and "code" = :code';
+                    $query .= ' and "access_relying_party"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
                 $filterApiKey = $filter->apiKey();
                 if ($filterApiKey) {
-                    $query .= ' and "api_key" = :apiKey';
+                    $query .= ' and "access_relying_party"."api_key" = :apiKey';
                     $params[] = new SqlParam(name: 'apiKey', value: $filterApiKey, type: SqlParam::STR);
                 }
                 if ($filterApiKey = $filter->apiKey()) {
-                    $query .= ' and "api_key" = :apiKey ';
+                    $query .= ' and "access_relying_party"."api_key" = :apiKey ';
                     $params[] = new SqlParam(name: 'apiKey', value: $filterApiKey, type: SqlParam::STR);
                 }
                 if ($filterCode = $filter->code()) {
-                    $query .= ' and "code" = :code ';
+                    $query .= ' and "access_relying_party"."code" = :code ';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
             }
@@ -349,8 +349,8 @@ class RelyingPartyPdoConnector
                         if ($ord === 'codeAsc') {
                             $sortSinceCode = $sort->sinceCode();
                             if ($sortSinceCode) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "code" > :sinceCode';
-                                $equals .= ' and "code" = :sinceCode';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "relying-party"."code" > :sinceCode';
+                                $equals .= ' and "relying-party"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
                             }
                             $order .= ', "access_relying_party"."code" asc';
@@ -358,8 +358,8 @@ class RelyingPartyPdoConnector
                         if ($ord === 'codeDesc') {
                             $sortSinceCode = $sort->sinceCode();
                             if ($sortSinceCode) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "code" < :sinceCode';
-                                $equals .= ' and "code" = :sinceCode';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "relying-party"."code" < :sinceCode';
+                                $equals .= ' and "relying-party"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
                             }
                             $order .= ', "access_relying_party"."code" desc';
@@ -368,14 +368,14 @@ class RelyingPartyPdoConnector
                 } else {
                     $sortSinceUid = $sort->sinceUid();
                     if ($sortSinceUid) {
-                        $query .= ' and  "uid" < :sinceUid';
+                        $query .= ' and  "access_relying_party"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
                     $order = ', "access_relying_party"."uid" desc';
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_relying_party"'
+              'query' => 'SELECT '.($count ? ' count("access_relying_party".*) as count ' : '"access_relying_party".*').' FROM "access_relying_party"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

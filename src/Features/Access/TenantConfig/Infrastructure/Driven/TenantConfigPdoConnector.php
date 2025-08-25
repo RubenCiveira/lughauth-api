@@ -80,7 +80,7 @@ class TenantConfigPdoConnector
         $this->logDebug("Make query for entities for Tenant config");
         $span = $this->startSpan("Make query for entities for Tenant config");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -93,7 +93,7 @@ class TenantConfigPdoConnector
         $this->logDebug("Make raw query for Tenant config");
         $span = $this->startSpan("Make raw query for Tenant config");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -314,33 +314,33 @@ class TenantConfigPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_tenant_config"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_tenant_config"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "uid" like :search)';
+                    $query .= ' and ( "access_tenant_config"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenant = $filter->tenant();
                 if ($filterTenant) {
-                    $query .= ' and "tenant" = :tenant';
+                    $query .= ' and "access_tenant_config"."tenant" = :tenant';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "tenant" = :tenant ';
+                    $query .= ' and "access_tenant_config"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenants = $filter->tenants()) {
-                    $query .= ' and "tenant" in (:tenants)  ';
+                    $query .= ' and "access_tenant_config"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
                 if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_config"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."name" = :tenantTenantAccesible';
+                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -357,7 +357,7 @@ class TenantConfigPdoConnector
                 $order = ', "access_tenant_config"."uid" desc';
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_tenant_config"'
+              'query' => 'SELECT '.($count ? ' count("access_tenant_config".*) as count ' : '"access_tenant_config".*').' FROM "access_tenant_config"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

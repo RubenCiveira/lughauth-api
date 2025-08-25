@@ -82,7 +82,7 @@ class TenantLoginProviderPdoConnector
         $this->logDebug("Make query for entities for Tenant login provider");
         $span = $this->startSpan("Make query for entities for Tenant login provider");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -95,7 +95,7 @@ class TenantLoginProviderPdoConnector
         $this->logDebug("Make raw query for Tenant login provider");
         $span = $this->startSpan("Make raw query for Tenant login provider");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -314,38 +314,38 @@ class TenantLoginProviderPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_tenant_login_provider"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_tenant_login_provider"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "name" like :search)';
+                    $query .= ' and ( "access_tenant_login_provider"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenantAndName = $filter->tenantAndName();
                 if ($filterTenantAndName) {
-                    $query .= ' and ( "tenant" = :tenantNameTenant and "name" = :tenantNameName)';
+                    $query .= ' and ( "access_tenant_login_provider"."tenant" = :tenantNameTenant and "access_tenant_login_provider"."name" = :tenantNameName)';
                     $params[] = new SqlParam(name: 'tenantNameTenant', value: $filterTenantAndName['tenant']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'tenantNameName', value: $filterTenantAndName['name'], type: SqlParam::STR);
                 }
                 if ($filterName = $filter->name()) {
-                    $query .= ' and "name" = :name ';
+                    $query .= ' and "access_tenant_login_provider"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
                 if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "tenant" = :tenant ';
+                    $query .= ' and "access_tenant_login_provider"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenants = $filter->tenants()) {
-                    $query .= ' and "tenant" in (:tenants)  ';
+                    $query .= ' and "access_tenant_login_provider"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
                 if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_login_provider"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."name" = :tenantTenantAccesible';
+                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -361,8 +361,8 @@ class TenantLoginProviderPdoConnector
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" > :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant-login-provider"."name" > :sinceName';
+                                $equals .= ' and "tenant-login-provider"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_tenant_login_provider"."name" asc';
@@ -370,8 +370,8 @@ class TenantLoginProviderPdoConnector
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" < :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant-login-provider"."name" < :sinceName';
+                                $equals .= ' and "tenant-login-provider"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_tenant_login_provider"."name" desc';
@@ -380,14 +380,14 @@ class TenantLoginProviderPdoConnector
                 } else {
                     $sortSinceUid = $sort->sinceUid();
                     if ($sortSinceUid) {
-                        $query .= ' and  "uid" < :sinceUid';
+                        $query .= ' and  "access_tenant_login_provider"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
                     $order = ', "access_tenant_login_provider"."uid" desc';
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_tenant_login_provider"'
+              'query' => 'SELECT '.($count ? ' count("access_tenant_login_provider".*) as count ' : '"access_tenant_login_provider".*').' FROM "access_tenant_login_provider"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

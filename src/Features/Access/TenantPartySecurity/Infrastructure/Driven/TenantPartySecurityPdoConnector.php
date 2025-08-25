@@ -81,7 +81,7 @@ class TenantPartySecurityPdoConnector
         $this->logDebug("Make query for entities for Tenant party security");
         $span = $this->startSpan("Make query for entities for Tenant party security");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -94,7 +94,7 @@ class TenantPartySecurityPdoConnector
         $this->logDebug("Make raw query for Tenant party security");
         $span = $this->startSpan("Make raw query for Tenant party security");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -299,42 +299,42 @@ class TenantPartySecurityPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_tenant_party_security"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_tenant_party_security"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "uid" like :search)';
+                    $query .= ' and ( "access_tenant_party_security"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenantAndRelyingParty = $filter->tenantAndRelyingParty();
                 if ($filterTenantAndRelyingParty) {
-                    $query .= ' and ( "tenant" = :tenantRelyingPartyTenant and "relying_party" = :tenantRelyingPartyRelyingParty)';
+                    $query .= ' and ( "access_tenant_party_security"."tenant" = :tenantRelyingPartyTenant and "access_tenant_party_security"."relying_party" = :tenantRelyingPartyRelyingParty)';
                     $params[] = new SqlParam(name: 'tenantRelyingPartyTenant', value: $filterTenantAndRelyingParty['tenant']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'tenantRelyingPartyRelyingParty', value: $filterTenantAndRelyingParty['relyingParty']->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "tenant" = :tenant ';
+                    $query .= ' and "access_tenant_party_security"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenants = $filter->tenants()) {
-                    $query .= ' and "tenant" in (:tenants)  ';
+                    $query .= ' and "access_tenant_party_security"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
                 if ($filterRelyingParty = $filter->relyingParty()) {
-                    $query .= ' and "relying_party" = :relyingParty ';
+                    $query .= ' and "access_tenant_party_security"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
                 if ($filterRelyingPartys = $filter->relyingPartys()) {
-                    $query .= ' and "relying_party" in (:relyingPartys)  ';
+                    $query .= ' and "access_tenant_party_security"."relying_party" in (:relyingPartys)  ';
                     $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
                 }
                 if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_party_security"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."name" = :tenantTenantAccesible';
+                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -351,7 +351,7 @@ class TenantPartySecurityPdoConnector
                 $order = ', "access_tenant_party_security"."uid" desc';
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_tenant_party_security"'
+              'query' => 'SELECT '.($count ? ' count("access_tenant_party_security".*) as count ' : '"access_tenant_party_security".*').' FROM "access_tenant_party_security"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

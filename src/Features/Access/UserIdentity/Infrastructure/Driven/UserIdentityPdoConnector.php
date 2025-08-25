@@ -103,7 +103,7 @@ class UserIdentityPdoConnector
         $this->logDebug("Make raw query for User identity");
         $span = $this->startSpan("Make raw query for User identity");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -307,47 +307,47 @@ class UserIdentityPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_user_identity"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_user_identity"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "uid" like :search)';
+                    $query .= ' and ( "access_user_identity"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 if ($filter->forAllAudiences()) {
                     $query .= ' and ("relying_party" is null and "trusted_client" is null)';
                 }
                 if ($filterUser = $filter->user()) {
-                    $query .= ' and "user" = :user ';
+                    $query .= ' and "access_user_identity"."user" = :user ';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }
                 if ($filterUsers = $filter->users()) {
-                    $query .= ' and "user" in (:users)  ';
+                    $query .= ' and "access_user_identity"."user" in (:users)  ';
                     $params[] = new SqlParam(name: 'users', value: $filterUsers, type: SqlParam::STR);
                 }
                 if ($filterRelyingParty = $filter->relyingParty()) {
-                    $query .= ' and "relying_party" = :relyingParty ';
+                    $query .= ' and "access_user_identity"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
                 if ($filterRelyingPartys = $filter->relyingPartys()) {
-                    $query .= ' and "relying_party" in (:relyingPartys)  ';
+                    $query .= ' and "access_user_identity"."relying_party" in (:relyingPartys)  ';
                     $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
                 }
                 if ($filterTrustedClient = $filter->trustedClient()) {
-                    $query .= ' and "trusted_client" = :trustedClient ';
+                    $query .= ' and "access_user_identity"."trusted_client" = :trustedClient ';
                     $params[] = new SqlParam(name: 'trustedClient', value: $filterTrustedClient->uid(), type: SqlParam::STR);
                 }
                 if ($filterTrustedClients = $filter->trustedClients()) {
-                    $query .= ' and "trusted_client" in (:trustedClients)  ';
+                    $query .= ' and "access_user_identity"."trusted_client" in (:trustedClients)  ';
                     $params[] = new SqlParam(name: 'trustedClients', value: $filterTrustedClients, type: SqlParam::STR);
                 }
                 if ($filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_user_identity"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantTenantAccesibleUser"."userTenantTenantAccesibleTenant"."name" = :userTenantTenantAccesible';
+                    $query .= ' and "userTenantTenantAccesibleUser"."userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
                     $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -364,7 +364,7 @@ class UserIdentityPdoConnector
                 $order = ', "access_user_identity"."uid" desc';
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_user_identity"'
+              'query' => 'SELECT '.($count ? ' count("access_user_identity".*) as count ' : '"access_user_identity".*').' FROM "access_user_identity"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

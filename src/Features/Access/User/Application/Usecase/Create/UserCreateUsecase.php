@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Formula\TenantCalculator;
 
 class UserCreateUsecase
 {
@@ -21,6 +22,7 @@ class UserCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
+        private readonly TenantCalculator $tenantFormula,
         private readonly EventDispatcherInterface $dispacher,
         private readonly UserVisibilityService $visibility,
         private readonly UserWriteGateway $writer
@@ -54,6 +56,7 @@ class UserCreateUsecase
             $enriched = $this->dispacher->dispatch(new UserCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
+            $input->tenant($this->tenantFormula->calculateTenant($input));
             $entity = User::create($input);
             $result = $this->writer->create(
                 $entity,

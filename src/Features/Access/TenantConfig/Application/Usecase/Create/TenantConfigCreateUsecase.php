@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Formula\TenantCalculator;
 
 class TenantConfigCreateUsecase
 {
@@ -21,6 +22,7 @@ class TenantConfigCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
+        private readonly TenantCalculator $tenantFormula,
         private readonly EventDispatcherInterface $dispacher,
         private readonly TenantConfigVisibilityService $visibility,
         private readonly TenantConfigWriteGateway $writer
@@ -54,6 +56,7 @@ class TenantConfigCreateUsecase
             $enriched = $this->dispacher->dispatch(new TenantConfigCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
+            $input->tenant($this->tenantFormula->calculateTenant($input));
             $entity = TenantConfig::create($input);
             $result = $this->writer->create(
                 $entity,

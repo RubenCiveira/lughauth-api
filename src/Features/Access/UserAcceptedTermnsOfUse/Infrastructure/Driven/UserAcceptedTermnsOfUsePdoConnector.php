@@ -81,7 +81,7 @@ class UserAcceptedTermnsOfUsePdoConnector
         $this->logDebug("Make query for entities for User accepted termns of use");
         $span = $this->startSpan("Make query for entities for User accepted termns of use");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -94,7 +94,7 @@ class UserAcceptedTermnsOfUsePdoConnector
         $this->logDebug("Make raw query for User accepted termns of use");
         $span = $this->startSpan("Make raw query for User accepted termns of use");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -299,42 +299,42 @@ class UserAcceptedTermnsOfUsePdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_user_accepted_termns_of_use"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_user_accepted_termns_of_use"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "uid" like :search)';
+                    $query .= ' and ( "access_user_accepted_termns_of_use"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterUserAndConditions = $filter->userAndConditions();
                 if ($filterUserAndConditions) {
-                    $query .= ' and ( "user" = :userConditionsUser and "conditions" = :userConditionsConditions)';
+                    $query .= ' and ( "access_user_accepted_termns_of_use"."user" = :userConditionsUser and "access_user_accepted_termns_of_use"."conditions" = :userConditionsConditions)';
                     $params[] = new SqlParam(name: 'userConditionsUser', value: $filterUserAndConditions['user']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'userConditionsConditions', value: $filterUserAndConditions['conditions']->uid(), type: SqlParam::STR);
                 }
                 if ($filterUser = $filter->user()) {
-                    $query .= ' and "user" = :user ';
+                    $query .= ' and "access_user_accepted_termns_of_use"."user" = :user ';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }
                 if ($filterUsers = $filter->users()) {
-                    $query .= ' and "user" in (:users)  ';
+                    $query .= ' and "access_user_accepted_termns_of_use"."user" in (:users)  ';
                     $params[] = new SqlParam(name: 'users', value: $filterUsers, type: SqlParam::STR);
                 }
                 if ($filterConditions = $filter->conditions()) {
-                    $query .= ' and "conditions" = :conditions ';
+                    $query .= ' and "access_user_accepted_termns_of_use"."conditions" = :conditions ';
                     $params[] = new SqlParam(name: 'conditions', value: $filterConditions->uid(), type: SqlParam::STR);
                 }
                 if ($filterConditionss = $filter->conditionss()) {
-                    $query .= ' and "conditions" in (:conditionss)  ';
+                    $query .= ' and "access_user_accepted_termns_of_use"."conditions" in (:conditionss)  ';
                     $params[] = new SqlParam(name: 'conditionss', value: $filterConditionss, type: SqlParam::STR);
                 }
                 if ($filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_user_accepted_termns_of_use"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantTenantAccesibleUser"."userTenantTenantAccesibleTenant"."name" = :userTenantTenantAccesible';
+                    $query .= ' and "userTenantTenantAccesibleUser"."userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
                     $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -351,7 +351,7 @@ class UserAcceptedTermnsOfUsePdoConnector
                 $order = ', "access_user_accepted_termns_of_use"."uid" desc';
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_user_accepted_termns_of_use"'
+              'query' => 'SELECT '.($count ? ' count("access_user_accepted_termns_of_use".*) as count ' : '"access_user_accepted_termns_of_use".*').' FROM "access_user_accepted_termns_of_use"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Formula\TenantCalculator;
 
 class RoleCreateUsecase
 {
@@ -21,6 +22,7 @@ class RoleCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
+        private readonly TenantCalculator $tenantFormula,
         private readonly EventDispatcherInterface $dispacher,
         private readonly RoleVisibilityService $visibility,
         private readonly RoleWriteGateway $writer
@@ -54,6 +56,7 @@ class RoleCreateUsecase
             $enriched = $this->dispacher->dispatch(new RoleCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
+            $input->tenant($this->tenantFormula->calculateTenant($input));
             $entity = Role::create($input);
             $result = $this->writer->create(
                 $entity,

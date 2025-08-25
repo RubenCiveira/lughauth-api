@@ -102,7 +102,7 @@ class TrustedClientPdoConnector
         $this->logDebug("Make raw query for Trusted client");
         $span = $this->startSpan("Make raw query for Trusted client");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -312,24 +312,24 @@ class TrustedClientPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_trusted_client"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_trusted_client"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "code" like :search)';
+                    $query .= ' and ( "access_trusted_client"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
                 if ($filterCode) {
-                    $query .= ' and "code" = :code';
+                    $query .= ' and "access_trusted_client"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
                 if ($filterCode = $filter->code()) {
-                    $query .= ' and "code" = :code ';
+                    $query .= ' and "access_trusted_client"."code" = :code ';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
             }
@@ -345,8 +345,8 @@ class TrustedClientPdoConnector
                         if ($ord === 'codeAsc') {
                             $sortSinceCode = $sort->sinceCode();
                             if ($sortSinceCode) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "code" > :sinceCode';
-                                $equals .= ' and "code" = :sinceCode';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "trusted-client"."code" > :sinceCode';
+                                $equals .= ' and "trusted-client"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
                             }
                             $order .= ', "access_trusted_client"."code" asc';
@@ -354,8 +354,8 @@ class TrustedClientPdoConnector
                         if ($ord === 'codeDesc') {
                             $sortSinceCode = $sort->sinceCode();
                             if ($sortSinceCode) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "code" < :sinceCode';
-                                $equals .= ' and "code" = :sinceCode';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "trusted-client"."code" < :sinceCode';
+                                $equals .= ' and "trusted-client"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
                             }
                             $order .= ', "access_trusted_client"."code" desc';
@@ -364,14 +364,14 @@ class TrustedClientPdoConnector
                 } else {
                     $sortSinceUid = $sort->sinceUid();
                     if ($sortSinceUid) {
-                        $query .= ' and  "uid" < :sinceUid';
+                        $query .= ' and  "access_trusted_client"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
                     $order = ', "access_trusted_client"."uid" desc';
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_trusted_client"'
+              'query' => 'SELECT '.($count ? ' count("access_trusted_client".*) as count ' : '"access_trusted_client".*').' FROM "access_trusted_client"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

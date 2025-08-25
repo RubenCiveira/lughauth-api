@@ -80,7 +80,7 @@ class RolePdoConnector
         $this->logDebug("Make query for entities for Role");
         $span = $this->startSpan("Make query for entities for Role");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -93,7 +93,7 @@ class RolePdoConnector
         $this->logDebug("Make raw query for Role");
         $span = $this->startSpan("Make raw query for Role");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -296,38 +296,38 @@ class RolePdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_role"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_role"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "name" like :search)';
+                    $query .= ' and ( "access_role"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenantAndName = $filter->tenantAndName();
                 if ($filterTenantAndName) {
-                    $query .= ' and ( "tenant" = :tenantNameTenant and "name" = :tenantNameName)';
+                    $query .= ' and ( "access_role"."tenant" = :tenantNameTenant and "access_role"."name" = :tenantNameName)';
                     $params[] = new SqlParam(name: 'tenantNameTenant', value: $filterTenantAndName['tenant']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'tenantNameName', value: $filterTenantAndName['name'], type: SqlParam::STR);
                 }
                 if ($filterName = $filter->name()) {
-                    $query .= ' and "name" = :name ';
+                    $query .= ' and "access_role"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
                 if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "tenant" = :tenant ';
+                    $query .= ' and "access_role"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenants = $filter->tenants()) {
-                    $query .= ' and "tenant" in (:tenants)  ';
+                    $query .= ' and "access_role"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
                 if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_role"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."name" = :tenantTenantAccesible';
+                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -343,8 +343,8 @@ class RolePdoConnector
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" > :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "role"."name" > :sinceName';
+                                $equals .= ' and "role"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_role"."name" asc';
@@ -352,8 +352,8 @@ class RolePdoConnector
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" < :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "role"."name" < :sinceName';
+                                $equals .= ' and "role"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_role"."name" desc';
@@ -362,14 +362,14 @@ class RolePdoConnector
                 } else {
                     $sortSinceUid = $sort->sinceUid();
                     if ($sortSinceUid) {
-                        $query .= ' and  "uid" < :sinceUid';
+                        $query .= ' and  "access_role"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
                     $order = ', "access_role"."uid" desc';
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_role"'
+              'query' => 'SELECT '.($count ? ' count("access_role".*) as count ' : '"access_role".*').' FROM "access_role"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

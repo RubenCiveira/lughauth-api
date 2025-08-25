@@ -81,7 +81,7 @@ class TenantTermsOfUsePdoConnector
         $this->logDebug("Make query for entities for Tenant terms of use");
         $span = $this->startSpan("Make query for entities for Tenant terms of use");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -94,7 +94,7 @@ class TenantTermsOfUsePdoConnector
         $this->logDebug("Make raw query for Tenant terms of use");
         $span = $this->startSpan("Make raw query for Tenant terms of use");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -299,28 +299,28 @@ class TenantTermsOfUsePdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_tenant_terms_of_use"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_tenant_terms_of_use"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "uid" like :search)';
+                    $query .= ' and ( "access_tenant_terms_of_use"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "tenant" = :tenant ';
+                    $query .= ' and "access_tenant_terms_of_use"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenants = $filter->tenants()) {
-                    $query .= ' and "tenant" in (:tenants)  ';
+                    $query .= ' and "access_tenant_terms_of_use"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
                 if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_terms_of_use"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."name" = :tenantTenantAccesible';
+                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -337,7 +337,7 @@ class TenantTermsOfUsePdoConnector
                 $order = ', "access_tenant_terms_of_use"."uid" desc';
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_tenant_terms_of_use"'
+              'query' => 'SELECT '.($count ? ' count("access_tenant_terms_of_use".*) as count ' : '"access_tenant_terms_of_use".*').' FROM "access_tenant_terms_of_use"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

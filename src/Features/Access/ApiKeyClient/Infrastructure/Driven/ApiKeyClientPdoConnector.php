@@ -79,7 +79,7 @@ class ApiKeyClientPdoConnector
         $this->logDebug("Make query for entities for Api key client");
         $span = $this->startSpan("Make query for entities for Api key client");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -92,7 +92,7 @@ class ApiKeyClientPdoConnector
         $this->logDebug("Make raw query for Api key client");
         $span = $this->startSpan("Make raw query for Api key client");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -303,29 +303,29 @@ class ApiKeyClientPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_api_key_client"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_api_key_client"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "uid" like :search)';
+                    $query .= ' and ( "access_api_key_client"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
                 if ($filterCode) {
-                    $query .= ' and "code" = :code';
+                    $query .= ' and "access_api_key_client"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
                 $filterKey = $filter->key();
                 if ($filterKey) {
-                    $query .= ' and "key" = :key';
+                    $query .= ' and "access_api_key_client"."key" = :key';
                     $params[] = new SqlParam(name: 'key', value: $filterKey, type: SqlParam::STR);
                 }
                 if ($filterKey = $filter->key()) {
-                    $query .= ' and "key" = :key ';
+                    $query .= ' and "access_api_key_client"."key" = :key ';
                     $params[] = new SqlParam(name: 'key', value: $filterKey, type: SqlParam::STR);
                 }
             }
@@ -342,7 +342,7 @@ class ApiKeyClientPdoConnector
                 $order = ', "access_api_key_client"."uid" desc';
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_api_key_client"'
+              'query' => 'SELECT '.($count ? ' count("access_api_key_client".*) as count ' : '"access_api_key_client".*').' FROM "access_api_key_client"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

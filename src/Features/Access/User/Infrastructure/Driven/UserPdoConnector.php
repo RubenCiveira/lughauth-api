@@ -85,7 +85,7 @@ class UserPdoConnector
         $this->logDebug("Make query for entities for User");
         $span = $this->startSpan("Make query for entities for User");
         try {
-            return $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -98,7 +98,7 @@ class UserPdoConnector
         $this->logDebug("Make raw query for User");
         $span = $this->startSpan("Make raw query for User");
         try {
-            return $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -321,20 +321,20 @@ class UserPdoConnector
             if ($filter) {
                 $filterUids = $filter->uids();
                 if ($filterUids && count($filterUids) > 1) {
-                    $query .= ' and "uid" in (:uids)';
+                    $query .= ' and "access_user"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
                 } elseif ($filterUids) {
-                    $query .= ' and "uid" = :uid';
+                    $query .= ' and "access_user"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
                 if ($filterSearch) {
-                    $query .= ' and ( "name" like :search)';
+                    $query .= ' and ( "access_user"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenantAndName = $filter->tenantAndName();
                 if ($filterTenantAndName) {
-                    $query .= ' and ( "tenant" = :tenantNameTenant and "name" = :tenantNameName)';
+                    $query .= ' and ( "access_user"."tenant" = :tenantNameTenant and "access_user"."name" = :tenantNameName)';
                     $params[] = new SqlParam(name: 'tenantNameTenant', value: $filterTenantAndName['tenant']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'tenantNameName', value: $filterTenantAndName['name'], type: SqlParam::STR);
                 }
@@ -344,20 +344,20 @@ class UserPdoConnector
                     $params[] = new SqlParam(name: 'nameNameOrEmail', value: $filterNameOrEmail, type: SqlParam::STR);
                 }
                 if ($filterName = $filter->name()) {
-                    $query .= ' and "name" = :name ';
+                    $query .= ' and "access_user"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
                 if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "tenant" = :tenant ';
+                    $query .= ' and "access_user"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
                 if ($filterTenants = $filter->tenants()) {
-                    $query .= ' and "tenant" in (:tenants)  ';
+                    $query .= ' and "access_user"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
                 if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_user"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."name" = :tenantTenantAccesible';
+                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
                 }
             }
@@ -373,8 +373,8 @@ class UserPdoConnector
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" > :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "user"."name" > :sinceName';
+                                $equals .= ' and "user"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_user"."name" asc';
@@ -382,8 +382,8 @@ class UserPdoConnector
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
                             if ($sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "name" < :sinceName';
-                                $equals .= ' and "name" = :sinceName';
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "user"."name" < :sinceName';
+                                $equals .= ' and "user"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
                             }
                             $order .= ', "access_user"."name" desc';
@@ -392,14 +392,14 @@ class UserPdoConnector
                 } else {
                     $sortSinceUid = $sort->sinceUid();
                     if ($sortSinceUid) {
-                        $query .= ' and  "uid" < :sinceUid';
+                        $query .= ' and  "access_user"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
                     $order = ', "access_user"."uid" desc';
                 }
             }
             return [
-              'query' => 'SELECT '.($count ? ' count(*) as count ' : '*').' FROM "access_user"'
+              'query' => 'SELECT '.($count ? ' count("access_user".*) as count ' : '"access_user".*').' FROM "access_user"'
                 . $join
                 . ($query ? ' WHERE ' . substr($query, 4) : '')
                 . ($order ? ' ORDER BY ' . substr($order, 2) : '') . $limit,

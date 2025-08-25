@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Formula\TenantCalculator;
 
 class TenantTermsOfUseCreateUsecase
 {
@@ -21,6 +22,7 @@ class TenantTermsOfUseCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
+        private readonly TenantCalculator $tenantFormula,
         private readonly EventDispatcherInterface $dispacher,
         private readonly TenantTermsOfUseVisibilityService $visibility,
         private readonly TenantTermsOfUseWriteGateway $writer
@@ -54,6 +56,7 @@ class TenantTermsOfUseCreateUsecase
             $enriched = $this->dispacher->dispatch(new TenantTermsOfUseCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
+            $input->tenant($this->tenantFormula->calculateTenant($input));
             $entity = TenantTermsOfUse::create($input);
             $result = $this->writer->create(
                 $entity,
