@@ -45,7 +45,7 @@
     "ramsey/uuid": "^4.9",
     "respect/validation": "^2.4",
     "robmorgan/phinx": "^0.16.10",
-    "slim/slim": "^4.14",
+    "slim/slim": "^4.15",
     "slim/psr7": "^1.7",
     "symfony/intl": "^7.3",
     "symfony/rate-limiter": "^7.3",
