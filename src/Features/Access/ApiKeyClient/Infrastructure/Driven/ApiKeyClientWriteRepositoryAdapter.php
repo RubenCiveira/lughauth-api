@@ -10,6 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteRepository;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Connector\Pdo\ApiKeyClientPdoConnector;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientSlide;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;

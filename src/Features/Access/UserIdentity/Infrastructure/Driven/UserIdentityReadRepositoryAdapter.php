@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven;
 
 use Override;
 use Throwable;
+use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Connector\Pdo\UserIdentityPdoConnector;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadRepository;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentitySlide;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;

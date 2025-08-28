@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Connector\Pdo\TenantConfigPdoConnector;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadRepository;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigSlide;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;

@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\User\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Connector\Pdo\UserPdoConnector;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadRepository;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserSlide;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;

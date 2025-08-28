@@ -11,6 +11,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteRepository;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Connector\Pdo\TenantConfigPdoConnector;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigSlide;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCursor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;

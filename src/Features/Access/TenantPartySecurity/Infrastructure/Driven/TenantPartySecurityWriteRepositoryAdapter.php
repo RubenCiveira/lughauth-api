@@ -12,6 +12,7 @@ use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Gateway\TenantPartySecurityWriteRepository;
+use Civi\Lughauth\Features\Access\TenantPartySecurity\Infrastructure\Connector\Pdo\TenantPartySecurityPdoConnector;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Gateway\TenantPartySecuritySlide;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Gateway\TenantPartySecurityCursor;
 use Civi\Lughauth\Features\Access\TenantPartySecurity\Domain\Gateway\TenantPartySecurityFilter;

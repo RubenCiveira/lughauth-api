@@ -10,6 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteRepository;
+use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Connector\Pdo\TenantPdoConnector;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;

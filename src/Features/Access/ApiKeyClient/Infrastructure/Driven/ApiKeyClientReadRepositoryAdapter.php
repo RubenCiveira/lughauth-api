@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven;
 
 use Override;
 use Throwable;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Connector\Pdo\ApiKeyClientPdoConnector;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadRepository;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientSlide;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;

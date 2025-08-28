@@ -12,6 +12,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Connector\Pdo\TenantLoginProviderPdoConnector;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadRepository;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderSlide;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderFilter;

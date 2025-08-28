@@ -10,6 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteRepository;
+use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Connector\Pdo\UserIdentityPdoConnector;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentitySlide;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityCursor;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;

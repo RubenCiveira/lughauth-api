@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Dr
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Connector\Pdo\UserAccessTemporalCodePdoConnector;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeReadRepository;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeSlide;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeFilter;

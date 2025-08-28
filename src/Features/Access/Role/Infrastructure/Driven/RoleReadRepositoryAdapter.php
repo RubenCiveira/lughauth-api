@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\Role\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Connector\Pdo\RolePdoConnector;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadRepository;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleSlide;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;

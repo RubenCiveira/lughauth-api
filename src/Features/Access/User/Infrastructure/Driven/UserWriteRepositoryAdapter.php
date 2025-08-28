@@ -11,6 +11,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteRepository;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Connector\Pdo\UserPdoConnector;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserSlide;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;

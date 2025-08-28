@@ -11,6 +11,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteRepository;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Connector\Pdo\RolePdoConnector;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleSlide;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;

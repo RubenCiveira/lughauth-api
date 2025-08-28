@@ -14,6 +14,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteRepository;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Connector\Pdo\TenantTermsOfUsePdoConnector;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseSlide;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCursor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;

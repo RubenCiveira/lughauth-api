@@ -10,6 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteRepository;
+use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Connector\Pdo\RelyingPartyPdoConnector;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartySlide;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;

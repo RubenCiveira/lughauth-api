@@ -10,6 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteRepository;
+use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Connector\Pdo\TrustedClientPdoConnector;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientSlide;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCursor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;

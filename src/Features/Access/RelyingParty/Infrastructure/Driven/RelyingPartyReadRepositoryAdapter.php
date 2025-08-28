@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven;
 
 use Override;
 use Throwable;
+use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Connector\Pdo\RelyingPartyPdoConnector;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadRepository;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartySlide;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
