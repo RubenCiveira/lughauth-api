@@ -132,7 +132,7 @@ class RbacStoreAdapter implements RbacStoreRepository
         foreach ($schemas as $name => $scc) {
             $resources[$name]['attributes'] = $scc;
         }
-        if( !$resources ) {
+        if (!$resources) {
             $this->logInfo("No resources");
             return [];
         }
