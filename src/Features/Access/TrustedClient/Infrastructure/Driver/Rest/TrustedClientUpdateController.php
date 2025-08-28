@@ -100,7 +100,7 @@ class TrustedClientUpdateController
                 $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
             }
             $allowedRedirectsList = [];
-            if (in_array('allowedRedirects', $body)) {
+            if (in_array('allowedRedirects', array_keys($body))) {
                 $allowedRedirects = $body['allowedRedirects'] ?? null;
                 if (is_array($allowedRedirects)) {
                     foreach ($allowedRedirects as $item) {

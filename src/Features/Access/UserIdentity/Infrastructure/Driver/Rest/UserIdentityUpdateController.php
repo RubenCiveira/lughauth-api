@@ -105,7 +105,7 @@ class UserIdentityUpdateController
                 $value->trustedClient(UserIdentityTrustedClientVO::tryFrom(isset($body['trustedClient']['$ref']) ? new TrustedClientRef($body['trustedClient']['$ref']) : null, $errorsList));
             }
             $rolesList = [];
-            if (in_array('roles', $body)) {
+            if (in_array('roles', array_keys($body))) {
                 $roles = $body['roles'] ?? null;
                 if (is_array($roles)) {
                     foreach ($roles as $item) {
