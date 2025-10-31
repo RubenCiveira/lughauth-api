@@ -10,20 +10,20 @@ use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
-use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Management\OidcMigrationProvider;
-use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyLogin;
-use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyRecover;
-use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyCreated;
+use Civi\Lughauth\Features\Access\Master\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
+use Civi\Lughauth\Features\Access\Master\User\Domain\Event\UserCreateEvent;
+use Civi\Lughauth\Features\Access\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\Access\Oidc\Common\Infrastructure\Driver\Management\OidcMigrationProvider;
+use Civi\Lughauth\Features\Access\Oidc\User\Application\Listener\NotifyLogin;
+use Civi\Lughauth\Features\Access\Oidc\User\Application\Listener\NotifyRecover;
+use Civi\Lughauth\Features\Access\Oidc\User\Application\Listener\NotifyCreated;
 
 class MultiTenantPlugin extends AggregatedMicroPlugin
 {
     public function __construct()
     {
         parent::__construct([
-          new OidcPlugin(), new RbacPlugin()
+          new AccessOidcPlugin()
         ]);
     }
     #[Override]
