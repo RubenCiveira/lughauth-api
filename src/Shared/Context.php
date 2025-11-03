@@ -15,7 +15,7 @@ class Context
     private ?Identity $identity = null;
     private ?Connection $connection = null;
 
-    public function __construct(private readonly ContainerBuilder $builder)
+    public function __construct(private readonly ContainerBuilder $builder, private readonly AppConfig $config)
     {
 
     }
@@ -67,5 +67,16 @@ class Context
         $path = substr($path, strlen($basePath));
 
         return '/' . ltrim($path, '/');
+    }
+
+    public function getInstanceData(): array
+    {
+        return [
+            'service.name' => $this->config->get('app.id.name', 'phylax'),
+            'service.namespace' => $this->config->get('app.id.namespace', 'backoffice'),
+            'service.version' => $this->config->get('app.id.version', '1.0.0'),
+            'service.instance.id' => $this->config->get('app.id.instance', php_uname('n') . '-' . getmypid()),
+            'deployment.environment' => $this->config->get('app.id.enviroment', 'prod'),
+        ];
     }
 }

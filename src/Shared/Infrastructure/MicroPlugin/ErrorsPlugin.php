@@ -10,6 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Response;
 use Slim\Middleware\ErrorMiddleware;
+use Slim\Exception\HttpMethodNotAllowedException;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
@@ -43,6 +44,14 @@ class ErrorsPlugin extends MicroPlugin
             ];
             $response->getBody()->write(json_encode($data));
             return $response->withStatus(401);
+        });
+        $errorHandler->setErrorHandler(HttpMethodNotAllowedException::class, function (ServerRequestInterface $request, HttpMethodNotAllowedException $exception): ResponseInterface {
+            $response = new Response();
+            $data = [
+                'message' => $exception->getMessage()
+            ];
+            $response->getBody()->write(json_encode($data));
+            return $response->withStatus(404);
         });
     }
 }

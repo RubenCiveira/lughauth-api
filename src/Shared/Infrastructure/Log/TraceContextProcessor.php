@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Log;
 
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
@@ -12,14 +13,16 @@ use Override;
 
 class TraceContextProcessor implements ProcessorInterface
 {
-    public function __construct(private readonly TraceContext $context)
+    public function __construct(private readonly TraceContext $traceContext, private readonly Context $appContext)
     {
     }
     #[Override]
     public function __invoke(LogRecord $record): LogRecord
     {
-        $record['extra']['traceId'] = $this->context->getTraceId();
-        $record['extra']['spanId'] = $this->context->getSpanId();
+        $record['extra']['traceId'] = $this->traceContext->getTraceId();
+        $record['extra']['spanId'] = $this->traceContext->getSpanId();
+        $data = $this->appContext->getInstanceData();
+        $record['extra']['service'] = [...$data];
         return $record;
     }
 }

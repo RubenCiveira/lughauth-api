@@ -59,6 +59,12 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\RateLimitMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 use DI\Container;
+use OpenTelemetry\Context\ContextInterface;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\ReadWriteSpanInterface;
+use OpenTelemetry\SDK\Trace\TracerProviderBuilder;
+use Override;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Psr16Cache;
@@ -72,7 +78,6 @@ class Micro
 {
     public readonly App $app;
     public readonly EventBus $bus;
-    // public readonly Scheduler $bus;
     public readonly AppConfig $config;
     public readonly MicroConfig $definition;
     public readonly ContainerInterface $container;
@@ -126,25 +131,12 @@ class Micro
         $depenencies->addDefinitions($defs);
         $depenencies->useAutowiring(true);
         $depenencies->useAttributes(true);
-        // if ('production' === $this->config->get("app.env")) {
-        //     $vardir = __DIR__.'/../../../var/';
-        //     if (!is_dir($vardir)) {
-        //         mkdir($vardir, 0777, true);
-        //     }
-        //     $compiledFile = __DIR__.'/../../../var/compiled/di';
-        //     $startUpFile = $vardir.'startup.flag';
-        //     if( !file_exists($startUpFile) && file_exists($compiledFile)) {
-        //         unlink( $compiledFile );
-        //     }
-        //     $depenencies->enableCompilation($compiledFile);
-        // }
         $container = $depenencies->build();
 
         AppFactory::setContainer($container);
         $this->app = AppFactory::create();
         $container->set(App::class, $this->app);
         $this->container = $container;
-        // $this->bus = $this->container->get(EventBus::class);
 
         // Opcional: definir base path si tu app no está en "/"
         $scriptName = $_SERVER['SCRIPT_NAME']; // Devuelve algo como "/midashboard/index.php"
@@ -174,14 +166,14 @@ class Micro
         if ($this->container->has(LoggerInterface::class)) {
             $logger = $this->container->get(LoggerInterface::class);
         }
+        $this->app->addRoutingMiddleware();
+        CorsMiddleware::register($this->app);
         $this->errorHandler = $this->app->addErrorMiddleware($this->config->develop, null !== $logger, $this->config->develop, $logger);
         $this->errorHandler->setErrorHandler(Exception::class, function (ServerRequestInterface $request, Exception $exception): ResponseInterface {
             echo $exception->getTraceAsString();
             die();
         });
         $container->set(ErrorMiddleware::class, $this->errorHandler);
-        $this->app->addRoutingMiddleware();
-        CorsMiddleware::register($this->app);
         $this->interfaces = [];
         $this->register(new ErrorsPlugin());
         $this->register(new ManagementPlugin());
@@ -268,9 +260,20 @@ class Micro
             }
             return $exporter;
         };
-        $def[TracerInterface::class] = function (SpanExporterInterface $exporter, AppConfig $config) {
-            $processor = new SimpleSpanProcessor($exporter);
+        $def[TracerInterface::class] = function (SpanExporterInterface $exporter, AppConfig $config, Context $context): TracerInterface {
+            $resource = ResourceInfo::create(Attributes::create([
+                'service.name'        => 'phylax-logs',
+                'service.namespace'   => 'backoffice',
+                'service.version'     => '1.4.2',
+                'service.instance.id' => php_uname('n') . '-' . getmypid(),
+                'deployment.environment' => 'prod',
+            ]));
+            $processor = new InjectResourceAttrsProcessor($exporter, $context);
             $provider = new TracerProvider($processor);
+            $provider = (new TracerProviderBuilder())
+                ->setResource($resource)
+                ->addSpanProcessor($processor)
+                ->build();
             return $provider->getTracer($config->get('app.name', 'php-service') . '_' . $config->get('app.version', '1'));
         };
     }
@@ -419,7 +422,7 @@ class Micro
         $appConfig = $container->get(AppConfig::class);
         $base = $appConfig->managementEndpoint;
         $interfaces = $this->interfaces;
-        $app->get("{$base}/", function ($request, ResponseInterface $response) use ($interfaces) {
+        $app->get("{$base}", function ($request, ResponseInterface $response) use ($interfaces) {
             $value = [];
             foreach ($interfaces as $interface) {
                 if ($interface->get()) {
@@ -475,6 +478,19 @@ class Micro
                     }
                 });
             }
+        }
+    }
+}
+
+final class InjectResourceAttrsProcessor extends SimpleSpanProcessor {
+    public function __construct(SpanExporterInterface $exporter, private readonly Context $context){
+        parent::__construct( $exporter );
+    }
+    #[Override]
+    public function onStart(ReadWriteSpanInterface $span, ContextInterface $context): void {
+        $data = $this->context->getInstanceData();
+        foreach($data as $k=>$v) {
+            $span->setAttribute($k, $v);
         }
     }
 }
