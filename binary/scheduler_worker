@@ -1,0 +1,116 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+/**
+ * Uso:
+ *   php bin/scheduler_worker.php https://tu-app.local/management/scheduler/run
+ */
+
+//// --- setup rutas/archivos ---
+$BASE = dirname(__DIR__);
+$VAR  = $BASE . '/var';
+@mkdir($VAR, 0775, true);
+
+$PID_FILE = $VAR . '/scheduler.pid';
+$LOG_FILE = $VAR . '/scheduler.log';
+$HEALTH   = $VAR . '/scheduler.health';
+
+// valida argumento URL
+$url = $argv[1] ?? null;
+if (!$url || !filter_var($url, FILTER_VALIDATE_URL)) {
+    fwrite(STDERR, "Uso: php bin/scheduler_worker.php <URL válida>\n");
+    exit(1);
+}
+
+// señales para apagado limpio
+if (function_exists('pcntl_async_signals')) {
+    pcntl_async_signals(true);
+    pcntl_signal(SIGTERM, function() use ($LOG_FILE) {
+        file_put_contents($LOG_FILE, "[".date('c')."] SIGTERM\n", FILE_APPEND);
+        exit(0);
+    });
+    pcntl_signal(SIGINT, function() use ($LOG_FILE) {
+        file_put_contents($LOG_FILE, "[".date('c')."] SIGINT\n", FILE_APPEND);
+        exit(0);
+    });
+}
+
+// registra PID y arranque
+file_put_contents($PID_FILE, (string)getmypid());
+file_put_contents($LOG_FILE, "[".date('c')."] worker started PID=".getmypid()." url=$url\n", FILE_APPEND);
+
+//// --- helpers HTTP ---
+function http_call(string $url, int $timeoutSec = 10): array {
+    $ua = 'SchedulerWorker/1.0 (+PHP '.PHP_VERSION.')';
+    if (function_exists('curl_init')) {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_CONNECTTIMEOUT => $timeoutSec,
+            CURLOPT_TIMEOUT        => $timeoutSec,
+            CURLOPT_USERAGENT      => $ua,
+            CURLOPT_HTTPHEADER     => [
+                'Accept: application/json, */*',
+            ],
+        ]);
+        $body = curl_exec($ch);
+        $err  = curl_error($ch);
+        $code = curl_getinfo($ch, CURLINFO_RESPONSE_CODE) ?: 0;
+        curl_close($ch);
+        return [$code, $body === false ? '' : (string)$body, $err ?: null];
+    }
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method'  => 'GET',
+            'timeout' => $timeoutSec,
+            'header'  => "User-Agent: $ua\r\nAccept: application/json, */*\r\n",
+        ],
+        'ssl' => [
+            'verify_peer'      => true,
+            'verify_peer_name' => true,
+        ],
+    ]);
+    $body = @file_get_contents($url, false, $ctx);
+    $code = 0;
+    if (isset($http_response_header) && is_array($http_response_header)) {
+        foreach ($http_response_header as $h) {
+            if (preg_match('#^HTTP/\S+\s+(\d{3})#', $h, $m)) { $code = (int)$m[1]; break; }
+        }
+    }
+    return [$code, $body === false ? '' : (string)$body, $body === false ? 'stream error' : null];
+}
+
+//// --- bucle principal: 1 llamada por minuto ---
+while (true) {
+    
+    $t0 = microtime(true);
+
+    // pequeña aleatoriedad (0–500 ms) para evitar sincronías entre múltiples instancias
+    usleep(random_int(0, 500_000));
+
+    // hace la llamada
+    [$code, $body, $err] = http_call($url, 10);
+    $ok = ($code >= 200 && $code < 300 && $err === null);
+
+    // escribe health y log
+    @file_put_contents($HEALTH, (string)time());
+    $msg = "[".date('c')."] tick code=$code ok=".($ok ? 'true' : 'false');
+    if ($err)  { $msg .= " err=$err"; }
+    // si quieres, limita el tamaño del body en logs
+    if ($body !== '' && strlen($body) < 512) { $msg .= " body=".str_replace(["\n","\r"], '', $body); }
+    file_put_contents($LOG_FILE, $msg."\n");
+
+    // duerme hasta el siguiente borde de minuto
+    $elapsed = microtime(true) - $t0;
+    $now     = time();
+    $nextMin = ($now - ($now % 60)) + 60; // siguiente múltiplo de 60
+    $sleep   = max(0.0, ($nextMin - $now) - $elapsed);
+    // si el trabajo fue largo y cruzó el minuto, mete un mínimo respiro
+    if ($sleep < 0.05) { $sleep = 0.5; }
+    usleep((int)round($sleep * 1_000_000));
+}
+
+
