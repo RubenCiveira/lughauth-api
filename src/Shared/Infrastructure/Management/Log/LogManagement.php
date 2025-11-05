@@ -32,13 +32,24 @@ class LogManagement implements ManagementInterface
             $traceId = $params['trace-id'] ?? null;
             $spanId = $params['span-id'] ?? null;
             $level = $params['level'] ?? null;
+            $service_name = $params['service-name'] ?? null;
+            $service_namespace = $params['service-namespace'] ?? null;
+            $service_version = $params['service-version'] ?? null;
+            $service_instance = $params['service-instance'] ?? null;
+            $environment = $params['deployment-environment'] ?? null;
             $levelName = $params['level-name'] ?? null;
             $to = isset($params['to']) ? strtotime($params['to']) : null;
             $from = isset($params['from']) ? strtotime($params['from']) : null;
 
+            $offset        = max(0, (int)($p['offset'] ?? 0));
+            $limit         = max(1, min(500, (int)($p['limit'] ?? 100)));
+
             $logFiles = glob($this->path . '/'.$this->config->name.'-*.log'); // incluye app.log, app.log.1, etc.
             rsort($logFiles); // orden descendente
+
+            $matchedSeen = 0;
             $results = [];
+
             foreach ($logFiles as $file) {
                 $handle = fopen($file, 'r');
                 if (!$handle) {
@@ -60,15 +71,26 @@ class LogManagement implements ManagementInterface
                     if ($to && $timestamp > $to) {
                         continue;
                     }
+                    if ($service_name && ($record['extra']['service']['service.name']) !== $service_name) {
+                        continue;
+                    }
+                    if ($service_namespace && ($record['extra']['service']['service.namespace']) !== $service_namespace) {
+                        continue;
+                    }
+                    if ($service_version && ($record['extra']['service']['service.version']) !== $service_version) {
+                        continue;
+                    }
+                    if ($service_instance && ($record['extra']['service']['service.instance.id']) !== $service_instance) {
+                        continue;
+                    }
+                    if ($environment && ($record['extra']['service']['deployment.environment']) !== $environment) {
+                        continue;
+                    }
                     // Filtrado por trace/span
                     if ($traceId && ($record['extra']['traceId'] ?? null) !== $traceId) {
                         continue;
                     }
                     if ($spanId && ($record['extra']['spanId'] ?? null) !== $spanId) {
-                        continue;
-                    }
-                    // Búsqueda textual
-                    if ($search && stripos($line, $search) === false) {
                         continue;
                     }
                     if ($level && ($record['level'] < $level)) {
@@ -77,7 +99,17 @@ class LogManagement implements ManagementInterface
                     if ($levelName && ($record['level_name'] !== $levelName)) {
                         continue;
                     }
+                    // Búsqueda textual
+                    if ($search && stripos($record['message'], $search) === false) {
+                        continue;
+                    }
+                    if ($matchedSeen++ < $offset) {
+                        continue;
+                    }
                     $results[] = $record;
+                    if (count($results) >= $limit) {
+                        break 2; // salimos de ambos bucles
+                    }
                 }
                 fclose($handle);
             }

@@ -5,12 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware;
 
-use Civi\Lughauth\Shared\AppConfig;
-use Prometheus\CollectorRegistry;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Routing\RouteContext;
+use Prometheus\CollectorRegistry;
+use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsRecorder;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExporter;
 
 /**
  * Middleware to record application metrics for each HTTP request.
@@ -24,11 +26,12 @@ class PrometheusMetricMiddleware
      * @api
      *
      * @param AppConfig $appConfig Configuration for application paths and management endpoints
-     * @param TelemetryConfig $config Telemetry-specific configuration
+     * @param MetricsRecorder $recorder Metrics
      * @param CollectorRegistry $registry Prometheus registry where metrics are collected
      */
     public function __construct(
         private readonly AppConfig $appConfig,
+        private readonly PrometheusRegistryExporter $exporter,
         private readonly CollectorRegistry $registry
     ) {
     }
@@ -47,11 +50,13 @@ class PrometheusMetricMiddleware
         $response = $handler->handle($request);
         $route = $routeContext->getRoute();
         $path = $route->getPattern();
+        $duration = microtime(true) - $start;
         if (!$this->isManagementPath($path)) {
             $this->serverLoad($path);
-            $this->executionTime($path, $start);
+            $this->executionTime($path, $duration);
             $this->httpStatus($path, $response->getStatusCode());
         }
+        \register_shutdown_function([$this, 'shutdownFlush']);
         return $response;
     }
 
@@ -229,5 +234,15 @@ class PrometheusMetricMiddleware
     private function namespace()
     {
         return str_replace('.', '_', $this->appConfig->name);
+    }
+
+    public function shutdownFlush()
+    {
+        $this->exporter->dump(
+            [
+                'min_interval_ms' => 5000,
+                'label_allow'    => ['script','path','method','status','le','service'],
+            ]
+        );
     }
 }

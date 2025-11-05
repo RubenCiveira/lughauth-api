@@ -53,11 +53,16 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ManagementPlugin;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\AccessControlMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\FixedIntervalWindowPolicy;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\JsonlRotatingSink;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsSink;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\PdoRateLimiterStorage;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\RateLimitMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
+use Civi\Lughauth\Shared\Infrastructure\Scheduler\Supervisor;
 use DI\Container;
 use OpenTelemetry\Context\ContextInterface;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
@@ -191,7 +196,6 @@ class Micro
     public function run()
     {
         $this->build();
-
         $this->registerManagers($this->app, $this->container);
         $vardir = __DIR__.'/../../../var/';
         if (!is_dir($vardir)) {
@@ -210,6 +214,14 @@ class Micro
                     $startup->registerStartup($processor);
                 }
                 $processor->run($this->container);
+                $scheme = 'http';
+                if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+                    $scheme = 'https';
+                }
+                $url = $scheme . '://' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ':' . ($_SERVER['SERVER_PORT'] ?? 80)
+                    . dirname($_SERVER['SCRIPT_NAME']) . '/cron';
+                $supervisor = new Supervisor(__DIR__.'/../../../');
+                $supervisor->ensureRunning($url);
                 file_put_contents($startUpFile, '1');
             }
             flock($lockFile, LOCK_UN);
@@ -291,6 +303,14 @@ class Micro
 
     private function withMetrics(&$def)
     {
+        $def[TimeWindowPolicy::class] = function () {
+            $base = dirname(__DIR__) . "/../../var/history-metrics/lock";
+            return new FixedIntervalWindowPolicy($base);
+        };
+        $def[MetricsSink::class] = function () {
+            $base = dirname(__DIR__) . "/../../var/history-metrics";
+            return new JsonlRotatingSink($base);
+        };
         $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf) {
             if ("redis" === $conf->get("app.state.vault.engine")) {
                 $storage = new StorageRedis();
@@ -482,14 +502,17 @@ class Micro
     }
 }
 
-final class InjectResourceAttrsProcessor extends SimpleSpanProcessor {
-    public function __construct(SpanExporterInterface $exporter, private readonly Context $context){
-        parent::__construct( $exporter );
+final class InjectResourceAttrsProcessor extends SimpleSpanProcessor
+{
+    public function __construct(SpanExporterInterface $exporter, private readonly Context $context)
+    {
+        parent::__construct($exporter);
     }
     #[Override]
-    public function onStart(ReadWriteSpanInterface $span, ContextInterface $context): void {
+    public function onStart(ReadWriteSpanInterface $span, ContextInterface $context): void
+    {
         $data = $this->context->getInstanceData();
-        foreach($data as $k=>$v) {
+        foreach ($data as $k => $v) {
             $span->setAttribute($k, $v);
         }
     }

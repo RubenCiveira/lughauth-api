@@ -14,12 +14,14 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\API\Trace\TraceFlags;
 use OpenTelemetry\API\Trace\Span;
+use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 
 class TelemetrySpanMiddleware
 {
     public function __construct(
         private readonly App $app,
+        private readonly AppConfig $config,
         private readonly TracerInterface $tracer,
         private readonly TraceContext $context
     ) {
@@ -36,26 +38,31 @@ class TelemetrySpanMiddleware
                 $path = '/';
             }
         }
-        $context = Context::getCurrent(); // contexto por defecto
-        $traceparent = $request->getHeader(('traceparent'));
-        if (count($traceparent)) {
-            $parts = explode('-', $traceparent[0]);
-            if (count($parts) === 4) {
-                [$_version, $traceId, $spanId, $_flags] = $parts;
-                $spanContext = SpanContext::createFromRemoteParent($traceId, $spanId, TraceFlags::SAMPLED);
-                $remoteSpan = Span::wrap($spanContext);
-                $context = $remoteSpan->storeInContext($context);
+        $active = !str_starts_with($path, $this->config->managementEndpoint);
+        if ($active) {
+            $context = Context::getCurrent(); // contexto por defecto
+            $traceparent = $request->getHeader(('traceparent'));
+            if (count($traceparent)) {
+                $parts = explode('-', $traceparent[0]);
+                if (count($parts) === 4) {
+                    [$_version, $traceId, $spanId, $_flags] = $parts;
+                    $spanContext = SpanContext::createFromRemoteParent($traceId, $spanId, TraceFlags::SAMPLED);
+                    $remoteSpan = Span::wrap($spanContext);
+                    $context = $remoteSpan->storeInContext($context);
+                }
             }
+            $rootSpan = $this->tracer->spanBuilder('Request ' . $request->getMethod() . ' ' . $path)
+                    ->setParent($context)
+                    ->startSpan();
+            $scope = $rootSpan->activate();
         }
-        $rootSpan = $this->tracer->spanBuilder('Request ' . $request->getMethod() . ' ' . $path)
-                ->setParent($context)
-                ->startSpan();
-        $scope = $rootSpan->activate();
         try {
             return $handler->handle($request);
         } finally {
-            $rootSpan->end();
-            $scope->detach();
+            if ($active) {
+                $rootSpan->end();
+                $scope->detach();
+            }
         }
     }
 }

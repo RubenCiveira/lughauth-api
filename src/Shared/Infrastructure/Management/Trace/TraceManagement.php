@@ -30,12 +30,27 @@ class TraceManagement implements ManagementInterface
     {
         return function (ServerRequestInterface $request): array {
             $params = $request->getQueryParams();
+            $search = $params['search'] ?? null;
             $traceId = $params['trace-id'] ?? null;
+            $status = $params['status'] ?? null;
+            $service_name = $params['service-name'] ?? null;
+            $service_namespace = $params['service-namespace'] ?? null;
+            $service_version = $params['service-version'] ?? null;
+            $service_instance = $params['service-instance'] ?? null;
+            $environment = $params['deployment.environment'] ?? null;
+
+            $offset        = max(0, (int)($p['offset'] ?? 0));
+            $limit         = max(1, min(500, (int)($p['limit'] ?? 100)));
+
+            $hasFilters = (bool) array_filter([
+                $traceId
+            ], fn ($v) => $v !== null && $v !== '');
 
             $traceFiles = glob($this->path . '/' . $this->config->name . '-*.json'); // eg: traces/app-2025-06-04.json
             rsort($traceFiles); // más recientes primero
 
             $results = [];
+            $matchedSeen = 0;
 
             foreach ($traceFiles as $file) {
                 $handle = fopen($file, 'r');
@@ -50,10 +65,42 @@ class TraceManagement implements ManagementInterface
                     if (!is_array($span)) {
                         continue;
                     }
+                    if ($status && $span['status'] !== $status) {
+                        continue;
+                    }
+                    if ($service_name && ($span['extra']['service']['sdervice.name']) !== $service_name) {
+                        continue;
+                    }
+                    if ($service_namespace && ($span['extra']['service']['service.namespace']) !== $service_namespace) {
+                        continue;
+                    }
+                    if ($service_version && ($span['extra']['service']['service.version']) !== $service_version) {
+                        continue;
+                    }
+                    if ($service_instance && ($span['extra']['service']['service.instance.id']) !== $service_instance) {
+                        continue;
+                    }
+                    if ($environment && ($span['extra']['service']['deployment.environment']) !== $environment) {
+                        continue;
+                    }
                     if ($traceId && $traceId !== ($span['traceId'] ?? null)) {
                         continue;
                     }
-                    $results[] = $span;
+                    // Búsqueda textual
+                    if ($search && stripos($span['name'], $search) === false) {
+                        continue;
+                    }
+                    if ($matchedSeen++ < $offset) {
+                        continue;
+                    }
+                    if ($hasFilters) {
+                        $results[] = $span;
+                    } elseif ($span['parentSpanId'] === '0000000000000000') {
+                        $results[] = $span;
+                    }
+                    if (count($results) >= $limit) {
+                        break 2;
+                    }
                 }
                 fclose($handle);
             }
