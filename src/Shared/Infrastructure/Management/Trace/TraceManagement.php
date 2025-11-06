@@ -39,14 +39,14 @@ class TraceManagement implements ManagementInterface
             $service_instance = $params['service-instance'] ?? null;
             $environment = $params['deployment.environment'] ?? null;
 
-            $offset        = max(0, (int)($p['offset'] ?? 0));
-            $limit         = max(1, min(500, (int)($p['limit'] ?? 100)));
+            $offset        = max(0, (int)($params['offset'] ?? 0));
+            $limit         = max(1, min(500, (int)($params['limit'] ?? 100)));
 
             $hasFilters = (bool) array_filter([
                 $traceId
             ], fn ($v) => $v !== null && $v !== '');
 
-            $traceFiles = glob($this->path . '/' . $this->config->name . '-*.json'); // eg: traces/app-2025-06-04.json
+            $traceFiles = glob($this->path . '/' . $this->config->name . '-*.jsonl*'); // eg: traces/app-2025-06-04.json
             rsort($traceFiles); // más recientes primero
 
             $results = [];

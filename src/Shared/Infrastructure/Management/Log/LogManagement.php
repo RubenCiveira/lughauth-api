@@ -41,10 +41,10 @@ class LogManagement implements ManagementInterface
             $to = isset($params['to']) ? strtotime($params['to']) : null;
             $from = isset($params['from']) ? strtotime($params['from']) : null;
 
-            $offset        = max(0, (int)($p['offset'] ?? 0));
-            $limit         = max(1, min(500, (int)($p['limit'] ?? 100)));
+            $offset        = max(0, (int)($params['offset'] ?? 0));
+            $limit         = max(1, min(500, (int)($params['limit'] ?? 100)));
 
-            $logFiles = glob($this->path . '/'.$this->config->name.'-*.log'); // incluye app.log, app.log.1, etc.
+            $logFiles = glob($this->path . '/'.$this->config->name.'-*.jsonl*'); // incluye app.log, app.log.1, etc.
             rsort($logFiles); // orden descendente
 
             $matchedSeen = 0;
@@ -129,14 +129,9 @@ class LogManagement implements ManagementInterface
         return is_array($json) ? $json : null;
     }
 
-    /**
- * Itera líneas de un fichero .log o .log.gz en streaming.
- * @return \Generator<string>
- */
     private function iterateLines(string $file): \Generator
     {
         $isGz = str_ends_with($file, '.gz');
-
         if ($isGz) {
             $h = @gzopen($file, 'rb');
             if ($h === false) {
