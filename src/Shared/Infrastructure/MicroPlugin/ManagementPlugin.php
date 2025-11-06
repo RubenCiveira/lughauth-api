@@ -25,7 +25,7 @@ use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\MarkAckManage
 use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\UpdateChangelogManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
 use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExporter;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Cron\CronExpression;
@@ -35,7 +35,7 @@ class ManagementPlugin extends MicroPlugin
     #[Override]
     public function registerSchedulers(SchedulerManager $bus)
     {
-        $bus->register(new CronExpression('* * * * *'), PrometheusMetricMiddleware::class, "shutdownFlush");
+        $bus->register(new CronExpression('*/15 * * * *'), PrometheusRegistryExporter::class, "forceDump");
     }
 
     #[Override]

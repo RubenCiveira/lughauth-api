@@ -15,20 +15,17 @@ final class PrometheusRegistryExporter
         private readonly MetricsSink $sink
     ) {
     }
-    /**
-     * @param array{
-     *   include?: list<string>,
-     *   exclude?: list<string>,
-     *   label_allow?: list<string>,
-     *   min_interval_ms?: int
-     * } $opts
-     */
-    public function dump(array $opts = []): void
-    {
 
+    public function dump(): void
+    {
         if (!$this->policy->mustTrace()) {
             return;
         }
+        $this->forceDump();
+    }
+
+    public function forceDump(): void
+    {
         $renderer = new RenderJsonFormat();
         $metrics = $this->registry->getMetricFamilySamples();
         $str = $renderer->render($metrics);

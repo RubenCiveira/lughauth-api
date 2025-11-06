@@ -12,29 +12,30 @@ use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
 use OpenTelemetry\SDK\Common\Future\FutureInterface;
 
-class FileJsonTraceExporter implements SpanExporterInterface
+class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
 {
-    private string $basePath;
-    private string $filenameFormat;
-    private string $dateFormat;
-    private int $maxFiles;
-    private string $currentFile;
-    private string $currentDate;
+    private readonly string $basePath;
+    private readonly string $filenameFormat;
+    private readonly int $maxFiles;
+    private readonly string $currentFile;
+    private readonly string $currentDate;
+    private readonly bool $zipOnRotate;
 
     public function __construct(
         string $basePath,
         int $maxFiles = 7,
         string $dateFormat = 'Y-m-d',
-        string $filenameFormat = '{filename}-{date}.json'
+        string $filenameFormat = '{filename}-{date}.jsonl',
+        bool $zipOnRotate = true
     ) {
         $this->basePath = realpath(dirname($basePath)) . '/' . basename($basePath);
         $this->maxFiles = $maxFiles;
-        $this->dateFormat = $dateFormat;
+        $this->zipOnRotate = $zipOnRotate;
         $this->filenameFormat = $filenameFormat;
         $this->currentDate = date($dateFormat);
         $this->currentFile = $this->resolveFilename();
-
-        $this->rotateIfNeeded();
+        register_shutdown_function([$this, 'rotateIfNeeded']);
+        // $this->rotateIfNeeded();
     }
 
     #[Override]
@@ -107,7 +108,7 @@ class FileJsonTraceExporter implements SpanExporterInterface
             ['{filename}', '{date}'],
             [$info['filename'], '*'],
             $this->filenameFormat
-        );
+        ) . '*';
 
         $globPattern = ($info['dirname'] ?? '.') . '/' . $pattern;
         $files = glob($globPattern);
@@ -116,6 +117,40 @@ class FileJsonTraceExporter implements SpanExporterInterface
 
         foreach (array_slice($files, $this->maxFiles) as $file) {
             @unlink($file);
+        }
+        if( $this->zipOnRotate ) {
+            $today = $this->resolveFilename();
+            foreach (array_slice($files, 0, $this->maxFiles) as $file) {
+                if( $file !== $today && !str_ends_with($file, '.gz') ) {
+                    $this->gzipFile($file, $file.'.gz');
+                    unlink( $file );
+                }
+            }
+        }
+    }
+
+    private function gzipFile(string $src, string $dst, int $level = 9): void
+    {
+        $in = @fopen($src, 'rb');
+        if (!$in) {
+            return;
+        }
+        $gz = @gzopen($dst, 'wb' . \max(1, \min(9, $level)));
+        if (!$gz) {
+            @fclose($in);
+            return;
+        }
+        try {
+            while (!feof($in)) {
+                $chunk = fread($in, 1024 * 1024); // 1 MiB
+                if ($chunk === false) {
+                    break;
+                }
+                gzwrite($gz, $chunk);
+            }
+        } finally {
+            @fclose($in);
+            @gzclose($gz);
         }
     }
 }

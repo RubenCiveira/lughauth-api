@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Scheduler;
 
-use Cron\CronExpression;
 use DateTimeImmutable;
+use Cron\CronExpression;
 use Psr\Container\ContainerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Lock\LockFactory;
@@ -45,11 +45,14 @@ class SchedulerManager
                 : null;
 
             $nextFromLast = $cron->getNextRunDate($lastRun ?? $now, 0, true); // allowCurrentDate = true
+            $this->logInfo("Look task for " . $type . "::" . $method . " must run");
 
             // ¿Toca ejecutar esta tarea?
             if ($nextFromLast <= $now) {
+                $this->logInfo("Go on past");
                 $previousRun = $cron->getPreviousRunDate($now);
                 if ($lastRun === null || $previousRun > $lastRun) {
+                    $this->logInfo("Must run");
                     $runnableTasks[] = [$cron, $type, $method, $taskKey];
                 }
             }

@@ -23,7 +23,6 @@ use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
 use GuzzleHttp\Client;
 use Monolog\Logger;
-use Monolog\Handler\RotatingFileHandler;
 use Monolog\Formatter\JsonFormatter;
 use Nimbly\Capsule\Factory\RequestFactory;
 use Nimbly\Capsule\Factory\StreamFactory;
@@ -46,7 +45,8 @@ use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\JwtVerifierMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\CorsMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
-use Civi\Lughauth\Shared\Infrastructure\Log\FileJsonTraceExporter;
+use Civi\Lughauth\Shared\Infrastructure\Log\MonologGzipRotatingFileHandler;
+use Civi\Lughauth\Shared\Infrastructure\Log\SpanJsonGzipRotatingFileExporter;
 use Civi\Lughauth\Shared\Infrastructure\Log\TraceContextProcessor;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ErrorsPlugin;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
@@ -261,7 +261,7 @@ class Micro
                 if (!is_dir($base)) {
                     mkdir($base);
                 }
-                $exporter = new FileJsonTraceExporter($base . '/' . $name . '-telemetry.json', 10);
+                $exporter = new SpanJsonGzipRotatingFileExporter($base . '/' . $name . '-telemetry.json', 10);
             } else {
                 $transport = (new PsrTransportFactory())->create(
                     endpoint: 'http://localhost:4318/v1/traces', // URL del OTLP endpoint
@@ -402,7 +402,7 @@ class Micro
             if (!is_dir($base)) {
                 mkdir($base);
             }
-            $handler = new RotatingFileHandler($base . "/".$name.".log", 10);
+            $handler = new MonologGzipRotatingFileHandler($base . "/".$name.".jsonl", 10);
             $handler->setFormatter(new JsonFormatter(JsonFormatter::BATCH_MODE_NEWLINES));
             $logger = new Logger($name, [$handler]);
             $logger->pushProcessor($tracer);

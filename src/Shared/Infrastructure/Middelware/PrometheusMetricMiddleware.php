@@ -236,13 +236,8 @@ class PrometheusMetricMiddleware
         return str_replace('.', '_', $this->appConfig->name);
     }
 
-    public function shutdownFlush()
+    private function shutdownFlush()
     {
-        $this->exporter->dump(
-            [
-                'min_interval_ms' => 5000,
-                'label_allow'    => ['script','path','method','status','le','service'],
-            ]
-        );
+        $this->exporter->dump();
     }
 }

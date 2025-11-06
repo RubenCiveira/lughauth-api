@@ -57,7 +57,7 @@ class TraceManagement implements ManagementInterface
                 if (!$handle) {
                     continue;
                 }
-                while (($line = fgets($handle)) !== false) {
+                foreach ($this->iterateLines($file) as $line) {
                     if (!trim($line)) {
                         continue;
                     }
@@ -112,5 +112,44 @@ class TraceManagement implements ManagementInterface
     public function set(): ?Closure
     {
         return null;
+    }
+
+    private function iterateLines(string $file): \Generator
+    {
+        $isGz = str_ends_with($file, '.gz');
+
+        if ($isGz) {
+            $h = @gzopen($file, 'rb');
+            if ($h === false) {
+                return;
+            }
+            try {
+                while (!gzeof($h)) {
+                    $line = gzgets($h);
+                    if ($line === false) {
+                        break;
+                    }
+                    yield rtrim($line, "\r\n");
+                }
+            } finally {
+                @gzclose($h);
+            }
+        } else {
+            $h = @fopen($file, 'rb');
+            if ($h === false) {
+                return;
+            }
+            try {
+                while (!feof($h)) {
+                    $line = fgets($h);
+                    if ($line === false) {
+                        break;
+                    }
+                    yield rtrim($line, "\r\n");
+                }
+            } finally {
+                @fclose($h);
+            }
+        }
     }
 }

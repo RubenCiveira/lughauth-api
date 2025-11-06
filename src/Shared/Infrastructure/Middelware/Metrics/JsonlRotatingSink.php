@@ -20,7 +20,7 @@ final class JsonlRotatingSink implements MetricsSink
         private readonly string $dir,
         private readonly bool   $gzipOldDays = true,
         private readonly int    $ttlDays = 30,             // 👈 retención
-        private readonly bool   $enableOpportunisticDownsample = false, // 👈 si quieres generar @5m/@1h
+        private readonly bool   $enableOpportunisticDownsample = true, // 👈 si quieres generar @5m/@1h
         private readonly int    $sheddingStepMs = 60_000,  // 👈 1m: colapsado por bucket si hay back-pressure
         private readonly int    $shedBatchThreshold = 10_000 // 👈 si un batch supera esto, se “adelgaza”
     ) {
