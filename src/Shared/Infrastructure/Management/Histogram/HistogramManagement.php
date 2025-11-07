@@ -11,6 +11,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
+use InvalidArgumentException;
 
 class HistogramManagement implements ManagementInterface
 {
@@ -30,18 +31,94 @@ class HistogramManagement implements ManagementInterface
     #[Override]
     public function get(): ?Closure
     {
-        return function (ServerRequestInterface $request): array {
+        return function (ServerRequestInterface $request): string|array {
+            $qp = $request->getQueryParams();
+            $queries = [];
+            if (isset($qp['q'])) {
+                $queries = is_array($qp['q']) ? $qp['q'] : [ $qp['q'] ];
+            }
+            if (!$queries) {
+                throw new InvalidArgumentException('Missing query param "q"');
+            }
+            $partition = $qp['partition']        ?? 'raw';
+            // $fill      = $qp['fill']             ?? 'nan';       // nan|zero|ffill|bfill
+            // $interp    = $qp['interpolation']    ?? 'none';      // none|linear
+            // $down      = $qp['downsample']       ?? 'avg';       // avg|sum|min|max
+            $alignTo   = $this->toIntOrNull($qp['align_to'] ?? null);
+            $limitSer  = (int)($qp['limit_series'] ?? 200);
+            $maxPoints = (int)($qp['max_points']  ?? 50_000);
+            // $aliases   = isset($qp['alias']) ? (is_array($qp['alias']) ? $qp['alias'] : [$qp['alias']]) : [];
+            $format    = $qp['format'] ?? 'json';
+
+            $nowMs   = (int) floor(microtime(true) * 1000);
+            $endMs   = $this->parseTime($qp['end']   ?? 'now', $nowMs);
+            $startMs = $this->parseTime($qp['start'] ?? 'now-1h', $nowMs);
+            if ($startMs >= $endMs) {
+                throw new InvalidArgumentException('"start" must be < "end"');
+            }
+
+            $stepMs = $this->parseStepToMs((string)($qp['step'] ?? '60s'));
+            if ($stepMs <= 0) {
+                throw new InvalidArgumentException('"step" must be > 0');
+            }
+
+            // Alinea a rejilla
+            if ($alignTo !== null) {
+                $startMs = (int) (floor(($startMs - $alignTo) / $stepMs) * $stepMs + $alignTo);
+                $endMs   = (int) (ceil(($endMs - $alignTo) / $stepMs) * $stepMs + $alignTo);
+            } else {
+                $startMs = (int) (floor($startMs / $stepMs) * $stepMs);
+                $endMs   = (int) (ceil($endMs   / $stepMs) * $stepMs);
+            }
+
+            $pointsPerSeries = 1 + (int) floor(($endMs - $startMs) / $stepMs);
+            if ($pointsPerSeries > $maxPoints) {
+                return throw new InvalidArgumentException(sprintf(
+                    'Too many points/series: %d > max_points=%d. Increase step.',
+                    $pointsPerSeries,
+                    $maxPoints
+                ));
+            }
+
+            $all = [];
+            $engine = new PromQLInterpreter($this->querier);
+
+            foreach ($queries as $i => $q) {
+                $series = $engine->evaluate(
+                    $q,
+                    $startMs,
+                    $endMs,
+                    $stepMs / 1000,
+                    $partition
+                );
+                $alias = $aliases[$i] ?? null;
+                foreach ($series as &$s) {
+                    $s['query'] = $q;
+                    if ($alias) {
+                        $s['alias'] = $alias;
+                    }
+                }
+                unset($s);
+
+                $all = array_merge($all, $series);
+                if (count($all) >= $limitSer) {
+                    $all = array_slice($all, 0, $limitSer);
+                    break;
+                }
+            }
+
+            return $format === 'csv' ? $this->toCsv($all) : $all;
+
+            //  'app_http_status_codes{status="200",path=~"/api/.*"}';
+
             $now = (int)(microtime(true) * 1000);
             $start = $now - 3600 * 10000; // 1h
             $step = 60; // 60s
 
-//            return $row = $this->querier->range('app_http_status_codes', $start, $now, $step);
-
-
             $engine = new PromQLInterpreter($this->querier);
 
             return $engine->evaluate(
-                'app_http_status_codes{status="200",path=~"/api/.*"}',
+                $query,
                 $start,
                 $now,
                 $step
@@ -73,5 +150,82 @@ class HistogramManagement implements ManagementInterface
     public function set(): ?Closure
     {
         return null;
+    }
+
+    private function toIntOrNull($v): ?int
+    {
+        if ($v === null || $v === '') {
+            return null;
+        } return is_numeric($v) ? (int)$v : null;
+    }
+
+    private function parseTime(string $v, int $nowMs): int
+    {
+        $v = trim($v);
+        if ($v === 'now') {
+            return $nowMs;
+        }
+
+        // now-6h / now-15m / now-30s / now-2d
+        if (preg_match('#^now-(\d+)([smhd])$#i', $v, $m)) {
+            $n = (int)$m[1];
+            $u = strtolower($m[2]);
+            $mul = ['s' => 1000,'m' => 60000,'h' => 3600000,'d' => 86400000][$u] ?? 0;
+            return $nowMs - $n * $mul;
+        }
+
+        // epoch ms (o s) numérico
+        if (ctype_digit($v)) {
+            $num = (int)$v;
+            return ($num > 10_000_000_000) ? $num : $num * 1000; // si parece epoch seconds, pásalo a ms
+        }
+
+        // ISO8601
+        $ts = strtotime($v);
+        if ($ts !== false) {
+            return $ts * 1000;
+        }
+
+        throw new \InvalidArgumentException('Invalid "start"/"end" time: '.$v);
+    }
+
+    private function parseStepToMs(string $v): int
+    {
+        $v = trim($v);
+        if (ctype_digit($v)) {
+            return (int)$v;
+        } // ya en ms
+
+        if (preg_match('#^(\d+)(ms|s|m|h)$#i', $v, $m)) {
+            $n = (int)$m[1];
+            $u = strtolower($m[2]);
+            return match($u) {
+                'ms' => $n,
+                's'  => $n * 1000,
+                'm'  => $n * 60_000,
+                'h'  => $n * 3_600_000,
+                default => 0,
+            };
+        }
+        return 0;
+    }
+
+    private function toCsv(array $payload): string
+    {
+        // muy simple: 1 línea por punto por serie
+        $rows = ["query,labels,timestamp,value"];
+        foreach ($payload['series'] as $s) {
+            $labels = json_encode($s['labels'] ?? [], JSON_UNESCAPED_SLASHES);
+            foreach ($s['points'] as [$t,$v]) {
+                $rows[] = sprintf(
+                    '"%s","%s",%d,%s',
+                    $s['alias'] ?? $s['query'] ?? '',
+                    str_replace('"', '""', $labels),
+                    $t,
+                    is_nan($v) ? '' : (string)$v
+                );
+            }
+        }
+        return implode("\n", $rows) . "\n";
     }
 }
