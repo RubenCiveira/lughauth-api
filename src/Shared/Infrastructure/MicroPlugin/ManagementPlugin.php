@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
 use Override;
+use Cron\CronExpression;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Audit\AuditManagement;
@@ -29,7 +30,6 @@ use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExporter;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
-use Cron\CronExpression;
 
 class ManagementPlugin extends MicroPlugin
 {
