@@ -12,7 +12,8 @@ final class LabelMatcher
         public string $key,
         public string $op,   // '=', '!=', '=~', '!~'
         public string $val
-    ) {}
+    ) {
+    }
 
     public function matches(array $labels): bool
     {
