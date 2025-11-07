@@ -5,15 +5,42 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
+use RuntimeException;
+use Prometheus\Sample;
 use Prometheus\CollectorRegistry;
+use Prometheus\MetricFamilySamples;
 
 final class PrometheusRegistryExporter
 {
+    /** @var array<string, array{buf:string, n:int}> */
+    private array $files = [];
+    private int $flushAt;
+    private int $bytes = 0;
+
     public function __construct(
         private readonly TimeWindowPolicy $policy,
         private readonly CollectorRegistry $registry,
-        private readonly MetricsSink $sink
+        private readonly MetricsFS $fs,
+        private array $options = [
+              'label_allow'    => ['le','script','status','path','method','tenant', 'version'],
+        ]
+        // options:
+        // 'include'        => ['~^app_'],
+        // 'exclude'        => ['~_created$~'],
+        // 'label_allow'    => ['status','path','method','tenant','le'], // whitelist
+        // 'max_lines_flush'=> 2000,   // flush por fichero
+        // 'on_error'       => callable($ex) : void
     ) {
+        $this->flushAt  = (int)($this->options['max_lines_flush'] ?? 2000);
+
+        // guardia de salida: garantiza flush aunque el proceso termine inesperadamente
+        register_shutdown_function(function () {
+            try {
+                $this->flushAll();
+            } catch (\Throwable) {
+            }
+        });
+
     }
 
     public function dump(): void
@@ -26,10 +53,176 @@ final class PrometheusRegistryExporter
 
     public function forceDump(): void
     {
-        $renderer = new RenderJsonFormat();
         $metrics = $this->registry->getMetricFamilySamples();
-        $str = $renderer->render($metrics);
-        $lines = json_decode($str);
-        $this->sink->appendBatch($lines);
+        $lines = $this->extract($metrics);
+        $this->ingestBatch($lines);
+        $this->flushAll();
+        $this->fs->rotate();
+    }
+
+    public function ingestBatch(array $payload, ?int $snapshotMs = null): void
+    {
+        $tsMs    = $snapshotMs ?? (int) floor(microtime(true) * 1000);
+        $incRe   = $this->compile($this->options['include'] ?? []);
+        $excRe   = $this->compile($this->options['exclude'] ?? []);
+        $allow   = array_flip($this->options['label_allow'] ?? []);
+
+        try {
+            foreach ($payload as $metric => $items) {
+                foreach ($items as $item) {
+                    $ts = $tsMs;
+                    $value = $item['value'];
+                    $labels = $item['labels'];
+                    if ($allow) {
+                        $labels = array_intersect_key($labels, $allow);
+                    }
+                    if (!$this->match($metric, $incRe, $excRe)) {
+                        continue;
+                    }
+                    $labels = MetricsFS::canonicalLabels($labels);
+                    $sha    = MetricsFS::seriesId($labels);
+
+                    $this->fs->upsertLabels($metric, $sha, $labels, $ts);
+
+                    $path = $this->fs->dayFile($metric, $sha, 'raw', $ts, false);
+                    $line = json_encode(['ts' => $ts, 'v' => (float)$value], JSON_PRESERVE_ZERO_FRACTION)."\n";
+                    $this->files[$path]['buf'] = ($this->files[$path]['buf'] ?? '').$line;
+                    $this->files[$path]['n']   = ($this->files[$path]['n']   ?? 0) + 1;
+
+                    if ($this->files[$path]['n'] >= $this->flushAt) {
+                        $this->flushOne($path);
+                    }
+
+                }
+            }
+
+            // flush final
+            foreach (array_keys($this->files) as $p) {
+                $this->flushOne($p);
+            }
+            // cerrar handles
+            foreach ($this->files as $slot) {
+                if (isset($slot['h']) && is_resource($slot['h'])) {
+                    @fclose($slot['h']);
+                }
+            }
+
+        } catch (\Throwable $e) {
+            foreach ($this->files as $slot) {
+                if (isset($slot['h']) && is_resource($slot['h'])) {
+                    @fclose($slot['h']);
+                }
+            }
+            throw $e;
+        }
+    }
+
+    // filtros regex
+    private function compile(array $patterns): array
+    {
+        $out = [];
+        foreach ($patterns as $p) {
+            $out[] = (@preg_match($p, '') !== false) ? $p : '~' . str_replace('~', '\~', $p) . '~';
+        }
+        return $out;
+    }
+
+    private function match(string $name, array $include, array $exclude): bool
+    {
+        if ($include) {
+            $ok = false;
+            foreach ($include as $re) {
+                if (@preg_match($re, $name)) {
+                    $ok = true;
+                    break;
+                }
+            } if (!$ok) {
+                return false;
+            }
+        }
+        foreach ($exclude as $re) {
+            if (@preg_match($re, $name)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function flushOne(string $path): void
+    {
+        $slot = $this->files[$path] ?? null;
+        if (!$slot || $slot['buf'] === '') {
+            return;
+        }
+        // asegura directorio
+        @mkdir(dirname($path), 0775, true);
+        // escritura atómica + lock
+        // si falla, dejamos el buffer para reintentar en flushAll de shutdown
+        $written = @file_put_contents($path, $slot['buf'], FILE_APPEND | LOCK_EX);
+        if ($written !== false) {
+            $this->bytes -= strlen($slot['buf']);
+            $this->files[$path] = ['buf' => '', 'n' => 0];
+        }
+    }
+
+    private function flushAll(): void
+    {
+        foreach (array_keys($this->files) as $p) {
+            $this->flushOne($p);
+        }
+    }
+
+    private function extract(array $metrics): array
+    {
+        usort($metrics, function (MetricFamilySamples $a, MetricFamilySamples $b): int {
+            return strcmp($a->getName(), $b->getName());
+        });
+
+        $lines = [];
+        foreach ($metrics as $metric) {
+            foreach ($metric->getSamples() as $sample) {
+                $sample = $this->renderSample($metric, $sample);
+                if (!isset($lines[$sample['name']])) {
+                    $lines[$sample['name']] = [];
+                }
+                $lines[$sample['name']][] = [
+                    'labels' => $sample['labels'],
+                    'value' => $sample['value']
+                ];
+                // $lines[] = $this->renderSample($metric, $sample);
+            }
+        }
+        return $lines;
+    }
+
+    private function renderSample(MetricFamilySamples $metric, Sample $sample): array
+    {
+        $data = [
+            'name' => $sample->getName(),
+            'value' => $sample->getValue()
+        ];
+        $labelNames = $metric->getLabelNames();
+        if ($metric->hasLabelNames() || $sample->hasLabelNames()) {
+            $data['labels'] = $this->escapeAllLabels($metric, $labelNames, $sample);
+        }
+        return $data;
+    }
+
+    private function escapeLabelValue(string $v): string
+    {
+        return str_replace(["\\", "\n", "\""], ["\\\\", "\\n", "\\\""], $v);
+    }
+
+    private function escapeAllLabels(MetricFamilySamples $metric, array $labelNames, Sample $sample): array
+    {
+        $escapedLabels = [];
+        $labels = array_combine(array_merge($labelNames, $sample->getLabelNames()), $sample->getLabelValues());
+        if ($labels === false) {
+            throw new RuntimeException('Unable to combine labels for metric named ' . $metric->getName());
+        }
+        foreach ($labels as $labelName => $labelValue) {
+            $escapedLabels[$labelName]  = $this->escapeLabelValue((string)$labelValue);
+        }
+        return $escapedLabels;
     }
 }

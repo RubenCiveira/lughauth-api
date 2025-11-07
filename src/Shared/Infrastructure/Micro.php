@@ -55,6 +55,7 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\AccessControlMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\FixedIntervalWindowPolicy;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\JsonlRotatingSink;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsSink;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
@@ -214,19 +215,15 @@ class Micro
                     $startup->registerStartup($processor);
                 }
                 $processor->run($this->container);
-                $scheme = 'http';
-                if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-                    $scheme = 'https';
-                }
-                $url = $scheme . '://' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ':' . ($_SERVER['SERVER_PORT'] ?? 80)
-                    . dirname($_SERVER['SCRIPT_NAME']) . '/cron';
-                $supervisor = new Supervisor(__DIR__.'/../../../');
-                $supervisor->ensureRunning($url);
+                
+                
                 file_put_contents($startUpFile, '1');
             }
             flock($lockFile, LOCK_UN);
         }
         fclose($lockFile);
+
+        register_shutdown_function([$this, 'ensureBackgroundSupervisor']);
 
         if (isset($_ENV['CRON'])) {
             $logger = null;
@@ -250,6 +247,18 @@ class Micro
     public function register(MicroPlugin $base)
     {
         $this->plugins[] = $base;
+    }
+
+    private function ensureBackgroundSupervisor()
+    {
+        $scheme = 'http';
+                if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+                    $scheme = 'https';
+                }
+        $url = $scheme . '://' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ':' . ($_SERVER['SERVER_PORT'] ?? 80)
+                    . dirname($_SERVER['SCRIPT_NAME']) . '/cron';
+        $supervisor = new Supervisor(__DIR__.'/../../../');
+        $supervisor->ensureRunning($url);
     }
 
     private function withTelementry(&$def)
@@ -303,13 +312,13 @@ class Micro
 
     private function withMetrics(&$def)
     {
-        $def[TimeWindowPolicy::class] = function () {
-            $base = dirname(__DIR__) . "/../../var/history-metrics/lock";
-            return new FixedIntervalWindowPolicy($base);
-        };
-        $def[MetricsSink::class] = function () {
+        $def[MetricsFS::class] = function () {
             $base = dirname(__DIR__) . "/../../var/history-metrics";
-            return new JsonlRotatingSink($base);
+            return new MetricsFS($base);
+        };
+        $def[TimeWindowPolicy::class] = function () {
+             $base = dirname(__DIR__) . "/../../var/history-metrics/lock";
+             return new FixedIntervalWindowPolicy($base);
         };
         $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf) {
             if ("redis" === $conf->get("app.state.vault.engine")) {

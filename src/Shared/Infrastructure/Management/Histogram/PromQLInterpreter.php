@@ -1,0 +1,313 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Civi\Lughauth\Shared\Infrastructure\Management\Histogram;
+
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\LabelMatcher;
+use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
+
+final class PromQLInterpreter
+{
+    public function __construct(private MetricsQuery $q)
+    {
+    }
+
+    /**
+     * Evalúa una expresión tipo PromQL en un rango y resolución dados.
+     * @return array timeseries: [ ['labels'=>[], 'points'=>[[ts,value],...]], ... ]
+     */
+    public function evaluate(string $expr, int $startMs, int $endMs, int $stepSec, string $partition = 'raw'): array
+    {
+        $ast = $this->parse(trim($expr));
+        return $this->evalNode($ast, $startMs, $endMs, $stepSec, $partition);
+    }
+
+    // -------------------- Parser muy simple (subset PromQL) --------------------
+
+    private function parse(string $s): array
+    {
+        // sum by (l1,l2) ( <expr> )
+        if (preg_match('~^(sum|avg|max|min)\s+by\s*\((?P<by>[^)]*)\)\s*\((?P<inner>.*)\)$~i', $s, $m)) {
+            $op = strtolower($m[1]);
+            $by = array_values(array_filter(array_map('trim', explode(',', $m['by'] ?? ''))));
+            return ['type' => 'agg', 'op' => $op, 'by' => $by, 'child' => $this->parse($m['inner'])];
+        }
+
+        // Funciones conocidas: rate(), avg_over_time(), sum_over_time(), count_over_time()
+        if (preg_match('~^(rate|avg_over_time|sum_over_time|count_over_time)\s*\((?P<arg>.*)\)$~i', $s, $m)) {
+            return ['type' => 'func', 'name' => strtolower($m[1]), 'arg' => $this->parseSelector($m['arg'])];
+        }
+
+        // Selector puro
+        return $this->parseSelector($s);
+    }
+
+    private function parseSelector(string $s): array
+    {
+        // metric{label matchers}[range]
+        // range: 5m, 1h, 30s, etc.
+        $s = trim($s);
+
+        // Extrae [range] si existe
+        $rangeSec = null;
+        if (preg_match('~^(.*)\[([^\]]+)\]\s*$~', $s, $rm)) {
+            $s = trim($rm[1]);
+            $rangeSec = $this->parseDurationToSeconds($rm[2]);
+        }
+
+        // Extrae {matchers}
+        $metric = $s;
+        $matchers = [];
+        if (preg_match('~^(?P<m>[^{}]+)\{(?P<ms>[^}]*)\}\s*$~', $s, $mm)) {
+            $metric = trim($mm['m']);
+            $matchers = $this->parseMatchers($mm['ms']);
+        }
+
+        return ['type' => 'selector', 'metric' => $metric, 'matchers' => $matchers, 'rangeSec' => $rangeSec];
+    }
+
+    private function parseMatchers(string $body): array
+    {
+        $out = [];
+        $parts = $this->splitCsvRespectingQuotes($body);
+
+        foreach ($parts as $p) {
+            $p = trim($p);
+            if ($p === '') {
+                continue;
+            }
+
+            // labelName operator "value"
+            // Operadores: =, !=, =~, !~
+            if (!preg_match(
+                '#^([a-zA-Z_][a-zA-Z0-9_]*)\s*(=~|!~|=|!=)\s*"(.*)"$#',
+                $p,
+                $m
+            )) {
+                // Mejor fallar ruidosamente que ignorar
+                throw new \InvalidArgumentException("Matcher inválido: `{$p}` (formato esperado: label (=|!=|=~|!~) \"valor\")");
+            }
+
+            $key = $m[1];
+            $op  = $m[2];
+            // En PromQL, el contenido entre comillas es una string RE2 (para =~/!~ es regex),
+            // no se interpretan escapes estilo PHP; deja tal cual.
+            $val = $m[3];
+
+            $out[] = new LabelMatcher($key, $op, $val);
+        }
+
+        return $out;
+    }
+
+    private function _old_parseMatchers(string $body): array
+    {
+        $out = [];
+        $parts = $this->splitCsvRespectingQuotes($body);
+        foreach ($parts as $p) {
+            $p = trim($p);
+            if ($p === '') {
+                continue;
+            }
+            if (!preg_match('~^([a-zA-Z_][a-zA-Z0-9_]*)(!?=~|!?=)\s*(".*?"|\'.*?\'|[^"\'\s]+)$~', $p, $m)) {
+                // soporta =, !=, =~, !~
+                if (!preg_match('~^([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|!=|=~|!~)\s*(".*?"|\'.*?\'|[^"\'\s]+)$~', $p, $m2)) {
+                    echo "<p>SALTAMOS";
+                    continue;
+                } else {
+                    echo "<p>PINTAMOS";
+                    $m = $m2;
+                }
+            } else {
+                echo "<p>NO PINAMOS";
+            }
+            $key = $m[1];
+            $op  = $m[2];
+            $val = $this->stripQuotes($m[3]);
+            $out[] = new LabelMatcher($key, $op, $val);
+        }
+        return $out;
+    }
+
+    private function splitCsvRespectingQuotes(string $s): array
+    {
+        $out = [];
+        $buf = '';
+        $q = null; // quote char or null
+        $len = strlen($s);
+        for ($i = 0; $i < $len; $i++) {
+            $ch = $s[$i];
+            if ($q === null) {
+                if ($ch === '"' || $ch === "'") {
+                    $q = $ch;
+                    $buf .= $ch;
+                } elseif ($ch === ',') {
+                    $out[] = $buf;
+                    $buf = '';
+                } else {
+                    $buf .= $ch;
+                }
+            } else {
+                $buf .= $ch;
+                if ($ch === $q) {
+                    $q = null;
+                }
+            }
+        }
+        if ($buf !== '') {
+            $out[] = $buf;
+        }
+        return $out;
+    }
+
+    private function stripQuotes(string $v): string
+    {
+        $v = trim($v);
+        if ((str_starts_with($v, '"') && str_ends_with($v, '"')) ||
+            (str_starts_with($v, "'") && str_ends_with($v, "'"))) {
+            return substr($v, 1, -1);
+        }
+        return $v;
+    }
+
+    private function parseDurationToSeconds(string $d): int
+    {
+        // soporta 30s, 5m, 1h, 2d
+        if (!preg_match('~^\s*(\d+)\s*([smhd])\s*$~i', trim($d), $m)) {
+            return 0;
+        }
+        $n = (int)$m[1];
+        $u = strtolower($m[2]);
+        return match ($u) {
+            's' => $n,
+            'm' => $n * 60,
+            'h' => $n * 3600,
+            'd' => $n * 86400,
+            default => 0,
+        };
+    }
+
+    // -------------------- Evaluador --------------------
+
+    private function evalNode(array $node, int $startMs, int $endMs, int $stepSec, string $partition): array
+    {
+        return match ($node['type']) {
+            'selector' => $this->evalSelector($node, $startMs, $endMs, $stepSec, $partition),
+            'func'     => $this->evalFunc($node, $startMs, $endMs, $stepSec, $partition),
+            'agg'      => $this->evalAgg($node, $startMs, $endMs, $stepSec, $partition),
+            default    => [],
+        };
+    }
+
+    private function evalSelector(array $sel, int $startMs, int $endMs, int $stepSec, string $partition): array
+    {
+        $metric    = $sel['metric'];
+        /** @var LabelMatcher[] $matchers */
+        $matchers  = $sel['matchers'] ?? [];
+        // Si trae [range] en un selector “puro”, lo tratamos como range con resample
+        $rangeSec  = (int)($sel['rangeSec'] ?? 0);
+
+        // Para dibujar series continuas, usamos resample stepSec
+        return $this->q->range($metric, $startMs, $endMs, $stepSec, $partition, ...$matchers);
+    }
+
+    private function evalFunc(array $fn, int $startMs, int $endMs, int $stepSec, string $partition): array
+    {
+        $name = $fn['name'];
+        $arg  = $fn['arg']; // es un selector parseado
+        $metric    = $arg['metric'];
+        $matchers  = $arg['matchers'] ?? [];
+        $rangeSec  = (int)($arg['rangeSec'] ?? 0);
+
+        // Para funciones *_over_time y rate es REQUERIDO un [range]
+        if ($rangeSec <= 0 && in_array($name, ['rate','avg_over_time','sum_over_time','count_over_time'], true)) {
+            // fallback: 5m por defecto
+            $rangeSec = 300;
+        }
+
+        return match ($name) {
+            'rate' => $this->q->rate($metric, $startMs, $endMs, max(1, $stepSec), $partition, ...$matchers),
+            'avg_over_time' => $this->q->range($metric, $startMs, $endMs, max(1, $stepSec), $partition, ...$matchers),
+            'sum_over_time' => $this->sumOverTime($metric, $startMs, $endMs, max(1, $stepSec), $partition, $matchers),
+            'count_over_time' => $this->countOverTime($metric, $startMs, $endMs, max(1, $stepSec), $partition, $matchers),
+            default => [],
+        };
+    }
+
+    private function evalAgg(array $agg, int $startMs, int $endMs, int $stepSec, string $partition): array
+    {
+        $child = $this->evalNode($agg['child'], $startMs, $endMs, $stepSec, $partition);
+        $by    = $agg['by'] ?? [];
+        $op    = $agg['op'];
+
+        // Reusa sumBy para todas, cambiando el reductor
+        return match ($op) {
+            'sum' => $this->q->sumBy($child, $by),
+            'avg' => $this->reduceBy($child, $by, 'avg'),
+            'max' => $this->reduceBy($child, $by, 'max'),
+            'min' => $this->reduceBy($child, $by, 'min'),
+            default => $child,
+        };
+    }
+
+    // ----- helpers de agregación/over_time sencillos -----
+
+    private function reduceBy(array $timeseries, array $groupBy, string $op): array
+    {
+        // Agrupar por groupBy
+        $buckets = [];
+        foreach ($timeseries as $ts) {
+            $keyParts = [];
+            foreach ($groupBy as $k) {
+                $keyParts[] = $ts['labels'][$k] ?? '';
+            }
+            $k = implode("\x1F", $keyParts);
+            if (!isset($buckets[$k])) {
+                $buckets[$k] = [
+                    'labels' => array_intersect_key($ts['labels'], array_flip($groupBy)),
+                    'points' => [] // ts => [values...]
+                ];
+            }
+            foreach ($ts['points'] as [$t,$v]) {
+                $buckets[$k]['points'][$t][] = (float)$v;
+            }
+        }
+        // Reducir por ts
+        $out = [];
+        foreach ($buckets as $b) {
+            ksort($b['points']);
+            $pts = [];
+            foreach ($b['points'] as $t => $vals) {
+                $vals = array_values($vals);
+                $val = match ($op) {
+                    'avg' => array_sum($vals) / max(1, count($vals)),
+                    'max' => max($vals),
+                    'min' => min($vals),
+                    default => array_sum($vals),
+                };
+                $pts[] = [(int)$t, (float)$val];
+            }
+            $out[] = ['labels' => $b['labels'], 'points' => $pts];
+        }
+        return $out;
+    }
+
+    private function sumOverTime(string $metric, int $startMs, int $endMs, int $stepSec, string $partition, array $matchers): array
+    {
+        // Aproximación: usa range re-muestreado y suma por cubo (ya lo hace sumBy si hay varias series)
+        return $this->q->range($metric, $startMs, $endMs, $stepSec, $partition, ...$matchers);
+    }
+
+    private function countOverTime(string $metric, int $startMs, int $endMs, int $stepSec, string $partition, array $matchers): array
+    {
+        // Aproximación: convierte cada punto a 1 y promedia (≈ densidad). Para algo más fiel, añade una lectura “cruda” y cuenta por bucket.
+        $ts = $this->q->range($metric, $startMs, $endMs, $stepSec, $partition, ...$matchers);
+        foreach ($ts as &$serie) {
+            foreach ($serie['points'] as &$p) {
+                $p[1] = is_nan($p[1]) ? NAN : 1.0;
+            }
+        }
+        return $ts;
+    }
+}
