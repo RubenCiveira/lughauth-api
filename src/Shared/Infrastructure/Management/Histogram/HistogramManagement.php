@@ -7,11 +7,11 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management\Histogram;
 
 use Closure;
 use Override;
+use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
-use InvalidArgumentException;
 
 class HistogramManagement implements ManagementInterface
 {
@@ -32,7 +32,7 @@ class HistogramManagement implements ManagementInterface
     public function get(): ?Closure
     {
         return function (ServerRequestInterface $request): string|array {
-            $qp = $request->getQueryParams();
+            $qp = $this->parseQueryPairsOrdered( $request->getUri()->getQuery() );
             $queries = [];
             if (isset($qp['q'])) {
                 $queries = is_array($qp['q']) ? $qp['q'] : [ $qp['q'] ];
@@ -47,7 +47,7 @@ class HistogramManagement implements ManagementInterface
             $alignTo   = $this->toIntOrNull($qp['align_to'] ?? null);
             $limitSer  = (int)($qp['limit_series'] ?? 200);
             $maxPoints = (int)($qp['max_points']  ?? 50_000);
-            // $aliases   = isset($qp['alias']) ? (is_array($qp['alias']) ? $qp['alias'] : [$qp['alias']]) : [];
+            $aliases   = isset($qp['alias']) ? (is_array($qp['alias']) ? $qp['alias'] : [$qp['alias']]) : [];
             $format    = $qp['format'] ?? 'json';
 
             $nowMs   = (int) floor(microtime(true) * 1000);
@@ -99,15 +99,28 @@ class HistogramManagement implements ManagementInterface
                     }
                 }
                 unset($s);
-
                 $all = array_merge($all, $series);
                 if (count($all) >= $limitSer) {
                     $all = array_slice($all, 0, $limitSer);
                     break;
                 }
             }
-
-            return $format === 'csv' ? $this->toCsv($all) : $all;
+            $payload = [
+                'start'  => $startMs,
+                'end'    => $endMs,
+                'stepMs' => $stepMs,
+                'series' => $all,
+                'meta'   => [
+                    'partition'     => $partition,
+                    // 'fill'          => $fill,
+                    // 'interpolation' => $interp,
+                    // 'downsample'    => $down,
+                    'limit_series'  => $limitSer,
+                    'max_points'    => $maxPoints,
+                    'truncated'     => count($all) >= $limitSer,
+                ],
+            ];
+            return $format === 'csv' ? $this->toCsv($payload) : $payload;
 
             //  'app_http_status_codes{status="200",path=~"/api/.*"}';
 
@@ -150,6 +163,35 @@ class HistogramManagement implements ManagementInterface
     public function set(): ?Closure
     {
         return null;
+    }
+
+    public function parseQueryPairsOrdered(string $query): array
+    {
+        if ($query === '') {
+            return [];
+        }
+        $pairs = explode('&', $query);
+        $out = [];
+        foreach ($pairs as $p) {
+            if ($p === '') {
+                continue;
+            }
+            // split sólo en el primer '='
+            $kv = explode('=', $p, 2);
+            $k = urldecode($kv[0] ?? '');
+            $v = urldecode($kv[1] ?? '');
+            // Nota: urldecode convierte '+' en espacio (application/x-www-form-urlencoded)
+            if( isset($out[$k]) ) {
+                if( is_array($out[$k])) {
+                    $out[$k] = [ ...$out[$k], $v];
+                } else {
+                    $out[$k] = [ $out[$k], $v];
+                }
+            } else {
+                $out[$k] = $v;
+            }
+        }
+        return $out;
     }
 
     private function toIntOrNull($v): ?int

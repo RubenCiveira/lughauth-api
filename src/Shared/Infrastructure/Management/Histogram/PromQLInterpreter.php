@@ -102,35 +102,6 @@ final class PromQLInterpreter
         return $out;
     }
 
-    private function _old_parseMatchers(string $body): array
-    {
-        $out = [];
-        $parts = $this->splitCsvRespectingQuotes($body);
-        foreach ($parts as $p) {
-            $p = trim($p);
-            if ($p === '') {
-                continue;
-            }
-            if (!preg_match('~^([a-zA-Z_][a-zA-Z0-9_]*)(!?=~|!?=)\s*(".*?"|\'.*?\'|[^"\'\s]+)$~', $p, $m)) {
-                // soporta =, !=, =~, !~
-                if (!preg_match('~^([a-zA-Z_][a-zA-Z0-9_]*)\s*(=|!=|=~|!~)\s*(".*?"|\'.*?\'|[^"\'\s]+)$~', $p, $m2)) {
-                    echo "<p>SALTAMOS";
-                    continue;
-                } else {
-                    echo "<p>PINTAMOS";
-                    $m = $m2;
-                }
-            } else {
-                echo "<p>NO PINAMOS";
-            }
-            $key = $m[1];
-            $op  = $m[2];
-            $val = $this->stripQuotes($m[3]);
-            $out[] = new LabelMatcher($key, $op, $val);
-        }
-        return $out;
-    }
-
     private function splitCsvRespectingQuotes(string $s): array
     {
         $out = [];
