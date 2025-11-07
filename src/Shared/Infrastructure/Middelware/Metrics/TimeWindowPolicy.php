@@ -5,7 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
-interface TimeWindowPolicy {
+interface TimeWindowPolicy
+{
     /** start epoch ms de la ventana actual para un $nowMs dado */
     public function mustTrace(): bool;
 }

@@ -13,7 +13,6 @@ namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
  */
 final class MetricsFS
 {
-
     /** Normaliza etiquetas (ksort) */
     public static function canonicalLabels(array $labels): array
     {
@@ -99,7 +98,9 @@ final class MetricsFS
 
         $file = $this->dayFile($metric, $sha, 'raw', $tsMs, false);
         $fh = @fopen($file, 'ab');
-        if (!$fh) return;
+        if (!$fh) {
+            return;
+        }
         try {
             if (@flock($fh, LOCK_EX)) {
                 @fwrite($fh, json_encode(['ts' => (int)$tsMs, 'v' => (float)$value], JSON_PRESERVE_ZERO_FRACTION) . "\n");
@@ -118,7 +119,9 @@ final class MetricsFS
         foreach (glob($pattern) ?: [] as $file) {
             $sha = basename(dirname($file));
             $row = json_decode((string)@file_get_contents($file), true);
-            if (!is_array($row) || !isset($row['labels'])) continue;
+            if (!is_array($row) || !isset($row['labels'])) {
+                continue;
+            }
             $out[$sha] = $row['labels'];
         }
         return $out;
@@ -131,30 +134,50 @@ final class MetricsFS
 
         if ($isGz) {
             $h = @gzopen($path, 'rb');
-            if ($h === false) return;
+            if ($h === false) {
+                return;
+            }
             try {
                 while (!gzeof($h)) {
                     $line = gzgets($h);
-                    if ($line === false) break;
+                    if ($line === false) {
+                        break;
+                    }
                     $line = trim($line);
-                    if ($line === '') continue;
+                    if ($line === '') {
+                        continue;
+                    }
                     $row = json_decode($line, true);
-                    if (is_array($row) && isset($row['ts'])) yield $row;
+                    if (is_array($row) && isset($row['ts'])) {
+                        yield $row;
+                    }
                 }
-            } finally { @gzclose($h); }
+            } finally {
+                @gzclose($h);
+            }
         } else {
             $h = @fopen($path, 'rb');
-            if ($h === false) return;
+            if ($h === false) {
+                return;
+            }
             try {
                 while (!feof($h)) {
                     $line = fgets($h);
-                    if ($line === false) break;
+                    if ($line === false) {
+                        break;
+                    }
                     $line = trim($line);
-                    if ($line === '') continue;
+                    if ($line === '') {
+                        continue;
+                    }
                     $row = json_decode($line, true);
-                    if (is_array($row) && isset($row['ts'])) yield $row;
+                    if (is_array($row) && isset($row['ts'])) {
+                        yield $row;
+                    }
                 }
-            } finally { @fclose($h); }
+            } finally {
+                @fclose($h);
+            }
         }
     }
 }

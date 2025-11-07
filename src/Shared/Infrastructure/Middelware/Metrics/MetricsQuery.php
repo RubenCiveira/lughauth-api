@@ -283,8 +283,8 @@ final class MetricsQuery
             }
             $i = $j - 1; // saltar el bloque
         }
-        foreach($grid as $k=>$v) {
-            if( is_nan($v[1]) ) {
+        foreach ($grid as $k => $v) {
+            if (is_nan($v[1])) {
                 $grid[$k][1] = 0;
             }
         }

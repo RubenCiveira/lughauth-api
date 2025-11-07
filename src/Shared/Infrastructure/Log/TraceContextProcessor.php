@@ -5,11 +5,11 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Log;
 
-use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Observability\TraceContext;
+use Override;
 use Monolog\LogRecord;
 use Monolog\Processor\ProcessorInterface;
-use Override;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Observability\TraceContext;
 
 class TraceContextProcessor implements ProcessorInterface
 {

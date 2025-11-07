@@ -118,12 +118,12 @@ class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
         foreach (array_slice($files, $this->maxFiles) as $file) {
             @unlink($file);
         }
-        if( $this->zipOnRotate ) {
+        if ($this->zipOnRotate) {
             $today = $this->resolveFilename();
             foreach (array_slice($files, 0, $this->maxFiles) as $file) {
-                if( $file !== $today && !str_ends_with($file, '.gz') ) {
+                if ($file !== $today && !str_ends_with($file, '.gz')) {
                     $this->gzipFile($file, $file.'.gz');
-                    unlink( $file );
+                    unlink($file);
                 }
             }
         }
