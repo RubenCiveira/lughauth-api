@@ -235,6 +235,7 @@ class Micro
             $manager->run($locker, $cache, $this->container);
             $logger->info('Scheduler manager ready');
         } else {
+            TemplateMapper::register($this->app);
             $this->app->run();
         }
         if (function_exists('fastcgi_finish_request')) {
