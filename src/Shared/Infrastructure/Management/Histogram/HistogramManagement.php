@@ -32,7 +32,7 @@ class HistogramManagement implements ManagementInterface
     public function get(): ?Closure
     {
         return function (ServerRequestInterface $request): string|array {
-            $qp = $this->parseQueryPairsOrdered( $request->getUri()->getQuery() );
+            $qp = $this->parseQueryPairsOrdered($request->getUri()->getQuery());
             $queries = [];
             if (isset($qp['q'])) {
                 $queries = is_array($qp['q']) ? $qp['q'] : [ $qp['q'] ];
@@ -181,8 +181,8 @@ class HistogramManagement implements ManagementInterface
             $k = urldecode($kv[0] ?? '');
             $v = urldecode($kv[1] ?? '');
             // Nota: urldecode convierte '+' en espacio (application/x-www-form-urlencoded)
-            if( isset($out[$k]) ) {
-                if( is_array($out[$k])) {
+            if (isset($out[$k])) {
+                if (is_array($out[$k])) {
                     $out[$k] = [ ...$out[$k], $v];
                 } else {
                     $out[$k] = [ $out[$k], $v];

@@ -31,11 +31,11 @@ class HttpCompressionMiddleware
         }
         $etag = '"' . sha1($body) . '"'; // ETag between quotes, as per HTTP spec
 
-        if( null === $response->getHeader('Cache-Control') ) {
+        if (null === $response->getHeader('Cache-Control')) {
             // Add ETag header
             $response = $response->withHeader('ETag', $etag)
                 ->withHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-    
+
             // Check If-None-Match to skip sending body if unchanged
             $ifNoneMatch = $request->getHeaderLine('If-None-Match');
             if ($ifNoneMatch === $etag) {
@@ -49,16 +49,16 @@ class HttpCompressionMiddleware
                     ->withHeader('Content-Length', '0');
             }
         }
-        if( null === $response->getHeader('Content-Encoding') ) {
+        if (null === $response->getHeader('Content-Encoding')) {
             // Gzip compression if supported
             if (strpos($acceptEncoding, 'gzip') !== false && $response->getBody()->isWritable()) {
                 $gzipped = gzencode($body);
-    
+
                 $response = $response
                     ->withHeader('Content-Encoding', 'gzip')
                     ->withHeader('Vary', 'Accept-Encoding')
                     ->withHeader('Content-Length', (string) strlen($gzipped));
-    
+
                 $response->getBody()->rewind();
                 $response->getBody()->write($gzipped);
             } else {

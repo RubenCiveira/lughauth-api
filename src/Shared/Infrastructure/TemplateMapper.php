@@ -87,7 +87,6 @@ class TemplateMapper
                 ->withHeader('Cache-Control', 'public, max-age=31536000, immutable')
                 ->withHeader('Last-Modified', $lastModified);
         }
-
         // ¿El cliente soporta gzip?
         $acceptEncoding = $request->getHeaderLine('Accept-Encoding');
         $supportsGzip = stripos($acceptEncoding, 'gzip') !== false;
@@ -99,14 +98,12 @@ class TemplateMapper
                 $response->getBody()->write('Error reading file');
                 return $response->withStatus(500);
             }
-
             $gzipped = gzencode($contents, 6);
             $stream = fopen('php://temp', 'rb+');
             fwrite($stream, $gzipped);
             rewind($stream);
 
             $body = new Stream($stream);
-
             return $response
                 ->withBody($body)
                 ->withHeader('Content-Type', $mimeType)
@@ -116,10 +113,8 @@ class TemplateMapper
                 ->withHeader('Last-Modified', $lastModified)
                 ->withHeader('ETag', $etag);
         }
-
         // Sin gzip: servimos el fichero tal cual como stream
         $stream = new Stream(fopen($requestedReal, 'rb'));
-
         return $response
             ->withBody($stream)
             ->withHeader('Content-Type', $mimeType)
@@ -130,9 +125,6 @@ class TemplateMapper
 
     private static function asTemplate(string $requestedReal, string $templateDir, App $app, ResponseInterface $response): ResponseInterface
     {
-        // ----- Tratamos como plantilla -----
-        // Aquí puedes usar tu motor de plantillas (Twig, Plates, etc.)
-        // Ejemplo genérico con Twig en el contenedor:
         $container = $app->getContainer();
         /** @var \Twig\Environment $twig */
         $twig = $container->get('view'); // ajusta según tu config
