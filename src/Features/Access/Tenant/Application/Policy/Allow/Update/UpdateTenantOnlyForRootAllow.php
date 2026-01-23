@@ -27,7 +27,6 @@ class UpdateTenantOnlyForRootAllow
             $userContext = $this->context->getIdentity();
             if ($proposal->isAllowed()) {
                 if (! $userContext->hasAnyRole('root:admin')) {
-                    $this->logError("No allowed with roles" . join(',', $userContext->roles));
                     $proposal->deny('Disabled if not UpdateTenantOnlyForRoot');
                 }
             }
