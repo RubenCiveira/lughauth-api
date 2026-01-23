@@ -30,9 +30,10 @@ class AppConfig
         $this->managementEndpoint = '/management';
     }
 
-    public function get(string $name, $def = null)
+    public function get(string $name, mixed $def = null): mixed
     {
-        return $_ENV[ strtoupper(str_replace('-', '_', str_replace(".", "_", $name)))] ?? $this->conf[$name] ?? $def;
+        $envName = strtoupper(str_replace('-', '_', str_replace(".", "_", $name)));
+        return $_ENV[$envName] ?? $this->conf[$name] ?? $def;
     }
 
     public function is(string $name, bool $def = false): bool
@@ -41,33 +42,36 @@ class AppConfig
         return 'false' !== $val && '0' !== $val && 'disabled' !== $val;
     }
 
-    public function all()
+    public function all(): array
     {
         $all = [];
         foreach ($_ENV as $key => $value) {
             $code = $this->keyToDump($key);
             $all[$code] = [
-                'value' => $this->valueToDump($code, $value)
+                'value' => $this->valueToDump($code, (string)$value)
             ];
         }
-        foreach ($this->conf as $key => $value) {
-            $code = $this->keyToDump($key);
-            if (is_array($value)) {
+        if ($this->conf !== null) {
+            foreach ($this->conf as $key => $value) {
+                $code = $this->keyToDump($key);
+                if (is_array($value)) {
 
-            } else {
-                $all[$key] = [
-                    'value' => $this->valueToDump($code, $value)
-                ];
+                } else {
+                    $all[$key] = [
+                        'value' => $this->valueToDump($code, $value)
+                    ];
+                }
             }
         }
         return $all;
     }
 
-    private function keyToDump($key)
+    private function keyToDump(string $key): string
     {
         return str_replace('_', '.', strtolower($key));
     }
-    private function valueToDump($key, $value)
+
+    private function valueToDump(string $key, string $value): string
     {
         if (stripos($key, '.secret') !== false ||
             stripos($key, 'pass') !== false || stripos($key, '.key') !== false) {
