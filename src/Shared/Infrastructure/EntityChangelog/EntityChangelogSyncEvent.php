@@ -7,4 +7,5 @@ namespace Civi\Lughauth\Shared\Infrastructure\EntityChangelog;
 
 class EntityChangelogSyncEvent
 {
+    /* no code: only mark to update sync */
 }

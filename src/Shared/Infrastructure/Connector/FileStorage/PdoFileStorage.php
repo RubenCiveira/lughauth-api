@@ -22,12 +22,12 @@ class PdoFileStorage implements FileStorageInterface
     {
         $this->driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         $this->up();
-        $this->clearTemp();
     }
 
     #[Override]
     public function tempStore(BinaryContent $source): FileStoreKey
     {
+        $this->clearTemp($on);
         if ($this->driver === 'pgsql') {
             $stmt = $this->pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
         } else {
@@ -46,23 +46,24 @@ class PdoFileStorage implements FileStorageInterface
     #[Override]
     public function retrieveTempFile(FileStoreKey $key): ?BinaryContent
     {
-        return $this->retrieveFromAllFile($key->key, true);
+        return $this->retrieveFromAllFile($on, $key->key, true);
     }
 
     #[Override]
     public function retrieveFile(FileStoreKey $key): ?BinaryContent
     {
-        return $this->retrieveFromAllFile($key->key, false);
+        return $this->retrieveFromAllFile($on, $key->key, false);
     }
 
     #[Override]
     public function commitContent(FileStoreKey $key): FileStoreKey
     {
+        $this->clearTemp($on);
         $now = new \DateTime();
         if ($this->driver == 'pgsql') {
-            $stmt = $this->pdo->prepare('UPDATE _filestorer SET upload = :upload, temp = 0 where code = :code');
+            $stmt = $this->pdo->prepare('UPDATE ${on} SET upload = :upload, temp = 0 where code = :code');
         } else {
-            $stmt = $this->pdo->prepare('UPDATE _filestorer SET upload = :upload, temp = 0 where code = :code');
+            $stmt = $this->pdo->prepare('UPDATE ${on} SET upload = :upload, temp = 0 where code = :code');
         }
         $stmt->bindValue('upload', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('code', $key->key, PDO::PARAM_STR);
@@ -73,7 +74,7 @@ class PdoFileStorage implements FileStorageInterface
     #[Override]
     public function replaceContent(FileStoreKey $key, BinaryContent $content)
     {
-        $stmt = $this->pdo->prepare('UPDATE _filestorer SET name = :name, mime = :mime, upload = :upload, bytes = :bytes WHERE code = :code');
+        $stmt = $this->pdo->prepare('UPDATE ${on} SET name = :name, mime = :mime, upload = :upload, bytes = :bytes WHERE code = :code');
         $stmt->bindValue('code', $key->key, PDO::PARAM_STR);
         $stmt->bindValue('name', $content->name, PDO::PARAM_STR);
         $stmt->bindValue('mime', $content->mime, PDO::PARAM_STR);
@@ -90,17 +91,17 @@ class PdoFileStorage implements FileStorageInterface
         $stmt->execute();
     }
 
-    private function clearTemp()
+    private function clearTemp(string $on)
     {
         $now = new \DateTime();
         $expires = $now->sub(new \DateInterval('PT' . $this->minutesLifeTime . 'M'));
-        $stmt = $this->pdo->prepare('DELETE FROM _filestorer WHERE temp = 1 and upload < :upload');
+        $stmt = $this->pdo->prepare('DELETE FROM ${on} WHERE temp = 1 and upload < :upload');
         $stmt->bindValue('upload', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->execute();
         if ($this->driver === 'pgsql') {
-            $stmt = $this->pdo->prepare('SELECT code FROM _filestorer where temp = 1 order by upload desc limit 50 offset :offset');
+            $stmt = $this->pdo->prepare('SELECT code FROM ${on} where temp = 1 order by upload desc limit 50 offset :offset');
         } else {
-            $stmt = $this->pdo->prepare('SELECT code FROM _filestorer where temp = 1 order by upload desc limit 50 offset :offset');
+            $stmt = $this->pdo->prepare('SELECT code FROM ${on} where temp = 1 order by upload desc limit 50 offset :offset');
         }
         $stmt->bindValue('offset', $this->tempCapacity, PDO::PARAM_INT);
         $stmt->execute();
@@ -111,9 +112,9 @@ class PdoFileStorage implements FileStorageInterface
         if ($keys) {
             $placeholders = implode(',', array_fill(0, count($keys), '?'));
             if ($this->driver === 'pgsql') {
-                $stmt = $this->pdo->prepare('DELETE FROM _filestorer where temp = 1 and code in (' . $placeholders . ')');
+                $stmt = $this->pdo->prepare('DELETE FROM ${on} where temp = 1 and code in (' . $placeholders . ')');
             } else {
-                $stmt = $this->pdo->prepare('DELETE FROM _filestorer where temp = 1 and code in (' . $placeholders . ')');
+                $stmt = $this->pdo->prepare('DELETE FROM ${on} where temp = 1 and code in (' . $placeholders . ')');
             }
             $stmt->execute($keys);
         }

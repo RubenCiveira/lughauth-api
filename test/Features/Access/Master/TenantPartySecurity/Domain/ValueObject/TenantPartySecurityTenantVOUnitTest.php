@@ -6,7 +6,7 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\Master\TenantPartySecurity\Domain\ValueObject\TenantPartySecurityTenantVO;
-use Civi\Lughauth\Features\Access\Master\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 final class TenantPartySecurityTenantVOUnitTest extends TestCase
 {

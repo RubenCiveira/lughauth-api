@@ -61,7 +61,7 @@ class EnqueuePublisher
             $diff = [...$original];
         }
         $result = $this->template->execute(<<<SQL
-                    insert into _outbox_events 
+                    insert into _output_queue_pending_events 
                         (status, next_retry, retries, created_at, published_at, event_id, event_type, schema_version, occurred_at, payload, diff, correlation_id, causation_id)
                         VALUES ('pending', :next, 0, :at, null, :event_id, :et, :sv, :occ, :payload, :diff, :cid, :caid)
                 SQL, [
@@ -86,7 +86,7 @@ class EnqueuePublisher
     public function sendEvents()
     {
         $values = $this->template->query(<<<SQL
-                select * from _outbox_events where status='pending' and next_retry < :now
+                select * from _output_queue_pending_events where status='pending' and next_retry < :now
             SQL, [
                 new SqlParam('now', new DateTimeImmutable(), SqlParam::DATETIME)
             ]);
@@ -94,7 +94,7 @@ class EnqueuePublisher
             try {
                 $this->send($value);
                 $this->template->execute(<<<SQL
-                    update _outbox_events set status='published', published_at = :published where event_id = :event_id
+                    update _output_queue_pending_events set status='published', published_at = :published where event_id = :event_id
                 SQL, [
                     new SqlParam('event_id', $value['event_id'], SqlParam::TEXT),
                     new SqlParam('published', new DateTimeImmutable(), SqlParam::DATETIME),
@@ -104,7 +104,7 @@ class EnqueuePublisher
                 $minutes = pow($retries, 2);
                 $next = new DateTimeImmutable()->add(new DateInterval('PT'.$minutes.'M'));
                 $this->template->execute(<<<SQL
-                    update _outbox_events set retries = :retries, next_retry = :next_retry where event_id = :event_id
+                    update _output_queue_pending_events set retries = :retries, next_retry = :next_retry where event_id = :event_id
                 SQL, [
                     new SqlParam('retries', $retries, SqlParam::INT),
                     new SqlParam('next_retry', $next, SqlParam::DATETIME),
@@ -169,7 +169,7 @@ class EnqueuePublisher
         $send = new DateTimeImmutable()->sub(new DateInterval('P'.$this->sendRetention));
         $stuck = new DateTimeImmutable()->sub(new DateInterval('P'.$this->stuckRetention));
         $this->template->execute(<<<SQL
-            DELETE FROM _outbox_events where (status='published' and occurred_at < :send) or (status!='published' and occurred_at < :stuck )
+            DELETE FROM _output_queue_pending_events where (status='published' and occurred_at < :send) or (status!='published' and occurred_at < :stuck )
             SQL, [
                 new SqlParam('send', $send, SqlParam::DATETIME),
                 new SqlParam('stuck', $stuck, SqlParam::DATETIME),

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Shared;
 
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
-class Test 
+class Test
 {
     use LoggerAwareTrait;
 

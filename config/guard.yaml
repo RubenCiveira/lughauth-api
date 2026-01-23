@@ -2,11 +2,11 @@
   api-key-scope: collect
 /management/trace-collector:
   api-key-scope: collect
-/management/entity-changelo-query-ack:
+/no-management/entity-changelo-query-ack:
   api-key-scope: sync
-/management/entity-changelo-query-ask:
+/no-management/entity-changelo-query-ask:
   api-key-scope: sync
-/management:
+/no-management:
   roles: ['ROOT']
   # cidr: ['192.168.0.0/24']
   anonimous: false

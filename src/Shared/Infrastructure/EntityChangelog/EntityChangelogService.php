@@ -15,7 +15,7 @@ class EntityChangelogService
     {
         foreach ($entities as $entityId => $payload) {
             $stmt = $this->pdo->prepare(
-                'SELECT payload FROM _audit_changelog
+                'SELECT payload FROM _entity_changelog
              WHERE entity_type = :entity_type AND entity_id = :entity_id'
             );
             $stmt->execute([
@@ -39,7 +39,7 @@ class EntityChangelogService
 
         // Paso 1: UPDATE optimista
         $update = $this->pdo->prepare(
-            'UPDATE _audit_changelog
+            'UPDATE _entity_changelog
          SET deleted = false,
              changed_at = :changed_at,
              payload = :payload
@@ -56,7 +56,7 @@ class EntityChangelogService
         // Paso 2: si no se actualizó nada, hacemos un INSERT
         if ($update->rowCount() === 0 && !$this->existsInChangelog($entityType, $entityId)) {
             $insert = $this->pdo->prepare(
-                'INSERT INTO _audit_changelog
+                'INSERT INTO _entity_changelog
              (entity_type, entity_id, deleted, changed_at, payload)
              VALUES (:entity_type, :entity_id, false, :changed_at, :payload)'
             );
@@ -76,7 +76,7 @@ class EntityChangelogService
         $jsonPayload = json_encode([], JSON_UNESCAPED_UNICODE);
 
         $update = $this->pdo->prepare(
-            'UPDATE _audit_changelog
+            'UPDATE _entity_changelog
          SET deleted = true,
              changed_at = :changed_at,
              payload = :payload
@@ -92,7 +92,7 @@ class EntityChangelogService
 
         if ($update->rowCount() === 0 && !$this->existsInChangelog($entityType, $entityId)) {
             $insert = $this->pdo->prepare(
-                'INSERT INTO _audit_changelog
+                'INSERT INTO _entity_changelog
              (entity_type, entity_id, deleted, changed_at, payload)
              VALUES (:entity_type, :entity_id, true, :changed_at, :payload)'
             );
@@ -115,7 +115,7 @@ class EntityChangelogService
         // 1) Leer cursor
         $cursor = $this->pdo->prepare(
             'SELECT last_changed_at, last_entity_id
-         FROM _audit_sync_cursor
+         FROM _entity_changelog_cursor
          WHERE client_id = :client_id AND entity_type = :entity_type'
         );
         $cursor->execute([
@@ -130,7 +130,7 @@ class EntityChangelogService
         // 2) Construir SQL base (orden estable por changed_at, entity_id)
         $sql = '
         SELECT entity_type, entity_id, deleted, changed_at, payload
-        FROM _audit_changelog
+        FROM _entity_changelog
         WHERE entity_type = :entity_type
           AND (
             changed_at > :fromDate OR
@@ -247,7 +247,7 @@ class EntityChangelogService
 
         // Paso 1: UPDATE optimista
         $update = $this->pdo->prepare(
-            'UPDATE _audit_sync_cursor
+            'UPDATE _entity_changelog_cursor
          SET last_changed_at = :last_changed_at,
              last_entity_id = :last_entity_id
          WHERE client_id = :client_id AND entity_type = :entity_type'
@@ -263,7 +263,7 @@ class EntityChangelogService
         // Paso 2: si no se actualizó nada, hacemos un INSERT
         if ($update->rowCount() === 0 && !$this->existsInCursor($clientId, $entityType)) {
             $insert = $this->pdo->prepare(
-                'INSERT INTO _audit_sync_cursor 
+                'INSERT INTO _entity_changelog_cursor 
              (client_id, entity_type, last_changed_at, last_entity_id)
              VALUES (:client_id, :entity_type, :last_changed_at, :last_entity_id)'
             );
@@ -280,7 +280,7 @@ class EntityChangelogService
     private function existsInChangelog(string $entityType, string $entityId): bool
     {
         $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM _audit_changelog
+            'SELECT 1 FROM _entity_changelog
              WHERE entity_type = :entity_type AND entity_id = :entity_id'
         );
 
@@ -295,7 +295,7 @@ class EntityChangelogService
     private function existsInCursor(string $clientId, string $entityType): bool
     {
         $stmt = $this->pdo->prepare(
-            'SELECT 1 FROM _audit_sync_cursor
+            'SELECT 1 FROM _entity_changelog_cursor
              WHERE client_id = :client_id AND entity_type = :entity_type'
         );
 
