@@ -22,14 +22,14 @@ class MessageProvider
     public function messages(string $name, string $lang, string $path = __DIR__ . '/../../../translations'): MessageCatalogue
     {
         // private readonly Translator $translator;
-        if (!extension_loaded('intl')) {
-            $domain = $name;//  . '.+intl-icu';
+        if (!$this->intlEnabled()) {
+            $domain = $name;
         } else {
             $domain = $name . '.+intl-icu';
         }
         $loader = new YamlFileLoader();
         $dir = realpath($path);
-        if (!$dir) {
+        if ($dir===false || $dir==='') {
             throw new RuntimeException("Error trying to get inexistent dire {$path} with {$name}");
         }
         $file = $dir . ($name[0] !== '/' ? '/' : '') . $name;
@@ -45,5 +45,10 @@ class MessageProvider
         $translator->addResource('yaml', $file . '.yaml', 'en', $domain);
         $translator->setFallbackLocales(['en']);
         return new MessageCatalogue($translator, $domain);
+    }
+
+    protected function intlEnabled(): bool
+    {
+        return extension_loaded('intl');
     }
 }

@@ -15,17 +15,14 @@ final class QueueConsumer
     /**
      * Consume mensajes con una máscara de routing key y procesa cada JSON con el handler.
      *
-     * @param string   $routingKeyMask  Ej: "user.*" o "user.#" o "user.registered"
-     * @param callable $handler         function(array $json, AmqpMessage $msg): void
-     * @param array    $options         ['queueName' => string|null, 'prefetch' => int, 'autoCreateQueue' => bool]
      */
     public function consume(QueueSource $source, callable $handler): ?array
     {
         $ctx = (new AmqpConnectionFactory(['dsn' => $source->dsn]))->createContext();
-        $queueName   = $opts['queueName']    ?? $this->defaultQueueName($source->routingKeyMask);
+        $queueName   = $this->defaultQueueName($source->routingKeyMask);
         $declare     = $source->declareQueue;
         $maxMessages = $source->maxMessages;
-        $maxSeconds  = $source->maxMessages;
+        $maxSeconds  = $source->maxSeconds;
         $prefetch    = $source->prefetch;
 
         $t0 = microtime(true);
@@ -53,7 +50,7 @@ final class QueueConsumer
         $consumer  = $ctx->createConsumer($queue);
         $processed = 0;
         $failed    = 0;
-        $deadline  = $t0 + $maxSeconds;
+        $deadline  = $t0 + (float)$maxSeconds;
 
         while ($processed < $maxMessages && microtime(true) < $deadline) {
             // No bloqueante si existe; si no, timeout muy corto
@@ -81,7 +78,7 @@ final class QueueConsumer
         return [
             'processed'   => $processed,
             'failed'      => $failed,
-            'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
+            'duration_ms' => (int) round((microtime(true) - $t0) * (float)1000),
         ];
     }
 

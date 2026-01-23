@@ -23,7 +23,7 @@ class Cookie
 
     public function remove(ResponseInterface $response): ResponseInterface
     {
-        return $this->attach($response, (new \DateTimeImmutable())->sub(new \DateInterval('PT1H')));
+        return $this->attach($response);
     }
 
     public function attach(ResponseInterface $response): ResponseInterface
@@ -34,9 +34,9 @@ class Cookie
     public function createCookie(ResponseInterface $response, \DateTimeImmutable $expiration): ResponseInterface
     {
         $cookieHeaderValue = sprintf(
-            '%s=%s; Expires=%s; Path=%s; %s%s',
+            '%s=%s; Expires=%s; Path=%s; %s%s%s',
             $this->name,
-            $this->value ? urlencode($this->value) : '',
+            null == $this->value ? '' : urlencode($this->value),
             gmdate('D, d M Y H:i:s T', $expiration->getTimestamp()),
             $this->path,
             $this->sameSite ? 'SameSite; ' : '',

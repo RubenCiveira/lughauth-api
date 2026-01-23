@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\View;
 
+use Override;
 use Psr\Http\Message\ServerRequestInterface;
 use Slim\Routing\RouteContext;
 use Twig\Environment;
@@ -28,20 +29,19 @@ class AssetOptimizingTwigEnvironment extends Environment
             return $url;
         }));
 
-        $this->addFunction(new TwigFunction('asset', function (string $routeName) use ($basePath) {
+        $this->addFunction(new TwigFunction('asset', function (string $routeName, array $params = []) use ($basePath) {
             $url = "{$basePath}/assets/{$routeName}";
-            if (!empty($params)) {
-                $url .= '?' . http_build_query($params);
-            }
             return $url;
         }));
     }
 
+    #[Override]
     public function render($name, array $context = []): string
     {
         return parent::render($name, $context);
     }
 
+    #[Override]
     public function display($name, array $context = []): void
     {
         echo $this->render($name, $context);

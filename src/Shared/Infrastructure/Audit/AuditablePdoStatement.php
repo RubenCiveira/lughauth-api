@@ -36,7 +36,7 @@ class AuditablePdoStatement extends PDOStatement
     #[Override]
     public function execute(?array $params = null): bool
     {
-        $isWrite = preg_match('/^\s*(INSERT|UPDATE|DELETE)\s+`?([a-zA-Z0-9_]+)`?/i', $this->queryString, $match);
+        $isWrite = preg_match('/^\s*(INSERT|UPDATE|DELETE)\s+(?:INTO\s+)?`?([a-zA-Z0-9_]+)`?/i', $this->queryString, $match);
         if (!$isWrite || !$this->context->hasAction()) {
             return parent::execute($params);
         }
@@ -102,7 +102,7 @@ class AuditablePdoStatement extends PDOStatement
         if ($operation === 'INSERT') {
             return match ($driver) {
                 'pgsql'     => $this->pdo->lastInsertId(), // o usar RETURNING en query real
-                'mysql', 'mariadb' => $this->pdo->lastInsertId(),
+                'mysql', 'mariadb', 'sqlite' => $this->pdo->lastInsertId(),
                 'sqlsrv'    => $this->pdo->query("SELECT SCOPE_IDENTITY()")->fetchColumn(),
                 default     => null,
             };
@@ -141,8 +141,22 @@ class AuditablePdoStatement extends PDOStatement
              WHERE tc.TABLE_NAME = :table AND tc.CONSTRAINT_TYPE = 'PRIMARY KEY'",
                 ['table' => $table]
             ),
+            'sqlite' => $this->findPrimaryKeyColumnSqlite($table),
             default => null
         };
+    }
+
+    private function findPrimaryKeyColumnSqlite(string $table): ?string
+    {
+        $stmt = $this->pdo->prepare("PRAGMA table_info($table)");
+        $stmt->execute();
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        foreach ($rows as $row) {
+            if (!empty($row['pk'])) {
+                return $row['name'];
+            }
+        }
+        return null;
     }
 
     private function queryOne(string $sql, array $params): ?string

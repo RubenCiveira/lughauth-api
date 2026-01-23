@@ -14,8 +14,8 @@ use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
 class PdoFileStorage implements FileStorageInterface
 {
-    private $tempCapacity = 1000;
-    private $minutesLifeTime = 60;
+    private int $tempCapacity = 1000;
+    private int $minutesLifeTime = 60;
     private readonly string $driver;
 
     public function __construct(private readonly PDO $pdo)
@@ -27,7 +27,7 @@ class PdoFileStorage implements FileStorageInterface
     #[Override]
     public function tempStore(BinaryContent $source): FileStoreKey
     {
-        $this->clearTemp($on);
+        $this->clearTemp();
         if ($this->driver === 'pgsql') {
             $stmt = $this->pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
         } else {
@@ -46,24 +46,24 @@ class PdoFileStorage implements FileStorageInterface
     #[Override]
     public function retrieveTempFile(FileStoreKey $key): ?BinaryContent
     {
-        return $this->retrieveFromAllFile($on, $key->key, true);
+        return $this->retrieveFromAllFile($key->key, true);
     }
 
     #[Override]
     public function retrieveFile(FileStoreKey $key): ?BinaryContent
     {
-        return $this->retrieveFromAllFile($on, $key->key, false);
+        return $this->retrieveFromAllFile($key->key, false);
     }
 
     #[Override]
     public function commitContent(FileStoreKey $key): FileStoreKey
     {
-        $this->clearTemp($on);
+        $this->clearTemp();
         $now = new \DateTime();
         if ($this->driver == 'pgsql') {
-            $stmt = $this->pdo->prepare('UPDATE ${on} SET upload = :upload, temp = 0 where code = :code');
+            $stmt = $this->pdo->prepare('UPDATE _filestorer SET upload = :upload, temp = 0 where code = :code');
         } else {
-            $stmt = $this->pdo->prepare('UPDATE ${on} SET upload = :upload, temp = 0 where code = :code');
+            $stmt = $this->pdo->prepare('UPDATE _filestorer SET upload = :upload, temp = 0 where code = :code');
         }
         $stmt->bindValue('upload', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('code', $key->key, PDO::PARAM_STR);
@@ -72,9 +72,9 @@ class PdoFileStorage implements FileStorageInterface
     }
 
     #[Override]
-    public function replaceContent(FileStoreKey $key, BinaryContent $content)
+    public function replaceContent(FileStoreKey $key, BinaryContent $content): void
     {
-        $stmt = $this->pdo->prepare('UPDATE ${on} SET name = :name, mime = :mime, upload = :upload, bytes = :bytes WHERE code = :code');
+        $stmt = $this->pdo->prepare('UPDATE _filestorer SET name = :name, mime = :mime, upload = :upload, bytes = :bytes WHERE code = :code');
         $stmt->bindValue('code', $key->key, PDO::PARAM_STR);
         $stmt->bindValue('name', $content->name, PDO::PARAM_STR);
         $stmt->bindValue('mime', $content->mime, PDO::PARAM_STR);
@@ -84,24 +84,24 @@ class PdoFileStorage implements FileStorageInterface
     }
 
     #[Override]
-    public function deleteFile(FileStoreKey $key)
+    public function deleteFile(FileStoreKey $key): void
     {
         $stmt = $this->pdo->prepare('DELETE from _filestorer WHERE code = :code');
         $stmt->bindValue('code', $key->key, PDO::PARAM_STR);
         $stmt->execute();
     }
 
-    private function clearTemp(string $on)
+    private function clearTemp(): void
     {
         $now = new \DateTime();
         $expires = $now->sub(new \DateInterval('PT' . $this->minutesLifeTime . 'M'));
-        $stmt = $this->pdo->prepare('DELETE FROM ${on} WHERE temp = 1 and upload < :upload');
+        $stmt = $this->pdo->prepare('DELETE FROM _filestorer WHERE temp = 1 and upload < :upload');
         $stmt->bindValue('upload', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->execute();
         if ($this->driver === 'pgsql') {
-            $stmt = $this->pdo->prepare('SELECT code FROM ${on} where temp = 1 order by upload desc limit 50 offset :offset');
+            $stmt = $this->pdo->prepare('SELECT code FROM _filestorer where temp = 1 order by upload desc limit 50 offset :offset');
         } else {
-            $stmt = $this->pdo->prepare('SELECT code FROM ${on} where temp = 1 order by upload desc limit 50 offset :offset');
+            $stmt = $this->pdo->prepare('SELECT code FROM _filestorer where temp = 1 order by upload desc limit 50 offset :offset');
         }
         $stmt->bindValue('offset', $this->tempCapacity, PDO::PARAM_INT);
         $stmt->execute();
@@ -112,15 +112,15 @@ class PdoFileStorage implements FileStorageInterface
         if ($keys) {
             $placeholders = implode(',', array_fill(0, count($keys), '?'));
             if ($this->driver === 'pgsql') {
-                $stmt = $this->pdo->prepare('DELETE FROM ${on} where temp = 1 and code in (' . $placeholders . ')');
+                $stmt = $this->pdo->prepare('DELETE FROM _filestorer where temp = 1 and code in (' . $placeholders . ')');
             } else {
-                $stmt = $this->pdo->prepare('DELETE FROM ${on} where temp = 1 and code in (' . $placeholders . ')');
+                $stmt = $this->pdo->prepare('DELETE FROM _filestorer where temp = 1 and code in (' . $placeholders . ')');
             }
             $stmt->execute($keys);
         }
     }
 
-    private function up()
+    private function up(): void
     {
         if ($this->driver === 'pgsql') {
             $query = $this->pdo->prepare("CREATE TABLE IF NOT EXISTS _filestorer (
@@ -145,7 +145,7 @@ class PdoFileStorage implements FileStorageInterface
         $query->execute();
     }
 
-    private function retrieveFromAllFile(string $key, bool $temp)
+    private function retrieveFromAllFile(string $key, bool $temp): ?BinaryContent
     {
         $stmt = $this->pdo->prepare('SELECT name, mime, upload, bytes FROM _filestorer WHERE temp=:temp and code=:code');
         $stmt->bindValue('temp', $temp, PDO::PARAM_BOOL);
@@ -157,6 +157,8 @@ class PdoFileStorage implements FileStorageInterface
         $stmt->execute();
         if ($stmt->fetch(PDO::FETCH_BOUND)) {
             return new BinaryContent(name: $name, mime: $mime, lastChange: new \DateTime($upload), stream: $resource);
+        } else {
+            return null;
         }
     }
 }

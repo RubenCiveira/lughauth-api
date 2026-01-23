@@ -27,12 +27,12 @@ class EntityChangelogService
             $previousPayload = $row ? json_decode($row['payload'], true) : null;
 
             if ($previousPayload !== $payload) {
-                $this->recordChange($entityType, $entityId, $payload, $previousPayload);
+                $this->recordChange($entityType, $entityId, $payload);
             }
         }
     }
 
-    public function recordChange(string $entityType, string $entityId, array $payload, array $original): void
+    public function recordChange(string $entityType, string $entityId, array $payload): void
     {
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $jsonPayload = json_encode($payload, JSON_UNESCAPED_UNICODE);
@@ -150,6 +150,9 @@ class EntityChangelogService
             $parts = explode('_', $key);
             $op = array_pop($parts);           // último elemento: eq, neq, in...
             $field = implode('_', $parts);     // resto unido con "_"
+            if( $field ) {
+                continue;
+            }
             $paramBase = 'f_' . preg_replace('/\W+/', '_', $field);
 
             $jsonExpr = $this->jsonTextExpr($field, $paramBase, $params);
@@ -228,7 +231,7 @@ class EntityChangelogService
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
         // 5) Mapear resultado
-        return array_map(fn ($row) => new EntityChangeLogEntry(
+        return array_map(fn ($row) => new EntityChangelogEntry(
             $row['entity_type'],
             $row['entity_id'],
             (bool)$row['deleted'],
@@ -343,8 +346,8 @@ class EntityChangelogService
     private function buildJsonLike(string $field, string $value): string
     {
         // JSON-encode para meter comillas correctas y escapes de caracteres especiales
-        $f = json_encode((string)$field, JSON_UNESCAPED_UNICODE);   // => "\"campo\""
-        $v = json_encode((string)$value, JSON_UNESCAPED_UNICODE);   // => "\"valor\""
+        $f = json_encode($field, JSON_UNESCAPED_UNICODE);   // => "\"campo\""
+        $v = json_encode($value, JSON_UNESCAPED_UNICODE);   // => "\"valor\""
 
         // Patrón básico: %"campo":"valor"%
         $pattern = '%' . $f . ':' . $v . '%';
