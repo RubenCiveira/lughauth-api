@@ -54,14 +54,13 @@ class HealthDetail
 
     /**
      * Constructs a new immutable HealthDetail.
-     *
-     * @param string $status The health status (e.g., "UP", "DOWN", "UNKNOWN").
-     * @param string $name The name of the component or subsystem.
-     * @param array<string, mixed>|null $details Optional additional details.
      */
     private function __construct(
+        /** @var string The health status (e.g., "UP", "DOWN", "UNKNOWN"). */
         public readonly string $status,
+        /** @var string The name of the component or subsystem. */
         public readonly string $name,
+        /** @var array<string, mixed>|null Optional additional details. */
         public readonly ?array $details
     ) {
     }

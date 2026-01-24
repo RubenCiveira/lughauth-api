@@ -10,18 +10,32 @@ use Closure;
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes application configuration values.
+ */
 class ConfigManagement implements ManagementInterface
 {
-    public function __construct(private readonly AppConfig $config)
-    {
+    /**
+     * Creates a new config management handler.
+     */
+    public function __construct(
+        /** @var AppConfig Configuration provider. */
+        private readonly AppConfig $config
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'config';
     }
 
+    /**
+     * Returns a handler that exposes configuration values.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -30,6 +44,9 @@ class ConfigManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for configuration.
+     */
     #[Override]
     public function set(): ?Closure
     {

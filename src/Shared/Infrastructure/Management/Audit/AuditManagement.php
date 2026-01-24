@@ -12,18 +12,32 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes audit log queries for management use.
+ */
 class AuditManagement implements ManagementInterface
 {
-    public function __construct(private readonly AuditQueryService $query)
-    {
+    /**
+     * Creates a new audit management handler.
+     */
+    public function __construct(
+        /** @var AuditQueryService Audit query service. */
+        private readonly AuditQueryService $query
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'audit';
     }
 
+    /**
+     * Returns a handler that retrieves audit log entries.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -41,6 +55,9 @@ class AuditManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for audit logs.
+     */
     #[Override]
     public function set(): ?Closure
     {

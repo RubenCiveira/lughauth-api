@@ -9,10 +9,17 @@ use Psr\Log\LoggerInterface;
 use Slim\Psr7\Factory\StreamFactory;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\LogCollector;
 
+/**
+ * Unit tests for {@see LogCollector}.
+ */
 final class LogCollectorUnitTest extends TestCase
 {
+    /**
+     * Ensures log records are forwarded to the logger.
+     */
     public function testSetLogsRecords(): void
     {
+        /* Arrange: create a logger expectation and OTLP log payload. */
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())
             ->method('log')
@@ -37,8 +44,10 @@ final class LogCollectorUnitTest extends TestCase
             ]]
         ]);
 
+        /* Act: execute the log collector handler. */
         $result = ($collector->set())($request);
 
+        /* Assert: verify the handler returns an ok response. */
         $this->assertSame(['status' => 'ok'], $result);
     }
 

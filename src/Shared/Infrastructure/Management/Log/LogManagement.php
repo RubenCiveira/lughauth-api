@@ -11,18 +11,34 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes application log entries for management queries.
+ */
 class LogManagement implements ManagementInterface
 {
-    public function __construct(private readonly AppConfig $config, private readonly string $path = __DIR__ . '/../../../../../var/log')
-    {
+    /**
+     * Creates a new log management handler.
+     */
+    public function __construct(
+        /** @var AppConfig Application configuration. */
+        private readonly AppConfig $config,
+        /** @var string Path to the log directory. */
+        private readonly string $path = __DIR__ . '/../../../../../var/log'
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'log';
     }
 
+    /**
+     * Returns a handler that searches log entries.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -117,6 +133,9 @@ class LogManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for logs.
+     */
     #[Override]
     public function set(): ?Closure
     {

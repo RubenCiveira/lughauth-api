@@ -9,10 +9,17 @@ use Slim\Interfaces\RouteInterface;
 use Slim\App;
 use Civi\Lughauth\Shared\Infrastructure\Management\Routes\RoutesManagement;
 
+/**
+ * Unit tests for {@see RoutesManagement}.
+ */
 final class RoutesManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures registered routes are reported by the handler.
+     */
     public function testGetListsRoutes(): void
     {
+        /* Arrange: build mocked routes and route collector. */
         $route = $this->createMock(RouteInterface::class);
         $route->method('getMethods')->willReturn(['GET', 'POST']);
         $route->method('getPattern')->willReturn('/users');
@@ -25,9 +32,13 @@ final class RoutesManagementUnitTest extends TestCase
         $app->method('getRouteCollector')->willReturn($collector);
 
         $management = new RoutesManagement($app);
-        $result = ($management->get())();
 
-        $this->assertSame('routes', $management->name());
+        /* Act: execute the routes handler. */
+        $result = ($management->get())();
+        $name = $management->name();
+
+        /* Assert: verify endpoint name and route payload. */
+        $this->assertSame('routes', $name);
         $this->assertSame([
             ['method' => 'GET', 'path' => '/users [name: users.list]'],
             ['method' => 'POST', 'path' => '/users [name: users.list]']

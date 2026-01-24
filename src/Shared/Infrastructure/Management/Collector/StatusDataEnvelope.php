@@ -8,6 +8,9 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management\Collector;
 use Override;
 use OpenTelemetry\SDK\Trace\StatusDataInterface;
 
+/**
+ * Provides status data for exported spans.
+ */
 class StatusDataEnvelope implements StatusDataInterface
 {
     public const CODE_UNSET = 'UNSET';
@@ -15,41 +18,61 @@ class StatusDataEnvelope implements StatusDataInterface
     public const CODE_ERROR = 'ERROR';
 
     private function __construct(
+        /** @var string Status code value. */
         private readonly string $code,
+        /** @var string Status description. */
         private readonly string $description = ''
     ) {
     }
 
+    /**
+     * Creates a successful status.
+     */
     #[Override]
     public static function ok(): self
     {
         return new self(self::CODE_OK);
     }
 
+    /**
+     * Creates an error status.
+     */
     #[Override]
     public static function error(): self
     {
         return new self(self::CODE_ERROR);
     }
 
+    /**
+     * Creates an unset status.
+     */
     #[Override]
     public static function unset(): self
     {
         return new self(self::CODE_UNSET);
     }
 
+    /**
+     * Returns the status code.
+     */
     #[Override]
     public function getCode(): string
     {
         return $this->code;
     }
 
+    /**
+     * Returns the status description.
+     */
     #[Override]
     public function getDescription(): string
     {
         return $this->description;
     }
 
+    /**
+     * Builds a status data envelope from a raw OTLP payload.
+     */
     public static function fromRaw(?array $input): self
     {
         $code = match ($input['code'] ?? null) {

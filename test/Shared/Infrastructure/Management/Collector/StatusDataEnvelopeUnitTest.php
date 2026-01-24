@@ -6,22 +6,39 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\StatusDataEnvelope;
 
+/**
+ * Unit tests for {@see StatusDataEnvelope}.
+ */
 final class StatusDataEnvelopeUnitTest extends TestCase
 {
+    /**
+     * Ensures factories and raw parsing return expected codes.
+     */
     public function testFactoriesAndFromRaw(): void
     {
-        $this->assertSame(StatusDataEnvelope::CODE_OK, StatusDataEnvelope::ok()->getCode());
-        $this->assertSame(StatusDataEnvelope::CODE_ERROR, StatusDataEnvelope::error()->getCode());
-        $this->assertSame(StatusDataEnvelope::CODE_UNSET, StatusDataEnvelope::unset()->getCode());
+        /* Arrange: build status data with factories and raw payloads. */
+        $ok = StatusDataEnvelope::ok();
+        $error = StatusDataEnvelope::error();
+        $unset = StatusDataEnvelope::unset();
 
-        $fromRaw = StatusDataEnvelope::fromRaw(['code' => 1, 'message' => 'fail']);
-        $this->assertSame(StatusDataEnvelope::CODE_ERROR, $fromRaw->getCode());
-        $this->assertSame('fail', $fromRaw->getDescription());
+        /* Act: read status codes and parse raw payloads. */
+        $okCode = $ok->getCode();
+        $errorCode = $error->getCode();
+        $unsetCode = $unset->getCode();
+        $fromRawError = StatusDataEnvelope::fromRaw(['code' => 1, 'message' => 'fail']);
+        $fromRawOk = StatusDataEnvelope::fromRaw(['code' => 0]);
+        $fromRawUnset = StatusDataEnvelope::fromRaw([]);
 
-        $fromRaw = StatusDataEnvelope::fromRaw(['code' => 0]);
-        $this->assertSame(StatusDataEnvelope::CODE_OK, $fromRaw->getCode());
+        /* Assert: verify status codes and descriptions match expectations. */
+        $this->assertSame(StatusDataEnvelope::CODE_OK, $okCode);
+        $this->assertSame(StatusDataEnvelope::CODE_ERROR, $errorCode);
+        $this->assertSame(StatusDataEnvelope::CODE_UNSET, $unsetCode);
 
-        $fromRaw = StatusDataEnvelope::fromRaw([]);
-        $this->assertSame(StatusDataEnvelope::CODE_UNSET, $fromRaw->getCode());
+        $this->assertSame(StatusDataEnvelope::CODE_ERROR, $fromRawError->getCode());
+        $this->assertSame('fail', $fromRawError->getDescription());
+
+        $this->assertSame(StatusDataEnvelope::CODE_OK, $fromRawOk->getCode());
+
+        $this->assertSame(StatusDataEnvelope::CODE_UNSET, $fromRawUnset->getCode());
     }
 }

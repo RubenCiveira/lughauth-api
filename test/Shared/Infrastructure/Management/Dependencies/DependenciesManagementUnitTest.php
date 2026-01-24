@@ -6,10 +6,17 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Management\Dependencies\DependenciesManagement;
 
+/**
+ * Unit tests for {@see DependenciesManagement}.
+ */
 final class DependenciesManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures composer.lock entries are parsed and returned.
+     */
     public function testGetReadsComposerLock(): void
     {
+        /* Arrange: create a temporary composer.lock with packages. */
         $dir = sys_get_temp_dir() . '/deps_' . uniqid();
         mkdir($dir, 0777, true);
         file_put_contents($dir . '/composer.lock', json_encode([
@@ -22,22 +29,33 @@ final class DependenciesManagementUnitTest extends TestCase
         ], JSON_THROW_ON_ERROR));
 
         $management = new DependenciesManagement($dir);
-        $result = ($management->get())();
 
-        $this->assertSame('dependencies', $management->name());
+        /* Act: execute the dependencies handler. */
+        $result = ($management->get())();
+        $name = $management->name();
+
+        /* Assert: verify dependency data is returned correctly. */
+        $this->assertSame('dependencies', $name);
         $this->assertCount(2, $result);
         $this->assertSame('pkg/a', $result[0]['name']);
         $this->assertSame('pkg/b', $result[1]['name']);
     }
 
+    /**
+     * Ensures missing composer.lock results in an exception.
+     */
     public function testGetThrowsWhenMissing(): void
     {
+        /* Arrange: create an empty temporary directory. */
         $dir = sys_get_temp_dir() . '/deps_missing_' . uniqid();
         mkdir($dir, 0777, true);
 
         $management = new DependenciesManagement($dir);
 
+        /* Act: execute the handler without a lock file. */
         $this->expectException(Exception::class);
         ($management->get())();
+
+        /* Assert: verify an exception is thrown for missing lock file. */
     }
 }

@@ -12,18 +12,32 @@ use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Exposes entity history from the audit log.
+ */
 class HistoryManagement implements ManagementInterface
 {
-    public function __construct(private readonly AuditQueryService $query)
-    {
+    /**
+     * Creates a new history management handler.
+     */
+    public function __construct(
+        /** @var AuditQueryService Audit query service. */
+        private readonly AuditQueryService $query
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'history';
     }
 
+    /**
+     * Returns a handler that retrieves entity history.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -37,6 +51,9 @@ class HistoryManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for history.
+     */
     #[Override]
     public function set(): ?Closure
     {

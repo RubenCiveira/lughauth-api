@@ -13,18 +13,34 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Marks pending entity changelog entries as acknowledged.
+ */
 class MarkAckManagement implements ManagementInterface
 {
-    public function __construct(private readonly EntityChangelogService $query)
-    {
+    /**
+     * Creates a new ack management handler.
+     */
+    public function __construct(
+        /** @var EntityChangelogService Changelog query service. */
+        private readonly EntityChangelogService $query
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'entity-changelo-query-ack';
     }
 
+    /**
+     * Returns a handler that acknowledges processed changes.
+     *
+     * @return Closure|null Closure that marks entries as acknowledged.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -51,6 +67,9 @@ class MarkAckManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for changelog acknowledgements.
+     */
     #[Override]
     public function set(): ?Closure
     {

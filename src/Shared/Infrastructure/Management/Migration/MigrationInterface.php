@@ -5,11 +5,23 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Management\Migration;
 
+/**
+ * Defines a migration provider for management operations.
+ */
 interface MigrationInterface
 {
+    /**
+     * Returns the migration provider name.
+     */
     public function name(): string;
 
+    /**
+     * Executes migrations and returns status information.
+     */
     public function migrate(): array;
 
+    /**
+     * Returns migration status information.
+     */
     public function status(): array;
 }

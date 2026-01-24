@@ -7,17 +7,30 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Config\ConfigManagement;
 
+/**
+ * Unit tests for {@see ConfigManagement}.
+ */
 final class ConfigManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures configuration values are returned through the handler.
+     */
     public function testGetReturnsConfig(): void
     {
+        /* Arrange: mock configuration data and create the handler. */
         $config = $this->createMock(AppConfig::class);
         $config->method('all')->willReturn(['app.name' => ['value' => 'demo']]);
 
         $management = new ConfigManagement($config);
 
-        $this->assertSame('config', $management->name());
-        $this->assertSame(['app.name' => ['value' => 'demo']], ($management->get())());
-        $this->assertNull($management->set());
+        /* Act: fetch the management endpoint name and configuration payload. */
+        $name = $management->name();
+        $payload = ($management->get())();
+        $setResult = $management->set();
+
+        /* Assert: verify name, payload, and read-only behavior. */
+        $this->assertSame('config', $name);
+        $this->assertSame(['app.name' => ['value' => 'demo']], $payload);
+        $this->assertNull($setResult);
     }
 }

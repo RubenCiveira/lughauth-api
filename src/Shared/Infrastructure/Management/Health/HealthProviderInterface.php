@@ -6,9 +6,14 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\Management\Health;
 
 /**
+ * Provides health checks for management endpoints.
+ *
  * @api
  */
 interface HealthProviderInterface
 {
+    /**
+     * Performs a health check and returns the result.
+     */
     public function check(): HealthDetail;
 }

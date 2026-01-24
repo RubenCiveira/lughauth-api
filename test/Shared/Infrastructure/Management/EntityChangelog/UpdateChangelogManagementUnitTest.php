@@ -8,18 +8,28 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\UpdateChangelogManagement;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent;
 
+/**
+ * Unit tests for {@see UpdateChangelogManagement}.
+ */
 final class UpdateChangelogManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures a sync event is dispatched by the handler.
+     */
     public function testGetDispatchesSyncEvent(): void
     {
+        /* Arrange: create a dispatcher mock and management handler. */
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $dispatcher->expects($this->once())
             ->method('dispatch')
             ->with($this->isInstanceOf(EntityChangelogSyncEvent::class));
 
         $management = new UpdateChangelogManagement($dispatcher);
+
+        /* Act: execute the update handler. */
         $result = ($management->get())();
 
+        /* Assert: verify the handler returns an empty response. */
         $this->assertSame([], $result);
     }
 }

@@ -9,10 +9,17 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Management\Audit\AuditManagement;
 
+/**
+ * Unit tests for {@see AuditManagement}.
+ */
 final class AuditManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures audit log entries are returned for valid filters.
+     */
     public function testGetReturnsAuditLog(): void
     {
+        /* Arrange: create the audit query mock and request filters. */
         $query = $this->createMock(AuditQueryService::class);
         $query->expects($this->once())
             ->method('getAuditLog')
@@ -22,18 +29,27 @@ final class AuditManagementUnitTest extends TestCase
         $request = $this->createRequest(['user' => 'user', 'from' => '2024-01-01', 'to' => '2024-01-02']);
         $management = new AuditManagement($query);
 
+        /* Act: execute the audit log handler. */
         $result = ($management->get())($request);
 
+        /* Assert: verify the audit log payload is returned. */
         $this->assertSame([['id' => 'a1']], $result);
     }
 
+    /**
+     * Ensures a missing user filter raises a constraint exception.
+     */
     public function testGetThrowsOnMissingUser(): void
     {
+        /* Arrange: create the management handler with no user filter. */
         $query = $this->createMock(AuditQueryService::class);
         $management = new AuditManagement($query);
 
+        /* Act: execute the handler with missing parameters. */
         $this->expectException(ConstraintException::class);
         ($management->get())($this->createRequest([]));
+
+        /* Assert: verify a constraint exception is thrown. */
     }
 
     private function createRequest(array $params): ServerRequestInterface

@@ -13,18 +13,36 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Serves the OpenAPI documentation through management endpoints.
+ */
 class ApidocManagement implements ManagementInterface
 {
-    public function __construct(private readonly App $app, private readonly Context $context)
-    {
+    /**
+     * Creates a new API documentation management handler.
+     */
+    public function __construct(
+        /** @var App Slim application instance used to render routes. */
+        private readonly App $app,
+        /** @var Context Application context for resolving base URLs. */
+        private readonly Context $context
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'open-api';
     }
 
+    /**
+     * Returns a handler that renders the OpenAPI specification.
+     *
+     * @return Closure|null Closure that returns the OpenAPI HTML or YAML response.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -84,6 +102,9 @@ class ApidocManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for API documentation.
+     */
     #[Override]
     public function set(): ?Closure
     {

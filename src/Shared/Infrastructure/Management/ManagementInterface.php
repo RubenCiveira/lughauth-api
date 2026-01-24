@@ -8,11 +8,24 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management;
 use Closure;
 
 /**
+ * Defines a management endpoint handler.
+ *
  * @api
  */
 interface ManagementInterface
 {
+    /**
+     * Returns the management endpoint name.
+     */
     public function name(): string;
+
+    /**
+     * Returns a read handler for the endpoint.
+     */
     public function get(): ?Closure;
+
+    /**
+     * Returns a write handler for the endpoint.
+     */
     public function set(): ?Closure;
 }

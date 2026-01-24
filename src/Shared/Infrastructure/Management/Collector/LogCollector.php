@@ -11,25 +11,43 @@ use Psr\Log\LoggerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Collects log payloads and forwards them to the configured logger.
+ */
 class LogCollector implements ManagementInterface
 {
+    /**
+     * Creates a new log collector management handler.
+     */
     public function __construct(
+        /** @var LoggerInterface Logger used to persist incoming log records. */
         private readonly LoggerInterface $logger
     ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'log-collector';
     }
 
+    /**
+     * No read handler is provided for log collection.
+     */
     #[Override]
     public function get(): ?Closure
     {
         return null;
     }
 
+    /**
+     * Returns a handler that ingests and logs OTLP log records.
+     *
+     * @return Closure|null Closure that processes log payloads.
+     */
     #[Override]
     public function set(): ?Closure
     {

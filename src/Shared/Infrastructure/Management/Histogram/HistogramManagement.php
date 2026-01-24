@@ -13,21 +13,35 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
 
+/**
+ * Serves histogram queries over stored metrics.
+ */
 class HistogramManagement implements ManagementInterface
 {
+    /**
+     * Creates a new histogram management handler.
+     */
     public function __construct(
+        /** @var AppConfig Application configuration. */
         private readonly AppConfig $config,
+        /** @var MetricsQuery Metrics query engine. */
         private readonly MetricsQuery $querier
         //, private readonly string $path = __DIR__ . '/../../../../../var/log'
     ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'histogram';
     }
 
+    /**
+     * Returns a handler that evaluates histogram queries.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -159,12 +173,21 @@ class HistogramManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for histograms.
+     */
     #[Override]
     public function set(): ?Closure
     {
         return null;
     }
 
+    /**
+     * Parses query string parameters preserving repeated keys.
+     *
+     * @param string $query Raw query string.
+     * @return array<string, string|array<int, string>> Parsed parameters.
+     */
     public function parseQueryPairsOrdered(string $query): array
     {
         if ($query === '') {

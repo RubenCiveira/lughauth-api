@@ -26,14 +26,15 @@ class HealthManagement implements ManagementInterface
 
     /**
      * Constructs a new HealthManagement instance.
-     *
-     * @param array<int, HealthProviderInterface> $providers List of providers responsible for health checking.
      */
     public function __construct()
     {
         $this->providers = [];
     }
 
+    /**
+     * Registers an additional health provider.
+     */
     public function addProvider(HealthProviderInterface $provider)
     {
         $this->providers[] = $provider;

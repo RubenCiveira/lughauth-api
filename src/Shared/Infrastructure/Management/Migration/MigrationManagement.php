@@ -12,25 +12,46 @@ use Psr\Log\LoggerInterface;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes migration status and execution through management endpoints.
+ */
 class MigrationManagement implements ManagementInterface
 {
+    /**
+     * @var MigrationInterface[] Registered migration providers.
+     */
     private array $providers;
 
-    public function __construct(ContainerInterface $container, private readonly LoggerInterface $logger)
-    {
+    /**
+     * Creates a new migration management handler.
+     */
+    public function __construct(
+        ContainerInterface $container,
+        /** @var LoggerInterface Logger for migration failures. */
+        private readonly LoggerInterface $logger
+    ) {
         $this->providers = [ $container->get(Phix::class) ];
     }
 
+    /**
+     * Adds a migration provider.
+     */
     public function addProvider(MigrationInterface $provider)
     {
         $this->providers[] = $provider;
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'migration';
     }
+    /**
+     * Returns a handler that reports migration status.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -44,6 +65,9 @@ class MigrationManagement implements ManagementInterface
         };
     }
 
+    /**
+     * Returns a handler that triggers migrations.
+     */
     #[Override]
     public function set(): ?Closure
     {

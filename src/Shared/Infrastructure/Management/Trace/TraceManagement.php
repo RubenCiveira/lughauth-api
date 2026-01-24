@@ -11,20 +11,36 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes trace spans stored on disk for management queries.
+ */
 class TraceManagement implements ManagementInterface
 {
+    /**
+     * Creates a new trace management handler.
+     */
     public function __construct(
+        /** @var AppConfig Application configuration. */
         private readonly AppConfig $config,
+        /** @var string Path to the trace storage directory. */
         private readonly string $path = __DIR__ . '/../../../../../var/trace'
     ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'trace';
     }
 
+    /**
+     * Returns a handler that filters stored trace spans.
+     *
+     * @return Closure|null Closure that returns the trace query results.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -108,6 +124,9 @@ class TraceManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for traces.
+     */
     #[Override]
     public function set(): ?Closure
     {

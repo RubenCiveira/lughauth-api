@@ -8,32 +8,53 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Histogram\PromQLInterpreter;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 
+/**
+ * Unit tests for {@see PromQLInterpreter}.
+ */
 final class PromQLInterpreterUnitTest extends TestCase
 {
+    /**
+     * Ensures selectors use the range query implementation.
+     */
     public function testEvaluateSelectorUsesRange(): void
     {
+        /* Arrange: create a query engine and recorded metrics. */
         [$query, $root] = $this->createQuery();
         $query->range('metric', 1000, 2000, 5, 'raw');
 
         $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate a selector expression. */
         $result = $engine->evaluate('metric{status="200"}', 1000, 2000, 5, 'raw');
 
+        /* Assert: verify labels and returned points are present. */
         $this->assertSame('200', $result[0]['labels']['status']);
         $this->assertNotEmpty($result[0]['points']);
     }
 
+    /**
+     * Ensures rate expressions use the rate query implementation.
+     */
     public function testEvaluateRateUsesRate(): void
     {
+        /* Arrange: create a query engine with sample data. */
         [$query, $root] = $this->createQuery();
 
         $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate a rate expression. */
         $result = $engine->evaluate('rate(metric[5m])', 1000, 4000, 1, 'raw');
 
+        /* Assert: verify the rate results contain points. */
         $this->assertNotEmpty($result[0]['points']);
     }
 
+    /**
+     * Ensures aggregation operators compute averages correctly.
+     */
     public function testAggregateAvg(): void
     {
+        /* Arrange: build series with two instances and different values. */
         $root = sys_get_temp_dir() . '/metrics_' . uniqid();
         $fs = new MetricsFS($root);
         $query = new MetricsQuery($fs);
@@ -41,18 +62,28 @@ final class PromQLInterpreterUnitTest extends TestCase
         $fs->appendRaw('metric', ['status' => '200', 'instance' => 'b'], 4, 1500);
 
         $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate the aggregation expression. */
         $result = $engine->evaluate('avg by (status) (metric)', 1000, 2000, 1, 'raw');
 
+        /* Assert: verify the aggregated value equals the mean. */
         $this->assertSame(3.0, $result[0]['points'][0][1]);
     }
 
+    /**
+     * Ensures invalid label matchers raise an exception.
+     */
     public function testInvalidMatcherThrows(): void
     {
+        /* Arrange: create a query engine for evaluation. */
         [$query] = $this->createQuery();
         $engine = new PromQLInterpreter($query);
 
+        /* Act: evaluate an invalid expression. */
         $this->expectException(InvalidArgumentException::class);
         $engine->evaluate('metric{bad}', 0, 10, 5, 'raw');
+
+        /* Assert: verify the invalid argument exception is thrown. */
     }
 
     private function createQuery(): array

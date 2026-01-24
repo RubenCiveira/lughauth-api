@@ -13,130 +13,206 @@ use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\SDK\Trace\StatusDataInterface;
 
+/**
+ * Provides an immutable implementation of span data for trace export.
+ */
 class SpanDataEnvelope implements SpanDataInterface
 {
+    /**
+     * Creates a new span data envelope.
+     */
     public function __construct(
+        /** @var string Span name. */
         private readonly string $name,
+        /** @var int Span kind. */
         private readonly int $kind,
+        /** @var SpanContextInterface Span context. */
         private readonly SpanContextInterface $context,
+        /** @var SpanContextInterface Parent span context. */
         private readonly SpanContextInterface $parentContext,
+        /** @var StatusDataInterface Span status. */
         private readonly StatusDataInterface $status,
+        /** @var int Span start time in epoch nanoseconds. */
         private readonly int $startEpochNanos,
+        /** @var int Span end time in epoch nanoseconds. */
         private readonly int $endEpochNanos,
+        /** @var AttributesInterface Span attributes. */
         private readonly AttributesInterface $attributes,
+        /** @var InstrumentationScopeInterface Instrumentation scope. */
         private readonly InstrumentationScopeInterface $scope,
+        /** @var ResourceInfo Resource information for the span. */
         private readonly ResourceInfo $resource,
+        /** @var array<int, EventInterface> Span events. */
         private readonly array $events = [],
+        /** @var array<int, LinkInterface> Span links. */
         private readonly array $links = [],
+        /** @var int Number of dropped events. */
         private readonly int $droppedEvents = 0,
+        /** @var int Number of dropped links. */
         private readonly int $droppedLinks = 0,
     ) {
     }
 
+    /**
+     * Returns the span name.
+     */
     #[Override]
     public function getName(): string
     {
         return $this->name;
     }
 
+    /**
+     * Returns the span kind.
+     */
     #[Override]
     public function getKind(): int
     {
         return $this->kind;
     }
 
+    /**
+     * Returns the span context.
+     */
     #[Override]
     public function getContext(): SpanContextInterface
     {
         return $this->context;
     }
 
+    /**
+     * Returns the parent span context.
+     */
     #[Override]
     public function getParentContext(): SpanContextInterface
     {
         return $this->parentContext;
     }
 
+    /**
+     * Returns the trace identifier.
+     */
     #[Override]
     public function getTraceId(): string
     {
         return $this->context->getTraceId();
     }
 
+    /**
+     * Returns the span identifier.
+     */
     #[Override]
     public function getSpanId(): string
     {
         return $this->context->getSpanId();
     }
 
+    /**
+     * Returns the parent span identifier.
+     */
     #[Override]
     public function getParentSpanId(): string
     {
         return $this->parentContext->getSpanId();
     }
 
+    /**
+     * Returns the span status.
+     */
     #[Override]
     public function getStatus(): StatusDataInterface
     {
         return $this->status;
     }
 
+    /**
+     * Returns the span start time in epoch nanoseconds.
+     */
     #[Override]
     public function getStartEpochNanos(): int
     {
         return $this->startEpochNanos;
     }
 
+    /**
+     * Returns the span attributes.
+     */
     #[Override]
     public function getAttributes(): AttributesInterface
     {
         return $this->attributes;
     }
 
+    /**
+     * Returns the span events.
+     *
+     * @return list<EventInterface>
+     */
     #[Override]
-    /** @return list<EventInterface> */
     public function getEvents(): array
     {
         return $this->events;
     }
 
+    /**
+     * Returns the span links.
+     *
+     * @return list<LinkInterface>
+     */
     #[Override]
-    /** @return list<LinkInterface> */
     public function getLinks(): array
     {
         return $this->links;
     }
 
+    /**
+     * Returns the span end time in epoch nanoseconds.
+     */
     #[Override]
     public function getEndEpochNanos(): int
     {
         return $this->endEpochNanos;
     }
 
+    /**
+     * Reports whether the span has ended.
+     */
     #[Override]
     public function hasEnded(): bool
     {
         return true;
     }
 
+    /**
+     * Returns the instrumentation scope.
+     */
     #[Override]
     public function getInstrumentationScope(): InstrumentationScopeInterface
     {
         return $this->scope;
     }
 
+    /**
+     * Returns the resource information.
+     */
     #[Override]
     public function getResource(): ResourceInfo
     {
         return $this->resource;
     }
 
+    /**
+     * Returns the number of dropped events.
+     */
     #[Override]
     public function getTotalDroppedEvents(): int
     {
         return $this->droppedEvents;
     }
 
+    /**
+     * Returns the number of dropped links.
+     */
     #[Override]
     public function getTotalDroppedLinks(): int
     {

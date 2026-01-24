@@ -10,10 +10,17 @@ use OpenTelemetry\SDK\Common\Future\CompletedFuture;
 use Slim\Psr7\Factory\StreamFactory;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\TraceCollector;
 
+/**
+ * Unit tests for {@see TraceCollector}.
+ */
 final class TraceCollectorUnitTest extends TestCase
 {
+    /**
+     * Ensures spans are exported from the OTLP payload.
+     */
     public function testSetExportsSpans(): void
     {
+        /* Arrange: configure the exporter expectation and span payload. */
         $exporter = $this->createMock(SpanExporterInterface::class);
         $exporter->expects($this->once())
             ->method('export')
@@ -43,7 +50,10 @@ final class TraceCollectorUnitTest extends TestCase
             ]]
         ]);
 
+        /* Act: execute the trace collector handler. */
         $result = ($collector->set())($request);
+
+        /* Assert: verify the handler returns an empty response. */
         $this->assertSame([], $result);
     }
 

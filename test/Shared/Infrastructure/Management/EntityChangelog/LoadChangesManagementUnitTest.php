@@ -9,10 +9,17 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\LoadChangesManagement;
 
+/**
+ * Unit tests for {@see LoadChangesManagement}.
+ */
 final class LoadChangesManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures pending changes are returned for valid request parameters.
+     */
     public function testGetReturnsPendingChanges(): void
     {
+        /* Arrange: mock the changelog service and request parameters. */
         $service = $this->createMock(EntityChangelogService::class);
         $service->expects($this->once())
             ->method('getPendingChanges')
@@ -27,18 +34,28 @@ final class LoadChangesManagementUnitTest extends TestCase
         ]);
 
         $management = new LoadChangesManagement($service);
+
+        /* Act: execute the pending changes handler. */
         $result = ($management->get())($request);
 
+        /* Assert: verify the pending changes payload. */
         $this->assertSame([['id' => '1']], $result);
     }
 
+    /**
+     * Ensures missing parameters raise a constraint exception.
+     */
     public function testGetThrowsOnMissingParams(): void
     {
+        /* Arrange: create the handler without required params. */
         $service = $this->createMock(EntityChangelogService::class);
         $management = new LoadChangesManagement($service);
 
+        /* Act: execute the handler with missing parameters. */
         $this->expectException(ConstraintException::class);
         ($management->get())($this->request([]));
+
+        /* Assert: verify the constraint exception is thrown. */
     }
 
     private function request(array $params): ServerRequestInterface

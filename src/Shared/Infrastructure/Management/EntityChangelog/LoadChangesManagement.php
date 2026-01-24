@@ -12,18 +12,34 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes pending entity changelog entries for synchronization clients.
+ */
 class LoadChangesManagement implements ManagementInterface
 {
-    public function __construct(private readonly EntityChangelogService $query)
-    {
+    /**
+     * Creates a new management handler for fetching pending changes.
+     */
+    public function __construct(
+        /** @var EntityChangelogService Changelog query service. */
+        private readonly EntityChangelogService $query
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'entity-changelo-query-ask';
     }
 
+    /**
+     * Returns a handler that loads pending entity changes.
+     *
+     * @return Closure|null Closure that retrieves pending changes.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -55,6 +71,9 @@ class LoadChangesManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for pending change queries.
+     */
     #[Override]
     public function set(): ?Closure
     {

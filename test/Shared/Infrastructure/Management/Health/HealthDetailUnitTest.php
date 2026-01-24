@@ -6,22 +6,39 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthDetail;
 
+/**
+ * Unit tests for {@see HealthDetail}.
+ */
 final class HealthDetailUnitTest extends TestCase
 {
+    /**
+     * Ensures factory methods populate health detail data.
+     */
     public function testFactoriesBuildDetails(): void
     {
+        /* Arrange: build health details for each status. */
         $up = HealthDetail::up('db', ['latency' => 10]);
         $down = HealthDetail::down('cache');
         $unknown = HealthDetail::unknown('bus');
 
-        $this->assertSame('UP', $up->status);
-        $this->assertSame('db', $up->name);
-        $this->assertSame(['latency' => 10], $up->details);
+        /* Act: read the generated detail properties. */
+        $upStatus = $up->status;
+        $upName = $up->name;
+        $upDetails = $up->details;
+        $downStatus = $down->status;
+        $downName = $down->name;
+        $unknownStatus = $unknown->status;
+        $unknownName = $unknown->name;
 
-        $this->assertSame('DOWN', $down->status);
-        $this->assertSame('cache', $down->name);
+        /* Assert: verify each factory returns the expected data. */
+        $this->assertSame('UP', $upStatus);
+        $this->assertSame('db', $upName);
+        $this->assertSame(['latency' => 10], $upDetails);
 
-        $this->assertSame('UNKWOWN', $unknown->status);
-        $this->assertSame('bus', $unknown->name);
+        $this->assertSame('DOWN', $downStatus);
+        $this->assertSame('cache', $downName);
+
+        $this->assertSame('UNKWOWN', $unknownStatus);
+        $this->assertSame('bus', $unknownName);
     }
 }

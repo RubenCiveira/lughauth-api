@@ -22,11 +22,11 @@ class MetricsManagement implements ManagementInterface
 {
     /**
      * Creates a new MetricsManagement instance.
-     *
-     * @param CollectorRegistry $collector The Prometheus collector registry instance used to gather metrics.
      */
-    public function __construct(private readonly CollectorRegistry $collector)
-    {
+    public function __construct(
+        /** @var CollectorRegistry Prometheus collector registry instance. */
+        private readonly CollectorRegistry $collector
+    ) {
     }
 
     /**

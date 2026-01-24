@@ -8,41 +8,74 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
 
+/**
+ * Unit tests for {@see Phix}.
+ */
 final class PhixUnitTest extends TestCase
 {
+    /**
+     * Ensures the migration provider name is stable.
+     */
     public function testName(): void
     {
+        /* Arrange: create a Phix instance with a fake manager. */
         $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $this->managerWithMigrations(true, true, ''));
-        $this->assertSame('database-schema', $phix->name());
+
+        /* Act: read the provider name. */
+        $name = $phix->name();
+
+        /* Assert: verify the provider name. */
+        $this->assertSame('database-schema', $name);
     }
 
+    /**
+     * Ensures status results include migration readiness.
+     */
     public function testStatusUsesDumpStatus(): void
     {
+        /* Arrange: build a manager with ready migrations. */
         $manager = $this->managerWithMigrations(true, true, 'output');
         $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $manager);
+
+        /* Act: request the migration status. */
         $result = $phix->status();
 
+        /* Assert: verify the migration status payload. */
         $this->assertSame(['status' => ['Init[1]' => 'Ready']], $result);
     }
 
+    /**
+     * Ensures migration results reflect newly applied changes.
+     */
     public function testMigrateDiff(): void
     {
+        /* Arrange: create a manager with a pending migration. */
         $manager = $this->managerWithMigrations(false, true, 'output');
         $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $manager);
+
+        /* Act: execute the migration handler. */
         $result = $phix->migrate();
 
+        /* Assert: verify the migration status and output detail. */
         $this->assertSame('Migrated', $result['status']['Init[1]']);
         $this->assertSame('output', $result['detail']);
     }
 
+    /**
+     * Ensures DSN parsing includes credentials when provided.
+     */
     public function testParseWithCredentials(): void
     {
+        /* Arrange: provide environment credentials and build the parser. */
         $_ENV['DATABASE_USERNAME'] = 'user';
         $_ENV['DATABASE_PASSWORD'] = 'pass';
 
         $phix = new TestablePhix($this->config('mysql:host=localhost;port=3306;dbname=test'), $this->managerWithMigrations(true, true, ''));
+
+        /* Act: parse the database DSN. */
         $data = $phix->parse();
 
+        /* Assert: verify adapter, host, and credentials fields. */
         $this->assertSame('mysql', $data['adapter']);
         $this->assertSame('localhost', $data['host']);
         $this->assertSame('3306', $data['port']);
@@ -51,12 +84,19 @@ final class PhixUnitTest extends TestCase
         $this->assertSame('pass', $data['pass']);
     }
 
+    /**
+     * Ensures an invalid DSN raises an exception.
+     */
     public function testParseThrowsOnInvalidDsn(): void
     {
+        /* Arrange: create a parser with an invalid DSN. */
         $phix = new TestablePhix($this->config('invalid_dsn'), $this->managerWithMigrations(true, true, ''));
 
+        /* Act: attempt to parse the invalid DSN. */
         $this->expectException(InvalidArgumentException::class);
         $phix->parse();
+
+        /* Assert: verify an invalid argument exception is thrown. */
     }
 
     private function config(string $dsn): AppConfig
@@ -110,35 +150,66 @@ final class PhixUnitTest extends TestCase
     }
 }
 
+/**
+ * Test double for injecting a custom Phinx manager.
+ */
 final class TestablePhix extends Phix
 {
-    public function __construct(AppConfig $config, private readonly \Phinx\Migration\Manager $manager)
-    {
+    /**
+     * Creates a testable Phix instance with a prebuilt manager.
+     */
+    public function __construct(
+        AppConfig $config,
+        /** @var \Phinx\Migration\Manager Fake manager instance. */
+        private readonly \Phinx\Migration\Manager $manager
+    ) {
         parent::__construct($config);
     }
 
+    /**
+     * Exposes the protected parse operation for tests.
+     */
     public function parse(): array
     {
         return parent::parse();
     }
 
+    /**
+     * Returns the injected migration manager.
+     */
     protected function build(): \Phinx\Migration\Manager
     {
         return $this->manager;
     }
 }
 
+/**
+ * Minimal fake migration for Phinx tests.
+ */
 final class FakeMigration
 {
-    public function __construct(private readonly string $name, private readonly bool $up)
-    {
+    /**
+     * Creates a fake migration instance.
+     */
+    public function __construct(
+        /** @var string Migration name. */
+        private readonly string $name,
+        /** @var bool Whether the migration is marked as ready. */
+        private readonly bool $up
+    ) {
     }
 
+    /**
+     * Returns the migration name.
+     */
     public function getName(): string
     {
         return $this->name;
     }
 
+    /**
+     * Indicates whether the migration is ready to run.
+     */
     public function isMigratingUp(): bool
     {
         return $this->up;

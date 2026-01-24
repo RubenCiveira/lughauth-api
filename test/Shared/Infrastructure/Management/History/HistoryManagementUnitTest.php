@@ -9,10 +9,17 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
 use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
 
+/**
+ * Unit tests for {@see HistoryManagement}.
+ */
 final class HistoryManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures entity history is returned for valid parameters.
+     */
     public function testGetReturnsHistory(): void
     {
+        /* Arrange: mock the history query service and request parameters. */
         $query = $this->createMock(AuditQueryService::class);
         $query->expects($this->once())
             ->method('getEntityHistory')
@@ -22,18 +29,27 @@ final class HistoryManagementUnitTest extends TestCase
         $request = $this->createRequest(['entity' => 'User', 'id' => '1']);
         $management = new HistoryManagement($query);
 
+        /* Act: execute the history handler. */
         $result = ($management->get())($request);
 
+        /* Assert: verify the history payload is returned. */
         $this->assertSame([['id' => 'a1']], $result);
     }
 
+    /**
+     * Ensures missing parameters raise a constraint exception.
+     */
     public function testGetThrowsOnMissingParams(): void
     {
+        /* Arrange: create the management handler with no query params. */
         $query = $this->createMock(AuditQueryService::class);
         $management = new HistoryManagement($query);
 
+        /* Act: execute the handler with missing parameters. */
         $this->expectException(ConstraintException::class);
         ($management->get())($this->createRequest([]));
+
+        /* Assert: verify a constraint exception is thrown. */
     }
 
     private function createRequest(array $params): ServerRequestInterface

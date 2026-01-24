@@ -9,18 +9,32 @@ use Closure;
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes dependency information from composer.lock.
+ */
 class DependenciesManagement implements ManagementInterface
 {
-    public function __construct(private readonly string $path = __DIR__ . '/../../../../../')
-    {
+    /**
+     * Creates a new dependencies management handler.
+     */
+    public function __construct(
+        /** @var string Path to the project root. */
+        private readonly string $path = __DIR__ . '/../../../../../'
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'dependencies';
     }
 
+    /**
+     * Returns a handler that lists dependency metadata.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -43,6 +57,9 @@ class DependenciesManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for dependencies.
+     */
     #[Override]
     public function set(): ?Closure
     {

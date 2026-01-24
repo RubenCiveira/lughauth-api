@@ -12,18 +12,32 @@ use Symfony\Component\Console\Input\StringInput;
 use Civi\Lughauth\Shared\AppConfig;
 use Symfony\Component\Console\Output\BufferedOutput;
 
+/**
+ * Manages database migrations using Phinx.
+ */
 class Phix implements MigrationInterface
 {
-    public function __construct(private readonly AppConfig $config)
-    {
+    /**
+     * Creates a new Phinx migration provider.
+     */
+    public function __construct(
+        /** @var AppConfig Configuration provider. */
+        private readonly AppConfig $config
+    ) {
     }
 
+    /**
+     * Returns the migration provider name.
+     */
     #[Override]
     public function name(): string
     {
         return 'database-schema';
     }
 
+    /**
+     * Returns migration status for the current environment.
+     */
     #[Override]
     public function status(): array
     {
@@ -33,6 +47,9 @@ class Phix implements MigrationInterface
         return $data;
     }
 
+    /**
+     * Executes pending migrations and returns a status summary.
+     */
     #[Override]
     public function migrate(): array
     {

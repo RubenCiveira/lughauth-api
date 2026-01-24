@@ -11,36 +11,58 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Histogram\HistogramManagement
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 
+/**
+ * Unit tests for {@see HistogramManagement}.
+ */
 final class HistogramManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures histogram payloads include series and metadata.
+     */
     public function testGetReturnsPayload(): void
     {
+        /* Arrange: create the histogram query handler and request. */
         $query = $this->createQuery();
         $management = new HistogramManagement($this->config(), $query);
         $request = $this->request('q=metric&start=now-1h&end=now&step=60s');
 
+        /* Act: execute the histogram handler. */
         $result = ($management->get())($request);
 
+        /* Assert: verify metadata and series labels are returned. */
         $this->assertSame('histogram', $management->name());
         $this->assertSame(60_000, $result['stepMs']);
         $this->assertSame('200', $result['series'][0]['labels']['status']);
     }
 
+    /**
+     * Ensures missing query parameters raise an exception.
+     */
     public function testGetThrowsOnMissingQuery(): void
     {
+        /* Arrange: create a histogram handler without a query. */
         $management = new HistogramManagement($this->config(), $this->createQuery());
 
+        /* Act: execute the handler with missing query parameters. */
         $this->expectException(InvalidArgumentException::class);
         ($management->get())($this->request(''));
+
+        /* Assert: verify the invalid argument exception is thrown. */
     }
 
+    /**
+     * Ensures CSV responses are returned when requested.
+     */
     public function testGetCsvFormat(): void
     {
+        /* Arrange: create a handler and CSV request. */
         $management = new HistogramManagement($this->config(), $this->createQuery());
         $request = $this->request('q=metric&start=now-1h&end=now&step=60s&format=csv');
 
+        /* Act: execute the histogram handler in CSV mode. */
         $result = ($management->get())($request);
 
+        /* Assert: verify the CSV output includes the expected headers. */
         $this->assertStringContainsString('query,labels', $result);
     }
 

@@ -8,39 +8,60 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthManagement;
 use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthDetail;
 use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthProviderInterface;
 
+/**
+ * Unit tests for {@see HealthManagement}.
+ */
 final class HealthManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures health providers contribute to the aggregated status.
+     */
     public function testHealthStatusWithProviders(): void
     {
+        /* Arrange: register health providers with mixed statuses. */
         $management = new HealthManagement();
         $management->addProvider($this->provider(HealthDetail::up('db', ['latency' => 10])));
         $management->addProvider($this->provider(HealthDetail::unknown('cache')));
 
+        /* Act: execute the health check handler. */
         $result = ($management->get())();
 
+        /* Assert: verify aggregated and per-component statuses. */
         $this->assertSame('UNKWOWN', $result['status']);
         $this->assertSame('UP', $result['components']['db']['status']);
         $this->assertSame(['latency' => 10], $result['components']['db']['details']);
         $this->assertSame('UNKWOWN', $result['components']['cache']['status']);
     }
 
+    /**
+     * Ensures a down provider forces the overall status to DOWN.
+     */
     public function testHealthStatusDownOverrides(): void
     {
+        /* Arrange: register a down provider and an unknown provider. */
         $management = new HealthManagement();
         $management->addProvider($this->provider(HealthDetail::down('db')));
         $management->addProvider($this->provider(HealthDetail::unknown('cache')));
 
+        /* Act: execute the health check handler. */
         $result = ($management->get())();
 
+        /* Assert: verify the overall status is DOWN. */
         $this->assertSame('DOWN', $result['status']);
     }
 
+    /**
+     * Ensures an empty provider list reports an UP status.
+     */
     public function testHealthStatusWithoutProviders(): void
     {
+        /* Arrange: create a health management handler with no providers. */
         $management = new HealthManagement();
 
+        /* Act: execute the health check handler. */
         $result = ($management->get())();
 
+        /* Assert: verify the default status is UP. */
         $this->assertSame(['status' => 'UP'], $result);
     }
 

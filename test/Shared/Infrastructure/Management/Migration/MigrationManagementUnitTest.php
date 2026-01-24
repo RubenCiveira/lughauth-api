@@ -10,10 +10,17 @@ use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationInterface;
 use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
 
+/**
+ * Unit tests for {@see MigrationManagement}.
+ */
 final class MigrationManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures the status handler returns provider status data.
+     */
     public function testGetReturnsStatus(): void
     {
+        /* Arrange: register a provider and management handler. */
         $provider = $this->createProvider('db', ['status' => 'ok']);
         $container = $this->createMock(ContainerInterface::class);
         $container->method('get')->with(Phix::class)->willReturn($provider);
@@ -21,13 +28,19 @@ final class MigrationManagementUnitTest extends TestCase
 
         $management = new MigrationManagement($container, $logger);
 
+        /* Act: execute the status handler. */
         $result = ($management->get())();
 
+        /* Assert: verify the status payload. */
         $this->assertSame(['db' => ['status' => 'ok']], $result);
     }
 
+    /**
+     * Ensures failures are captured and logged during migrations.
+     */
     public function testSetHandlesFailure(): void
     {
+        /* Arrange: create a provider that throws and a logger expectation. */
         $provider = $this->createProvider('db', ['status' => 'ok'], true);
         $container = $this->createMock(ContainerInterface::class);
         $container->method('get')->with(Phix::class)->willReturn($provider);
@@ -36,8 +49,10 @@ final class MigrationManagementUnitTest extends TestCase
 
         $management = new MigrationManagement($container, $logger);
 
+        /* Act: execute the migration handler. */
         $result = ($management->set())();
 
+        /* Assert: verify the failure is returned in the response. */
         $this->assertArrayHasKey('db', $result);
         $this->assertStringContainsString('boom', $result['db']);
     }

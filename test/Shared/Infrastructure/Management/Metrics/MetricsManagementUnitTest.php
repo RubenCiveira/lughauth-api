@@ -7,17 +7,28 @@ use PHPUnit\Framework\TestCase;
 use Prometheus\CollectorRegistry;
 use Civi\Lughauth\Shared\Infrastructure\Management\Metrics\MetricsManagement;
 
+/**
+ * Unit tests for {@see MetricsManagement}.
+ */
 final class MetricsManagementUnitTest extends TestCase
 {
+    /**
+     * Verifies metrics are rendered as text output.
+     */
     public function testGetRendersMetrics(): void
     {
+        /* Arrange: mock the collector registry and management handler. */
         $collector = $this->createMock(CollectorRegistry::class);
         $collector->method('getMetricFamilySamples')->willReturn([]);
 
         $management = new MetricsManagement($collector);
-        $output = ($management->get())();
 
-        $this->assertSame('metrics', $management->name());
+        /* Act: execute the metrics handler. */
+        $output = ($management->get())();
+        $name = $management->name();
+
+        /* Assert: confirm the endpoint name and output type. */
+        $this->assertSame('metrics', $name);
         $this->assertIsString($output);
     }
 }

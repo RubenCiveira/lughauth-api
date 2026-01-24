@@ -9,10 +9,17 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\MarkAckManagement;
 
+/**
+ * Unit tests for {@see MarkAckManagement}.
+ */
 final class MarkAckManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures acknowledged changes are submitted to the service.
+     */
     public function testGetAcksChanges(): void
     {
+        /* Arrange: mock the changelog service and acknowledgment request. */
         $service = $this->createMock(EntityChangelogService::class);
         $service->expects($this->once())
             ->method('ackChanges')
@@ -26,18 +33,28 @@ final class MarkAckManagementUnitTest extends TestCase
         ]);
 
         $management = new MarkAckManagement($service);
+
+        /* Act: execute the acknowledgment handler. */
         $result = ($management->get())($request);
 
+        /* Assert: verify the handler returns an empty response. */
         $this->assertSame([], $result);
     }
 
+    /**
+     * Ensures missing parameters raise a constraint exception.
+     */
     public function testGetThrowsOnMissingParams(): void
     {
+        /* Arrange: create the handler without required parameters. */
         $service = $this->createMock(EntityChangelogService::class);
         $management = new MarkAckManagement($service);
 
+        /* Act: execute the handler with missing parameters. */
         $this->expectException(ConstraintException::class);
         ($management->get())($this->request([]));
+
+        /* Assert: verify the constraint exception is thrown. */
     }
 
     private function request(array $params): ServerRequestInterface

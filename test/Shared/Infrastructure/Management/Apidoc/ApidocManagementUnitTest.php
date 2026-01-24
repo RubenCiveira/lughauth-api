@@ -10,28 +10,43 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
 
+/**
+ * Unit tests for {@see ApidocManagement}.
+ */
 final class ApidocManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures the YAML format is returned when requested.
+     */
     public function testGetReturnsYaml(): void
     {
+        /* Arrange: create the management handler and YAML request. */
         $management = new ApidocManagement($this->createMock(App::class), $this->context('http://base'));
         $request = $this->request(['format' => 'yaml']);
         $response = new Response();
 
+        /* Act: execute the API documentation handler. */
         $result = ($management->get())($request, $response);
 
+        /* Assert: verify content type and payload include the spec. */
         $this->assertSame('text/plain', $result->getHeaderLine('ContentType'));
         $this->assertStringContainsString('openapi', (string) $result->getBody());
     }
 
+    /**
+     * Ensures the HTML UI is returned when no format is provided.
+     */
     public function testGetReturnsHtml(): void
     {
+        /* Arrange: create the management handler and HTML request. */
         $management = new ApidocManagement($this->createMock(App::class), $this->context('http://base'));
         $request = $this->request([]);
         $response = new Response();
 
+        /* Act: execute the API documentation handler. */
         $result = ($management->get())($request, $response);
 
+        /* Assert: verify the HTML content type and UI markup. */
         $this->assertSame('text/html', $result->getHeaderLine('ContentType'));
         $this->assertStringContainsString('Swagger UI', (string) $result->getBody());
     }

@@ -8,10 +8,17 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Trace\TraceManagement;
 
+/**
+ * Unit tests for {@see TraceManagement}.
+ */
 final class TraceManagementUnitTest extends TestCase
 {
+    /**
+     * Ensures traces can be filtered by trace identifier.
+     */
     public function testGetFiltersByTraceId(): void
     {
+        /* Arrange: write trace entries and prepare a filtered request. */
         $dir = $this->createTraceDir();
         $this->writeTrace($dir . '/app-2024.jsonl', [
             ['traceId' => 't1', 'name' => 'root', 'status' => 'OK', 'parentSpanId' => '0000000000000000', 'extra' => ['service' => ['service.namespace' => 'ns']]],
@@ -21,14 +28,20 @@ final class TraceManagementUnitTest extends TestCase
         $management = new TraceManagement($this->config('app'), $dir);
         $request = $this->request(['trace-id' => 't1']);
 
+        /* Act: execute the trace query handler. */
         $result = ($management->get())($request);
 
+        /* Assert: verify only the matching trace is returned. */
         $this->assertCount(1, $result);
         $this->assertSame('t1', $result[0]['traceId']);
     }
 
+    /**
+     * Ensures unfiltered queries return only root spans.
+     */
     public function testGetWithoutFiltersReturnsRootSpans(): void
     {
+        /* Arrange: write trace entries with root and child spans. */
         $dir = $this->createTraceDir();
         $this->writeTrace($dir . '/app-2024.jsonl', [
             ['traceId' => 't1', 'name' => 'root', 'status' => 'OK', 'parentSpanId' => '0000000000000000', 'extra' => ['service' => ['service.namespace' => 'ns']]],
@@ -38,20 +51,29 @@ final class TraceManagementUnitTest extends TestCase
         $management = new TraceManagement($this->config('app'), $dir);
         $request = $this->request([]);
 
+        /* Act: execute the trace query handler without filters. */
         $result = ($management->get())($request);
 
+        /* Assert: verify only root spans are returned. */
         $this->assertCount(1, $result);
         $this->assertSame('root', $result[0]['name']);
     }
 
+    /**
+     * Ensures invalid trace lines are ignored during parsing.
+     */
     public function testGetSkipsInvalidLines(): void
     {
+        /* Arrange: create a trace file containing invalid lines. */
         $dir = $this->createTraceDir();
         file_put_contents($dir . '/app-2024.jsonl', "\ninvalid\n");
 
         $management = new TraceManagement($this->config('app'), $dir);
+
+        /* Act: execute the trace query handler. */
         $result = ($management->get())($this->request([]));
 
+        /* Assert: verify no traces are returned. */
         $this->assertSame([], $result);
     }
 

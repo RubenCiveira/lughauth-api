@@ -11,10 +11,17 @@ use OpenTelemetry\SDK\Resource\ResourceInfo;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\SpanDataEnvelope;
 use Civi\Lughauth\Shared\Infrastructure\Management\Collector\StatusDataEnvelope;
 
+/**
+ * Unit tests for {@see SpanDataEnvelope}.
+ */
 final class SpanDataEnvelopeUnitTest extends TestCase
 {
+    /**
+     * Ensures accessor methods expose span metadata correctly.
+     */
     public function testGetters(): void
     {
+        /* Arrange: build a span envelope with context and attributes. */
         $context = SpanContext::create('4bf92f3577b34da6a3ce929d0e0e4736', '00f067aa0ba902b7');
         $parent = SpanContext::create('4bf92f3577b34da6a3ce929d0e0e4736', '1111111111111111');
         $attributes = Attributes::create(['k' => 'v']);
@@ -34,15 +41,28 @@ final class SpanDataEnvelopeUnitTest extends TestCase
             resource: $resource
         );
 
-        $this->assertSame('span', $span->getName());
-        $this->assertSame(1, $span->getKind());
-        $this->assertSame($context->getTraceId(), $span->getTraceId());
-        $this->assertSame($context->getSpanId(), $span->getSpanId());
-        $this->assertSame($parent->getSpanId(), $span->getParentSpanId());
-        $this->assertSame(2, $span->getEndEpochNanos());
-        $this->assertTrue($span->hasEnded());
-        $this->assertSame($attributes, $span->getAttributes());
-        $this->assertSame($scope, $span->getInstrumentationScope());
-        $this->assertSame($resource, $span->getResource());
+        /* Act: access each public getter on the envelope. */
+        $name = $span->getName();
+        $kind = $span->getKind();
+        $traceId = $span->getTraceId();
+        $spanId = $span->getSpanId();
+        $parentSpanId = $span->getParentSpanId();
+        $endNanos = $span->getEndEpochNanos();
+        $hasEnded = $span->hasEnded();
+        $spanAttributes = $span->getAttributes();
+        $instrumentationScope = $span->getInstrumentationScope();
+        $spanResource = $span->getResource();
+
+        /* Assert: verify getter outputs reflect the inputs. */
+        $this->assertSame('span', $name);
+        $this->assertSame(1, $kind);
+        $this->assertSame($context->getTraceId(), $traceId);
+        $this->assertSame($context->getSpanId(), $spanId);
+        $this->assertSame($parent->getSpanId(), $parentSpanId);
+        $this->assertSame(2, $endNanos);
+        $this->assertTrue($hasEnded);
+        $this->assertSame($attributes, $spanAttributes);
+        $this->assertSame($scope, $instrumentationScope);
+        $this->assertSame($resource, $spanResource);
     }
 }

@@ -11,18 +11,34 @@ use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
+/**
+ * Triggers a changelog synchronization run.
+ */
 class UpdateChangelogManagement implements ManagementInterface
 {
-    public function __construct(private readonly EventDispatcherInterface $dispacher)
-    {
+    /**
+     * Creates a new changelog update management handler.
+     */
+    public function __construct(
+        /** @var EventDispatcherInterface Event dispatcher for sync events. */
+        private readonly EventDispatcherInterface $dispacher
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'entity-changelog-update';
     }
 
+    /**
+     * Returns a handler that dispatches the sync event.
+     *
+     * @return Closure|null Closure that triggers the update.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -32,6 +48,9 @@ class UpdateChangelogManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for changelog updates.
+     */
     #[Override]
     public function set(): ?Closure
     {

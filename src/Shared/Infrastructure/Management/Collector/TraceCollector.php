@@ -16,25 +16,43 @@ use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScope;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
 
+/**
+ * Collects OTLP traces and forwards them to the span exporter.
+ */
 class TraceCollector implements ManagementInterface
 {
+    /**
+     * Creates a new trace collector management handler.
+     */
     public function __construct(
+        /** @var SpanExporterInterface Exporter used to emit collected spans. */
         private readonly SpanExporterInterface $exporter
     ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'trace-collector';
     }
 
+    /**
+     * No read handler is provided for trace collection.
+     */
     #[Override]
     public function get(): ?Closure
     {
         return null;
     }
 
+    /**
+     * Returns a handler that ingests and exports OTLP spans.
+     *
+     * @return Closure|null Closure that parses and exports the trace payload.
+     */
     #[Override]
     public function set(): ?Closure
     {

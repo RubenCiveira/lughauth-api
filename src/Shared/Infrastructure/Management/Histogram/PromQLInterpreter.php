@@ -8,15 +8,24 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management\Histogram;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\LabelMatcher;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
 
+/**
+ * Evaluates a subset of PromQL expressions against stored metrics.
+ */
 final class PromQLInterpreter
 {
-    public function __construct(private MetricsQuery $q)
-    {
+    /**
+     * Creates a new PromQL interpreter.
+     */
+    public function __construct(
+        /** @var MetricsQuery Metrics query engine. */
+        private MetricsQuery $q
+    ) {
     }
 
     /**
-     * Evalúa una expresión tipo PromQL en un rango y resolución dados.
-     * @return array timeseries: [ ['labels'=>[], 'points'=>[[ts,value],...]], ... ]
+     * Evaluates a PromQL expression over a time range.
+     *
+     * @return array<int, array<string, mixed>> Time series data with labels and points.
      */
     public function evaluate(string $expr, int $startMs, int $endMs, int $stepSec, string $partition = 'raw'): array
     {

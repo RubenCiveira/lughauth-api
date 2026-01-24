@@ -10,18 +10,32 @@ use Override;
 use Slim\App;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 
+/**
+ * Exposes registered application routes for management purposes.
+ */
 class RoutesManagement implements ManagementInterface
 {
-    public function __construct(private readonly App $app)
-    {
+    /**
+     * Creates a new routes management handler.
+     */
+    public function __construct(
+        /** @var App Slim application instance. */
+        private readonly App $app
+    ) {
     }
 
+    /**
+     * Returns the management endpoint name.
+     */
     #[Override]
     public function name(): string
     {
         return 'routes';
     }
 
+    /**
+     * Returns a handler that lists declared routes.
+     */
     #[Override]
     public function get(): ?Closure
     {
@@ -44,6 +58,9 @@ class RoutesManagement implements ManagementInterface
         };
     }
 
+    /**
+     * No write handler is provided for routes.
+     */
     #[Override]
     public function set(): ?Closure
     {

@@ -8,10 +8,17 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Management\Log\LogManagement;
 
+/**
+ * Unit tests for {@see LogManagement}.
+ */
 final class LogManagementUnitTest extends TestCase
 {
+    /**
+     * Verifies filtered log entries are returned from storage.
+     */
     public function testGetFiltersAndReadsLogs(): void
     {
+        /* Arrange: build log files and the management query input. */
         $dir = $this->createLogDir();
         $this->writeLog($dir . '/app-2024.jsonl', [
             ['message' => 'hello', 'level' => 100, 'level_name' => 'DEBUG', 'datetime' => '2024-01-01 00:00:00', 'extra' => ['service' => ['service.name' => 'svc'], 'traceId' => 't1']]
@@ -24,20 +31,29 @@ final class LogManagementUnitTest extends TestCase
         $management = new LogManagement($this->config('app'), $dir);
         $request = $this->request(['search' => 'hello', 'limit' => 10]);
 
+        /* Act: execute the log query handler with filter parameters. */
         $result = ($management->get())($request);
 
+        /* Assert: verify the returned entries match the filter. */
         $this->assertCount(1, $result);
         $this->assertSame('hello', $result[0]['message']);
     }
 
+    /**
+     * Ensures invalid log lines are skipped during parsing.
+     */
     public function testGetSkipsInvalidLines(): void
     {
+        /* Arrange: create a log file containing invalid entries. */
         $dir = $this->createLogDir();
         file_put_contents($dir . '/app-2024.jsonl', "\ninvalid\n");
 
         $management = new LogManagement($this->config('app'), $dir);
+
+        /* Act: execute the log query handler without filters. */
         $result = ($management->get())($this->request([]));
 
+        /* Assert: verify that no results are returned. */
         $this->assertSame([], $result);
     }
 
