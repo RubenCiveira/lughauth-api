@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog;
 
 use Closure;
 use Override;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
+use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent;
 use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -27,7 +27,7 @@ class UpdateChangelogManagement implements ManagementInterface
     public function get(): ?Closure
     {
         return function (): array {
-            $this->dispacher->dispatch(new EntityChangeLogSyncEvent());
+            $this->dispacher->dispatch(new EntityChangelogSyncEvent());
             return [];
         };
     }

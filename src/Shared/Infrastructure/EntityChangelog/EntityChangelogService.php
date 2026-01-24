@@ -150,7 +150,7 @@ class EntityChangelogService
             $parts = explode('_', $key);
             $op = array_pop($parts);           // último elemento: eq, neq, in...
             $field = implode('_', $parts);     // resto unido con "_"
-            if( $field ) {
+            if ($field) {
                 continue;
             }
             $paramBase = 'f_' . preg_replace('/\W+/', '_', $field);

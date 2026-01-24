@@ -242,7 +242,7 @@ final class FakePdo extends PDO
     public function prepare(string $query, array $options = []): PDOStatement|false
     {
         $this->preparedSql[] = $query;
-        $stmt = FakeStatement::create($this->queryFetchColumnResult);
+        $stmt = FakeStatementAuditablePdoStatementUnitTest::create($this->queryFetchColumnResult);
         $this->statements[] = $stmt;
         return $stmt;
     }
@@ -250,7 +250,7 @@ final class FakePdo extends PDO
     public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
     {
         $this->preparedSql[] = $query;
-        $stmt = FakeStatement::create($this->queryFetchColumnResult);
+        $stmt = FakeStatementAuditablePdoStatementUnitTest::create($this->queryFetchColumnResult);
         $this->statements[] = $stmt;
         return $stmt;
     }
@@ -262,7 +262,7 @@ final class FakePdo extends PDO
     }
 }
 
-final class FakeStatement extends PDOStatement
+final class FakeStatementAuditablePdoStatementUnitTest extends PDOStatement
 {
     public array $executedParams = [];
     private ?string $fetchColumnResult = null;

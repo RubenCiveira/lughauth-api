@@ -29,7 +29,7 @@ class MessageProvider
         }
         $loader = new YamlFileLoader();
         $dir = realpath($path);
-        if ($dir===false || $dir==='') {
+        if ($dir === false || $dir === '') {
             throw new RuntimeException("Error trying to get inexistent dire {$path} with {$name}");
         }
         $file = $dir . ($name[0] !== '/' ? '/' : '') . $name;

@@ -22,7 +22,7 @@ class HealthManagement implements ManagementInterface
     /**
      * @var array<int, HealthProviderInterface> List of health check providers. Each must implement a method `check(): HealthDetail`.
      */
-    private readonly array $providers;
+    private array $providers;
 
     /**
      * Constructs a new HealthManagement instance.

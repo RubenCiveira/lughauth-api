@@ -63,7 +63,7 @@ class Phix implements MigrationInterface
         return $data;
     }
 
-    private function dumpStatus(Manager $manager, &$data)
+    protected function dumpStatus(Manager $manager, array &$data): void
     {
         $migrations = $manager->getMigrations('current');
         foreach ($migrations as $version => $migration) {
@@ -71,7 +71,7 @@ class Phix implements MigrationInterface
         }
     }
 
-    private function build(): Manager
+    protected function build(): Manager
     {
         $pg = $this->parse();
         $of = $pg['adapter']; // mysql
@@ -93,7 +93,7 @@ class Phix implements MigrationInterface
         return new Manager($config, new StringInput(''), $output);
     }
 
-    private function parse(): array
+    protected function parse(): array
     {
         // Ejemplo esperado: pgsql:host=localhost;port=5432;dbname=baas;schema=public
         $dsn = $this->config->get("database.url");
@@ -107,8 +107,11 @@ class Phix implements MigrationInterface
             if (trim($chunk) === '') {
                 continue;
             }
-            [$key, $value] = explode('=', $chunk, 2);
-            $parameters[trim($key)] = trim($value);
+            $split = explode('=', $chunk, 2);
+            if (isset($split[1])) {
+                [$key, $value] = $split;
+                $parameters[trim($key)] = trim($value);
+            }
         }
         $response = ['adapter' => $adapter];
         if (isset($parameters['host'])) {
