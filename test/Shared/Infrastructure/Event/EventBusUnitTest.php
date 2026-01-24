@@ -9,10 +9,17 @@ use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
 use Civi\Lughauth\Shared\Infrastructure\Event\EnqueuePublisher;
 use Civi\Lughauth\Shared\Event\PublicEvent;
 
+/**
+ * Unit tests for {@see EventBus}.
+ */
 final class EventBusUnitTest extends TestCase
 {
+    /**
+     * Ensures registered listeners run during dispatch.
+     */
     public function testRegisterListenerDispatches(): void
     {
+        /* Arrange: register a listener and event bus. */
         $publisher = $this->createMock(EnqueuePublisher::class);
         $publisher->expects($this->never())->method('emitChange');
 
@@ -34,13 +41,20 @@ final class EventBusUnitTest extends TestCase
 
         $event = new class () {
         };
+
+        /* Act: dispatch the event. */
         $result = $bus->dispacher->dispatch($event);
 
+        /* Assert: verify the event is returned. */
         $this->assertSame($event, $result);
     }
 
+    /**
+     * Ensures public events are emitted by the publisher.
+     */
     public function testPublicEventIsEmitted(): void
     {
+        /* Arrange: create a public event and publisher. */
         $publisher = $this->createMock(EnqueuePublisher::class);
         $publisher->expects($this->once())
             ->method('emitChange');
@@ -72,6 +86,49 @@ final class EventBusUnitTest extends TestCase
             }
         };
 
+        /* Act: dispatch the public event. */
         $bus->dispacher->dispatch($event);
+
+        /* Assert: verify the publisher receives the event. */
+    }
+
+    /**
+     * Ensures dispatch triggers the registered listener callback.
+     */
+    public function testDispatchExecutesRegisteredListener(): void
+    {
+        /* Arrange: register a listener and an event instance. */
+        $publisher = $this->createMock(EnqueuePublisher::class);
+        $publisher->expects($this->never())->method('emitChange');
+
+        $calls = (object) ['count' => 0];
+        $listener = new class ($calls) {
+            public function __construct(private object $calls)
+            {
+            }
+
+            public function __invoke(object $event): object
+            {
+                $this->calls->count++;
+                return $event;
+            }
+        };
+
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')->willReturnMap([
+            [EnqueuePublisher::class, $publisher],
+            [get_class($listener), $listener]
+        ]);
+
+        $bus = new EventBus($container);
+        $event = new class () {
+        };
+        $bus->registerListener($event::class, get_class($listener));
+
+        /* Act: dispatch the event through the hierarchical dispatcher. */
+        $bus->dispacher->dispatch($event);
+
+        /* Assert: verify the listener was executed. */
+        $this->assertSame(1, $calls->count);
     }
 }

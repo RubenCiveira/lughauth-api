@@ -5,16 +5,30 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Event;
 
+/**
+ * Defines connection and consumption settings for an AMQP queue.
+ */
 class QueueSource
 {
+    /**
+     * Creates a new queue source configuration.
+     */
     public function __construct(
+        /** @var string AMQP DSN. */
         public readonly string $dsn,
+        /** @var string Routing key mask for binding. */
         public readonly string $routingKeyMask,
+        /** @var string Exchange name to bind to. */
         public readonly string $exchangeName,
+        /** @var string Default queue name. */
         public readonly string $defaultQueueName = 'listen',
+        /** @var bool Whether to declare and bind the queue. */
         public readonly bool $declareQueue = true,
+        /** @var int Maximum number of messages to consume per batch. */
         public readonly int $maxMessages = 500,
+        /** @var int Maximum consumption time in seconds. */
         public readonly int $maxSeconds = 20,
+        /** @var int Prefetch count for QoS. */
         public readonly int $prefetch = 10
     ) {
     }

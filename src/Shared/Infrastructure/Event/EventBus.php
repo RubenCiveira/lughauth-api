@@ -11,19 +11,34 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Event\PublicEvent;
 
+/**
+ * Registers and dispatches application events with hierarchical resolution.
+ */
 class EventBus implements EventListenersRegistrarInterface
 {
+    /** @var EventDispatcher Base Symfony dispatcher for listeners. */
     public readonly EventDispatcher $base;
+    /** @var EventDispatcherInterface Dispatcher that emits hierarchical events. */
     public readonly EventDispatcherInterface $dispacher;
 
-    public function __construct(private readonly ContainerInterface $container)
-    {
+    /**
+     * Creates a new event bus tied to the container.
+     */
+    public function __construct(
+        /** @var ContainerInterface Container used to resolve listeners. */
+        private readonly ContainerInterface $container
+    ) {
         $this->base = new EventDispatcher();
         $publisher = $container->get(EnqueuePublisher::class);
         $this->dispacher = new HierarchicalDispatcher($this->base, $publisher);
 
     }
 
+    /**
+     * Registers a listener class for a given event name.
+     *
+     * The listener is resolved from the container and invoked on dispatch.
+     */
     public function registerListener(string $event, string $type): void
     {
         $container = $this->container;
@@ -36,12 +51,27 @@ class EventBus implements EventListenersRegistrarInterface
 }
 
 
+/**
+ * Dispatches events across class hierarchies and public event publishers.
+ */
 class HierarchicalDispatcher implements EventDispatcherInterface
 {
-    public function __construct(private readonly EventDispatcherInterface $dispatcher, private readonly EnqueuePublisher $publisher)
-    {
+    /**
+     * Creates a new hierarchical dispatcher.
+     */
+    public function __construct(
+        /** @var EventDispatcherInterface Dispatcher for invoking listeners. */
+        private readonly EventDispatcherInterface $dispatcher,
+        /** @var EnqueuePublisher Publisher for public events. */
+        private readonly EnqueuePublisher $publisher
+    ) {
     }
 
+    /**
+     * Dispatches the event for each class and interface in its hierarchy.
+     *
+     * @return object The last dispatched event instance.
+     */
     public function dispatch(object $event)
     {
         $result = $event;

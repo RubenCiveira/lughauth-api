@@ -10,11 +10,13 @@ use Interop\Amqp\AmqpTopic;
 use Interop\Amqp\AmqpQueue;
 use Interop\Amqp\Impl\AmqpBind;
 
+/**
+ * Consumes AMQP messages and dispatches decoded payloads to a handler.
+ */
 final class QueueConsumer
 {
     /**
-     * Consume mensajes con una máscara de routing key y procesa cada JSON con el handler.
-     *
+     * Consumes messages matching the routing key mask and processes JSON payloads.
      */
     public function consume(QueueSource $source, callable $handler): ?array
     {
@@ -82,6 +84,9 @@ final class QueueConsumer
         ];
     }
 
+    /**
+     * Builds the default queue name for a routing key mask.
+     */
     private function defaultQueueName(string $routingKeyMask): string
     {
         // Sanitiza la máscara para formar un nombre de cola reproducible

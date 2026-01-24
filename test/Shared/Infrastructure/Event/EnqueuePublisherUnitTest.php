@@ -13,20 +13,35 @@ use Civi\Lughauth\Shared\Infrastructure\Sql\SqlParam;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 
+/**
+ * Unit tests for {@see EnqueuePublisher}.
+ */
 final class EnqueuePublisherUnitTest extends TestCase
 {
+    /**
+     * Ensures events are skipped when the DNS is missing.
+     */
     public function testEmitChangeSkipsWhenDnsMissing(): void
     {
+        /* Arrange: create a publisher without a queue DNS. */
         $config = $this->createConfig(null);
         $template = $this->createMock(SqlTemplate::class);
         $template->expects($this->never())->method('execute');
 
         $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
+
+        /* Act: emit a change with missing DNS. */
         $publisher->emitChange($this->createEvent(['id' => '1'], ['id' => '1']));
+
+        /* Assert: verify no persistence occurs. */
     }
 
+    /**
+     * Ensures diff payloads are stored and queued for publishing.
+     */
     public function testEmitChangeStoresDiffAndClears(): void
     {
+        /* Arrange: configure a publisher with a fake SQL template. */
         $config = $this->createConfig('amqp://test');
         $template = new FakeSqlTemplate([['event_id' => 'e1', 'retries' => 0, 'event_type' => 'user.created']]);
 
@@ -35,26 +50,40 @@ final class EnqueuePublisherUnitTest extends TestCase
         };
 
         $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
+
+        /* Act: emit a change event. */
         $publisher->emitChange($this->createEvent(['name' => 'new'], ['name' => 'old']));
 
+        /* Assert: verify persistence and diff storage. */
         $this->assertTrue($template->executeCalled);
         $diffParam = $this->findParamInSets($template->executeParams, 'diff');
         $this->assertSame(json_encode(['name' => 'old']), $diffParam->value);
     }
 
+    /**
+     * Ensures insert failures raise an exception.
+     */
     public function testEmitChangeThrowsWhenInsertFails(): void
     {
+        /* Arrange: configure a template that fails to insert. */
         $config = $this->createConfig('amqp://test');
         $template = new FakeSqlTemplate([], false);
 
         $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
 
+        /* Act: emit a change with a failing insert. */
         $this->expectException(Exception::class);
         $publisher->emitChange($this->createEvent([], ['id' => '1']));
+
+        /* Assert: verify the exception is thrown. */
     }
 
+    /**
+     * Ensures retries are updated when sending fails.
+     */
     public function testSendEventsUpdatesRetriesOnFailure(): void
     {
+        /* Arrange: prepare a pending event and failing context factory. */
         $config = $this->createConfig('amqp://test');
         $template = new FakeSqlTemplate([
             ['event_id' => 'e1', 'retries' => 0, 'event_type' => 'user.created']
@@ -65,8 +94,11 @@ final class EnqueuePublisherUnitTest extends TestCase
         };
 
         $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
+
+        /* Act: attempt to send pending events. */
         $publisher->sendEvents();
 
+        /* Assert: verify retry metadata is updated. */
         $retryParam = $this->findParamInSets($template->executeParams, 'retries');
         $this->assertSame(1, $retryParam->value);
     }

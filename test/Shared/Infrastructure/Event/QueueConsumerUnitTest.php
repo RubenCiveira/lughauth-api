@@ -18,10 +18,17 @@ namespace {
     use Civi\Lughauth\Shared\Infrastructure\Event\QueueConsumer;
     use Civi\Lughauth\Shared\Infrastructure\Event\QueueSource;
 
+    /**
+     * Unit tests for {@see QueueConsumer}.
+     */
     final class QueueConsumerUnitTest extends TestCase
     {
+        /**
+         * Ensures messages are processed and failures tracked.
+         */
         public function testConsumeProcessesMessages(): void
         {
+            /* Arrange: create a context with valid and invalid messages. */
             FakeAmqpConnectionFactory::$contextFactory = function () {
                 return new FakeAmqpContext([
                     new FakeAmqpIncomingMessage(json_encode(['ok' => 1])),
@@ -32,21 +39,99 @@ namespace {
             $source = new QueueSource('amqp://test', 'user.*', 'exchange', 'queue', true, 10, 1, 1);
             $consumer = new QueueConsumer();
 
+            /* Act: consume the batch of messages. */
             $result = $consumer->consume($source, function (array $json) {
                 $this->assertSame(['ok' => 1], $json);
             });
 
+            /* Assert: verify processed and failed counts. */
             $this->assertSame(1, $result['processed']);
             $this->assertSame(1, $result['failed']);
         }
 
+        /**
+         * Ensures queue name sanitization is deterministic.
+         */
         public function testDefaultQueueNameSanitizes(): void
         {
+            /* Arrange: create the queue consumer and reflector. */
             $consumer = new QueueConsumer();
             $method = new ReflectionMethod($consumer, 'defaultQueueName');
             $method->setAccessible(true);
 
-            $this->assertSame('app.consumer.user._', $method->invoke($consumer, 'user.*'));
+            /* Act: resolve the sanitized queue name. */
+            $queueName = $method->invoke($consumer, 'user.*');
+
+            /* Assert: verify invalid characters are replaced. */
+            $this->assertSame('app.consumer.user._', $queueName);
+        }
+
+        /**
+         * Ensures the consumer falls back to receive() when needed.
+         */
+        public function testConsumeFallsBackToReceiveWhenNoWaitMissing(): void
+        {
+            /* Arrange: configure a consumer without receiveNoWait. */
+            FakeAmqpConnectionFactory::$contextFactory = function () {
+                return new NoWaitAmqpContext([
+                    new FakeAmqpIncomingMessage(json_encode(['ok' => 1]))
+                ]);
+            };
+
+            $source = new QueueSource('amqp://test', 'user.*', 'exchange', 'queue', true, 10, 1, 1);
+            $consumer = new QueueConsumer();
+
+            /* Act: consume messages through the fallback receive path. */
+            $result = $consumer->consume($source, function (array $json) {
+                $this->assertSame(['ok' => 1], $json);
+            });
+
+            /* Assert: verify the message was processed successfully. */
+            $this->assertSame(1, $result['processed']);
+            $this->assertSame(0, $result['failed']);
+        }
+    }
+
+    /**
+     * AMQP context that returns a consumer without receiveNoWait.
+     */
+    final class NoWaitAmqpContext extends FakeAmqpContext
+    {
+        public function createConsumer(\Interop\Amqp\Impl\AmqpQueue $queue)
+        {
+            return new NoWaitAmqpConsumer($this->messages);
+        }
+    }
+
+    /**
+     * Consumer stub that only supports receive().
+     */
+    final class NoWaitAmqpConsumer
+    {
+        public int $acked = 0;
+        public int $rejected = 0;
+
+        public function __construct(private array $messages)
+        {
+        }
+
+        public function receive(int $timeout): ?FakeAmqpIncomingMessage
+        {
+            if (empty($this->messages)) {
+                return null;
+            }
+
+            return array_shift($this->messages);
+        }
+
+        public function acknowledge(FakeAmqpIncomingMessage $message): void
+        {
+            $this->acked++;
+        }
+
+        public function reject(FakeAmqpIncomingMessage $message, bool $requeue): void
+        {
+            $this->rejected++;
         }
     }
 }

@@ -20,18 +20,31 @@ use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 
+/**
+ * Persists and publishes public domain events to an AMQP exchange.
+ */
 class EnqueuePublisher
 {
     use LoggerAwareTrait;
 
+    /** @var ?string Retention period for published events. */
     private readonly ?string $sendRetention;
+    /** @var ?string Retention period for stuck events. */
     private readonly ?string $stuckRetention;
+    /** @var ?string AMQP DNS string. */
     private readonly ?string $dns;
+    /** @var ?string AMQP topic name. */
     private readonly ?string $topic;
 
+    /**
+     * Creates a new enqueue publisher with persistence settings.
+     */
     public function __construct(
+        /** @var AppConfig Application configuration. */
         AppConfig $conf,
+        /** @var SqlTemplate SQL helper for persistence. */
         private readonly SqlTemplate $template,
+        /** @var TraceContext Trace context for correlation IDs. */
         private readonly TraceContext $context
     ) {
         $this->dns = $conf->get('event.queue.dns');
@@ -40,6 +53,9 @@ class EnqueuePublisher
         $this->stuckRetention = $conf->get('app.event.queue.retention.stuck', '3D');
     }
 
+    /**
+     * Stores a public event and triggers publishing.
+     */
     public function emitChange(PublicEvent $event)
     {
         if (!$this->dns || !str_starts_with($this->dns, 'amqp://')) {
@@ -83,6 +99,9 @@ class EnqueuePublisher
         // register_shutdown_function([$this, 'sendEvents']);
     }
 
+    /**
+     * Sends pending events and updates retry metadata.
+     */
     public function sendEvents()
     {
         $values = $this->template->query(<<<SQL

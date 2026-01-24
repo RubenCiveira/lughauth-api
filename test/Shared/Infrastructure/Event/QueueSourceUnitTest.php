@@ -6,19 +6,37 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Event\QueueSource;
 
+/**
+ * Unit tests for {@see QueueSource}.
+ */
 final class QueueSourceUnitTest extends TestCase
 {
+    /**
+     * Ensures constructor arguments are stored as properties.
+     */
     public function testPropertiesStored(): void
     {
+        /* Arrange: build a queue source configuration. */
         $source = new QueueSource('dsn', 'user.*', 'exchange', 'queue', false, 10, 5, 2);
 
-        $this->assertSame('dsn', $source->dsn);
-        $this->assertSame('user.*', $source->routingKeyMask);
-        $this->assertSame('exchange', $source->exchangeName);
-        $this->assertSame('queue', $source->defaultQueueName);
-        $this->assertFalse($source->declareQueue);
-        $this->assertSame(10, $source->maxMessages);
-        $this->assertSame(5, $source->maxSeconds);
-        $this->assertSame(2, $source->prefetch);
+        /* Act: read the stored properties. */
+        $dsn = $source->dsn;
+        $mask = $source->routingKeyMask;
+        $exchange = $source->exchangeName;
+        $queueName = $source->defaultQueueName;
+        $declare = $source->declareQueue;
+        $maxMessages = $source->maxMessages;
+        $maxSeconds = $source->maxSeconds;
+        $prefetch = $source->prefetch;
+
+        /* Assert: verify property values are preserved. */
+        $this->assertSame('dsn', $dsn);
+        $this->assertSame('user.*', $mask);
+        $this->assertSame('exchange', $exchange);
+        $this->assertSame('queue', $queueName);
+        $this->assertFalse($declare);
+        $this->assertSame(10, $maxMessages);
+        $this->assertSame(5, $maxSeconds);
+        $this->assertSame(2, $prefetch);
     }
 }

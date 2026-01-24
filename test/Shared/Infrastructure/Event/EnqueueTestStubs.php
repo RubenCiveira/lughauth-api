@@ -71,7 +71,7 @@ if (!class_exists('FakeAmqpConnectionFactory')) {
             $this->qos = [$prefetchSize, $prefetchCount, $global];
         }
 
-        public function createConsumer(AmqpQueue $queue): FakeAmqpConsumer
+        public function createConsumer(AmqpQueue $queue)
         {
             return new FakeAmqpConsumer($this->messages);
         }
