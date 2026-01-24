@@ -41,13 +41,13 @@ class AuditableStore implements FileStorageInterface
     }
 
     #[Override]
-    public function replaceContent(FileStoreKey $key, BinaryContent $content)
+    public function replaceContent(FileStoreKey $key, BinaryContent $content): void
     {
         $this->base->replaceContent($key, $content);
     }
 
     #[Override]
-    public function deleteFile(FileStoreKey $key)
+    public function deleteFile(FileStoreKey $key): void
     {
         $this->base->deleteFile($key);
     }

@@ -33,12 +33,11 @@ final class FileStorageInterfaceUnitTest extends TestCase
                 return $key;
             }
 
-            public function replaceContent(FileStoreKey $key, BinaryContent $content)
+            public function replaceContent(FileStoreKey $key, BinaryContent $content): void
             {
-                return $key;
             }
 
-            public function deleteFile(FileStoreKey $key)
+            public function deleteFile(FileStoreKey $key): void
             {
             }
         };

@@ -15,7 +15,7 @@ interface FileStorageInterface
 
     public function commitContent(FileStoreKey $key): FileStoreKey;
 
-    public function replaceContent(FileStoreKey $key, BinaryContent $content);
+    public function replaceContent(FileStoreKey $key, BinaryContent $content): void;
 
-    public function deleteFile(FileStoreKey $key);
+    public function deleteFile(FileStoreKey $key): void;
 }
