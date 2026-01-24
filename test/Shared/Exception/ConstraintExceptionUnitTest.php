@@ -7,15 +7,30 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
+/**
+ * Unit tests for ConstraintException.
+ */
 class ConstraintExceptionUnitTest extends TestCase
 {
+    /**
+     * Ensures ofFail builds an exception with multiple failures.
+     */
     public function testOfFailCreatesExceptionWithFails()
     {
+        /*
+         * Arrange: build multiple ConstraintFail instances.
+         */
         $fail1 = new ConstraintFail('CODE1', ['field1'], ['wrong1'], ['expected1']);
         $fail2 = new ConstraintFail('CODE2', ['field2'], ['wrong2'], ['expected2']);
 
+        /*
+         * Act: create the exception from multiple failures.
+         */
         $exception = ConstraintException::ofFail($fail1, $fail2);
 
+        /*
+         * Assert: verify the exception reports the expected failures.
+         */
         $this->assertInstanceOf(ConstraintException::class, $exception);
         $this->assertTrue($exception->includeViolation(ConstraintFail::class));
         $this->assertFalse($exception->includeViolation(ConstraintException::class));
@@ -23,10 +38,27 @@ class ConstraintExceptionUnitTest extends TestCase
         $this->assertTrue($exception->includeViolationCode('CODE2'));
     }
 
+    /**
+     * Ensures ofError creates an exception with a single failure.
+     */
     public function testOfErrorCreatesExceptionWithSingleFail()
     {
-        $exception = ConstraintException::ofError('ERR_CODE', ['fieldA'], ['valA'], ['expectedA']);
+        /*
+         * Arrange: define a single failure payload for ofError.
+         */
+        $code = 'ERR_CODE';
+        $fields = ['fieldA'];
+        $wrongValues = ['valA'];
+        $expectedValues = ['expectedA'];
 
+        /*
+         * Act: create the exception from the single failure.
+         */
+        $exception = ConstraintException::ofError($code, $fields, $wrongValues, $expectedValues);
+
+        /*
+         * Assert: verify the exception tracks the expected failure.
+         */
         $this->assertInstanceOf(ConstraintException::class, $exception);
         $this->assertTrue($exception->includeViolation(ConstraintFail::class));
         $this->assertFalse($exception->includeViolation(ConstraintException::class));
@@ -34,40 +66,81 @@ class ConstraintExceptionUnitTest extends TestCase
         $this->assertFalse($exception->includeViolationCode('ERR_NONE'));
     }
 
+    /**
+     * Ensures the iterator yields all failure codes.
+     */
     public function testIteratorWorksCorrectly()
     {
+        /*
+         * Arrange: create an exception with two failures.
+         */
         $fail1 = new ConstraintFail('CODE1', ['field1'], ['wrong1'], ['expected1']);
         $fail2 = new ConstraintFail('CODE2', ['field2'], ['wrong2'], ['expected2']);
         $exception = ConstraintException::ofFail($fail1, $fail2);
 
+        /*
+         * Act: iterate over the exception and collect codes.
+         */
         $collectedCodes = [];
         foreach ($exception as $fail) {
             $collectedCodes[] = $fail->code;
         }
 
+        /*
+         * Assert: verify the iterator yields the expected codes.
+         */
         $this->assertEquals(['CODE1', 'CODE2'], $collectedCodes);
     }
 
+    /**
+     * Ensures valid, key, and current work after rewind.
+     */
     public function testValidAndKey()
     {
+        /*
+         * Arrange: create an exception with a single failure and rewind it.
+         */
         $fail = new ConstraintFail('CODEX', ['f'], ['w'], ['e']);
         $exception = ConstraintException::ofFail($fail);
         $exception->rewind();
 
-        $this->assertTrue($exception->valid());
-        $this->assertSame(0, $exception->key());
-        $this->assertInstanceOf(ConstraintFail::class, $exception->current());
+        /*
+         * Act: retrieve validity, key, and current element.
+         */
+        $isValid = $exception->valid();
+        $key = $exception->key();
+        $current = $exception->current();
+
+        /*
+         * Assert: verify the iterator reports the expected state.
+         */
+        $this->assertTrue($isValid);
+        $this->assertSame(0, $key);
+        $this->assertInstanceOf(ConstraintFail::class, $current);
     }
 
+    /**
+     * Ensures valid becomes false after iterating past the end.
+     */
     public function testNextAndValid()
     {
+        /*
+         * Arrange: create an exception with two failures and rewind it.
+         */
         $fail1 = new ConstraintFail('C1', ['f1'], ['w1'], ['e1']);
         $fail2 = new ConstraintFail('C2', ['f2'], ['w2'], ['e2']);
         $exception = ConstraintException::ofFail($fail1, $fail2);
         $exception->rewind();
+
+        /*
+         * Act: advance past the end of the iterator.
+         */
         $exception->next();
         $exception->next();
 
+        /*
+         * Assert: verify the iterator is no longer valid.
+         */
         $this->assertFalse($exception->valid());
     }
 }

@@ -7,23 +7,56 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\CountryCode;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the CountryCode rule.
+ */
 final class CountryCodeUnitTest extends TestCase
 {
+    /**
+     * Confirms valid ISO country codes pass validation.
+     */
     public function testValidCountryCodes(): void
     {
+        /*
+         * Arrange: create the country code rule.
+         */
         $rule = new CountryCode();
-        $this->assertNull($rule->check('ES'));
-        $this->assertNull($rule->check('US'));
-        $this->assertNull($rule->check('FR'));
+
+        /*
+         * Act: validate a sample of valid country codes.
+         */
+        $first = $rule->check('ES');
+        $second = $rule->check('US');
+        $third = $rule->check('FR');
+
+        /*
+         * Assert: verify each valid code returns no failure.
+         */
+        $this->assertNull($first);
+        $this->assertNull($second);
+        $this->assertNull($third);
     }
 
+    /**
+     * Confirms invalid country codes fail validation.
+     */
     public function testInvalidCountryCodes(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid country codes.
+         */
         $rule = new CountryCode();
         $invalidCodes = ['ESP', 'U', 'es', 'zz', ''];
 
+        /*
+         * Act: validate each invalid country code.
+         */
         foreach ($invalidCodes as $code) {
             $result = $rule->check($code);
+
+            /*
+             * Assert: verify each invalid code yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_country_code', $result->code);
             $this->assertEquals($code, $result->value);

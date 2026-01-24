@@ -21,10 +21,19 @@ namespace {
     use Civi\Lughauth\Shared\Observability\SpanHolder;
     use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
+    /**
+     * Unit tests for TracerAwareTrait.
+     */
     final class TracerAwareTraitUnitTest extends TestCase
     {
+        /**
+         * Ensures missing tracer uses fallback span holder.
+         */
         public function testSetTracerFromContainerMissing(): void
         {
+            /*
+             * Arrange: build a trait consumer and a container with no tracer.
+             */
             $service = new class () {
                 use TracerAwareTrait;
             };
@@ -35,15 +44,27 @@ namespace {
                 ->willReturn(false);
             $container->expects($this->never())->method('get');
 
+            /*
+             * Act: resolve the tracer and start a span.
+             */
             $service->setTracerFromContainer($container);
-
             $holder = $service->startSpan('fallback');
+
+            /*
+             * Assert: verify the span holder is returned and not recording.
+             */
             $this->assertInstanceOf(SpanHolder::class, $holder);
             $this->assertFalse($holder->isRecording());
         }
 
+        /**
+         * Ensures startSpan delegates to the configured tracer.
+         */
         public function testStartSpanUsesTracer(): void
         {
+            /*
+             * Arrange: build a trait consumer and a tracer with a span builder.
+             */
             $service = new class () {
                 use TracerAwareTrait;
             };
@@ -66,14 +87,26 @@ namespace {
                 ->with('operation')
                 ->willReturn($builder);
 
+            /*
+             * Act: set the tracer and start a span with attributes.
+             */
             $service->setTracer($tracer);
-
             $holder = $service->startSpan('operation', ['user' => 'u1', 'count' => 2]);
+
+            /*
+             * Assert: verify a span holder is returned.
+             */
             $this->assertInstanceOf(SpanHolder::class, $holder);
         }
 
+        /**
+         * Ensures the tracer is resolved from the container.
+         */
         public function testSetTracerFromContainerUsesTracer(): void
         {
+            /*
+             * Arrange: build a container that returns a tracer.
+             */
             $service = new class () {
                 use TracerAwareTrait;
             };
@@ -88,6 +121,9 @@ namespace {
                 ->with(TracerInterface::class)
                 ->willReturn($tracer);
 
+            /*
+             * Act: resolve the tracer and start a span.
+             */
             $service->setTracerFromContainer($container);
 
             $span = $this->createMock(SpanInterface::class);
@@ -107,6 +143,10 @@ namespace {
                 ->willReturn($builder);
 
             $service->startSpan('container');
+
+            /*
+             * Assert: confirm the span builder was invoked via the tracer.
+             */
         }
     }
 }

@@ -32,16 +32,15 @@ class ConstraintFail
     }
     /**
      * Constructs a new ConstraintFail.
-     *
-     * @param string $code A string identifying the type of validation error.
-     * @param array $fields The list of field names associated with the failure.
-     * @param array $wrongValues The actual values that did not pass validation.
-     * @param array $expectedValues (optional) The values that would have passed validation.
      */
     public function __construct(
+        /** @var string A string identifying the type of validation error. */
         public readonly string $code,
+        /** @var string[] The list of field names associated with the failure. */
         public readonly array $fields,
+        /** @var array<int, mixed> The actual values that did not pass validation. */
         public readonly array $wrongValues,
+        /** @var array<string, mixed> The values that would have passed validation. */
         public readonly array $expectedValues = [],
     ) {
     }

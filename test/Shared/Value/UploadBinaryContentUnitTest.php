@@ -8,59 +8,90 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UploadedFileInterface;
 use Civi\Lughauth\Shared\Value\UploadBinaryContent;
 
+/**
+ * Unit tests for UploadBinaryContent.
+ */
 final class UploadBinaryContentUnitTest extends TestCase
 {
+    /**
+     * Validates successful upload handling and cleanup.
+     */
     public function testFromUploadValid(): void
     {
+        /*
+         * Arrange: create a temp file and mock an uploaded file/request pair.
+         */
         $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
         file_put_contents($tmpPath, 'hello test');
 
-        // Mock UploadedFile
         $upload = $this->createMock(UploadedFileInterface::class);
         $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
         $upload->method('getClientFilename')->willReturn('test.txt');
         $upload->method('getClientMediaType')->willReturn('text/plain');
         $upload->expects($this->once())->method('moveTo')->with($this->callback(function ($path) use (&$movedPath, $tmpPath) {
-            // Simulate moving the file
             copy($tmpPath, $path);
             $movedPath = $path;
             return true;
         }));
 
-        // Mock Request
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
 
-        // Run method
+        /*
+         * Act: build UploadBinaryContent from the mocked upload and read its stream.
+         */
         $binary = UploadBinaryContent::fromUpload($request, 'file');
-
-        $this->assertInstanceOf(UploadBinaryContent::class, $binary);
-        $this->assertSame('test.txt', $binary->name);
-        $this->assertSame('text/plain', $binary->mime);
-        $this->assertEquals('hello test', stream_get_contents($binary->stream));
+        $contents = stream_get_contents($binary->stream);
 
         $pathProperty = (new ReflectionClass($binary))->getProperty('path');
         $pathProperty->setAccessible(true);
         $path = $pathProperty->getValue($binary);
-        // $path = (fn() => $this->path)->call($binary);
+
+        /*
+         * Assert: verify metadata, content, and cleanup behavior for the upload.
+         */
+        $this->assertInstanceOf(UploadBinaryContent::class, $binary);
+        $this->assertSame('test.txt', $binary->name);
+        $this->assertSame('text/plain', $binary->mime);
+        $this->assertEquals('hello test', $contents);
         $this->assertFileExists($path);
-        unset($binary); // triggers __destruct
+
+        unset($binary);
         $this->assertFileDoesNotExist($path);
     }
 
+    /**
+     * Ensures missing uploads raise a validation error.
+     */
     public function testMissingFileThrows(): void
     {
+        /*
+         * Arrange: mock a request with no uploaded files and expect an exception.
+         */
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getUploadedFiles')->willReturn([]);
 
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('file is not attached');
 
+        /*
+         * Act: attempt to build UploadBinaryContent with a missing file.
+         */
         UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the missing file triggers the expected exception.
+         */
     }
 
+    /**
+     * Ensures missing file upload errors are mapped correctly.
+     */
     public function testUploadErrorNoFile(): void
     {
+        /*
+         * Arrange: mock an uploaded file with a no-file error and expect an exception.
+         */
         $upload = $this->createMock(UploadedFileInterface::class);
         $upload->method('getError')->willReturn(UPLOAD_ERR_NO_FILE);
 
@@ -70,11 +101,24 @@ final class UploadBinaryContentUnitTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('No file sent.');
 
+        /*
+         * Act: attempt to build UploadBinaryContent with the error upload.
+         */
         UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the error maps to the expected exception.
+         */
     }
 
+    /**
+     * Ensures size limit errors are mapped correctly.
+     */
     public function testUploadErrorExceededSize(): void
     {
+        /*
+         * Arrange: mock an uploaded file with a size error and expect an exception.
+         */
         $upload = $this->createMock(UploadedFileInterface::class);
         $upload->method('getError')->willReturn(UPLOAD_ERR_INI_SIZE);
 
@@ -84,11 +128,24 @@ final class UploadBinaryContentUnitTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Exceeded filesize limit.');
 
+        /*
+         * Act: attempt to build UploadBinaryContent with the size error upload.
+         */
         UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the size error maps to the expected exception.
+         */
     }
 
+    /**
+     * Ensures unknown upload errors are mapped correctly.
+     */
     public function testUploadErrorUnknown(): void
     {
+        /*
+         * Arrange: mock an uploaded file with an unknown error and expect an exception.
+         */
         $upload = $this->createMock(UploadedFileInterface::class);
         $upload->method('getError')->willReturn(123);
 
@@ -98,6 +155,13 @@ final class UploadBinaryContentUnitTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Unknown errors.');
 
+        /*
+         * Act: attempt to build UploadBinaryContent with the unknown error upload.
+         */
         UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the unknown error maps to the expected exception.
+         */
     }
 }

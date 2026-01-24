@@ -7,22 +7,54 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Email;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the Email rule.
+ */
 final class EmailUnitTest extends TestCase
 {
+    /**
+     * Confirms valid email addresses pass validation.
+     */
     public function testValidEmails(): void
     {
+        /*
+         * Arrange: create the email rule.
+         */
         $rule = new Email();
-        $this->assertNull($rule->check('test@example.com'));
-        $this->assertNull($rule->check('john.doe@domain.co.uk'));
+
+        /*
+         * Act: validate known valid email addresses.
+         */
+        $first = $rule->check('test@example.com');
+        $second = $rule->check('john.doe@domain.co.uk');
+
+        /*
+         * Assert: verify valid emails return no failure.
+         */
+        $this->assertNull($first);
+        $this->assertNull($second);
     }
 
+    /**
+     * Confirms invalid email addresses fail validation.
+     */
     public function testInvalidEmails(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid emails.
+         */
         $rule = new Email();
         $invalid = ['@example.com', 'test@', 'test@.com', 'no-at-symbol.com', '', 'test@@example.com'];
 
+        /*
+         * Act: validate each invalid email address.
+         */
         foreach ($invalid as $email) {
             $result = $rule->check($email);
+
+            /*
+             * Assert: verify each invalid email yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_email', $result->code);
             $this->assertEquals($email, $result->value);

@@ -18,10 +18,9 @@ class In implements Rule
 {
     /**
      * Create a rule with the list of valid values.
-     *
-     * @param array $haystack The array of allowed values.
      */
     public function __construct(
+        /** @var array<int, mixed> The array of allowed values. */
         private readonly array $haystack
     ) {
     }

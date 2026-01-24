@@ -9,10 +9,19 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Security\Rbac\LughMapper;
 
+/**
+ * Unit tests for Handler.
+ */
 final class HandlerUnitTest extends TestCase
 {
+    /**
+     * Ensures the handler is disabled when no RBAC URL is configured.
+     */
     public function testModeDisabledByDefault(): void
     {
+        /*
+         * Arrange: configure RBAC to be disabled and create a handler.
+         */
         $config = $this->createMock(AppConfig::class);
         $config->expects($this->once())
             ->method('get')
@@ -30,17 +39,33 @@ final class HandlerUnitTest extends TestCase
         $handler = new Handler($config, $mapper);
         $identity = new Identity(false);
 
+        /*
+         * Act: invoke handler methods while disabled.
+         */
         $handler->registerResourceAction('users', 'read', 'public');
         $handler->registerResourceAttribute('users', 'email', 'hidden');
         $handler->flush();
 
-        $this->assertSame([], $handler->hiddenFields($identity, 'users'));
-        $this->assertSame([], $handler->uneditableFields($identity, 'users'));
-        $this->assertTrue($handler->allow($identity, 'users', 'read'));
+        $hidden = $handler->hiddenFields($identity, 'users');
+        $uneditable = $handler->uneditableFields($identity, 'users');
+        $allowed = $handler->allow($identity, 'users', 'read');
+
+        /*
+         * Assert: verify defaults are returned when disabled.
+         */
+        $this->assertSame([], $hidden);
+        $this->assertSame([], $uneditable);
+        $this->assertTrue($allowed);
     }
 
+    /**
+     * Ensures the handler delegates to the mapper when enabled.
+     */
     public function testModeEnabledDelegatesToMapper(): void
     {
+        /*
+         * Arrange: configure RBAC to be enabled and mock mapper behavior.
+         */
         $config = $this->createMock(AppConfig::class);
         $config->expects($this->once())
             ->method('get')
@@ -68,12 +93,22 @@ final class HandlerUnitTest extends TestCase
         $handler = new Handler($config, $mapper);
         $identity = new Identity(false);
 
+        /*
+         * Act: invoke handler methods while enabled.
+         */
         $handler->registerResourceAction('users', 'read', 'public');
         $handler->registerResourceAttribute('users', 'email', 'hidden');
         $handler->flush();
 
-        $this->assertSame(['secret'], $handler->hiddenFields($identity, 'users'));
-        $this->assertSame(['createdAt'], $handler->uneditableFields($identity, 'users'));
-        $this->assertFalse($handler->allow($identity, 'users', 'read'));
+        $hidden = $handler->hiddenFields($identity, 'users');
+        $uneditable = $handler->uneditableFields($identity, 'users');
+        $allowed = $handler->allow($identity, 'users', 'read');
+
+        /*
+         * Assert: verify results come from the mapper.
+         */
+        $this->assertSame(['secret'], $hidden);
+        $this->assertSame(['createdAt'], $uneditable);
+        $this->assertFalse($allowed);
     }
 }

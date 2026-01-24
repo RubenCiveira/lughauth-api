@@ -7,30 +7,62 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Alpha;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the Alpha rule.
+ */
 final class AlphaUnitTest extends TestCase
 {
+    /**
+     * Confirms alphabetic strings pass validation.
+     */
     public function testValidAlphabetic(): void
     {
+        /*
+         * Arrange: create the alphabetic rule.
+         */
         $rule = new Alpha();
-        $this->assertNull($rule->check('abc'));
-        $this->assertNull($rule->check('XYZ'));
-        $this->assertNull($rule->check('TestCase'));
+
+        /*
+         * Act: validate a set of alphabetic values.
+         */
+        $first = $rule->check('abc');
+        $second = $rule->check('XYZ');
+        $third = $rule->check('TestCase');
+
+        /*
+         * Assert: verify all valid values return no failure.
+         */
+        $this->assertNull($first);
+        $this->assertNull($second);
+        $this->assertNull($third);
     }
 
+    /**
+     * Confirms non-alphabetic strings fail validation.
+     */
     public function testInvalidAlphabetic(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid values.
+         */
         $rule = new Alpha();
-
         $invalidValues = [
-            'abc123',     // contains digits
-            'hello world', // contains space
-            '!',           // symbol
-            'äöü',         // non-ASCII letters
-            '',            // empty string
+            'abc123',
+            'hello world',
+            '!',
+            'äöü',
+            '',
         ];
 
+        /*
+         * Act: validate each invalid alphabetic value.
+         */
         foreach ($invalidValues as $value) {
             $result = $rule->check($value);
+
+            /*
+             * Assert: verify each invalid value yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_alpha', $result->code);
             $this->assertEquals($value, $result->value);

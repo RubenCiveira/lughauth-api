@@ -20,10 +20,19 @@ namespace {
     use Prometheus\Gauge;
     use Civi\Lughauth\Shared\Observability\MetricAwareTrait;
 
+    /**
+     * Unit tests for MetricAwareTrait.
+     */
     final class MetricAwareTraitUnitTest extends TestCase
     {
+        /**
+         * Ensures missing registry falls back without errors.
+         */
         public function testSetMetricRegistryFromContainerMissing(): void
         {
+            /*
+             * Arrange: build a trait consumer and a container with no registry.
+             */
             $service = new class () {
                 use MetricAwareTrait;
             };
@@ -34,17 +43,28 @@ namespace {
                 ->willReturn(false);
             $container->expects($this->never())->method('get');
 
+            /*
+             * Act: resolve the registry and invoke metric operations.
+             */
             $service->setMetricRegistryFromContainer($container);
-
             $service->incrementCounter('hits');
             $service->observeHistogram('latency', 1.2);
             $service->setGauge('memory', 128);
 
+            /*
+             * Assert: confirm the fallback path completed.
+             */
             $this->assertTrue(true);
         }
 
+        /**
+         * Ensures metric operations use the provided registry.
+         */
         public function testMetricOperationsUseRegistry(): void
         {
+            /*
+             * Arrange: build a trait consumer with a mocked registry.
+             */
             $service = new class () {
                 use MetricAwareTrait;
             };
@@ -78,15 +98,27 @@ namespace {
                 ->with('app', 'memory', 'Auto-generated gauge', ['route'])
                 ->willReturn($gauge);
 
+            /*
+             * Act: set the registry and record metrics.
+             */
             $service->setMetricRegistry($registry);
-
             $service->incrementCounter('hits', ['route' => 'api'], 2.5);
             $service->observeHistogram('latency', 3.4, ['route' => 'api']);
             $service->setGauge('memory', 7.0, ['route' => 'api']);
+
+            /*
+             * Assert: verify the registry methods were invoked.
+             */
         }
 
+        /**
+         * Ensures registry resolution from container uses the registry.
+         */
         public function testSetMetricRegistryFromContainerUsesRegistry(): void
         {
+            /*
+             * Arrange: create a container that returns a registry.
+             */
             $service = new class () {
                 use MetricAwareTrait;
             };
@@ -111,8 +143,15 @@ namespace {
                 ->with(CollectorRegistry::class)
                 ->willReturn($registry);
 
+            /*
+             * Act: resolve the registry and record a counter.
+             */
             $service->setMetricRegistryFromContainer($container);
             $service->incrementCounter('hits');
+
+            /*
+             * Assert: confirm the counter was recorded with defaults.
+             */
         }
     }
 }

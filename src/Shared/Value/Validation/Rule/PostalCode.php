@@ -17,11 +17,10 @@ use Respect\Validation\Validator;
 class PostalCode implements Rule
 {
     /**
-     * Validate the postal code on reference to a country
-     *
-     * @param string $countryCode The country code for postal code validation.
+     * Validate the postal code on reference to a country.
      */
     public function __construct(
+        /** @var string The country code for postal code validation. */
         private readonly string $countryCode
     ) {
     }

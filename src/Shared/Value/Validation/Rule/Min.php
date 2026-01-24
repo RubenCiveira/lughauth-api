@@ -17,11 +17,10 @@ use Respect\Validation\Validator;
 class Min implements Rule
 {
     /**
-     * Create a rule witch value must be al least the parameter
-     *
-     * @param mixed $min The minimum value.
+     * Create a rule that enforces a minimum value.
      */
     public function __construct(
+        /** @var int The minimum value. */
         private readonly int $min
     ) {
     }

@@ -5,7 +5,16 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Event;
 
+/**
+ * Registers event listeners for application events.
+ */
 interface EventListenersRegistrarInterface
 {
+    /**
+     * Registers a listener class for a given event.
+     *
+     * @param string $event Event name to register.
+     * @param string $type Listener class or service identifier.
+     */
     public function registerListener(string $event, string $type): void;
 }

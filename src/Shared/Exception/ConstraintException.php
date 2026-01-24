@@ -39,13 +39,13 @@ class ConstraintException extends \RuntimeException implements \Iterator
     }
 
     /**
-     * Constructor.
+     * Constructs the exception with a list of constraint failures.
      * TODO: make private
-     *
-     * @param ConstraintFail[] $fails The array of validation failures.
      */
-    public function __construct(private array $fails)
-    {
+    public function __construct(
+        /** @var ConstraintFail[] The array of validation failures. */
+        private array $fails
+    ) {
     }
 
     /**

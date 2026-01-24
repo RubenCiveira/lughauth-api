@@ -5,23 +5,47 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Security;
 
+/**
+ * Base class for access proposals that include a list of fields.
+ */
 abstract class FieldsAccess
 {
+    /**
+     * Creates a new field access proposal.
+     */
     public function __construct(
+        /** @var array<int, string> Field names included in the proposal. */
         public array $fields
     ) {
     }
-    public function with(string... $fields)
+
+    /**
+     * Adds one or more field names to the proposal.
+     *
+     * @param string ...$fields Field names to include.
+     */
+    public function with(string ...$fields)
     {
         $this->fields = [...$this->fields, ...$fields];
     }
 
+    /**
+     * Adds a list of field names to the proposal.
+     *
+     * @param array<int, string> $fields Field names to include.
+     */
     public function withAll(array $fields)
     {
         $this->fields = [...$this->fields, ...$fields];
     }
 
+    /**
+     * Returns the access mode (view or modify) for the proposal.
+     */
     abstract public function accessMode(): string;
 
+    /**
+     * Returns the resource name associated with the proposal.
+     */
     abstract public function resourceName(): string;
 }

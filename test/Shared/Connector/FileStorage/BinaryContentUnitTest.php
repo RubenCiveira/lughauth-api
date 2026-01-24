@@ -6,17 +6,32 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 
+/**
+ * Unit tests for BinaryContent.
+ */
 final class BinaryContentUnitTest extends TestCase
 {
+    /**
+     * Ensures fromFile creates a BinaryContent instance.
+     */
     public function testFromFileCreatesBinaryContent(): void
     {
+        /*
+         * Arrange: create a temporary file with payload content.
+         */
         $path = tempnam(sys_get_temp_dir(), 'binary_');
         file_put_contents($path, 'payload');
         $content = null;
 
         try {
+            /*
+             * Act: build binary content from the file path.
+             */
             $content = BinaryContent::fromFile($path);
 
+            /*
+             * Assert: verify the binary content metadata and stream.
+             */
             $this->assertSame(basename($path), $content->name);
             $this->assertSame('binary', $content->mime);
             $this->assertInstanceOf(DateTime::class, $content->lastChange);
@@ -29,17 +44,35 @@ final class BinaryContentUnitTest extends TestCase
         }
     }
 
+    /**
+     * Ensures the constructor stores all values.
+     */
     public function testConstructorStoresValues(): void
     {
+        /*
+         * Arrange: create a BinaryContent instance with known values.
+         */
         $date = new DateTime('2024-01-01');
         $stream = fopen('php://temp', 'r+');
         $content = new BinaryContent('name', 'mime', $date, $stream, 'https://example.com/file');
 
-        $this->assertSame('name', $content->name);
-        $this->assertSame('mime', $content->mime);
-        $this->assertSame($date, $content->lastChange);
-        $this->assertSame($stream, $content->stream);
-        $this->assertSame('https://example.com/file', $content->publicUrl);
+        /*
+         * Act: access the public properties on the content.
+         */
+        $name = $content->name;
+        $mime = $content->mime;
+        $lastChange = $content->lastChange;
+        $contentStream = $content->stream;
+        $publicUrl = $content->publicUrl;
+
+        /*
+         * Assert: verify the stored values match the inputs.
+         */
+        $this->assertSame('name', $name);
+        $this->assertSame('mime', $mime);
+        $this->assertSame($date, $lastChange);
+        $this->assertSame($stream, $contentStream);
+        $this->assertSame('https://example.com/file', $publicUrl);
 
         fclose($stream);
     }

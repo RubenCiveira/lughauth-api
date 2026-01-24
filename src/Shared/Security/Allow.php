@@ -67,13 +67,14 @@ class Allow
     }
 
     /**
-     * @param bool $allowed Whether the permission is granted (true) or denied (false).
-     * @param string $name Name or label identifying the permission.
-     * @param string|null $reason Optional explanation or rationale for the decision.
+     * Creates a new permission decision value object.
      */
     public function __construct(
+        /** @var bool Whether the permission is granted (true) or denied (false). */
         public readonly bool $allowed,
+        /** @var string Name or label identifying the permission. */
         public readonly string $name,
+        /** @var string|null Optional explanation or rationale for the decision. */
         public readonly ?string $reason = null,
     ) {
     }

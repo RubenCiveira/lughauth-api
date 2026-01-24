@@ -6,21 +6,57 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
+/**
+ * Unit tests for UnauthorizedException.
+ */
 class UnauthorizedExceptionUnitTest extends TestCase
 {
+    /**
+     * Ensures default message and code values are used.
+     */
     public function testDefaultValues(): void
     {
+        /*
+         * Arrange: build the exception using default constructor values.
+         */
         $exception = new UnauthorizedException();
-        $this->assertSame('Unauthorized', $exception->getMessage());
-        $this->assertSame(401, $exception->getCode());
+
+        /*
+         * Act: access the exception message and code.
+         */
+        $message = $exception->getMessage();
+        $code = $exception->getCode();
+
+        /*
+         * Assert: verify the default message and status code.
+         */
+        $this->assertSame('Unauthorized', $message);
+        $this->assertSame(401, $code);
     }
 
+    /**
+     * Ensures custom message, code, and previous exceptions are retained.
+     */
     public function testCustomValues(): void
     {
-        $prev = new \Exception("Previous");
+        /*
+         * Arrange: create a previous exception and custom values.
+         */
+        $prev = new \Exception('Previous');
+
+        /*
+         * Act: build the exception with custom inputs.
+         */
         $exception = new UnauthorizedException('Custom message', 403, $prev);
-        $this->assertSame('Custom message', $exception->getMessage());
-        $this->assertSame(403, $exception->getCode());
-        $this->assertSame($prev, $exception->getPrevious());
+        $message = $exception->getMessage();
+        $code = $exception->getCode();
+        $previous = $exception->getPrevious();
+
+        /*
+         * Assert: verify the custom values are reflected in the exception.
+         */
+        $this->assertSame('Custom message', $message);
+        $this->assertSame(403, $code);
+        $this->assertSame($prev, $previous);
     }
 }

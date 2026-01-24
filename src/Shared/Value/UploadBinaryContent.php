@@ -70,7 +70,6 @@ class UploadBinaryContent extends BinaryContent
      * @param string $mime The MIME type of the uploaded file.
      * @param \DateTime $lastChange The timestamp when the file was uploaded.
      * @param mixed $stream The file stream resource.
-     * @param string $path The full path to the temporary stored file.
      * @param string|null $publicUrl Optional public URL for direct access.
      */
     private function __construct(
@@ -78,6 +77,7 @@ class UploadBinaryContent extends BinaryContent
         string $mime,
         \DateTime $lastChange,
         mixed $stream,
+        /** @var string The full path to the temporary stored file. */
         private readonly string $path,
         ?string $publicUrl = null
     ) {

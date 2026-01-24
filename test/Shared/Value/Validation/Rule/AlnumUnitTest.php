@@ -7,29 +7,61 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Alnum;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the Alnum rule.
+ */
 final class AlnumUnitTest extends TestCase
 {
+    /**
+     * Confirms alphanumeric strings pass validation.
+     */
     public function testValidAlphanumeric(): void
     {
+        /*
+         * Arrange: create the alphanumeric rule.
+         */
         $rule = new Alnum();
-        $this->assertNull($rule->check('abc123'));
-        $this->assertNull($rule->check('A1B2C3'));
-        $this->assertNull($rule->check('987654321'));
+
+        /*
+         * Act: validate a set of allowed alphanumeric values.
+         */
+        $first = $rule->check('abc123');
+        $second = $rule->check('A1B2C3');
+        $third = $rule->check('987654321');
+
+        /*
+         * Assert: verify all valid values return no failure.
+         */
+        $this->assertNull($first);
+        $this->assertNull($second);
+        $this->assertNull($third);
     }
 
+    /**
+     * Confirms non-alphanumeric strings fail validation.
+     */
     public function testInvalidAlphanumeric(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid values.
+         */
         $rule = new Alnum();
-
         $invalidValues = [
-            'abc!',     // contains punctuation
-            '123@',     // contains symbol
-            'hello world', // contains space
-            'äöüß',     // non-ASCII letters
+            'abc!',
+            '123@',
+            'hello world',
+            'äöüß',
         ];
 
+        /*
+         * Act: validate each invalid alphanumeric value.
+         */
         foreach ($invalidValues as $value) {
             $result = $rule->check($value);
+
+            /*
+             * Assert: verify each invalid value yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_alnum', $result->code);
             $this->assertEquals($value, $result->value);

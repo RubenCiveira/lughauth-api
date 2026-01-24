@@ -6,11 +6,21 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 
+/**
+ * Unit tests for EventListenersRegistrarInterface.
+ */
 final class EventListenersRegistrarInterfaceUnitTest extends TestCase
 {
+    /**
+     * Ensures the registerListener contract records registrations.
+     */
     public function testRegisterListenerContract(): void
     {
+        /*
+         * Arrange: create a test registrar that stores registrations.
+         */
         $registrar = new class () implements EventListenersRegistrarInterface {
+            /** @var array<int, array{0: string, 1: string}> */
             public array $registered = [];
 
             public function registerListener(string $event, string $type): void
@@ -19,8 +29,14 @@ final class EventListenersRegistrarInterfaceUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: register a listener with the test registrar.
+         */
         $registrar->registerListener('user.registered', 'handler');
 
+        /*
+         * Assert: verify the registration was stored.
+         */
         $this->assertSame([['user.registered', 'handler']], $registrar->registered);
     }
 }

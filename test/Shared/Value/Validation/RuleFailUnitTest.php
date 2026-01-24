@@ -6,14 +6,33 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for RuleFail.
+ */
 final class RuleFailUnitTest extends TestCase
 {
+    /**
+     * Ensures the constructor assigns the expected properties.
+     */
     public function testConstructorAndProperties(): void
     {
+        /*
+         * Arrange: create a RuleFail with known values.
+         */
         $fail = new RuleFail('error_code', 'bad_value', ['expected']);
 
-        $this->assertEquals('error_code', $fail->code);
-        $this->assertEquals('bad_value', $fail->value);
-        $this->assertEquals(['expected'], $fail->expectedValues);
+        /*
+         * Act: access the public properties on the RuleFail instance.
+         */
+        $code = $fail->code;
+        $value = $fail->value;
+        $expectedValues = $fail->expectedValues;
+
+        /*
+         * Assert: verify the properties match the provided values.
+         */
+        $this->assertEquals('error_code', $code);
+        $this->assertEquals('bad_value', $value);
+        $this->assertEquals(['expected'], $expectedValues);
     }
 }

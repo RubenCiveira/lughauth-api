@@ -5,9 +5,16 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Connector\FileStorage;
 
+/**
+ * Value object that identifies a stored file.
+ */
 class FileStoreKey
 {
+    /**
+     * Creates a new file storage key.
+     */
     public function __construct(
+        /** @var string Unique storage key. */
         public readonly string $key
     ) {
     }

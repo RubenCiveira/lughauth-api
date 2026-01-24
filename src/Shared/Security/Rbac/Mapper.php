@@ -5,7 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Security\Rbac;
 
+/**
+ * Describes a mapper that validates RBAC data sources.
+ */
 interface Mapper
 {
+    /**
+     * Validates the mapper configuration or connectivity.
+     */
     public function validate();
 }

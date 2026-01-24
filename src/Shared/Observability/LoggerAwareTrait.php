@@ -21,12 +21,15 @@ use Psr\Log\LoggerInterface;
 trait LoggerAwareTrait
 {
     /**
-     * Logger instance.
-     *
-     * @var LoggerInterface|null
+     * @var LoggerInterface|null Logger instance.
      */
     protected ?LoggerInterface $logger = null;
 
+    /**
+     * Sets the logger instance from a dependency injection container.
+     *
+     * @param ContainerInterface $container Service container used to resolve the logger.
+     */
     #[Inject]
     public function setLoggerFromContainer(ContainerInterface $container): void
     {

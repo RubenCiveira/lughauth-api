@@ -24,9 +24,10 @@ class ConstraintFailList
     private array $errors = [];
 
     /**
-     * @param string|null $path Optional path prefix to be applied to all added errors' field names.
+     * Creates a new list with an optional path prefix.
      */
     public function __construct(
+        /** @var string|null Optional path prefix to prepend to field names. */
         private readonly ?string $path = null
     ) {
     }

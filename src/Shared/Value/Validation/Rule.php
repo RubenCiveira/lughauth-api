@@ -6,9 +6,17 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Value\Validation;
 
 /**
+ * Defines a validation rule that can return a failure description.
+ *
  * @api
  */
 interface Rule
 {
+    /**
+     * Validates the provided value.
+     *
+     * @param mixed $value The value to validate.
+     * @return RuleFail|null Null when valid, or a failure when invalid.
+     */
     public function check($value): ?RuleFail;
 }

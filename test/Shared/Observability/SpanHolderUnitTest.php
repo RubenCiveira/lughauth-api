@@ -8,40 +8,87 @@ use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\ScopeInterface;
 use Civi\Lughauth\Shared\Observability\SpanHolder;
 
+/**
+ * Unit tests for SpanHolder.
+ */
 final class SpanHolderUnitTest extends TestCase
 {
+    /**
+     * Ensures end is safe when no span exists.
+     */
     public function testEndDoesNothingWhenNoSpan(): void
     {
+        /*
+         * Arrange: create a holder without span or scope.
+         */
         $holder = new SpanHolder(null, null);
+
+        /*
+         * Act: end the span holder.
+         */
         $holder->end();
 
+        /*
+         * Assert: verify the holder reports no recording span.
+         */
         $this->assertFalse($holder->isRecording());
     }
 
+    /**
+     * Ensures end closes the span and detaches the scope.
+     */
     public function testEndClosesSpanAndScope(): void
     {
+        /*
+         * Arrange: create a holder with span and scope mocks.
+         */
         $span = $this->createMock(SpanInterface::class);
         $scope = $this->createMock(ScopeInterface::class);
         $span->expects($this->once())->method('end');
         $scope->expects($this->once())->method('detach');
 
+        /*
+         * Act: end the span holder.
+         */
         $holder = new SpanHolder($span, $scope);
         $holder->end();
+
+        /*
+         * Assert: confirm the span and scope were closed.
+         */
     }
 
+    /**
+     * Ensures isRecording reflects the span state.
+     */
     public function testIsRecordingReturnsSpanState(): void
     {
+        /*
+         * Arrange: create a span that reports recording state.
+         */
         $span = $this->createMock(SpanInterface::class);
         $scope = $this->createMock(ScopeInterface::class);
         $span->expects($this->once())->method('isRecording')->willReturn(true);
 
+        /*
+         * Act: query the recording state through the holder.
+         */
         $holder = new SpanHolder($span, $scope);
 
+        /*
+         * Assert: verify the holder reports the span is recording.
+         */
         $this->assertTrue($holder->isRecording());
     }
 
+    /**
+     * Ensures span mutators return new holders.
+     */
     public function testSpanMutatorsReturnNewHolder(): void
     {
+        /*
+         * Arrange: create a span mock that returns itself for mutations.
+         */
         $span = $this->createMock(SpanInterface::class);
         $scope = $this->createMock(ScopeInterface::class);
 
@@ -70,8 +117,14 @@ final class SpanHolderUnitTest extends TestCase
             ->with('OK', 'done')
             ->willReturn($span);
 
+        /*
+         * Act: mutate the span through the holder.
+         */
         $holder = new SpanHolder($span, $scope);
 
+        /*
+         * Assert: verify each mutation returns a SpanHolder.
+         */
         $this->assertInstanceOf(SpanHolder::class, $holder->setAttribute('key', 'value'));
         $this->assertInstanceOf(SpanHolder::class, $holder->setAttributes(['one' => 1]));
         $this->assertInstanceOf(SpanHolder::class, $holder->addEvent('event', ['a' => 1], 123));
@@ -80,15 +133,34 @@ final class SpanHolderUnitTest extends TestCase
         $this->assertInstanceOf(SpanHolder::class, $holder->setStatus('OK', 'done'));
     }
 
+    /**
+     * Ensures mutators return the same holder when no span exists.
+     */
     public function testSpanMutatorsOnNullSpanReturnSame(): void
     {
+        /*
+         * Arrange: create a holder without a span.
+         */
         $holder = new SpanHolder(null, null);
 
-        $this->assertSame($holder, $holder->setAttribute('k', 'v'));
-        $this->assertSame($holder, $holder->setAttributes(['k' => 'v']));
-        $this->assertSame($holder, $holder->addEvent('event'));
-        $this->assertSame($holder, $holder->recordException(new RuntimeException('boom')));
-        $this->assertSame($holder, $holder->updateName('new'));
-        $this->assertSame($holder, $holder->setStatus('OK'));
+        /*
+         * Act: call mutator methods on the holder.
+         */
+        $attribute = $holder->setAttribute('k', 'v');
+        $attributes = $holder->setAttributes(['k' => 'v']);
+        $event = $holder->addEvent('event');
+        $exception = $holder->recordException(new RuntimeException('boom'));
+        $updated = $holder->updateName('new');
+        $status = $holder->setStatus('OK');
+
+        /*
+         * Assert: verify the same holder instance is returned.
+         */
+        $this->assertSame($holder, $attribute);
+        $this->assertSame($holder, $attributes);
+        $this->assertSame($holder, $event);
+        $this->assertSame($holder, $exception);
+        $this->assertSame($holder, $updated);
+        $this->assertSame($holder, $status);
     }
 }

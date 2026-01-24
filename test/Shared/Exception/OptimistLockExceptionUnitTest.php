@@ -6,12 +6,31 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\OptimistLockException;
 
+/**
+ * Unit tests for OptimistLockException.
+ */
 class OptimistLockExceptionUnitTest extends TestCase
 {
+    /**
+     * Ensures reference and lock identifiers are stored.
+     */
     public function testRefAndLockStored(): void
     {
+        /*
+         * Arrange: create an optimistic lock exception with identifiers.
+         */
         $exception = new OptimistLockException('doc-456', 'etag-789');
-        $this->assertSame('doc-456', $exception->ref);
-        $this->assertSame('etag-789', $exception->lock);
+
+        /*
+         * Act: read the reference and lock properties.
+         */
+        $ref = $exception->ref;
+        $lock = $exception->lock;
+
+        /*
+         * Assert: verify the identifiers match the provided values.
+         */
+        $this->assertSame('doc-456', $ref);
+        $this->assertSame('etag-789', $lock);
     }
 }

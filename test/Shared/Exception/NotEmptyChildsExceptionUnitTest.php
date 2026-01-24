@@ -8,13 +8,29 @@ namespace Civi\Lughauth\Shared\Exception\Tests;
 use Civi\Lughauth\Shared\Exception\NotEmptyChildsException;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * Unit tests for NotEmptyChildsException.
+ */
 class NotEmptyChildsExceptionUnitTest extends TestCase
 {
+    /**
+     * Ensures the previous exception is wrapped correctly.
+     */
     public function testWrapsPreviousException(): void
     {
+        /*
+         * Arrange: create a previous exception with a known message.
+         */
         $previous = new \Exception('Original message');
+
+        /*
+         * Act: wrap the previous exception in a NotEmptyChildsException.
+         */
         $exception = new NotEmptyChildsException($previous);
 
+        /*
+         * Assert: verify the wrapper preserves the original exception details.
+         */
         $this->assertInstanceOf(NotEmptyChildsException::class, $exception);
         $this->assertSame($previous, $exception->getPrevious());
         $this->assertSame($previous->getMessage(), $exception->getMessage());

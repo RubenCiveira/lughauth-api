@@ -17,11 +17,10 @@ use Respect\Validation\Validator;
 class SubdivisionCode implements Rule
 {
     /**
-     * Validate agains the country subdivision codes.
-     *
-     * @param string $countryCode The country code for subdivision validation.
+     * Validate against the country subdivision codes.
      */
     public function __construct(
+        /** @var string The country code for subdivision validation. */
         private readonly string $countryCode
     ) {
     }

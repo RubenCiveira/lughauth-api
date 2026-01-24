@@ -15,8 +15,6 @@ class NotEmptyChildsException extends \RuntimeException
 {
     /**
      * Constructs a new NotEmptyChildsException using the provided inner exception.
-     *
-     * @param \Exception $ex The original exception that triggered this higher-level exception.
      */
     public function __construct(\Exception $ex)
     {

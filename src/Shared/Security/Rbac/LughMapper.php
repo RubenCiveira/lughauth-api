@@ -14,25 +14,50 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Maps RBAC actions and fields to a remote Lugh authorization service.
+ */
 class LughMapper
 {
+    /**
+     * @var string|null Base URL for the Lugh authorization service.
+     */
     private readonly ?string $authUrl;
+    /**
+     * @var string|null API key used to authenticate with the service.
+     */
     private readonly ?string $apiKey;
+    /**
+     * @var array<string, array<string, mixed>> Cached resource registrations.
+     */
     private array $registereds;
 
+    /**
+     * Creates a new mapper tied to the Lugh authorization service.
+     */
     public function __construct(
+        /** @var AppConfig Application configuration source. */
         private readonly AppConfig $config,
+        /** @var Context Runtime context for identity resolution. */
         private readonly Context $context,
+        /** @var CacheInterface Cache for storing grant responses. */
         private readonly CacheInterface $cache,
+        /** @var LoggerInterface Logger for error reporting. */
         private readonly LoggerInterface $logger,
+        /** @var RequestFactoryInterface Factory for building HTTP requests. */
         private readonly RequestFactoryInterface $requestFactory,
+        /** @var StreamFactoryInterface Factory for request body streams. */
         private readonly StreamFactoryInterface $streamFactory,
+        /** @var ClientInterface HTTP client for Lugh calls. */
         private readonly ClientInterface $client
     ) {
         $this->authUrl = $config->get('security.rbac.lugh.location', '-');
         $this->apiKey = $config->get('security.rbac.lugh.api.key');
     }
 
+    /**
+     * Flushes registered resources and attributes to the Lugh service.
+     */
     public function flush()
     {
         $toScopes = [];
@@ -67,6 +92,13 @@ class LughMapper
     }
 
 
+    /**
+     * Registers an action for a resource scope.
+     *
+     * @param string $resource Resource name.
+     * @param string $action Action name.
+     * @param string $kind Action kind.
+     */
     public function registerResourceAction(string $resource, string $action, string $kind)
     {
         if (!isset($this->registereds[$resource])) {
@@ -75,6 +107,14 @@ class LughMapper
         }
         $this->registereds[$resource]['scopes'][] = ['name' => $action, 'description' => $action, 'kind' => $kind];
     }
+
+    /**
+     * Registers an attribute schema for a resource.
+     *
+     * @param string $resource Resource name.
+     * @param string $attribute Attribute name.
+     * @param string $kind Attribute kind.
+     */
     public function registerResourceAttribute(string $resource, string $attribute, string $kind)
     {
         if (!isset($this->registereds[$resource])) {
@@ -83,14 +123,39 @@ class LughMapper
         }
         $this->registereds[$resource]['schemas'][] = ['name' => $attribute, 'description' => $attribute, 'kind' => $kind];
     }
+
+    /**
+     * Resolves fields that should be hidden for the user on a resource.
+     *
+     * @param Identity $user Current identity.
+     * @param string $resource Resource name.
+     * @return array<int, string> Field names that should be hidden.
+     */
     public function hiddenFields(Identity $user, string $resource): array
     {
         return $this->fields($this->load($user), $user, $resource, 'view');
     }
+
+    /**
+     * Resolves fields that should be read-only for the user on a resource.
+     *
+     * @param Identity $user Current identity.
+     * @param string $resource Resource name.
+     * @return array<int, string> Field names that should be read-only.
+     */
     public function uneditableFields(Identity $user, string $resource): array
     {
         return $this->fields($this->load($user), $user, $resource, 'modify');
     }
+
+    /**
+     * Determines if an identity is allowed to perform an action.
+     *
+     * @param Identity $user Current identity.
+     * @param string $resource Resource name.
+     * @param string $action Action name.
+     * @return bool True when the action is allowed.
+     */
     public function allow(Identity $user, string $resource, string $action): bool
     {
         return $this->isAllowed($this->load($user), $user, $resource, 'scope', $action);

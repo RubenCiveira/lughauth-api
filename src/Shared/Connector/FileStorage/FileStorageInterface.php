@@ -5,17 +5,55 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Connector\FileStorage;
 
+/**
+ * Defines operations for storing and retrieving binary files.
+ */
 interface FileStorageInterface
 {
+    /**
+     * Stores binary content in a temporary location.
+     *
+     * @param BinaryContent $source Source content to store.
+     * @return FileStoreKey Storage key for the temporary content.
+     */
     public function tempStore(BinaryContent $source): FileStoreKey;
 
+    /**
+     * Retrieves temporary content by its storage key.
+     *
+     * @param FileStoreKey $key Storage key for the temporary content.
+     * @return BinaryContent|null The stored content, or null if not found.
+     */
     public function retrieveTempFile(FileStoreKey $key): ?BinaryContent;
 
+    /**
+     * Retrieves committed content by its storage key.
+     *
+     * @param FileStoreKey $key Storage key for the content.
+     * @return BinaryContent|null The stored content, or null if not found.
+     */
     public function retrieveFile(FileStoreKey $key): ?BinaryContent;
 
+    /**
+     * Promotes temporary content to a committed storage location.
+     *
+     * @param FileStoreKey $key Storage key for the temporary content.
+     * @return FileStoreKey Storage key for the committed content.
+     */
     public function commitContent(FileStoreKey $key): FileStoreKey;
 
+    /**
+     * Replaces committed content with new binary content.
+     *
+     * @param FileStoreKey $key Storage key for the content to replace.
+     * @param BinaryContent $content New content to store.
+     */
     public function replaceContent(FileStoreKey $key, BinaryContent $content): void;
 
+    /**
+     * Deletes content by its storage key.
+     *
+     * @param FileStoreKey $key Storage key for the content.
+     */
     public function deleteFile(FileStoreKey $key): void;
 }

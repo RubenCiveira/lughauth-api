@@ -6,26 +6,38 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Connector\FileStorage;
 
 /**
- * The public url of a binary content is the url to call from public systems.
- * for example: the gdrive public url
+ * Represents binary content alongside metadata and an optional public URL.
  *
- * We can use it from rest layer to expose a url and avoid use the server as proxy.
- *
- * Public means that the access control of the file would be delegated to the external system.
+ * The public URL is an externally accessible link (e.g., a drive URL) so the API can
+ * expose content without proxying it through this service.
  */
 class BinaryContent
 {
+    /**
+     * Creates a BinaryContent instance from a local file path.
+     *
+     * @param string $path Absolute or relative file path to read.
+     * @return BinaryContent The binary content created from the file.
+     */
     public static function fromFile(string $path): BinaryContent
     {
         $resource = fopen($path, 'rb');
         return new BinaryContent(name: basename($path), mime: 'binary', lastChange: new \DateTime(), stream: $resource);
     }
 
+    /**
+     * Creates a new binary content value object.
+     */
     public function __construct(
+        /** @var string File name associated with the content. */
         public readonly string $name,
+        /** @var string MIME type for the content. */
         public readonly string $mime,
+        /** @var \DateTime Timestamp of the last change. */
         public readonly \DateTime $lastChange,
+        /** @var mixed Stream resource or stream-like value. */
         public readonly mixed $stream,
+        /** @var string|null Public URL for external access, if available. */
         public readonly ?string $publicUrl = null
     ) {
     }

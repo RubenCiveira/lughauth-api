@@ -17,10 +17,19 @@ namespace {
     use Psr\Log\LoggerInterface;
     use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
+    /**
+     * Unit tests for LoggerAwareTrait.
+     */
     final class LoggerAwareTraitUnitTest extends TestCase
     {
+        /**
+         * Ensures missing logger falls back without errors.
+         */
         public function testSetLoggerFromContainerMissing(): void
         {
+            /*
+             * Arrange: build a trait consumer and a container with no logger.
+             */
             $service = new class () {
                 use LoggerAwareTrait;
             };
@@ -31,17 +40,28 @@ namespace {
                 ->willReturn(false);
             $container->expects($this->never())->method('get');
 
+            /*
+             * Act: resolve the logger and write log entries.
+             */
             $service->setLoggerFromContainer($container);
-
             $service->logInfo('fallback');
             $service->logDebug('fallback');
             $service->logError('fallback');
 
+            /*
+             * Assert: confirm fallback logging path completed.
+             */
             $this->assertTrue(true);
         }
 
+        /**
+         * Ensures log methods delegate to the configured logger.
+         */
         public function testLoggerMethodsCallLogger(): void
         {
+            /*
+             * Arrange: create a trait consumer with a mocked logger.
+             */
             $service = new class () {
                 use LoggerAwareTrait;
             };
@@ -56,8 +76,10 @@ namespace {
             $logger->expects($this->once())->method('info')->with('i', ['g' => 7]);
             $logger->expects($this->once())->method('debug')->with('d', ['h' => 8]);
 
+            /*
+             * Act: set the logger and invoke all log methods.
+             */
             $service->setLogger($logger);
-
             $service->logEmergency('e', ['a' => 1]);
             $service->logAlert('a', ['b' => 2]);
             $service->logCritical('c', ['c' => 3]);
@@ -66,10 +88,20 @@ namespace {
             $service->logNotice('n', ['f' => 6]);
             $service->logInfo('i', ['g' => 7]);
             $service->logDebug('d', ['h' => 8]);
+
+            /*
+             * Assert: confirm each logger method was invoked.
+             */
         }
 
+        /**
+         * Ensures logger resolution from container uses the logger.
+         */
         public function testSetLoggerFromContainerUsesLogger(): void
         {
+            /*
+             * Arrange: create a container that returns a logger.
+             */
             $service = new class () {
                 use LoggerAwareTrait;
             };
@@ -87,8 +119,15 @@ namespace {
                 ->with(LoggerInterface::class)
                 ->willReturn($logger);
 
+            /*
+             * Act: resolve the logger from the container and log a message.
+             */
             $service->setLoggerFromContainer($container);
             $service->logInfo('ready');
+
+            /*
+             * Assert: confirm the logger received the message.
+             */
         }
     }
 }

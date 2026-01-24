@@ -21,10 +21,15 @@ use OpenTelemetry\API\Trace\TracerInterface;
 trait TracerAwareTrait
 {
     /**
-     * Holds the current tracer instance, or null if none is set.
+     * @var TracerInterface|null Holds the current tracer instance, or null if none is set.
      */
     protected ?TracerInterface $tracer = null;
 
+    /**
+     * Sets the tracer instance from a dependency injection container.
+     *
+     * @param ContainerInterface $container Service container used to resolve the tracer.
+     */
     #[Inject()]
     public function setTracerFromContainer(ContainerInterface $container): void
     {

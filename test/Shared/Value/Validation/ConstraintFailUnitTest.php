@@ -7,13 +7,29 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for ConstraintFail.
+ */
 final class ConstraintFailUnitTest extends TestCase
 {
+    /**
+     * Ensures RuleFail conversion preserves metadata.
+     */
     public function testFromRuleFail(): void
     {
+        /*
+         * Arrange: create a RuleFail instance to convert.
+         */
         $fail = new RuleFail('rule_code', 'invalid_value', ['expected']);
+
+        /*
+         * Act: build a ConstraintFail from the RuleFail and field name.
+         */
         $constraint = ConstraintFail::fromRuleFail('field', $fail);
 
+        /*
+         * Assert: verify the conversion preserves all metadata.
+         */
         $this->assertInstanceOf(ConstraintFail::class, $constraint);
         $this->assertSame('rule_code', $constraint->code);
         $this->assertSame(['field'], $constraint->fields);

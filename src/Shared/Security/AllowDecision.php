@@ -10,25 +10,46 @@ namespace Civi\Lughauth\Shared\Security;
  */
 abstract class AllowDecision
 {
+    /**
+     * Creates a new permission decision wrapper.
+     */
     public function __construct(
+        /** @var Allow The underlying allow decision. */
         private Allow $allow
     ) {
     }
 
+    /**
+     * Returns the action name tied to this decision.
+     */
     abstract public function actionName(): string;
 
+    /**
+     * Returns the resource name tied to this decision.
+     */
     abstract public function resourceName(): string;
 
+    /**
+     * Indicates whether the decision is currently allowed.
+     */
     public function isAllowed(): bool
     {
         return $this->allow->allowed;
     }
 
+    /**
+     * Returns the underlying allow decision value object.
+     */
     public function getAllow(): Allow
     {
         return $this->allow;
     }
 
+    /**
+     * Marks the decision as denied with an optional reason.
+     *
+     * @param string $reason Optional reason for the denial.
+     */
     public function deny($reason = '')
     {
         $this->allow = Allow::disallowed($this->allow->name, $reason);

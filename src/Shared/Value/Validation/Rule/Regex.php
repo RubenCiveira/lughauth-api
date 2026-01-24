@@ -17,11 +17,10 @@ use Respect\Validation\Validator;
 class Regex implements Rule
 {
     /**
-     * Validate against the patter
-     *
-     * @param string $pattern The regular expression pattern.
+     * Validate against the provided pattern.
      */
     public function __construct(
+        /** @var string The regular expression pattern. */
         private readonly string $pattern
     ) {
     }

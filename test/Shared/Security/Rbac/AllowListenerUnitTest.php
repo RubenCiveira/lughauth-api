@@ -11,10 +11,19 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\Rbac\AllowListener;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 
+/**
+ * Unit tests for AllowListener.
+ */
 final class AllowListenerUnitTest extends TestCase
 {
+    /**
+     * Ensures the listener denies a decision when the handler disallows it.
+     */
     public function testInvokeDeniesWhenHandlerDisallows(): void
     {
+        /*
+         * Arrange: create a context, handler, and allow decision.
+         */
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(false));
 
@@ -34,14 +43,26 @@ final class AllowListenerUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: invoke the listener with the decision.
+         */
         $result = $listener($decision);
 
+        /*
+         * Assert: verify the decision is denied and returned.
+         */
         $this->assertSame($decision, $result);
         $this->assertFalse($result->isAllowed());
     }
 
+    /**
+     * Ensures the listener keeps allowed decisions when permitted.
+     */
     public function testInvokeKeepsAllowedWhenHandlerAllows(): void
     {
+        /*
+         * Arrange: create a context, handler, and allow decision.
+         */
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(false));
 
@@ -61,8 +82,14 @@ final class AllowListenerUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: invoke the listener with the decision.
+         */
         $result = $listener($decision);
 
+        /*
+         * Assert: verify the decision stays allowed with the reason.
+         */
         $this->assertSame($decision, $result);
         $this->assertTrue($result->isAllowed());
         $this->assertSame('ok', $result->getAllow()->reason);

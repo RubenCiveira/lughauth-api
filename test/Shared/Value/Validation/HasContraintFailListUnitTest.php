@@ -7,50 +7,94 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\HasContraintFailList;
 
+/**
+ * Unit tests for HasContraintFailList.
+ */
 final class HasContraintFailListUnitTest extends TestCase
 {
+    /**
+     * Ensures the trait tracks added failures.
+     */
     public function testAddErrorAndRetrieve(): void
     {
+        /*
+         * Arrange: create an anonymous class that uses the trait.
+         */
         $object = new class () {
             use HasContraintFailList;
         };
 
-        $this->assertFalse($object->hasErrors());
-
+        /*
+         * Act: add a constraint failure to the trait-backed list.
+         */
+        $initialHasErrors = $object->hasErrors();
         $fail = new ConstraintFail('code', ['field'], ['value'], []);
         $object->add($fail);
+        $afterHasErrors = $object->hasErrors();
+        $isEmpty = $object->isEmpty();
 
-        $this->assertTrue($object->hasErrors());
-        $this->assertFalse($object->isEmpty());
+        /*
+         * Assert: confirm the list transitions from empty to populated.
+         */
+        $this->assertFalse($initialHasErrors);
+        $this->assertTrue($afterHasErrors);
+        $this->assertFalse($isEmpty);
     }
 
+    /**
+     * Ensures the exception conversion is stable.
+     */
     public function testAsConstraintException(): void
     {
+        /*
+         * Arrange: create an object using the trait and add a failure.
+         */
         $object = new class () {
             use HasContraintFailList;
         };
         $fail = new ConstraintFail('code', ['field'], ['value'], []);
         $object->add($fail);
 
+        /*
+         * Act: build the constraint exception twice.
+         */
         $first = $object->asConstraintException();
         $second = $object->asConstraintException();
 
+        /*
+         * Assert: verify the exception data is consistent across calls.
+         */
         $this->assertEquals($first, $second);
     }
 
+    /**
+     * Validates type and code lookup helpers.
+     */
     public function testIncludeViolationCode(): void
     {
+        /*
+         * Arrange: create an object using the trait and add a failure.
+         */
         $object = new class () {
             use HasContraintFailList;
         };
         $fail = new ConstraintFail('12', ['field'], ['value'], []);
         $object->add($fail);
 
-        $this->assertTrue($object->includeViolation(ConstraintFail::class));
-        $this->assertFalse($object->includeViolation(HasContraintFailListUnitTest::class));
+        /*
+         * Act: query for matching and non-matching types and codes.
+         */
+        $typeMatch = $object->includeViolation(ConstraintFail::class);
+        $typeMiss = $object->includeViolation(HasContraintFailListUnitTest::class);
+        $codeMatch = $object->includeViolationCode(12);
+        $codeMiss = $object->includeViolationCode(22);
 
-        $this->assertTrue($object->includeViolationCode(12));
-        $this->assertFalse($object->includeViolationCode(22));
-
+        /*
+         * Assert: confirm only the expected matches are returned.
+         */
+        $this->assertTrue($typeMatch);
+        $this->assertFalse($typeMiss);
+        $this->assertTrue($codeMatch);
+        $this->assertFalse($codeMiss);
     }
 }

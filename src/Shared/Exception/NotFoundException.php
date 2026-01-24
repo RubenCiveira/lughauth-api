@@ -11,11 +11,11 @@ namespace Civi\Lughauth\Shared\Exception;
 class NotFoundException extends \RuntimeException
 {
     /**
-     * The missing reference identifier.
-     *
-     * @param string $reference The missing reference identifier.
+     * Creates a new not found exception.
      */
-    public function __construct(public readonly string $reference)
-    {
+    public function __construct(
+        /** @var string The missing reference identifier. */
+        public readonly string $reference
+    ) {
     }
 }

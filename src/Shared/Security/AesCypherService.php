@@ -45,9 +45,9 @@ class AesCypherService
     private readonly string $cipherKey;
 
     /**
-     * Constructor.
+     * Creates a new AES cipher service.
      *
-     * @param string|null $clave Optional cipher key. If null, a default key is used.
+     * @param string|null $clave Optional cipher key override. If null, a default key is used.
      */
     public function __construct(?string $clave = null)
     {

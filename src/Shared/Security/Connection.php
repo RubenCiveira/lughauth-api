@@ -59,22 +59,21 @@ class Connection
 
     /**
      * Constructs a Connection instance.
-     *
-     * @param bool $remote Indicates whether the connection is remote (vs local).
-     * @param DateTime $startTime The timestamp when the connection was created.
-     * @param string $application The name or identifier of the calling application.
-     * @param string $callback The original request URI.
-     * @param string $source The IP address of the client.
-     * @param string $target The hostname or server target.
-     * @param string|null $locale The locale inferred from the request headers, if available.
      */
     public function __construct(
+        /** @var bool Indicates whether the connection is remote (vs local). */
         public readonly bool $remote,
+        /** @var DateTime The timestamp when the connection was created. */
         public readonly DateTime $startTime,
+        /** @var string The name or identifier of the calling application. */
         public readonly string $application,
+        /** @var string The original request URI. */
         public readonly string $callback,
+        /** @var string The IP address of the client. */
         public readonly string $source,
+        /** @var string The hostname or server target. */
         public readonly string $target,
+        /** @var string|null The locale inferred from the request headers, if available. */
         public readonly ?string $locale
     ) {
     }

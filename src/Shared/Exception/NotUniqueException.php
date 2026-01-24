@@ -12,8 +12,6 @@ class NotUniqueException extends \RuntimeException
 {
     /**
      * Constructs the exception with the message from a previous exception.
-     *
-     * @param \Exception $ex The previous exception containing the message.
      */
     public function __construct(\Exception $ex)
     {

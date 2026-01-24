@@ -7,23 +7,56 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Domain;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the Domain rule.
+ */
 final class DomainUnitTest extends TestCase
 {
+    /**
+     * Confirms valid domain names pass validation.
+     */
     public function testValidDomains(): void
     {
+        /*
+         * Arrange: create the domain rule.
+         */
         $rule = new Domain();
-        $this->assertNull($rule->check('example.com'));
-        $this->assertNull($rule->check('sub.domain.org'));
-        $this->assertNull($rule->check('my-site.net'));
+
+        /*
+         * Act: validate a set of valid domain names.
+         */
+        $first = $rule->check('example.com');
+        $second = $rule->check('sub.domain.org');
+        $third = $rule->check('my-site.net');
+
+        /*
+         * Assert: verify each valid domain returns no failure.
+         */
+        $this->assertNull($first);
+        $this->assertNull($second);
+        $this->assertNull($third);
     }
 
+    /**
+     * Confirms invalid domain names fail validation.
+     */
     public function testInvalidDomains(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid domains.
+         */
         $rule = new Domain();
         $invalid = ['http://example.com', 'invalid_domain', 'domain.', '.com', '', 'ex..com'];
 
+        /*
+         * Act: validate each invalid domain.
+         */
         foreach ($invalid as $domain) {
             $result = $rule->check($domain);
+
+            /*
+             * Assert: verify each invalid domain yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_domain', $result->code);
             $this->assertEquals($domain, $result->value);

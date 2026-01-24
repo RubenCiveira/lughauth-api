@@ -7,45 +7,122 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Random;
 use Ramsey\Uuid\Uuid;
 
+/**
+ * Unit tests for Random value helpers.
+ */
 final class RandomUnitTest extends TestCase
 {
+    /**
+     * Verifies UUID v4 generation and format.
+     */
     public function testUuidGeneratesValidUuidV4(): void
     {
+        /*
+         * Arrange: generate a UUID v4 using the Random helper.
+         */
         $uuid = Random::uuid();
-        $this->assertTrue(Uuid::isValid($uuid));
-        $this->assertEquals(36, strlen($uuid));
+
+        /*
+         * Act: validate the UUID format and calculate its length.
+         */
+        $isValid = Uuid::isValid($uuid);
+        $length = strlen($uuid);
+
+        /*
+         * Assert: confirm the UUID is valid and has the expected length.
+         */
+        $this->assertTrue($isValid);
+        $this->assertEquals(36, $length);
     }
 
+    /**
+     * Ensures COMB UUIDs keep the expected structure.
+     */
     public function testCombReturnsUuidPrefixWithTimestamp(): void
     {
+        /*
+         * Arrange: generate a COMB UUID with the Random helper.
+         */
         $comb = Random::comb();
 
-        $this->assertMatchesRegularExpression('/^[0-9a-f\-]{20}[0-9a-f]{12}$/', $comb);
-        $this->assertEquals(32, strlen($comb)); // 20 + 12 characters
+        /*
+         * Act: evaluate the COMB UUID format and length.
+         */
+        $matches = preg_match('/^[0-9a-f\-]{20}[0-9a-f]{12}$/', $comb) === 1;
+        $length = strlen($comb);
+
+        /*
+         * Assert: confirm the COMB UUID matches the expected structure.
+         */
+        $this->assertTrue($matches);
+        $this->assertEquals(32, $length);
     }
 
+    /**
+     * Confirms API secret size and type.
+     */
     public function testApiSecretReturnsSecureString(): void
     {
+        /*
+         * Arrange: create a secure API secret from Random.
+         */
         $secret = Random::apiSecret();
+
+        /*
+         * Act: measure the generated secret length.
+         */
+        $length = strlen($secret);
+
+        /*
+         * Assert: verify the secret is a string with the expected length.
+         */
         $this->assertIsString($secret);
-        $this->assertEquals(33, strlen($secret));
+        $this->assertEquals(33, $length);
     }
 
+    /**
+     * Confirms password size and type.
+     */
     public function testPasswordReturnsSecureString(): void
     {
+        /*
+         * Arrange: create a secure password from Random.
+         */
         $password = Random::password();
+
+        /*
+         * Act: measure the generated password length.
+         */
+        $length = strlen($password);
+
+        /*
+         * Assert: verify the password is a string with the expected length.
+         */
         $this->assertIsString($password);
-        $this->assertEquals(10, strlen($password));
+        $this->assertEquals(10, $length);
     }
 
+    /**
+     * Ensures COMB timestamp is recent.
+     */
     public function testCombTimestampIsRecent(): void
     {
+        /*
+         * Arrange: generate a COMB UUID to extract its timestamp.
+         */
         $comb = Random::comb();
+
+        /*
+         * Act: extract the timestamp from the COMB UUID and compare to now.
+         */
         $timestampHex = substr($comb, -12);
         $timestamp = hexdec($timestampHex);
         $now = (int) (microtime(true) * 1000);
 
+        /*
+         * Assert: verify the timestamp is recent and not in the future.
+         */
         $this->assertLessThanOrEqual($now, $timestamp);
-        $this->assertGreaterThan($now - 60000, $timestamp); // No más de 1 minuto en el pasado
+        $this->assertGreaterThan($now - 60000, $timestamp);
     }
 }

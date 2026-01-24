@@ -17,15 +17,23 @@ use OpenTelemetry\Context\ScopeInterface;
 class SpanHolder
 {
     /**
+     * @var SpanInterface|null The span instance to hold. Can be null if no span is active.
+     */
+    private readonly ?SpanInterface $span;
+    /**
+     * @var ScopeInterface|null The scope instance to hold. Can be null if no span is active.
+     */
+    private readonly ?ScopeInterface $scope;
+
+    /**
      * Constructs a new SpanHolder.
      *
      * @internal This class is intended for internal use. It is not part of the public API and may change without notice.
-     *
-     * @param SpanInterface|null $span The span instance to hold. Can be null if no span is active.
-     * @param ScopeInterface|null $scope The scope instance to hold. Can be null if no span is active.
      */
-    public function __construct(private readonly ?SpanInterface $span, private readonly ?ScopeInterface $scope)
+    public function __construct(?SpanInterface $span, ?ScopeInterface $scope)
     {
+        $this->span = $span;
+        $this->scope = $scope;
     }
 
     /**

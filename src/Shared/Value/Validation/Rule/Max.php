@@ -17,11 +17,10 @@ use Respect\Validation\Validator;
 class Max implements Rule
 {
     /**
-     * Create a rule to allow at max vallue
-     *
-     * @param mixed $max The maximum value.
+     * Create a rule to allow a maximum value.
      */
     public function __construct(
+        /** @var int The maximum value. */
         private readonly int $max
     ) {
     }

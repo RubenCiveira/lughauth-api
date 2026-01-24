@@ -7,23 +7,56 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Between;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the Between rule.
+ */
 final class BetweenUnitTest extends TestCase
 {
+    /**
+     * Confirms values within the range pass validation.
+     */
     public function testValueWithinRange(): void
     {
+        /*
+         * Arrange: create a Between rule with inclusive bounds.
+         */
         $rule = new Between(10, 20);
-        $this->assertNull($rule->check(10));  // lower bound
-        $this->assertNull($rule->check(15));  // within range
-        $this->assertNull($rule->check(20));  // upper bound
+
+        /*
+         * Act: validate values at the lower, middle, and upper bounds.
+         */
+        $lower = $rule->check(10);
+        $middle = $rule->check(15);
+        $upper = $rule->check(20);
+
+        /*
+         * Assert: verify all in-range values return no failure.
+         */
+        $this->assertNull($lower);
+        $this->assertNull($middle);
+        $this->assertNull($upper);
     }
 
+    /**
+     * Confirms values outside the range return a RuleFail.
+     */
     public function testValueOutsideRange(): void
     {
+        /*
+         * Arrange: create a Between rule and a set of out-of-range values.
+         */
         $rule = new Between(10, 20);
         $values = [9, 21, -1, 100];
 
+        /*
+         * Act: validate each out-of-range value.
+         */
         foreach ($values as $value) {
             $result = $rule->check($value);
+
+            /*
+             * Assert: verify each value produces the expected RuleFail.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_between', $result->code);
             $this->assertEquals($value, $result->value);

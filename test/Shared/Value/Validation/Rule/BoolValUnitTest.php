@@ -7,26 +7,55 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\BoolVal;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the BoolVal rule.
+ */
 final class BoolValUnitTest extends TestCase
 {
+    /**
+     * Confirms acceptable boolean-like values pass validation.
+     */
     public function testValidBooleanValues(): void
     {
+        /*
+         * Arrange: create the rule and a list of valid boolean values.
+         */
         $rule = new BoolVal();
         $validValues = [true, false, 1, 0, '1', '0', 'true', 'false', 'yes', 'no'];
 
+        /*
+         * Act: validate each acceptable boolean value.
+         */
         foreach ($validValues as $value) {
-            $this->assertNull($rule->check($value));
+            $result = $rule->check($value);
+
+            /*
+             * Assert: verify each valid value yields no failure.
+             */
+            $this->assertNull($result);
         }
     }
 
+    /**
+     * Confirms non-boolean values fail validation.
+     */
     public function testInvalidBooleanValues(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid boolean values.
+         */
         $rule = new BoolVal();
-        // $invalidValues = ['yes', 'no', 'abc', [], new stdClass()];
         $invalidValues = ['ex', 'abc', [], new stdClass()];
 
+        /*
+         * Act: validate each invalid boolean value.
+         */
         foreach ($invalidValues as $value) {
             $result = $rule->check($value);
+
+            /*
+             * Assert: verify each invalid value yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('bool_val', $result->code);
             $this->assertEquals($value, $result->value);

@@ -5,17 +5,32 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Event;
 
+/**
+ * Describes a public event contract for external consumers.
+ */
 interface PublicEvent
 {
-    /** Nombre estable para enrutado, p.ej. "user.registered" */
+    /**
+     * Returns the stable event type used for routing (e.g., "user.registered").
+     */
     public function eventType(): string;
 
-    /** Versión del contrato público, p.ej. "v1" */
+    /**
+     * Returns the public schema version (e.g., "v1").
+     */
     public function schemaVersion(): string;
 
-    /** Cuerpo JSON serializable (sin PII innecesaria) */
+    /**
+     * Returns the JSON-serializable payload without unnecessary PII.
+     *
+     * @return array<string, mixed>
+     */
     public function payload(): array;
 
-    /** Cuerpo JSON serializable (sin PII innecesaria) */
+    /**
+     * Returns the original JSON-serializable payload for internal use.
+     *
+     * @return array<string, mixed>
+     */
     public function original(): array;
 }

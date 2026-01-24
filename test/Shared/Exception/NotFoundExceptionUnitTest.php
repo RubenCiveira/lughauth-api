@@ -6,11 +6,29 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 
+/**
+ * Unit tests for NotFoundException.
+ */
 class NotFoundExceptionUnitTest extends TestCase
 {
+    /**
+     * Ensures the reference value is stored on the exception.
+     */
     public function testReferenceStored(): void
     {
+        /*
+         * Arrange: create a not found exception with a reference.
+         */
         $exception = new NotFoundException('abc-123');
-        $this->assertSame('abc-123', $exception->reference);
+
+        /*
+         * Act: read the reference value from the exception.
+         */
+        $reference = $exception->reference;
+
+        /*
+         * Assert: verify the reference matches the provided identifier.
+         */
+        $this->assertSame('abc-123', $reference);
     }
 }

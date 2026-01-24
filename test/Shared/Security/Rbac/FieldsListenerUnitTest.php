@@ -10,10 +10,19 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Security\Rbac\FieldsListener;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 
+/**
+ * Unit tests for FieldsListener.
+ */
 final class FieldsListenerUnitTest extends TestCase
 {
+    /**
+     * Ensures view mode uses hidden fields.
+     */
     public function testInvokeForViewUsesHiddenFields(): void
     {
+        /*
+         * Arrange: create a context, handler, and view proposal.
+         */
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(false));
 
@@ -33,14 +42,26 @@ final class FieldsListenerUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: invoke the listener with the view proposal.
+         */
         $result = $listener($proposal);
 
+        /*
+         * Assert: verify hidden fields are appended.
+         */
         $this->assertSame($proposal, $result);
         $this->assertSame(['id', 'secret', 'internal'], $result->fields);
     }
 
+    /**
+     * Ensures modify mode uses uneditable fields.
+     */
     public function testInvokeForModifyUsesUneditableFields(): void
     {
+        /*
+         * Arrange: create a context, handler, and modify proposal.
+         */
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(false));
 
@@ -60,8 +81,14 @@ final class FieldsListenerUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: invoke the listener with the modify proposal.
+         */
         $result = $listener($proposal);
 
+        /*
+         * Assert: verify uneditable fields are appended.
+         */
         $this->assertSame(['name', 'createdAt'], $result->fields);
     }
 }

@@ -17,12 +17,24 @@ use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 
+/**
+ * Unit tests for LughMapper.
+ */
 final class LughMapperUnitTest extends TestCase
 {
+    /**
+     * Ensures resource action and attribute registrations are stored.
+     */
     public function testRegisterResourceActionAndAttributeStoresData(): void
     {
+        /*
+         * Arrange: create a mapper instance.
+         */
         $mapper = $this->createMapper();
 
+        /*
+         * Act: register an action and attribute for a resource.
+         */
         $mapper->registerResourceAction('users', 'read', 'public');
         $mapper->registerResourceAttribute('users', 'email', 'hidden');
 
@@ -31,16 +43,28 @@ final class LughMapperUnitTest extends TestCase
         $prop->setAccessible(true);
         $registereds = $prop->getValue($mapper);
 
+        /*
+         * Assert: verify the resource registration includes scopes and schemas.
+         */
         $this->assertArrayHasKey('users', $registereds);
         $this->assertSame('users', $registereds['users']['resource']['name']);
         $this->assertSame('read', $registereds['users']['scopes'][0]['name']);
         $this->assertSame('email', $registereds['users']['schemas'][0]['name']);
     }
 
+    /**
+     * Ensures registering an attribute initializes a resource entry.
+     */
     public function testRegisterResourceAttributeInitializesResource(): void
     {
+        /*
+         * Arrange: create a mapper instance.
+         */
         $mapper = $this->createMapper();
 
+        /*
+         * Act: register an attribute for a new resource.
+         */
         $mapper->registerResourceAttribute('projects', 'status', 'visible');
 
         $ref = new ReflectionClass($mapper);
@@ -48,14 +72,23 @@ final class LughMapperUnitTest extends TestCase
         $prop->setAccessible(true);
         $registereds = $prop->getValue($mapper);
 
+        /*
+         * Assert: verify the resource entry and schema were created.
+         */
         $this->assertArrayHasKey('projects', $registereds);
         $this->assertSame('projects', $registereds['projects']['resource']['name']);
         $this->assertSame('status', $registereds['projects']['schemas'][0]['name']);
         $this->assertSame([], $registereds['projects']['scopes']);
     }
 
+    /**
+     * Ensures flush sends registrations and logs errors on failure.
+     */
     public function testFlushSendsRegistrationsAndLogsErrors(): void
     {
+        /*
+         * Arrange: configure mapper dependencies and error responses.
+         */
         $config = $this->createConfigMock('http://auth', 'api-key');
         $context = $this->createMock(Context::class);
         $cache = $this->createMock(CacheInterface::class);
@@ -100,11 +133,24 @@ final class LughMapperUnitTest extends TestCase
         $mapper->registerResourceAction('users', 'read', 'public');
         $mapper->registerResourceAttribute('users', 'email', 'hidden');
 
+        /*
+         * Act: flush registrations to the remote service.
+         */
         $mapper->flush();
+
+        /*
+         * Assert: verify errors are logged for non-204 responses.
+         */
     }
 
+    /**
+     * Ensures cached grants are used for fields and allow checks.
+     */
     public function testHiddenUneditableAndAllowUsesCachedGrants(): void
     {
+        /*
+         * Arrange: configure cached grants and mapper dependencies.
+         */
         $config = $this->createConfigMock('http://auth', 'api-key');
         $context = $this->createMock(Context::class);
         $cache = $this->createMock(CacheInterface::class);
@@ -152,17 +198,31 @@ final class LughMapperUnitTest extends TestCase
 
         $identity = new Identity(false, roles: ['admin']);
 
+        /*
+         * Act: request hidden fields, uneditable fields, and allow checks.
+         */
         $hidden = $mapper->hiddenFields($identity, 'users');
         $uneditable = $mapper->uneditableFields($identity, 'users');
+        $canRead = $mapper->allow($identity, 'users', 'read');
+        $canDelete = $mapper->allow($identity, 'users', 'delete');
 
+        /*
+         * Assert: verify cached grants drive the results.
+         */
         $this->assertSame(['secret'], array_values($hidden));
         $this->assertSame(['secret', 'name'], array_values($uneditable));
-        $this->assertTrue($mapper->allow($identity, 'users', 'read'));
-        $this->assertFalse($mapper->allow($identity, 'users', 'delete'));
+        $this->assertTrue($canRead);
+        $this->assertFalse($canDelete);
     }
 
+    /**
+     * Ensures grant cache misses trigger remote fetch and caching.
+     */
     public function testAllowFetchesGrantsAndCachesOnMiss(): void
     {
+        /*
+         * Arrange: configure a cache miss and remote response.
+         */
         $config = $this->createConfigMock('http://auth', 'api-key');
         $context = $this->createMock(Context::class);
         $cache = $this->createMock(CacheInterface::class);
@@ -214,7 +274,15 @@ final class LughMapperUnitTest extends TestCase
 
         $identity = new Identity(false, roles: ['admin'], tenant: 'tenant-1');
 
-        $this->assertTrue($mapper->allow($identity, 'users', 'write'));
+        /*
+         * Act: evaluate permissions to trigger the cache miss path.
+         */
+        $allowed = $mapper->allow($identity, 'users', 'write');
+
+        /*
+         * Assert: verify the permission is granted based on fetched grants.
+         */
+        $this->assertTrue($allowed);
     }
 
     private function createMapper(): LughMapper

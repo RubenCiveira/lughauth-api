@@ -7,22 +7,54 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Date;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the Date rule.
+ */
 final class DateUnitTest extends TestCase
 {
+    /**
+     * Confirms valid ISO dates pass validation.
+     */
     public function testValidDates(): void
     {
+        /*
+         * Arrange: create the date rule.
+         */
         $rule = new Date();
-        $this->assertNull($rule->check('2025-05-26'));
-        $this->assertNull($rule->check('1999-12-31'));
+
+        /*
+         * Act: validate known valid ISO date strings.
+         */
+        $first = $rule->check('2025-05-26');
+        $second = $rule->check('1999-12-31');
+
+        /*
+         * Assert: verify valid dates return no failure.
+         */
+        $this->assertNull($first);
+        $this->assertNull($second);
     }
 
+    /**
+     * Confirms invalid date strings fail validation.
+     */
     public function testInvalidDates(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid date strings.
+         */
         $rule = new Date();
         $invalidValues = ['2025-02-30', 'not-a-date', '', '31/12/2023'];
 
+        /*
+         * Act: validate each invalid date string.
+         */
         foreach ($invalidValues as $value) {
             $result = $rule->check($value);
+
+            /*
+             * Assert: verify each invalid value yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_date', $result->code);
             $this->assertEquals($value, $result->value);

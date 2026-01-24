@@ -11,10 +11,10 @@ namespace Civi\Lughauth\Shared\Exception;
 class UnauthorizedException extends \RuntimeException
 {
     /**
-     * Create a new exception
+     * Create a new exception.
      *
-     * @param string $message  Custom error message (default: 'Unauthorized').
-     * @param int $code        HTTP status code (default: 401).
+     * @param string $message Custom error message (default: 'Unauthorized').
+     * @param int $code HTTP status code (default: 401).
      * @param \Exception|null $previous Previous exception for chaining (optional).
      */
     public function __construct($message = 'Unauthorized', $code = 401, \Exception|null $previous = null)

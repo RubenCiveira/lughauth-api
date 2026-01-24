@@ -6,115 +6,370 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Security\Identity;
 
+/**
+ * Unit tests for Identity.
+ */
 class IdentityUnitTest extends TestCase
 {
+    /**
+     * Ensures anonymous identities expose default values.
+     */
     public function testAnonimousIdentity(): void
     {
+        /*
+         * Arrange: create an anonymous identity instance.
+         */
         $identity = Identity::anonimous();
 
-        $this->assertTrue($identity->anonimous);
-        $this->assertSame(Identity::AUTH_SCOPE_NONE, $identity->authScope);
-        $this->assertNull($identity->id);
-        $this->assertNull($identity->name);
-        $this->assertNull($identity->token);
-        $this->assertNull($identity->issuer);
-        $this->assertNull($identity->tenant);
-        $this->assertNull($identity->roles);
-        $this->assertNull($identity->groups);
-        $this->assertNull($identity->claims);
-        $this->assertNull($identity->scope);
+        /*
+         * Act: access the identity properties.
+         */
+        $anonimous = $identity->anonimous;
+        $authScope = $identity->authScope;
+        $id = $identity->id;
+        $name = $identity->name;
+        $token = $identity->token;
+        $issuer = $identity->issuer;
+        $tenant = $identity->tenant;
+        $roles = $identity->roles;
+        $groups = $identity->groups;
+        $claims = $identity->claims;
+        $scope = $identity->scope;
+
+        /*
+         * Assert: verify the default values on the anonymous identity.
+         */
+        $this->assertTrue($anonimous);
+        $this->assertSame(Identity::AUTH_SCOPE_NONE, $authScope);
+        $this->assertNull($id);
+        $this->assertNull($name);
+        $this->assertNull($token);
+        $this->assertNull($issuer);
+        $this->assertNull($tenant);
+        $this->assertNull($roles);
+        $this->assertNull($groups);
+        $this->assertNull($claims);
+        $this->assertNull($scope);
     }
 
+    /**
+     * Ensures getClaim returns a value when it exists.
+     */
     public function testGetClaimWhenExists(): void
     {
+        /*
+         * Arrange: build an identity with a known claim value.
+         */
         $identity = new Identity(false, claims: ['email' => 'user@example.com']);
-        $this->assertSame('user@example.com', $identity->getClaim('email'));
+
+        /*
+         * Act: fetch the claim value from the identity.
+         */
+        $claim = $identity->getClaim('email');
+
+        /*
+         * Assert: verify the expected claim value is returned.
+         */
+        $this->assertSame('user@example.com', $claim);
     }
 
+    /**
+     * Ensures getClaim returns null for missing claims.
+     */
     public function testGetClaimWhenNotExists(): void
     {
+        /*
+         * Arrange: build an identity with a single claim.
+         */
         $identity = new Identity(false, claims: ['email' => 'user@example.com']);
-        $this->assertNull($identity->getClaim('nonexistent'));
+
+        /*
+         * Act: fetch a claim that does not exist.
+         */
+        $claim = $identity->getClaim('nonexistent');
+
+        /*
+         * Assert: verify a missing claim returns null.
+         */
+        $this->assertNull($claim);
     }
 
+    /**
+     * Ensures getClaim returns null when claims are missing.
+     */
     public function testGetClaimWhenClaimsIsNull(): void
     {
+        /*
+         * Arrange: build an identity with no claims.
+         */
         $identity = new Identity(false, claims: null);
-        $this->assertNull($identity->getClaim('any'));
+
+        /*
+         * Act: fetch any claim from the identity.
+         */
+        $claim = $identity->getClaim('any');
+
+        /*
+         * Assert: verify null is returned when no claims exist.
+         */
+        $this->assertNull($claim);
     }
 
+    /**
+     * Ensures hasRole returns true for known roles.
+     */
     public function testHasRoleTrue(): void
     {
+        /*
+         * Arrange: build an identity with multiple roles.
+         */
         $identity = new Identity(false, roles: ['admin', 'user']);
-        $this->assertTrue($identity->hasRole('admin'));
+
+        /*
+         * Act: check for a role that exists.
+         */
+        $hasRole = $identity->hasRole('admin');
+
+        /*
+         * Assert: verify the role is detected.
+         */
+        $this->assertTrue($hasRole);
     }
 
+    /**
+     * Ensures hasRole returns false for missing roles.
+     */
     public function testHasRoleFalse(): void
     {
+        /*
+         * Arrange: build an identity with known roles.
+         */
         $identity = new Identity(false, roles: ['admin', 'user']);
-        $this->assertFalse($identity->hasRole('guest'));
+
+        /*
+         * Act: check for a role that does not exist.
+         */
+        $hasRole = $identity->hasRole('guest');
+
+        /*
+         * Assert: verify the role is not detected.
+         */
+        $this->assertFalse($hasRole);
     }
 
+    /**
+     * Ensures hasRole returns false when roles are null.
+     */
     public function testHasRoleWhenRolesIsNull(): void
     {
+        /*
+         * Arrange: build an identity without roles.
+         */
         $identity = new Identity(false, roles: null);
-        $this->assertFalse($identity->hasRole('admin'));
+
+        /*
+         * Act: check for any role.
+         */
+        $hasRole = $identity->hasRole('admin');
+
+        /*
+         * Assert: verify roles are reported as missing.
+         */
+        $this->assertFalse($hasRole);
     }
 
+    /**
+     * Ensures hasAnyRole returns true for a matching role.
+     */
     public function testHasAnyRoleTrue(): void
     {
+        /*
+         * Arrange: build an identity with multiple roles.
+         */
         $identity = new Identity(false, roles: ['editor', 'viewer']);
-        $this->assertTrue($identity->hasAnyRole('guest', 'viewer'));
+
+        /*
+         * Act: check for any role in a list.
+         */
+        $hasAnyRole = $identity->hasAnyRole('guest', 'viewer');
+
+        /*
+         * Assert: verify at least one role matches.
+         */
+        $this->assertTrue($hasAnyRole);
     }
 
+    /**
+     * Ensures hasAnyRole returns false when none match.
+     */
     public function testHasAnyRoleFalse(): void
     {
+        /*
+         * Arrange: build an identity with a single role.
+         */
         $identity = new Identity(false, roles: ['user']);
-        $this->assertFalse($identity->hasAnyRole('admin', 'moderator'));
+
+        /*
+         * Act: check for any role that does not exist.
+         */
+        $hasAnyRole = $identity->hasAnyRole('admin', 'moderator');
+
+        /*
+         * Assert: verify no role matches.
+         */
+        $this->assertFalse($hasAnyRole);
     }
 
+    /**
+     * Ensures hasAnyRole returns false when roles are null.
+     */
     public function testHasAnyRoleWhenRolesIsNull(): void
     {
+        /*
+         * Arrange: build an identity without roles.
+         */
         $identity = new Identity(false, roles: null);
-        $this->assertFalse($identity->hasAnyRole('admin'));
+
+        /*
+         * Act: check for any role when none exist.
+         */
+        $hasAnyRole = $identity->hasAnyRole('admin');
+
+        /*
+         * Assert: verify no role matches.
+         */
+        $this->assertFalse($hasAnyRole);
     }
 
+    /**
+     * Ensures hasScope returns true for matching scopes.
+     */
     public function testHasScope()
     {
+        /*
+         * Arrange: build an identity with multiple scopes.
+         */
         $identity = new Identity(anonimous: false, scope: 'read write delete');
-        $this->assertTrue($identity->hasScope('read'));
-        $this->assertTrue($identity->hasScope('write'));
-        $this->assertTrue($identity->hasScope('delete'));
-        $this->assertFalse($identity->hasScope('admin'));
+
+        /*
+         * Act: check for individual scope values.
+         */
+        $hasRead = $identity->hasScope('read');
+        $hasWrite = $identity->hasScope('write');
+        $hasDelete = $identity->hasScope('delete');
+        $hasAdmin = $identity->hasScope('admin');
+
+        /*
+         * Assert: verify the scope checks return expected results.
+         */
+        $this->assertTrue($hasRead);
+        $this->assertTrue($hasWrite);
+        $this->assertTrue($hasDelete);
+        $this->assertFalse($hasAdmin);
     }
 
+    /**
+     * Ensures hasScope returns false when scope is null.
+     */
     public function testHasScopeWhenNull()
     {
+        /*
+         * Arrange: build an identity with a null scope.
+         */
         $identity = new Identity(anonimous: false, scope: null);
-        $this->assertFalse($identity->hasScope('read'));
+
+        /*
+         * Act: check for a scope when none exists.
+         */
+        $hasScope = $identity->hasScope('read');
+
+        /*
+         * Assert: verify the scope check fails.
+         */
+        $this->assertFalse($hasScope);
     }
 
+    /**
+     * Ensures hasScope returns false when scope is empty.
+     */
     public function testHasScopeWhenEmpty()
     {
+        /*
+         * Arrange: build an identity with an empty scope string.
+         */
         $identity = new Identity(anonimous: false, scope: '');
-        $this->assertFalse($identity->hasScope('read'));
+
+        /*
+         * Act: check for a scope when the list is empty.
+         */
+        $hasScope = $identity->hasScope('read');
+
+        /*
+         * Assert: verify the scope check fails.
+         */
+        $this->assertFalse($hasScope);
     }
 
+    /**
+     * Ensures hasScope returns false for empty search values.
+     */
     public function testHasScopeWithEmptySearch()
     {
+        /*
+         * Arrange: build an identity with a non-empty scope list.
+         */
         $identity = new Identity(anonimous: false, scope: 'read');
-        $this->assertFalse($identity->hasScope(''));
+
+        /*
+         * Act: search for an empty scope value.
+         */
+        $hasScope = $identity->hasScope('');
+
+        /*
+         * Assert: verify the empty search returns false.
+         */
+        $this->assertFalse($hasScope);
     }
 
+    /**
+     * Ensures hasScope handles duplicate scope entries.
+     */
     public function testHasScopeWithDuplicate()
     {
+        /*
+         * Arrange: build an identity with duplicate scopes.
+         */
         $identity = new Identity(anonimous: false, scope: 'read read');
-        $this->assertTrue($identity->hasScope('read'));
+
+        /*
+         * Act: check for the duplicated scope.
+         */
+        $hasScope = $identity->hasScope('read');
+
+        /*
+         * Assert: verify the scope is still detected.
+         */
+        $this->assertTrue($hasScope);
     }
 
+    /**
+     * Ensures partial scope names are not matched.
+     */
     public function testHasScopePartialWord()
     {
+        /*
+         * Arrange: build an identity with a concatenated scope value.
+         */
         $identity = new Identity(anonimous: false, scope: 'readwrite');
-        $this->assertFalse($identity->hasScope('read'));
+
+        /*
+         * Act: check for a partial scope value.
+         */
+        $hasScope = $identity->hasScope('read');
+
+        /*
+         * Assert: verify the partial scope is not matched.
+         */
+        $this->assertFalse($hasScope);
     }
 }

@@ -8,11 +8,28 @@ namespace Civi\Lughauth\Shared\Security\Rbac;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\FieldsAccess;
 
+/**
+ * Applies RBAC field visibility rules to field access proposals.
+ */
 class FieldsListener
 {
-    public function __construct(private readonly Context $context, private readonly Handler $handler)
-    {
+    /**
+     * Creates a new fields listener.
+     */
+    public function __construct(
+        /** @var Context Runtime context providing the current identity. */
+        private readonly Context $context,
+        /** @var Handler RBAC handler used for field visibility checks. */
+        private readonly Handler $handler
+    ) {
     }
+
+    /**
+     * Evaluates the proposal and adds hidden or uneditable fields.
+     *
+     * @param FieldsAccess $proposal The field access proposal to evaluate.
+     * @return FieldsAccess The updated proposal with restricted fields.
+     */
     public function __invoke(FieldsAccess $proposal): FieldsAccess
     {
         if ('view' == $proposal->accessMode()) {
@@ -20,6 +37,7 @@ class FieldsListener
         } else {
             $proposal->withAll($this->handler->uneditableFields($this->context->getIdentity(), $proposal->resourceName()));
         }
+
         return $proposal;
     }
 }

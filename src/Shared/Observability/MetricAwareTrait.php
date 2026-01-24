@@ -21,10 +21,15 @@ use Psr\Container\ContainerInterface;
 trait MetricAwareTrait
 {
     /**
-     * The Prometheus CollectorRegistry instance used to record metrics.
+     * @var CollectorRegistry|null The Prometheus CollectorRegistry instance used to record metrics.
      */
     private ?CollectorRegistry $metricRegistry = null;
 
+    /**
+     * Sets the metric registry from a dependency injection container.
+     *
+     * @param ContainerInterface $container Service container used to resolve the registry.
+     */
     #[Inject]
     public function setMetricRegistryFromContainer(ContainerInterface $container): void
     {

@@ -36,31 +36,31 @@ class Identity
 
     /**
      * Constructs an Identity object.
-     *
-     * @param bool $anonimous Whether the user is anonymous.
-     * @param string|null $authScope The authorization scope (none, read, or read-write).
-     * @param string|null $id The user identifier.
-     * @param string|null $name The user name.
-     * @param string|null $token The access token used for authentication.
-     * @param string|null $issuer The issuer of the identity (e.g., authentication server).
-     * @param string|null $tenant The tenant associated with the user, if any.
-     * @param array|null $roles The list of roles granted to the user.
-     * @param array|null $groups The groups to which the user belongs.
-     * @param array|null $claims Additional claims or metadata associated with the user.
-     * @param string|null $scope A raw scope string (space-separated).
      */
     public function __construct(
+        /** @var bool Whether the user is anonymous. */
         public readonly bool $anonimous,
+        /** @var string|null The authorization scope (none, read, or read-write). */
         public readonly ?string $authScope = self::AUTH_SCOPE_NONE,
+        /** @var string|null The user identifier. */
         public readonly ?string $id = null,
+        /** @var string|null The user display name. */
         public readonly ?string $name = null,
+        /** @var string|null The access token used for authentication. */
         public readonly ?string $token = null,
+        /** @var string|null The issuer of the identity (e.g., authentication server). */
         public readonly ?string $issuer = null,
+        /** @var string|null The tenant associated with the user, if any. */
         public readonly ?string $tenant = null,
+        /** @var array<int, string>|null The list of roles granted to the user. */
         public readonly ?array $roles = null,
+        /** @var array<int, string>|null The groups to which the user belongs. */
         public readonly ?array $groups = null,
+        /** @var array<string, string>|null Additional claims or metadata associated with the user. */
         public readonly ?array $claims = null,
+        /** @var string|null A raw scope string (space-separated). */
         public readonly ?string $scope = null,
+        /** @var string|null The user email address. */
         public readonly ?string $email = null,
     ) {
     }

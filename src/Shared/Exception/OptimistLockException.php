@@ -11,12 +11,13 @@ namespace Civi\Lughauth\Shared\Exception;
 class OptimistLockException extends \RuntimeException
 {
     /**
-     * Create a new exception
-     *
-     * @param string $ref  The reference to the conflicting resource.
-     * @param string $lock The conflicting lock or version identifier.
+     * Creates a new optimistic lock exception.
      */
-    public function __construct(public readonly string $ref, public readonly string $lock)
-    {
+    public function __construct(
+        /** @var string The reference to the conflicting resource. */
+        public readonly string $ref,
+        /** @var string The conflicting lock or version identifier. */
+        public readonly string $lock
+    ) {
     }
 }

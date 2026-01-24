@@ -7,23 +7,54 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\Rule\CreditCard;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
+/**
+ * Unit tests for the CreditCard rule.
+ */
 final class CreditCardUnitTest extends TestCase
 {
+    /**
+     * Confirms valid credit card numbers pass validation.
+     */
     public function testValidCreditCards(): void
     {
+        /*
+         * Arrange: create the credit card rule.
+         */
         $rule = new CreditCard();
-        // Estos números son válidos para pruebas (no reales)
-        $this->assertNull($rule->check('4111111111111111')); // Visa
-        $this->assertNull($rule->check('5500000000000004')); // MasterCard
+
+        /*
+         * Act: validate known test credit card numbers.
+         */
+        $visa = $rule->check('4111111111111111');
+        $mastercard = $rule->check('5500000000000004');
+
+        /*
+         * Assert: verify the test card numbers return no failure.
+         */
+        $this->assertNull($visa);
+        $this->assertNull($mastercard);
     }
 
+    /**
+     * Confirms invalid credit card numbers fail validation.
+     */
     public function testInvalidCreditCards(): void
     {
+        /*
+         * Arrange: create the rule and a list of invalid card numbers.
+         */
         $rule = new CreditCard();
         $invalid = ['1234567890123456', '411111111111111', 'abc123', '', '9500-0000-0000-0004'];
 
+        /*
+         * Act: validate each invalid card number.
+         */
         foreach ($invalid as $card) {
             $result = $rule->check($card);
+
+            /*
+             * Assert: verify each invalid card yields the expected failure.
+             */
             $this->assertInstanceOf(RuleFail::class, $result);
             $this->assertEquals('rule_credit_card', $result->code);
             $this->assertEquals($card, $result->value);

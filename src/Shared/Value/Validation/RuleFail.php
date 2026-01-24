@@ -6,13 +6,21 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Value\Validation;
 
 /**
+ * Represents a single validation rule failure.
+ *
  * @api
  */
 class RuleFail
 {
+    /**
+     * Creates a new rule failure description.
+     */
     public function __construct(
+        /** @var string The rule error code. */
         public readonly string $code,
+        /** @var mixed The value that failed validation. */
         public readonly mixed $value,
+        /** @var array<string, mixed> Expected values or limits for the rule. */
         public readonly array $expectedValues = [],
     ) {
     }

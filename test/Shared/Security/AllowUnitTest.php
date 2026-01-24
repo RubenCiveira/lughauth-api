@@ -6,63 +6,152 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Security\Allow;
 
+/**
+ * Unit tests for Allow.
+ */
 final class AllowUnitTest extends TestCase
 {
+    /**
+     * Ensures the allowed factory sets expected properties.
+     */
     public function testAllowedFactory(): void
     {
+        /*
+         * Arrange: create an allowed decision with a reason.
+         */
         $allow = Allow::allowed('read', 'user is admin');
-        $this->assertTrue($allow->allowed);
-        $this->assertSame('read', $allow->name);
-        $this->assertSame('user is admin', $allow->reason);
+
+        /*
+         * Act: access the allow decision properties.
+         */
+        $isAllowed = $allow->allowed;
+        $name = $allow->name;
+        $reason = $allow->reason;
+
+        /*
+         * Assert: verify the allowed decision fields are set.
+         */
+        $this->assertTrue($isAllowed);
+        $this->assertSame('read', $name);
+        $this->assertSame('user is admin', $reason);
     }
 
+    /**
+     * Ensures the disallowed factory sets expected properties.
+     */
     public function testDisallowedFactory(): void
     {
+        /*
+         * Arrange: create a disallowed decision with a reason.
+         */
         $deny = Allow::disallowed('write', 'user is guest');
-        $this->assertFalse($deny->allowed);
-        $this->assertSame('write', $deny->name);
-        $this->assertSame('user is guest', $deny->reason);
+
+        /*
+         * Act: access the disallowed decision properties.
+         */
+        $isAllowed = $deny->allowed;
+        $name = $deny->name;
+        $reason = $deny->reason;
+
+        /*
+         * Assert: verify the disallowed decision fields are set.
+         */
+        $this->assertFalse($isAllowed);
+        $this->assertSame('write', $name);
+        $this->assertSame('user is guest', $reason);
     }
 
+    /**
+     * Ensures AND returns allowed when both are allowed.
+     */
     public function testAndAllowedAndAllowed(): void
     {
+        /*
+         * Arrange: create two allowed decisions.
+         */
         $a = Allow::allowed('A');
         $b = Allow::allowed('B', 'reason B');
+
+        /*
+         * Act: combine the decisions using AND semantics.
+         */
         $result = Allow::and('combined', $a, $b);
 
+        /*
+         * Assert: verify the combined decision is allowed.
+         */
         $this->assertTrue($result->allowed);
         $this->assertSame('combined', $result->name);
         $this->assertSame('reason B', $result->reason);
     }
 
+    /**
+     * Ensures AND returns disallowed when the first is denied.
+     */
     public function testAndDisallowedFirst(): void
     {
+        /*
+         * Arrange: create a disallowed and an allowed decision.
+         */
         $a = Allow::disallowed('A', 'reason A');
         $b = Allow::allowed('B', 'reason B');
+
+        /*
+         * Act: combine the decisions using AND semantics.
+         */
         $result = Allow::and('combined', $a, $b);
 
+        /*
+         * Assert: verify the combined decision reflects the denial.
+         */
         $this->assertFalse($result->allowed);
         $this->assertSame('combined', $result->name);
         $this->assertSame('reason A', $result->reason);
     }
 
+    /**
+     * Ensures OR returns allowed when the first is allowed.
+     */
     public function testOrAllowedFirst(): void
     {
+        /*
+         * Arrange: create an allowed decision followed by a disallowed one.
+         */
         $a = Allow::allowed('A', 'reason A');
         $b = Allow::disallowed('B', 'reason B');
+
+        /*
+         * Act: combine the decisions using OR semantics.
+         */
         $result = Allow::or('combined', $a, $b);
 
+        /*
+         * Assert: verify the combined decision keeps the first allow.
+         */
         $this->assertTrue($result->allowed);
         $this->assertSame('combined', $result->name);
         $this->assertSame('reason A', $result->reason);
     }
 
+    /**
+     * Ensures OR returns allowed when the second is allowed.
+     */
     public function testOrDisallowedFirst(): void
     {
+        /*
+         * Arrange: create a disallowed decision followed by an allowed one.
+         */
         $a = Allow::disallowed('A', 'reason A');
         $b = Allow::allowed('B', 'reason B');
+
+        /*
+         * Act: combine the decisions using OR semantics.
+         */
         $result = Allow::or('combined', $a, $b);
 
+        /*
+         * Assert: verify the combined decision reflects the allowed result.
+         */
         $this->assertTrue($result->allowed);
         $this->assertSame('combined', $result->name);
         $this->assertSame('reason B', $result->reason);

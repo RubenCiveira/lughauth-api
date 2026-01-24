@@ -8,10 +8,19 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStorageInterface;
 
+/**
+ * Unit tests for FileStorageInterface.
+ */
 final class FileStorageInterfaceUnitTest extends TestCase
 {
+    /**
+     * Ensures the interface contract can be implemented.
+     */
     public function testInterfaceContractCanBeImplemented(): void
     {
+        /*
+         * Arrange: create a test storage implementation.
+         */
         $storage = new class () implements FileStorageInterface {
             public function tempStore(BinaryContent $source): FileStoreKey
             {
@@ -42,11 +51,19 @@ final class FileStorageInterfaceUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: store temporary content and commit it.
+         */
         $stream = fopen('php://temp', 'r+');
         $key = $storage->tempStore(new BinaryContent('name', 'mime', new DateTime(), $stream));
+        $committed = $storage->commitContent($key);
+
+        /*
+         * Assert: verify the key types and values are returned.
+         */
         $this->assertInstanceOf(FileStoreKey::class, $key);
         $this->assertSame('tmp', $key->key);
-        $this->assertSame($key, $storage->commitContent($key));
+        $this->assertSame($key, $committed);
 
         fclose($stream);
     }

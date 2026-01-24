@@ -6,108 +6,204 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 
+/**
+ * Unit tests for AesCypherService.
+ */
 class AesCypherServiceUnitTest extends TestCase
 {
+    /**
+     * @var AesCypherService Cipher service under test.
+     */
     private AesCypherService $aesService;
 
     protected function setUp(): void
     {
-        // Inicia un nuevo servicio con una clave por defecto
         $this->aesService = new AesCypherService();
     }
 
+    /**
+     * Ensures encryptForAll returns a ciphertext string.
+     */
     public function testEncryptForAll(): void
     {
+        /*
+         * Arrange: choose a plaintext value for encryption.
+         */
         $value = 'plaintext';
+
+        /*
+         * Act: encrypt the plaintext with the default key.
+         */
         $encrypted = $this->aesService->encryptForAll($value);
 
-        $this->assertNotEquals($value, $encrypted); // El valor cifrado no debe ser igual al original
-        $this->assertIsString($encrypted); // El valor cifrado debe ser un string
+        /*
+         * Assert: verify the ciphertext is different and is a string.
+         */
+        $this->assertNotEquals($value, $encrypted);
+        $this->assertIsString($encrypted);
     }
 
+    /**
+     * Ensures decryptForAll reverses encryptForAll output.
+     */
     public function testDecryptForAll(): void
     {
+        /*
+         * Arrange: encrypt a plaintext value using the default key.
+         */
         $value = 'plaintext';
         $encrypted = $this->aesService->encryptForAll($value);
 
+        /*
+         * Act: decrypt the ciphertext with the default key.
+         */
         $decrypted = $this->aesService->decryptForAll($encrypted);
 
-        $this->assertEquals($value, $decrypted); // El valor descifrado debe ser igual al original
+        /*
+         * Assert: confirm the decrypted value matches the plaintext.
+         */
+        $this->assertEquals($value, $decrypted);
     }
 
+    /**
+     * Ensures encryption works with a custom key.
+     */
     public function testEncryptWithCustomKey(): void
     {
+        /*
+         * Arrange: build a cipher service with a custom key.
+         */
         $customKey = 'custom-encryption-key';
         $aesServiceWithCustomKey = new AesCypherService($customKey);
         $value = 'plaintext';
+
+        /*
+         * Act: encrypt the plaintext with the custom key.
+         */
         $encrypted = $aesServiceWithCustomKey->encryptForAll($value);
 
-        $this->assertNotEquals($value, $encrypted); // El valor cifrado no debe ser igual al original
-        $this->assertIsString($encrypted); // El valor cifrado debe ser un string
+        /*
+         * Assert: verify the ciphertext is different and is a string.
+         */
+        $this->assertNotEquals($value, $encrypted);
+        $this->assertIsString($encrypted);
     }
 
+    /**
+     * Ensures decryption works with a custom key.
+     */
     public function testDecryptWithCustomKey(): void
     {
+        /*
+         * Arrange: encrypt a plaintext value using a custom key.
+         */
         $customKey = 'custom-encryption-key';
         $aesServiceWithCustomKey = new AesCypherService($customKey);
         $value = 'plaintext';
         $encrypted = $aesServiceWithCustomKey->encryptForAll($value);
 
+        /*
+         * Act: decrypt the ciphertext with the same custom key.
+         */
         $decrypted = $aesServiceWithCustomKey->decryptForAll($encrypted);
 
-        $this->assertEquals($value, $decrypted); // El valor descifrado debe ser igual al original
+        /*
+         * Assert: confirm the decrypted value matches the plaintext.
+         */
+        $this->assertEquals($value, $decrypted);
     }
 
+    /**
+     * Ensures corrupted ciphertext returns null on decrypt.
+     */
     public function testDecryptReturnsNullOnCorruptedCiphertext(): void
     {
+        /*
+         * Arrange: encrypt a plaintext value and corrupt the ciphertext.
+         */
         $value = 'plaintext';
         $encrypted = $this->aesService->encryptForAll($value);
+        $corruptedEncrypted = substr($encrypted, 4, -4);
 
-        // Modificamos el ciphertext de alguna forma para corromperlo
-        $corruptedEncrypted = substr($encrypted, 4, -4); // Eliminar un carácter para corromperlo
-
+        /*
+         * Act: attempt to decrypt the corrupted ciphertext.
+         */
         $decrypted = $this->aesService->decryptForAll($corruptedEncrypted);
 
-        $this->assertNull($decrypted); // Si el ciphertext está corrupto, el resultado debe ser null
+        /*
+         * Assert: verify decryption fails and returns null.
+         */
+        $this->assertNull($decrypted);
     }
 
+    /**
+     * Ensures decryptForAll returns null with a wrong key.
+     */
     public function testExceptionOnInvalidDecryptionKey(): void
     {
+        /*
+         * Arrange: encrypt a plaintext value and create a cipher with a wrong key.
+         */
         $value = 'plaintext';
         $encrypted = $this->aesService->encryptForAll($value);
-
-        // Usamos una clave diferente para el descifrado
         $aesServiceWithDifferentKey = new AesCypherService('wrong-key');
+
+        /*
+         * Act: attempt to decrypt with the wrong key.
+         */
         $decrypted = $aesServiceWithDifferentKey->decryptForAll($encrypted);
 
-        $this->assertNull($decrypted); // Si la clave es incorrecta, el resultado debe ser null
+        /*
+         * Assert: verify decryption fails and returns null.
+         */
+        $this->assertNull($decrypted);
     }
 
+    /**
+     * Ensures encryptForAll surfaces exceptions from the underlying encrypt call.
+     */
     public function testEncryptThrowsExceptionOnFailure(): void
     {
+        /*
+         * Arrange: create a mock service that throws during encrypt.
+         */
         $this->expectException(\RuntimeException::class);
-
-        // Simulamos un error en la función openssl_encrypt
         $mockedAesService = $this->getMockBuilder(AesCypherService::class)
             ->onlyMethods(['encrypt'])
             ->getMock();
+        $mockedAesService->method('encrypt')->willThrowException(new \RuntimeException('Error in encryption'));
 
-        $mockedAesService->method('encrypt')->willThrowException(new \RuntimeException('Error en la encriptación'));
-
+        /*
+         * Act: call encryptForAll to trigger the failure.
+         */
         $mockedAesService->encryptForAll('plaintext');
+
+        /*
+         * Assert: confirm the runtime exception is raised.
+         */
     }
 
+    /**
+     * Ensures decryptForAll surfaces exceptions from the underlying decrypt call.
+     */
     public function testDecryptThrowsExceptionOnFailure(): void
     {
+        /*
+         * Arrange: create a mock service that throws during decrypt.
+         */
         $this->expectException(\RuntimeException::class);
-
-        // Simulamos un error en la función openssl_decrypt
         $mockedAesService = $this->getMockBuilder(AesCypherService::class)
             ->onlyMethods(['decrypt'])
             ->getMock();
+        $mockedAesService->method('decrypt')->willThrowException(new \RuntimeException('Error decrypting'));
 
-        $mockedAesService->method('decrypt')->willThrowException(new \RuntimeException('Error al desencriptar'));
-
+        /*
+         * Act: call decryptForAll to trigger the failure.
+         */
         $mockedAesService->decryptForAll('encryptedString');
+
+        /*
+         * Assert: confirm the runtime exception is raised.
+         */
     }
 }

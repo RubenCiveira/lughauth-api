@@ -7,10 +7,19 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
+/**
+ * Unit tests for AllowDecision.
+ */
 final class AllowDecisionUnitTest extends TestCase
 {
+    /**
+     * Ensures AllowDecision exposes allow state and metadata.
+     */
     public function testIsAllowedAndGetAllow(): void
     {
+        /*
+         * Arrange: build an AllowDecision with a known allow value.
+         */
         $decision = new class (Allow::allowed('read', 'ok')) extends AllowDecision {
             public function actionName(): string
             {
@@ -23,15 +32,32 @@ final class AllowDecisionUnitTest extends TestCase
             }
         };
 
-        $this->assertTrue($decision->isAllowed());
-        $this->assertSame('read', $decision->getAllow()->name);
-        $this->assertSame('ok', $decision->getAllow()->reason);
-        $this->assertSame('read', $decision->actionName());
-        $this->assertSame('resource', $decision->resourceName());
+        /*
+         * Act: read the allow decision state and metadata.
+         */
+        $isAllowed = $decision->isAllowed();
+        $allow = $decision->getAllow();
+        $action = $decision->actionName();
+        $resource = $decision->resourceName();
+
+        /*
+         * Assert: verify the allow state and names are exposed correctly.
+         */
+        $this->assertTrue($isAllowed);
+        $this->assertSame('read', $allow->name);
+        $this->assertSame('ok', $allow->reason);
+        $this->assertSame('read', $action);
+        $this->assertSame('resource', $resource);
     }
 
+    /**
+     * Ensures deny replaces the allow decision state.
+     */
     public function testDenyUpdatesAllowState(): void
     {
+        /*
+         * Arrange: build an AllowDecision that starts as allowed.
+         */
         $decision = new class (Allow::allowed('write')) extends AllowDecision {
             public function actionName(): string
             {
@@ -44,10 +70,17 @@ final class AllowDecisionUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: deny the decision with a specific reason.
+         */
         $decision->deny('blocked');
+        $allow = $decision->getAllow();
 
+        /*
+         * Assert: confirm the allow state is denied with the reason set.
+         */
         $this->assertFalse($decision->isAllowed());
-        $this->assertSame('write', $decision->getAllow()->name);
-        $this->assertSame('blocked', $decision->getAllow()->reason);
+        $this->assertSame('write', $allow->name);
+        $this->assertSame('blocked', $allow->reason);
     }
 }

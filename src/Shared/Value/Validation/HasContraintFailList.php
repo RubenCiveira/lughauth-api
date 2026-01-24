@@ -8,32 +8,60 @@ namespace Civi\Lughauth\Shared\Value\Validation;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 
 /**
+ * Provides access to a lazily created constraint failure list.
+ *
  * @api
  */
 trait HasContraintFailList
 {
+    /**
+     * @var ConstraintFailList|null Collected constraint failures.
+     */
     private ?ConstraintFailList $fails = null;
 
+    /**
+     * Indicates whether any failures have been recorded.
+     */
     public function hasErrors(): bool
     {
         return null == $this->fails ? false : $this->fails->hasErrors();
     }
+
+    /**
+     * Indicates whether the failure list is empty.
+     */
     public function isEmpty(): bool
     {
         return null == $this->fails ? true : $this->fails->isEmpty();
     }
+
+    /**
+     * Builds a constraint exception from the current failures.
+     */
     public function asConstraintException(): ConstraintException
     {
         return $this->failList()->asConstraintException();
     }
+
+    /**
+     * Adds a failure or another list of failures.
+     */
     public function add(ConstraintFailList|ConstraintFail $error)
     {
         return $this->failList()->add($error);
     }
+
+    /**
+     * Checks if any failure matches the given class or interface.
+     */
     public function includeViolation(string $type): bool
     {
         return null == $this->fails ? false : $this->fails->includeViolation($type);
     }
+
+    /**
+     * Checks if any failure matches the given numeric code.
+     */
     public function includeViolationCode(int $code): bool
     {
         return null == $this->fails ? false : $this->fails->includeViolationCode($code);

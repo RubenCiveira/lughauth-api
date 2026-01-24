@@ -17,13 +17,12 @@ use Respect\Validation\Validator;
 class Between implements Rule
 {
     /**
-     * Create a rule with min and max range
-     *
-     * @param mixed $min The minimum value.
-     * @param mixed $max The maximum value.
+     * Create a rule with a min and max range.
      */
     public function __construct(
+        /** @var int The minimum value. */
         private readonly int $min,
+        /** @var int The maximum value. */
         private readonly int $max
     ) {
     }

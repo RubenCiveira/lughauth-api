@@ -6,11 +6,29 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
+/**
+ * Unit tests for FileStoreKey.
+ */
 final class FileStoreKeyUnitTest extends TestCase
 {
+    /**
+     * Ensures the storage key value is preserved.
+     */
     public function testKeyStored(): void
     {
+        /*
+         * Arrange: create a file store key with a known value.
+         */
         $key = new FileStoreKey('abc-123');
-        $this->assertSame('abc-123', $key->key);
+
+        /*
+         * Act: read the key value from the object.
+         */
+        $value = $key->key;
+
+        /*
+         * Assert: verify the stored key matches the input.
+         */
+        $this->assertSame('abc-123', $value);
     }
 }

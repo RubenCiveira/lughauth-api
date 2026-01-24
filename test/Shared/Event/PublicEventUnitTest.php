@@ -6,10 +6,19 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Event\PublicEvent;
 
+/**
+ * Unit tests for the PublicEvent contract.
+ */
 final class PublicEventUnitTest extends TestCase
 {
+    /**
+     * Ensures the public event contract returns expected values.
+     */
     public function testPublicEventContract(): void
     {
+        /*
+         * Arrange: build a test public event implementation.
+         */
         $event = new class () implements PublicEvent {
             public function eventType(): string
             {
@@ -32,9 +41,20 @@ final class PublicEventUnitTest extends TestCase
             }
         };
 
-        $this->assertSame('user.registered', $event->eventType());
-        $this->assertSame('v1', $event->schemaVersion());
-        $this->assertSame(['id' => 'u1'], $event->payload());
-        $this->assertSame(['id' => 'u1', 'email' => 'hidden'], $event->original());
+        /*
+         * Act: retrieve the event metadata and payloads.
+         */
+        $eventType = $event->eventType();
+        $version = $event->schemaVersion();
+        $payload = $event->payload();
+        $original = $event->original();
+
+        /*
+         * Assert: verify the contract returns the expected values.
+         */
+        $this->assertSame('user.registered', $eventType);
+        $this->assertSame('v1', $version);
+        $this->assertSame(['id' => 'u1'], $payload);
+        $this->assertSame(['id' => 'u1', 'email' => 'hidden'], $original);
     }
 }

@@ -18,13 +18,12 @@ use Respect\Validation\Validator;
 class Length implements Rule
 {
     /**
-     * Create a new rule with length must be beetween min and max
-     *
-     * @param int $min The minimum length.
-     * @param int $max The maximum length.
+     * Create a new rule with a minimum and maximum length.
      */
     public function __construct(
+        /** @var int|null The minimum length. */
         private readonly ?int $min = null,
+        /** @var int|null The maximum length. */
         private readonly ?int $max = null
     ) {
     }

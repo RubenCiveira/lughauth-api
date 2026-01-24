@@ -6,13 +6,30 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\NotUniqueException;
 
+/**
+ * Unit tests for NotUniqueException.
+ */
 class NotUniqueExceptionUnitTest extends TestCase
 {
+    /**
+     * Ensures the previous exception message is preserved.
+     */
     public function testMessageFromPreviousException(): void
     {
-        $previous = new \Exception("Duplicate value");
+        /*
+         * Arrange: create a previous exception with a known message.
+         */
+        $previous = new \Exception('Duplicate value');
+
+        /*
+         * Act: wrap the previous exception in a NotUniqueException.
+         */
         $exception = new NotUniqueException($previous);
-        $this->assertSame("Duplicate value", $exception->getMessage());
+
+        /*
+         * Assert: verify the message and previous exception are preserved.
+         */
+        $this->assertSame('Duplicate value', $exception->getMessage());
         $this->assertSame($previous, $exception->getPrevious());
         $this->assertSame($previous->getMessage(), $exception->getMessage());
     }

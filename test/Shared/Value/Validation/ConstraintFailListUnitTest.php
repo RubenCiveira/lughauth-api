@@ -8,79 +8,183 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 
+/**
+ * Unit tests for ConstraintFailList.
+ */
 final class ConstraintFailListUnitTest extends TestCase
 {
+    /**
+     * Verifies default empty state.
+     */
     public function testInitiallyEmpty(): void
     {
+        /*
+         * Arrange: create an empty constraint failure list.
+         */
         $list = new ConstraintFailList();
-        $this->assertTrue($list->isEmpty());
-        $this->assertFalse($list->hasErrors());
+
+        /*
+         * Act: query the empty and error states.
+         */
+        $isEmpty = $list->isEmpty();
+        $hasErrors = $list->hasErrors();
+
+        /*
+         * Assert: verify the list is empty and has no errors.
+         */
+        $this->assertTrue($isEmpty);
+        $this->assertFalse($hasErrors);
     }
 
+    /**
+     * Ensures a single failure sets the error state.
+     */
     public function testAddSingleConstraintFail(): void
     {
+        /*
+         * Arrange: create a list and a single constraint failure.
+         */
         $list = new ConstraintFailList();
         $fail = new ConstraintFail('code', ['field'], ['wrong'], ['expected']);
+
+        /*
+         * Act: add the failure to the list.
+         */
         $list->add($fail);
 
+        /*
+         * Assert: confirm the list reports errors and is not empty.
+         */
         $this->assertTrue($list->hasErrors());
         $this->assertFalse($list->isEmpty());
     }
 
+    /**
+     * Confirms lists merge when added.
+     */
     public function testAddConstraintFailListMerges(): void
     {
+        /*
+         * Arrange: create a parent list and a child list with two failures.
+         */
         $list = new ConstraintFailList();
         $child = new ConstraintFailList();
         $fail1 = new ConstraintFail('code1', ['a'], ['x'], ['y']);
         $fail2 = new ConstraintFail('code2', ['b'], ['x'], ['y']);
 
+        /*
+         * Act: add failures to the child list and merge into the parent.
+         */
         $child->add($fail1);
         $child->add($fail2);
-
         $list->add($child);
+
+        $errorsProperty = (new \ReflectionObject($list))->getProperty('errors');
+        $errorsProperty->setAccessible(true);
+        $errors = $errorsProperty->getValue($list);
+
+        /*
+         * Assert: verify the parent list now contains both failures.
+         */
         $this->assertTrue($list->hasErrors());
-        $this->assertEquals(2, count((new \ReflectionObject($list))->getProperty('errors')->getValue($list)));
+        $this->assertEquals(2, count($errors));
     }
 
+    /**
+     * Ensures field paths are prefixed when configured.
+     */
     public function testFieldPathPrefixing(): void
     {
+        /*
+         * Arrange: create a list with a path prefix and a failure.
+         */
         $list = new ConstraintFailList('user.');
         $fail = new ConstraintFail('code', ['email'], ['invalid'], []);
-        $list->add($fail);
 
+        /*
+         * Act: add the failure and inspect stored errors.
+         */
+        $list->add($fail);
         $ref = new \ReflectionClass($list);
         $prop = $ref->getProperty('errors');
         $prop->setAccessible(true);
         $errors = $prop->getValue($list);
 
+        /*
+         * Assert: confirm the field name is prefixed as configured.
+         */
         $this->assertEquals(['user.email'], $errors[0]->fields);
     }
 
+    /**
+     * Checks violation type detection.
+     */
     public function testIncludeViolation(): void
     {
+        /*
+         * Arrange: create a list with a single constraint failure.
+         */
         $list = new ConstraintFailList();
         $fail = new ConstraintFail('code', ['f'], ['invalid']);
-        $list->add($fail);
 
-        $this->assertTrue($list->includeViolation(ConstraintFail::class));
-        $this->assertFalse($list->includeViolation(\stdClass::class));
+        /*
+         * Act: query for matching and non-matching violation types.
+         */
+        $list->add($fail);
+        $matches = $list->includeViolation(ConstraintFail::class);
+        $misses = $list->includeViolation(\stdClass::class);
+
+        /*
+         * Assert: verify only the matching type is detected.
+         */
+        $this->assertTrue($matches);
+        $this->assertFalse($misses);
     }
 
+    /**
+     * Checks violation code detection.
+     */
     public function testIncludeViolationCode(): void
     {
+        /*
+         * Arrange: create a list that will include a specific code.
+         */
         $list = new ConstraintFailList();
+
+        /*
+         * Act: add a failure and query for matching and non-matching codes.
+         */
         $list->add(new ConstraintFail('123', ['a'], ['invalid']));
-        $this->assertTrue($list->includeViolationCode(123));
-        $this->assertFalse($list->includeViolationCode(456));
+        $matches = $list->includeViolationCode(123);
+        $misses = $list->includeViolationCode(456);
+
+        /*
+         * Assert: confirm only the matching code is detected.
+         */
+        $this->assertTrue($matches);
+        $this->assertFalse($misses);
     }
 
+    /**
+     * Ensures the list can be converted to an exception.
+     */
     public function testAsConstraintException(): void
     {
+        /*
+         * Arrange: create a list with one failure.
+         */
         $list = new ConstraintFailList();
         $fail = new ConstraintFail('code', ['field'], ['invalid']);
         $list->add($fail);
 
+        /*
+         * Act: convert the list into a ConstraintException.
+         */
         $ex = $list->asConstraintException();
+
+        /*
+         * Assert: verify the conversion produces the expected exception type.
+         */
         $this->assertInstanceOf(ConstraintException::class, $ex);
     }
 }

@@ -8,11 +8,24 @@ namespace Civi\Lughauth\Shared\Security\Rbac;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Security\Identity;
 
+/**
+ * Coordinates RBAC lookups and optional registration to Lugh.
+ */
 class Handler
 {
+    /**
+     * @var int Indicates whether RBAC integration is enabled.
+     */
     private int $mode = 0;
+
+    /**
+     * Creates a new RBAC handler.
+     *
+     * @param AppConfig $config Application configuration used to enable RBAC.
+     */
     public function __construct(
         AppConfig $config,
+        /** @var LughMapper Mapper used to query and register RBAC metadata. */
         private readonly LughMapper $mapper
     ) {
         if ('-' != $config->get('security.rbac.lugh.location', '-')) {
@@ -20,6 +33,9 @@ class Handler
         }
     }
 
+    /**
+     * Flushes pending registrations to the RBAC service.
+     */
     public function flush()
     {
         if ($this->mode == 1) {
@@ -27,40 +43,80 @@ class Handler
         }
     }
 
+    /**
+     * Registers a resource action with the RBAC service.
+     *
+     * @param string $resource Resource name to register.
+     * @param string $action Action name to register.
+     * @param string $kind Action kind or scope type.
+     */
     public function registerResourceAction(string $resource, string $action, string $kind)
     {
         if ($this->mode == 1) {
             $this->mapper->registerResourceAction($resource, $action, $kind);
         }
     }
+
+    /**
+     * Registers a resource attribute with the RBAC service.
+     *
+     * @param string $resource Resource name to register.
+     * @param string $attribute Attribute name to register.
+     * @param string $kind Attribute kind or schema type.
+     */
     public function registerResourceAttribute(string $resource, string $attribute, string $kind)
     {
         if ($this->mode == 1) {
             $this->mapper->registerResourceAttribute($resource, $attribute, $kind);
         }
     }
+
+    /**
+     * Resolves fields that should be hidden for the user.
+     *
+     * @param Identity $user Current identity.
+     * @param string $resource Resource name.
+     * @return array<int, string> Field names that should be hidden.
+     */
     public function hiddenFields(Identity $user, string $resource): array
     {
         if ($this->mode == 1) {
             return $this->mapper->hiddenFields($user, $resource);
-        } else {
-            return [];
         }
+
+        return [];
     }
+
+    /**
+     * Resolves fields that should be marked read-only for the user.
+     *
+     * @param Identity $user Current identity.
+     * @param string $resource Resource name.
+     * @return array<int, string> Field names that should be read-only.
+     */
     public function uneditableFields(Identity $user, string $resource): array
     {
         if ($this->mode == 1) {
             return $this->mapper->uneditableFields($user, $resource);
-        } else {
-            return [];
         }
+
+        return [];
     }
+
+    /**
+     * Determines if the user is allowed to perform an action.
+     *
+     * @param Identity $user Current identity.
+     * @param string $resource Resource name.
+     * @param string $action Action name.
+     * @return bool True when the action is allowed.
+     */
     public function allow(Identity $user, string $resource, string $action): bool
     {
         if ($this->mode == 1) {
             return $this->mapper->allow($user, $resource, $action);
-        } else {
-            return true;
         }
+
+        return true;
     }
 }

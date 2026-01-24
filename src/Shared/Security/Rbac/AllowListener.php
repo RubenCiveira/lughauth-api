@@ -8,16 +8,34 @@ namespace Civi\Lughauth\Shared\Security\Rbac;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\AllowDecision;
 
+/**
+ * Applies RBAC allow checks to permission proposals.
+ */
 class AllowListener
 {
-    public function __construct(private readonly Context $context, private readonly Handler $handler)
-    {
+    /**
+     * Creates a new allow listener.
+     */
+    public function __construct(
+        /** @var Context Runtime context providing the current identity. */
+        private readonly Context $context,
+        /** @var Handler RBAC handler used for permission evaluation. */
+        private readonly Handler $handler
+    ) {
     }
+
+    /**
+     * Evaluates the proposal and denies it when RBAC disallows it.
+     *
+     * @param AllowDecision $proposal The permission proposal to evaluate.
+     * @return AllowDecision The updated permission proposal.
+     */
     public function __invoke(AllowDecision $proposal): AllowDecision
     {
         if (!$this->handler->allow($this->context->getIdentity(), $proposal->resourceName(), $proposal->actionName())) {
             $proposal->deny();
         }
+
         return $proposal;
     }
 }

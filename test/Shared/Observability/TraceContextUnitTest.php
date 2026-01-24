@@ -8,56 +8,120 @@ use Civi\Lughauth\Shared\Observability\TraceContext;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanContext;
 
+/**
+ * Unit tests for TraceContext.
+ */
 final class TraceContextUnitTest extends TestCase
 {
+    /**
+     * Ensures traceparent headers are parsed for IDs.
+     */
     public function testExtractsFromTraceparentHeader(): void
     {
+        /*
+         * Arrange: build headers that include traceparent and span id.
+         */
         $headers = [
             'traceparent' => '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01',
             'X-Span-Id' => 'span-123'
         ];
         $context = new TraceContext($headers);
 
-        $this->assertSame('4bf92f3577b34da6a3ce929d0e0e4736', $context->getTraceId());
-        $this->assertSame('span-123', $context->getSpanId());
-    }
-
-    public function testExtractsFromTraceHeaderFallback(): void
-    {
-        $context = new TraceContext(['X-Trace-Id' => 'trace-abc']);
-
-        $this->assertSame('trace-abc', $context->getTraceId());
-    }
-
-    public function testGeneratesFallbackIdsOnce(): void
-    {
-        $context = new TraceContext([]);
-
+        /*
+         * Act: read trace and span identifiers from the context.
+         */
         $traceId = $context->getTraceId();
         $spanId = $context->getSpanId();
 
+        /*
+         * Assert: verify identifiers match the headers.
+         */
+        $this->assertSame('4bf92f3577b34da6a3ce929d0e0e4736', $traceId);
+        $this->assertSame('span-123', $spanId);
+    }
+
+    /**
+     * Ensures X-Trace-Id header is used as a fallback.
+     */
+    public function testExtractsFromTraceHeaderFallback(): void
+    {
+        /*
+         * Arrange: create context with only the trace header.
+         */
+        $context = new TraceContext(['X-Trace-Id' => 'trace-abc']);
+
+        /*
+         * Act: retrieve the trace id from the context.
+         */
+        $traceId = $context->getTraceId();
+
+        /*
+         * Assert: verify the trace id matches the header value.
+         */
+        $this->assertSame('trace-abc', $traceId);
+    }
+
+    /**
+     * Ensures fallback identifiers are generated only once.
+     */
+    public function testGeneratesFallbackIdsOnce(): void
+    {
+        /*
+         * Arrange: create a context without headers.
+         */
+        $context = new TraceContext([]);
+
+        /*
+         * Act: read trace and span identifiers twice.
+         */
+        $traceId = $context->getTraceId();
+        $spanId = $context->getSpanId();
+
+        /*
+         * Assert: verify identifiers are stable and properly sized.
+         */
         $this->assertSame($traceId, $context->getTraceId());
         $this->assertSame($spanId, $context->getSpanId());
         $this->assertSame(32, strlen($traceId));
         $this->assertSame(16, strlen($spanId));
     }
 
+    /**
+     * Ensures asArray returns both identifiers.
+     */
     public function testAsArrayReturnsBothIds(): void
     {
+        /*
+         * Arrange: create a context with trace and span headers.
+         */
         $headers = [
             'X-Trace-Id' => 'trace-xyz',
             'X-Span-Id' => 'span-xyz'
         ];
         $context = new TraceContext($headers);
 
+        /*
+         * Act: convert the context to an array.
+         */
+        $array = $context->asArray();
+
+        /*
+         * Assert: verify the array includes both identifiers.
+         */
         $this->assertSame([
             'traceId' => 'trace-xyz',
             'spanId' => 'span-xyz'
-        ], $context->asArray());
+        ], $array);
     }
 
+    /**
+     * Ensures active span context overrides headers.
+     */
     public function testUsesActiveSpanContextWhenValid(): void
     {
+        /*
+         * Arrange: activate a valid span context.
+         */
         $traceId = '4bf92f3577b34da6a3ce929d0e0e4736';
         $spanId = '00f067aa0ba902b7';
         $spanContext = SpanContext::create($traceId, $spanId);
@@ -65,9 +129,18 @@ final class TraceContextUnitTest extends TestCase
         $scope = $span->activate();
 
         try {
+            /*
+             * Act: read identifiers while a span context is active.
+             */
             $context = new TraceContext(['X-Trace-Id' => 'trace-header', 'X-Span-Id' => 'span-header']);
-            $this->assertSame($traceId, $context->getTraceId());
-            $this->assertSame($spanId, $context->getSpanId());
+            $resolvedTraceId = $context->getTraceId();
+            $resolvedSpanId = $context->getSpanId();
+
+            /*
+             * Assert: verify the active span context takes precedence.
+             */
+            $this->assertSame($traceId, $resolvedTraceId);
+            $this->assertSame($spanId, $resolvedSpanId);
         } finally {
             $scope->detach();
         }

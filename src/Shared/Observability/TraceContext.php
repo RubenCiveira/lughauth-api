@@ -7,18 +7,37 @@ namespace Civi\Lughauth\Shared\Observability;
 
 use OpenTelemetry\API\Trace\Span;
 
+/**
+ * Resolves trace and span identifiers from the current context or headers.
+ */
 class TraceContext
 {
+    /**
+     * @var string|null Cached fallback trace identifier.
+     */
     private ?string $fallbackTraceId = null;
+    /**
+     * @var string|null Cached fallback span identifier.
+     */
     private ?string $fallbackSpanId = null;
+    /**
+     * @var array<string, string>|null Request headers used to extract trace metadata.
+     */
     private ?array $headers = null;
 
+    /**
+     * Creates a new trace context using optional headers.
+     *
+     * @param array<string, string>|null $headers Optional headers to inspect for tracing data.
+     */
     public function __construct(?array $headers = null)
     {
-        // Captura headers una sola vez (para no depender siempre de getallheaders())
         $this->headers = $headers ?? (function_exists('getallheaders') ? getallheaders() : []);
     }
 
+    /**
+     * Returns the current trace identifier.
+     */
     public function getTraceId(): string
     {
         $context = Span::getCurrent()->getContext();
@@ -36,6 +55,9 @@ class TraceContext
         return $this->fallbackTraceId ??= $this->generateId(16);
     }
 
+    /**
+     * Returns the current span identifier.
+     */
     public function getSpanId(): string
     {
         $context = Span::getCurrent()->getContext();
@@ -69,6 +91,11 @@ class TraceContext
         return bin2hex(random_bytes($bytes));
     }
 
+    /**
+     * Returns the trace and span identifiers as an array.
+     *
+     * @return array{traceId: string, spanId: string}
+     */
     public function asArray(): array
     {
         return [

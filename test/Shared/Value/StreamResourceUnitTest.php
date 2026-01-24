@@ -6,97 +6,246 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\StreamResource;
 
+/**
+ * Unit tests for StreamResource.
+ */
 final class StreamResourceUnitTest extends TestCase
 {
+    /**
+     * Verifies construction with a valid stream resource.
+     */
     public function testConstructWithValidResource(): void
     {
+        /*
+         * Arrange: open an in-memory stream resource for wrapping.
+         */
         $res = fopen('php://temp', 'r+');
+
+        /*
+         * Act: construct a StreamResource with the valid resource.
+         */
         $stream = new StreamResource($res);
+
+        /*
+         * Assert: verify the wrapper instance was created.
+         */
         $this->assertInstanceOf(StreamResource::class, $stream);
     }
 
+    /**
+     * Ensures invalid resources are rejected.
+     */
     public function testConstructWithInvalidResourceThrows(): void
     {
+        /*
+         * Arrange: set the expectation for an invalid resource exception.
+         */
         $this->expectException(\InvalidArgumentException::class);
+
+        /*
+         * Act: attempt to construct the stream wrapper with a non-resource value.
+         */
         new StreamResource('not-a-resource');
+
+        /*
+         * Assert: confirm the invalid argument exception is raised.
+         */
     }
 
+    /**
+     * Confirms __toString reads full contents.
+     */
     public function testToStringReturnsFullContents(): void
     {
+        /*
+         * Arrange: create a temp stream with known contents and wrap it.
+         */
         $res = fopen('php://temp', 'r+');
         fwrite($res, 'abc');
         $stream = new StreamResource($res);
-        $this->assertEquals('abc', (string) $stream);
+
+        /*
+         * Act: cast the stream wrapper to a string.
+         */
+        $contents = (string) $stream;
+
+        /*
+         * Assert: verify the string contents match the original data.
+         */
+        $this->assertEquals('abc', $contents);
     }
 
+    /**
+     * Ensures close releases the resource.
+     */
     public function testCloseReleasesResource(): void
     {
+        /*
+         * Arrange: wrap a temp stream in a StreamResource instance.
+         */
         $res = fopen('php://temp', 'r+');
         $stream = new StreamResource($res);
+
+        /*
+         * Act: close the stream wrapper to release the resource.
+         */
         $stream->close();
 
-        // __toString after close should return empty
+        /*
+         * Assert: confirm the wrapper returns an empty string after closing.
+         */
         $this->assertSame('', (string) $stream);
     }
 
+    /**
+     * Ensures detach returns the resource and disables the stream.
+     */
     public function testDetachReturnsResourceAndDisablesStream(): void
     {
+        /*
+         * Arrange: create and wrap a stream resource for detachment.
+         */
         $res = fopen('php://temp', 'r+');
         $stream = new StreamResource($res);
+
+        /*
+         * Act: detach the underlying resource from the wrapper.
+         */
         $detached = $stream->detach();
+
+        /*
+         * Assert: verify the resource is returned and the wrapper is inert.
+         */
         $this->assertIsResource($detached);
         $this->assertSame('', (string) $stream);
     }
 
+    /**
+     * Checks size detection and handling of detached streams.
+     */
     public function testGetSizeReturnsSize(): void
     {
+        /*
+         * Arrange: build a stream with known length and wrap it.
+         */
         $res = fopen('php://temp', 'r+');
         fwrite($res, '12345');
         rewind($res);
         $stream = new StreamResource($res);
-        $this->assertEquals(5, $stream->getSize());
+
+        /*
+         * Act: get the size before and after detaching the resource.
+         */
+        $size = $stream->getSize();
         $stream->detach();
-        $this->assertEquals(0, $stream->getSize());
+        $detachedSize = $stream->getSize();
+
+        /*
+         * Assert: confirm the size is reported and becomes zero after detaching.
+         */
+        $this->assertEquals(5, $size);
+        $this->assertEquals(0, $detachedSize);
     }
 
+    /**
+     * Validates tell and EOF detection.
+     */
     public function testTellAndEof(): void
     {
+        /*
+         * Arrange: create a one-byte stream and wrap it.
+         */
         $res = fopen('php://temp', 'r+');
         fwrite($res, 'x');
         $stream = new StreamResource($res);
-        $this->assertEquals(1, $stream->tell());
-        $this->assertFalse($stream->eof());
+
+        /*
+         * Act: check the current position and EOF state.
+         */
+        $position = $stream->tell();
+        $eof = $stream->eof();
+
+        /*
+         * Assert: verify the position and EOF detection are correct.
+         */
+        $this->assertEquals(1, $position);
+        $this->assertFalse($eof);
     }
 
+    /**
+     * Ensures seek and rewind update the pointer position.
+     */
     public function testSeekAndRewind(): void
     {
+        /*
+         * Arrange: prepare a multi-byte stream for seek operations.
+         */
         $res = fopen('php://temp', 'r+');
         fwrite($res, 'abc');
         $stream = new StreamResource($res);
+
+        /*
+         * Act: seek forward and then rewind to the beginning.
+         */
         $stream->seek(1);
-        $this->assertEquals(1, $stream->tell());
+        $position = $stream->tell();
         $stream->rewind();
-        $this->assertEquals(0, $stream->tell());
+        $rewound = $stream->tell();
+
+        /*
+         * Assert: confirm the pointer moved to the expected positions.
+         */
+        $this->assertEquals(1, $position);
+        $this->assertEquals(0, $rewound);
     }
 
+    /**
+     * Ensures seeking on non-seekable streams throws.
+     */
     public function testSeekFailsIfNotSeekable(): void
     {
+        /*
+         * Arrange: wrap a non-seekable socket stream and expect an exception.
+         */
         [$r, $w] = stream_socket_pair(STREAM_PF_UNIX, STREAM_SOCK_STREAM, STREAM_IPPROTO_IP);
-        fclose($w); // Cerramos escritura, el de lectura no será seekable
+        fclose($w);
         $stream = new StreamResource($r);
         $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to seek on the non-seekable stream.
+         */
         $stream->seek(0);
+
+        /*
+         * Assert: confirm the seek attempt results in an exception and cleanup occurs.
+         */
         pclose($r);
     }
 
+    /**
+     * Verifies writing to writable streams.
+     */
     public function testWriteAndIsWritable(): void
     {
+        /*
+         * Arrange: create a writable temp file and wrap it.
+         */
         $tmp = tempnam(sys_get_temp_dir(), 'test');
         $res = fopen($tmp, 'w+');
         $stream = new StreamResource($res);
-        $this->assertTrue($stream->isWritable());
+
+        /*
+         * Act: check writable status and write data to the stream.
+         */
+        $isWritable = $stream->isWritable();
         $stream->write('hello');
         rewind($res);
+
+        /*
+         * Assert: verify the stream is writable and the data was persisted.
+         */
+        $this->assertTrue($isWritable);
         try {
             $this->assertEquals('hello', stream_get_contents($res));
         } finally {
@@ -104,79 +253,168 @@ final class StreamResourceUnitTest extends TestCase
         }
     }
 
+    /**
+     * Verifies write fails on non-writable streams.
+     */
     public function testWriteFailsIfNotWritable(): void
     {
+        /*
+         * Arrange: open a read-only stream and expect a write failure.
+         */
         $tmp = tempnam(sys_get_temp_dir(), 'test');
         $res = fopen($tmp, 'r');
         $stream = new StreamResource($res);
-        $this->assertFalse($stream->isWritable());
-
+        $isWritable = $stream->isWritable();
         $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to write to the read-only stream.
+         */
         try {
             $stream->write('x');
         } finally {
             unlink($tmp);
         }
+
+        /*
+         * Assert: confirm the stream reported non-writable state.
+         */
+        $this->assertFalse($isWritable);
     }
 
+    /**
+     * Verifies reading from readable streams.
+     */
     public function testReadAndIsReadable(): void
     {
+        /*
+         * Arrange: create a readable stream with content and wrap it.
+         */
         $tmp = tempnam(sys_get_temp_dir(), 'test');
         $res = fopen($tmp, 'r+');
         fwrite($res, 'xyz');
         rewind($res);
         $stream = new StreamResource($res);
-        $this->assertTrue($stream->isReadable());
-        $this->assertEquals('x', $stream->read(1));
+
+        /*
+         * Act: check readable status and read a single byte.
+         */
+        $isReadable = $stream->isReadable();
+        $value = $stream->read(1);
+
+        /*
+         * Assert: verify the stream is readable and returns expected data.
+         */
+        $this->assertTrue($isReadable);
+        $this->assertEquals('x', $value);
         unlink($tmp);
     }
 
+    /**
+     * Ensures read fails on non-readable streams.
+     */
     public function testReadFailsIfNotReadable(): void
     {
+        /*
+         * Arrange: open a write-only stream and expect a read failure.
+         */
         $tmp = tempnam(sys_get_temp_dir(), 'test');
         $res = fopen($tmp, 'w');
         $stream = new StreamResource($res);
-        $this->assertFalse($stream->isReadable());
+        $isReadable = $stream->isReadable();
         $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to read from the write-only stream.
+         */
         try {
             $stream->read(1);
         } finally {
             unlink($tmp);
         }
+
+        /*
+         * Assert: confirm the stream reported non-readable state.
+         */
+        $this->assertFalse($isReadable);
     }
 
+    /**
+     * Reads remaining contents from a stream.
+     */
     public function testGetContents(): void
     {
+        /*
+         * Arrange: create a stream with content and wrap it.
+         */
         $tmp = tempnam(sys_get_temp_dir(), 'test');
         $res = fopen($tmp, 'r+');
         fwrite($res, 'stream');
         rewind($res);
         $stream = new StreamResource($res);
-        $this->assertEquals('stream', $stream->getContents());
+
+        /*
+         * Act: read the remaining contents from the stream.
+         */
+        $contents = $stream->getContents();
+
+        /*
+         * Assert: verify the read contents match the stream data.
+         */
+        $this->assertEquals('stream', $contents);
     }
 
+    /**
+     * Ensures getContents fails on non-readable streams.
+     */
     public function testGetContentsFailsIfNotReadable(): void
     {
+        /*
+         * Arrange: open a write-only stream and expect a read exception.
+         */
         $tmp = tempnam(sys_get_temp_dir(), 'test');
         $res = fopen($tmp, 'w');
         $stream = new StreamResource($res);
         $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to read contents from the non-readable stream.
+         */
         try {
             $stream->getContents();
         } finally {
             unlink($tmp);
         }
+
+        /*
+         * Assert: confirm the non-readable stream triggers an exception.
+         */
     }
 
+    /**
+     * Confirms metadata retrieval works for full and keyed queries.
+     */
     public function testGetMetadata(): void
     {
+        /*
+         * Arrange: wrap a temp stream to inspect metadata.
+         */
         $res = fopen('php://temp', 'r+');
         $stream = new StreamResource($res);
+
+        /*
+         * Act: request full metadata, a specific key, and a missing key.
+         */
         $meta = $stream->getMetadata();
+        $mode = $stream->getMetadata('mode');
+        $missing = $stream->getMetadata('nonexistent');
+
+        /*
+         * Assert: verify metadata results for full and keyed queries.
+         */
         $this->assertIsArray($meta);
         $this->assertArrayHasKey('mode', $meta);
-
-        $this->assertSame($meta['mode'], $stream->getMetadata('mode'));
-        $this->assertNull($stream->getMetadata('nonexistent'));
+        $this->assertSame($meta['mode'], $mode);
+        $this->assertNull($missing);
     }
 }

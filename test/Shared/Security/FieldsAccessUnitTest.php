@@ -6,10 +6,19 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Security\FieldsAccess;
 
+/**
+ * Unit tests for FieldsAccess.
+ */
 final class FieldsAccessUnitTest extends TestCase
 {
+    /**
+     * Ensures with() appends fields to the list.
+     */
     public function testWithAddsFields(): void
     {
+        /*
+         * Arrange: create a field access proposal with an initial field.
+         */
         $access = new class (['id']) extends FieldsAccess {
             public function accessMode(): string
             {
@@ -22,15 +31,27 @@ final class FieldsAccessUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: add additional fields to the proposal.
+         */
         $access->with('name', 'email');
 
+        /*
+         * Assert: verify the fields and metadata are updated.
+         */
         $this->assertSame(['id', 'name', 'email'], $access->fields);
         $this->assertSame('read', $access->accessMode());
         $this->assertSame('users', $access->resourceName());
     }
 
+    /**
+     * Ensures withAll() appends an array of fields.
+     */
     public function testWithAllAddsFieldsArray(): void
     {
+        /*
+         * Arrange: create a field access proposal with an initial field.
+         */
         $access = new class (['id']) extends FieldsAccess {
             public function accessMode(): string
             {
@@ -43,8 +64,14 @@ final class FieldsAccessUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: add an array of fields to the proposal.
+         */
         $access->withAll(['createdAt', 'updatedAt']);
 
+        /*
+         * Assert: verify the fields and metadata are updated.
+         */
         $this->assertSame(['id', 'createdAt', 'updatedAt'], $access->fields);
         $this->assertSame('write', $access->accessMode());
         $this->assertSame('roles', $access->resourceName());
