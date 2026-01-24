@@ -7,30 +7,51 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Unit tests for {@see MessageProvider}.
+ */
 final class MessageProviderUnitTest extends TestCase
 {
+    /**
+     * Ensures message catalogues load translations from disk.
+     */
     public function testMessagesLoadsCatalogue(): void
     {
+        /* Arrange: build translation files for the requested locale. */
         $dir = $this->createTranslationsDir();
         file_put_contents($dir . '/messages.yaml', "greeting: hello\n");
         file_put_contents($dir . '/messages.es.yaml', "greeting: hola\n");
 
         $provider = new MessageProvider($this->createConfig(), $dir . '/compiled');
+
+        /* Act: load the message catalogue for the locale. */
         $catalogue = $provider->messages('messages', 'es', $dir);
 
+        /* Assert: verify the translated message resolves. */
         $this->assertSame('hola', $catalogue->get('greeting'));
     }
 
+    /**
+     * Ensures invalid translation directories raise an exception.
+     */
     public function testMessagesThrowsOnInvalidPath(): void
     {
+        /* Arrange: create a provider with a missing directory. */
         $provider = new MessageProvider($this->createConfig(), sys_get_temp_dir());
 
+        /* Act: request catalogue loading from an invalid path. */
         $this->expectException(RuntimeException::class);
         $provider->messages('messages', 'en', sys_get_temp_dir() . '/missing');
+
+        /* Assert: verify the runtime exception is thrown. */
     }
 
+    /**
+     * Ensures the domain suffix respects the intl extension availability.
+     */
     public function testMessagesUsesDomainBasedOnIntl(): void
     {
+        /* Arrange: create translations and providers with intl flags. */
         $dir = $this->createTranslationsDir();
         file_put_contents($dir . '/messages.yaml', "greeting: hello\n");
 
@@ -40,7 +61,11 @@ final class MessageProviderUnitTest extends TestCase
                 return false;
             }
         };
+
+        /* Act: load the catalogue with intl disabled. */
         $catalogue = $provider->messages('messages', 'en', $dir);
+
+        /* Assert: verify the base domain is used. */
         $this->assertSame('messages', $this->getDomain($catalogue));
 
         $provider = new class ($this->createConfig()) extends MessageProvider {
@@ -49,7 +74,11 @@ final class MessageProviderUnitTest extends TestCase
                 return true;
             }
         };
+
+        /* Act: load the catalogue with intl enabled. */
         $catalogue = $provider->messages('messages', 'en', $dir);
+
+        /* Assert: verify the intl domain suffix is used. */
         $this->assertSame('messages.+intl-icu', $this->getDomain($catalogue));
     }
 

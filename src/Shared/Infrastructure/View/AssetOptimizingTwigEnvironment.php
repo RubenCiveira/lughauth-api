@@ -12,10 +12,21 @@ use Twig\Environment;
 use Twig\Loader\LoaderInterface;
 use Twig\TwigFunction;
 
+/**
+ * Extends Twig to provide route and asset helpers.
+ */
 class AssetOptimizingTwigEnvironment extends Environment
 {
-    public function __construct(ServerRequestInterface $request, LoaderInterface $loader, array $options = [])
-    {
+    /**
+     * Creates a Twig environment with URL helpers based on the request.
+     */
+    public function __construct(
+        /** @var ServerRequestInterface Incoming request used for base path resolution. */
+        ServerRequestInterface $request,
+        /** @var LoaderInterface Twig template loader. */
+        LoaderInterface $loader,
+        array $options = []
+    ) {
         parent::__construct($loader, $options);
 
         $routeContext = RouteContext::fromRequest($request);
@@ -35,12 +46,18 @@ class AssetOptimizingTwigEnvironment extends Environment
         }));
     }
 
+    /**
+     * Renders a Twig template to a string.
+     */
     #[Override]
     public function render($name, array $context = []): string
     {
         return parent::render($name, $context);
     }
 
+    /**
+     * Outputs a rendered Twig template.
+     */
     #[Override]
     public function display($name, array $context = []): void
     {

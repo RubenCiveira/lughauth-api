@@ -11,14 +11,25 @@ use Symfony\Component\Translation\Translator;
 use Symfony\Component\Translation\Loader\YamlFileLoader;
 use Symfony\Component\Translation\Formatter\MessageFormatter;
 
+/**
+ * Builds translation catalogues from YAML resources.
+ */
 class MessageProvider
 {
+    /**
+     * Creates a new message provider.
+     */
     public function __construct(
+        /** @var AppConfig Application configuration. */
         private readonly AppConfig $config,
+        /** @var string Path to compiled translation cache. */
         private readonly string $compiled = __DIR__ . '/../../../var/compiled/langs'
     ) {
     }
 
+    /**
+     * Builds a message catalogue for the requested domain and locale.
+     */
     public function messages(string $name, string $lang, string $path = __DIR__ . '/../../../translations'): MessageCatalogue
     {
         // private readonly Translator $translator;
@@ -47,6 +58,9 @@ class MessageProvider
         return new MessageCatalogue($translator, $domain);
     }
 
+    /**
+     * Indicates whether the intl extension is available.
+     */
     protected function intlEnabled(): bool
     {
         return extension_loaded('intl');

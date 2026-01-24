@@ -5,16 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Sql;
 
+/**
+ * Represents a typed SQL parameter for prepared statements.
+ */
 class SqlParam
 {
-    public const BOOL = 1;
-    public const STR = 2;
-    public const INT = 3;
-    public const DECIMAL = 4;
-    public const TEXT = 5;
-    public const DATETIME = 6;
+    public const int BOOL = 1;
+    public const int STR = 2;
+    public const int INT = 3;
+    public const int DECIMAL = 4;
+    public const int TEXT = 5;
+    public const int DATETIME = 6;
 
-    public function __construct(public readonly string $name, public readonly mixed $value, public readonly int $type)
-    {
+    public function __construct(
+        /** @var string Parameter name in the SQL statement. */
+        public readonly string $name,
+        /** @var mixed Parameter value. */
+        public readonly mixed $value,
+        /** @var int Parameter type constant for binding. */
+        public readonly int $type
+    ) {
     }
 }

@@ -11,29 +11,47 @@ use Slim\Routing\RoutingResults;
 use Twig\Loader\ArrayLoader;
 use Civi\Lughauth\Shared\Infrastructure\View\AssetOptimizingTwigEnvironment;
 
+/**
+ * Unit tests for {@see AssetOptimizingTwigEnvironment}.
+ */
 final class AssetOptimizingTwigEnvironmentUnitTest extends TestCase
 {
+    /**
+     * Ensures path and asset functions include the base path.
+     */
     public function testPathAndAssetFunctions(): void
     {
+        /* Arrange: create the Twig environment with a base path. */
         $request = $this->createRequest('/base');
         $env = new AssetOptimizingTwigEnvironment($request, new ArrayLoader(['tpl' => 'ok']));
 
         $path = $env->getFunction('path')->getCallable();
         $asset = $env->getFunction('asset')->getCallable();
 
-        $this->assertSame('/base/users?id=1', $path('users', ['id' => 1]));
-        $this->assertSame('/base/assets/app.js', $asset('app.js'));
+        /* Act: resolve a path and asset URL. */
+        $pathUrl = $path('users', ['id' => 1]);
+        $assetUrl = $asset('app.js');
+
+        /* Assert: verify URLs use the base path. */
+        $this->assertSame('/base/users?id=1', $pathUrl);
+        $this->assertSame('/base/assets/app.js', $assetUrl);
     }
 
+    /**
+     * Ensures display outputs the rendered template.
+     */
     public function testDisplayOutputsRendered(): void
     {
+        /* Arrange: create a Twig environment with a template. */
         $request = $this->createRequest('/base');
         $env = new AssetOptimizingTwigEnvironment($request, new ArrayLoader(['tpl' => 'hello']));
 
+        /* Act: render the template using display. */
         ob_start();
         $env->display('tpl');
         $output = ob_get_clean();
 
+        /* Assert: verify the rendered output. */
         $this->assertSame('hello', $output);
     }
 

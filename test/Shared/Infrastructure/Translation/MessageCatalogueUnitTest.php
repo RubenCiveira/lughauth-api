@@ -7,10 +7,17 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Translation\Translator;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue;
 
+/**
+ * Unit tests for {@see MessageCatalogue}.
+ */
 final class MessageCatalogueUnitTest extends TestCase
 {
+    /**
+     * Ensures translations are delegated to the underlying translator.
+     */
     public function testGetDelegatesToTranslator(): void
     {
+        /* Arrange: configure a translator expectation and catalogue. */
         $translator = $this->createMock(Translator::class);
         $translator->expects($this->once())
             ->method('trans')
@@ -19,6 +26,10 @@ final class MessageCatalogueUnitTest extends TestCase
 
         $catalogue = new MessageCatalogue($translator, 'domain');
 
-        $this->assertSame('value', $catalogue->get('key', ['x' => 'y']));
+        /* Act: resolve a message through the catalogue. */
+        $result = $catalogue->get('key', ['x' => 'y']);
+
+        /* Assert: verify the translated value is returned. */
+        $this->assertSame('value', $result);
     }
 }

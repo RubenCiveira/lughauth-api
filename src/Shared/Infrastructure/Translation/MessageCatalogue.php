@@ -7,14 +7,25 @@ namespace Civi\Lughauth\Shared\Infrastructure\Translation;
 
 use Symfony\Component\Translation\Translator;
 
+/**
+ * Wraps a Symfony translator with a fixed domain.
+ */
 class MessageCatalogue
 {
+    /**
+     * Creates a new message catalogue.
+     */
     public function __construct(
+        /** @var Translator Symfony translator instance. */
         private readonly Translator $translator,
+        /** @var string Translation domain name. */
         private readonly string $domain
     ) {
     }
 
+    /**
+     * Resolves a translation message for the configured domain.
+     */
     public function get(string $name, array $args = [])
     {
         return $this->translator->trans($name, $args, $this->domain);

@@ -11,13 +11,24 @@ use Slim\Routing\RoutingResults;
 use Civi\Lughauth\Shared\Infrastructure\View\TwigBuilder;
 use Civi\Lughauth\Shared\Infrastructure\View\AssetOptimizingTwigEnvironment;
 
+/**
+ * Unit tests for {@see TwigBuilder}.
+ */
 final class TwigBuilderUnitTest extends TestCase
 {
+    /**
+     * Ensures the builder returns the optimized Twig environment.
+     */
     public function testBuildReturnsTwigEnvironment(): void
     {
+        /* Arrange: create the builder and request context. */
         $builder = new TwigBuilder();
-        $env = $builder->build($this->createRequest('/base'));
+        $request = $this->createRequest('/base');
 
+        /* Act: build the Twig environment. */
+        $env = $builder->build($request);
+
+        /* Assert: verify the environment type. */
         $this->assertInstanceOf(AssetOptimizingTwigEnvironment::class, $env);
     }
 

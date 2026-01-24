@@ -8,11 +8,18 @@ namespace Civi\Lughauth\Shared\Infrastructure\View;
 use Twig\Environment;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Builds Twig environments configured for the application.
+ */
 class TwigBuilder
 {
+    /**
+     * Creates a Twig environment configured for templates and caching.
+     */
     public function build(ServerRequestInterface $request): Environment
     {
-        $loader = new \Twig\Loader\FilesystemLoader(realpath(__DIR__.'/../../../../templates'));
+        $path = realpath(__DIR__ . '/../../../../templates');
+        $loader = new \Twig\Loader\FilesystemLoader($path === false ? '' : $path);
         return new AssetOptimizingTwigEnvironment($request, $loader, [
             'cache' => __DIR__ . '/../../../../var/cache',
             'debug' => true,
