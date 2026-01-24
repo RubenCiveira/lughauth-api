@@ -5,13 +5,24 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\EntityChangelog;
 
+/**
+ * Represents a changelog entry for a single entity.
+ */
 class EntityChangelogEntry
 {
+    /**
+     * Creates a new changelog entry value object.
+     */
     public function __construct(
+        /** @var string Entity type name. */
         public readonly string $entityType,
+        /** @var string Entity identifier. */
         public readonly string $entityId,
+        /** @var bool Whether the entity is marked as deleted. */
         public readonly bool $deleted,
+        /** @var \DateTimeImmutable Timestamp of the change. */
         public readonly \DateTimeImmutable $changedAt,
+        /** @var array Payload snapshot for the entity. */
         public readonly array $payload,
     ) {
     }

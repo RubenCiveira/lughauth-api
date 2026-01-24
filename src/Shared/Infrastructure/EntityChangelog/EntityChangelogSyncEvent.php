@@ -5,6 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\EntityChangelog;
 
+/**
+ * Marker event to trigger changelog synchronization.
+ */
 class EntityChangelogSyncEvent
 {
     /* no code: only mark to update sync */

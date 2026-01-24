@@ -7,39 +7,62 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogEntry;
 
+/**
+ * Unit tests for {@see EntityChangelogService}.
+ */
 final class EntityChangelogServiceUnitTest extends TestCase
 {
     private ?PDO $pdo = null;
 
+    /**
+     * Ensures recordChange inserts missing entries.
+     */
     public function testRecordChangeInsertsWhenMissing(): void
     {
+        /* Arrange: create the changelog service. */
         $service = $this->createService();
-        $service->recordChange('User', '1', ['name' => 'A'], []);
 
+        /* Act: record a change for a new entity. */
+        $service->recordChange('User', '1', ['name' => 'A']);
         $row = $this->fetchChangelogRow('User', '1');
+
+        /* Assert: verify the changelog entry is stored. */
         $this->assertSame(0, (int) $row['deleted']);
         $this->assertSame(['name' => 'A'], json_decode($row['payload'], true));
     }
 
+    /**
+     * Ensures recordDeletion inserts missing entries.
+     */
     public function testRecordDeletionInsertsWhenMissing(): void
     {
+        /* Arrange: create the changelog service. */
         $service = $this->createService();
-        $service->recordDeletion('User', '2', []);
 
+        /* Act: record a deletion for a new entity. */
+        $service->recordDeletion('User', '2', []);
         $row = $this->fetchChangelogRow('User', '2');
+
+        /* Assert: verify the deletion marker is stored. */
         $this->assertSame(1, (int) $row['deleted']);
         $this->assertSame([], json_decode($row['payload'], true));
     }
 
+    /**
+     * Ensures resync updates payloads that changed.
+     */
     public function testResyncEntityLogUpdatesChangedPayload(): void
     {
+        /* Arrange: seed changelog entries with existing payloads. */
         $service = $this->createService();
 
         $this->insertChangelog('User', 'id-3', false, '2024-01-01 00:00:00', ['name' => 'Old']);
         $this->insertChangelog('User', 'id-4', false, '2024-01-01 00:00:00', []);
 
+        /* Act: resync with updated payloads. */
         $service->resyncEntityLog('User', ['id-3' => ['name' => 'New'], 'id-4' => ['name' => 'Same']]);
 
+        /* Assert: verify the payloads are updated. */
         $row = $this->fetchChangelogRow('User', 'id-3');
         $this->assertSame(['name' => 'New'], json_decode($row['payload'], true));
 
@@ -47,51 +70,236 @@ final class EntityChangelogServiceUnitTest extends TestCase
         $this->assertSame(['name' => 'Same'], json_decode($rowNew['payload'], true));
     }
 
+    /**
+     * Ensures pending changes are returned and acknowledged.
+     */
     public function testGetPendingChangesAndAck(): void
     {
+        /* Arrange: insert changelog entries for a client. */
         $service = $this->createService();
 
         $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'A']);
         $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'B']);
 
+        /* Act: load pending changes and acknowledge them. */
         $changes = $service->getPendingChanges('User', 'client', 10);
+        $service->ackChanges('User', 'client', new DateTimeImmutable('2024-01-01 00:00:02'), '2');
 
+        /* Assert: verify changes and cursor updates. */
         $this->assertCount(2, $changes);
         $this->assertInstanceOf(EntityChangelogEntry::class, $changes[0]);
-
-        $service->ackChanges('User', 'client', new DateTimeImmutable('2024-01-01 00:00:02'), '2');
 
         $cursor = $this->fetchCursor('client', 'User');
         $this->assertSame('2024-01-01 00:00:02', $cursor['last_changed_at']);
     }
 
+    /**
+     * Ensures eq filters match payload values with LIKE fallback.
+     */
+    public function testGetPendingChangesFiltersEq(): void
+    {
+        /* Arrange: create a service without JSON support and seed rows. */
+        $service = $this->createServiceWithDriver('unknown');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+
+        /* Act: request pending changes with an equality filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['name_eq' => 'Alice']);
+
+        /* Assert: verify only the matching entry is returned. */
+        $this->assertCount(1, $changes);
+        $this->assertSame('1', $changes[0]->entityId);
+    }
+
+    /**
+     * Ensures eq filters use JSON extraction when available.
+     */
+    public function testGetPendingChangesFiltersEqWithJsonDriver(): void
+    {
+        /* Arrange: create a JSON-capable service and seed rows. */
+        $service = $this->createServiceWithDriver('sqlite');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+
+        /* Act: request pending changes with an equality filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['name_eq' => 'Alice']);
+
+        /* Assert: verify only the matching entry is returned. */
+        $this->assertCount(1, $changes);
+        $this->assertSame('1', $changes[0]->entityId);
+    }
+
+    /**
+     * Ensures neq filters exclude matching payload values.
+     */
+    public function testGetPendingChangesFiltersNeq(): void
+    {
+        /* Arrange: create a service without JSON support and seed rows. */
+        $service = $this->createServiceWithDriver('unknown');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+
+        /* Act: request pending changes with a not-equals filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['name_neq' => 'Alice']);
+
+        /* Assert: verify only the non-matching entry is returned. */
+        $this->assertCount(1, $changes);
+        $this->assertSame('2', $changes[0]->entityId);
+    }
+
+    /**
+     * Ensures neq filters use JSON extraction when available.
+     */
+    public function testGetPendingChangesFiltersNeqWithJsonDriver(): void
+    {
+        /* Arrange: create a JSON-capable service and seed rows. */
+        $service = $this->createServiceWithDriver('sqlite');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+
+        /* Act: request pending changes with a not-equals filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['name_neq' => 'Alice']);
+
+        /* Assert: verify only the non-matching entry is returned. */
+        $this->assertCount(1, $changes);
+        $this->assertSame('2', $changes[0]->entityId);
+    }
+
+    /**
+     * Ensures in filters match any of the provided values.
+     */
+    public function testGetPendingChangesFiltersIn(): void
+    {
+        /* Arrange: create a service without JSON support and seed rows. */
+        $service = $this->createServiceWithDriver('unknown');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+        $this->insertChangelog('User', '3', false, '2024-01-01 00:00:03', ['name' => 'Charlie']);
+
+        /* Act: request pending changes with an in filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['name_in' => ['Alice', 'Charlie']]);
+
+        /* Assert: verify only matching entries are returned. */
+        $this->assertCount(2, $changes);
+        $this->assertSame(['1', '3'], array_map(fn (EntityChangelogEntry $entry) => $entry->entityId, $changes));
+    }
+
+    /**
+     * Ensures in filters use JSON extraction when available.
+     */
+    public function testGetPendingChangesFiltersInWithJsonDriver(): void
+    {
+        /* Arrange: create a JSON-capable service and seed rows. */
+        $service = $this->createServiceWithDriver('sqlite');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+        $this->insertChangelog('User', '3', false, '2024-01-01 00:00:03', ['name' => 'Charlie']);
+
+        /* Act: request pending changes with an in filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['name_in' => ['Alice', 'Charlie']]);
+
+        /* Assert: verify only matching entries are returned. */
+        $this->assertCount(2, $changes);
+        $this->assertSame(['1', '3'], array_map(fn (EntityChangelogEntry $entry) => $entry->entityId, $changes));
+    }
+
+    /**
+     * Ensures unknown filter operators raise an exception.
+     */
+    public function testGetPendingChangesThrowsOnUnknownFilter(): void
+    {
+        /* Arrange: create a service without JSON support. */
+        $service = $this->createServiceWithDriver('unknown');
+
+        /* Act: request pending changes with an unsupported operator. */
+        $this->expectException(InvalidArgumentException::class);
+        $service->getPendingChanges('User', 'client', 10, ['name_bad' => 'Alice']);
+
+        /* Assert: verify the invalid argument exception is thrown. */
+    }
+
+    /**
+     * Ensures filters without a field name are ignored.
+     */
+    public function testGetPendingChangesIgnoresEmptyFieldFilter(): void
+    {
+        /* Arrange: create a service and seed rows. */
+        $service = $this->createServiceWithDriver('unknown');
+        $this->insertChangelog('User', '1', false, '2024-01-01 00:00:01', ['name' => 'Alice']);
+        $this->insertChangelog('User', '2', false, '2024-01-01 00:00:02', ['name' => 'Bob']);
+
+        /* Act: request pending changes with a missing field filter. */
+        $changes = $service->getPendingChanges('User', 'client', 10, ['_eq' => 'Alice']);
+
+        /* Assert: verify results are unfiltered. */
+        $this->assertCount(2, $changes);
+    }
+
+    /**
+     * Ensures non-iterable values for the in operator raise an exception.
+     */
+    public function testGetPendingChangesThrowsOnInFilterWithoutIterable(): void
+    {
+        /* Arrange: create a service without JSON support. */
+        $service = $this->createServiceWithDriver('unknown');
+
+        /* Act: request pending changes with an invalid in filter. */
+        $this->expectException(InvalidArgumentException::class);
+        $service->getPendingChanges('User', 'client', 10, ['name_in' => 'Alice']);
+
+        /* Assert: verify the invalid argument exception is thrown. */
+    }
+
+    /**
+     * Ensures driver-specific helpers build JSON expressions and patterns.
+     */
     public function testPrivateHelpersForDrivers(): void
     {
+        /* Arrange: create service instances for each driver. */
         $service = $this->createServiceWithDriver('mysql');
         $params = [];
+
+        /* Act: build JSON expressions for MySQL. */
         $expr = $this->invokePrivateMethod($service, 'jsonTextExpr', ['field', 'param', &$params]);
+
+        /* Assert: verify MySQL JSON extraction and params. */
         $this->assertSame("JSON_UNQUOTE(JSON_EXTRACT(payload, :path_param))", $expr);
         $this->assertSame('$.field', $params['path_param']);
 
+        /* Arrange: prepare a PostgreSQL service instance. */
         $service = $this->createServiceWithDriver('pgsql');
         $params = [];
+
+        /* Act: build JSON expressions for PostgreSQL. */
         $expr = $this->invokePrivateMethod($service, 'jsonTextExpr', ['field', 'param', &$params]);
+
+        /* Assert: verify PostgreSQL JSON extraction and params. */
         $this->assertSame('(payload::json->>:key_param)', $expr);
         $this->assertSame('field', $params['key_param']);
 
+        /* Arrange: prepare a SQLite service instance. */
         $service = $this->createServiceWithDriver('sqlite');
         $params = [];
+
+        /* Act: build JSON expressions for SQLite. */
         $expr = $this->invokePrivateMethod($service, 'jsonTextExpr', ['field', 'param', &$params]);
+
+        /* Assert: verify SQLite JSON extraction and params. */
         $this->assertSame('json_extract(payload, :path_param)', $expr);
         $this->assertSame('$.field', $params['path_param']);
 
+        /* Arrange: prepare an unsupported driver service instance. */
         $service = $this->createServiceWithDriver('unknown');
         $params = [];
+
+        /* Act: build JSON expressions for an unsupported driver. */
         $expr = $this->invokePrivateMethod($service, 'jsonTextExpr', ['field', 'param', &$params]);
+
+        /* Assert: verify the fallback returns null and LIKE pattern. */
         $this->assertNull($expr);
 
         $pattern = $this->invokePrivateMethod($service, 'buildJsonLike', ['field', 'va%l_']);
-        $this->assertSame('\%"field":"va\%l\_"\%', $pattern);
+        $this->assertSame('%"field":"va\%l\_"%', $pattern);
     }
 
     private function createService(): EntityChangelogService

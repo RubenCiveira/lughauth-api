@@ -5,12 +5,23 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\EntityChangelog;
 
+/**
+ * Manages entity changelog persistence and synchronization queries.
+ */
 class EntityChangelogService
 {
-    public function __construct(private readonly \PDO $pdo)
-    {
+    /**
+     * Creates a new changelog service.
+     */
+    public function __construct(
+        /** @var \PDO Database connection for changelog storage. */
+        private readonly \PDO $pdo
+    ) {
     }
 
+    /**
+     * Replays entity data to update the changelog when payloads changed.
+     */
     public function resyncEntityLog(string $entityType, iterable $entities): void
     {
         foreach ($entities as $entityId => $payload) {
@@ -32,6 +43,9 @@ class EntityChangelogService
         }
     }
 
+    /**
+     * Records a change for an entity with the provided payload.
+     */
     public function recordChange(string $entityType, string $entityId, array $payload): void
     {
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
@@ -70,6 +84,9 @@ class EntityChangelogService
         }
     }
 
+    /**
+     * Marks an entity as deleted in the changelog.
+     */
     public function recordDeletion(string $entityType, string $entityId, array $original): void
     {
         $changedAt = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
@@ -106,6 +123,9 @@ class EntityChangelogService
         }
     }
 
+    /**
+     * Retrieves pending changes for a client, optionally filtered by payload fields.
+     */
     public function getPendingChanges(
         string $entityType,
         string $clientId,
@@ -150,7 +170,7 @@ class EntityChangelogService
             $parts = explode('_', $key);
             $op = array_pop($parts);           // último elemento: eq, neq, in...
             $field = implode('_', $parts);     // resto unido con "_"
-            if ($field) {
+            if (!$field) {
                 continue;
             }
             $paramBase = 'f_' . preg_replace('/\W+/', '_', $field);
@@ -164,7 +184,7 @@ class EntityChangelogService
                         $sql .= " AND $jsonExpr = :$paramBase";
                         $params[$paramBase] = (string)$value;
                     } else {
-                        $sql .= " AND payload LIKE :like_$paramBase ESCAPE '\\\\'";
+                        $sql .= " AND payload LIKE :like_$paramBase ESCAPE '\\'";
                         $params["like_$paramBase"] = $this->buildJsonLike($field, (string)$value);
                     }
                     break;
@@ -174,7 +194,7 @@ class EntityChangelogService
                         $sql .= " AND ($jsonExpr IS NULL OR $jsonExpr <> :$paramBase)";
                         $params[$paramBase] = (string)$value;
                     } else {
-                        $sql .= " AND payload NOT LIKE :like_$paramBase ESCAPE '\\\\'";
+                        $sql .= " AND payload NOT LIKE :like_$paramBase ESCAPE '\\'";
                         $params["like_$paramBase"] = $this->buildJsonLike($field, (string)$value);
                     }
                     break;
@@ -200,7 +220,7 @@ class EntityChangelogService
                         $i = 0;
                         foreach ($value as $v) {
                             $ph = "like_{$paramBase}_$i";
-                            $likes[] = "payload LIKE :$ph ESCAPE '\\\\'";
+                            $likes[] = "payload LIKE :$ph ESCAPE '\\'";
                             $params[$ph] = $this->buildJsonLike($field, (string)$v);
                             $i++;
                         }
@@ -240,6 +260,9 @@ class EntityChangelogService
         ), $rows);
     }
 
+    /**
+     * Updates the changelog cursor to acknowledge processed changes.
+     */
     public function ackChanges(
         string $entityType,
         string $clientId,
@@ -349,12 +372,11 @@ class EntityChangelogService
         $f = json_encode($field, JSON_UNESCAPED_UNICODE);   // => "\"campo\""
         $v = json_encode($value, JSON_UNESCAPED_UNICODE);   // => "\"valor\""
 
-        // Patrón básico: %"campo":"valor"%
-        $pattern = '%' . $f . ':' . $v . '%';
+        $pattern = $f . ':' . $v;
 
         // Escapar comodines de LIKE por si value trae % o _
         $pattern = str_replace(['%',  '_'], ['\%', '\_'], $pattern);
 
-        return $pattern;
+        return '%' . $pattern . '%';
     }
 }

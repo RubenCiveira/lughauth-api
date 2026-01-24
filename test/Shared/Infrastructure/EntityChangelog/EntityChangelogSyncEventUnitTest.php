@@ -6,11 +6,23 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent;
 
+/**
+ * Unit tests for {@see EntityChangelogSyncEvent}.
+ */
 final class EntityChangelogSyncEventUnitTest extends TestCase
 {
+    /**
+     * Ensures the sync event can be instantiated.
+     */
     public function testCanInstantiate(): void
     {
+        /* Arrange: set up the sync event. */
         $event = new EntityChangelogSyncEvent();
-        $this->assertInstanceOf(EntityChangelogSyncEvent::class, $event);
+
+        /* Act: access the event instance. */
+        $instance = $event;
+
+        /* Assert: verify the instance type. */
+        $this->assertInstanceOf(EntityChangelogSyncEvent::class, $instance);
     }
 }

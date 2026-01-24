@@ -6,17 +6,32 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogEntry;
 
+/**
+ * Unit tests for {@see EntityChangelogEntry}.
+ */
 final class EntityChangelogEntryUnitTest extends TestCase
 {
+    /**
+     * Ensures constructor values are stored on the entry.
+     */
     public function testPropertiesStored(): void
     {
+        /* Arrange: create a changelog entry with payload data. */
         $changedAt = new DateTimeImmutable('2024-01-01 00:00:00');
         $entry = new EntityChangelogEntry('User', '1', false, $changedAt, ['name' => 'A']);
 
-        $this->assertSame('User', $entry->entityType);
-        $this->assertSame('1', $entry->entityId);
-        $this->assertFalse($entry->deleted);
-        $this->assertSame($changedAt, $entry->changedAt);
-        $this->assertSame(['name' => 'A'], $entry->payload);
+        /* Act: read back the entry properties. */
+        $type = $entry->entityType;
+        $id = $entry->entityId;
+        $deleted = $entry->deleted;
+        $timestamp = $entry->changedAt;
+        $payload = $entry->payload;
+
+        /* Assert: verify the entry stores the provided values. */
+        $this->assertSame('User', $type);
+        $this->assertSame('1', $id);
+        $this->assertFalse($deleted);
+        $this->assertSame($changedAt, $timestamp);
+        $this->assertSame(['name' => 'A'], $payload);
     }
 }
