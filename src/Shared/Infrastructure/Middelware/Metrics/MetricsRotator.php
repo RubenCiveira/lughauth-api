@@ -5,21 +5,34 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
+/**
+ * Rotates metrics files and prunes expired data.
+ */
 final class MetricsRotator
 {
+    /**
+     * Creates a new metrics rotator.
+     */
     public function __construct(
+        /** @var string Root directory for metrics storage. */
         private string $root,
+        /** @var array<string, int> TTL per partition in days. */
         private array $ttlDays = [
-            'raw'        => 14,   // borra ficheros >14 días
+            'raw'        => 14,
             'rollup_5m'  => 60,
             'rollup_1h'  => 365,
         ],
-        private bool $gzipOnRotate = true,     // comprimir días no “hoy”
-        private array $gzipSkipPartitions = [],// p.ej. ['rollup_1h']
+        /** @var bool Whether to gzip rotated files. */
+        private bool $gzipOnRotate = true,
+        /** @var array<int, string> Partitions to skip gzip on. */
+        private array $gzipSkipPartitions = [],
     ) {
         $this->root = rtrim($root, '/');
     }
 
+    /**
+     * Rotates all metrics under the root directory.
+     */
     public function rotateAll(): void
     {
         foreach (glob($this->root.'/*', GLOB_ONLYDIR) ?: [] as $metricDir) {
@@ -27,6 +40,11 @@ final class MetricsRotator
         }
     }
 
+    /**
+     * Rotates a single metric directory.
+     *
+     * @param string $metric Metric name to rotate.
+     */
     public function rotateMetric(string $metric): void
     {
         $metricDir = "{$this->root}/{$metric}";

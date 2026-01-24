@@ -11,23 +11,45 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExp
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy;
 
+/**
+ * Unit tests for PrometheusRegistryExporter.
+ */
 final class PrometheusRegistryExporterUnitTest extends TestCase
 {
+    /**
+     * Ensures dump skips when policy returns false.
+     */
     public function testDumpSkipsWhenPolicyFalse(): void
     {
+        /*
+         * Arrange: create an exporter with a disabled policy.
+         */
         $root = sys_get_temp_dir() . '/export_' . uniqid();
         $fs = new MetricsFS($root);
         $registry = new CollectorRegistry(new InMemory());
         $policy = $this->policy(false);
 
         $exporter = new PrometheusRegistryExporter($policy, $registry, $fs);
+
+        /*
+         * Act: attempt to dump metrics.
+         */
         $exporter->dump();
 
+        /*
+         * Assert: verify no files are created.
+         */
         $this->assertSame([], glob($root . '/*'));
     }
 
+    /**
+     * Ensures force dump writes metric files.
+     */
     public function testForceDumpWritesFiles(): void
     {
+        /*
+         * Arrange: create an exporter with sample metrics.
+         */
         $root = sys_get_temp_dir() . '/export_' . uniqid();
         $fs = new MetricsFS($root);
         $registry = $this->registryWithSample();
@@ -39,14 +61,26 @@ final class PrometheusRegistryExporterUnitTest extends TestCase
             'label_allow' => ['path']
         ]);
 
+        /*
+         * Act: force a metrics dump.
+         */
         $exporter->dump();
 
+        /*
+         * Assert: verify metric files are written.
+         */
         $files = glob($root . '/app_metric/series/*/*/raw/*/*/*.jsonl');
         $this->assertNotEmpty($files);
     }
 
+    /**
+     * Ensures compile and match behavior handles patterns.
+     */
     public function testCompileAndMatch(): void
     {
+        /*
+         * Arrange: create an exporter and access helper methods.
+         */
         $exporter = new PrometheusRegistryExporter($this->policy(true), $this->registryWithSample(), new MetricsFS(sys_get_temp_dir() . '/export_' . uniqid()));
 
         $compile = new ReflectionMethod($exporter, 'compile');
@@ -54,16 +88,31 @@ final class PrometheusRegistryExporterUnitTest extends TestCase
         $match = new ReflectionMethod($exporter, 'match');
         $match->setAccessible(true);
 
+        /*
+         * Act: compile patterns and evaluate matches.
+         */
         $patterns = $compile->invoke($exporter, ['[invalid']);
-        $this->assertStringStartsWith('~', $patterns[0]);
+        $includeMiss = $match->invoke($exporter, 'metric', ['~^ok$~'], []);
+        $excludeHit = $match->invoke($exporter, 'metric', [], ['~metric~']);
+        $includeHit = $match->invoke($exporter, 'metric', ['~metric~'], []);
 
-        $this->assertFalse($match->invoke($exporter, 'metric', ['~^ok$~'], []));
-        $this->assertFalse($match->invoke($exporter, 'metric', [], ['~metric~']));
-        $this->assertTrue($match->invoke($exporter, 'metric', ['~metric~'], []));
+        /*
+         * Assert: verify compiled patterns and match results.
+         */
+        $this->assertStringStartsWith('~', $patterns[0]);
+        $this->assertFalse($includeMiss);
+        $this->assertFalse($excludeHit);
+        $this->assertTrue($includeHit);
     }
 
+    /**
+     * Ensures label mismatches throw a ValueError.
+     */
     public function testEscapeAllLabelsThrowsOnMismatch(): void
     {
+        /*
+         * Arrange: create a metric with mismatched labels.
+         */
         $exporter = new PrometheusRegistryExporter($this->policy(true), $this->registryWithSample(), new MetricsFS(sys_get_temp_dir() . '/export_' . uniqid()));
         $metric = new MetricFamilySamples([
             'name' => 'metric',
@@ -81,8 +130,15 @@ final class PrometheusRegistryExporterUnitTest extends TestCase
         $method = new ReflectionMethod($exporter, 'escapeAllLabels');
         $method->setAccessible(true);
 
+        /*
+         * Act: invoke the label escape method and expect an exception.
+         */
         $this->expectException(ValueError::class);
         $method->invoke($exporter, $metric, $metric->getLabelNames(), $metric->getSamples()[0]);
+
+        /*
+         * Assert: verify the ValueError is thrown.
+         */
     }
 
     private function registryWithSample(): CollectorRegistry

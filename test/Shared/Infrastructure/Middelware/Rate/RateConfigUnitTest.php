@@ -8,10 +8,19 @@ use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
 
+/**
+ * Unit tests for RateConfig.
+ */
 final class RateConfigUnitTest extends TestCase
 {
+    /**
+     * Ensures default configuration values are applied.
+     */
     public function testConfigDefaults(): void
     {
+        /*
+         * Arrange: create config that returns defaults.
+         */
         $storage = new InMemoryStorage();
         $config = new class () extends AppConfig {
             public function __construct()
@@ -27,8 +36,14 @@ final class RateConfigUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: create the rate configuration.
+         */
         $rateConfig = new RateConfig($storage, $config);
 
+        /*
+         * Assert: verify default values are set.
+         */
         $this->assertSame('app_global_limit', $rateConfig->id);
         $this->assertSame('sliding_window', $rateConfig->policy);
         $this->assertSame(150, $rateConfig->limit);

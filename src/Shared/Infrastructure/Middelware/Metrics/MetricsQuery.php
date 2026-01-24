@@ -5,14 +5,23 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
-/** Query engine básico: series(), range(raw), rate(counter), sumBy(...) */
+/**
+ * Basic query engine for metrics series and ranges.
+ */
 final class MetricsQuery
 {
-    public function __construct(private MetricsFS $fs)
-    {
+    /**
+     * Creates a new metrics query engine.
+     */
+    public function __construct(
+        /** @var MetricsFS Metrics filesystem helper. */
+        private MetricsFS $fs
+    ) {
     }
 
-    /** Devuelve lista de series [ ['sha'=>..., 'labels'=>[...] ], … ] filtrando por matchers */
+    /**
+     * Returns series metadata filtered by label matchers.
+     */
     public function series(string $metric, LabelMatcher ...$matchers): array
     {
         $all = $this->fs->listSeries($metric);
@@ -33,9 +42,7 @@ final class MetricsQuery
     }
 
     /**
-     * range: lee puntos entre $startMs..$endMs.
-     * $stepSec opcional: si se indica, hace resample (avg por cubo).
-     * return: array de timeseries: [ ['labels'=>..., 'points'=> [ [ts, value], ... ]], ... ]
+     * Reads points between timestamps and optionally resamples.
      */
     public function range(
         string $metric,
@@ -59,6 +66,9 @@ final class MetricsQuery
         return $result;
     }
 
+    /**
+     * Computes a rate series over the given time range.
+     */
     public function rate(
         string $metric,
         int $startMs,
@@ -113,7 +123,9 @@ final class MetricsQuery
         return $out;
     }
 
-    /** sum by(labels) sobre múltiples series (asume puntos alineados por ts) */
+    /**
+     * Aggregates series by summing across the given label set.
+     */
     public function sumBy(array $timeseries, array $groupBy): array
     {
         // clave = concatenación de etiquetas groupBy

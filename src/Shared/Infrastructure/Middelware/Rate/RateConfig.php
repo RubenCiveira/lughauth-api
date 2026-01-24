@@ -63,11 +63,14 @@ class RateConfig
     public readonly string $connectionResolverType;
 
     /**
-     * Constructor that assigns rate limiting parameters, applying sensible defaults
-     * when values are not provided.
+     * Constructor that assigns rate limiting parameters.
      */
-    public function __construct(private readonly StorageInterface $storage, private readonly AppConfig $config)
-    {
+    public function __construct(
+        /** @var StorageInterface Storage for rate limiter state. */
+        private readonly StorageInterface $storage,
+        /** @var AppConfig Configuration provider. */
+        private readonly AppConfig $config
+    ) {
         $this->id = $config->get('app.rate-limit.id', 'app_global_limit');
         $this->policy = $config->get('app.rate-limit.policy', 'sliding_window');
         $this->limit = intval($config->get('app.rate-limit.limit', 150));
@@ -76,6 +79,9 @@ class RateConfig
         $this->connectionResolverType = $config->get('app.rate-limit.connection-resolver', IpGranularityResolver::class);
     }
 
+    /**
+     * Returns the configured rate limiter storage.
+     */
     public function storage(): StorageInterface
     {
         return $this->storage;

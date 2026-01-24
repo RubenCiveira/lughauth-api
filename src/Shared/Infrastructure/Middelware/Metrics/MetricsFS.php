@@ -6,21 +6,22 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
 /**
- * Layout:
- * /root/<metric>/series/<shard>/<sha>/
- *   labels.json
- *   raw/YYYY/MM/DD.jsonl(.gz)
+ * Filesystem layout and helpers for metrics persistence.
  */
 final class MetricsFS
 {
-    /** Normaliza etiquetas (ksort) */
+    /**
+     * Normalizes labels by sorting keys.
+     */
     public static function canonicalLabels(array $labels): array
     {
         ksort($labels, SORT_STRING);
         return $labels;
     }
 
-    /** Id estable de serie (sha1 sobre labels ordenadas, json estable) */
+    /**
+     * Builds a stable series identifier from canonical labels.
+     */
     public static function seriesId(array $labels): string
     {
         return sha1(json_encode(self::canonicalLabels($labels), JSON_UNESCAPED_SLASHES));
@@ -32,30 +33,47 @@ final class MetricsFS
         return substr($sha, 0, 2);
     }
 
+    /** @var MetricsRotator Rotator used for pruning and gzip operations. */
     private readonly MetricsRotator $rotator;
 
-    public function __construct(private string $root)
-    {
+    /**
+     * Creates a new metrics filesystem helper.
+     */
+    public function __construct(
+        /** @var string Root directory for metrics files. */
+        private string $root
+    ) {
         $this->root = rtrim($root, '/');
         $this->rotator = new MetricsRotator($root);
     }
 
+    /**
+     * Rotates all metrics using the configured rotator.
+     */
     public function rotate()
     {
         $this->rotator->rotateAll();
     }
 
+    /**
+     * Returns the directory for a metric.
+     */
     public function metricDir(string $metric): string
     {
         return "{$this->root}/{$metric}";
     }
 
+    /**
+     * Returns the directory for a metric series.
+     */
     public function seriesDir(string $metric, string $sha): string
     {
         return $this->metricDir($metric) . '/series/' . self::shard($sha) . '/' . $sha;
     }
 
-    /** Fichero diario para partición (raw, rollup_5m, …) */
+    /**
+     * Returns the daily file path for a partition.
+     */
     public function dayFile(string $metric, string $sha, string $partition, int $tsMs, bool $gzAllowed = false): string
     {
         $dt = (new \DateTimeImmutable('@' . intdiv($tsMs, 1000)))->setTimezone(new \DateTimeZone('UTC'));
@@ -70,7 +88,9 @@ final class MetricsFS
         return $path;
     }
 
-    /** Crea/actualiza labels.json (idempotente) */
+    /**
+     * Creates or updates labels.json for a series.
+     */
     public function upsertLabels(string $metric, string $sha, array $labels, int $tsMs): void
     {
         $dir = $this->seriesDir($metric, $sha);
@@ -88,7 +108,9 @@ final class MetricsFS
         @file_put_contents($file, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION));
     }
 
-    /** Añade un dato a raw (append JSONL con lock corto). */
+    /**
+     * Appends a raw data point to the JSONL file.
+     */
     public function appendRaw(string $metric, array $labels, float|int $value, int $tsMs): void
     {
         $labels = self::canonicalLabels($labels);
@@ -111,7 +133,9 @@ final class MetricsFS
         }
     }
 
-    /** Itera series: devuelve [sha => labels] para el metric (lee labels.json). */
+    /**
+     * Lists series for a metric by reading labels.json files.
+     */
     public function listSeries(string $metric): array
     {
         $pattern = $this->metricDir($metric) . '/series/*/*/labels.json';
@@ -127,7 +151,9 @@ final class MetricsFS
         return $out;
     }
 
-    /** Itera líneas JSONL(.gz) → cada línea como array ['ts'=>int,'v'=>float] */
+    /**
+     * Streams JSONL rows from a plain or gzipped file.
+     */
     public static function readJsonlStream(string $path): \Generator
     {
         $isGz = str_ends_with($path, '.gz');

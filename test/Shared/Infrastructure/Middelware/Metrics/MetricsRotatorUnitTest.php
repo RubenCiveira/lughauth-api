@@ -6,53 +6,107 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsRotator;
 
+/**
+ * Unit tests for MetricsRotator.
+ */
 final class MetricsRotatorUnitTest extends TestCase
 {
+    /**
+     * Ensures rotation gzips and deletes old files.
+     */
     public function testRotateMetricGzipsAndDeletes(): void
     {
+        /*
+         * Arrange: create a metrics file that should be rotated.
+         */
         $root = sys_get_temp_dir() . '/rotator_' . uniqid();
         $metricDir = $root . '/metric/series/aa/bb/raw/2020/01';
         mkdir($metricDir, 0777, true);
         $oldFile = $metricDir . '/01.jsonl';
         file_put_contents($oldFile, "{}");
 
+        /*
+         * Act: rotate the metric files.
+         */
         $rotator = new MetricsRotator($root, ['raw' => 1], true);
         $rotator->rotateMetric('metric');
 
+        /*
+         * Assert: verify the old file is removed.
+         */
         $this->assertFalse(file_exists($oldFile));
     }
 
+    /**
+     * Ensures gzip is skipped for configured partitions.
+     */
     public function testRotateMetricSkipsGzipPartition(): void
     {
+        /*
+         * Arrange: create a metrics file in a skipped partition.
+         */
         $root = sys_get_temp_dir() . '/rotator_' . uniqid();
         $metricDir = $root . '/metric/series/aa/bb/raw/2020/01';
         mkdir($metricDir, 0777, true);
         $oldFile = $metricDir . '/01.jsonl';
         file_put_contents($oldFile, "{}");
 
+        /*
+         * Act: rotate the metric files with gzip skipped.
+         */
         $rotator = new MetricsRotator($root, ['raw' => 9999], true, ['raw']);
         $rotator->rotateMetric('metric');
 
+        /*
+         * Assert: verify the original file remains.
+         */
         $this->assertTrue(file_exists($oldFile));
     }
 
+    /**
+     * Ensures rotateAll works when no metrics are present.
+     */
     public function testRotateAllSkipsMissingMetric(): void
     {
+        /*
+         * Arrange: create an empty metrics root.
+         */
         $root = sys_get_temp_dir() . '/rotator_' . uniqid();
         mkdir($root, 0777, true);
         $rotator = new MetricsRotator($root, ['raw' => 1], false);
+
+        /*
+         * Act: rotate all metrics.
+         */
         $rotator->rotateAll();
 
+        /*
+         * Assert: verify the root directory still exists.
+         */
         $this->assertTrue(is_dir($root));
     }
 
+    /**
+     * Ensures invalid paths return null when extracting dates.
+     */
     public function testExtractYmdInvalidPath(): void
     {
+        /*
+         * Arrange: create a rotator and access the private method.
+         */
         $root = sys_get_temp_dir() . '/rotator_' . uniqid();
         $rotator = new MetricsRotator($root, ['raw' => 1], false);
         $method = new ReflectionMethod($rotator, 'extractYmdFromPath');
         $method->setAccessible(true);
 
-        $this->assertNull($method->invoke($rotator, '/invalid/path.jsonl'));
+        /*
+         * Act: extract YMD from an invalid path.
+         */
+        $result = $method->invoke($rotator, '/invalid/path.jsonl');
+
+        /*
+         * Assert: verify null is returned.
+         */
+        $this->assertNull($result);
     }
 }

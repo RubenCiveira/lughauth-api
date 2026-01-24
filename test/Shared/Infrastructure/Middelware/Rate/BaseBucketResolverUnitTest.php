@@ -7,13 +7,30 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\BaseBucketResolver;
 
+/**
+ * Unit tests for BaseBucketResolver.
+ */
 final class BaseBucketResolverUnitTest extends TestCase
 {
+    /**
+     * Ensures the resolver always returns the base bucket.
+     */
     public function testResolveReturnsBase(): void
     {
+        /*
+         * Arrange: create a resolver and a request mock.
+         */
         $resolver = new BaseBucketResolver();
         $request = $this->createMock(ServerRequestInterface::class);
 
-        $this->assertSame('base', $resolver->resolve($request));
+        /*
+         * Act: resolve the bucket for the request.
+         */
+        $bucket = $resolver->resolve($request);
+
+        /*
+         * Assert: verify the resolver returns the base bucket.
+         */
+        $this->assertSame('base', $bucket);
     }
 }

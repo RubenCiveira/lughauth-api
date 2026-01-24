@@ -7,23 +7,54 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\IpGranularityResolver;
 
+/**
+ * Unit tests for IpGranularityResolver.
+ */
 final class IpGranularityResolverUnitTest extends TestCase
 {
+    /**
+     * Ensures the resolver uses REMOTE_ADDR when available.
+     */
     public function testResolveUsesRemoteAddr(): void
     {
+        /*
+         * Arrange: create a request with a REMOTE_ADDR parameter.
+         */
         $resolver = new IpGranularityResolver();
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getServerParams')->willReturn(['REMOTE_ADDR' => '127.0.0.1']);
 
-        $this->assertSame('127.0.0.1', $resolver->resolve($request));
+        /*
+         * Act: resolve the connection key.
+         */
+        $result = $resolver->resolve($request);
+
+        /*
+         * Assert: verify the REMOTE_ADDR value is used.
+         */
+        $this->assertSame('127.0.0.1', $result);
     }
 
+    /**
+     * Ensures the resolver falls back when REMOTE_ADDR is missing.
+     */
     public function testResolveFallsBack(): void
     {
+        /*
+         * Arrange: create a request without server params.
+         */
         $resolver = new IpGranularityResolver();
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getServerParams')->willReturn([]);
 
-        $this->assertSame('*', $resolver->resolve($request));
+        /*
+         * Act: resolve the connection key.
+         */
+        $result = $resolver->resolve($request);
+
+        /*
+         * Assert: verify the wildcard fallback is returned.
+         */
+        $this->assertSame('*', $result);
     }
 }

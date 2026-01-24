@@ -10,12 +10,21 @@ use PDOException;
 use Symfony\Component\RateLimiter\Storage\StorageInterface;
 use Symfony\Component\RateLimiter\LimiterStateInterface;
 
+/**
+ * PDO-backed storage for Symfony rate limiter state.
+ */
 class PdoRateLimiterStorage implements StorageInterface
 {
+    /** @var \PDO PDO connection used for storage operations. */
     private $pdo;
+    /** @var string PDO driver name used for SQL compatibility. */
     private readonly string $driver;
+    /** @var string Database table name for limiter storage. */
     private readonly string $table_name;
 
+    /**
+     * Creates a new PDO storage adapter.
+     */
     public function __construct(\PDO $pdo, string $table_name = '_rate_limiter')
     {
         $this->pdo = $pdo;
@@ -23,6 +32,9 @@ class PdoRateLimiterStorage implements StorageInterface
         $this->driver = $this->pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
     }
 
+    /**
+     * Persists the limiter state into the database.
+     */
     #[Override]
     public function save(LimiterStateInterface $limiterState): void
     {
@@ -51,6 +63,9 @@ DO UPDATE SET
         }
     }
 
+    /**
+     * Fetches the limiter state by key.
+     */
     #[Override]
     public function fetch(string $limiterStateId): ?LimiterStateInterface
     {
@@ -68,6 +83,9 @@ DO UPDATE SET
         }
     }
 
+    /**
+     * Deletes the limiter state by key.
+     */
     #[Override]
     public function delete(string $limiterStateId): void
     {

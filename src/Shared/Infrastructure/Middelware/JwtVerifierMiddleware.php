@@ -23,19 +23,33 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
 
+/**
+ * Validates incoming JWTs and sets the security context.
+ */
 class JwtVerifierMiddleware
 {
+    /** @var string|null JWKS endpoint URL for public key verification. */
     private readonly ?string $jwksUrl;
+    /** @var string|null Required issuer for JWT validation. */
     private readonly ?string $requiredIssuer;
+    /** @var string|null Required audiences for JWT validation. */
     private readonly ?string $requiredAudiences;
+    /** @var string|null Path to roles within the JWT payload. */
     private readonly ?string $rolesPath;
 
-    // Tiene que descargar y mantener sincronizado el repositorio de claves publicas.
+    /**
+     * Creates a new JWT verifier middleware.
+     */
     public function __construct(
+        /** @var AppConfig Configuration provider. */
         private readonly AppConfig $config,
+        /** @var Context Request context for setting identity. */
         private readonly Context $context,
+        /** @var CacheInterface Cache for token validation results. */
         private readonly CacheInterface $cache,
+        /** @var RequestFactoryInterface Factory for JWKS HTTP requests. */
         private readonly RequestFactoryInterface $requestFactory,
+        /** @var ClientInterface HTTP client for JWKS retrieval. */
         private readonly ClientInterface $client
     ) {
         $this->jwksUrl = $config->get('security.jwt.verify.publickey.location', '-');
@@ -44,6 +58,9 @@ class JwtVerifierMiddleware
         $this->rolesPath = $config->get('security.jwt.verify.path.roles');
     }
 
+    /**
+     * Validates JWTs from the request and forwards the request.
+     */
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($this->jwksUrl !== '-') {

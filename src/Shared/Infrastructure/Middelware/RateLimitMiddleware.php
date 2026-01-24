@@ -12,7 +12,6 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Psr7\Response;
 use Symfony\Component\RateLimiter\RateLimit;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\RateLimiter\Storage\StorageInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
 
 /**
@@ -24,22 +23,18 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
 class RateLimitMiddleware
 {
     /**
-     * @param ContainerInterface $container The dependency injection container used to resolve bucket and connection resolvers.
-     * @param RateConfig $rateConfig Configuration object specifying rate limiter parameters and resolver service IDs.
-     * @param StorageInterface $storage The storage mechanism for tracking rate limiter state.
+     * Creates a new rate limit middleware.
      */
     public function __construct(
+        /** @var ContainerInterface Dependency injection container for resolvers. */
         private readonly ContainerInterface $container,
+        /** @var RateConfig Configuration for rate limiting rules. */
         private readonly RateConfig $rateConfig
     ) {
     }
 
     /**
-     * Middleware handler. Applies rate limiting if a rate is defined for the request.
-     *
-     * @param ServerRequestInterface $request The current HTTP request.
-     * @param RequestHandlerInterface $handler The next handler in the middleware stack.
-     * @return ResponseInterface The response returned either from the handler or rate limiter.
+     * Applies rate limiting if a matching rule exists.
      */
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {

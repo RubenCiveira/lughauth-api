@@ -10,39 +10,79 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\CorsMiddleware;
 
+/**
+ * Unit tests for CorsMiddleware.
+ */
 final class CorsMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures register adds middleware and options route.
+     */
     public function testRegisterAddsMiddleware(): void
     {
+        /*
+         * Arrange: create a Slim app mock with expectations.
+         */
         $app = $this->createMock(\Slim\App::class);
         $app->expects($this->once())->method('add')->with(CorsMiddleware::class);
         $app->expects($this->once())->method('options');
 
+        /*
+         * Act: register the CORS middleware on the app.
+         */
         CorsMiddleware::register($app);
+
+        /*
+         * Assert: confirm the middleware and options route were registered.
+         */
     }
 
+    /**
+     * Ensures OPTIONS requests receive CORS headers.
+     */
     public function testOptionsAddsHeaders(): void
     {
+        /*
+         * Arrange: build a CORS middleware with CORS enabled.
+         */
         $config = $this->config(true);
         $middleware = new CorsMiddleware($config);
         $request = $this->request('OPTIONS');
         $handler = $this->handler();
 
+        /*
+         * Act: handle the OPTIONS request through the middleware.
+         */
         $response = $middleware($request, $handler);
 
+        /*
+         * Assert: verify the response contains CORS headers.
+         */
         $this->assertSame(204, $response->getStatusCode());
         $this->assertNotEmpty($response->getHeaderLine('Access-Control-Allow-Origin'));
     }
 
+    /**
+     * Ensures CORS headers are skipped when disabled.
+     */
     public function testDisabledSkipsHeaders(): void
     {
+        /*
+         * Arrange: build a CORS middleware with CORS disabled.
+         */
         $config = $this->config(false);
         $middleware = new CorsMiddleware($config);
         $request = $this->request('GET');
         $handler = $this->handler();
 
+        /*
+         * Act: handle a request with CORS disabled.
+         */
         $response = $middleware($request, $handler);
 
+        /*
+         * Assert: verify no CORS headers were applied.
+         */
         $this->assertSame('', $response->getHeaderLine('Access-Control-Allow-Origin'));
     }
 

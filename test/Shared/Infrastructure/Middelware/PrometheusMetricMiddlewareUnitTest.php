@@ -23,10 +23,19 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExp
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy;
 
+/**
+ * Unit tests for PrometheusMetricMiddleware.
+ */
 final class PrometheusMetricMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures metrics are recorded for non-management requests.
+     */
     public function testRecordsMetrics(): void
     {
+        /*
+         * Arrange: build registry mocks and middleware dependencies.
+         */
         $registry = $this->createMock(CollectorRegistry::class);
         $gauges = [$this->createMock(Gauge::class), $this->createMock(Gauge::class)];
         $histogram = $this->createMock(Histogram::class);
@@ -54,14 +63,27 @@ final class PrometheusMetricMiddlewareUnitTest extends TestCase
         $request = $this->request('/users');
         $handler = $this->handler(401);
 
+        /*
+         * Act: handle the request through the middleware.
+         */
         $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response status and flush behavior.
+         */
         $this->assertSame(401, $response->getStatusCode());
 
         $this->invokePrivateMethod($middleware, 'shutdownFlush');
     }
 
+    /**
+     * Ensures management paths skip metric recording.
+     */
     public function testManagementPathSkipsMetrics(): void
     {
+        /*
+         * Arrange: create a registry mock that should not be used.
+         */
         $registry = $this->createMock(CollectorRegistry::class);
         $registry->expects($this->never())->method('getOrRegisterCounter');
         $registry->expects($this->never())->method('getOrRegisterGauge');
@@ -71,7 +93,14 @@ final class PrometheusMetricMiddlewareUnitTest extends TestCase
         $request = $this->request('/management/health');
         $handler = $this->handler(200);
 
+        /*
+         * Act: handle the management request.
+         */
         $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the request completes successfully.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 

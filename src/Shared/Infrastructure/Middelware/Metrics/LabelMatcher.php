@@ -5,16 +5,29 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
-/** Matchers a lo Prometheus: ['op'=>'=','label'=>'status','value'=>'200'] o ['op'=>'~','label'=>'path','value'=>'^/api/'] */
+/**
+ * Evaluates Prometheus-style label matchers against a label set.
+ */
 final class LabelMatcher
 {
+    /**
+     * Creates a new label matcher.
+     */
     public function __construct(
+        /** @var string Label key to match. */
         public string $key,
-        public string $op,   // '=', '!=', '=~', '!~'
+        /** @var string Match operator ('=', '!=', '=~', '!~'). */
+        public string $op,
+        /** @var string Match value or regex. */
         public string $val
     ) {
     }
 
+    /**
+     * Determines whether the labels match the matcher.
+     *
+     * @param array<string, string> $labels Label set to evaluate.
+     */
     public function matches(array $labels): bool
     {
         $has = array_key_exists($this->key, $labels);

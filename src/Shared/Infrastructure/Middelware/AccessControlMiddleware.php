@@ -19,23 +19,42 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
+/**
+ * Enforces access control rules defined in the guard configuration.
+ */
 class AccessControlMiddleware
 {
+    /**
+     * @var array<string, array<string, mixed>> Parsed access control rules.
+     */
     private array $rules;
 
+    /**
+     * Creates a new access control middleware.
+     */
     public function __construct(
+        /** @var App Slim application instance. */
         private readonly App $app,
+        /** @var Context Request context holding identity and connection details. */
         private readonly Context $context,
+        /** @var AppConfig Configuration provider. */
         private readonly AppConfig $config,
+        /** @var CacheInterface Cache for API key verification. */
         private readonly CacheInterface $cache,
+        /** @var RequestFactoryInterface Factory for remote verification requests. */
         private readonly RequestFactoryInterface $requestFactory,
+        /** @var ClientInterface HTTP client used for API key verification. */
         private readonly ClientInterface $client,
+        /** @var StreamFactoryInterface Stream factory for request bodies. */
         private readonly StreamFactoryInterface $streamFactory,
         string $rulesFile = __DIR__ . '/../../../../config/guard.yaml'
     ) {
         $this->rules = Yaml::parseFile($rulesFile) ?? [];
     }
 
+    /**
+     * Applies the access control rules to the incoming request.
+     */
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $basePath = $this->app->getBasePath(); // e.g. '/api'
@@ -108,6 +127,12 @@ class AccessControlMiddleware
         return $handler->handle($request);
     }
 
+    /**
+     * Matches the request path to a configured access rule.
+     *
+     * @param string $path Normalized request path.
+     * @return array<string, mixed>|null Matching rule data, or null if none match.
+     */
     private function matchRule(string $path): ?array
     {
         // Coincidencia exacta o por prefijo
@@ -119,6 +144,12 @@ class AccessControlMiddleware
         return null;
     }
 
+    /**
+     * Builds a JSON error response for denied requests.
+     *
+     * @param int $statusCode HTTP status code to return.
+     * @param string $message Error message to include.
+     */
     private function deny(int $statusCode, string $message): ResponseInterface
     {
         $responseFactory = new ResponseFactory();
@@ -127,6 +158,12 @@ class AccessControlMiddleware
         return $response->withHeader('Content-Type', 'application/json');
     }
 
+    /**
+     * Validates an API key against the configured scope requirements.
+     *
+     * @param string $key API key provided by the client.
+     * @param string $scope Required scope for the request.
+     */
     private function validateApiKey(string $key, string $scope)
     {
         if ($this->cache->has('api-key-verify--' . $key)) {

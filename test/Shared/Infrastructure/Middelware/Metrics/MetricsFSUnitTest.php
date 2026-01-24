@@ -6,74 +6,146 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 
+/**
+ * Unit tests for MetricsFS.
+ */
 final class MetricsFSUnitTest extends TestCase
 {
+    /**
+     * Ensures raw append creates a series entry.
+     */
     public function testAppendAndListSeries(): void
     {
+        /*
+         * Arrange: create a metrics filesystem with a temp root.
+         */
         $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
         $fs = new MetricsFS($root);
 
+        /*
+         * Act: append a raw metric and list series.
+         */
         $fs->appendRaw('metric', ['b' => '2', 'a' => '1'], 1, 1500);
         $series = $fs->listSeries('metric');
 
+        /*
+         * Assert: verify series labels are normalized.
+         */
         $this->assertCount(1, $series);
         $labels = array_values($series)[0];
         $this->assertSame(['a' => '1', 'b' => '2'], $labels);
     }
 
+    /**
+     * Ensures JSONL streams are read from plain and gzip files.
+     */
     public function testReadJsonlStream(): void
     {
+        /*
+         * Arrange: create JSONL files for plain and gzipped data.
+         */
         $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
         $fs = new MetricsFS($root);
         $path = $fs->dayFile('metric', 'sha', 'raw', 1500, false);
         @mkdir(dirname($path), 0777, true);
         file_put_contents($path, json_encode(['ts' => 1, 'v' => 2]) . "\n");
 
+        /*
+         * Act: read rows from the plain file.
+         */
         $rows = iterator_to_array(MetricsFS::readJsonlStream($path));
+
+        /*
+         * Assert: verify the plain file row is read.
+         */
         $this->assertSame(1, $rows[0]['ts']);
 
+        /*
+         * Act: read rows from a gzipped JSONL file.
+         */
         $gzPath = $path . '.gz';
         file_put_contents($gzPath, gzencode(json_encode(['ts' => 3, 'v' => 4]) . "\n"));
         $rows = iterator_to_array(MetricsFS::readJsonlStream($gzPath));
+
+        /*
+         * Assert: verify the gzipped row is read.
+         */
         $this->assertSame(3, $rows[0]['ts']);
     }
 
+    /**
+     * Ensures dayFile returns gzipped paths when allowed.
+     */
     public function testDayFileResolvesGzip(): void
     {
+        /*
+         * Arrange: create a gzipped day file.
+         */
         $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
         $fs = new MetricsFS($root);
         $base = $fs->dayFile('metric', 'sha', 'raw', 1500, false);
         @mkdir(dirname($base), 0777, true);
         file_put_contents($base . '.gz', 'data');
 
+        /*
+         * Act: request the day file with gzip allowed.
+         */
         $path = $fs->dayFile('metric', 'sha', 'raw', 1500, true);
 
+        /*
+         * Assert: verify the gzipped path is returned.
+         */
         $this->assertStringEndsWith('.gz', $path);
     }
 
+    /**
+     * Ensures upsert keeps createdAt while updating updatedAt.
+     */
     public function testUpsertLabelsKeepsCreatedAt(): void
     {
+        /*
+         * Arrange: create labels and a series identifier.
+         */
         $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
         $fs = new MetricsFS($root);
         $sha = MetricsFS::seriesId(['a' => '1']);
 
+        /*
+         * Act: upsert labels twice with different timestamps.
+         */
         $fs->upsertLabels('metric', $sha, ['a' => '1'], 1000);
         $fs->upsertLabels('metric', $sha, ['a' => '1'], 2000);
 
         $file = $fs->seriesDir('metric', $sha) . '/labels.json';
         $data = json_decode((string) file_get_contents($file), true);
 
+        /*
+         * Assert: verify createdAt is preserved and updatedAt changes.
+         */
         $this->assertSame(1000, $data['createdAt']);
         $this->assertSame(2000, $data['updatedAt']);
     }
 
+    /**
+     * Ensures rotate does not fail on empty roots.
+     */
     public function testRotateDoesNotFail(): void
     {
+        /*
+         * Arrange: create a metrics filesystem root.
+         */
         $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
         mkdir($root, 0777, true);
         $fs = new MetricsFS($root);
+
+        /*
+         * Act: rotate metrics files.
+         */
         $fs->rotate();
 
+        /*
+         * Assert: verify the root directory remains.
+         */
         $this->assertTrue(is_dir($root));
     }
 }

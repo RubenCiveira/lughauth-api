@@ -7,7 +7,15 @@ namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Rate;
 
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Resolves the rate limiting bucket for a request.
+ */
 interface BucketResolverInterface
 {
+    /**
+     * Resolves the bucket identifier for a given request.
+     *
+     * @param ServerRequestInterface $request Incoming HTTP request.
+     */
     public function resolve(ServerRequestInterface $request): string;
 }

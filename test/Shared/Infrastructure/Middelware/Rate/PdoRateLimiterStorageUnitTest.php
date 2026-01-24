@@ -7,10 +7,19 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\RateLimiter\LimiterStateInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\PdoRateLimiterStorage;
 
+/**
+ * Unit tests for PdoRateLimiterStorage.
+ */
 final class PdoRateLimiterStorageUnitTest extends TestCase
 {
+    /**
+     * Ensures save, fetch, and delete work with SQLite.
+     */
     public function testSaveFetchDeleteWithSqlite(): void
     {
+        /*
+         * Arrange: create an in-memory SQLite table.
+         */
         $pdo = new PDO('sqlite::memory:');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->exec('CREATE TABLE _rate_limiter (limiter_key TEXT PRIMARY KEY, serialized TEXT, expires_at TEXT)');
@@ -18,21 +27,42 @@ final class PdoRateLimiterStorageUnitTest extends TestCase
         $storage = new PdoRateLimiterStorage($pdo);
         $state = new FakeLimiterStateRateLimiterStorageUnitTest('key', 10);
 
+        /*
+         * Act: save, fetch, and delete the limiter state.
+         */
         $storage->save($state);
-        $this->assertInstanceOf(LimiterStateInterface::class, $storage->fetch('key'));
+        $fetched = $storage->fetch('key');
 
         $storage->delete('key');
-        $this->assertNull($storage->fetch('key'));
+        $afterDelete = $storage->fetch('key');
+
+        /*
+         * Assert: verify storage operations succeed.
+         */
+        $this->assertInstanceOf(LimiterStateInterface::class, $fetched);
+        $this->assertNull($afterDelete);
     }
 
+    /**
+     * Ensures the PostgreSQL upsert query is used.
+     */
     public function testSaveUsesPgsqlQuery(): void
     {
+        /*
+         * Arrange: create a fake PDO with pgsql driver.
+         */
         $pdo = new FakeDriverPdoRateLimiterStorageUnitTestPdo('pgsql');
         $storage = new PdoRateLimiterStorage($pdo);
         $state = new FakeLimiterStateRateLimiterStorageUnitTest('key', 10);
 
+        /*
+         * Act: save the limiter state.
+         */
         $storage->save($state);
 
+        /*
+         * Assert: verify the query contains the PostgreSQL conflict clause.
+         */
         $this->assertStringContainsString('ON CONFLICT', $pdo->queries[0]);
     }
 }
@@ -41,8 +71,10 @@ final class FakeDriverPdoRateLimiterStorageUnitTestPdo extends PDO
 {
     public array $queries = [];
 
-    public function __construct(private readonly string $driver)
-    {
+    public function __construct(
+        /** @var string PDO driver name to expose. */
+        private readonly string $driver
+    ) {
         parent::__construct('sqlite::memory:');
     }
 
@@ -79,8 +111,12 @@ final class FakeStatementRateLimiterStorageUnitTest extends PDOStatement
 
 final class FakeLimiterStateRateLimiterStorageUnitTest implements LimiterStateInterface
 {
-    public function __construct(private readonly string $id, private readonly ?int $expiration)
-    {
+    public function __construct(
+        /** @var string Limiter state identifier. */
+        private readonly string $id,
+        /** @var int|null Expiration time in seconds. */
+        private readonly ?int $expiration
+    ) {
     }
 
     public function getId(): string

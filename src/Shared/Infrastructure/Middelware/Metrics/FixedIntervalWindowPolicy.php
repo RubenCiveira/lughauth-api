@@ -7,14 +7,25 @@ namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
 use Override;
 
+/**
+ * Emits a trace signal once per fixed interval using a lock file.
+ */
 final class FixedIntervalWindowPolicy implements TimeWindowPolicy
 {
+    /**
+     * Creates a new fixed interval window policy.
+     */
     public function __construct(
+        /** @var string Path to the lock file used to track intervals. */
         private readonly string $lockFile,
+        /** @var int Interval length in seconds. */
         private readonly int $intervalSeconds = 900 /* 15m */
     ) {
     }
 
+    /**
+     * Determines whether the current interval should emit a trace.
+     */
     #[Override]
     public function mustTrace(): bool
     {

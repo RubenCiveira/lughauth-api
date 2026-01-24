@@ -6,22 +6,58 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\LabelMatcher;
 
+/**
+ * Unit tests for LabelMatcher.
+ */
 final class LabelMatcherUnitTest extends TestCase
 {
+    /**
+     * Ensures match operators behave as expected.
+     */
     public function testMatchesOperators(): void
     {
+        /*
+         * Arrange: define a label set for testing.
+         */
         $labels = ['status' => '200', 'path' => '/api'];
 
-        $this->assertTrue((new LabelMatcher('status', '=', '200'))->matches($labels));
-        $this->assertTrue((new LabelMatcher('status', '!=', '500'))->matches($labels));
-        $this->assertTrue((new LabelMatcher('path', '=~', '/api'))->matches($labels));
-        $this->assertTrue((new LabelMatcher('path', '!~', '/x'))->matches($labels));
-        $this->assertFalse((new LabelMatcher('status', '=', '404'))->matches($labels));
+        /*
+         * Act: evaluate matchers using different operators.
+         */
+        $equals = (new LabelMatcher('status', '=', '200'))->matches($labels);
+        $notEquals = (new LabelMatcher('status', '!=', '500'))->matches($labels);
+        $regex = (new LabelMatcher('path', '=~', '/api'))->matches($labels);
+        $notRegex = (new LabelMatcher('path', '!~', '/x'))->matches($labels);
+        $fails = (new LabelMatcher('status', '=', '404'))->matches($labels);
+
+        /*
+         * Assert: verify each matcher result.
+         */
+        $this->assertTrue($equals);
+        $this->assertTrue($notEquals);
+        $this->assertTrue($regex);
+        $this->assertTrue($notRegex);
+        $this->assertFalse($fails);
     }
 
+    /**
+     * Ensures invalid regex patterns return false.
+     */
     public function testInvalidRegexReturnsFalse(): void
     {
+        /*
+         * Arrange: create a label set for regex evaluation.
+         */
         $labels = ['path' => '/api'];
-        $this->assertFalse((new LabelMatcher('path', '=~', '(invalid'))->matches($labels));
+
+        /*
+         * Act: evaluate a matcher with an invalid regex.
+         */
+        $result = (new LabelMatcher('path', '=~', '(invalid'))->matches($labels);
+
+        /*
+         * Assert: verify invalid regexes return false.
+         */
+        $this->assertFalse($result);
     }
 }

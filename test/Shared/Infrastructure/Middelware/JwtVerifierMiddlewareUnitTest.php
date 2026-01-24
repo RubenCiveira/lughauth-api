@@ -20,31 +20,65 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\JwtVerifierMiddleware;
 
+/**
+ * Unit tests for JwtVerifierMiddleware.
+ */
 final class JwtVerifierMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures JWT verification is skipped when disabled.
+     */
     public function testInvokeSkipsWhenDisabled(): void
     {
+        /*
+         * Arrange: create middleware with JWT verification disabled.
+         */
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => '-']);
         $request = $this->request('Bearer token');
 
+        /*
+         * Act: handle the request through the middleware.
+         */
         $response = $middleware($request, $this->handler());
 
+        /*
+         * Assert: verify the request is allowed.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures cached errors raise an unauthorized exception.
+     */
     public function testVerifyAuthUsesCachedError(): void
     {
+        /*
+         * Arrange: seed the cache with an error payload.
+         */
         $cache = new ArrayCache([
             'verify_access_token' => json_encode([null, null, 'fail'])
         ]);
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache);
 
+        /*
+         * Act: handle the request and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $middleware($this->request('Bearer token'), $this->handler());
+
+        /*
+         * Assert: verify unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures cached data populates the security context.
+     */
     public function testVerifyAuthUsesCachedData(): void
     {
+        /*
+         * Arrange: seed the cache with serialized identity data.
+         */
         $connection = [
             'remote' => true,
             'startTime' => ['date' => '2024-01-01 00:00:00.000000'],
@@ -75,13 +109,26 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $this->isInstanceOf(Identity::class));
 
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context);
+
+        /*
+         * Act: handle the request with cached identity data.
+         */
         $response = $middleware($this->request('Bearer token'), $this->handler());
 
+        /*
+         * Assert: verify the request succeeds.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures valid JWTs are verified and accepted.
+     */
     public function testVerifyAuthSuccessFlow(): void
     {
+        /*
+         * Arrange: create a valid JWT and JWKS payload.
+         */
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -116,12 +163,25 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'security.jwt.verify.path.roles' => 'realm_access/roles'
         ], $cache, $context);
 
+        /*
+         * Act: handle the request with the valid token.
+         */
         $response = $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify the request succeeds.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures expired tokens are rejected.
+     */
     public function testVerifyAuthExpiredToken(): void
     {
+        /*
+         * Arrange: create an expired JWT token.
+         */
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -147,12 +207,25 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'security.jwt.verify.audiences' => 'aud1',
         ], $cache);
 
+        /*
+         * Act: handle the request and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures tokens with invalid signatures are rejected.
+     */
     public function testVerifyAuthInvalidSignature(): void
     {
+        /*
+         * Arrange: create a token signed with a mismatched key.
+         */
         $_SERVER['REQUEST_URI'] = '/';
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
@@ -179,50 +252,115 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'security.jwt.verify.audiences' => 'aud1',
         ], $cache);
 
+        /*
+         * Act: handle the request and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures malformed tokens are rejected.
+     */
     public function testVerifyAuthInvalidToken(): void
     {
+        /*
+         * Arrange: configure middleware with an invalid token input.
+         */
         $cache = new ArrayCache(['jwks.verify.publickey' => json_encode(['keys' => []])]);
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache);
 
+        /*
+         * Act: handle the request and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $middleware($this->request('Bearer invalid.token'), $this->handler());
+
+        /*
+         * Assert: verify unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures issuer mismatches are rejected.
+     */
     public function testVerifyTokenIssuerMismatch(): void
     {
+        /*
+         * Arrange: access the verifyToken method with a mismatched issuer.
+         */
         $middleware = $this->middleware(['security.jwt.verify.issuer' => 'issuer']);
         $method = new ReflectionMethod($middleware, 'verifyToken');
         $method->setAccessible(true);
 
+        /*
+         * Act: invoke verifyToken and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $method->invoke($middleware, (object) ['iss' => 'other']);
+
+        /*
+         * Assert: verify unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures audience mismatches are rejected.
+     */
     public function testVerifyTokenAudienceMismatch(): void
     {
+        /*
+         * Arrange: access the verifyToken method with a mismatched audience.
+         */
         $middleware = $this->middleware(['security.jwt.verify.audiences' => 'aud1,aud2']);
         $method = new ReflectionMethod($middleware, 'verifyToken');
         $method->setAccessible(true);
 
+        /*
+         * Act: invoke verifyToken and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $method->invoke($middleware, (object) ['aud' => 'aud3']);
+
+        /*
+         * Assert: verify unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures missing role paths return an empty array.
+     */
     public function testExtractRolesMissingPath(): void
     {
+        /*
+         * Arrange: access the extractRoles method with missing data.
+         */
         $middleware = $this->middleware(['security.jwt.verify.path.roles' => 'realm_access/roles']);
         $method = new ReflectionMethod($middleware, 'extractRoles');
         $method->setAccessible(true);
 
+        /*
+         * Act: invoke extractRoles with an empty payload.
+         */
         $this->assertSame([], $method->invoke($middleware, (object) []));
+
+        /*
+         * Assert: verify the roles list is empty.
+         */
     }
 
+    /**
+     * Ensures JWKS data is fetched and cached.
+     */
     public function testGetJwksFetchesFromClient(): void
     {
+        /*
+         * Arrange: configure cache and client with a JWKS response.
+         */
         $cache = new ArrayCache();
         $response = $this->createMock(ResponseInterface::class);
         $response->method('getBody')->willReturn($this->stream('jwks'));
@@ -234,8 +372,14 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $method = new ReflectionMethod($middleware, 'getJwks');
         $method->setAccessible(true);
 
+        /*
+         * Act: invoke the JWKS retrieval method.
+         */
         $result = $method->invoke($middleware);
 
+        /*
+         * Assert: verify the JWKS data is returned and cached.
+         */
         $this->assertSame('jwks', $result);
         $this->assertTrue($cache->has('jwks.verify.publickey'));
     }
@@ -303,10 +447,15 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     }
 }
 
+/**
+ * In-memory cache for middleware tests.
+ */
 final class ArrayCache implements CacheInterface
 {
-    public function __construct(private array $values = [])
-    {
+    public function __construct(
+        /** @var array<string, mixed> Cached values. */
+        private array $values = []
+    ) {
     }
 
     public function get(string $key, mixed $default = null): mixed

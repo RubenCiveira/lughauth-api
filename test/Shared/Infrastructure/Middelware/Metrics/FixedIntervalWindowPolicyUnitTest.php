@@ -6,23 +6,55 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\FixedIntervalWindowPolicy;
 
+/**
+ * Unit tests for FixedIntervalWindowPolicy.
+ */
 final class FixedIntervalWindowPolicyUnitTest extends TestCase
 {
+    /**
+     * Ensures the lock file is written and blocks subsequent calls.
+     */
     public function testMustTraceWritesLockFile(): void
     {
+        /*
+         * Arrange: create a policy with a short interval.
+         */
         $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
         $policy = new FixedIntervalWindowPolicy($path, 1);
 
-        $this->assertTrue($policy->mustTrace());
-        $this->assertFalse($policy->mustTrace());
+        /*
+         * Act: call mustTrace twice.
+         */
+        $first = $policy->mustTrace();
+        $second = $policy->mustTrace();
+
+        /*
+         * Assert: verify only the first call returns true.
+         */
+        $this->assertTrue($first);
+        $this->assertFalse($second);
     }
 
+    /**
+     * Ensures invalid timestamps are treated as expired.
+     */
     public function testMustTraceHandlesInvalidTimestamp(): void
     {
+        /*
+         * Arrange: write an invalid future timestamp to the lock file.
+         */
         $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
         file_put_contents($path, (string) (time() + 10000));
 
+        /*
+         * Act: call mustTrace to evaluate the invalid timestamp.
+         */
         $policy = new FixedIntervalWindowPolicy($path, 1);
-        $this->assertTrue($policy->mustTrace());
+        $result = $policy->mustTrace();
+
+        /*
+         * Assert: verify the policy allows tracing.
+         */
+        $this->assertTrue($result);
     }
 }

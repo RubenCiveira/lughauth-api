@@ -17,16 +17,29 @@ use OpenTelemetry\API\Trace\Span;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 
+/**
+ * Creates tracing spans for inbound HTTP requests.
+ */
 class TelemetrySpanMiddleware
 {
+    /**
+     * Creates a new telemetry span middleware.
+     */
     public function __construct(
+        /** @var App Slim application instance. */
         private readonly App $app,
+        /** @var AppConfig Configuration provider. */
         private readonly AppConfig $config,
+        /** @var TracerInterface OpenTelemetry tracer instance. */
         private readonly TracerInterface $tracer,
+        /** @var TraceContext Trace context resolver. */
         private readonly TraceContext $context
     ) {
     }
 
+    /**
+     * Creates and closes a span around the request handling.
+     */
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $basePath = $this->app->getBasePath();

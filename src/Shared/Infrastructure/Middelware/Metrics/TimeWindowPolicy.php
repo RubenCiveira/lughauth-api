@@ -5,8 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics;
 
+/**
+ * Decides whether a metrics snapshot should be recorded.
+ */
 interface TimeWindowPolicy
 {
-    /** start epoch ms de la ventana actual para un $nowMs dado */
+    /**
+     * Indicates whether the current window requires a trace snapshot.
+     */
     public function mustTrace(): bool;
 }

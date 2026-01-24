@@ -10,26 +10,32 @@ use Prometheus\Sample;
 use Prometheus\CollectorRegistry;
 use Prometheus\MetricFamilySamples;
 
+/**
+ * Exports Prometheus registry samples into the filesystem store.
+ */
 final class PrometheusRegistryExporter
 {
-    /** @var array<string, array{buf:string, n:int}> */
+    /** @var array<string, array{buf:string, n:int}> Buffered file writes by path. */
     private array $files = [];
+    /** @var int Flush threshold for buffered lines. */
     private int $flushAt;
+    /** @var int Total bytes buffered. */
     private int $bytes = 0;
 
+    /**
+     * Creates a new registry exporter.
+     */
     public function __construct(
+        /** @var TimeWindowPolicy Trace window policy. */
         private readonly TimeWindowPolicy $policy,
+        /** @var CollectorRegistry Prometheus registry instance. */
         private readonly CollectorRegistry $registry,
+        /** @var MetricsFS Metrics filesystem helper. */
         private readonly MetricsFS $fs,
+        /** @var array<string, mixed> Export options. */
         private array $options = [
               'label_allow'    => ['le','script','status','path','method','tenant', 'version'],
         ]
-        // options:
-        // 'include'        => ['~^app_'],
-        // 'exclude'        => ['~_created$~'],
-        // 'label_allow'    => ['status','path','method','tenant','le'], // whitelist
-        // 'max_lines_flush'=> 2000,   // flush por fichero
-        // 'on_error'       => callable($ex) : void
     ) {
         $this->flushAt  = (int)($this->options['max_lines_flush'] ?? 2000);
 
@@ -43,6 +49,9 @@ final class PrometheusRegistryExporter
 
     }
 
+    /**
+     * Dumps the registry when the window policy allows it.
+     */
     public function dump(): void
     {
         if (!$this->policy->mustTrace()) {
@@ -51,6 +60,9 @@ final class PrometheusRegistryExporter
         $this->forceDump();
     }
 
+    /**
+     * Forces a registry dump regardless of the window policy.
+     */
     public function forceDump(): void
     {
         $metrics = $this->registry->getMetricFamilySamples();
@@ -60,6 +72,9 @@ final class PrometheusRegistryExporter
         $this->fs->rotate();
     }
 
+    /**
+     * Ingests a batch of metric samples at a timestamp.
+     */
     public function ingestBatch(array $payload, ?int $snapshotMs = null): void
     {
         $tsMs    = $snapshotMs ?? (int) floor(microtime(true) * 1000);

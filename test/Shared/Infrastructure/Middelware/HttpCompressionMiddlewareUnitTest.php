@@ -10,30 +10,57 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
 
+/**
+ * Unit tests for HttpCompressionMiddleware.
+ */
 final class HttpCompressionMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures 304 is returned when ETag matches.
+     */
     public function testReturnsNotModified(): void
     {
+        /*
+         * Arrange: build a middleware and an ETag-matching request.
+         */
         $middleware = new HttpCompressionMiddleware();
         $etag = '"' . sha1('body') . '"';
 
         $request = $this->request(['If-None-Match' => $etag]);
         $handler = $this->handler('body');
 
+        /*
+         * Act: handle the request through the middleware.
+         */
         $response = $middleware($request, $handler);
 
+        /*
+         * Assert: verify the response is not modified.
+         */
         $this->assertSame(304, $response->getStatusCode());
         $this->assertSame('0', $response->getHeaderLine('Content-Length'));
     }
 
+    /**
+     * Ensures gzip compression is applied when supported.
+     */
     public function testGzipCompression(): void
     {
+        /*
+         * Arrange: build a request that accepts gzip encoding.
+         */
         $middleware = new HttpCompressionMiddleware();
         $request = $this->request(['Accept-Encoding' => 'gzip']);
         $handler = $this->handler('body');
 
+        /*
+         * Act: handle the request through the middleware.
+         */
         $response = $middleware($request, $handler);
 
+        /*
+         * Assert: verify the response is gzip-compressed.
+         */
         $this->assertSame('gzip', $response->getHeaderLine('Content-Encoding'));
         $this->assertNotEmpty((string) $response->getBody());
     }

@@ -8,71 +8,140 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\LabelMatcher;
 
+/**
+ * Unit tests for MetricsQuery.
+ */
 final class MetricsQueryUnitTest extends TestCase
 {
+    /**
+     * Ensures series and range queries return data.
+     */
     public function testSeriesAndRange(): void
     {
+        /*
+         * Arrange: build a filesystem with sample data.
+         */
         $fs = $this->fsWithData();
         $query = new MetricsQuery($fs);
 
+        /*
+         * Act: query series and range data.
+         */
         $series = $query->series('metric', new LabelMatcher('status', '=', '200'));
-        $this->assertCount(1, $series);
-
         $range = $query->range('metric', 1000, 3000, 1, 'raw');
+
+        /*
+         * Assert: verify series and range results.
+         */
+        $this->assertCount(1, $series);
         $this->assertNotEmpty($range[0]['points']);
     }
 
+    /**
+     * Ensures rate and sumBy return aggregated values.
+     */
     public function testRateAndSumBy(): void
     {
+        /*
+         * Arrange: build a filesystem with sample data.
+         */
         $fs = $this->fsWithData();
         $query = new MetricsQuery($fs);
 
+        /*
+         * Act: compute rate and sum values.
+         */
         $rate = $query->rate('metric', 1000, 3000, 1, 'raw');
-        $this->assertNotEmpty($rate[0]['points']);
-
         $sum = $query->sumBy([
             ['labels' => ['status' => '200'], 'points' => [[1000, 1.0]]],
             ['labels' => ['status' => '200'], 'points' => [[1000, 2.0]]],
         ], ['status']);
+
+        /*
+         * Assert: verify rate output and sum aggregation.
+         */
+        $this->assertNotEmpty($rate[0]['points']);
         $this->assertSame(3.0, $sum[0]['points'][0][1]);
     }
 
+    /**
+     * Ensures partition selection returns empty results for missing data.
+     */
     public function testRangeChoosesPartition(): void
     {
+        /*
+         * Arrange: create an empty metrics filesystem.
+         */
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $query = new MetricsQuery($fs);
 
+        /*
+         * Act: query a range with automatic partition selection.
+         */
         $result = $query->range('metric', 0, 15 * 24 * 3600 * 1000, null, '');
+
+        /*
+         * Assert: verify no data is returned.
+         */
         $this->assertSame([], $result);
     }
 
+    /**
+     * Ensures interpolation policies behave as expected.
+     */
     public function testInterpolateOnGridPolicies(): void
     {
+        /*
+         * Arrange: access the interpolation method via reflection.
+         */
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $query = new MetricsQuery($fs);
         $method = new ReflectionMethod($query, 'interpolateOnGrid');
         $method->setAccessible(true);
 
+        /*
+         * Act: apply different interpolation policies.
+         */
         $grid = [[0, NAN], [10, 2.0], [20, NAN]];
         $out = $method->invoke($query, $grid, 'zero');
-        $this->assertSame(0.0, $out[0][1]);
+        $zero = $out[0][1];
 
         $grid = [[0, NAN], [10, 2.0], [20, NAN]];
         $out = $method->invoke($query, $grid, 'ffill');
-        $this->assertSame(2.0, $out[0][1]);
+        $forward = $out[0][1];
 
         $grid = [[0, 2.0], [10, NAN], [20, NAN]];
         $out = $method->invoke($query, $grid, 'bfill');
-        $this->assertSame(2.0, $out[1][1]);
+        $back = $out[1][1];
+
+        /*
+         * Assert: verify the interpolated values.
+         */
+        $this->assertSame(0.0, $zero);
+        $this->assertSame(2.0, $forward);
+        $this->assertSame(2.0, $back);
     }
 
+    /**
+     * Ensures rate handles a single data point.
+     */
     public function testRateWithSinglePoint(): void
     {
+        /*
+         * Arrange: append a single raw sample.
+         */
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $fs->appendRaw('metric', ['status' => '200'], 1, 1500);
         $query = new MetricsQuery($fs);
 
+        /*
+         * Act: compute rate from the single point.
+         */
         $rate = $query->rate('metric', 1000, 2000, 1, 'raw');
+
+        /*
+         * Assert: verify the rate contains data.
+         */
         $this->assertNotEmpty($rate[0]['points']);
     }
 

@@ -17,10 +17,19 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\TelemetrySpanMiddleware;
 
+/**
+ * Unit tests for TelemetrySpanMiddleware.
+ */
 final class TelemetrySpanMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures a span is created and closed around the request.
+     */
     public function testSpanStartsAndEnds(): void
     {
+        /*
+         * Arrange: create span mocks and a middleware instance.
+         */
         $span = $this->createMock(SpanInterface::class);
         $scope = $this->createMock(ScopeInterface::class);
         $span->expects($this->once())->method('activate')->willReturn($scope);
@@ -46,12 +55,25 @@ final class TelemetrySpanMiddlewareUnitTest extends TestCase
         $request = $this->request('/api/users', ['traceparent' => ['00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01']]);
         $handler = $this->handler();
 
+        /*
+         * Act: handle the request through the middleware.
+         */
         $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response is returned.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures management paths skip span creation.
+     */
     public function testManagementPathSkipsSpan(): void
     {
+        /*
+         * Arrange: create a tracer mock and management request.
+         */
         $tracer = $this->createMock(TracerInterface::class);
         $tracer->expects($this->never())->method('spanBuilder');
 
@@ -59,7 +81,14 @@ final class TelemetrySpanMiddlewareUnitTest extends TestCase
         $request = $this->request('/management/health');
         $handler = $this->handler();
 
+        /*
+         * Act: handle the management request through the middleware.
+         */
         $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the request completes successfully.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 

@@ -7,39 +7,73 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\RateLimiter\LimiterStateInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\FileStorage;
 
+/**
+ * Unit tests for FileStorage.
+ */
 final class FileStorageUnitTest extends TestCase
 {
+    /**
+     * Ensures save, fetch, and delete work as expected.
+     */
     public function testSaveFetchDelete(): void
     {
+        /*
+         * Arrange: create a temp directory and a limiter state.
+         */
         $dir = sys_get_temp_dir() . '/buckets_' . uniqid();
         mkdir($dir, 0777, true);
         $storage = new FileStorage($dir);
         $state = new FakeLimiterStateFileStorageUnitTest('bucket', 1);
 
+        /*
+         * Act: save, fetch, and delete the limiter state.
+         */
         $storage->save($state);
         $fetched = $storage->fetch('bucket');
-        $this->assertInstanceOf(LimiterStateInterface::class, $fetched);
-
         $storage->delete('bucket');
-        $this->assertNull($storage->fetch('bucket'));
+        $afterDelete = $storage->fetch('bucket');
+
+        /*
+         * Assert: verify the state is persisted and removed.
+         */
+        $this->assertInstanceOf(LimiterStateInterface::class, $fetched);
+        $this->assertNull($afterDelete);
     }
 
+    /**
+     * Ensures expired entries return null.
+     */
     public function testFetchExpiredReturnsNull(): void
     {
+        /*
+         * Arrange: create a storage entry with an expired timestamp.
+         */
         $dir = sys_get_temp_dir() . '/buckets_' . uniqid();
         mkdir($dir, 0777, true);
         $storage = new FileStorage($dir);
         $state = new FakeLimiterStateFileStorageUnitTest('expired', -1);
 
+        /*
+         * Act: save and attempt to fetch the expired entry.
+         */
         $storage->save($state);
-        $this->assertNull($storage->fetch('expired'));
+        $fetched = $storage->fetch('expired');
+
+        /*
+         * Assert: verify the expired entry is not returned.
+         */
+        $this->assertNull($fetched);
     }
 }
 
 final class FakeLimiterStateFileStorageUnitTest implements LimiterStateInterface
 {
-    public function __construct(private readonly string $id, private readonly ?int $expiration)
-    {
+    public function __construct(
+        /** @var string Limiter state identifier. */
+        private readonly string $id,
+        /** @var int|null Expiration time in seconds. */
+        private readonly ?int $expiration
+    ) {
     }
 
     public function getId(): string

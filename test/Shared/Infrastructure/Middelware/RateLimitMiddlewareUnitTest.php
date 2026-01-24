@@ -15,10 +15,19 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\BucketResolverInterface;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\ConnectionResolverInterface;
 
+/**
+ * Unit tests for RateLimitMiddleware.
+ */
 final class RateLimitMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures requests are allowed then rejected when limits are exceeded.
+     */
     public function testAllowsAndRejects(): void
     {
+        /*
+         * Arrange: configure a rate limiter with a single allowed request.
+         */
         $storage = new InMemoryStorage();
         $config = new class () extends AppConfig {
             public function __construct()
@@ -67,15 +76,30 @@ final class RateLimitMiddlewareUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: send two requests through the middleware.
+         */
         $response = $middleware($request, $handler);
-        $this->assertSame('0', $response->getHeaderLine('X-RateLimit-Remaining'));
+        $remaining = $response->getHeaderLine('X-RateLimit-Remaining');
 
         $response = $middleware($request, $handler);
-        $this->assertSame(429, $response->getStatusCode());
+        $status = $response->getStatusCode();
+
+        /*
+         * Assert: verify the first request is allowed and the second is rejected.
+         */
+        $this->assertSame('0', $remaining);
+        $this->assertSame(429, $status);
     }
 
+    /**
+     * Ensures no bucket skips rate limiting.
+     */
     public function testNoBucketSkipsLimiter(): void
     {
+        /*
+         * Arrange: configure bucket resolver to return an empty key.
+         */
         $storage = new InMemoryStorage();
         $config = new class () extends AppConfig {
             public function __construct()
@@ -120,7 +144,14 @@ final class RateLimitMiddlewareUnitTest extends TestCase
             }
         };
 
+        /*
+         * Act: send a request through the middleware.
+         */
         $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the request is allowed.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 }

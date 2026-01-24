@@ -21,69 +21,156 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\AccessControlMiddleware;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
+/**
+ * Unit tests for AccessControlMiddleware.
+ */
 final class AccessControlMiddlewareUnitTest extends TestCase
 {
+    /**
+     * Ensures requests pass when no rules apply.
+     */
     public function testNoRulePasses(): void
     {
+        /*
+         * Arrange: create middleware with no rules.
+         */
         $middleware = $this->middleware([]);
+
+        /*
+         * Act: handle a request without matching rules.
+         */
         $response = $middleware($this->request('/api/open'), $this->handler());
 
+        /*
+         * Assert: verify the request is allowed.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures anonymous requests are denied when required.
+     */
     public function testAnonymousDenied(): void
     {
+        /*
+         * Arrange: configure a rule that requires authentication.
+         */
         $middleware = $this->middleware([
             '/secure' => ['anonimous' => false]
         ], new Identity(true));
 
+        /*
+         * Act: handle a request with an anonymous identity.
+         */
         $response = $middleware($this->request('/api/secure'), $this->handler());
+
+        /*
+         * Assert: verify the request is denied.
+         */
         $this->assertSame(401, $response->getStatusCode());
     }
 
+    /**
+     * Ensures role checks deny access when roles are missing.
+     */
     public function testRoleDenied(): void
     {
+        /*
+         * Arrange: configure a rule that requires an admin role.
+         */
         $middleware = $this->middleware([
             '/roles' => ['roles' => ['admin']]
         ], new Identity(false, roles: ['user']));
 
+        /*
+         * Act: handle a request with insufficient roles.
+         */
         $response = $middleware($this->request('/api/roles'), $this->handler());
+
+        /*
+         * Assert: verify access is denied.
+         */
         $this->assertSame(403, $response->getStatusCode());
     }
 
+    /**
+     * Ensures group checks deny access when groups are missing.
+     */
     public function testGroupDenied(): void
     {
+        /*
+         * Arrange: configure a rule that requires an admins group.
+         */
         $middleware = $this->middleware([
             '/groups' => ['groups' => ['admins']]
         ], new Identity(false, groups: ['users']));
 
+        /*
+         * Act: handle a request with insufficient groups.
+         */
         $response = $middleware($this->request('/api/groups'), $this->handler());
+
+        /*
+         * Assert: verify access is denied.
+         */
         $this->assertSame(403, $response->getStatusCode());
     }
 
+    /**
+     * Ensures scope checks deny access when scopes are missing.
+     */
     public function testScopeDenied(): void
     {
+        /*
+         * Arrange: configure a rule that requires a scope.
+         */
         $identity = new Identity(false);
         $middleware = $this->middleware([
             '/scopes' => ['scopes' => ['write']]
         ], $identity);
 
+        /*
+         * Act: handle a request without required scope.
+         */
         $response = $middleware($this->request('/api/scopes'), $this->handler());
+
+        /*
+         * Assert: verify access is denied.
+         */
         $this->assertSame(403, $response->getStatusCode());
     }
 
+    /**
+     * Ensures missing API keys are rejected.
+     */
     public function testApiKeyMissingDenied(): void
     {
+        /*
+         * Arrange: configure a rule that requires an API key scope.
+         */
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
         ]);
 
+        /*
+         * Act: handle a request without the API key.
+         */
         $response = $middleware($this->request('/api/apikey'), $this->handler());
+
+        /*
+         * Assert: verify the request is denied.
+         */
         $this->assertSame(401, $response->getStatusCode());
     }
 
+    /**
+     * Ensures invalid API key scopes raise an exception.
+     */
     public function testApiKeyInvalidScopeThrows(): void
     {
+        /*
+         * Arrange: cache an API key response without the required scope.
+         */
         $cache = new InMemoryCache(['api-key-verify--key' => json_encode(['scopes' => ['other']])]);
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
@@ -91,12 +178,25 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
+        /*
+         * Act: handle the request and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $middleware($request, $this->handler());
+
+        /*
+         * Assert: verify the unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures valid API key scopes allow access.
+     */
     public function testApiKeyValidPasses(): void
     {
+        /*
+         * Arrange: cache an API key response with the required scope.
+         */
         $cache = new InMemoryCache(['api-key-verify--key' => json_encode(['scopes' => ['scope']])]);
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
@@ -104,12 +204,25 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
+        /*
+         * Act: handle the request with a valid API key.
+         */
         $response = $middleware($request, $this->handler());
+
+        /*
+         * Assert: verify the request is allowed.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures CIDR checks deny access when out of range.
+     */
     public function testCidrDenied(): void
     {
+        /*
+         * Arrange: create a connection that fails CIDR checks.
+         */
         $connection = new class () extends Connection {
             public function __construct()
             {
@@ -125,12 +238,25 @@ final class AccessControlMiddlewareUnitTest extends TestCase
             '/cidr' => ['cidr' => ['10.0.0.0/8']]
         ], new Identity(false), null, $connection);
 
+        /*
+         * Act: handle a request with a disallowed CIDR.
+         */
         $response = $middleware($this->request('/api/cidr'), $this->handler());
+
+        /*
+         * Assert: verify access is denied.
+         */
         $this->assertSame(403, $response->getStatusCode());
     }
 
+    /**
+     * Ensures CIDR checks allow access when in range.
+     */
     public function testCidrAllowed(): void
     {
+        /*
+         * Arrange: create a connection that passes CIDR checks.
+         */
         $connection = new class () extends Connection {
             public function __construct()
             {
@@ -146,23 +272,49 @@ final class AccessControlMiddlewareUnitTest extends TestCase
             '/cidr' => ['cidr' => ['10.0.0.0/8']]
         ], new Identity(false), null, $connection);
 
+        /*
+         * Act: handle a request with an allowed CIDR.
+         */
         $response = $middleware($this->request('/api/cidr'), $this->handler());
+
+        /*
+         * Assert: verify access is allowed.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures scope checks allow access when scope matches.
+     */
     public function testScopeAllowed(): void
     {
+        /*
+         * Arrange: create an identity with the required scope.
+         */
         $identity = new Identity(false, scope: 'write');
         $middleware = $this->middleware([
             '/scopes' => ['scopes' => ['write']]
         ], $identity);
 
+        /*
+         * Act: handle a request with a matching scope.
+         */
         $response = $middleware($this->request('/api/scopes'), $this->handler());
+
+        /*
+         * Assert: verify access is allowed.
+         */
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures API key verification failures raise an exception.
+     */
     public function testApiKeyRequestFailsOnNon200(): void
     {
+        /*
+         * Arrange: configure a client that returns a non-200 response.
+         */
         $cache = new InMemoryCache();
         $response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(500);
@@ -177,12 +329,25 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
+        /*
+         * Act: handle the request and expect an exception.
+         */
         $this->expectException(UnauthorizedException::class);
         $middleware($request, $this->handler());
+
+        /*
+         * Assert: verify the unauthorized exception is raised.
+         */
     }
 
+    /**
+     * Ensures successful API key verification is cached.
+     */
     public function testApiKeyRequestCachesSuccess(): void
     {
+        /*
+         * Arrange: configure a client that returns valid scopes.
+         */
         $cache = new InMemoryCache();
         $response = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
         $response->method('getStatusCode')->willReturn(200);
@@ -197,7 +362,14 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
+        /*
+         * Act: handle the request and capture the response.
+         */
         $response = $middleware($request, $this->handler());
+
+        /*
+         * Assert: verify the cache contains the API key data.
+         */
         $this->assertSame(200, $response->getStatusCode());
         $this->assertTrue($cache->has('api-key-verify--key'));
     }

@@ -13,10 +13,17 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Civi\Lughauth\Shared\AppConfig;
 
 /**
+ * Adds CORS headers to responses based on configuration.
+ *
  * @api
  */
 class CorsMiddleware
 {
+    /**
+     * Registers the middleware and the OPTIONS handler on the Slim app.
+     *
+     * @param App $app Slim application instance.
+     */
     public static function register(App $app)
     {
         $app->add(CorsMiddleware::class);
@@ -24,10 +31,19 @@ class CorsMiddleware
             return $response;
         });
     }
-    public function __construct(private readonly AppConfig $config)
-    {
 
+    /**
+     * Creates a new CORS middleware instance.
+     */
+    public function __construct(
+        /** @var AppConfig Configuration provider. */
+        private readonly AppConfig $config
+    ) {
     }
+
+    /**
+     * Adds CORS headers to the response and handles preflight requests.
+     */
     public function __invoke(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         if ($request->getMethod() === 'OPTIONS') {
@@ -38,6 +54,12 @@ class CorsMiddleware
         }
     }
 
+    /**
+     * Applies the configured CORS headers to a response.
+     *
+     * @param ResponseInterface $response Response to modify.
+     * @param ServerRequestInterface $request Incoming request.
+     */
     private function addHeaders(ResponseInterface $response, ServerRequestInterface $request): ResponseInterface
     {
         $enabled = $this->config->is('app.http.cors.enabled');

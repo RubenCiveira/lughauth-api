@@ -11,7 +11,6 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Routing\RouteContext;
 use Prometheus\CollectorRegistry;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsRecorder;
 use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExporter;
 
 /**
@@ -23,25 +22,22 @@ use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExp
 class PrometheusMetricMiddleware
 {
     /**
-     * @api
+     * Creates a new Prometheus metric middleware.
      *
-     * @param AppConfig $appConfig Configuration for application paths and management endpoints
-     * @param MetricsRecorder $recorder Metrics
-     * @param CollectorRegistry $registry Prometheus registry where metrics are collected
+     * @api
      */
     public function __construct(
+        /** @var AppConfig Configuration for application paths and management endpoints. */
         private readonly AppConfig $appConfig,
+        /** @var PrometheusRegistryExporter Exporter used to flush metrics. */
         private readonly PrometheusRegistryExporter $exporter,
+        /** @var CollectorRegistry Prometheus registry where metrics are collected. */
         private readonly CollectorRegistry $registry
     ) {
     }
 
     /**
-     * Handles the incoming request, collects and registers metrics if the path is not a management endpoint.
-     *
-     * @param Request $request The incoming HTTP request
-     * @param RequestHandlerInterface $handler The next request handler
-     * @return Response The HTTP response after metric collection
+     * Handles the incoming request and collects metrics when applicable.
      */
     public function __invoke(Request $request, RequestHandlerInterface $handler): Response
     {

@@ -17,6 +17,9 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 class HttpCompressionMiddleware
 {
+    /**
+     * Compresses the response and applies cache headers when applicable.
+     */
     public function __invoke(Request $request, RequestHandlerInterface $handler): Response
     {
         $acceptEncoding = $request->getHeaderLine('Accept-Encoding');
