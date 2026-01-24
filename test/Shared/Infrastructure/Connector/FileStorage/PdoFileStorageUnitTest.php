@@ -8,10 +8,17 @@ use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
+/**
+ * Unit tests for {@see PdoFileStorage}.
+ */
 final class PdoFileStorageUnitTest extends TestCase
 {
+    /**
+     * Ensures storage operations work across the lifecycle.
+     */
     public function testStoreRetrieveCommitReplaceDelete(): void
     {
+        /* Arrange: build a SQLite-backed storage and binary payload. */
         $pdo = $this->createSqlite();
         $storage = new PdoFileStorage($pdo);
 
@@ -20,18 +27,12 @@ final class PdoFileStorageUnitTest extends TestCase
         rewind($stream);
 
         $content = new BinaryContent('file.txt', 'text/plain', new DateTime(), $stream);
+
+        /* Act: store, retrieve, commit, replace, and delete content. */
         $key = $storage->tempStore($content);
-
-        $this->assertInstanceOf(FileStoreKey::class, $key);
-
         $temp = $storage->retrieveTempFile($key);
-        $this->assertNotNull($temp);
-        $this->assertSame('file.txt', $temp->name);
-
         $storage->commitContent($key);
         $file = $storage->retrieveFile($key);
-        $this->assertNotNull($file);
-        $this->assertSame('text/plain', $file->mime);
 
         $newStream = fopen('php://temp', 'r+');
         fwrite($newStream, 'updated');
@@ -40,17 +41,28 @@ final class PdoFileStorageUnitTest extends TestCase
         $storage->replaceContent($key, $newContent);
 
         $updated = $storage->retrieveFile($key);
-        $this->assertSame('new.txt', $updated->name);
-
         $storage->deleteFile($key);
-        $this->assertNull($storage->retrieveFile($key));
+        $deleted = $storage->retrieveFile($key);
+
+        /* Assert: verify each operation returns expected results. */
+        $this->assertInstanceOf(FileStoreKey::class, $key);
+        $this->assertNotNull($temp);
+        $this->assertSame('file.txt', $temp->name);
+        $this->assertNotNull($file);
+        $this->assertSame('text/plain', $file->mime);
+        $this->assertSame('new.txt', $updated->name);
+        $this->assertNull($deleted);
 
         fclose($stream);
         fclose($newStream);
     }
 
+    /**
+     * Ensures temp overflow cleanup removes excess entries.
+     */
     public function testClearTempRemovesOverflow(): void
     {
+        /* Arrange: build storage with zero capacity and insert temp entries. */
         $pdo = $this->createSqlite();
         $storage = new PdoFileStorage($pdo);
 
@@ -72,16 +84,223 @@ final class PdoFileStorageUnitTest extends TestCase
             'bytes' => 'two',
         ]);
 
+        /* Act: invoke temp cleanup. */
         $this->invokePrivateMethod($storage, 'clearTemp');
 
+        /* Assert: verify temp rows were deleted. */
         $count = (int) $pdo->query('SELECT COUNT(*) FROM _filestorer')->fetchColumn();
         $this->assertSame(0, $count);
+    }
+
+    /**
+     * Ensures PostgreSQL-specific branches execute without errors.
+     */
+    public function testPgsqlDriverBranchesHandleClearTempResults(): void
+    {
+        /* Arrange: build a SQLite-backed PDO that reports a pgsql driver. */
+        $pdo = $this->createDriverAwareSqlite('pgsql', ['first']);
+        $storage = new PdoFileStorage($pdo);
+        $this->setPrivateProperty($storage, 'tempCapacity', 0);
+
+        $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
+        $stmt->execute([
+            'code' => 'a',
+            'name' => 'a.txt',
+            'mime' => 'text/plain',
+            'upload' => '2000-01-01 00:00:00',
+            'bytes' => 'one',
+        ]);
+        $stmt->execute([
+            'code' => 'b',
+            'name' => 'b.txt',
+            'mime' => 'text/plain',
+            'upload' => '2000-01-01 00:00:00',
+            'bytes' => 'two',
+        ]);
+
+        /* Act: invoke temp cleanup and verify no errors when fetching codes. */
+        $this->invokePrivateMethod($storage, 'clearTemp');
+
+        /* Assert: confirm all temp rows are removed successfully. */
+        $count = (int) $pdo->query('SELECT COUNT(*) FROM _filestorer')->fetchColumn();
+        $this->assertSame(0, $count);
+    }
+
+    /**
+     * Ensures commitContent executes with a pgsql driver configuration.
+     */
+    public function testCommitContentWithPgsqlDriver(): void
+    {
+        /* Arrange: build a pgsql-like storage and insert a temp file. */
+        $pdo = $this->createDriverAwareSqlite('pgsql', ['first']);
+        $storage = new PdoFileStorage($pdo);
+        $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
+
+        $now = new DateTimeImmutable('now');
+
+        $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
+        $stmt->execute([
+            'code' => 'commit-me',
+            'name' => 'temp.txt',
+            'mime' => 'text/plain',
+            'upload' => $now->format('Y-m-d H:i:s'),
+            'bytes' => 'payload',
+        ]);
+
+        /* Act: commit the temp content to permanent storage. */
+        $storage->commitContent(new FileStoreKey('commit-me'));
+        $row = $pdo->query("SELECT temp FROM _filestorer WHERE code = 'commit-me'")->fetch(PDO::FETCH_ASSOC);
+
+        /* Assert: verify the temp flag is cleared. */
+        $this->assertNotFalse($row);
+        $this->assertSame(0, (int) $row['temp']);
+    }
+
+    /**
+     * Ensures tempStore works with a pgsql driver configuration.
+     */
+    public function testTempStoreWithPgsqlDriver(): void
+    {
+        /* Arrange: build a pgsql-like storage and binary content. */
+        $pdo = $this->createDriverAwareSqlite('pgsql');
+        $storage = new PdoFileStorage($pdo);
+        $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
+
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, 'payload');
+        rewind($stream);
+        $content = new BinaryContent('temp.txt', 'text/plain', new DateTime('now'), $stream);
+
+        /* Act: store the temp content. */
+        $key = $storage->tempStore($content);
+        $row = $pdo->query("SELECT code, temp FROM _filestorer WHERE code = '{$key->key}'")->fetch(PDO::FETCH_ASSOC);
+
+        /* Assert: verify the row is inserted and marked as temp. */
+        $this->assertNotFalse($row);
+        $this->assertSame($key->key, $row['code']);
+        $this->assertSame(1, (int) $row['temp']);
+
+        fclose($stream);
+    }
+
+    /**
+     * Ensures clearTemp deletes overflow rows with a pgsql driver.
+     */
+    public function testClearTempWithPgsqlDriverResults(): void
+    {
+        /* Arrange: create a pgsql-like storage with temp overflow. */
+        $pdo = $this->createDriverAwareSqlite('pgsql');
+        $storage = new PdoFileStorage($pdo);
+        $this->setPrivateProperty($storage, 'tempCapacity', 1);
+        $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
+
+        $now = new DateTimeImmutable('now');
+        $next = $now->modify('+1 second');
+
+        $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
+        $stmt->execute([
+            'code' => 'first',
+            'name' => 'first.txt',
+            'mime' => 'text/plain',
+            'upload' => $now->format('Y-m-d H:i:s'),
+            'bytes' => 'one',
+        ]);
+        $stmt->execute([
+            'code' => 'second',
+            'name' => 'second.txt',
+            'mime' => 'text/plain',
+            'upload' => $next->format('Y-m-d H:i:s'),
+            'bytes' => 'two',
+        ]);
+
+        /* Act: invoke clearTemp to delete overflow rows. */
+        $this->invokePrivateMethod($storage, 'clearTemp');
+
+        /* Assert: verify only the newest row remains. */
+        $count = (int) $pdo->query('SELECT COUNT(*) FROM _filestorer')->fetchColumn();
+        $remaining = $pdo->query("SELECT code FROM _filestorer")->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame(1, $count);
+        $this->assertSame('second', $remaining['code']);
+    }
+
+    /**
+     * Ensures clearTemp deletes overflow rows with a mysql driver.
+     */
+    public function testClearTempWithMysqlDriverResults(): void
+    {
+        /* Arrange: create a mysql-like storage with temp overflow. */
+        $pdo = $this->createDriverAwareSqlite('mysql', ['first']);
+        $storage = new PdoFileStorage($pdo);
+        $this->setPrivateProperty($storage, 'tempCapacity', 1);
+        $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
+
+        $now = new DateTimeImmutable('now');
+        $next = $now->modify('+1 second');
+
+        $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
+        $stmt->execute([
+            'code' => 'first',
+            'name' => 'first.txt',
+            'mime' => 'text/plain',
+            'upload' => $now->format('Y-m-d H:i:s'),
+            'bytes' => 'one',
+        ]);
+        $stmt->execute([
+            'code' => 'second',
+            'name' => 'second.txt',
+            'mime' => 'text/plain',
+            'upload' => $next->format('Y-m-d H:i:s'),
+            'bytes' => 'two',
+        ]);
+
+        /* Act: invoke clearTemp to delete overflow rows. */
+        $this->invokePrivateMethod($storage, 'clearTemp');
+
+        /* Assert: verify only the newest row remains. */
+        $count = (int) $pdo->query('SELECT COUNT(*) FROM _filestorer')->fetchColumn();
+        $remaining = $pdo->query("SELECT code FROM _filestorer")->fetch(PDO::FETCH_ASSOC);
+        $this->assertSame(1, $count);
+        $this->assertSame('second', $remaining['code']);
     }
 
     private function createSqlite(): PDO
     {
         $pdo = new PDO('sqlite::memory:');
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        return $pdo;
+    }
+
+    private function createDriverAwareSqlite(string $driver, ?array $selectRows = null): PDO
+    {
+        $pdo = new class ($driver, $selectRows) extends PDO {
+            private ?array $selectRows;
+
+            public function __construct(private string $driver, ?array $selectRows)
+            {
+                $this->selectRows = $selectRows;
+                parent::__construct('sqlite::memory:');
+                $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            }
+
+            public function prepare($statement, $options = []): PDOStatement|false
+            {
+                if ($this->selectRows !== null && str_starts_with($statement, 'SELECT code FROM _filestorer')) {
+                    $options[PDO::ATTR_STATEMENT_CLASS] = [FakeStatement::class, [$this->selectRows]];
+                }
+
+                return parent::prepare($statement, $options);
+            }
+
+            public function getAttribute($attribute): mixed
+            {
+                if ($attribute === PDO::ATTR_DRIVER_NAME) {
+                    return $this->driver;
+                }
+
+                return parent::getAttribute($attribute);
+            }
+        };
+
         return $pdo;
     }
 
@@ -99,5 +318,43 @@ final class PdoFileStorageUnitTest extends TestCase
         $prop = $ref->getProperty($property);
         $prop->setAccessible(true);
         $prop->setValue($target, $value);
+    }
+}
+
+/**
+ * PDO statement that yields predefined rows for fetch loops.
+ */
+final class FakeStatement extends PDOStatement
+{
+    /** @var array<int, string> */
+    private array $rows;
+
+    private int $index = 0;
+
+    /**
+     * Creates a fake statement with predefined rows.
+     *
+     * @param array<int, string> $rows Codes returned on fetch.
+     */
+    protected function __construct(array $rows)
+    {
+        $this->rows = $rows;
+    }
+
+    /**
+     * Returns the next fake row for the fetch loop.
+     */
+    public function fetch(
+        int $mode = PDO::FETCH_ASSOC,
+        int $cursorOrientation = PDO::FETCH_ORI_NEXT,
+        int $cursorOffset = 0
+    ): mixed {
+        if ($this->index >= count($this->rows)) {
+            return false;
+        }
+
+        $row = ['code' => $this->rows[$this->index]];
+        $this->index++;
+        return $row;
     }
 }
