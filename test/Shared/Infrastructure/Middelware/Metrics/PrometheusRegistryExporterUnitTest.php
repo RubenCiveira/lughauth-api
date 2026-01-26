@@ -9,11 +9,18 @@ namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics {
         public static bool $captureJsonlWrites = false;
         public static int $jsonlWrites = 0;
         public static bool $forceArrayCombineFalse = false;
+        public static bool $forceFilePutContentsThrow = false;
+        public static $shutdownCallback = null;
+        public static array $shutdownArgs = [];
+        public static int $fcloseCalls = 0;
     }
 
     if (!function_exists(__NAMESPACE__ . '\\file_put_contents')) {
         function file_put_contents(string $filename, mixed $data, int $flags = 0, $context = null): int|false
         {
+            if (PrometheusRegistryExporterTestHook::$forceFilePutContentsThrow) {
+                throw new \RuntimeException('Forced file_put_contents failure');
+            }
             if (PrometheusRegistryExporterTestHook::$captureJsonlWrites && str_ends_with($filename, '.jsonl')) {
                 PrometheusRegistryExporterTestHook::$jsonlWrites++;
             }
@@ -26,6 +33,14 @@ namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics {
         }
     }
 
+    if (!function_exists(__NAMESPACE__ . '\\register_shutdown_function')) {
+        function register_shutdown_function(callable $callback, mixed ...$args): void
+        {
+            PrometheusRegistryExporterTestHook::$shutdownCallback = $callback;
+            PrometheusRegistryExporterTestHook::$shutdownArgs = $args;
+        }
+    }
+
     if (!function_exists(__NAMESPACE__ . '\\array_combine')) {
         function array_combine(array $keys, array $values): array|false
         {
@@ -34,6 +49,14 @@ namespace Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics {
             }
 
             return \array_combine($keys, $values);
+        }
+    }
+
+    if (!function_exists(__NAMESPACE__ . '\\fclose')) {
+        function fclose($handle): bool
+        {
+            PrometheusRegistryExporterTestHook::$fcloseCalls++;
+            return \fclose($handle);
         }
     }
 }
@@ -290,6 +313,206 @@ final class PrometheusRegistryExporterUnitTest extends TestCase
          * Assert: verify the jsonl file was flushed during the loop.
          */
         $this->assertSame(2, PrometheusRegistryExporterTestHook::$jsonlWrites);
+    }
+
+    /**
+     * Ensures shutdown handler flushes buffered data.
+     */
+    public function testShutdownHandlerFlushesBufferedData(): void
+    {
+        /*
+         * Arrange: create an exporter and seed buffered data.
+         */
+        $root = sys_get_temp_dir() . '/export_' . uniqid();
+        $fs = new MetricsFS($root);
+        $exporter = new PrometheusRegistryExporter($this->policy(true), $this->createMock(CollectorRegistry::class), $fs, [
+            'max_lines_flush' => 10
+        ]);
+
+        $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
+        $filesProp = new ReflectionProperty($exporter, 'files');
+        $filesProp->setAccessible(true);
+        $filesProp->setValue($exporter, [
+            $path => ['buf' => "{\"ts\":1000,\"v\":1}\n", 'n' => 1]
+        ]);
+
+        PrometheusRegistryExporterTestHook::$jsonlWrites = 0;
+        PrometheusRegistryExporterTestHook::$captureJsonlWrites = true;
+
+        /*
+         * Act: invoke the captured shutdown callback.
+         */
+        $shutdown = PrometheusRegistryExporterTestHook::$shutdownCallback;
+        $args = PrometheusRegistryExporterTestHook::$shutdownArgs;
+        $this->assertNotNull($shutdown);
+        $shutdown(...$args);
+
+        /*
+         * Assert: verify the buffered data was flushed.
+         */
+        $this->assertSame(1, PrometheusRegistryExporterTestHook::$jsonlWrites);
+    }
+
+    /**
+     * Ensures shutdown handler swallows exceptions.
+     */
+    public function testShutdownHandlerSwallowsExceptions(): void
+    {
+        /*
+         * Arrange: create an exporter and seed buffered data.
+         */
+        $root = sys_get_temp_dir() . '/export_' . uniqid();
+        $fs = new MetricsFS($root);
+        $exporter = new PrometheusRegistryExporter($this->policy(true), $this->createMock(CollectorRegistry::class), $fs);
+
+        $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
+        $filesProp = new ReflectionProperty($exporter, 'files');
+        $filesProp->setAccessible(true);
+        $filesProp->setValue($exporter, [
+            $path => ['buf' => "{\"ts\":1000,\"v\":1}\n", 'n' => 1]
+        ]);
+
+        PrometheusRegistryExporterTestHook::$forceFilePutContentsThrow = true;
+        try {
+            /*
+             * Act: invoke the captured shutdown callback, expecting no throw.
+             */
+            $shutdown = PrometheusRegistryExporterTestHook::$shutdownCallback;
+            $args = PrometheusRegistryExporterTestHook::$shutdownArgs;
+            $this->assertNotNull($shutdown);
+            $shutdown(...$args);
+        } finally {
+            PrometheusRegistryExporterTestHook::$forceFilePutContentsThrow = false;
+        }
+
+        /*
+         * Assert: no exception propagated.
+         */
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Ensures ingestBatch closes resource handles after processing.
+     */
+    public function testIngestBatchClosesResourceHandles(): void
+    {
+        /*
+         * Arrange: seed the exporter with a resource handle.
+         */
+        $root = sys_get_temp_dir() . '/export_' . uniqid();
+        $fs = new MetricsFS($root);
+        $exporter = new PrometheusRegistryExporter($this->policy(true), $this->createMock(CollectorRegistry::class), $fs);
+
+        $handle = \fopen('php://temp', 'rb');
+        $this->assertNotFalse($handle);
+
+        $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
+        $filesProp = new ReflectionProperty($exporter, 'files');
+        $filesProp->setAccessible(true);
+        $filesProp->setValue($exporter, [
+            $path => ['buf' => '', 'n' => 0, 'h' => $handle]
+        ]);
+
+        PrometheusRegistryExporterTestHook::$fcloseCalls = 0;
+
+        /*
+         * Act: ingest an empty payload to trigger handle closing.
+         */
+        $exporter->ingestBatch([], 1000);
+
+        /*
+         * Assert: verify fclose was called for the resource.
+         */
+        $this->assertSame(1, PrometheusRegistryExporterTestHook::$fcloseCalls);
+    }
+
+    /**
+     * Ensures ingestBatch closes resource handles on exceptions.
+     */
+    public function testIngestBatchClosesResourceHandlesOnException(): void
+    {
+        /*
+         * Arrange: seed the exporter with a buffered resource handle and force a write error.
+         */
+        $root = sys_get_temp_dir() . '/export_' . uniqid();
+        $fs = new MetricsFS($root);
+        $exporter = new PrometheusRegistryExporter($this->policy(true), $this->createMock(CollectorRegistry::class), $fs);
+
+        $handle = \fopen('php://temp', 'rb');
+        $this->assertNotFalse($handle);
+
+        $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
+        $filesProp = new ReflectionProperty($exporter, 'files');
+        $filesProp->setAccessible(true);
+        $filesProp->setValue($exporter, [
+            $path => ['buf' => "{\"ts\":1000,\"v\":1}\n", 'n' => 1, 'h' => $handle]
+        ]);
+
+        PrometheusRegistryExporterTestHook::$fcloseCalls = 0;
+        PrometheusRegistryExporterTestHook::$forceFilePutContentsThrow = true;
+        try {
+            /*
+             * Act: ingest to trigger the exception path.
+             */
+            $this->expectException(RuntimeException::class);
+            $exporter->ingestBatch([], 1000);
+        } finally {
+            PrometheusRegistryExporterTestHook::$forceFilePutContentsThrow = false;
+        }
+
+        /*
+         * Assert: verify fclose was called in the catch block.
+         */
+        $this->assertSame(1, PrometheusRegistryExporterTestHook::$fcloseCalls);
+    }
+
+    /**
+     * Ensures extract sorts metric families by name.
+     */
+    public function testExtractSortsMetricFamilies(): void
+    {
+        /*
+         * Arrange: create metrics out of order.
+         */
+        $exporter = new PrometheusRegistryExporter($this->policy(true), $this->registryWithSample(), new MetricsFS(sys_get_temp_dir() . '/export_' . uniqid()));
+
+        $metricB = new MetricFamilySamples([
+            'name' => 'b_metric',
+            'type' => 'counter',
+            'help' => 'help',
+            'labelNames' => ['path'],
+            'samples' => [[
+                'name' => 'b_metric',
+                'labelNames' => [],
+                'labelValues' => ['/b'],
+                'value' => 1
+            ]]
+        ]);
+        $metricA = new MetricFamilySamples([
+            'name' => 'a_metric',
+            'type' => 'counter',
+            'help' => 'help',
+            'labelNames' => ['path'],
+            'samples' => [[
+                'name' => 'a_metric',
+                'labelNames' => [],
+                'labelValues' => ['/a'],
+                'value' => 1
+            ]]
+        ]);
+
+        $method = new ReflectionMethod($exporter, 'extract');
+        $method->setAccessible(true);
+
+        /*
+         * Act: extract lines from unsorted metrics.
+         */
+        $lines = $method->invoke($exporter, [$metricB, $metricA]);
+
+        /*
+         * Assert: verify keys are ordered by metric name.
+         */
+        $this->assertSame(['a_metric', 'b_metric'], array_keys($lines));
     }
 
     private function registryWithSample(): CollectorRegistry
