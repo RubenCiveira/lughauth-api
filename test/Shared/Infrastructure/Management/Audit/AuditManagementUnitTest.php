@@ -36,7 +36,6 @@ final class AuditManagementUnitTest extends TestCase
         $this->assertSame([['id' => 'a1']], $result);
         $this->assertNull($management->set());
         $this->assertSame('audit', $management->name());
-
     }
 
     /**

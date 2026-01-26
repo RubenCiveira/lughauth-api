@@ -49,6 +49,8 @@ final class LogCollectorUnitTest extends TestCase
 
         /* Assert: verify the handler returns an ok response. */
         $this->assertSame(['status' => 'ok'], $result);
+        $this->assertNull($collector->get());
+        $this->assertSame('log-collector', $collector->name());
     }
 
     private function request(array $payload): ServerRequestInterface

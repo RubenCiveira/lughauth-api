@@ -34,6 +34,9 @@ final class TraceManagementUnitTest extends TestCase
         /* Assert: verify only the matching trace is returned. */
         $this->assertCount(1, $result);
         $this->assertSame('t1', $result[0]['traceId']);
+        $this->assertNull($management->set());
+        $this->assertSame('trace', $management->name());
+
     }
 
     /**

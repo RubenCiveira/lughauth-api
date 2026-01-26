@@ -55,6 +55,8 @@ final class TraceCollectorUnitTest extends TestCase
 
         /* Assert: verify the handler returns an empty response. */
         $this->assertSame([], $result);
+        $this->assertNull($collector->get());
+        $this->assertSame('trace-collector', $collector->name());
     }
 
     private function request(array $payload): ServerRequestInterface
