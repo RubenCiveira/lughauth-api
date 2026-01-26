@@ -13,9 +13,15 @@ use Slim\Middleware\ErrorMiddleware;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 
+/**
+ * Base class for wiring microservice plugins into the container.
+ */
 abstract class MicroPlugin
 {
-    public function bindServices(Container $container)
+    /**
+     * Registers framework hooks for routes, events, schedulers, and errors.
+     */
+    public function bindServices(Container $container): void
     {
         $app = $container->get(App::class);
         $this->registerRoutes($app);
@@ -27,31 +33,52 @@ abstract class MicroPlugin
         $this->registerErrorHandler($error);
     }
 
+    /**
+     * Registers HTTP routes for the plugin.
+     */
     public function registerRoutes(RouteCollectorProxy $app)
     {
     }
 
+    /**
+     * Registers event listeners for the plugin.
+     */
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
     }
 
+    /**
+     * Registers scheduled tasks for the plugin.
+     */
     public function registerSchedulers(SchedulerManager $bus)
     {
     }
 
+    /**
+     * Returns management endpoints exposed by the plugin.
+     */
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
         return [];
     }
 
+    /**
+     * Registers error handlers for the plugin.
+     */
     public function registerErrorHandler(ErrorMiddleware $errorHandler)
     {
     }
 
+    /**
+     * Registers startup hooks for the plugin.
+     */
     public function registerStartup(StartupProcessor $processor): void
     {
     }
 
+    /**
+     * Allows mutation of container service definitions.
+     */
     public function registerServiceDefinition(array $def): array
     {
         return $def;

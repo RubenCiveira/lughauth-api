@@ -16,11 +16,20 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Psr\Container\ContainerInterface;
 
+/**
+ * Registers RBAC listeners and startup refresh for security policies.
+ */
 class GenericSecurityPlugin extends MicroPlugin
 {
+    /**
+     * Startup order for the RBAC cache refresh.
+     */
     public const STARTUP_ORDER = 1000;
 
     #[Override]
+    /**
+     * Registers RBAC listeners for allow and field access events.
+     */
     public function registerEvents(EventListenersRegistrarInterface $bus)
     {
         $bus->registerListener(AllowDecision::class, AllowListener::class);
@@ -28,6 +37,9 @@ class GenericSecurityPlugin extends MicroPlugin
     }
 
     #[Override]
+    /**
+     * Registers the RBAC cache refresh at startup.
+     */
     public function registerStartup(StartupProcessor $processor): void
     {
         $processor->register(function (ContainerInterface $container) {

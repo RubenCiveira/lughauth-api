@@ -15,9 +15,15 @@ use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
+/**
+ * Registers HTTP error handlers for common domain exceptions.
+ */
 class ErrorsPlugin extends MicroPlugin
 {
     #[Override]
+    /**
+     * Configures error handlers for validation and auth failures.
+     */
     public function registerErrorHandler(ErrorMiddleware $errorHandler)
     {
         $errorHandler->setErrorHandler(ConstraintException::class, function (ServerRequestInterface $request, ConstraintException $exception): ResponseInterface {
