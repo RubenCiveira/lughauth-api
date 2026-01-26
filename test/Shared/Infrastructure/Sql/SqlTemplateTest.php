@@ -4,10 +4,6 @@
 declare(strict_types=1);
 
 namespace {
-    use PDO;
-    use PDOException;
-    use PDOStatement;
-    use DateTimeImmutable;
     use PHPUnit\Framework\TestCase;
     use Civi\Lughauth\Shared\Infrastructure\Sql\SqlParam;
     use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;

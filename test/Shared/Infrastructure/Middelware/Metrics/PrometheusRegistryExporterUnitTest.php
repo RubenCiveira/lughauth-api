@@ -141,6 +141,39 @@ final class PrometheusRegistryExporterUnitTest extends TestCase
          */
     }
 
+    /**
+     * Ensures ingestBatch skips non-matching metrics.
+     */
+    public function testIngestBatchSkipsNonMatchingMetrics(): void
+    {
+        /*
+         * Arrange: create an exporter with a restrictive include filter.
+         */
+        $root = sys_get_temp_dir() . '/export_' . uniqid();
+        $fs = new MetricsFS($root);
+        $registry = new CollectorRegistry(new InMemory());
+        $exporter = new PrometheusRegistryExporter($this->policy(true), $registry, $fs, [
+            'include' => ['~^only_this$~'],
+            'label_allow' => ['path']
+        ]);
+
+        $payload = [
+            'other_metric' => [
+                ['labels' => ['path' => '/api'], 'value' => 1]
+            ]
+        ];
+
+        /*
+         * Act: ingest the batch with a non-matching metric.
+         */
+        $exporter->ingestBatch($payload, 1000);
+
+        /*
+         * Assert: verify no files are created.
+         */
+        $this->assertSame([], glob($root . '/*'));
+    }
+
     private function registryWithSample(): CollectorRegistry
     {
         $registry = $this->createMock(CollectorRegistry::class);

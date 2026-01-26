@@ -145,6 +145,34 @@ final class MetricsQueryUnitTest extends TestCase
         $this->assertNotEmpty($rate[0]['points']);
     }
 
+    /**
+     * Ensures partition selection picks expected rollups.
+     */
+    public function testPickPartitionThresholds(): void
+    {
+        /*
+         * Arrange: access the partition picker via reflection.
+         */
+        $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
+        $query = new MetricsQuery($fs);
+        $method = new ReflectionMethod($query, 'pickPartition');
+        $method->setAccessible(true);
+
+        /*
+         * Act: evaluate partitions at different ranges.
+         */
+        $rollup1h = $method->invoke($query, 0, 15 * 24 * 3600 * 1000);
+        $rollup5m = $method->invoke($query, 0, 3 * 24 * 3600 * 1000);
+        $raw = $method->invoke($query, 0, 1 * 24 * 3600 * 1000);
+
+        /*
+         * Assert: verify the expected partitions are returned.
+         */
+        $this->assertSame('rollup_1h', $rollup1h);
+        $this->assertSame('rollup_5m', $rollup5m);
+        $this->assertSame('raw', $raw);
+    }
+
     private function fsWithData(): MetricsFS
     {
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());

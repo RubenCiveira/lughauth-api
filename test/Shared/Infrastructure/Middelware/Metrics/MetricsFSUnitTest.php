@@ -148,4 +148,56 @@ final class MetricsFSUnitTest extends TestCase
          */
         $this->assertTrue(is_dir($root));
     }
+
+    /**
+     * Ensures invalid label files are ignored when listing series.
+     */
+    public function testListSeriesSkipsInvalidLabels(): void
+    {
+        /*
+         * Arrange: create an invalid labels.json file.
+         */
+        $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
+        $fs = new MetricsFS($root);
+        $metricDir = $root . '/metric/series/aa/bb';
+        @mkdir($metricDir, 0777, true);
+        file_put_contents($metricDir . '/labels.json', '{"bad":true}');
+
+        /*
+         * Act: list series for the metric.
+         */
+        $series = $fs->listSeries('metric');
+
+        /*
+         * Assert: verify invalid labels are skipped.
+         */
+        $this->assertSame([], $series);
+    }
+
+    /**
+     * Ensures JSONL reading skips invalid lines and missing files.
+     */
+    public function testReadJsonlStreamSkipsInvalidAndMissing(): void
+    {
+        /*
+         * Arrange: create a JSONL file with invalid lines.
+         */
+        $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
+        $fs = new MetricsFS($root);
+        $path = $fs->dayFile('metric', 'sha', 'raw', 1500, false);
+        @mkdir(dirname($path), 0777, true);
+        file_put_contents($path, "\ninvalid\n" . json_encode(['ts' => 5, 'v' => 6]) . "\n");
+
+        /*
+         * Act: read rows from the invalid file and a missing file.
+         */
+        $rows = iterator_to_array(MetricsFS::readJsonlStream($path));
+        $missing = iterator_to_array(MetricsFS::readJsonlStream($path . '.gz'));
+
+        /*
+         * Assert: verify only valid rows are returned.
+         */
+        $this->assertSame(5, $rows[0]['ts']);
+        $this->assertSame([], $missing);
+    }
 }

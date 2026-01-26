@@ -165,20 +165,16 @@ final class MetricsRotator
     private function maybeDelete(string $path, string $partition): void
     {
         $ttlDays = $this->ttlDays[$partition] ?? null;
-        if (!$ttlDays) {
+        if (null === $ttlDays) {
             return;
         }
-
         $ymd = $this->extractYmdFromPath($path);
-        if (!$ymd) {
+        if (null === $ymd) {
             return;
         }
         [$y, $m, $d] = $ymd;
-
+        
         $fileDate = \DateTimeImmutable::createFromFormat('!Y-n-j', "{$y}-{$m}-{$d}", new \DateTimeZone('UTC'));
-        if (!$fileDate) {
-            return;
-        }
 
         $cutoff = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->modify("-{$ttlDays} days")->setTime(0, 0);
         if ($fileDate < $cutoff) {
