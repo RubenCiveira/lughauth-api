@@ -38,6 +38,28 @@ final class MetricsQueryUnitTest extends TestCase
     }
 
     /**
+     * Ensures series skips when matchers do not match.
+     */
+    public function testSeriesSkipsWhenMatcherDoesNotMatch(): void
+    {
+        /*
+         * Arrange: build a filesystem with sample data.
+         */
+        $fs = $this->fsWithData();
+        $query = new MetricsQuery($fs);
+
+        /*
+         * Act: query series with a non-matching matcher.
+         */
+        $series = $query->series('metric', new LabelMatcher('status', '=', '500'));
+
+        /*
+         * Assert: verify no series are returned.
+         */
+        $this->assertSame([], $series);
+    }
+
+    /**
      * Ensures rate and sumBy return aggregated values.
      */
     public function testRateAndSumBy(): void
@@ -120,6 +142,55 @@ final class MetricsQueryUnitTest extends TestCase
         $this->assertSame(0.0, $zero);
         $this->assertSame(2.0, $forward);
         $this->assertSame(2.0, $back);
+    }
+
+    /**
+     * Ensures interpolateOnGrid returns empty when grid is empty.
+     */
+    public function testInterpolateOnGridReturnsEmptyOnZeroRows(): void
+    {
+        /*
+         * Arrange: access the interpolation method via reflection.
+         */
+        $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
+        $query = new MetricsQuery($fs);
+        $method = new ReflectionMethod($query, 'interpolateOnGrid');
+        $method->setAccessible(true);
+
+        /*
+         * Act: invoke with an empty grid.
+         */
+        $out = $method->invoke($query, []);
+
+        /*
+         * Assert: verify empty output.
+         */
+        $this->assertSame([], $out);
+    }
+
+    /**
+     * Ensures interpolateOnGrid interpolates when both sides are finite.
+     */
+    public function testInterpolateOnGridInterpolatesBetweenFiniteValues(): void
+    {
+        /*
+         * Arrange: access the interpolation method via reflection.
+         */
+        $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
+        $query = new MetricsQuery($fs);
+        $method = new ReflectionMethod($query, 'interpolateOnGrid');
+        $method->setAccessible(true);
+
+        /*
+         * Act: interpolate a NaN between two finite values.
+         */
+        $grid = [[0, 0.0], [10, NAN], [20, 10.0]];
+        $out = $method->invoke($query, $grid, 'nan');
+
+        /*
+         * Assert: verify the middle value is interpolated.
+         */
+        $this->assertSame(5.0, $out[1][1]);
     }
 
     /**
