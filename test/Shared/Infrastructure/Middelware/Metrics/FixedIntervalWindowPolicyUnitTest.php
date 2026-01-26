@@ -66,133 +66,133 @@ namespace {
     use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\FixedIntervalWindowPolicy;
     use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\FixedIntervalWindowPolicyTestHook;
 
-/**
- * Unit tests for FixedIntervalWindowPolicy.
- */
-final class FixedIntervalWindowPolicyUnitTest extends TestCase
-{
     /**
-     * Ensures the lock file is written and blocks subsequent calls.
+     * Unit tests for FixedIntervalWindowPolicy.
      */
-    public function testMustTraceWritesLockFile(): void
+    final class FixedIntervalWindowPolicyUnitTest extends TestCase
     {
-        /*
-         * Arrange: create a policy with a short interval.
+        /**
+         * Ensures the lock file is written and blocks subsequent calls.
          */
-        $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
-        $policy = new FixedIntervalWindowPolicy($path, 1);
-
-        /*
-         * Act: call mustTrace twice.
-         */
-        $first = $policy->mustTrace();
-        $second = $policy->mustTrace();
-
-        /*
-         * Assert: verify only the first call returns true.
-         */
-        $this->assertTrue($first);
-        $this->assertFalse($second);
-    }
-
-    /**
-     * Ensures invalid timestamps are treated as expired.
-     */
-    public function testMustTraceHandlesInvalidTimestamp(): void
-    {
-        /*
-         * Arrange: write an invalid future timestamp to the lock file.
-         */
-        $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
-        file_put_contents($path, (string) (time() + 10000));
-
-        /*
-         * Act: call mustTrace to evaluate the invalid timestamp.
-         */
-        $policy = new FixedIntervalWindowPolicy($path, 1);
-        $result = $policy->mustTrace();
-
-        /*
-         * Assert: verify the policy allows tracing.
-         */
-        $this->assertTrue($result);
-    }
-
-    /**
-     * Ensures invalid lock directories return false.
-     */
-    public function testMustTraceReturnsFalseWhenDirInvalid(): void
-    {
-        /*
-         * Arrange: create a lock file path under a file path.
-         */
-        $base = sys_get_temp_dir() . '/trace_lock_' . uniqid();
-        file_put_contents($base, 'not-a-dir');
-        $policy = new FixedIntervalWindowPolicy($base . '/lock', 1);
-
-        /*
-         * Act: call mustTrace with an invalid directory.
-         */
-        $result = $policy->mustTrace();
-
-        /*
-         * Assert: verify tracing is disabled when directory cannot be created.
-         */
-        $this->assertFalse($result);
-    }
-
-    /**
-     * Ensures mustTrace returns false when the lock file cannot be opened.
-     */
-    public function testMustTraceReturnsFalseWhenLockFileOpenFails(): void
-    {
-        /*
-         * Arrange: force the lock file open to fail.
-         */
-        $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
-        FixedIntervalWindowPolicyTestHook::$forceFopenFail = true;
-        $policy = new FixedIntervalWindowPolicy($path, 1);
-
-        try {
+        public function testMustTraceWritesLockFile(): void
+        {
             /*
-             * Act: call mustTrace with a failing fopen.
+             * Arrange: create a policy with a short interval.
              */
-            $result = $policy->mustTrace();
-        } finally {
-            FixedIntervalWindowPolicyTestHook::$forceFopenFail = false;
+            $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
+            $policy = new FixedIntervalWindowPolicy($path, 1);
+
+            /*
+             * Act: call mustTrace twice.
+             */
+            $first = $policy->mustTrace();
+            $second = $policy->mustTrace();
+
+            /*
+             * Assert: verify only the first call returns true.
+             */
+            $this->assertTrue($first);
+            $this->assertFalse($second);
         }
 
-        /*
-         * Assert: verify tracing is disabled when fopen fails.
+        /**
+         * Ensures invalid timestamps are treated as expired.
          */
-        $this->assertFalse($result);
-    }
-
-    /**
-     * Ensures mustTrace returns false when file locking fails.
-     */
-    public function testMustTraceReturnsFalseWhenFlockFails(): void
-    {
-        /*
-         * Arrange: force the flock call to fail.
-         */
-        $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
-        FixedIntervalWindowPolicyTestHook::$forceFlockFail = true;
-        $policy = new FixedIntervalWindowPolicy($path, 1);
-
-        try {
+        public function testMustTraceHandlesInvalidTimestamp(): void
+        {
             /*
-             * Act: call mustTrace with a failing flock.
+             * Arrange: write an invalid future timestamp to the lock file.
              */
+            $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
+            file_put_contents($path, (string) (time() + 10000));
+
+            /*
+             * Act: call mustTrace to evaluate the invalid timestamp.
+             */
+            $policy = new FixedIntervalWindowPolicy($path, 1);
             $result = $policy->mustTrace();
-        } finally {
-            FixedIntervalWindowPolicyTestHook::$forceFlockFail = false;
+
+            /*
+             * Assert: verify the policy allows tracing.
+             */
+            $this->assertTrue($result);
         }
 
-        /*
-         * Assert: verify tracing is disabled when flock fails.
+        /**
+         * Ensures invalid lock directories return false.
          */
-        $this->assertFalse($result);
+        public function testMustTraceReturnsFalseWhenDirInvalid(): void
+        {
+            /*
+             * Arrange: create a lock file path under a file path.
+             */
+            $base = sys_get_temp_dir() . '/trace_lock_' . uniqid();
+            file_put_contents($base, 'not-a-dir');
+            $policy = new FixedIntervalWindowPolicy($base . '/lock', 1);
+
+            /*
+             * Act: call mustTrace with an invalid directory.
+             */
+            $result = $policy->mustTrace();
+
+            /*
+             * Assert: verify tracing is disabled when directory cannot be created.
+             */
+            $this->assertFalse($result);
+        }
+
+        /**
+         * Ensures mustTrace returns false when the lock file cannot be opened.
+         */
+        public function testMustTraceReturnsFalseWhenLockFileOpenFails(): void
+        {
+            /*
+             * Arrange: force the lock file open to fail.
+             */
+            $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
+            FixedIntervalWindowPolicyTestHook::$forceFopenFail = true;
+            $policy = new FixedIntervalWindowPolicy($path, 1);
+
+            try {
+                /*
+                 * Act: call mustTrace with a failing fopen.
+                 */
+                $result = $policy->mustTrace();
+            } finally {
+                FixedIntervalWindowPolicyTestHook::$forceFopenFail = false;
+            }
+
+            /*
+             * Assert: verify tracing is disabled when fopen fails.
+             */
+            $this->assertFalse($result);
+        }
+
+        /**
+         * Ensures mustTrace returns false when file locking fails.
+         */
+        public function testMustTraceReturnsFalseWhenFlockFails(): void
+        {
+            /*
+             * Arrange: force the flock call to fail.
+             */
+            $path = sys_get_temp_dir() . '/trace_lock_' . uniqid();
+            FixedIntervalWindowPolicyTestHook::$forceFlockFail = true;
+            $policy = new FixedIntervalWindowPolicy($path, 1);
+
+            try {
+                /*
+                 * Act: call mustTrace with a failing flock.
+                 */
+                $result = $policy->mustTrace();
+            } finally {
+                FixedIntervalWindowPolicyTestHook::$forceFlockFail = false;
+            }
+
+            /*
+             * Assert: verify tracing is disabled when flock fails.
+             */
+            $this->assertFalse($result);
+        }
     }
-}
 }

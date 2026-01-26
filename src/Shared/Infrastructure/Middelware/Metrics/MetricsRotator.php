@@ -173,7 +173,7 @@ final class MetricsRotator
             return;
         }
         [$y, $m, $d] = $ymd;
-        
+
         $fileDate = \DateTimeImmutable::createFromFormat('!Y-n-j', "{$y}-{$m}-{$d}", new \DateTimeZone('UTC'));
 
         $cutoff = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->modify("-{$ttlDays} days")->setTime(0, 0);
@@ -192,10 +192,6 @@ final class MetricsRotator
 
         foreach ($it as $path => $info) {
             if ($info->isDir()) {
-                // no toques el directorio de la métrica principal
-                if ($path === $rootDir) {
-                    continue;
-                }
                 @rmdir($path); // rmdir sólo borra si está vacío
             }
         }
