@@ -31,6 +31,5 @@ final class MetricsManagementUnitTest extends TestCase
         $this->assertSame('metrics', $name);
         $this->assertIsString($output);
         $this->assertNull($management->set());
-
     }
 }
