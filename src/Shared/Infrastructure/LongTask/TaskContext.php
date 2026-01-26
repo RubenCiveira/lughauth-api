@@ -5,10 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
+/**
+ * Carries runtime parameters and cursor state for tasks.
+ */
 class TaskContext
 {
     public function __construct(
+        /** @var array Task parameters for the descriptor. */
         public readonly array $params,
+        /** @var mixed Cursor pointing to the current read position. */
         public mixed $cursor
     ) {
     }

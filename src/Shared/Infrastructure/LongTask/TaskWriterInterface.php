@@ -5,7 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
+/**
+ * Writes processed items for a long-running task.
+ */
 interface TaskWriterInterface
 {
+    /**
+     * Persists processed items for a task step.
+     */
     public function write(TaskContext $context, array $item): void;
 }

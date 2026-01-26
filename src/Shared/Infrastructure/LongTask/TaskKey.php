@@ -5,10 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
+/**
+ * Unique identifier for a long-running task.
+ */
 class TaskKey
 {
-    public function __construct(public readonly string $uid)
-    {
+    public function __construct(
+        /** @var string Unique task identifier. */
+        public readonly string $uid
+    ) {
 
     }
 }

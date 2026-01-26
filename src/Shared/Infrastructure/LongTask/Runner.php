@@ -15,15 +15,25 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Value\Random;
 
+/**
+ * Orchestrates long-running tasks and tracks their progress.
+ */
 class Runner
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
 
-    public function __construct(private readonly TaskStore $store, private readonly Context $context)
-    {
+    public function __construct(
+        /** @var TaskStore Storage backend for task progress. */
+        private readonly TaskStore $store,
+        /** @var Context Application context used to build containers. */
+        private readonly Context $context
+    ) {
     }
 
+    /**
+     * Starts a long-running task by descriptor type.
+     */
     public function run(string $descriptorType, array $params): TaskKey
     {
         // Tengo que crear un contexto.
@@ -107,6 +117,9 @@ class Runner
         return $key;
     }
 
+    /**
+     * Retrieves task progress for a given key.
+     */
     public function detail(TaskKey $key): ?TaskProgress
     {
         return $this->store->retrieve($key);

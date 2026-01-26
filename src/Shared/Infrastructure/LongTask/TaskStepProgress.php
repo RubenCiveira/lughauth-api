@@ -8,27 +8,45 @@ namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 use DateTimeImmutable;
 use Exception;
 
+/**
+ * Represents progress for a single long-running task step.
+ */
 class TaskStepProgress
 {
     public function __construct(
+        /** @var string Current step status. */
         public string $status,
+        /** @var int|null Total number of items expected. */
         public ?int $totalItem,
+        /** @var int|null Number of processed items so far. */
         public ?int $processedItems,
+        /** @var string|null Error description when the step fails. */
         public ?string $error,
+        /** @var DateTimeImmutable|null Step start time. */
         public ?DateTimeImmutable $startTime,
+        /** @var DateTimeImmutable|null Step end time. */
         public ?DateTimeImmutable $endTime,
+        /** @var array<string> Successful item identifiers. */
         public array $oks,
+        /** @var array<string, array<string>> Warning messages by code. */
         public array $warns,
+        /** @var array<string, Exception> Error details by code. */
         public array $errors
     ) {
     }
 
+    /**
+     * Registers a successful item.
+     */
     public function addOk(string $code)
     {
         $this->oks[] = $code;
         $this->processedItems = $this->countProcessedItems();
     }
 
+    /**
+     * Registers a warning for the step.
+     */
     public function addWarn(string $code, string $message)
     {
         if (!$this->warns[$code]) {
@@ -38,6 +56,9 @@ class TaskStepProgress
         $this->processedItems = $this->countProcessedItems();
     }
 
+    /**
+     * Registers an error for the step.
+     */
     public function addError(string $code, Exception $fail)
     {
         if (!$this->errors[$code]) {

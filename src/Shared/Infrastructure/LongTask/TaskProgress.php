@@ -7,13 +7,21 @@ namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
 use DateTimeImmutable;
 
+/**
+ * Aggregates overall progress for a long-running task.
+ */
 class TaskProgress
 {
     public function __construct(
+        /** @var TaskKey Task identifier. */
         public TaskKey $key,
+        /** @var string Current task status. */
         public string $status,
+        /** @var DateTimeImmutable|null Task start time. */
         public ?DateTimeImmutable $startTime,
+        /** @var DateTimeImmutable|null Task end time. */
         public ?DateTimeImmutable $endTime,
+        /** @var array<TaskStepProgress> Step progress list. */
         public array $steps
     ) {
     }

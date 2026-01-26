@@ -11,14 +11,25 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlParam;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 
+/**
+ * Stores and retrieves long-running task progress in SQL.
+ */
 class TaskStore
 {
-    public function __construct(private readonly SqlTemplate $template, private readonly Context $context)
-    {
+    public function __construct(
+        /** @var SqlTemplate SQL helper for persistence. */
+        private readonly SqlTemplate $template,
+        /** @var Context Application context for identity. */
+        private readonly Context $context
+    ) {
         $this->template->execute("delete from _long_tasks where expiration < :expirated", [
             new SqlParam('expirated', new DateTimeImmutable(), SqlParam::DATETIME)
         ]);
     }
+
+    /**
+     * Persists an initial task progress payload.
+     */
     public function save(TaskProgress $progress, DateTimeImmutable $expiration)
     {
         $id = $progress->key->uid;
@@ -34,6 +45,10 @@ class TaskStore
             ]);
         $this->template->commit();
     }
+
+    /**
+     * Updates an existing task progress payload.
+     */
     public function update(TaskProgress $progress)
     {
         $identity = $this->context->getIdentity();
@@ -49,6 +64,9 @@ class TaskStore
         $this->template->commit();
     }
 
+    /**
+     * Retrieves the stored task progress for a key.
+     */
     public function retrieve(TaskKey $key): ?TaskProgress
     {
         $identity = $this->context->getIdentity();

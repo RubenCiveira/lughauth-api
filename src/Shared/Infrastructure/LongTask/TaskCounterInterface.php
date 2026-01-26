@@ -5,7 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
+/**
+ * Counts expected items for a long-running task.
+ */
 interface TaskCounterInterface
 {
+    /**
+     * Returns the expected total number of items to process.
+     */
     public function expectedTotal(TaskContext $context): int;
 }

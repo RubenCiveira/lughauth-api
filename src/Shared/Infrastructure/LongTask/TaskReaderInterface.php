@@ -5,7 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
+/**
+ * Reads items for a long-running task.
+ */
 interface TaskReaderInterface
 {
+    /**
+     * Retrieves a batch of items to process.
+     */
     public function read(TaskContext $context): array;
 }

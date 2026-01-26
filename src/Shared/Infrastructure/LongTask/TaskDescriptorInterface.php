@@ -5,15 +5,38 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\LongTask;
 
+/**
+ * Describes how to read, process, and write a long-running task.
+ */
 interface TaskDescriptorInterface
 {
+    /**
+     * Initializes descriptor state for a new task run.
+     */
     public function init(TaskContext $initial): TaskContext;
+
+    /**
+     * Finalizes descriptor state after processing.
+     */
     public function finish(TaskContext $state);
 
+    /**
+     * Returns a human-readable description of an item.
+     */
     public function describe(mixed $item): string;
 
+    /**
+     * Returns the reader used to load task items.
+     */
     public function reader(): TaskReaderInterface;
+
+    /**
+     * Returns the optional writer used to persist processed items.
+     */
     public function writer(): ?TaskWriterInterface;
 
+    /**
+     * Processes a single task item.
+     */
     public function process(TaskContext $context, mixed $item): mixed;
 }
