@@ -43,5 +43,6 @@ final class RoutesManagementUnitTest extends TestCase
             ['method' => 'GET', 'path' => '/users [name: users.list]'],
             ['method' => 'POST', 'path' => '/users [name: users.list]']
         ], $result);
+        $this->assertNull($management->set());
     }
 }

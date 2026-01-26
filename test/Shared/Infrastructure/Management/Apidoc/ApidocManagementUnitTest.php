@@ -51,6 +51,19 @@ final class ApidocManagementUnitTest extends TestCase
         $this->assertStringContainsString('Swagger UI', (string) $result->getBody());
     }
 
+    /**
+     * Ensure name and no sett
+     */
+    public function testNameAndNoSetter(): void
+    {
+        /* Arrange: create a managed */
+        $management = new ApidocManagement($this->createMock(App::class), $this->context('http://base'));
+        
+        /* Assert: open-api is always the name, and there is no setter */
+        $this->assertSame('open-api', $management->name());
+        $this->assertNull($management->set());
+    }
+
     private function request(array $params): ServerRequestInterface
     {
         $request = $this->createMock(ServerRequestInterface::class);

@@ -31,6 +31,8 @@ final class HealthManagementUnitTest extends TestCase
         $this->assertSame('UP', $result['components']['db']['status']);
         $this->assertSame(['latency' => 10], $result['components']['db']['details']);
         $this->assertSame('UNKWOWN', $result['components']['cache']['status']);
+        $this->assertNull($management->set());
+        $this->assertSame('health', $management->name());
     }
 
     /**

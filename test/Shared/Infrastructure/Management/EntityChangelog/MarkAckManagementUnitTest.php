@@ -39,6 +39,8 @@ final class MarkAckManagementUnitTest extends TestCase
 
         /* Assert: verify the handler returns an empty response. */
         $this->assertSame([], $result);
+        $this->assertNull($management->set());
+        $this->assertSame('entity-changelo-query-ack', $management->name());
     }
 
     /**

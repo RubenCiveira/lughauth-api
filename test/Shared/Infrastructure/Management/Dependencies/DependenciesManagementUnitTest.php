@@ -37,6 +37,7 @@ final class DependenciesManagementUnitTest extends TestCase
         /* Assert: verify dependency data is returned correctly. */
         $this->assertSame('dependencies', $name);
         $this->assertCount(2, $result);
+        $this->assertNull($management->set());
         $this->assertSame('pkg/a', $result[0]['name']);
         $this->assertSame('pkg/b', $result[1]['name']);
     }

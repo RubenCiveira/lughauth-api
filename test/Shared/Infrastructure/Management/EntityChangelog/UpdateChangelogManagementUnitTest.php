@@ -31,5 +31,8 @@ final class UpdateChangelogManagementUnitTest extends TestCase
 
         /* Assert: verify the handler returns an empty response. */
         $this->assertSame([], $result);
+        $this->assertNull($management->set());
+        $this->assertSame('entity-changelog-update', $management->name());
+
     }
 }

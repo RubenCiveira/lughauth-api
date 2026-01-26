@@ -30,5 +30,7 @@ final class MetricsManagementUnitTest extends TestCase
         /* Assert: confirm the endpoint name and output type. */
         $this->assertSame('metrics', $name);
         $this->assertIsString($output);
+        $this->assertNull($management->set());
+
     }
 }

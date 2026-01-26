@@ -34,6 +34,8 @@ final class AuditManagementUnitTest extends TestCase
 
         /* Assert: verify the audit log payload is returned. */
         $this->assertSame([['id' => 'a1']], $result);
+        $this->assertNull($management->set());
+        $this->assertSame('audit', $management->name());
     }
 
     /**
