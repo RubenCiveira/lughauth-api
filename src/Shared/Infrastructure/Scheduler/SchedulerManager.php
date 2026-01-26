@@ -12,19 +12,29 @@ use Psr\SimpleCache\CacheInterface;
 use Symfony\Component\Lock\LockFactory;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
+/**
+ * Coordinates scheduled task execution based on cron expressions.
+ */
 class SchedulerManager
 {
     use LoggerAwareTrait;
     private const CACHE_KEY_STATE = 'scheduler_manager_state';
     private const LOCK_KEY = 'scheduler_manager_lock';
 
+    /** @var array<array{CronExpression, string, string}> Registered tasks. */
     private array $tasks = [];
 
+    /**
+     * Registers a task type and method for a cron schedule.
+     */
     public function register(CronExpression $expresion, string $type, string $method): void
     {
         $this->tasks[] = [$expresion, $type, $method];
     }
 
+    /**
+     * Runs the scheduler cycle and registers deferred execution.
+     */
     public function run(LockFactory $locker, CacheInterface $cache, ContainerInterface $container): void
     {
         $now = new DateTimeImmutable();

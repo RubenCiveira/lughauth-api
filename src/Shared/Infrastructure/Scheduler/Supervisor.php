@@ -5,18 +5,40 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Scheduler;
 
+/**
+ * Supervises the scheduler worker process lifecycle.
+ */
 final class Supervisor
 {
     public function __construct(
+        /** @var string Base directory for scheduler paths. */
         private readonly string $baseDir,
-        private readonly string $phpBin = '',                  // binario php
-        private readonly string $worker = 'binary/scheduler_worker',   // script del daemon
+        /** @var string Preferred PHP binary path. */
+        private readonly string $phpBin = '',
+        /** @var string Worker script path. */
+        private readonly string $worker = 'binary/scheduler_worker',
+        /** @var string PID file relative path. */
         private readonly string $pidRel  = 'var/scheduler.pid',
+        /** @var string Lock file relative path. */
         private readonly string $lockRel = 'var/scheduler.lock',
-        private readonly string $logRel  = 'var/scheduler.log'
+        /** @var string Log file relative path. */
+        private readonly string $logRel  = 'var/scheduler.log',
+        /** @var string|null Override OS family (tests only). */
+        private readonly ?string $osFamily = null,
+        /** @var bool|null Override posix_kill availability (tests only). */
+        private readonly ?bool $posixKillAvailable = null,
+        /** @var string|null Override PHP SAPI (tests only). */
+        private readonly ?string $phpSapi = null,
+        /** @var string|null Override PHP_BINARY (tests only). */
+        private readonly ?string $phpBinary = null,
+        /** @var array|null Override PHP candidates (tests only). */
+        private readonly ?array $phpCandidates = null
     ) {
     }
 
+    /**
+     * Ensures the scheduler worker is running for a given URL.
+     */
     public function ensureRunning($url): void
     {
         $pidFile  = $this->path($this->pidRel);
@@ -79,7 +101,7 @@ final class Supervisor
 
     private function isRunning(int $pid): bool
     {
-        if (!function_exists('posix_kill')) {
+        if (!$this->hasPosixKill()) {
             // Fallback “best-effort” si no hay ext posix
             return @file_exists("/proc/{$pid}");
         }
@@ -94,14 +116,19 @@ final class Supervisor
     {
         @mkdir(dirname($logFile), 0775, true);
 
-        $phpCli = $this->resolvePhpCli($this->phpBin); // ⬅️ aquí
+        $phpCli = $this->resolvePhpCli($this->phpBin);
         $php = escapeshellarg($phpCli ?: 'php');
 
-        $exe = $php.' '.escapeshellarg(realpath($worker)).($arg ? ' '.escapeshellarg($arg) : '');
+        $workerPath = realpath($worker);
+        if ($workerPath === false) {
+            return 0;
+        }
+
+        $exe = $php.' '.escapeshellarg($workerPath).($arg ? ' '.escapeshellarg($arg) : '');
         $log = escapeshellarg($logFile);
 
         // Construimos el comando según plataforma
-        if (stripos(PHP_OS_FAMILY, 'Windows') === 0) {
+        if ($this->isWindows()) {
             // Windows: no hay PID fiable -> best-effort
             $cmd = 'start /B "" '.$exe.' > NUL 2>&1';
             pclose(popen($cmd, 'r'));
@@ -125,6 +152,7 @@ final class Supervisor
             1 => ['pipe', 'w'],
             2 => ['pipe', 'w'],
         ];
+        $pipes = [];
         $proc = @proc_open(['/bin/sh', '-c', $cmd], $descriptors, $pipes, $this->baseDir);
         if (!\is_resource($proc)) {
             return 0;
@@ -142,6 +170,9 @@ final class Supervisor
     }
 
     // (Opcional) método para detener el daemon
+    /**
+     * Stops the scheduler worker process if possible.
+     */
     public function stop(): void
     {
         $pid = $this->readPid($this->path($this->pidRel));
@@ -154,8 +185,10 @@ final class Supervisor
     {
         // 1) si nos pasan uno preferido (config), úsalo
         // 2) si estamos en CLI y el binario parece 'php' normal, úsalo
-        if (\PHP_SAPI === 'cli' && !str_contains(basename(PHP_BINARY), 'php-fpm')) {
-            return PHP_BINARY;
+        $sapi = $this->phpSapi ?? \PHP_SAPI;
+        $binary = $this->phpBinary ?? PHP_BINARY;
+        if ($sapi === 'cli' && !str_contains(basename($binary), 'php-fpm')) {
+            return $binary;
         }
 
         // 3) variables de entorno de cortesía
@@ -174,12 +207,13 @@ final class Supervisor
         }
 
         // 5) rutas típicas (macOS Homebrew primero)
-        $candidates = array_merge($candidates, [
+        $defaultCandidates = [
             '/opt/homebrew/bin/php',  // macOS arm64 (brew)
             '/usr/local/bin/php',     // macOS intel (brew)
             '/usr/bin/php',           // macOS / Linux
             '/bin/php',
-        ]);
+        ];
+        $candidates = array_merge($candidates, $this->phpCandidates ?? $defaultCandidates);
 
         // filtra candidatos que existan y no sean php-fpm
         foreach ($candidates as $path) {
@@ -190,5 +224,20 @@ final class Supervisor
 
         // último recurso: 'php' y que el shell resuelva PATH
         return 'php';
+    }
+
+    protected function isWindows(): bool
+    {
+        $family = $this->osFamily ?? PHP_OS_FAMILY;
+        return stripos($family, 'Windows') === 0;
+    }
+
+    protected function hasPosixKill(): bool
+    {
+        if ($this->posixKillAvailable !== null) {
+            return $this->posixKillAvailable;
+        }
+
+        return function_exists('posix_kill');
     }
 }
