@@ -40,7 +40,7 @@ final class LoadChangesManagementUnitTest extends TestCase
 
         /* Assert: verify the pending changes payload. */
         $this->assertSame([['id' => '1']], $result);
-        
+
         $this->assertNull($management->set());
         $this->assertSame('entity-changelo-query-ask', $management->name());
 

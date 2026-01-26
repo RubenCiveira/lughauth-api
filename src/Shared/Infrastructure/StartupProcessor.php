@@ -54,14 +54,9 @@ class StartupProcessor
                         $process($container);
                     }
                 } catch (Throwable $th) {
-                    if ($this->logger) {
-                        $this->logger->error('Error with startup ' . $th->getMessage(), [
-                            'trace' => $th->getTraceAsString()
-                        ]);
-                    } else {
-                        error_log('Error with startup ' . $th->getMessage());
-                        error_log('Trace: ' . $th->getTraceAsString());
-                    }
+                    $this->logger->error('Error with startup ' . $th->getMessage(), [
+                        'trace' => $th->getTraceAsString()
+                    ]);
                 }
 
             }

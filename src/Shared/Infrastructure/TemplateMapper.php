@@ -48,7 +48,7 @@ class TemplateMapper
                 // ---------------------------------------------
                 // 2) Fallback a index.tpl
                 // ---------------------------------------------
-                return self::asTemplate($requestedReal, $templateDir, $app, $response);
+                return self::asTemplate($fallbackTpl, $templateDir, $app, $response);
             } elseif (is_file($fallbackHtml)) {
                 // ---------------------------------------------
                 // 3) Fallback index.html

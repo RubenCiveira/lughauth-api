@@ -58,7 +58,7 @@ final class ApidocManagementUnitTest extends TestCase
     {
         /* Arrange: create a managed */
         $management = new ApidocManagement($this->createMock(App::class), $this->context('http://base'));
-        
+
         /* Assert: open-api is always the name, and there is no setter */
         $this->assertSame('open-api', $management->name());
         $this->assertNull($management->set());
