@@ -10,6 +10,7 @@ namespace Civi\Lughauth\Shared\Infrastructure\Scheduler {
         public static string $procOutput = '123';
         public static array $shellOutputs = [];
         public static array $posixKillCalls = [];
+        public static array $popenCalls = [];
         public static bool $posixKillReturn = true;
 
         public static function reset(): void
@@ -18,6 +19,7 @@ namespace Civi\Lughauth\Shared\Infrastructure\Scheduler {
             self::$procOutput = '123';
             self::$shellOutputs = [];
             self::$posixKillCalls = [];
+            self::$popenCalls = [];
             self::$posixKillReturn = true;
         }
     }
@@ -48,6 +50,20 @@ namespace Civi\Lughauth\Shared\Infrastructure\Scheduler {
     {
         if (is_resource($resource)) {
             fclose($resource);
+        }
+        return 0;
+    }
+
+    function popen(string $command, string $mode)
+    {
+        SupervisorTestKernel::$popenCalls[] = $command;
+        return fopen('php://temp', 'r+');
+    }
+
+    function pclose($handle): int
+    {
+        if (is_resource($handle)) {
+            fclose($handle);
         }
         return 0;
     }

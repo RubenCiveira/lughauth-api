@@ -17,6 +17,9 @@ class SqlParam
     public const int TEXT = 5;
     public const int DATETIME = 6;
 
+    /**
+     * Creates a SQL parameter value with a binding type.
+     */
     public function __construct(
         /** @var string Parameter name in the SQL statement. */
         public readonly string $name,

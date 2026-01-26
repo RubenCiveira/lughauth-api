@@ -10,39 +10,63 @@ use Closure;
 use PDOException;
 use Civi\Lughauth\Shared\Exception\NotEmptyChildsException;
 use Civi\Lughauth\Shared\Exception\NotUniqueException;
+use PDOStatement;
 
+/**
+ * Provides common SQL helpers for PDO-based repositories.
+ */
 class SqlTemplate
 {
-    public function __construct(private readonly PDO $pdo)
-    {
+    /**
+     * Creates a SQL template bound to a PDO connection.
+     */
+    public function __construct(
+        /** @var PDO PDO connection used for queries. */
+        private readonly PDO $pdo
+    ) {
     }
 
-    public function begin()
+    /**
+     * Starts a database transaction.
+     */
+    public function begin(): void
     {
         $this->pdo->beginTransaction();
     }
 
-    public function rollback()
+    /**
+     * Rolls back the current transaction when active.
+     */
+    public function rollback(): void
     {
         if ($this->pdo->inTransaction()) {
             $this->pdo->rollBack();
         }
     }
 
-    public function commit()
+    /**
+     * Commits the current transaction when active.
+     */
+    public function commit(): void
     {
         if ($this->pdo->inTransaction()) {
             $this->pdo->commit();
         }
     }
 
-    public function close()
+    /**
+     * Closes the template by rolling back any active transaction.
+     */
+    public function close(): void
     {
         if ($this->pdo->inTransaction()) {
             $this->pdo->rollBack();
         }
     }
 
+    /**
+     * Escapes a value based on a SQL parameter type.
+     */
     public function escapeValue(mixed $value, int $type): string
     {
         if ($type == SqlParam::INT || $type == SqlParam::BOOL) {
@@ -52,6 +76,9 @@ class SqlTemplate
         }
     }
 
+    /**
+     * Executes a statement and returns whether rows were affected.
+     */
     public function execute($query, array $params): bool
     {
         try {
@@ -63,6 +90,9 @@ class SqlTemplate
         }
     }
 
+    /**
+     * Executes a query and returns all rows as an array.
+     */
     public function query($query, array $params, ?Closure $clousure = null): array
     {
         $stmt = $this->prepare($query, $params);
@@ -74,6 +104,9 @@ class SqlTemplate
         return $keys;
     }
 
+    /**
+     * Executes a query for update and returns all rows as an array.
+     */
     public function queryForUpdate($query, array $params, ?Closure $clousure = null): array
     {
         $stmt = $this->prepare($query, $params);
@@ -85,6 +118,9 @@ class SqlTemplate
         return $keys;
     }
 
+    /**
+     * Finds a single row or returns null when no match exists.
+     */
     public function findOne($query, array $params, ?Closure $clousure = null)
     {
         $stmt = $this->prepare($query, $params);
@@ -93,6 +129,9 @@ class SqlTemplate
         return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
     }
 
+    /**
+     * Finds a single row for update or returns null when no match exists.
+     */
     public function findOneForUpdate($query, array $params, ?Closure $clousure = null)
     {
         $stmt = $this->prepare($query, $params);
@@ -101,6 +140,9 @@ class SqlTemplate
         return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
     }
 
+    /**
+     * Returns true when the query yields at least one row.
+     */
     public function exists($query, array $params): bool
     {
         $stmt = $this->prepare($query, $params);
@@ -108,6 +150,9 @@ class SqlTemplate
         return !!$stmt->fetch();
     }
 
+    /**
+     * Returns true when the query yields at least one row for update.
+     */
     public function existsForUpdate($query, array $params): bool
     {
         $stmt = $this->prepare($query, $params);
@@ -115,7 +160,7 @@ class SqlTemplate
         return !!$stmt->fetch();
     }
 
-    private function prepare($query, $params)
+    private function prepare($query, array $params): PDOStatement | false
     {
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if ('mysql' == $driver) {
@@ -158,7 +203,7 @@ class SqlTemplate
         return $stmt;
     }
 
-    private function paramExpand($field, $name, $elements, bool $not = false)
+    private function paramExpand($field, $name, $elements, bool $not = false): string
     {
         if (count($elements) === 0) {
             return $not ? '1 = 1' : '0 = 1'; // NOT IN [] → siempre verdadero
@@ -171,14 +216,14 @@ class SqlTemplate
         return "$field $op (" . implode(', ', $params) . ")";
     }
 
-    private function podValue($value, $type)
+    private function podValue($value, $type): mixed
     {
         if ($value instanceof \DateTime || $value instanceof \DateTimeInterface) {
             return $value->format('Y-m-d H:i:s');
         }
         return $value;
     }
-    private function podType($type)
+    private function podType(int $type): int
     {
         if ($type == SqlParam::BOOL) {
             return PDO::PARAM_BOOL;
@@ -221,6 +266,7 @@ class SqlTemplate
     }
     private function isReferencedInMysql(PDOException $ex): bool
     {
-        return $ex->errorInfo[0] == 23000 && $ex->errorInfo[1] == 1451;
+        return is_array($ex->errorInfo) && count($ex->errorInfo) > 1
+                && $ex->errorInfo[0] == 23000 && $ex->errorInfo[1] == 1451;
     }
 }
