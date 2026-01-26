@@ -92,6 +92,50 @@ final class TelemetrySpanMiddlewareUnitTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
     }
 
+    /**
+     * Ensures empty paths after base path trimming are normalized to '/'.
+     */
+    public function testBasePathTrimProducesRootPath(): void
+    {
+        /*
+         * Arrange: create span mocks for a base path that matches the request path.
+         */
+        $span = $this->createMock(SpanInterface::class);
+        $scope = $this->createMock(ScopeInterface::class);
+        $span->expects($this->once())->method('activate')->willReturn($scope);
+        $span->expects($this->once())->method('end');
+        $scope->expects($this->once())->method('detach');
+
+        $builder = $this->createMock(SpanBuilderInterface::class);
+        $builder->expects($this->once())
+            ->method('setParent')
+            ->with($this->isInstanceOf(\OpenTelemetry\Context\Context::class))
+            ->willReturnSelf();
+        $builder->expects($this->once())
+            ->method('startSpan')
+            ->willReturn($span);
+
+        $tracer = $this->createMock(TracerInterface::class);
+        $tracer->expects($this->once())
+            ->method('spanBuilder')
+            ->with('Request GET /')
+            ->willReturn($builder);
+
+        $middleware = new TelemetrySpanMiddleware($this->app('/api'), $this->config(), $tracer, new TraceContext([]));
+        $request = $this->request('/api');
+        $handler = $this->handler();
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response is returned successfully.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
     private function app(string $basePath): App
     {
         $app = $this->createMock(App::class);
