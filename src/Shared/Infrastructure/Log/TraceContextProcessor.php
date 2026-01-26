@@ -24,8 +24,7 @@ class TraceContextProcessor implements ProcessorInterface
         private readonly TraceContext $traceContext,
         /** @var Context Application context provider. */
         private readonly Context $appContext
-    )
-    {
+    ) {
     }
     /**
      * Injects trace and service metadata into the log record.
