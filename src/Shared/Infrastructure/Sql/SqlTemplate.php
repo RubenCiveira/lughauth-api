@@ -6,11 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Infrastructure\Sql;
 
 use PDO;
+use PDOStatement;
 use Closure;
 use PDOException;
 use Civi\Lughauth\Shared\Exception\NotEmptyChildsException;
 use Civi\Lughauth\Shared\Exception\NotUniqueException;
-use PDOStatement;
 
 /**
  * Provides common SQL helpers for PDO-based repositories.
