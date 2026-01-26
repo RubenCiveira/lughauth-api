@@ -20,10 +20,10 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
  */
 class ErrorsPlugin extends MicroPlugin
 {
-    #[Override]
     /**
      * Configures error handlers for validation and auth failures.
      */
+    #[Override]
     public function registerErrorHandler(ErrorMiddleware $errorHandler)
     {
         $errorHandler->setErrorHandler(ConstraintException::class, function (ServerRequestInterface $request, ConstraintException $exception): ResponseInterface {

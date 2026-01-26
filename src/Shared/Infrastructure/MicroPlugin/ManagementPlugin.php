@@ -36,19 +36,19 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
  */
 class ManagementPlugin extends MicroPlugin
 {
-    #[Override]
     /**
      * Registers the metrics export scheduler.
      */
+    #[Override]
     public function registerSchedulers(SchedulerManager $bus)
     {
         $bus->register(new CronExpression('*/15 * * * *'), PrometheusRegistryExporter::class, "forceDump");
     }
 
-    #[Override]
     /**
      * Resolves management interfaces based on configuration flags.
      */
+    #[Override]
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
         $all = [];
@@ -79,10 +79,10 @@ class ManagementPlugin extends MicroPlugin
         return $all;
     }
 
-    #[Override]
     /**
      * Registers startup tasks for running migrations.
      */
+    #[Override]
     public function registerStartup(StartupProcessor $container): void
     {
         $container->register(function (ContainerInterface $container) {
