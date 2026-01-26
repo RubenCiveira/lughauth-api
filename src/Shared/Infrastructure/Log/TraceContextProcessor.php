@@ -11,11 +11,25 @@ use Monolog\Processor\ProcessorInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Observability\TraceContext;
 
+/**
+ * Adds trace and service context to log records.
+ */
 class TraceContextProcessor implements ProcessorInterface
 {
-    public function __construct(private readonly TraceContext $traceContext, private readonly Context $appContext)
+    /**
+     * Creates the processor with trace and application context.
+     */
+    public function __construct(
+        /** @var TraceContext Trace context provider. */
+        private readonly TraceContext $traceContext,
+        /** @var Context Application context provider. */
+        private readonly Context $appContext
+    )
     {
     }
+    /**
+     * Injects trace and service metadata into the log record.
+     */
     #[Override]
     public function __invoke(LogRecord $record): LogRecord
     {

@@ -12,15 +12,33 @@ use OpenTelemetry\SDK\Common\Future\CancellationInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
 use OpenTelemetry\SDK\Common\Future\FutureInterface;
 
+/**
+ * Exports spans into rotating JSONL files with gzip support.
+ */
 class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
 {
+    /** @var string Base path used to build log filenames. */
     private readonly string $basePath;
+    /** @var string Filename pattern for rotated files. */
     private readonly string $filenameFormat;
+    /** @var int Maximum number of files to keep. */
     private readonly int $maxFiles;
+    /** @var string Resolved current output file path. */
     private readonly string $currentFile;
+    /** @var string Current date string used in filenames. */
     private readonly string $currentDate;
+    /** @var bool Whether to gzip files during rotation. */
     private readonly bool $zipOnRotate;
 
+    /**
+     * Creates a span exporter that writes JSONL files.
+     *
+     * @param string $basePath Base output file path.
+     * @param int $maxFiles Maximum number of rotated files to keep.
+     * @param string $dateFormat Date format for filenames.
+     * @param string $filenameFormat Filename format template.
+     * @param bool $zipOnRotate Whether to gzip rotated files.
+     */
     public function __construct(
         string $basePath,
         int $maxFiles = 7,
@@ -38,6 +56,9 @@ class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
         // $this->rotateIfNeeded();
     }
 
+    /**
+     * Writes span batches into the current JSONL file.
+     */
     #[Override]
     public function export(iterable $batch, ?CancellationInterface $cancellation = null): FutureInterface
     {
@@ -58,12 +79,18 @@ class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
         }
     }
 
+    /**
+     * Performs exporter shutdown work.
+     */
     #[Override]
     public function shutdown(?CancellationInterface $cancellation = null): bool
     {
         return true;
     }
 
+    /**
+     * Flushes buffered spans.
+     */
     #[Override]
     public function forceFlush(?CancellationInterface $cancellation = null): bool
     {

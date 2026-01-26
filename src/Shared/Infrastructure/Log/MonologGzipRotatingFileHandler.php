@@ -8,8 +8,23 @@ namespace Civi\Lughauth\Shared\Infrastructure\Log;
 use Monolog\Level;
 use Monolog\Handler\RotatingFileHandler;
 
+/**
+ * Rotating file handler that gzips old log files.
+ */
 final class MonologGzipRotatingFileHandler extends RotatingFileHandler
 {
+    /**
+     * Creates a rotating log handler with gzip rotation.
+     *
+     * @param string $filename Log file base path.
+     * @param int $maxFiles Maximum number of files to keep.
+     * @param int|string|Level $level Minimum logging level.
+     * @param bool $bubble Whether the messages should bubble up.
+     * @param int|null $filePermission File permissions for created files.
+     * @param bool $useLocking Whether to lock the file.
+     * @param string $dateFormat Date format used in filenames.
+     * @param string $filenameFormat Filename format template.
+     */
     public function __construct(string $filename, int $maxFiles = 0, int|string|Level $level = Level::Debug, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false, string $dateFormat = self::FILE_PER_DAY, string $filenameFormat  = '{filename}-{date}')
     {
         parent::__construct($filename, $maxFiles, $level, $bubble, $filePermission, $useLocking, $dateFormat, $filenameFormat);
