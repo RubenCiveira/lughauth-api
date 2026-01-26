@@ -37,6 +37,33 @@ final class MetricsFSUnitTest extends TestCase
     }
 
     /**
+     * Ensures appendRaw exits when day file can't be opened.
+     */
+    public function testAppendRawSkipsWhenDayFileCannotOpen(): void
+    {
+        /*
+         * Arrange: create a root path that is a file.
+         */
+        $rootFile = tempnam(sys_get_temp_dir(), 'metricsfs_');
+        $this->assertNotFalse($rootFile);
+        $fs = new MetricsFS($rootFile);
+
+        /*
+         * Act: attempt to append a raw metric.
+         */
+        $fs->appendRaw('metric', ['a' => '1'], 1, 1500);
+
+        /*
+         * Assert: verify no day file or labels were created.
+         */
+        $sha = MetricsFS::seriesId(['a' => '1']);
+        $dayFile = $fs->dayFile('metric', $sha, 'raw', 1500, false);
+        $labelsFile = $fs->seriesDir('metric', $sha) . '/labels.json';
+        $this->assertFalse(is_file($dayFile));
+        $this->assertFalse(is_file($labelsFile));
+    }
+
+    /**
      * Ensures JSONL streams are read from plain and gzip files.
      */
     public function testReadJsonlStream(): void
@@ -71,6 +98,39 @@ final class MetricsFSUnitTest extends TestCase
          * Assert: verify the gzipped row is read.
          */
         $this->assertSame(3, $rows[0]['ts']);
+    }
+
+    /**
+     * Ensures gzipped JSONL reads handle empty lines and false reads.
+     */
+    public function testReadJsonlStreamGzipHandlesEmptyAndFalseReads(): void
+    {
+        /*
+         * Arrange: create gzipped files with empty content and empty lines.
+         */
+        $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
+        $fs = new MetricsFS($root);
+        $path = $fs->dayFile('metric', 'sha', 'raw', 1500, false);
+        @mkdir(dirname($path), 0777, true);
+
+        $emptyGz = $path . '.empty.gz';
+        file_put_contents($emptyGz, gzencode(''));
+
+        $linesGz = $path . '.lines.gz';
+        $content = "\n" . json_encode(['ts' => 7, 'v' => 8]) . "\n";
+        file_put_contents($linesGz, gzencode($content));
+
+        /*
+         * Act: read rows from both gzipped files.
+         */
+        $emptyRows = iterator_to_array(MetricsFS::readJsonlStream($emptyGz));
+        $rows = iterator_to_array(MetricsFS::readJsonlStream($linesGz));
+
+        /*
+         * Assert: verify empty reads yield none and empty lines are skipped.
+         */
+        $this->assertSame([], $emptyRows);
+        $this->assertSame(7, $rows[0]['ts']);
     }
 
     /**
@@ -199,5 +259,35 @@ final class MetricsFSUnitTest extends TestCase
          */
         $this->assertSame(5, $rows[0]['ts']);
         $this->assertSame([], $missing);
+    }
+
+    /**
+     * Ensures non-gz files that cannot be opened return no rows.
+     */
+    public function testReadJsonlStreamReturnsEmptyWhenPlainFileCannotOpen(): void
+    {
+        /*
+         * Arrange: create a file without read permissions.
+         */
+        $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
+        @mkdir($root, 0777, true);
+        $path = $root . '/locked.jsonl';
+        file_put_contents($path, json_encode(['ts' => 1, 'v' => 2]) . "\n");
+        @chmod($path, 0000);
+
+        /*
+         * Act: attempt to read from the unreadable file.
+         */
+        $rows = iterator_to_array(MetricsFS::readJsonlStream($path));
+
+        /*
+         * Cleanup: restore permissions for test hygiene.
+         */
+        @chmod($path, 0600);
+
+        /*
+         * Assert: verify no rows are returned.
+         */
+        $this->assertSame([], $rows);
     }
 }
