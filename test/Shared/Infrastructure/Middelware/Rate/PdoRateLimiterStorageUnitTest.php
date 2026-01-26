@@ -65,6 +65,51 @@ final class PdoRateLimiterStorageUnitTest extends TestCase
          */
         $this->assertStringContainsString('ON CONFLICT', $pdo->queries[0]);
     }
+
+    /**
+     * Ensures save ignores database exceptions.
+     */
+    public function testSaveIgnoresPdoException(): void
+    {
+        /*
+         * Arrange: build a storage using a PDO that throws on execute.
+         */
+        $pdo = new FakeExceptionPdoRateLimiterStorageUnitTestPdo('sqlite', true, false);
+        $storage = new PdoRateLimiterStorage($pdo);
+        $state = new FakeLimiterStateRateLimiterStorageUnitTest('key', 10);
+
+        /*
+         * Act: attempt to save the limiter state.
+         */
+        $storage->save($state);
+
+        /*
+         * Assert: verify no exception is thrown.
+         */
+        $this->assertTrue(true);
+    }
+
+    /**
+     * Ensures fetch returns null when the database fails.
+     */
+    public function testFetchReturnsNullOnPdoException(): void
+    {
+        /*
+         * Arrange: build a storage using a PDO that throws on execute.
+         */
+        $pdo = new FakeExceptionPdoRateLimiterStorageUnitTestPdo('sqlite', false, true);
+        $storage = new PdoRateLimiterStorage($pdo);
+
+        /*
+         * Act: attempt to fetch the limiter state.
+         */
+        $result = $storage->fetch('key');
+
+        /*
+         * Assert: verify null is returned on failure.
+         */
+        $this->assertNull($result);
+    }
 }
 
 final class FakeDriverPdoRateLimiterStorageUnitTestPdo extends PDO
@@ -106,6 +151,65 @@ final class FakeStatementRateLimiterStorageUnitTest extends PDOStatement
     public function execute(?array $params = null): bool
     {
         return true;
+    }
+}
+
+final class FakeExceptionPdoRateLimiterStorageUnitTestPdo extends PDO
+{
+    public function __construct(
+        /** @var string PDO driver name to expose. */
+        private readonly string $driver,
+        /** @var bool Whether execute should throw on save. */
+        private readonly bool $throwOnSave,
+        /** @var bool Whether execute should throw on fetch. */
+        private readonly bool $throwOnFetch
+    ) {
+        parent::__construct('sqlite::memory:');
+    }
+
+    public function getAttribute($attribute): mixed
+    {
+        if ($attribute === PDO::ATTR_DRIVER_NAME) {
+            return $this->driver;
+        }
+        return parent::getAttribute($attribute);
+    }
+
+    public function prepare(string $query, array $options = []): PDOStatement|false
+    {
+        if (str_starts_with(trim($query), 'SELECT')) {
+            return FakeExceptionStatementRateLimiterStorageUnitTest::create($this->throwOnFetch, false);
+        }
+
+        return FakeExceptionStatementRateLimiterStorageUnitTest::create(false, $this->throwOnSave);
+    }
+}
+
+final class FakeExceptionStatementRateLimiterStorageUnitTest extends PDOStatement
+{
+    private bool $throwOnExecute = false;
+
+    public static function create(bool $throwOnExecute, bool $forceThrow): self
+    {
+        $ref = new ReflectionClass(self::class);
+        /** @var self $instance */
+        $instance = $ref->newInstanceWithoutConstructor();
+        $instance->throwOnExecute = $throwOnExecute || $forceThrow;
+        return $instance;
+    }
+
+    public function execute(?array $params = null): bool
+    {
+        if ($this->throwOnExecute) {
+            throw new PDOException('boom');
+        }
+
+        return true;
+    }
+
+    public function fetch(int $mode = \PDO::FETCH_ASSOC, int $cursorOrientation = \PDO::FETCH_ORI_NEXT, int $cursorOffset = 0): mixed
+    {
+        return false;
     }
 }
 

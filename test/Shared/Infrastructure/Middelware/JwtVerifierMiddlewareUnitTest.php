@@ -122,6 +122,88 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     }
 
     /**
+     * Ensures authorization is read from cookies for GET requests.
+     */
+    public function testVerifyAuthReadsCookieAuthorization(): void
+    {
+        /*
+         * Arrange: seed cache with cookie token identity data.
+         */
+        $token = 'cookie-token';
+        $cache = new ArrayCache([
+            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
+        ]);
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())
+            ->method('setSecurityContext')
+            ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $this->isInstanceOf(Identity::class));
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->never())->method('sendRequest');
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context, $client);
+
+        $prevCookie = $_COOKIE;
+        $prevGet = $_GET;
+        $_COOKIE['Authorization'] = $token;
+        unset($_GET['Authorization']);
+
+        try {
+            /*
+             * Act: handle the request with cookie authorization.
+             */
+            $response = $middleware($this->request(''), $this->handler());
+        } finally {
+            $_COOKIE = $prevCookie;
+            $_GET = $prevGet;
+        }
+
+        /*
+         * Assert: verify the request succeeds using cookie auth.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * Ensures authorization is read from query params for GET requests.
+     */
+    public function testVerifyAuthReadsQueryAuthorization(): void
+    {
+        /*
+         * Arrange: seed cache with query token identity data.
+         */
+        $token = 'query-token';
+        $cache = new ArrayCache([
+            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
+        ]);
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())
+            ->method('setSecurityContext')
+            ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $this->isInstanceOf(Identity::class));
+        $client = $this->createMock(ClientInterface::class);
+        $client->expects($this->never())->method('sendRequest');
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context, $client);
+
+        $prevCookie = $_COOKIE;
+        $prevGet = $_GET;
+        unset($_COOKIE['Authorization']);
+        $_GET['Authorization'] = $token;
+
+        try {
+            /*
+             * Act: handle the request with query authorization.
+             */
+            $response = $middleware($this->request(''), $this->handler());
+        } finally {
+            $_COOKIE = $prevCookie;
+            $_GET = $prevGet;
+        }
+
+        /*
+         * Assert: verify the request succeeds using query auth.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
      * Ensures valid JWTs are verified and accepted.
      */
     public function testVerifyAuthSuccessFlow(): void
@@ -261,6 +343,106 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         /*
          * Assert: verify unauthorized exception is raised.
          */
+    }
+
+    /**
+     * Ensures tokens not yet ready are rejected and cached.
+     */
+    public function testVerifyAuthNotReadyToken(): void
+    {
+        /*
+         * Arrange: create a token that is not ready for use.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $now = time();
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $jwks = json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR);
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 2000,
+            'exp' => $now + 1000
+        ], $key);
+
+        $cache = new ArrayCache([
+            'jwks.verify.publickey' => $jwks
+        ]);
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+            'security.jwt.verify.issuer' => 'issuer',
+            'security.jwt.verify.audiences' => 'aud1',
+        ], $cache);
+
+        /*
+         * Act: handle the request and capture the exception.
+         */
+        $exception = null;
+        try {
+            $middleware($this->request('Bearer ' . $token), $this->handler());
+        } catch (UnauthorizedException $ex) {
+            $exception = $ex;
+        }
+
+        /*
+         * Assert: verify the error message and cache entry are set.
+         */
+        $this->assertInstanceOf(UnauthorizedException::class, $exception);
+        $this->assertSame('The provided JWT is not ready for use.', $exception->getMessage());
+        $this->assertTrue($cache->has("verify_access_{$token}"));
+    }
+
+    /**
+     * Ensures tokens without time range are rejected and cached.
+     */
+    public function testVerifyAuthMissingTimeRange(): void
+    {
+        /*
+         * Arrange: create a token missing the exp claim.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+        $now = time();
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $jwks = json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR);
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now,
+            'exp' => 0
+        ], $key);
+
+        $cache = new ArrayCache([
+            'jwks.verify.publickey' => $jwks
+        ]);
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+            'security.jwt.verify.issuer' => 'issuer',
+            'security.jwt.verify.audiences' => 'aud1',
+        ], $cache);
+
+        /*
+         * Act: handle the request and capture the exception.
+         */
+        $exception = null;
+        try {
+            $middleware($this->request('Bearer ' . $token), $this->handler());
+        } catch (UnauthorizedException $ex) {
+            $exception = $ex;
+        }
+
+        /*
+         * Assert: verify the error message and cache entry are set.
+         */
+        $this->assertInstanceOf(UnauthorizedException::class, $exception);
+        $this->assertSame('The provided JWT dont have valid time range.', $exception->getMessage());
+        $this->assertTrue($cache->has("verify_access_{$token}"));
     }
 
     /**
@@ -439,6 +621,32 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             ->build();
 
         return (new CompactSerializer())->serialize($jws, 0);
+    }
+
+    private function cachedIdentityJson(string $scope): string
+    {
+        $connection = [
+            'remote' => true,
+            'startTime' => ['date' => '2024-01-01 00:00:00.000000'],
+            'application' => 'app',
+            'callback' => '/',
+            'source' => '127.0.0.1',
+            'target' => 'host',
+            'locale' => 'en'
+        ];
+        $identity = [
+            'anonimous' => false,
+            'authScope' => $scope,
+            'id' => 'user',
+            'name' => 'user',
+            'issuer' => 'issuer',
+            'roles' => ['admin'],
+            'groups' => [],
+            'tenant' => 'main',
+            'claims' => []
+        ];
+
+        return json_encode([$connection, $identity, null]);
     }
 
     private function stream(string $contents): \Psr\Http\Message\StreamInterface

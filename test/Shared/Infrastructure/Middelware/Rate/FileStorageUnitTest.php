@@ -64,6 +64,65 @@ final class FileStorageUnitTest extends TestCase
          */
         $this->assertNull($fetched);
     }
+
+    /**
+     * Ensures constructor loads buckets from an existing file.
+     */
+    public function testConstructorLoadsExistingBuckets(): void
+    {
+        /*
+         * Arrange: create a buckets file with a serialized state entry.
+         */
+        $dir = sys_get_temp_dir() . '/buckets_' . uniqid();
+        mkdir($dir . '/var', 0777, true);
+        $state = new FakeLimiterStateFileStorageUnitTest('loaded', 1);
+        $buckets = [
+            'loaded' => [microtime(true) + 10, serialize($state)]
+        ];
+        file_put_contents($dir . '/var/buckets.json', json_encode($buckets));
+
+        /*
+         * Act: construct storage and fetch the preloaded state.
+         */
+        $storage = new FileStorage($dir);
+        $fetched = $storage->fetch('loaded');
+
+        /*
+         * Assert: verify the state is loaded from disk.
+         */
+        $this->assertInstanceOf(LimiterStateInterface::class, $fetched);
+        $this->assertSame('loaded', $fetched->getId());
+    }
+
+    /**
+     * Ensures getExpireAt falls back to stored bucket data.
+     */
+    public function testSaveUsesExistingExpireWhenMissing(): void
+    {
+        /*
+         * Arrange: preload a bucket and save a state without expiration.
+         */
+        $dir = sys_get_temp_dir() . '/buckets_' . uniqid();
+        mkdir($dir . '/var', 0777, true);
+        $existingExpire = microtime(true) + 20;
+        $buckets = [
+            'bucket' => [$existingExpire, serialize(new FakeLimiterStateFileStorageUnitTest('bucket', 1))]
+        ];
+        file_put_contents($dir . '/var/buckets.json', json_encode($buckets));
+        $storage = new FileStorage($dir);
+        $state = new FakeLimiterStateFileStorageUnitTest('bucket', null);
+
+        /*
+         * Act: save the new state with no expiration value.
+         */
+        $storage->save($state);
+
+        /*
+         * Assert: verify the stored expiration falls back to the existing bucket value.
+         */
+        $saved = json_decode(file_get_contents($dir . '/var/buckets.json'), true);
+        $this->assertSame($existingExpire, $saved['bucket'][0]);
+    }
 }
 
 final class FakeLimiterStateFileStorageUnitTest implements LimiterStateInterface

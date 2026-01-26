@@ -65,6 +65,61 @@ final class HttpCompressionMiddlewareUnitTest extends TestCase
         $this->assertNotEmpty((string) $response->getBody());
     }
 
+    /**
+     * Ensures extra output is included when building the payload length.
+     */
+    public function testIncludesExtraOutputInContentLength(): void
+    {
+        /*
+         * Arrange: build a handler that echoes extra output before returning a body.
+         */
+        $middleware = new HttpCompressionMiddleware();
+        $request = $this->request(['Accept-Encoding' => 'identity']);
+        $handler = new class () implements RequestHandlerInterface {
+            public function handle(ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
+            {
+                echo 'extra';
+                $response = new Response();
+                $stream = (new StreamFactory())->createStream('body');
+                return $response->withBody($stream);
+            }
+        };
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify Content-Length includes extra output and body.
+         */
+        $this->assertSame((string) strlen('extrabody'), $response->getHeaderLine('Content-Length'));
+    }
+
+    /**
+     * Ensures non-gzip encodings set content length without compression.
+     */
+    public function testAcceptEncodingWithoutGzipSetsContentLength(): void
+    {
+        /*
+         * Arrange: build a request that does not accept gzip.
+         */
+        $middleware = new HttpCompressionMiddleware();
+        $request = $this->request(['Accept-Encoding' => 'br']);
+        $handler = $this->handler('plain');
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify Content-Encoding is empty and length is set.
+         */
+        $this->assertSame('', $response->getHeaderLine('Content-Encoding'));
+        $this->assertSame((string) strlen('plain'), $response->getHeaderLine('Content-Length'));
+    }
+
     private function request(array $headers): ServerRequestInterface
     {
         $request = $this->createMock(ServerRequestInterface::class);

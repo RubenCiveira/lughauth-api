@@ -308,6 +308,30 @@ final class AccessControlMiddlewareUnitTest extends TestCase
     }
 
     /**
+     * Ensures base path trimming normalizes empty paths to '/'.
+     */
+    public function testBasePathTrimEmptyPathUsesRoot(): void
+    {
+        /*
+         * Arrange: configure a rule for the root path and request base path only.
+         */
+        $middleware = $this->middleware([
+            '/' => ['anonimous' => false]
+        ], new Identity(true));
+        $request = $this->request('/api');
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $this->handler());
+
+        /*
+         * Assert: verify the root rule is applied and access is denied.
+         */
+        $this->assertSame(401, $response->getStatusCode());
+    }
+
+    /**
      * Ensures API key verification failures raise an exception.
      */
     public function testApiKeyRequestFailsOnNon200(): void

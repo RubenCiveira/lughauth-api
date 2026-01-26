@@ -23,9 +23,17 @@ final class CorsMiddlewareUnitTest extends TestCase
         /*
          * Arrange: create a Slim app mock with expectations.
          */
+        $callbacks = [];
         $app = $this->createMock(\Slim\App::class);
         $app->expects($this->once())->method('add')->with(CorsMiddleware::class);
-        $app->expects($this->once())->method('options');
+        $route = $this->createMock(\Slim\Interfaces\RouteInterface::class);
+        $app->expects($this->once())
+            ->method('options')
+            ->with('/{routes:.+}', $this->isCallable())
+            ->willReturnCallback(function (string $pattern, callable $handler) use (&$callbacks, $route) {
+                $callbacks[$pattern] = $handler;
+                return $route;
+            });
 
         /*
          * Act: register the CORS middleware on the app.
@@ -35,6 +43,11 @@ final class CorsMiddlewareUnitTest extends TestCase
         /*
          * Assert: confirm the middleware and options route were registered.
          */
+        $request = $this->createMock(ServerRequestInterface::class);
+        $response = new Response();
+        $args = [];
+        $result = $callbacks['/{routes:.+}']($request, $response, $args);
+        $this->assertSame($response, $result);
     }
 
     /**

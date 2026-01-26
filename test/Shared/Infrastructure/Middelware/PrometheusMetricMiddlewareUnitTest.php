@@ -36,26 +36,7 @@ final class PrometheusMetricMiddlewareUnitTest extends TestCase
         /*
          * Arrange: build registry mocks and middleware dependencies.
          */
-        $registry = $this->createMock(CollectorRegistry::class);
-        $gauges = [$this->createMock(Gauge::class), $this->createMock(Gauge::class)];
-        $histogram = $this->createMock(Histogram::class);
-        $counters = [
-            $this->createMock(Counter::class),
-            $this->createMock(Counter::class),
-            $this->createMock(Counter::class)
-        ];
-
-        foreach ($gauges as $gauge) {
-            $gauge->expects($this->once())->method('set');
-        }
-        $histogram->expects($this->once())->method('observe');
-        foreach ($counters as $counter) {
-            $counter->expects($this->once())->method('incBy');
-        }
-
-        $registry->method('getOrRegisterGauge')->willReturnOnConsecutiveCalls(...$gauges);
-        $registry->method('getOrRegisterHistogram')->willReturn($histogram);
-        $registry->method('getOrRegisterCounter')->willReturnOnConsecutiveCalls(...$counters);
+        $registry = $this->registryWithCounters(3);
 
         $exporter = $this->exporter();
 
@@ -74,6 +55,106 @@ final class PrometheusMetricMiddlewareUnitTest extends TestCase
         $this->assertSame(401, $response->getStatusCode());
 
         $this->invokePrivateMethod($middleware, 'shutdownFlush');
+    }
+
+    /**
+     * Ensures status 200 records success counters.
+     */
+    public function testRecordsMetricsForStatus200(): void
+    {
+        /*
+         * Arrange: build a middleware with a 200 response.
+         */
+        $registry = $this->registryWithCounters(2);
+        $exporter = $this->exporter();
+        $middleware = new PrometheusMetricMiddleware($this->config(), $exporter, $registry);
+        $request = $this->request('/users');
+        $handler = $this->handler(200);
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response status is successful.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * Ensures status 403 records 4xx and forbidden counters.
+     */
+    public function testRecordsMetricsForStatus403(): void
+    {
+        /*
+         * Arrange: build a middleware with a 403 response.
+         */
+        $registry = $this->registryWithCounters(3);
+        $exporter = $this->exporter();
+        $middleware = new PrometheusMetricMiddleware($this->config(), $exporter, $registry);
+        $request = $this->request('/users');
+        $handler = $this->handler(403);
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response status is forbidden.
+         */
+        $this->assertSame(403, $response->getStatusCode());
+    }
+
+    /**
+     * Ensures status 500 records 5xx counters.
+     */
+    public function testRecordsMetricsForStatus500(): void
+    {
+        /*
+         * Arrange: build a middleware with a 500 response.
+         */
+        $registry = $this->registryWithCounters(2);
+        $exporter = $this->exporter();
+        $middleware = new PrometheusMetricMiddleware($this->config(), $exporter, $registry);
+        $request = $this->request('/users');
+        $handler = $this->handler(500);
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response status is server error.
+         */
+        $this->assertSame(500, $response->getStatusCode());
+    }
+
+    /**
+     * Ensures status 502 records 5xx and bad gateway counters.
+     */
+    public function testRecordsMetricsForStatus502(): void
+    {
+        /*
+         * Arrange: build a middleware with a 502 response.
+         */
+        $registry = $this->registryWithCounters(3);
+        $exporter = $this->exporter();
+        $middleware = new PrometheusMetricMiddleware($this->config(), $exporter, $registry);
+        $request = $this->request('/users');
+        $handler = $this->handler(502);
+
+        /*
+         * Act: handle the request through the middleware.
+         */
+        $response = $middleware($request, $handler);
+
+        /*
+         * Assert: verify the response status is bad gateway.
+         */
+        $this->assertSame(502, $response->getStatusCode());
     }
 
     /**
@@ -155,6 +236,31 @@ final class PrometheusMetricMiddlewareUnitTest extends TestCase
         $refMethod = $ref->getMethod($method);
         $refMethod->setAccessible(true);
         return $refMethod->invokeArgs($target, $args);
+    }
+
+    private function registryWithCounters(int $counterCount): CollectorRegistry
+    {
+        $registry = $this->createMock(CollectorRegistry::class);
+        $gauges = [$this->createMock(Gauge::class), $this->createMock(Gauge::class)];
+        $histogram = $this->createMock(Histogram::class);
+        $counters = [];
+        for ($i = 0; $i < $counterCount; $i++) {
+            $counters[] = $this->createMock(Counter::class);
+        }
+
+        foreach ($gauges as $gauge) {
+            $gauge->expects($this->once())->method('set');
+        }
+        $histogram->expects($this->once())->method('observe');
+        foreach ($counters as $counter) {
+            $counter->expects($this->once())->method('incBy');
+        }
+
+        $registry->method('getOrRegisterGauge')->willReturnOnConsecutiveCalls(...$gauges);
+        $registry->method('getOrRegisterHistogram')->willReturn($histogram);
+        $registry->method('getOrRegisterCounter')->willReturnOnConsecutiveCalls(...$counters);
+
+        return $registry;
     }
 
     private function exporter(): PrometheusRegistryExporter

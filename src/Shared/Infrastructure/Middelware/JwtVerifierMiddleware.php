@@ -96,16 +96,16 @@ class JwtVerifierMiddleware
                     $nbf = $payload->nbf;
                     $exp = $payload->exp;
                     $now = time();
-                    if (($now - $nbf) > 1000) {
+                    if (!$nbf || !$exp) {
+                        $fail = 'The provided JWT dont have valid time range.';
+                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
+                        throw new UnauthorizedException(message: $fail);
+                    } elseif (($now - $nbf) > 1000) {
                         $fail = 'The provided JWT is not ready for use.';
                         $this->cache->set($cache_key, json_encode([null, null, $fail]));
                         throw new UnauthorizedException(message: $fail);
                     } elseif ($now > $exp) {
                         $fail = 'The provided JWT is expired.';
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
-                        throw new UnauthorizedException(message: $fail);
-                    } elseif (!$nbf || !$exp) {
-                        $fail = 'The provided JWT dont have valid time range.';
                         $this->cache->set($cache_key, json_encode([null, null, $fail]));
                         throw new UnauthorizedException(message: $fail);
                     } else {
