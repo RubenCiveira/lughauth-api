@@ -69,10 +69,6 @@ class TraceManagement implements ManagementInterface
             $matchedSeen = 0;
 
             foreach ($traceFiles as $file) {
-                $handle = fopen($file, 'r');
-                if (!$handle) {
-                    continue;
-                }
                 foreach ($this->iterateLines($file) as $line) {
                     if (!trim($line)) {
                         continue;
@@ -118,7 +114,6 @@ class TraceManagement implements ManagementInterface
                         break 2;
                     }
                 }
-                fclose($handle);
             }
             return $results;
         };
