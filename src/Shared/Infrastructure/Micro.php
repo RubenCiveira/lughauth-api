@@ -196,7 +196,7 @@ class Micro
     {
         $this->build();
         $this->registerManagers($this->app, $this->container);
-        $vardir = __DIR__.'/../../../var/';
+        $vardir = rtrim($this->storeDir(''), '/').'/';
         if (!is_dir($vardir)) {
             mkdir($vardir, 0777, true);
         }
@@ -286,7 +286,7 @@ class Micro
                 );
                 $exporter = new SpanExporter($transport);
             } else {
-                $base = $config->get('app.telemetry.exporter.path', dirname(__DIR__) . "/../../var/trace");
+                $base = $config->get('app.telemetry.exporter.path', $this->storeDir('trace'));
                 if (!is_dir($base)) {
                     mkdir($base, 0777, true);
                 }
@@ -326,11 +326,11 @@ class Micro
     private function withMetrics(&$def)
     {
         $def[MetricsFS::class] = function () {
-            $base = dirname(__DIR__) . "/../../var/history-metrics";
+            $base = $this->storeDir('history-metrics');
             return new MetricsFS($base);
         };
         $def[TimeWindowPolicy::class] = function () {
-            $base = dirname(__DIR__) . "/../../var/history-metrics/lock";
+            $base = $this->storeDir('history-metrics/lock');
             return new FixedIntervalWindowPolicy($base);
         };
         $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf) {
@@ -372,9 +372,9 @@ class Micro
                 $defaultLifetime = $future->getTimestamp() - $now->getTimestamp();
                 return new Psr16Cache(new RedisAdapter(new \Redis(), $conf->get('app.cache.namespace', ''), $defaultLifetime));
             } else {
-                $dir = dirname(__DIR__) . "/../../var/cache";
+                $dir = $this->storeDir('cache');
                 if (!is_dir($dir)) {
-                    mkdir($dir);
+                    mkdir($dir, 0777, true);
                 }
                 return new Psr16Cache(new FilesystemAdapter('', 0, $dir));
             }
@@ -420,7 +420,7 @@ class Micro
     {
         $def[LoggerInterface::class] = function (AppConfig $config, TraceContextProcessor $tracer) {
             $name = $config->name;
-            $base = dirname(__DIR__) . "/../../var/log";
+            $base = $this->storeDir('log');
             if (!is_dir($base)) {
                 mkdir($base, 0777, true);
             }
@@ -430,6 +430,13 @@ class Micro
             $logger->pushProcessor($tracer);
             return $logger;
         };
+    }
+
+    protected function storeDir(string $path): string
+    {
+        $base = __DIR__ . '/../../../var';
+        $path = ltrim($path, '/');
+        return $path === '' ? $base : $base . '/' . $path;
     }
 
     private function withEventBus(&$def)

@@ -165,6 +165,21 @@ namespace {
         }
     }
 
+    final class StoreDirMicro extends Micro
+    {
+        public function __construct(ContainerBuilder $depenencies, private readonly string $baseDir)
+        {
+            parent::__construct($depenencies);
+        }
+
+        protected function storeDir(string $path): string
+        {
+            $base = rtrim($this->baseDir, '/') . '/var';
+            $path = ltrim($path, '/');
+            return $path === '' ? $base : $base . '/' . $path;
+        }
+    }
+
     /**
      * Unit tests for {@see Micro}.
      */
@@ -650,6 +665,49 @@ namespace {
                 }
             }
         }
+
+        /**
+         * Ensures run creates the vardir when missing.
+         */
+        public function testRunCreatesVarDirectoryWhenMissingViaStoreDir(): void
+        {
+            /*
+             * Arrange: create a Micro subclass with a temporary store directory.
+             */
+            $_ENV['CRON'] = '1';
+            $_ENV['DISABLE_SUPERVISOR'] = '1';
+            $baseDir = $this->rootDir() . '/var-test-' . uniqid('', true);
+            $vardir = $baseDir . '/var';
+            if (is_dir($baseDir)) {
+                $this->removeDirectory($baseDir);
+            }
+            $this->assertFalse(is_dir($vardir));
+
+            $builder = new ContainerBuilder();
+            $builder->addDefinitions([
+                EventBus::class => $this->createEventBusStub(),
+                SchedulerManager::class => new SchedulerManagerStub(),
+            ]);
+            $micro = new StoreDirMicro($builder, $baseDir);
+
+            try {
+                /*
+                 * Act: run Micro and let it create vardir.
+                 */
+                ob_start();
+                $micro->run();
+                ob_end_clean();
+
+                /*
+                 * Assert: vardir exists after run.
+                 */
+                $this->assertTrue(is_dir($vardir));
+            } finally {
+                unset($_ENV['CRON'], $_ENV['DISABLE_SUPERVISOR']);
+                $this->removeDirectory($baseDir);
+            }
+        }
+
 
         /**
          * Verifies background supervisor URL generation does not crash.
