@@ -86,6 +86,227 @@ final class PromQLInterpreterUnitTest extends TestCase
         /* Assert: verify the invalid argument exception is thrown. */
     }
 
+    /**
+     * Ensures sum and count over time are evaluated.
+     */
+    public function testEvaluateSumAndCountOverTime(): void
+    {
+        /* Arrange: create query engine with data. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate sum and count expressions. */
+        $sum = $engine->evaluate('sum_over_time(metric[5m])', 1000, 4000, 1, 'raw');
+        $count = $engine->evaluate('count_over_time(metric[5m])', 1000, 4000, 1, 'raw');
+
+        /* Assert: verify points are present. */
+        $this->assertNotEmpty($sum[0]['points']);
+        $this->assertNotEmpty($count[0]['points']);
+        $this->assertSame(1.0, $count[0]['points'][0][1]);
+    }
+
+    /**
+     * Ensures avg_over_time falls back to a default range.
+     */
+    public function testEvaluateAvgOverTimeDefaultsRange(): void
+    {
+        /* Arrange: create query engine with data. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate without an explicit range. */
+        $result = $engine->evaluate('avg_over_time(metric)', 1000, 4000, 1, 'raw');
+
+        /* Assert: verify points are present. */
+        $this->assertNotEmpty($result[0]['points']);
+    }
+
+    /**
+     * Ensures max/min aggregations use the reducer path.
+     */
+    public function testAggregateMaxAndMin(): void
+    {
+        /* Arrange: build series with different values. */
+        $root = sys_get_temp_dir() . '/metrics_' . uniqid();
+        $fs = new MetricsFS($root);
+        $query = new MetricsQuery($fs);
+        $fs->appendRaw('metric', ['status' => '200', 'instance' => 'a'], 2, 1500);
+        $fs->appendRaw('metric', ['status' => '200', 'instance' => 'b'], 4, 1500);
+
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate max and min aggregations. */
+        $max = $engine->evaluate('max by (status) (metric)', 1000, 2000, 1, 'raw');
+        $min = $engine->evaluate('min by (status) (metric)', 1000, 2000, 1, 'raw');
+
+        /* Assert: verify reducer results. */
+        $this->assertSame(4.0, $max[0]['points'][0][1]);
+        $this->assertSame(2.0, $min[0]['points'][0][1]);
+    }
+
+    /**
+     * Ensures sum aggregation uses the sumBy implementation.
+     */
+    public function testAggregateSum(): void
+    {
+        /* Arrange: build series with different values. */
+        $root = sys_get_temp_dir() . '/metrics_' . uniqid();
+        $fs = new MetricsFS($root);
+        $query = new MetricsQuery($fs);
+        $fs->appendRaw('metric', ['status' => '200', 'instance' => 'a'], 2, 1500);
+        $fs->appendRaw('metric', ['status' => '200', 'instance' => 'b'], 4, 1500);
+
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate sum aggregation. */
+        $sum = $engine->evaluate('sum by (status) (metric)', 1000, 2000, 1, 'raw');
+
+        /* Assert: verify sum results. */
+        $this->assertSame(6.0, $sum[0]['points'][0][1]);
+    }
+
+    /**
+     * Ensures count_over_time maps points to 1.0.
+     */
+    public function testCountOverTimeMapsToOnes(): void
+    {
+        /* Arrange: create query engine with data. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate count_over_time expression. */
+        $result = $engine->evaluate('count_over_time(metric[5m])', 1000, 4000, 1, 'raw');
+
+        /* Assert: verify points are mapped to 1.0. */
+        $this->assertSame(1.0, $result[0]['points'][0][1]);
+    }
+
+    /**
+     * Ensures selectors parse ranges and matchers with quotes.
+     */
+    public function testParseSelectorParsesRangesAndMatchers(): void
+    {
+        /* Arrange: create query engine. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: parse a selector with range and quoted commas. */
+        $selector = $this->invokePrivate($engine, 'parseSelector', [
+            'metric{label="a,b",env!="prod",path=~"/api/.*",code!~"5.."}[5m]'
+        ]);
+
+        /* Assert: verify parsing results. */
+        $this->assertSame('metric', $selector['metric']);
+        $this->assertSame(300, $selector['rangeSec']);
+        $this->assertCount(4, $selector['matchers']);
+        $this->assertSame('label', $selector['matchers'][0]->key);
+        $this->assertSame('=', $selector['matchers'][0]->op);
+        $this->assertSame('a,b', $selector['matchers'][0]->val);
+        $this->assertSame('!~', $selector['matchers'][3]->op);
+    }
+
+    /**
+     * Ensures private parser helpers cover edge cases.
+     */
+    public function testParserHelpersCoverBranches(): void
+    {
+        /* Arrange: create query engine. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: invoke helpers via reflection. */
+        $this->assertSame('abc', $this->invokePrivate($engine, 'stripQuotes', ['"abc"']));
+        $this->assertSame('abc', $this->invokePrivate($engine, 'stripQuotes', ['abc']));
+        $this->assertSame(30, $this->invokePrivate($engine, 'parseDurationToSeconds', ['30s']));
+        $this->assertSame(300, $this->invokePrivate($engine, 'parseDurationToSeconds', ['5m']));
+        $this->assertSame(3600, $this->invokePrivate($engine, 'parseDurationToSeconds', ['1h']));
+        $this->assertSame(172800, $this->invokePrivate($engine, 'parseDurationToSeconds', ['2d']));
+        $this->assertSame(0, $this->invokePrivate($engine, 'parseDurationToSeconds', ['bad']));
+
+        $matchers = $this->invokePrivate($engine, 'parseMatchers', [' , label="a" , , env!="prod" , ']);
+        $this->assertCount(2, $matchers);
+        $this->assertSame('label', $matchers[0]->key);
+        $this->assertSame('env', $matchers[1]->key);
+    }
+
+    /**
+     * Ensures evalNode handles unknown node types.
+     */
+    public function testEvalNodeUnknownTypeReturnsEmpty(): void
+    {
+        /* Arrange: create query engine. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: evaluate an unknown node. */
+        $result = $this->invokePrivate($engine, 'evalNode', [['type' => 'unknown'], 0, 0, 1, 'raw']);
+
+        /* Assert: verify empty result. */
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * Ensures evalFunc returns empty for unknown functions.
+     */
+    public function testEvalFuncUnknownReturnsEmpty(): void
+    {
+        /* Arrange: create query engine. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+
+        /* Act: invoke evalFunc with an unknown name. */
+        $result = $this->invokePrivate($engine, 'evalFunc', [[
+            'type' => 'func',
+            'name' => 'noop',
+            'arg' => ['metric' => 'metric', 'matchers' => [], 'rangeSec' => 0]
+        ], 0, 0, 1, 'raw']);
+
+        /* Assert: verify empty result. */
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * Ensures evalAgg falls back to child for unknown operators.
+     */
+    public function testEvalAggUnknownOpReturnsChild(): void
+    {
+        /* Arrange: create query engine and expected child data. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+        $child = $query->range('metric', 1000, 2000, 1, 'raw');
+
+        /* Act: invoke evalAgg with an unknown operator. */
+        $result = $this->invokePrivate($engine, 'evalAgg', [[
+            'type' => 'agg',
+            'op' => 'median',
+            'by' => ['status'],
+            'child' => ['type' => 'selector', 'metric' => 'metric', 'matchers' => [], 'rangeSec' => null]
+        ], 1000, 2000, 1, 'raw']);
+
+        /* Assert: verify it returns child data. */
+        $this->assertSame($child, $result);
+    }
+
+    /**
+     * Ensures reduceBy default path sums values.
+     */
+    public function testReduceByDefaultSums(): void
+    {
+        /* Arrange: create query engine and series data. */
+        [$query] = $this->createQuery();
+        $engine = new PromQLInterpreter($query);
+        $series = [
+            ['labels' => ['status' => '200'], 'points' => [[1000, 1.0]]],
+            ['labels' => ['status' => '200'], 'points' => [[1000, 2.0]]]
+        ];
+
+        /* Act: invoke reduceBy with an unknown op to hit default sum. */
+        $result = $this->invokePrivate($engine, 'reduceBy', [$series, ['status'], 'sum']);
+
+        /* Assert: verify values are summed. */
+        $this->assertSame(3.0, $result[0]['points'][0][1]);
+    }
+
     private function createQuery(): array
     {
         $root = sys_get_temp_dir() . '/metrics_' . uniqid();
@@ -94,5 +315,12 @@ final class PromQLInterpreterUnitTest extends TestCase
         $fs->appendRaw('metric', ['status' => '200'], 2, 2500);
 
         return [new MetricsQuery($fs), $root];
+    }
+
+    private function invokePrivate(object $object, string $method, array $args = [])
+    {
+        $ref = new ReflectionMethod($object, $method);
+        $ref->setAccessible(true);
+        return $ref->invokeArgs($object, $args);
     }
 }

@@ -66,6 +66,209 @@ final class HistogramManagementUnitTest extends TestCase
         $this->assertStringContainsString('query,labels', $result);
     }
 
+    /**
+     * Ensures repeated query params are preserved and decoded.
+     */
+    public function testParseQueryPairsOrderedPreservesRepeats(): void
+    {
+        /* Arrange: create a histogram management instance. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+
+        /* Act: parse query parameters with repeats and encoding. */
+        $result = $management->parseQueryPairsOrdered('q=a&q=b&q=c&space=foo+bar&empty=&onlykey&&');
+
+        /* Assert: verify repeated keys and decoding are preserved. */
+        $this->assertSame(['a', 'b', 'c'], $result['q']);
+        $this->assertSame('foo bar', $result['space']);
+        $this->assertSame('', $result['empty']);
+        $this->assertSame('', $result['onlykey']);
+    }
+
+    /**
+     * Ensures alignment respects the align_to offset.
+     */
+    public function testGetAlignsToGridWhenAlignToProvided(): void
+    {
+        /* Arrange: create handler and request with align_to. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+        $request = $this->request('q=metric&start=0&end=2&step=1s&align_to=500');
+
+        /* Act: execute the histogram handler. */
+        $result = ($management->get())($request);
+
+        /* Assert: verify the alignment shifts start/end to the grid. */
+        $this->assertSame(-500, $result['start']);
+        $this->assertSame(2500, $result['end']);
+    }
+
+    /**
+     * Ensures a zero or invalid step rejects the request.
+     */
+    public function testGetThrowsOnInvalidStep(): void
+    {
+        /* Arrange: create handler and request with invalid step. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+        $request = $this->request('q=metric&start=0&end=2&step=0');
+
+        /* Act: execute the handler with invalid step. */
+        $this->expectException(InvalidArgumentException::class);
+        ($management->get())($request);
+
+        /* Assert: verify exception is thrown. */
+    }
+
+    /**
+     * Ensures invalid ranges are rejected.
+     */
+    public function testGetThrowsWhenStartAfterEnd(): void
+    {
+        /* Arrange: create handler and request with invalid range. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+        $request = $this->request('q=metric&start=1000&end=900&step=1s');
+
+        /* Act: execute the handler with invalid range. */
+        $this->expectException(InvalidArgumentException::class);
+        ($management->get())($request);
+
+        /* Assert: verify exception is thrown. */
+    }
+
+    /**
+     * Ensures excessive point counts are rejected.
+     */
+    public function testGetThrowsOnTooManyPoints(): void
+    {
+        /* Arrange: create handler and request with low max_points. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+        $request = $this->request('q=metric&start=0&end=2&step=1s&max_points=2');
+
+        /* Act: execute the handler with too many points. */
+        $this->expectException(InvalidArgumentException::class);
+        ($management->get())($request);
+
+        /* Assert: verify exception is thrown. */
+    }
+
+    /**
+     * Ensures series are truncated when the limit is reached.
+     */
+    public function testGetTruncatesSeriesWhenLimitReached(): void
+    {
+        /* Arrange: create query with multiple series. */
+        $root = sys_get_temp_dir() . '/metrics_' . uniqid();
+        $fs = new MetricsFS($root);
+        $fs->appendRaw('metric', ['status' => '200', 'instance' => 'a'], 1, 1500);
+        $fs->appendRaw('metric', ['status' => '500', 'instance' => 'b'], 2, 1500);
+        $query = new MetricsQuery($fs);
+
+        $management = new HistogramManagement($this->config(), $query);
+        $request = $this->request('q=metric&start=now-1h&end=now&step=60s&limit_series=1');
+
+        /* Act: execute the handler. */
+        $result = ($management->get())($request);
+
+        /* Assert: verify series are truncated and metadata reflects it. */
+        $this->assertCount(1, $result['series']);
+        $this->assertTrue($result['meta']['truncated']);
+    }
+
+    /**
+     * Ensures aliases are applied per query in multi-query requests.
+     */
+    public function testGetAddsAliasesPerQuery(): void
+    {
+        /* Arrange: create query with two series. */
+        $root = sys_get_temp_dir() . '/metrics_' . uniqid();
+        $fs = new MetricsFS($root);
+        $fs->appendRaw('metric_a', ['status' => '200'], 1, 1500);
+        $fs->appendRaw('metric_b', ['status' => '500'], 1, 1500);
+        $query = new MetricsQuery($fs);
+
+        $management = new HistogramManagement($this->config(), $query);
+        $request = $this->request('q=metric_a&q=metric_b&alias=ok&alias=err&start=now-1h&end=now&step=60s');
+
+        /* Act: execute the handler. */
+        $result = ($management->get())($request);
+
+        /* Assert: verify aliases and query attribution. */
+        $this->assertSame('metric_a', $result['series'][0]['query']);
+        $this->assertSame('ok', $result['series'][0]['alias']);
+        $this->assertSame('metric_b', $result['series'][1]['query']);
+        $this->assertSame('err', $result['series'][1]['alias']);
+    }
+
+    /**
+     * Ensures CSV rendering outputs empty values for NaNs.
+     */
+    public function testToCsvOutputsEmptyForNaN(): void
+    {
+        /* Arrange: build a payload containing a NaN value. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+        $payload = [
+            'series' => [[
+                'query' => 'metric',
+                'labels' => [],
+                'points' => [[1000, NAN]]
+            ]]
+        ];
+
+        /* Act: render CSV using reflection. */
+        $csv = $this->invokePrivate($management, 'toCsv', [$payload]);
+
+        /* Assert: verify the value column is empty for NaN. */
+        $this->assertStringContainsString('query,labels,timestamp,value', $csv);
+        $this->assertStringContainsString('"metric","[]",1000,', $csv);
+    }
+
+    /**
+     * Ensures internal parsing helpers cover edge cases.
+     */
+    public function testParsingHelpersCoverBranches(): void
+    {
+        /* Arrange: create management instance. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+        $nowMs = 1_700_000_000_000;
+
+        /* Act: invoke helpers via reflection. */
+        $this->assertNull($this->invokePrivate($management, 'toIntOrNull', [null]));
+        $this->assertNull($this->invokePrivate($management, 'toIntOrNull', ['']));
+        $this->assertSame(42, $this->invokePrivate($management, 'toIntOrNull', ['42']));
+        $this->assertNull($this->invokePrivate($management, 'toIntOrNull', ['nope']));
+
+        $this->assertSame($nowMs, $this->invokePrivate($management, 'parseTime', ['now', $nowMs]));
+        $this->assertSame($nowMs - 2 * 3600 * 1000, $this->invokePrivate($management, 'parseTime', ['now-2h', $nowMs]));
+        $this->assertSame(123000, $this->invokePrivate($management, 'parseTime', ['123', $nowMs]));
+        $this->assertSame(12_345_000_000, $this->invokePrivate($management, 'parseTime', ['12345000000', $nowMs]));
+        $iso = '2024-01-01T00:00:00Z';
+        $this->assertSame(strtotime($iso) * 1000, $this->invokePrivate($management, 'parseTime', [$iso, $nowMs]));
+
+        $this->assertSame(1000, $this->invokePrivate($management, 'parseStepToMs', ['1000']));
+        $this->assertSame(5, $this->invokePrivate($management, 'parseStepToMs', ['5ms']));
+        $this->assertSame(2000, $this->invokePrivate($management, 'parseStepToMs', ['2s']));
+        $this->assertSame(180000, $this->invokePrivate($management, 'parseStepToMs', ['3m']));
+        $this->assertSame(3600000, $this->invokePrivate($management, 'parseStepToMs', ['1h']));
+        $this->assertSame(0, $this->invokePrivate($management, 'parseStepToMs', ['bad']));
+
+        /* Assert: invalid time throws. */
+        $this->expectException(InvalidArgumentException::class);
+        $this->invokePrivate($management, 'parseTime', ['invalid-time', $nowMs]);
+    }
+
+    /**
+     * Ensures the set handler is not provided.
+     */
+    public function testSetReturnsNull(): void
+    {
+        /* Arrange: create handler. */
+        $management = new HistogramManagement($this->config(), $this->createQuery());
+
+        /* Act: retrieve the set handler. */
+        $result = $management->set();
+
+        /* Assert: set handler is null. */
+        $this->assertNull($result);
+    }
+
     private function request(string $query): ServerRequestInterface
     {
         $uri = $this->createMock(UriInterface::class);
@@ -94,5 +297,12 @@ final class HistogramManagementUnitTest extends TestCase
         $fs = new MetricsFS($root);
         $fs->appendRaw('metric', ['status' => '200'], 1, 1500);
         return new MetricsQuery($fs);
+    }
+
+    private function invokePrivate(object $object, string $method, array $args = [])
+    {
+        $ref = new ReflectionMethod($object, $method);
+        $ref->setAccessible(true);
+        return $ref->invokeArgs($object, $args);
     }
 }

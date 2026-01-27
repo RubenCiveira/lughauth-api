@@ -36,6 +36,51 @@ final class MigrationManagementUnitTest extends TestCase
     }
 
     /**
+     * Ensures the handler name is exposed.
+     */
+    public function testName(): void
+    {
+        /* Arrange: create a management handler. */
+        $provider = $this->createProvider('db', ['status' => 'ok']);
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')->with(Phix::class)->willReturn($provider);
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $management = new MigrationManagement($container, $logger);
+
+        /* Act: read the name. */
+        $name = $management->name();
+
+        /* Assert: verify the endpoint name. */
+        $this->assertSame('migration', $name);
+    }
+
+    /**
+     * Ensures additional providers are included in status.
+     */
+    public function testGetIncludesAdditionalProvider(): void
+    {
+        /* Arrange: register two providers. */
+        $primary = $this->createProvider('db', ['status' => 'ok']);
+        $secondary = $this->createProvider('cache', ['status' => 'warm']);
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')->with(Phix::class)->willReturn($primary);
+        $logger = $this->createMock(LoggerInterface::class);
+
+        $management = new MigrationManagement($container, $logger);
+        $management->addProvider($secondary);
+
+        /* Act: execute the status handler. */
+        $result = ($management->get())();
+
+        /* Assert: verify both providers are returned. */
+        $this->assertSame(
+            ['db' => ['status' => 'ok'], 'cache' => ['status' => 'warm']],
+            $result
+        );
+    }
+
+    /**
      * Ensures failures are captured and logged during migrations.
      */
     public function testSetHandlesFailure(): void
@@ -55,6 +100,27 @@ final class MigrationManagementUnitTest extends TestCase
         /* Assert: verify the failure is returned in the response. */
         $this->assertArrayHasKey('db', $result);
         $this->assertStringContainsString('boom', $result['db']);
+    }
+
+    /**
+     * Ensures migrations return data when no failures occur.
+     */
+    public function testSetReturnsSuccessPayload(): void
+    {
+        /* Arrange: create a successful provider and logger expectation. */
+        $provider = $this->createProvider('db', ['status' => 'ok']);
+        $container = $this->createMock(ContainerInterface::class);
+        $container->method('get')->with(Phix::class)->willReturn($provider);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->never())->method('critical');
+
+        $management = new MigrationManagement($container, $logger);
+
+        /* Act: execute the migration handler. */
+        $result = ($management->set())();
+
+        /* Assert: verify the migration response payload. */
+        $this->assertSame(['db' => ['status' => 'ok']], $result);
     }
 
     private function createProvider(string $name, array $status, bool $fail = false): MigrationInterface

@@ -45,6 +45,22 @@ final class PhixUnitTest extends TestCase
     }
 
     /**
+     * Ensures status reports pending migrations.
+     */
+    public function testStatusWithPendingMigration(): void
+    {
+        /* Arrange: build a manager with pending migrations. */
+        $manager = $this->managerWithMigrations(false, true, 'output');
+        $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $manager);
+
+        /* Act: request the migration status. */
+        $result = $phix->status();
+
+        /* Assert: verify the pending status payload. */
+        $this->assertSame(['status' => ['Init[1]' => 'Pending']], $result);
+    }
+
+    /**
      * Ensures migration results reflect newly applied changes.
      */
     public function testMigrateDiff(): void
@@ -59,6 +75,57 @@ final class PhixUnitTest extends TestCase
         /* Assert: verify the migration status and output detail. */
         $this->assertSame('Migrated', $result['status']['Init[1]']);
         $this->assertSame('output', $result['detail']);
+    }
+
+    /**
+     * Ensures ready migrations remain marked as ready.
+     */
+    public function testMigrateKeepsReadyStatus(): void
+    {
+        /* Arrange: create a manager with a ready migration. */
+        $manager = $this->managerWithMigrations(true, false, 'output');
+        $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $manager);
+
+        /* Act: execute the migration handler. */
+        $result = $phix->migrate();
+
+        /* Assert: verify the migration remains ready. */
+        $this->assertSame('Ready', $result['status']['Init[1]']);
+        $this->assertSame('output', $result['detail']);
+    }
+
+    /**
+     * Ensures failed migrations are flagged appropriately.
+     */
+    public function testMigrateMarksFailed(): void
+    {
+        /* Arrange: create a manager that stays pending. */
+        $manager = $this->managerWithMigrations(false, false, 'output');
+        $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $manager);
+
+        /* Act: execute the migration handler. */
+        $result = $phix->migrate();
+
+        /* Assert: verify the migration failure state. */
+        $this->assertSame('Failed', $result['status']['Init[1]']);
+        $this->assertSame('output', $result['detail']);
+    }
+
+    /**
+     * Ensures empty detail output when output is not buffered.
+     */
+    public function testMigrateHandlesNonBufferedOutput(): void
+    {
+        /* Arrange: use a manager with a non-buffered output instance. */
+        $output = $this->createMock(\Symfony\Component\Console\Output\OutputInterface::class);
+        $manager = $this->managerWithMigrationsAndOutput(true, true, $output);
+        $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=db'), $manager);
+
+        /* Act: execute the migration handler. */
+        $result = $phix->migrate();
+
+        /* Assert: verify detail is empty for non-buffered output. */
+        $this->assertSame('', $result['detail']);
     }
 
     /**
@@ -82,6 +149,39 @@ final class PhixUnitTest extends TestCase
         $this->assertSame('test', $data['name']);
         $this->assertSame('user', $data['user']);
         $this->assertSame('pass', $data['pass']);
+    }
+
+    /**
+     * Ensures DSN parsing omits credentials when env vars are absent.
+     */
+    public function testParseWithoutCredentials(): void
+    {
+        /* Arrange: clear environment credentials. */
+        $previousUser = $_ENV['DATABASE_USERNAME'] ?? null;
+        $previousPass = $_ENV['DATABASE_PASSWORD'] ?? null;
+        $hadUser = array_key_exists('DATABASE_USERNAME', $_ENV);
+        $hadPass = array_key_exists('DATABASE_PASSWORD', $_ENV);
+        unset($_ENV['DATABASE_USERNAME'], $_ENV['DATABASE_PASSWORD']);
+
+        $phix = new TestablePhix($this->config('mysql:host=localhost;dbname=test'), $this->managerWithMigrations(true, true, ''));
+
+        /* Act: parse the database DSN. */
+        $data = $phix->parse();
+
+        /* Assert: verify credentials are not included. */
+        $this->assertSame('mysql', $data['adapter']);
+        $this->assertSame('localhost', $data['host']);
+        $this->assertSame('test', $data['name']);
+        $this->assertArrayNotHasKey('user', $data);
+        $this->assertArrayNotHasKey('pass', $data);
+
+        /* Cleanup: restore environment credentials. */
+        if ($hadUser) {
+            $_ENV['DATABASE_USERNAME'] = $previousUser;
+        }
+        if ($hadPass) {
+            $_ENV['DATABASE_PASSWORD'] = $previousPass;
+        }
     }
 
     /**
@@ -141,6 +241,30 @@ final class PhixUnitTest extends TestCase
             $buffer->write($output);
             return $buffer;
         })());
+        $manager->method('migrate')->willReturnCallback(function () use (&$migrations, $afterUp) {
+            $migrations = [
+                '1' => new FakeMigration('Init', $afterUp)
+            ];
+        });
+        return $manager;
+    }
+
+    private function managerWithMigrationsAndOutput(
+        bool $beforeUp,
+        bool $afterUp,
+        \Symfony\Component\Console\Output\OutputInterface $output
+    ): \Phinx\Migration\Manager
+    {
+        $migrations = [
+            '1' => new FakeMigration('Init', $beforeUp)
+        ];
+        $manager = $this->getMockBuilder(\Phinx\Migration\Manager::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $manager->method('getMigrations')->willReturnCallback(function () use (&$migrations) {
+            return $migrations;
+        });
+        $manager->method('getOutput')->willReturn($output);
         $manager->method('migrate')->willReturnCallback(function () use (&$migrations, $afterUp) {
             $migrations = [
                 '1' => new FakeMigration('Init', $afterUp)
