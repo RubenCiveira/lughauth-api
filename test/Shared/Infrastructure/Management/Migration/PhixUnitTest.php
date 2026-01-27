@@ -199,6 +199,43 @@ final class PhixUnitTest extends TestCase
         /* Assert: verify an invalid argument exception is thrown. */
     }
 
+    /**
+     * Ensures DSN parsing handles empty parameters section.
+     */
+    public function testParseWithEmptyParameters(): void
+    {
+        /* Arrange: create a parser with a DSN that has no parameters. */
+        $phix = new TestablePhix($this->config('mysql:'), $this->managerWithMigrations(true, true, ''));
+
+        /* Act: parse the DSN. */
+        $data = $phix->parse();
+
+        /* Assert: verify only the adapter is returned. */
+        $this->assertSame('mysql', $data['adapter']);
+        $this->assertArrayNotHasKey('host', $data);
+        $this->assertArrayNotHasKey('port', $data);
+        $this->assertArrayNotHasKey('name', $data);
+    }
+
+    /**
+     * Ensures DSN parsing skips malformed parameter chunks.
+     */
+    public function testParseSkipsMalformedParameters(): void
+    {
+        /* Arrange: create a parser with a DSN containing malformed chunks. */
+        $phix = new TestablePhix($this->config('mysql:host=localhost;port;dbname=test;keyonly'), $this->managerWithMigrations(true, true, ''));
+
+        /* Act: parse the DSN. */
+        $data = $phix->parse();
+
+        /* Assert: verify only valid parameters are parsed. */
+        $this->assertSame('mysql', $data['adapter']);
+        $this->assertSame('localhost', $data['host']);
+        $this->assertSame('test', $data['name']);
+        $this->assertArrayNotHasKey('port', $data);
+        $this->assertArrayNotHasKey('keyonly', $data);
+    }
+
     private function config(string $dsn): AppConfig
     {
         return new class ($dsn) extends AppConfig {
