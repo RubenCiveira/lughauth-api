@@ -180,7 +180,6 @@ namespace {
         }
     }
 
-
     /**
      * Unit tests for {@see Micro}.
      */
