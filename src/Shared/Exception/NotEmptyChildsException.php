@@ -18,6 +18,7 @@ class NotEmptyChildsException extends \RuntimeException
      */
     public function __construct(\Exception $ex)
     {
-        parent::__construct($ex->getMessage(), $ex->getCode(), $ex);
+        $code = $ex->getCode();
+        parent::__construct($ex->getMessage(), is_int($code) ? $code : 0, $ex);
     }
 }

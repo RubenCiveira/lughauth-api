@@ -34,6 +34,7 @@ class SubdivisionCode implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::subdivisionCode($this->countryCode)->isValid($value) ? null : new RuleFail('rule_subdivision_code', $value, ['countryCode' => $this->countryCode]);
     }
 }

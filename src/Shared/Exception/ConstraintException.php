@@ -5,13 +5,17 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Exception;
 
+use Iterator;
+use Override;
+use InvalidArgumentException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 /**
  * Exception representing a set of validation constraint violations.
  * Implements Iterator to allow iteration over individual constraint failures.
+ * @template-implements Iterator<ConstraintFail|false>
  */
-class ConstraintException extends \RuntimeException implements \Iterator
+class ConstraintException extends \RuntimeException implements Iterator
 {
     /**
      * Creates a ConstraintException with one or more ConstraintFail instances.
@@ -56,6 +60,9 @@ class ConstraintException extends \RuntimeException implements \Iterator
      */
     public function includeViolation(string $type): bool
     {
+        if (!class_exists($type)) {
+            throw new InvalidArgumentException($type . ' is expected to exists');
+        }
         foreach ($this->fails as $error) {
             if (is_a($error, $type)) {
                 return true;
@@ -83,24 +90,27 @@ class ConstraintException extends \RuntimeException implements \Iterator
     /**
      * Returns the current element in the iteration.
      *
-     * @return ConstraintFail
+     * @return ConstraintFail|false
      */
-    public function current(): ConstraintFail
+    #[Override]
+    public function current(): ConstraintFail|false
     {
         return current($this->fails);
     }
     /**
      * Returns the key of the current element.
      *
-     * @return int
+     * @return int|int
      */
-    public function key(): int
+    #[Override]
+    public function key(): int|null
     {
         return key($this->fails);
     }
     /**
      * Moves forward to the next element.
      */
+    #[Override]
     public function next(): void
     {
         next($this->fails);
@@ -108,6 +118,7 @@ class ConstraintException extends \RuntimeException implements \Iterator
     /**
      * Rewinds the iterator to the first element.
      */
+    #[Override]
     public function rewind(): void
     {
         reset($this->fails);
@@ -117,6 +128,7 @@ class ConstraintException extends \RuntimeException implements \Iterator
      *
      * @return bool
      */
+    #[Override]
     public function valid(): bool
     {
         return key($this->fails) !== null;

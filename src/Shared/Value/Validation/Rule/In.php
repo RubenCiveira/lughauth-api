@@ -20,7 +20,7 @@ class In implements Rule
      * Create a rule with the list of valid values.
      */
     public function __construct(
-        /** @var array<int, mixed> The array of allowed values. */
+        /** @var array<string, mixed> The array of allowed values. */
         private readonly array $haystack
     ) {
     }
@@ -34,6 +34,7 @@ class In implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::in($this->haystack)->isValid($value) ? null : new RuleFail('rule_in', $value, $this->haystack);
     }
 }

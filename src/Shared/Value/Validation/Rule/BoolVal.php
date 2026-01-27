@@ -25,6 +25,7 @@ class BoolVal implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::boolVal()->isValid($value) ? null : new RuleFail('bool_val', $value, []);
     }
 }

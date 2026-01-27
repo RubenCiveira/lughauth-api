@@ -73,7 +73,7 @@ class Identity
      */
     public function getClaim(string $claim): ?string
     {
-        return $this->claims && isset($this->claims[$claim]) ? $this->claims[$claim] : null;
+        return null !== $this->claims && isset($this->claims[$claim]) ? $this->claims[$claim] : null;
     }
 
     /**
@@ -95,7 +95,7 @@ class Identity
      */
     public function hasAnyRole(string ...$roles): bool
     {
-        if (!$this->roles) {
+        if (null === $this->roles) {
             return false;
         }
         foreach ($roles as $role) {
@@ -114,6 +114,6 @@ class Identity
      */
     public function hasRole(string $role): bool
     {
-        return $this->roles ? false !== array_search($role, $this->roles) : false;
+        return null !== $this->roles ? false !== array_search($role, $this->roles) : false;
     }
 }

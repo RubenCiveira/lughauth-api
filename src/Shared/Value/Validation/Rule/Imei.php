@@ -25,6 +25,7 @@ class Imei implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::imei()->isValid($value) ? null : new RuleFail('rule_imei', $value, []);
     }
 }

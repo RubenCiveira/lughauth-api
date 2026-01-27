@@ -50,7 +50,7 @@ abstract class AllowDecision
      *
      * @param string $reason Optional reason for the denial.
      */
-    public function deny($reason = '')
+    public function deny($reason = ''): void
     {
         $this->allow = Allow::disallowed($this->allow->name, $reason);
     }

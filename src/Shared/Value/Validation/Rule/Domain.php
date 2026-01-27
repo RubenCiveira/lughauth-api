@@ -25,6 +25,7 @@ class Domain implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::domain()->isValid($value) ? null : new RuleFail('rule_domain', $value, []);
     }
 }

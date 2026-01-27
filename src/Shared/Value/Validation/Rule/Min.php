@@ -33,6 +33,7 @@ class Min implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::min($this->min)->isValid($value) ? null : new RuleFail('rule_min', $value, ['min' => $this->min]);
     }
 }

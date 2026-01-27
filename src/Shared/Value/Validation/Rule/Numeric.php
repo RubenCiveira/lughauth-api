@@ -25,6 +25,7 @@ class Numeric implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::numericVal()->isValid($value) ? null : new RuleFail('rule_numeric', $value, []);
     }
 }

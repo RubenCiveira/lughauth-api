@@ -26,7 +26,7 @@ final class PdoFileStorageUnitTest extends TestCase
         fwrite($stream, 'payload');
         rewind($stream);
 
-        $content = new BinaryContent('file.txt', 'text/plain', new DateTime(), $stream);
+        $content = new BinaryContent('file.txt', 'text/plain', new \DateTime(), $stream);
 
         /* Act: store, retrieve, commit, replace, and delete content. */
         $key = $storage->tempStore($content);
@@ -37,7 +37,7 @@ final class PdoFileStorageUnitTest extends TestCase
         $newStream = fopen('php://temp', 'r+');
         fwrite($newStream, 'updated');
         rewind($newStream);
-        $newContent = new BinaryContent('new.txt', 'text/plain', new DateTime(), $newStream);
+        $newContent = new BinaryContent('new.txt', 'text/plain', new \DateTime(), $newStream);
         $storage->replaceContent($key, $newContent);
 
         $updated = $storage->retrieveFile($key);
@@ -136,7 +136,7 @@ final class PdoFileStorageUnitTest extends TestCase
         $storage = new PdoFileStorage($pdo);
         $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
 
-        $now = new DateTimeImmutable('now');
+        $now = new \DateTimeImmutable('now');
 
         $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
         $stmt->execute([
@@ -169,7 +169,7 @@ final class PdoFileStorageUnitTest extends TestCase
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, 'payload');
         rewind($stream);
-        $content = new BinaryContent('temp.txt', 'text/plain', new DateTime('now'), $stream);
+        $content = new BinaryContent('temp.txt', 'text/plain', new \DateTime('now'), $stream);
 
         /* Act: store the temp content. */
         $key = $storage->tempStore($content);
@@ -194,7 +194,7 @@ final class PdoFileStorageUnitTest extends TestCase
         $this->setPrivateProperty($storage, 'tempCapacity', 1);
         $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
 
-        $now = new DateTimeImmutable('now');
+        $now = new \DateTimeImmutable('now');
         $next = $now->modify('+1 second');
 
         $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');
@@ -234,7 +234,7 @@ final class PdoFileStorageUnitTest extends TestCase
         $this->setPrivateProperty($storage, 'tempCapacity', 1);
         $this->setPrivateProperty($storage, 'minutesLifeTime', 10_000);
 
-        $now = new DateTimeImmutable('now');
+        $now = new \DateTimeImmutable('now');
         $next = $now->modify('+1 second');
 
         $stmt = $pdo->prepare('INSERT INTO _filestorer (code, temp, name, mime, upload, bytes) VALUES (:code, 1, :name, :mime, :upload, :bytes)');

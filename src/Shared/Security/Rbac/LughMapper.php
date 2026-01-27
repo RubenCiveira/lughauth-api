@@ -20,13 +20,13 @@ use Psr\Log\LoggerInterface;
 class LughMapper
 {
     /**
-     * @var string|null Base URL for the Lugh authorization service.
+     * @var string Base URL for Lugh authorization service.
      */
-    private readonly ?string $authUrl;
+    private string $authUrl;
     /**
-     * @var string|null API key used to authenticate with the service.
+     * @var string|null API key used to authenticate with service.
      */
-    private readonly ?string $apiKey;
+    private ?string $apiKey;
     /**
      * @var array<string, array<string, mixed>> Cached resource registrations.
      */
@@ -51,14 +51,15 @@ class LughMapper
         /** @var ClientInterface HTTP client for Lugh calls. */
         private readonly ClientInterface $client
     ) {
-        $this->authUrl = $config->get('security.rbac.lugh.location', '-');
+        $this->registereds = [];
         $this->apiKey = $config->get('security.rbac.lugh.api.key');
+        $this->authUrl = (string) $config->get('security.rbac.lugh.location');
     }
 
     /**
      * Flushes registered resources and attributes to the Lugh service.
      */
-    public function flush()
+    public function flush(): void
     {
         $toScopes = [];
         $toAttributes = [];
@@ -74,21 +75,9 @@ class LughMapper
                 'schemas' => $reg['schemas']
             ];
         }
-        $request = $this->requestFactory->createRequest('POST', $this->authUrl . '/resource/scope')
-                ->withAddedHeader('x-api-key', $this->apiKey)
-                ->withBody($this->streamFactory->createStream(json_encode($toScopes)));
-        $response = $this->client->sendRequest($request);
-        if ($response->getStatusCode() !== 204) {
-            $this->logger->error('Error making the scope register on '. $this->authUrl . ':' . $response->getBody());
-        }
+        $this->registerScopes($toScopes);
+        $this->registerSchemas($toAttributes);
 
-        $request = $this->requestFactory->createRequest('POST', $this->authUrl . '/resource/schema')
-                ->withAddedHeader('x-api-key', $this->apiKey)
-                ->withBody($this->streamFactory->createStream(json_encode($toAttributes)));
-        $response = $this->client->sendRequest($request);
-        if ($response->getStatusCode() !== 204) {
-            $this->logger->error('Error making the scope register on '. $this->authUrl . ':' . $response->getBody());
-        }
     }
 
 
@@ -99,7 +88,7 @@ class LughMapper
      * @param string $action Action name.
      * @param string $kind Action kind.
      */
-    public function registerResourceAction(string $resource, string $action, string $kind)
+    public function registerResourceAction(string $resource, string $action, string $kind): void
     {
         if (!isset($this->registereds[$resource])) {
             $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description' => $resource],
@@ -115,7 +104,7 @@ class LughMapper
      * @param string $attribute Attribute name.
      * @param string $kind Attribute kind.
      */
-    public function registerResourceAttribute(string $resource, string $attribute, string $kind)
+    public function registerResourceAttribute(string $resource, string $attribute, string $kind): void
     {
         if (!isset($this->registereds[$resource])) {
             $this->registereds[$resource] = ['resource' => ['name' => $resource, 'description' => $resource],
@@ -161,14 +150,14 @@ class LughMapper
         return $this->isAllowed($this->load($user), $user, $resource, 'scope', $action);
     }
 
-    private function load(Identity $user)
+    private function load(Identity $user): mixed
     {
         return json_decode($this->getGrants($user), true);
     }
 
     private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
-        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous ? '@anonymous' : '@authenticated' ];
         $all = [];
         $visibles = [];
         foreach ($roles as $role) {
@@ -186,7 +175,7 @@ class LughMapper
 
     private function isAllowed(array $grants, Identity $user, string $resource, string $on, string $with): bool
     {
-        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous() ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous ? '@anonymous' : '@authenticated' ];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with]) {
                 return true;
@@ -195,22 +184,79 @@ class LughMapper
         return false;
     }
 
-    private function getGrants(Identity $user)
+    private function getGrants(Identity $user): string
     {
-        $cache_key = 'lught.grants' . ($user->tenant ? '.' . $user->tenant : '');
+        $cache_key = 'lught.grants' . ( null !== $user->tenant ? '.' . $user->tenant : '');
         if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
             $url = $this->authUrl . '/grant';
-            if ($user->tenant) {
+            if (null !== $user->tenant) {
                 $url .= '?tenant=' . urlencode($user->tenant);
             }
             $request = $this->requestFactory->createRequest('GET', $url);
-            $request = $request->withAddedHeader('x-api-key', $this->apiKey);
+            if( null != $this->apiKey ) {
+                $request = $request->withAddedHeader('x-api-key', $this->apiKey);
+            }
             $response = $this->client->sendRequest($request);
-            $item = '' . $response->getBody();
+            $item = $response->getBody()->__toString();
             $this->cache->set($cache_key, $item, new \DateInterval('PT1H'));
             return $item;
         }
     }
+
+    /**
+     * Registers resource scopes with the Lugh authorization service.
+     *
+     * Sends a POST request to the Lugh service with the provided scope definitions.
+     * Each scope contains resource information and associated actions that users can perform.
+     *
+     * @param array<array<string, mixed>> $toScopes Array of scope definitions to register.
+     *                                        Each element contains 'resource' and 'scopes' keys.
+     * @return void
+     */
+    private function registerScopes(array $toScopes): void
+    {
+        $encoded = json_encode($toScopes);
+        if (is_string($encoded)) {
+            $registerScopesRequest = $this->requestFactory->createRequest('POST', $this->authUrl . '/resource/scope')
+            ->withBody($this->streamFactory->createStream($encoded));
+            if (null !== $this->apiKey) {
+                $registerScopesRequest = $registerScopesRequest
+                ->withAddedHeader('x-api-key', $this->apiKey);
+            }
+            $registerScopesResponse = $this->client->sendRequest($registerScopesRequest);
+            if ($registerScopesResponse->getStatusCode() !== 204) {
+                $this->logger->error('Error making scope register on '. $this->authUrl . ':' .
+                $registerScopesResponse->getBody()->__toString());
+            }
+        }
+    }
+
+    /**
+     * Registers resource attribute schemas with Lugh authorization service.
+     *
+     * Sends a POST request to Lugh service with provided schema definitions.
+     * Each schema defines resource attributes that can be controlled by RBAC policies.
+     *
+     * @param array<array<string, mixed>> $toAttributes Array of schema definitions to register.
+     *                                           Each element contains 'resource' and 'schemas' keys.
+     * @return void
+     */
+    private function registerSchemas(array $toAttributes): void
+    {
+        $encoded = json_encode($toAttributes);
+        if (is_string($encoded)) {
+            $request = $this->requestFactory->createRequest('POST', $this->authUrl . '/resource/schema')
+            ->withBody($this->streamFactory->createStream($encoded));
+            if (null !== $this->apiKey) {
+                $request = $request->withAddedHeader('x-api-key', $this->apiKey);
+            }
+            $response = $this->client->sendRequest($request);
+            if ($response->getStatusCode() !== 204) {
+                $this->logger->error('Error making schema register on '. $this->authUrl . ':' . $response->getBody()->__toString());
+            }
+        }
+    }
+
 }

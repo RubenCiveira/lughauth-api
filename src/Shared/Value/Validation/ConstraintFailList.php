@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Value\Validation;
 
+use InvalidArgumentException;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 
 /**
@@ -82,6 +83,9 @@ class ConstraintFailList
      */
     public function includeViolation(string $type): bool
     {
+        if (!class_exists($type)) {
+            throw new InvalidArgumentException($type . ' is expected to exists');
+        }
         foreach ($this->errors as $error) {
             if (is_a($error, $type)) {
                 return true;
@@ -112,8 +116,8 @@ class ConstraintFailList
      */
     private function copy(ConstraintFail $fail): ConstraintFail
     {
-        return $this->path
-          ? new ConstraintFail($fail->code, array_map(fn ($v) => $this->path . $v, $fail->fields), $fail->wrongValues, $fail->expectedValues)
-          : $fail;
+        $path = $this->path;
+        return null === $path ? $fail
+          : new ConstraintFail($fail->code, array_map(fn ($v) => $path . $v, $fail->fields), $fail->wrongValues, $fail->expectedValues);
     }
 }

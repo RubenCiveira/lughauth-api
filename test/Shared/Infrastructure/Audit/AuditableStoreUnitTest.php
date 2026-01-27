@@ -17,7 +17,7 @@ final class AuditableStoreUnitTest extends TestCase
         $store = new AuditableStore($base);
 
         $stream = fopen('php://temp', 'r+');
-        $content = new BinaryContent('name', 'mime', new DateTime(), $stream);
+        $content = new BinaryContent('name', 'mime', new \DateTime(), $stream);
         $key = new FileStoreKey('key');
 
         $base->expects($this->once())->method('tempStore')->with($content)->willReturn($key);

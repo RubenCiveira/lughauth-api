@@ -25,6 +25,7 @@ class Nip implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::nip()->isValid($value) ? null : new RuleFail('rule_nip', $value, []);
     }
 }

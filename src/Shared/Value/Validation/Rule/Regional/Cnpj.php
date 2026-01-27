@@ -25,6 +25,7 @@ class Cnpj implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::cnpj()->isValid($value) ? null : new RuleFail('rule_cnpj', $value, []);
     }
 }

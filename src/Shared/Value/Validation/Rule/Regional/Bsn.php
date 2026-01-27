@@ -25,6 +25,7 @@ class Bsn implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::bsn()->isValid($value) ? null : new RuleFail('rule_bsn', $value, []);
     }
 }

@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Connector\FileStorage;
 
+use InvalidArgumentException;
+
 /**
  * Value object that identifies a stored file.
  */
@@ -17,5 +19,8 @@ class FileStoreKey
         /** @var string Unique storage key. */
         public readonly string $key
     ) {
+        if ('' === trim($key)) {
+            throw new InvalidArgumentException('A key must be provided');
+        }
     }
 }

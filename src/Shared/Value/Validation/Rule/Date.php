@@ -25,6 +25,7 @@ class Date implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::date()->isValid($value) ? null : new RuleFail('rule_date', $value, []);
     }
 }

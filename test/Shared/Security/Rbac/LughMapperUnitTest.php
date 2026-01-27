@@ -119,7 +119,10 @@ final class LughMapperUnitTest extends TestCase
 
         $logger->expects($this->exactly(2))
             ->method('error')
-            ->with($this->stringContains('Error making the scope register on http://auth:'));
+            ->with($this->logicalOr(
+                $this->stringContains('Error making scope register on http://auth:'),
+                $this->stringContains('Error making schema register on http://auth:')
+            ));
 
         $mapper = new LughMapper(
             $config,
@@ -310,10 +313,13 @@ final class LughMapperUnitTest extends TestCase
     {
         $config = $this->createMock(AppConfig::class);
         $config->method('get')
-            ->willReturnMap([
-                ['security.rbac.lugh.location', '-', $authUrl],
-                ['security.rbac.lugh.api.key', null, $apiKey]
-            ]);
+            ->willReturnCallback(function(string $name, mixed $def = null) use ($authUrl, $apiKey) {
+                return match($name) {
+                    'security.rbac.lugh.location' => $authUrl,
+                    'security.rbac.lugh.api.key' => $apiKey,
+                    default => $def
+                };
+            });
         return $config;
     }
 

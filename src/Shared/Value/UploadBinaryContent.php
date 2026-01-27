@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Value;
 
+use DateTime;
+use InvalidArgumentException;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 
@@ -35,29 +37,40 @@ class UploadBinaryContent extends BinaryContent
     {
         $uploads = $request->getUploadedFiles();
         if (!isset($uploads[$name])) {
-            throw new \InvalidArgumentException($name . ' is not attached');
+            throw new InvalidArgumentException($name . ' is not attached');
         }
         /** @var \Psr\Http\Message\UploadedFileInterface */
         $upload = $uploads[$name];
         if ($error = $upload->getError()) {
             switch ($error) {
                 case UPLOAD_ERR_NO_FILE:
-                    throw new \InvalidArgumentException('No file sent.');
+                    throw new InvalidArgumentException('No file sent.');
                 case UPLOAD_ERR_INI_SIZE:
                 case UPLOAD_ERR_FORM_SIZE:
-                    throw new \InvalidArgumentException('Exceeded filesize limit.');
+                    throw new InvalidArgumentException('Exceeded filesize limit.');
                 default:
-                    throw new \InvalidArgumentException('Unknown errors.');
+                    throw new InvalidArgumentException('Unknown errors.');
             }
         }
         $path = tempnam(sys_get_temp_dir(), 'Tux');
+        if (false === $path) {
+            throw new InvalidArgumentException('No temp path.');
+        }
         $upload->moveTo($path);
         $resource = fopen($path, 'rb');
+        $filename = $upload->getClientFilename();
+        if (null === $filename) {
+            throw new InvalidArgumentException('No temp path.');
+        }
+        $mimeType = $upload->getClientMediaType();
+        if (null === $mimeType) {
+            throw new InvalidArgumentException('No temp path.');
+        }
         // TODO: sanitize name and mime.
         return new UploadBinaryContent(
-            name: $upload->getClientFilename(),
-            mime: $upload->getClientMediaType(),
-            lastChange: new \DateTime(),
+            name: $filename,
+            mime: $mimeType,
+            lastChange: new DateTime(),
             stream: $resource,
             path: $path
         );

@@ -13,5 +13,5 @@ interface Mapper
     /**
      * Validates the mapper configuration or connectivity.
      */
-    public function validate();
+    public function validate(): void;
 }

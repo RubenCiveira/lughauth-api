@@ -34,6 +34,7 @@ class Max implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::max($this->max)->isValid($value) ? null : new RuleFail('rule_max', $value, ['max' => $this->max]);
     }
 }

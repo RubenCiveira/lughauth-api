@@ -25,6 +25,7 @@ class Cnh implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::cnh()->isValid($value) ? null : new RuleFail('rule_cnh', $value, []);
     }
 }

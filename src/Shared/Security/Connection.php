@@ -28,15 +28,18 @@ class Connection
         $acceptLanguage = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
         $languages = explode(',', $acceptLanguage);
 
-        $remoteTarget = $_SERVER['SERVER_NAME'] ?? gethostname();
+        $remoteTarget = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : gethostname();
+        if( false === $remoteTarget ) {
+            $remoteTarget = '';
+        }
 
         $onProxy = $config ? $config->get("app.http.proxy.allow-forwarded", "false") == "true" : false;
         // Verificar si está disponible la IP del cliente en X-Forwarded-For (usualmente en proxies)
-        if ($onProxy && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        if ($onProxy && isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             // X-Forwarded-For puede contener una lista de IPs, tomamos la primera
             $ipList = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
             $clientIp = trim($ipList[0]);
-        } elseif ($onProxy && !empty($_SERVER['HTTP_X_REAL_IP'])) {
+        } elseif ($onProxy && isset($_SERVER['HTTP_X_REAL_IP'])) {
             // X-Real-IP también puede ser usado por algunos proxies
             $clientIp = $_SERVER['HTTP_X_REAL_IP'];
         } else {
@@ -50,7 +53,7 @@ class Connection
             remote: true,
             startTime: new \DateTime(),
             application: $app,
-            callback: $_SERVER['REQUEST_URI'],
+            callback: $_SERVER['REQUEST_URI'] ?? '',
             source: $clientIp,
             target: $remoteTarget,
             locale: $languages[0] ?? ''
@@ -91,10 +94,16 @@ class Connection
 
         // Convertir IP y subnet a formato de número entero de 32 bits
         $ipDecimal = ip2long($this->source);
+        if( false === $ipDecimal ) {
+            $ipDecimal = 0;
+        }
         $subnetDecimal = ip2long($subnet);
+        if( false === $subnetDecimal ) {
+            $subnetDecimal = 0;
+        }
 
         // Crear la máscara de red en formato decimal
-        $maskDecimal = ~((1 << (32 - $mask)) - 1);
+        $maskDecimal = ~((1 << (32 - (int)$mask)) - 1);
 
         // Comparar la IP y la subnet con la máscara de red aplicada
         return ($ipDecimal & $maskDecimal) === ($subnetDecimal & $maskDecimal);

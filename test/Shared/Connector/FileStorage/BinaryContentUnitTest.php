@@ -33,13 +33,11 @@ final class BinaryContentUnitTest extends TestCase
              * Assert: verify the binary content metadata and stream.
              */
             $this->assertSame(basename($path), $content->name);
-            $this->assertSame('binary', $content->mime);
-            $this->assertInstanceOf(DateTime::class, $content->lastChange);
+            $this->assertSame('text/plain', $content->mime); // MIME detection now works
+            $this->assertInstanceOf(\DateTime::class, $content->lastChange);
             $this->assertIsResource($content->stream);
+            $this->assertTrue($content->isStreamOpen());
         } finally {
-            if ($content && is_resource($content->stream)) {
-                fclose($content->stream);
-            }
             unlink($path);
         }
     }
@@ -52,7 +50,7 @@ final class BinaryContentUnitTest extends TestCase
         /*
          * Arrange: create a BinaryContent instance with known values.
          */
-        $date = new DateTime('2024-01-01');
+        $date = new \DateTime('2024-01-01');
         $stream = fopen('php://temp', 'r+');
         $content = new BinaryContent('name', 'mime', $date, $stream, 'https://example.com/file');
 
@@ -75,5 +73,94 @@ final class BinaryContentUnitTest extends TestCase
         $this->assertSame('https://example.com/file', $publicUrl);
 
         fclose($stream);
+    }
+
+    /**
+     * Tests fromFile with non-existent file throws exception.
+     */
+    public function testFromFileWithNonExistentFileThrowsException(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('File not found:');
+
+        BinaryContent::fromFile('/non/existent/file.txt');
+    }
+
+    /**
+     * Tests fromFile with unreadable file throws exception.
+     */
+    public function testFromFileWithUnreadableFileThrowsException(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'unreadable_');
+        file_put_contents($path, 'test');
+        chmod($path, 0000);
+
+        try {
+            $this->expectException(\InvalidArgumentException::class);
+            $this->expectExceptionMessage('File is not readable:');
+
+            BinaryContent::fromFile($path);
+        } finally {
+            chmod($path, 0644);
+            unlink($path);
+        }
+    }
+
+    /**
+     * Tests MIME type detection for different file types.
+     */
+    public function testMimeTypeDetection(): void
+    {
+        // Test JSON file
+        $jsonPath = tempnam(sys_get_temp_dir(), 'test_') . '.json';
+        file_put_contents($jsonPath, '{"test": "value"}');
+
+        $content = BinaryContent::fromFile($jsonPath);
+        $this->assertSame('application/json', $content->mime);
+
+        unlink($jsonPath);
+
+        // Test text file
+        $textPath = tempnam(sys_get_temp_dir(), 'test_') . '.txt';
+        file_put_contents($textPath, 'plain text content');
+
+        $content = BinaryContent::fromFile($textPath);
+        $this->assertSame('text/plain', $content->mime);
+
+        unlink($textPath);
+    }
+
+    /**
+     * Tests file timestamp is correctly retrieved.
+     */
+    public function testFileTimestamp(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'timestamp_');
+        file_put_contents($path, 'content');
+
+        $originalTime = filemtime($path);
+        $content = BinaryContent::fromFile($path);
+
+        $this->assertEqualsWithDelta(
+            new \DateTime("@{$originalTime}"),
+            $content->lastChange,
+            1 // Allow 1 second difference due to file system precision
+        );
+
+        unlink($path);
+    }
+
+    /**
+     * Tests isStreamOpen method.
+     */
+    public function testIsStreamOpen(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'stream_');
+        file_put_contents($path, 'content');
+
+        $content = BinaryContent::fromFile($path);
+        $this->assertTrue($content->isStreamOpen());
+
+        unlink($path);
     }
 }

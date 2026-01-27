@@ -41,7 +41,7 @@ class Random
         // Genera un UUID aleatorio (v4)
         $uuid = \Ramsey\Uuid\Uuid::uuid4();
         // Obtener el timestamp actual en milisegundos
-        $timestamp = (int) (microtime(true) * 1000);
+        $timestamp = (int) microtime(true) * 1000;
         // Convierte el timestamp a un formato hexadecimal
         $timestampHex = dechex($timestamp);
         // Asegúrate de que el timestamp tenga 12 caracteres

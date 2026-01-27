@@ -36,7 +36,7 @@ class Handler
     /**
      * Flushes pending registrations to the RBAC service.
      */
-    public function flush()
+    public function flush(): void
     {
         if ($this->mode == 1) {
             $this->mapper->flush();
@@ -50,7 +50,7 @@ class Handler
      * @param string $action Action name to register.
      * @param string $kind Action kind or scope type.
      */
-    public function registerResourceAction(string $resource, string $action, string $kind)
+    public function registerResourceAction(string $resource, string $action, string $kind): void
     {
         if ($this->mode == 1) {
             $this->mapper->registerResourceAction($resource, $action, $kind);
@@ -64,7 +64,7 @@ class Handler
      * @param string $attribute Attribute name to register.
      * @param string $kind Attribute kind or schema type.
      */
-    public function registerResourceAttribute(string $resource, string $attribute, string $kind)
+    public function registerResourceAttribute(string $resource, string $attribute, string $kind): void
     {
         if ($this->mode == 1) {
             $this->mapper->registerResourceAttribute($resource, $attribute, $kind);

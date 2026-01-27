@@ -50,6 +50,8 @@ class SpanHolder
     {
         if ($this->span) {
             $this->span->end();
+        }
+        if( $this->scope ) {
             $this->scope->detach();
         }
     }
@@ -134,12 +136,17 @@ class SpanHolder
     /**
      * @see https://github.com/open-telemetry/opentelemetry-specification/blob/v1.6.1/specification/trace/api.md#set-status
      *
-     * @psalm-param StatusCode::STATUS_* $code
      */
-    public function setStatus(string $code, ?string $description = null): SpanHolder
+    public function setStatus(Status $code, ?string $description = null): SpanHolder
     {
         if ($this->span) {
-            return new SpanHolder($this->span->setStatus($code, $description), $this->scope);
+            // Convert enum values to match OpenTelemetry expected format
+            $statusCode = match($code) {
+                Status::OK => 'OK',
+                Status::ERROR => 'ERROR',
+                Status::UNSET => 'UNSET',
+            };
+            return new SpanHolder($this->span->setStatus($statusCode, $description), $this->scope);
         } else {
             return $this;
         }

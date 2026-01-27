@@ -95,7 +95,7 @@ class AesCypherService
             '',   // AAD (Additional Authenticated Data), vacío en este caso
             self::TAG_LENGTH_BIT / 8  // Longitud del tag en bytes (16 bytes para 128 bits)
         );
-        $encryptedData = $iv . $salt . $cipherText . $tag;
+        $encryptedData = $iv . $salt . ( false === $cipherText ? '' : $cipherText ) . $tag;
         return base64_encode($encryptedData);
     }
 

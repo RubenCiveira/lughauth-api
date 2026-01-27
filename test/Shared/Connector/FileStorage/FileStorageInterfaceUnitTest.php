@@ -55,7 +55,7 @@ final class FileStorageInterfaceUnitTest extends TestCase
          * Act: store temporary content and commit it.
          */
         $stream = fopen('php://temp', 'r+');
-        $key = $storage->tempStore(new BinaryContent('name', 'mime', new DateTime(), $stream));
+        $key = $storage->tempStore(new BinaryContent('name', 'mime', new \DateTime(), $stream));
         $committed = $storage->commitContent($key);
 
         /*

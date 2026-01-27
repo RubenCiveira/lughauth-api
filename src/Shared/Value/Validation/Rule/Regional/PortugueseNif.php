@@ -5,26 +5,57 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Value\Validation\Rule\Regional;
 
-use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
 
 /**
- * PortugueseNif class validates that the given value is a valid Portuguese taxpayer number (NIF).
- * @api
+ * Validates Portuguese NIF (Número de Identificação Fiscal) numbers.
+ * 
+ * Portuguese NIF is a 9-digit number with a specific validation algorithm.
+ * The first digit indicates the type of entity.
  */
 class PortugueseNif implements Rule
 {
-    /**
-     * Checks whether the given value is a valid Portuguese NIF.
-     *
-     * @param mixed $value The value to validate.
-     * @return RuleFail|null Returns null if validation passes, otherwise a RuleFail object.
-     */
-    #[Override]
-    public function check($value): ?RuleFail
+    public function check(mixed $value): ?RuleFail
     {
-        return Validator::portugueseNif()->isValid($value) ? null : new RuleFail('rule_portuguese_nif', $value, []);
+        if (!is_string($value)) {
+            return new RuleFail('rule_portuguese_nif', $value, []);
+        }
+
+        // Must be exactly 9 characters and all digits
+        if (strlen($value) !== 9 || !ctype_digit($value)) {
+            return new RuleFail('rule_portuguese_nif', $value, []);
+        }
+        
+        $nif = $value;
+        
+        // First digit cannot be 0 or invalid entity type
+        $firstDigit = (int) $nif[0];
+        if ($firstDigit === 0 || $firstDigit > 6) {
+            return new RuleFail('rule_portuguese_nif', $value, []);
+        }
+        
+        // Check control digit
+        if (!$this->isValidControlDigit($nif)) {
+            return new RuleFail('rule_portuguese_nif', $value, []);
+        }
+        
+        return null;
+    }
+    
+    private function isValidControlDigit(string $nif): bool
+    {
+        $digits = str_split($nif);
+        $controlDigit = (int) $digits[8];
+        
+        $sum = 0;
+        for ($i = 0; $i < 8; $i++) {
+            $sum += (int) $digits[$i] * (9 - $i);
+        }
+        
+        $remainder = $sum % 11;
+        $calculatedDigit = $remainder < 2 ? 0 : 11 - $remainder;
+        
+        return $controlDigit === $calculatedDigit;
     }
 }

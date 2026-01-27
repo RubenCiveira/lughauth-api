@@ -130,7 +130,7 @@ final class SpanHolderUnitTest extends TestCase
         $this->assertInstanceOf(SpanHolder::class, $holder->addEvent('event', ['a' => 1], 123));
         $this->assertInstanceOf(SpanHolder::class, $holder->recordException(new RuntimeException('boom'), ['b' => 2]));
         $this->assertInstanceOf(SpanHolder::class, $holder->updateName('new'));
-        $this->assertInstanceOf(SpanHolder::class, $holder->setStatus('OK', 'done'));
+        $this->assertInstanceOf(SpanHolder::class, $holder->setStatus(\Civi\Lughauth\Shared\Observability\Status::OK, 'done'));
     }
 
     /**
@@ -151,7 +151,7 @@ final class SpanHolderUnitTest extends TestCase
         $event = $holder->addEvent('event');
         $exception = $holder->recordException(new RuntimeException('boom'));
         $updated = $holder->updateName('new');
-        $status = $holder->setStatus('OK');
+        $status = $holder->setStatus(\Civi\Lughauth\Shared\Observability\Status::OK);
 
         /*
          * Assert: verify the same holder instance is returned.

@@ -34,6 +34,7 @@ class Regex implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::regex($this->pattern)->isValid($value) ? null : new RuleFail('rule_regexp', $value, ['pattern' => $this->pattern]);
     }
 }

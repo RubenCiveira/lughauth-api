@@ -21,8 +21,43 @@ class BinaryContent
      */
     public static function fromFile(string $path): BinaryContent
     {
+        if (!file_exists($path)) {
+            throw new \InvalidArgumentException("File not found: {$path}");
+        }
+
+        if (!is_readable($path)) {
+            throw new \InvalidArgumentException("File is not readable: {$path}");
+        }
+
         $resource = fopen($path, 'rb');
-        return new BinaryContent(name: basename($path), mime: 'binary', lastChange: new \DateTime(), stream: $resource);
+        if ($resource === false) {
+            throw new \RuntimeException("Failed to open file: {$path}");
+        }
+
+        $timestamp = filemtime($path);
+        $lastChange = false === $timestamp ? new \DateTime("@{$timestamp}") : new \DateTime();
+
+        $mime = self::detectMimeType($path);
+        return new BinaryContent(name: basename($path), mime: $mime, lastChange: $lastChange, stream: $resource);
+    }
+
+    /**
+     * Detect MIME type from file path.
+     */
+    private static function detectMimeType(string $path): string
+    {
+        $mime = false;
+        if (function_exists('finfo_file')) {
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            if (false !== $finfo) {
+                $mime = finfo_file($finfo, $path);
+            }
+            unset($finfo);
+        } else {
+            $mime = mime_content_type($path);
+        }
+        return false === $mime ? 'application/octet-stream' : $mime;
+
     }
 
     /**
@@ -35,10 +70,19 @@ class BinaryContent
         public readonly string $mime,
         /** @var \DateTime Timestamp of the last change. */
         public readonly \DateTime $lastChange,
-        /** @var mixed Stream resource or stream-like value. */
+        /** @var resource Stream resource for the binary content. */
         public readonly mixed $stream,
         /** @var string|null Public URL for external access, if available. */
         public readonly ?string $publicUrl = null
     ) {
+    }
+
+    /**
+     * Check if the stream resource is still open.
+     */
+    public function isStreamOpen(): bool
+    {
+        /** @psalm-suppress RedundantConditionGivenDocblockType */
+        return is_resource($this->stream);
     }
 }

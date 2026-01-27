@@ -37,6 +37,7 @@ class Length implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::length($this->min, $this->max)->isValid($value) ? null : new RuleFail('rule_length', $value, ['min' => $this->min, 'max' => $this->max]);
     }
 }

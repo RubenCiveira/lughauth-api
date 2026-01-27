@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Value;
 
 use Override;
+use RuntimeException;
 use Psr\Http\Message\StreamInterface;
 
 /**
@@ -21,7 +22,7 @@ class StreamResource implements StreamInterface
     /**
      * @var resource|null The underlying PHP stream resource.
      */
-    private $resource;
+    private mixed $resource;
 
     /**
      * Constructs a new stream wrapper from a valid PHP resource.
@@ -31,6 +32,7 @@ class StreamResource implements StreamInterface
      */
     public function __construct($resource)
     {
+        /** @psalm-suppress DocblockTypeContradiction */
         if (!is_resource($resource)) {
             throw new \InvalidArgumentException('El argumento debe ser un recurso');
         }
@@ -43,14 +45,14 @@ class StreamResource implements StreamInterface
      * @return string The complete stream contents.
      */
     #[Override]
-    public function __toString()
+    public function __toString(): string
     {
         if (!$this->resource) {
             return '';
         }
-
         rewind($this->resource);
-        return stream_get_contents($this->resource);
+        $content = stream_get_contents($this->resource);
+        return false === $content ? '' : $content;
     }
 
     /**
@@ -59,8 +61,9 @@ class StreamResource implements StreamInterface
     #[Override]
     public function close(): void
     {
-        if ($this->resource) {
-            fclose($this->resource);
+        $resource = $this->resource;
+        if (null !== $resource) {
+            fclose($resource);
             $this->resource = null;
         }
     }
@@ -103,7 +106,8 @@ class StreamResource implements StreamInterface
     #[Override]
     public function tell(): int
     {
-        return ftell($this->resource);
+        $resource = $this->resource;
+        return  null === $resource ? 0 : (int) ftell($resource);
     }
 
     /**
@@ -114,7 +118,8 @@ class StreamResource implements StreamInterface
     #[Override]
     public function eof(): bool
     {
-        return feof($this->resource);
+        $resource = $this->resource;
+        return  null === $resource ? true : feof($resource);
     }
 
     /**
@@ -139,10 +144,12 @@ class StreamResource implements StreamInterface
     public function seek($offset, $whence = SEEK_SET): void
     {
         if (!$this->isSeekable()) {
-            throw new \RuntimeException('Stream no es seekable');
+            throw new RuntimeException('Stream no es seekable');
         }
-
-        fseek($this->resource, $offset, $whence);
+        $resource = $this->resource;
+        if (null !== $resource) {
+            fseek($resource, $offset, $whence);
+        }
     }
 
     /**
@@ -162,8 +169,13 @@ class StreamResource implements StreamInterface
     #[Override]
     public function isWritable(): bool
     {
-        $meta = stream_get_meta_data($this->resource);
-        return strpbrk($meta['mode'], 'waxc+') !== false;
+        $resource = $this->resource;
+        if (null === $resource) {
+            return false;
+        } else {
+            $meta = stream_get_meta_data($resource);
+            return strpbrk($meta['mode'], 'waxc+') !== false;
+        }
     }
 
     /**
@@ -171,16 +183,21 @@ class StreamResource implements StreamInterface
      *
      * @param string $string The data to write.
      * @return int The number of bytes written.
-     * @throws \RuntimeException If the stream is not writable.
+     * @throws RuntimeException If the stream is not writable.
      */
     #[Override]
     public function write($string): int
     {
         if (!$this->isWritable()) {
-            throw new \RuntimeException('Stream no es writable');
+            throw new RuntimeException('Stream no es writable');
         }
-
-        return fwrite($this->resource, $string);
+        $resource = $this->resource;
+        if (null == $resource) {
+            return 0;
+        } else {
+            $writed = fwrite($resource, $string) ;
+            return $writed === false ? 0 : $writed;
+        }
     }
 
     /**
@@ -191,8 +208,13 @@ class StreamResource implements StreamInterface
     #[Override]
     public function isReadable(): bool
     {
-        $meta = stream_get_meta_data($this->resource);
-        return strpbrk($meta['mode'], 'r+') !== false;
+        $resource = $this->resource;
+        if (null == $resource) {
+            return false;
+        } else {
+            $meta = stream_get_meta_data($resource);
+            return strpbrk($meta['mode'], 'r+') !== false;
+        }
     }
 
     /**
@@ -208,7 +230,13 @@ class StreamResource implements StreamInterface
         if (!$this->isReadable()) {
             throw new \RuntimeException('Stream no es readable');
         }
-        return fread($this->resource, $length);
+        $resource = $this->resource;
+        if (null == $resource) {
+            return '';
+        } else {
+            $read = fread($resource, $length);
+            return $read == false ? '' : $read;
+        }
     }
 
     /**
@@ -223,8 +251,13 @@ class StreamResource implements StreamInterface
         if (!$this->isReadable()) {
             throw new \RuntimeException('Stream no es readable');
         }
-
-        return stream_get_contents($this->resource);
+        $resource = $this->resource;
+        if (null == $resource) {
+            return '';
+        } else {
+            $read = stream_get_contents($resource);
+            return false === $read ? '' : $read;
+        }
     }
 
     /**
@@ -234,9 +267,14 @@ class StreamResource implements StreamInterface
      * @return mixed The metadata value or array of all metadata.
      */
     #[Override]
-    public function getMetadata($key = null)
+    public function getMetadata($key = null): mixed
     {
-        $meta = stream_get_meta_data($this->resource);
-        return $key ? ($meta[$key] ?? null) : $meta;
+        $resource = $this->resource;
+        if (null == $resource) {
+            return null;
+        } else {
+            $meta = stream_get_meta_data($resource);
+            return null == $key ? $meta : $meta[$key] ?? null;
+        }
     }
 }

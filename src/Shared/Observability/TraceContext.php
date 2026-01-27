@@ -21,9 +21,9 @@ class TraceContext
      */
     private ?string $fallbackSpanId = null;
     /**
-     * @var array<string, string>|null Request headers used to extract trace metadata.
+     * @var array<string, string> Request headers used to extract trace metadata.
      */
-    private ?array $headers = null;
+    private readonly array $headers;
 
     /**
      * Creates a new trace context using optional headers.
@@ -42,7 +42,7 @@ class TraceContext
     {
         $context = Span::getCurrent()->getContext();
 
-        if ($context && $context->isValid()) {
+        if ($context->isValid()) {
             return $context->getTraceId();
         }
 
@@ -62,7 +62,7 @@ class TraceContext
     {
         $context = Span::getCurrent()->getContext();
 
-        if ($context && $context->isValid()) {
+        if ($context->isValid()) {
             return $context->getSpanId();
         }
 

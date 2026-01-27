@@ -24,7 +24,7 @@ abstract class FieldsAccess
      *
      * @param string ...$fields Field names to include.
      */
-    public function with(string ...$fields)
+    public function with(string ...$fields): void
     {
         $this->fields = [...$this->fields, ...$fields];
     }
@@ -34,7 +34,7 @@ abstract class FieldsAccess
      *
      * @param array<int, string> $fields Field names to include.
      */
-    public function withAll(array $fields)
+    public function withAll(array $fields): void
     {
         $this->fields = [...$this->fields, ...$fields];
     }

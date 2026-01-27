@@ -26,6 +26,7 @@ class MacAddress implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::macAddress()->isValid($value) ? null : new RuleFail('rule_mac_addres', $value, []);
     }
 }

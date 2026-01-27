@@ -33,6 +33,7 @@ class PostalCode implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::postalCode($this->countryCode)->isValid($value) ? null : new RuleFail('rule_postal_code', $value, ['countryCode' => $this->countryCode]);
     }
 }
