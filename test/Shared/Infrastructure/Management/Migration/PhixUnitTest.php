@@ -253,8 +253,7 @@ final class PhixUnitTest extends TestCase
         bool $beforeUp,
         bool $afterUp,
         \Symfony\Component\Console\Output\OutputInterface $output
-    ): \Phinx\Migration\Manager
-    {
+    ): \Phinx\Migration\Manager {
         $migrations = [
             '1' => new FakeMigration('Init', $beforeUp)
         ];
