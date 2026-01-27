@@ -180,6 +180,7 @@ namespace {
         }
     }
 
+
     /**
      * Unit tests for {@see Micro}.
      */
@@ -499,16 +500,13 @@ namespace {
         }
 
         /**
-         * Confirms the configured exception handler lambda is executed.
+         * Confirms error handler outputs trace and returns a response.
          */
-        public function testErrorHandlerLambdaIsExecuted(): void
+        public function testErrorHandlerOutputsTraceAndReturnsResponse(): void
         {
             /*
-             * Arrange: ensure forking is available and build the Micro instance.
+             * Arrange: build the Micro instance.
              */
-            if (!function_exists('pcntl_fork')) {
-                $this->markTestSkipped('pcntl_fork is not available.');
-            }
             $_ENV['DISABLE_SUPERVISOR'] = '1';
             $builder = new ContainerBuilder();
             $builder->addDefinitions([
@@ -519,41 +517,21 @@ namespace {
             $this->invokePrivate($micro, 'build');
 
             $errorHandler = $micro->errorHandler;
-            $tempFile = $this->rootDir() . '/var/trace-error-handler-' . uniqid('', true) . '.log';
 
             /*
-             * Act: trigger the handler inside a child process to avoid die() in parent.
+             * Act: trigger the handler and capture output.
              */
-            $pid = pcntl_fork();
-            if ($pid === -1) {
-                $this->fail('Unable to fork process for error handler test.');
-            }
-            if ($pid === 0) {
-                ob_start();
-                register_shutdown_function(function (): void {
-                    while (ob_get_level() > 0) {
-                        ob_end_clean();
-                    }
-                });
-                file_put_contents($tempFile, "before\n");
-                $requestFactory = new ServerRequestFactory();
-                $request = $requestFactory->createServerRequest('GET', '/error');
-                $errorHandler->handleException($request, new Exception('boom'));
-                file_put_contents($tempFile, "after\n", FILE_APPEND);
-                exit(0);
-            }
-            pcntl_waitpid($pid, $status);
+            ob_start();
+            $requestFactory = new ServerRequestFactory();
+            $request = $requestFactory->createServerRequest('GET', '/error');
+            $response = $errorHandler->handleException($request, new Exception('boom'));
+            $output = ob_get_clean();
 
             /*
-             * Assert: handler terminated execution before reaching the marker.
+             * Assert: handler echoed trace and returned response.
              */
-            $output = file_exists($tempFile) ? file_get_contents($tempFile) : '';
-            $this->assertStringContainsString('before', $output);
-            $this->assertStringNotContainsString('after', $output);
-
-            if (file_exists($tempFile)) {
-                unlink($tempFile);
-            }
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+            $this->assertNotSame('', $output);
             unset($_ENV['DISABLE_SUPERVISOR']);
         }
 
@@ -708,6 +686,46 @@ namespace {
             }
         }
 
+        /**
+         * Ensures run creates a random store directory when missing.
+         */
+        public function testRunCreatesRandomStoreDirWhenMissing(): void
+        {
+            /*
+             * Arrange: use a random, non-existing store directory.
+             */
+            $_ENV['CRON'] = '1';
+            $_ENV['DISABLE_SUPERVISOR'] = '1';
+            $baseDir = rtrim(sys_get_temp_dir(), '/') . '/micro-store-' . uniqid('', true);
+            $vardir = $baseDir . '/var';
+            if (is_dir($baseDir)) {
+                $this->removeDirectory($baseDir);
+            }
+            $this->assertFalse(is_dir($vardir));
+
+            $builder = new ContainerBuilder();
+            $builder->addDefinitions([
+                EventBus::class => $this->createEventBusStub(),
+                SchedulerManager::class => new SchedulerManagerStub(),
+            ]);
+            $micro = new StoreDirMicro($builder, $baseDir);
+
+            try {
+                /*
+                 * Act: run Micro and let it create vardir.
+                 */
+                $micro->run();
+
+                /*
+                 * Assert: vardir exists after run.
+                 */
+                $this->assertTrue(is_dir($vardir));
+            } finally {
+                unset($_ENV['CRON'], $_ENV['DISABLE_SUPERVISOR']);
+                $this->removeDirectory($baseDir);
+            }
+        }
+
 
         /**
          * Verifies background supervisor URL generation does not crash.
@@ -732,6 +750,41 @@ namespace {
              * Assert: no exception thrown during URL generation.
              */
             $this->assertTrue(true);
+        }
+
+        /**
+         * Ensures DISABLE_SUPERVISOR returns early without touching lock file.
+         */
+        public function testEnsureBackgroundSupervisorReturnsEarlyWhenDisabled(): void
+        {
+            /*
+             * Arrange: enable DISABLE_SUPERVISOR and clear lock file.
+             */
+            $_ENV['DISABLE_SUPERVISOR'] = '1';
+            $lockFile = $this->rootDir() . '/var/scheduler.lock';
+            if (file_exists($lockFile)) {
+                unlink($lockFile);
+            }
+            $this->assertFalse(file_exists($lockFile));
+
+            $micro = new Micro(new ContainerBuilder());
+
+            try {
+                /*
+                 * Act: call supervisor bootstrap.
+                 */
+                $this->invokePrivate($micro, 'ensureBackgroundSupervisor');
+
+                /*
+                 * Assert: lock file was not created.
+                 */
+                $this->assertFalse(file_exists($lockFile));
+            } finally {
+                unset($_ENV['DISABLE_SUPERVISOR']);
+                if (file_exists($lockFile)) {
+                    unlink($lockFile);
+                }
+            }
         }
 
         /**

@@ -18,6 +18,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Slim\Psr7\Response;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
@@ -175,7 +176,7 @@ class Micro
         $this->errorHandler = $this->app->addErrorMiddleware($this->config->develop, null !== $logger, $this->config->develop, $logger);
         $this->errorHandler->setErrorHandler(Exception::class, function (ServerRequestInterface $request, Exception $exception): ResponseInterface {
             echo $exception->getTraceAsString();
-            die();
+            return new Response();
         });
         $container->set(ErrorMiddleware::class, $this->errorHandler);
         $this->interfaces = [];
@@ -192,14 +193,14 @@ class Micro
         }
     }
 
-    public function run()
+    public function run(): void
     {
-        $this->build();
-        $this->registerManagers($this->app, $this->container);
         $vardir = rtrim($this->storeDir(''), '/').'/';
         if (!is_dir($vardir)) {
             mkdir($vardir, 0777, true);
         }
+        $this->build();
+        $this->registerManagers($this->app, $this->container);
         $lockFile = fopen($vardir.'startup.lock', 'c');
         $startUpFile = $vardir.'startup.flag';
         if (flock($lockFile, LOCK_EX | LOCK_NB)) {
