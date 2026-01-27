@@ -53,6 +53,48 @@ final class LogCollectorUnitTest extends TestCase
         $this->assertSame('log-collector', $collector->name());
     }
 
+    /**
+     * Ensures defaults are applied when optional fields are missing.
+     */
+    public function testSetUsesDefaults(): void
+    {
+        /* Arrange: logger captures defaulted context and values. */
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())
+            ->method('log')
+            ->with(
+                'warning',
+                '',
+                $this->callback(function (array $context): bool {
+                    $this->assertSame('unknown', $context['service']);
+                    $this->assertSame('default', $context['scope']);
+                    $this->assertSame('value', $context['key']);
+                    return true;
+                })
+            );
+
+        $collector = new LogCollector($logger);
+        $request = $this->request([
+            'resourceLogs' => [[
+                'resource' => ['attributes' => []],
+                'scopeLogs' => [[
+                    'logRecords' => [[
+                        'severityText' => 'WARNING',
+                        'attributes' => [
+                            ['key' => 'key', 'value' => ['stringValue' => 'value']]
+                        ]
+                    ]]
+                ]]
+            ]]
+        ]);
+
+        /* Act: execute the log collector handler. */
+        $result = ($collector->set())($request);
+
+        /* Assert: verify the handler returns an ok response. */
+        $this->assertSame(['status' => 'ok'], $result);
+    }
+
     private function request(array $payload): ServerRequestInterface
     {
         $stream = (new StreamFactory())->createStream(json_encode($payload, JSON_THROW_ON_ERROR));

@@ -59,6 +59,83 @@ final class TraceCollectorUnitTest extends TestCase
         $this->assertSame('trace-collector', $collector->name());
     }
 
+    /**
+     * Ensures parent spans and attributes are mapped into exported spans.
+     */
+    public function testSetExportsParentSpanAndAttributes(): void
+    {
+        /* Arrange: build exporter expectations for the mapped span. */
+        $exporter = $this->createMock(SpanExporterInterface::class);
+        $exporter->expects($this->once())
+            ->method('export')
+            ->with($this->callback(function (array $spans): bool {
+                $this->assertCount(1, $spans);
+                $span = $spans[0];
+                $this->assertSame('child', $span->getName());
+                $this->assertSame(2, $span->getKind());
+                $this->assertSame('1111111111111111', $span->getParentSpanId());
+                $this->assertSame(10, $span->getStartEpochNanos());
+                $this->assertSame(20, $span->getEndEpochNanos());
+                $this->assertSame('OK', $span->getStatus()->getCode());
+                $this->assertSame('fine', $span->getStatus()->getDescription());
+                $this->assertSame('value', $span->getAttributes()->get('key'));
+                return true;
+            }))
+            ->willReturn(new CompletedFuture(true));
+
+        $collector = new TraceCollector($exporter);
+        $request = $this->request([
+            'resourceSpans' => [[
+                'resource' => ['attributes' => [
+                    ['key' => 'service.name', 'value' => ['stringValue' => 'app']]
+                ]],
+                'scopeSpans' => [[
+                    'scope' => ['name' => 'scope', 'version' => '1.0'],
+                    'spans' => [[
+                        'traceId' => '4bf92f3577b34da6a3ce929d0e0e4736',
+                        'spanId' => '00f067aa0ba902b7',
+                        'parentSpanId' => '1111111111111111',
+                        'name' => 'child',
+                        'startTimeUnixNano' => 10,
+                        'endTimeUnixNano' => 20,
+                        'attributes' => [
+                            ['key' => 'key', 'value' => ['stringValue' => 'value']],
+                            ['value' => ['stringValue' => 'ignored']]
+                        ],
+                        'status' => ['code' => 0, 'message' => 'fine'],
+                        'kind' => 2
+                    ]]
+                ]]
+            ]]
+        ]);
+
+        /* Act: execute the trace collector handler. */
+        $result = ($collector->set())($request);
+
+        /* Assert: verify the handler returns an empty response. */
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * Ensures payloads without resource spans do not trigger export.
+     */
+    public function testSetSkipsWhenNoResourceSpans(): void
+    {
+        /* Arrange: exporter should not be called. */
+        $exporter = $this->createMock(SpanExporterInterface::class);
+        $exporter->expects($this->never())
+            ->method('export');
+
+        $collector = new TraceCollector($exporter);
+        $request = $this->request(['resourceMetrics' => []]);
+
+        /* Act: execute the trace collector handler. */
+        $result = ($collector->set())($request);
+
+        /* Assert: verify an empty response with no export. */
+        $this->assertSame([], $result);
+    }
+
     private function request(array $payload): ServerRequestInterface
     {
         $stream = (new StreamFactory())->createStream(json_encode($payload, JSON_THROW_ON_ERROR));

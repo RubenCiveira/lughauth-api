@@ -47,11 +47,19 @@ final class SpanDataEnvelopeUnitTest extends TestCase
         $traceId = $span->getTraceId();
         $spanId = $span->getSpanId();
         $parentSpanId = $span->getParentSpanId();
+        $contextOutput = $span->getContext();
+        $parentContextOutput = $span->getParentContext();
         $endNanos = $span->getEndEpochNanos();
+        $startNanos = $span->getStartEpochNanos();
         $hasEnded = $span->hasEnded();
         $spanAttributes = $span->getAttributes();
         $instrumentationScope = $span->getInstrumentationScope();
         $spanResource = $span->getResource();
+        $status = $span->getStatus();
+        $events = $span->getEvents();
+        $links = $span->getLinks();
+        $droppedEvents = $span->getTotalDroppedEvents();
+        $droppedLinks = $span->getTotalDroppedLinks();
 
         /* Assert: verify getter outputs reflect the inputs. */
         $this->assertSame('span', $name);
@@ -59,10 +67,18 @@ final class SpanDataEnvelopeUnitTest extends TestCase
         $this->assertSame($context->getTraceId(), $traceId);
         $this->assertSame($context->getSpanId(), $spanId);
         $this->assertSame($parent->getSpanId(), $parentSpanId);
+        $this->assertSame($context, $contextOutput);
+        $this->assertSame($parent, $parentContextOutput);
         $this->assertSame(2, $endNanos);
+        $this->assertSame(1, $startNanos);
         $this->assertTrue($hasEnded);
         $this->assertSame($attributes, $spanAttributes);
         $this->assertSame($scope, $instrumentationScope);
         $this->assertSame($resource, $spanResource);
+        $this->assertSame(StatusDataEnvelope::CODE_OK, $status->getCode());
+        $this->assertSame([], $events);
+        $this->assertSame([], $links);
+        $this->assertSame(0, $droppedEvents);
+        $this->assertSame(0, $droppedLinks);
     }
 }

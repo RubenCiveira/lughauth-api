@@ -41,4 +41,24 @@ final class StatusDataEnvelopeUnitTest extends TestCase
 
         $this->assertSame(StatusDataEnvelope::CODE_UNSET, $fromRawUnset->getCode());
     }
+
+    /**
+     * Ensures null or unknown codes default to unset.
+     */
+    public function testFromRawDefaults(): void
+    {
+        /* Arrange: payloads without codes or with unknown codes. */
+        $fromNull = StatusDataEnvelope::fromRaw(null);
+        $fromUnknown = StatusDataEnvelope::fromRaw(['code' => 99]);
+
+        /* Act: fetch codes and descriptions. */
+        $nullCode = $fromNull->getCode();
+        $unknownCode = $fromUnknown->getCode();
+        $unknownDescription = $fromUnknown->getDescription();
+
+        /* Assert: verify defaults are applied. */
+        $this->assertSame(StatusDataEnvelope::CODE_UNSET, $nullCode);
+        $this->assertSame(StatusDataEnvelope::CODE_UNSET, $unknownCode);
+        $this->assertSame('', $unknownDescription);
+    }
 }
