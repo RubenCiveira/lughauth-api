@@ -29,7 +29,7 @@ class Connection
         $languages = explode(',', $acceptLanguage);
 
         $remoteTarget = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : gethostname();
-        if( false === $remoteTarget ) {
+        if (false === $remoteTarget) {
             $remoteTarget = '';
         }
 
@@ -94,11 +94,11 @@ class Connection
 
         // Convertir IP y subnet a formato de número entero de 32 bits
         $ipDecimal = ip2long($this->source);
-        if( false === $ipDecimal ) {
+        if (false === $ipDecimal) {
             $ipDecimal = 0;
         }
         $subnetDecimal = ip2long($subnet);
-        if( false === $subnetDecimal ) {
+        if (false === $subnetDecimal) {
             $subnetDecimal = 0;
         }
 

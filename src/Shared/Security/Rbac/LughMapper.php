@@ -186,7 +186,7 @@ class LughMapper
 
     private function getGrants(Identity $user): string
     {
-        $cache_key = 'lught.grants' . ( null !== $user->tenant ? '.' . $user->tenant : '');
+        $cache_key = 'lught.grants' . (null !== $user->tenant ? '.' . $user->tenant : '');
         if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
@@ -195,7 +195,7 @@ class LughMapper
                 $url .= '?tenant=' . urlencode($user->tenant);
             }
             $request = $this->requestFactory->createRequest('GET', $url);
-            if( null != $this->apiKey ) {
+            if (null != $this->apiKey) {
                 $request = $request->withAddedHeader('x-api-key', $this->apiKey);
             }
             $response = $this->client->sendRequest($request);

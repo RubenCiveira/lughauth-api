@@ -51,7 +51,7 @@ class SpanHolder
         if ($this->span) {
             $this->span->end();
         }
-        if( $this->scope ) {
+        if ($this->scope) {
             $this->scope->detach();
         }
     }

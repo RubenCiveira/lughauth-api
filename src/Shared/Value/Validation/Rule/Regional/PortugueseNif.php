@@ -10,7 +10,7 @@ use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
 /**
  * Validates Portuguese NIF (Número de Identificação Fiscal) numbers.
- * 
+ *
  * Portuguese NIF is a 9-digit number with a specific validation algorithm.
  * The first digit indicates the type of entity.
  */
@@ -26,36 +26,36 @@ class PortugueseNif implements Rule
         if (strlen($value) !== 9 || !ctype_digit($value)) {
             return new RuleFail('rule_portuguese_nif', $value, []);
         }
-        
+
         $nif = $value;
-        
+
         // First digit cannot be 0 or invalid entity type
         $firstDigit = (int) $nif[0];
         if ($firstDigit === 0 || $firstDigit > 6) {
             return new RuleFail('rule_portuguese_nif', $value, []);
         }
-        
+
         // Check control digit
         if (!$this->isValidControlDigit($nif)) {
             return new RuleFail('rule_portuguese_nif', $value, []);
         }
-        
+
         return null;
     }
-    
+
     private function isValidControlDigit(string $nif): bool
     {
         $digits = str_split($nif);
         $controlDigit = (int) $digits[8];
-        
+
         $sum = 0;
         for ($i = 0; $i < 8; $i++) {
             $sum += (int) $digits[$i] * (9 - $i);
         }
-        
+
         $remainder = $sum % 11;
         $calculatedDigit = $remainder < 2 ? 0 : 11 - $remainder;
-        
+
         return $controlDigit === $calculatedDigit;
     }
 }

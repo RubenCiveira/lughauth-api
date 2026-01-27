@@ -313,7 +313,7 @@ final class LughMapperUnitTest extends TestCase
     {
         $config = $this->createMock(AppConfig::class);
         $config->method('get')
-            ->willReturnCallback(function(string $name, mixed $def = null) use ($authUrl, $apiKey) {
+            ->willReturnCallback(function (string $name, mixed $def = null) use ($authUrl, $apiKey) {
                 return match($name) {
                     'security.rbac.lugh.location' => $authUrl,
                     'security.rbac.lugh.api.key' => $apiKey,
