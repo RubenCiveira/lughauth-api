@@ -250,33 +250,47 @@ class Micro
 
     private function ensureBackgroundSupervisor()
     {
+        if (!empty($_ENV['DISABLE_SUPERVISOR'])) {
+            return;
+        }
         $scheme = 'http';
         if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
             $scheme = 'https';
         }
+        $scriptName = $this->resolveScriptName();
         $url = $scheme . '://' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ':' . ($_SERVER['SERVER_PORT'] ?? 80)
-                    . dirname($_SERVER['SCRIPT_NAME']) . '/cron';
+                    . dirname($scriptName) . '/cron';
         $supervisor = new Supervisor(__DIR__.'/../../../');
         $supervisor->ensureRunning($url);
+    }
+
+    protected function resolveScriptName(): string
+    {
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        if ($scriptName === '') {
+            return '/index.php';
+        }
+        return $scriptName;
     }
 
     private function withTelementry(&$def)
     {
         $def[SpanExporterInterface::class] = function (AppConfig $config) {
             $name = $config->name;
-            $base = dirname(__DIR__) . "/../../var/trace";
-            if (true) {
-                if (!is_dir($base)) {
-                    mkdir($base);
-                }
-                $exporter = new SpanJsonGzipRotatingFileExporter($base . '/' . $name . '-telemetry.json', 10);
-            } else {
+            $endpoint = $config->get("app.telemetry.collector.url");
+            if ($endpoint) {
                 $transport = (new PsrTransportFactory())->create(
-                    endpoint: 'http://localhost:4318/v1/traces', // URL del OTLP endpoint
+                    endpoint: $endpoint, // URL del OTLP endpoint
                     contentType: 'application/x-protobuf',        // Protobuf es el estándar OTLP
                     headers: []                                   // opcional: ['Authorization' => 'Bearer ...']
                 );
                 $exporter = new SpanExporter($transport);
+            } else {
+                $base = $config->get('app.telemetry.exporter.path', dirname(__DIR__) . "/../../var/trace");
+                if (!is_dir($base)) {
+                    mkdir($base, 0777, true);
+                }
+                $exporter = new SpanJsonGzipRotatingFileExporter($base . '/' . $name . '-telemetry.json', 10);
             }
             return $exporter;
         };
@@ -408,7 +422,7 @@ class Micro
             $name = $config->name;
             $base = dirname(__DIR__) . "/../../var/log";
             if (!is_dir($base)) {
-                mkdir($base);
+                mkdir($base, 0777, true);
             }
             $handler = new MonologGzipRotatingFileHandler($base . "/".$name.".jsonl", 10);
             $handler->setFormatter(new JsonFormatter(JsonFormatter::BATCH_MODE_NEWLINES));
