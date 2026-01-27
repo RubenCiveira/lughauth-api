@@ -67,10 +67,6 @@ class LogManagement implements ManagementInterface
             $results = [];
 
             foreach ($logFiles as $file) {
-                $handle = fopen($file, 'r');
-                if (!$handle) {
-                    continue;
-                }
                 foreach ($this->iterateLines($file) as $line) {
                     if (!trim($line)) {
                         continue;
@@ -127,7 +123,6 @@ class LogManagement implements ManagementInterface
                         break 2; // salimos de ambos bucles
                     }
                 }
-                fclose($handle);
             }
             return $results;
         };
