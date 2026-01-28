@@ -28,14 +28,21 @@ class TraceContextProcessor implements ProcessorInterface
     }
     /**
      * Injects trace and service metadata into the log record.
+     *
+     * @param LogRecord $record The incoming log record.
+     *
+     * @return LogRecord A new record with trace and service data added.
      */
     #[Override]
     public function __invoke(LogRecord $record): LogRecord
     {
-        $record['extra']['traceId'] = $this->traceContext->getTraceId();
-        $record['extra']['spanId'] = $this->traceContext->getSpanId();
         $data = $this->appContext->getInstanceData();
-        $record['extra']['service'] = [...$data];
-        return $record;
+
+        return $record->with(extra: [
+            ...$record->extra,
+            'traceId' => $this->traceContext->getTraceId(),
+            'spanId' => $this->traceContext->getSpanId(),
+            'service' => [...$data],
+        ]);
     }
 }

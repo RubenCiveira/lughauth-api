@@ -38,8 +38,9 @@ final class MonologGzipRotatingFileHandler extends RotatingFileHandler
 
         // Patrón de ficheros del mismo grupo (según filenameFormat y dateFormat)
         $glob = $this->getGlobPattern() . '*'; // ej: /var/log/app-{date}.jsonl => /var/log/app-*.jsonl
-        $files = glob($glob) ?: [];
-        usort($files, fn ($a, $b) => strcmp($b, $a)); // Más recientes primero
+        $globResult = glob($glob);
+        $files = $globResult !== false ? $globResult : [];
+        usort($files, fn (string $a, string $b): int => strcmp($b, $a));
 
         foreach (array_slice($files, $this->maxFiles) as $file) {
             @unlink($file);
@@ -51,7 +52,7 @@ final class MonologGzipRotatingFileHandler extends RotatingFileHandler
                 continue;
             }
             // archivo actual (abierto)
-            if (realpath($file) === realpath($currentUrl)) {
+            if ($currentUrl !== null && realpath($file) === realpath($currentUrl)) {
                 continue;
             }
             // no comprimas el del día (si generas “hoy” y aún no es el actual)

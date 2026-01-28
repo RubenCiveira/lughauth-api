@@ -134,6 +134,13 @@ class EnqueuePublisher
         $this->clearEvents();
     }
 
+    /**
+     * Publishes a single event record to the AMQP exchange.
+     *
+     * Creates topic queues for each event type segment and a catch-all queue.
+     *
+     * @param array<string, mixed> $data The event record from the pending table.
+     */
     private function send(array $data): void
     {
         if (!$this->isQueueConnectionConfigured()) {
@@ -188,6 +195,9 @@ class EnqueuePublisher
         $producer->send($exchange, $message);
     }
 
+    /**
+     * Removes stale published and stuck events based on retention settings.
+     */
     private function clearEvents(): void
     {
         $send = new DateTimeImmutable()->sub(new DateInterval('P'.$this->sendRetention));
@@ -200,6 +210,11 @@ class EnqueuePublisher
             ]);
     }
 
+    /**
+     * Checks whether the AMQP connection is properly configured.
+     *
+     * @return bool True if DNS and topic are set with valid AMQP URL.
+     */
     private function isQueueConnectionConfigured(): bool
     {
         return null !== $this->dns && null !== $this->topic && str_starts_with($this->dns, 'amqp://');

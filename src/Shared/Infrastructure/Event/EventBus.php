@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Event;
 
+use Override;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -38,14 +39,18 @@ class EventBus implements EventListenersRegistrarInterface
      * Registers a listener class for a given event name.
      *
      * The listener is resolved from the container and invoked on dispatch.
+     *
+     * @param string $event The event name or class to listen for.
+     * @param string $type  The listener service identifier in the container.
      */
+    #[Override]
     public function registerListener(string $event, string $type): void
     {
         $container = $this->container;
-        $this->base->addListener($event, function (mixed $event) use ($type, $container) {
+        $this->base->addListener($event, function (mixed $event) use ($type, $container): mixed {
             $instance = $container->get($type);
             $response = call_user_func($instance, $event);
-            return $response ? $response : $event;
+            return $response !== null ? $response : $event;
         });
     }
 }
@@ -60,8 +65,8 @@ class HierarchicalDispatcher implements EventDispatcherInterface
      * Creates a new hierarchical dispatcher.
      */
     public function __construct(
-        /** @var EventDispatcherInterface Dispatcher for invoking listeners. */
-        private readonly EventDispatcherInterface $dispatcher,
+        /** @var EventDispatcher Symfony dispatcher for invoking listeners. */
+        private readonly EventDispatcher $dispatcher,
         /** @var EnqueuePublisher Publisher for public events. */
         private readonly EnqueuePublisher $publisher
     ) {
@@ -70,14 +75,24 @@ class HierarchicalDispatcher implements EventDispatcherInterface
     /**
      * Dispatches the event for each class and interface in its hierarchy.
      *
+     * Publishes the event to the message queue if it implements PublicEvent.
+     *
+     * @param object $event The domain event to dispatch.
+     *
      * @return object The last dispatched event instance.
      */
-    public function dispatch(object $event)
+    #[Override]
+    public function dispatch(object $event): object
     {
-        $result = $event;
-        foreach (class_parents($event) + class_implements($event) + [get_class($event)] as $eventName) {
-            $result = $this->dispatcher->dispatch($event, $eventName);
+        $parents = class_parents($event);
+        $implements = class_implements($event);
+        $hierarchy = ($parents !== false ? $parents : [])
+            + ($implements !== false ? $implements : []);
+
+        foreach ($hierarchy as $eventName) {
+            $this->dispatcher->dispatch($event, $eventName);
         }
+        $result = $this->dispatcher->dispatch($event, get_class($event));
         if ($result instanceof PublicEvent) {
             $this->publisher->emitChange($result);
         }

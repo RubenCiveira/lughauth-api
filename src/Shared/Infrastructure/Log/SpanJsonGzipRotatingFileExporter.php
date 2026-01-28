@@ -46,7 +46,8 @@ class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
         string $filenameFormat = '{filename}-{date}.jsonl',
         bool $zipOnRotate = true
     ) {
-        $this->basePath = realpath(dirname($basePath)) . '/' . basename($basePath);
+        $resolvedDir = realpath(dirname($basePath));
+        $this->basePath = ($resolvedDir !== false ? $resolvedDir : dirname($basePath)) . '/' . basename($basePath);
         $this->maxFiles = $maxFiles;
         $this->zipOnRotate = $zipOnRotate;
         $this->filenameFormat = $filenameFormat;
@@ -70,7 +71,10 @@ class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
                 return new CompletedFuture(false);
             }
             foreach ($batch as $span) {
-                fwrite($handle, json_encode($this->normalize($span), JSON_UNESCAPED_SLASHES) . "\n");
+                $json = json_encode($this->normalize($span), JSON_UNESCAPED_SLASHES);
+                if ($json !== false) {
+                    fwrite($handle, $json . "\n");
+                }
             }
             fclose($handle);
             return new CompletedFuture(true);
@@ -138,9 +142,10 @@ class SpanJsonGzipRotatingFileExporter implements SpanExporterInterface
         ) . '*';
 
         $globPattern = ($info['dirname'] ?? '.') . '/' . $pattern;
-        $files = glob($globPattern);
+        $globResult = glob($globPattern);
+        $files = $globResult !== false ? $globResult : [];
 
-        usort($files, fn ($a, $b) => strcmp($b, $a)); // Más recientes primero
+        usort($files, fn (string $a, string $b): int => strcmp($b, $a));
 
         foreach (array_slice($files, $this->maxFiles) as $file) {
             @unlink($file);

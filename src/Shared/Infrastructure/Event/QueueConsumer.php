@@ -17,6 +17,11 @@ final class QueueConsumer
 {
     /**
      * Consumes messages matching the routing key mask and processes JSON payloads.
+     *
+     * @param QueueSource $source  Queue configuration including DSN and routing key.
+     * @param callable    $handler Callback receiving decoded JSON and the AMQP message.
+     *
+     * @return array{processed: int, failed: int, duration_ms: int}|null Consumption stats.
      */
     public function consume(QueueSource $source, callable $handler): ?array
     {
@@ -86,6 +91,10 @@ final class QueueConsumer
 
     /**
      * Builds the default queue name for a routing key mask.
+     *
+     * @param string $routingKeyMask The routing key pattern.
+     *
+     * @return string The sanitized queue name prefixed with "app.consumer.".
      */
     private function defaultQueueName(string $routingKeyMask): string
     {
