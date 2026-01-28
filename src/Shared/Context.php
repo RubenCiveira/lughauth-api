@@ -20,7 +20,7 @@ class Context
 
     }
 
-    public function setSecurityContext(Connection $connection, Identity $identity)
+    public function setSecurityContext(Connection $connection, Identity $identity): void
     {
         $this->identity = $identity;
         $this->connection = $connection;
@@ -49,7 +49,7 @@ class Context
 
     public function getBaseUrl(): string
     {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
         $basePath = rtrim(str_replace(basename($scriptName), '', $scriptName), '/');
@@ -63,7 +63,7 @@ class Context
         $basePath = rtrim(str_replace(basename($scriptName), '', $scriptName), '/');
 
         // Elimina el basePath y query string
-        $path = preg_replace('#\?.*$#', '', $requestUri);
+        $path = preg_replace('#\?.*$#', '', $requestUri) ?? $requestUri;
         $path = substr($path, strlen($basePath));
 
         return '/' . ltrim($path, '/');
@@ -75,7 +75,7 @@ class Context
             'service.name' => $this->config->get('app.id.name', 'phylax'),
             'service.namespace' => $this->config->get('app.id.namespace', 'backoffice'),
             'service.version' => $this->config->get('app.id.version', '1.0.0'),
-            'service.instance.id' => $this->config->get('app.id.instance', php_uname('n') . '-' . getmypid()),
+            'service.instance.id' => $this->config->get('app.id.instance', php_uname('n') . '-' . (string)(getmypid() ?: 0)),
             'deployment.environment' => $this->config->get('app.id.enviroment', 'prod'),
         ];
     }

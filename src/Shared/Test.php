@@ -11,7 +11,7 @@ class Test
 {
     use LoggerAwareTrait;
 
-    public function test()
+    public function test(): void
     {
         $this->logError("Error con test");
     }

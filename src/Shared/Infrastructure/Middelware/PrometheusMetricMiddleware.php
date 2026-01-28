@@ -45,7 +45,7 @@ class PrometheusMetricMiddleware
         $routeContext = RouteContext::fromRequest($request);
         $response = $handler->handle($request);
         $route = $routeContext->getRoute();
-        $path = $route->getPattern();
+        $path = $route !== null ? $route->getPattern() : '/';
         $duration = microtime(true) - $start;
         if (!$this->isManagementPath($path)) {
             $this->serverLoad($path);
@@ -62,7 +62,7 @@ class PrometheusMetricMiddleware
      * @param string $path
      * @return bool
      */
-    private function isManagementPath($path)
+    private function isManagementPath(string $path): bool
     {
         return str_starts_with($path, $this->appConfig->managementEndpoint);
     }
@@ -72,7 +72,7 @@ class PrometheusMetricMiddleware
      *
      * @param string $path
      */
-    private function serverLoad($path)
+    private function serverLoad(string $path): void
     {
         // Obtener el uso de memoria actual en bytes
         $memoryUsage = memory_get_usage();
@@ -108,7 +108,7 @@ class PrometheusMetricMiddleware
      * @param string $path
      * @param float $executionTime
      */
-    private function executionTime($path, $executionTime)
+    private function executionTime(string $path, float $executionTime): void
     {
         $histogram = $this->registry->getOrRegisterHistogram(
             $this->namespace(),
@@ -126,7 +126,7 @@ class PrometheusMetricMiddleware
      * @param string $path
      * @param int $status
      */
-    private function httpStatus($path, $status)
+    private function httpStatus(string $path, int $status): void
     {
         // Crear y registrar los contadores
         $httpStatusCounter = $this->registry->getOrRegisterCounter(
@@ -178,7 +178,7 @@ class PrometheusMetricMiddleware
      *
      * @param string $path
      */
-    private function unauthorized($path)
+    private function unauthorized(string $path): void
     {
         // Crear y registrar los contadores para errores de seguridad
         $error401Counter = $this->registry->getOrRegisterCounter(
@@ -195,7 +195,7 @@ class PrometheusMetricMiddleware
      *
      * @param string $path
      */
-    private function forbidden($path)
+    private function forbidden(string $path): void
     {
         $error403Counter = $this->registry->getOrRegisterCounter(
             $this->namespace(),
@@ -211,7 +211,7 @@ class PrometheusMetricMiddleware
      *
      * @param string $path
      */
-    private function bad_gateway($path)
+    private function bad_gateway(string $path): void
     {
         $error502Counter = $this->registry->getOrRegisterCounter(
             $this->namespace(),
@@ -232,7 +232,7 @@ class PrometheusMetricMiddleware
         return str_replace('.', '_', $this->appConfig->name);
     }
 
-    private function shutdownFlush()
+    private function shutdownFlush(): void
     {
         $this->exporter->dump();
     }

@@ -210,7 +210,7 @@ class JwtVerifierMiddleware
         }
     }
 
-    private function verifyToken($payload)
+    private function verifyToken(object $payload): void
     {
         if ($this->requiredIssuer && $payload->iss != $this->requiredIssuer) {
             throw new UnauthorizedException(message: 'The issuer is not valid.');
@@ -231,7 +231,7 @@ class JwtVerifierMiddleware
         }
     }
 
-    private function extractRoles($payload): array
+    private function extractRoles(object $payload): array
     {
         $path = explode('/', $this->rolesPath);
         $in = (array)$payload;

@@ -26,7 +26,7 @@ class MessageCatalogue
     /**
      * Resolves a translation message for the configured domain.
      */
-    public function get(string $name, array $args = [])
+    public function get(string $name, array $args = []): string
     {
         return $this->translator->trans($name, $args, $this->domain);
     }

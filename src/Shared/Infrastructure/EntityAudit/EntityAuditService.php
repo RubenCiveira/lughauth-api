@@ -126,8 +126,8 @@ final class EntityAuditService
                 )";
 
         // --- diff old/new (idéntico al Java) ---
-        $old = $event->oldValue ?? [];
-        $new = $event->newValue ?? [];
+        $old = $event->oldValue;
+        $new = $event->newValue;
 
         $filteredOld = [];
         $filteredNew = [];

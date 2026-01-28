@@ -24,7 +24,8 @@ final class MetricsFS
      */
     public static function seriesId(array $labels): string
     {
-        return sha1(json_encode(self::canonicalLabels($labels), JSON_UNESCAPED_SLASHES));
+        $json = json_encode(self::canonicalLabels($labels), JSON_UNESCAPED_SLASHES);
+        return sha1($json !== false ? $json : '');
     }
 
     /** Shard (2 hex) para repartir directorios */
@@ -50,7 +51,7 @@ final class MetricsFS
     /**
      * Rotates all metrics using the configured rotator.
      */
-    public function rotate()
+    public function rotate(): void
     {
         $this->rotator->rotateAll();
     }
@@ -105,7 +106,8 @@ final class MetricsFS
             $old = json_decode((string)@file_get_contents($file), true) ?: [];
             $data['createdAt'] = $old['createdAt'] ?? $now;
         }
-        @file_put_contents($file, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION));
+        $jsonData = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION);
+        @file_put_contents($file, $jsonData !== false ? $jsonData : '{}');
     }
 
     /**
@@ -125,7 +127,8 @@ final class MetricsFS
         }
         try {
             if (@flock($fh, LOCK_EX)) {
-                @fwrite($fh, json_encode(['ts' => (int)$tsMs, 'v' => (float)$value], JSON_PRESERVE_ZERO_FRACTION) . "\n");
+                $jsonLine = json_encode(['ts' => $tsMs, 'v' => (float)$value], JSON_PRESERVE_ZERO_FRACTION);
+                @fwrite($fh, ($jsonLine !== false ? $jsonLine : '{}') . "\n");
                 @flock($fh, LOCK_UN);
             }
         } finally {
