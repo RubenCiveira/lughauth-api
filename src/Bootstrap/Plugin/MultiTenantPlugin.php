@@ -27,7 +27,7 @@ class MultiTenantPlugin extends AggregatedMicroPlugin
         ]);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         parent::registerEvents($bus);
         $bus->registerListener(AuthenticationResult::class, NotifyLogin::class);

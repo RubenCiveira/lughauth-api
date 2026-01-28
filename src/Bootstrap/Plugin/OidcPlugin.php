@@ -20,7 +20,7 @@ use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Rest\OpenIdConfigur
 class OidcPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $app): void
     {
         $app->get('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
         $app->group('/oauth/openid/{tenant}', function (RouteCollectorProxy $group) {
