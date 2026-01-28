@@ -88,7 +88,7 @@ class TraceContext
 
     private function generateId(int $bytes): string
     {
-        return bin2hex(random_bytes($bytes));
+        return bin2hex(random_bytes(max(1, $bytes)));
     }
 
     /**
