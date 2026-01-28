@@ -42,19 +42,17 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\DisableApiKeyClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/api-key-clients', [$this, 'setRoutesForApiKeyClient']);
-        $app->group('/api/me/acl/access/api-key-clients', [$this, 'setRoutesForApiKeyClientAcl']);
+        $collector->group('/api/access/api-key-clients', [$this, 'setRoutesForApiKeyClient']);
+        $collector->group('/api/me/acl/access/api-key-clients', [$this, 'setRoutesForApiKeyClientAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
         $bus->registerListener(ApiKeyClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
@@ -70,7 +68,6 @@ class ApiKeyClientPlugin extends MicroPlugin
         $bus->registerListener(ApiKeyClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(ApiKeyClientDisableAllowDecision::class, DisableApiKeyClientOnlyForRootAllow::class);
         $bus->registerListener(ApiKeyClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, ApiKeyClientChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -92,12 +89,12 @@ class ApiKeyClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("api-key-client", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForApiKeyClientAcl(RouteCollectorProxy $apiKeyClientGroup)
+    public function setRoutesForApiKeyClientAcl(RouteCollectorProxy $apiKeyClientGroup): void
     {
         $apiKeyClientGroup->get('', [ApiKeyClientAllowController::class, 'genericAllow']);
         $apiKeyClientGroup->get('/{uid}', [ApiKeyClientAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForApiKeyClient(RouteCollectorProxy $apiKeyClientGroup)
+    public function setRoutesForApiKeyClient(RouteCollectorProxy $apiKeyClientGroup): void
     {
         $apiKeyClientGroup->get('', [ApiKeyClientListController::class, 'list']);
         $apiKeyClientGroup->post('', [ApiKeyClientCreateController::class, 'create']);

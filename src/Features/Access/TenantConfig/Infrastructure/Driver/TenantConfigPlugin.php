@@ -33,19 +33,17 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantConfigPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/tenants-config', [$this, 'setRoutesForTenantConfig']);
-        $app->group('/api/me/acl/access/tenants-config', [$this, 'setRoutesForTenantConfigAcl']);
+        $collector->group('/api/access/tenants-config', [$this, 'setRoutesForTenantConfig']);
+        $collector->group('/api/me/acl/access/tenants-config', [$this, 'setRoutesForTenantConfigAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
@@ -54,7 +52,6 @@ class TenantConfigPlugin extends MicroPlugin
         $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(TenantConfigListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(TenantConfigDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantConfigChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -81,12 +78,12 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForTenantConfigAcl(RouteCollectorProxy $tenantConfigGroup)
+    public function setRoutesForTenantConfigAcl(RouteCollectorProxy $tenantConfigGroup): void
     {
         $tenantConfigGroup->get('', [TenantConfigAllowController::class, 'genericAllow']);
         $tenantConfigGroup->get('/{uid}', [TenantConfigAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForTenantConfig(RouteCollectorProxy $tenantConfigGroup)
+    public function setRoutesForTenantConfig(RouteCollectorProxy $tenantConfigGroup): void
     {
         $tenantConfigGroup->get('', [TenantConfigListController::class, 'list']);
         $tenantConfigGroup->post('', [TenantConfigCreateController::class, 'create']);

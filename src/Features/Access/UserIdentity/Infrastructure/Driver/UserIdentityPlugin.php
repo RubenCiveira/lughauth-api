@@ -31,19 +31,17 @@ use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class UserIdentityPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/identity', [$this, 'setRoutesForUserIdentity']);
-        $app->group('/api/me/acl/access/identity', [$this, 'setRoutesForUserIdentityAcl']);
+        $collector->group('/api/access/identity', [$this, 'setRoutesForUserIdentity']);
+        $collector->group('/api/me/acl/access/identity', [$this, 'setRoutesForUserIdentityAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(UserIdentityRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(UserIdentityCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
@@ -51,7 +49,6 @@ class UserIdentityPlugin extends MicroPlugin
         $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, UserIdentityChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -71,12 +68,12 @@ class UserIdentityPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user-identity", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup)
+    public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup): void
     {
         $userIdentityGroup->get('', [UserIdentityAllowController::class, 'genericAllow']);
         $userIdentityGroup->get('/{uid}', [UserIdentityAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForUserIdentity(RouteCollectorProxy $userIdentityGroup)
+    public function setRoutesForUserIdentity(RouteCollectorProxy $userIdentityGroup): void
     {
         $userIdentityGroup->get('', [UserIdentityListController::class, 'list']);
         $userIdentityGroup->post('', [UserIdentityCreateController::class, 'create']);

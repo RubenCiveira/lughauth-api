@@ -48,19 +48,17 @@ use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\IsAutenti
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAutenticatedUnlockAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
-use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class UserPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/users', [$this, 'setRoutesForUser']);
-        $app->group('/api/me/acl/access/users', [$this, 'setRoutesForUserAcl']);
+        $collector->group('/api/access/users', [$this, 'setRoutesForUser']);
+        $collector->group('/api/me/acl/access/users', [$this, 'setRoutesForUserAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
@@ -74,7 +72,6 @@ class UserPlugin extends MicroPlugin
         $bus->registerListener(UserDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(UserEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, UserChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -107,12 +104,12 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForUserAcl(RouteCollectorProxy $userGroup)
+    public function setRoutesForUserAcl(RouteCollectorProxy $userGroup): void
     {
         $userGroup->get('', [UserAllowController::class, 'genericAllow']);
         $userGroup->get('/{uid}', [UserAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForUser(RouteCollectorProxy $userGroup)
+    public function setRoutesForUser(RouteCollectorProxy $userGroup): void
     {
         $userGroup->get('', [UserListController::class, 'list']);
         $userGroup->post('', [UserCreateController::class, 'create']);

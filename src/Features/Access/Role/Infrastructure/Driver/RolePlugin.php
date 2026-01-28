@@ -29,26 +29,23 @@ use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutentica
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class RolePlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/roles', [$this, 'setRoutesForRole']);
-        $app->group('/api/me/acl/access/roles', [$this, 'setRoutesForRoleAcl']);
+        $collector->group('/api/access/roles', [$this, 'setRoutesForRole']);
+        $collector->group('/api/me/acl/access/roles', [$this, 'setRoutesForRoleAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(RoleCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
         $bus->registerListener(RoleUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
         $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
         $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
         $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, RoleChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -66,12 +63,12 @@ class RolePlugin extends MicroPlugin
             $handler->registerResourceAttribute("role", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup)
+    public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup): void
     {
         $roleGroup->get('', [RoleAllowController::class, 'genericAllow']);
         $roleGroup->get('/{uid}', [RoleAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForRole(RouteCollectorProxy $roleGroup)
+    public function setRoutesForRole(RouteCollectorProxy $roleGroup): void
     {
         $roleGroup->get('', [RoleListController::class, 'list']);
         $roleGroup->post('', [RoleCreateController::class, 'create']);

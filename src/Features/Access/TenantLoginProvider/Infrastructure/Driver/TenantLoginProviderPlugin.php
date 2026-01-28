@@ -42,19 +42,17 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\D
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\UploadMetadata\IsAutenticatedUploadMetadataAllow;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\UploadMetadata\TenantLoginProviderUploadMetadataAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/login-providers', [$this, 'setRoutesForTenantLoginProvider']);
-        $app->group('/api/me/acl/access/login-providers', [$this, 'setRoutesForTenantLoginProviderAcl']);
+        $collector->group('/api/access/login-providers', [$this, 'setRoutesForTenantLoginProvider']);
+        $collector->group('/api/me/acl/access/login-providers', [$this, 'setRoutesForTenantLoginProviderAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
@@ -66,7 +64,6 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAutenticatedUploadMetadataAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantLoginProviderChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -94,12 +91,12 @@ class TenantLoginProviderPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-login-provider", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup)
+    public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup): void
     {
         $tenantLoginProviderGroup->get('', [TenantLoginProviderAllowController::class, 'genericAllow']);
         $tenantLoginProviderGroup->get('/{uid}', [TenantLoginProviderAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForTenantLoginProvider(RouteCollectorProxy $tenantLoginProviderGroup)
+    public function setRoutesForTenantLoginProvider(RouteCollectorProxy $tenantLoginProviderGroup): void
     {
         $tenantLoginProviderGroup->get('', [TenantLoginProviderListController::class, 'list']);
         $tenantLoginProviderGroup->post('', [TenantLoginProviderCreateController::class, 'create']);

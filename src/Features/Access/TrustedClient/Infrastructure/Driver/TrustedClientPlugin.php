@@ -42,19 +42,17 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\DisableTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TrustedClientPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/trusted-clients', [$this, 'setRoutesForTrustedClient']);
-        $app->group('/api/me/acl/access/trusted-clients', [$this, 'setRoutesForTrustedClientAcl']);
+        $collector->group('/api/access/trusted-clients', [$this, 'setRoutesForTrustedClient']);
+        $collector->group('/api/me/acl/access/trusted-clients', [$this, 'setRoutesForTrustedClientAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
@@ -70,7 +68,6 @@ class TrustedClientPlugin extends MicroPlugin
         $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TrustedClientDisableAllowDecision::class, DisableTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, TrustedClientChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -93,12 +90,12 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("trusted-client", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForTrustedClientAcl(RouteCollectorProxy $trustedClientGroup)
+    public function setRoutesForTrustedClientAcl(RouteCollectorProxy $trustedClientGroup): void
     {
         $trustedClientGroup->get('', [TrustedClientAllowController::class, 'genericAllow']);
         $trustedClientGroup->get('/{uid}', [TrustedClientAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForTrustedClient(RouteCollectorProxy $trustedClientGroup)
+    public function setRoutesForTrustedClient(RouteCollectorProxy $trustedClientGroup): void
     {
         $trustedClientGroup->get('', [TrustedClientListController::class, 'list']);
         $trustedClientGroup->post('', [TrustedClientCreateController::class, 'create']);

@@ -42,19 +42,17 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disa
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\UploadAttached\IsAutenticatedUploadAttachedAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\UploadAttached\TenantTermsOfUseUploadAttachedAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/tenants-terms-of-use', [$this, 'setRoutesForTenantTermsOfUse']);
-        $app->group('/api/me/acl/access/tenants-terms-of-use', [$this, 'setRoutesForTenantTermsOfUseAcl']);
+        $collector->group('/api/access/tenants-terms-of-use', [$this, 'setRoutesForTenantTermsOfUse']);
+        $collector->group('/api/me/acl/access/tenants-terms-of-use', [$this, 'setRoutesForTenantTermsOfUseAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
@@ -66,7 +64,6 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
         $bus->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAutenticatedUploadAttachedAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, TenantTermsOfUseChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -89,12 +86,12 @@ class TenantTermsOfUsePlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-terms-of-use", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup)
+    public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup): void
     {
         $tenantTermsOfUseGroup->get('', [TenantTermsOfUseAllowController::class, 'genericAllow']);
         $tenantTermsOfUseGroup->get('/{uid}', [TenantTermsOfUseAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForTenantTermsOfUse(RouteCollectorProxy $tenantTermsOfUseGroup)
+    public function setRoutesForTenantTermsOfUse(RouteCollectorProxy $tenantTermsOfUseGroup): void
     {
         $tenantTermsOfUseGroup->get('', [TenantTermsOfUseListController::class, 'list']);
         $tenantTermsOfUseGroup->post('', [TenantTermsOfUseCreateController::class, 'create']);

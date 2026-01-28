@@ -42,19 +42,17 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\DisableRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyChangelogSync;
-use Civi\Lughauth\Shared\Infrastructure\EntityChangeLog\EntityChangeLogSyncEvent;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->group('/api/access/relying-parties', [$this, 'setRoutesForRelyingParty']);
-        $app->group('/api/me/acl/access/relying-parties', [$this, 'setRoutesForRelyingPartyAcl']);
+        $collector->group('/api/access/relying-parties', [$this, 'setRoutesForRelyingParty']);
+        $collector->group('/api/me/acl/access/relying-parties', [$this, 'setRoutesForRelyingPartyAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(RelyingPartyCreateAllowDecision::class, CreateRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
@@ -70,7 +68,6 @@ class RelyingPartyPlugin extends MicroPlugin
         $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowDecision::class, DisableRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(EntityChangeLogSyncEvent::class, RelyingPartyChangelogSync::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -91,12 +88,12 @@ class RelyingPartyPlugin extends MicroPlugin
             $handler->registerResourceAttribute("relying-party", "version", "MANAGE");
         }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
     }
-    public function setRoutesForRelyingPartyAcl(RouteCollectorProxy $relyingPartyGroup)
+    public function setRoutesForRelyingPartyAcl(RouteCollectorProxy $relyingPartyGroup): void
     {
         $relyingPartyGroup->get('', [RelyingPartyAllowController::class, 'genericAllow']);
         $relyingPartyGroup->get('/{uid}', [RelyingPartyAllowController::class, 'contextualAllow']);
     }
-    public function setRoutesForRelyingParty(RouteCollectorProxy $relyingPartyGroup)
+    public function setRoutesForRelyingParty(RouteCollectorProxy $relyingPartyGroup): void
     {
         $relyingPartyGroup->get('', [RelyingPartyListController::class, 'list']);
         $relyingPartyGroup->post('', [RelyingPartyCreateController::class, 'create']);
