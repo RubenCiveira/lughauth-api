@@ -243,7 +243,7 @@ namespace {
             return $initial;
         }
 
-        public function finish(TaskContext $state)
+        public function finish(TaskContext $state): void
         {
             $this->finished = true;
         }
@@ -314,7 +314,7 @@ namespace {
             throw new RuntimeException('Init failed');
         }
 
-        public function finish(TaskContext $state)
+        public function finish(TaskContext $state): void
         {
         }
 
@@ -350,7 +350,7 @@ namespace {
             return $initial;
         }
 
-        public function finish(TaskContext $state)
+        public function finish(TaskContext $state): void
         {
         }
 
