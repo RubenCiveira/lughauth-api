@@ -14,12 +14,39 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 
 /**
- * Base class for wiring microservice plugins into the container.
+ * Abstract base class for modular microservice plugins.
+ *
+ * A MicroPlugin encapsulates a cohesive set of functionality that can be
+ * registered with the {@see Micro} application container. Plugins provide
+ * extension points for routes, events, scheduled tasks, error handling,
+ * management interfaces, and dependency injection definitions.
+ *
+ * To create a custom plugin, extend this class and override the desired
+ * hook methods. Plugins are registered via {@see Micro::register()} and
+ * are initialized during the application build phase.
+ *
+ * Lifecycle:
+ * 1. {@see registerServiceDefinition()} - Modify DI container definitions before build.
+ * 2. {@see bindServices()} - Wire routes, events, schedulers, and error handlers.
+ * 3. {@see getManagementsInterfaces()} - Expose runtime management endpoints.
+ * 4. {@see registerStartup()} - Schedule one-time initialization tasks.
+ *
+ * @see AggregatedMicroPlugin For composing multiple plugins into one.
+ * @see Micro::register()     For registering plugins with the application.
  */
 abstract class MicroPlugin
 {
     /**
-     * Registers framework hooks for routes, events, schedulers, and errors.
+     * Binds all plugin services to the application container.
+     *
+     * This method is called after the container is built and retrieves
+     * required services to invoke the individual registration hooks.
+     * Override specific hooks rather than this method unless custom
+     * wiring logic is required.
+     *
+     * @param Container $container The built dependency injection container.
+     *
+     * @return void
      */
     public function bindServices(Container $container): void
     {
@@ -34,28 +61,58 @@ abstract class MicroPlugin
     }
 
     /**
-     * Registers HTTP routes for the plugin.
+     * Registers HTTP routes for this plugin.
+     *
+     * Override this method to define API endpoints, web pages, or other
+     * HTTP handlers. Routes are registered with the Slim application's
+     * route collector.
+     *
+     * @param RouteCollectorProxy $collector The route collector for adding routes.
+     *
+     * @return void
      */
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
     }
 
     /**
-     * Registers event listeners for the plugin.
+     * Registers event listeners for this plugin.
+     *
+     * Override this method to subscribe to domain events or application
+     * lifecycle events. Listeners are registered with the event bus.
+     *
+     * @param EventListenersRegistrarInterface $listener The event registrar.
+     *
+     * @return void
      */
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
     }
 
     /**
-     * Registers scheduled tasks for the plugin.
+     * Registers scheduled tasks for this plugin.
+     *
+     * Override this method to define recurring background jobs such as
+     * cleanup routines, report generation, or periodic synchronization.
+     *
+     * @param SchedulerManager $scheduler The scheduler manager for adding tasks.
+     *
+     * @return void
      */
     public function registerSchedulers(SchedulerManager $scheduler): void
     {
     }
 
     /**
-     * Returns management endpoints exposed by the plugin.
+     * Returns management interface definitions exposed by this plugin.
+     *
+     * Management interfaces provide runtime introspection and control
+     * endpoints accessible via the management base path. Each interface
+     * can expose GET and/or POST handlers.
+     *
+     * @param ContainerInterface $container The DI container for resolving dependencies.
+     *
+     * @return array<mixed> Array of management interface definitions.
      */
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
@@ -63,21 +120,44 @@ abstract class MicroPlugin
     }
 
     /**
-     * Registers error handlers for the plugin.
+     * Registers custom error handlers for this plugin.
+     *
+     * Override this method to add exception handlers for specific error
+     * types or to customize error response formatting.
+     *
+     * @param ErrorMiddleware $errorHandler The Slim error middleware.
+     *
+     * @return void
      */
     public function registerErrorHandler(ErrorMiddleware $errorHandler): void
     {
     }
 
     /**
-     * Registers startup hooks for the plugin.
+     * Registers startup processes for this plugin.
+     *
+     * Override this method to schedule one-time initialization tasks
+     * that run when the application first boots. Tasks can be ordered
+     * using {@see StartupProcessor::before()} and {@see StartupProcessor::after()}.
+     *
+     * @param StartupProcessor $processor The startup processor for registering tasks.
+     *
+     * @return void
      */
     public function registerStartup(StartupProcessor $processor): void
     {
     }
 
     /**
-     * Allows mutation of container service definitions.
+     * Modifies the dependency injection container definitions.
+     *
+     * Override this method to add, replace, or modify service definitions
+     * before the container is built. This is the earliest extension point
+     * and allows plugins to influence the entire application's wiring.
+     *
+     * @param array<string, mixed> $def The current service definitions array.
+     *
+     * @return array<string, mixed> The modified service definitions array.
      */
     public function registerServiceDefinition(array $def): array
     {

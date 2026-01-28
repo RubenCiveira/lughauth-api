@@ -10,9 +10,37 @@ use Slim\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Static file and template serving handler for the Slim application.
+ *
+ * TemplateMapper registers a catch-all route that serves static files
+ * and Twig templates from the `templates/` directory. It implements:
+ *
+ * - **Static file serving**: Directly serves CSS, JS, images, etc. with
+ *   appropriate MIME types, ETag caching, and optional gzip compression.
+ * - **Template rendering**: Processes `.tpl` files through Twig.
+ * - **SPA fallback**: Falls back to `index.html` or `index.tpl` for
+ *   client-side routing support.
+ * - **Security**: Prevents path traversal attacks via realpath validation.
+ *
+ * Caching headers are set for aggressive browser caching (1 year, immutable).
+ * ETags are computed from file size and modification time for conditional requests.
+ *
+ * @see Micro::run() Registers this mapper when not in CRON mode.
+ */
 class TemplateMapper
 {
-    public static function register(App $app)
+    /**
+     * Registers the catch-all static/template route with the Slim application.
+     *
+     * This method adds a `GET /{path:.*}` route that handles all unmatched
+     * requests by attempting to serve files from the templates directory.
+     *
+     * @param App $app The Slim application instance.
+     *
+     * @return void
+     */
+    public static function register(App $app): void
     {
         $app->get('/{path:.*}', function (ServerRequestInterface $request, ResponseInterface $response, array $args) use ($app) {
             $path = $args['path'] ?? '';
@@ -64,6 +92,19 @@ class TemplateMapper
         });
     }
 
+    /**
+     * Serves a static file with caching headers and optional gzip compression.
+     *
+     * Implements HTTP caching with ETag and Last-Modified headers. Returns
+     * 304 Not Modified when the client's cached version is still valid.
+     * Compresses response with gzip if the client supports it.
+     *
+     * @param string                 $requestedReal The absolute path to the file.
+     * @param ServerRequestInterface $request       The incoming HTTP request.
+     * @param ResponseInterface      $response      The response to populate.
+     *
+     * @return ResponseInterface The response with file content or 304 status.
+     */
     private static function asStatic(string $requestedReal, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $mimeType = mime_content_type($requestedReal) ?: 'application/octet-stream';
@@ -123,6 +164,20 @@ class TemplateMapper
             ->withHeader('ETag', $etag);
     }
 
+    /**
+     * Renders a Twig template and returns the HTML response.
+     *
+     * Retrieves the Twig environment from the container and renders
+     * the specified template file. The template path is computed
+     * relative to the templates directory.
+     *
+     * @param string            $requestedReal The absolute path to the template file.
+     * @param string            $templateDir   The base templates directory path.
+     * @param App               $app           The Slim application (for container access).
+     * @param ResponseInterface $response      The response to populate.
+     *
+     * @return ResponseInterface The response with rendered HTML content.
+     */
     private static function asTemplate(string $requestedReal, string $templateDir, App $app, ResponseInterface $response): ResponseInterface
     {
         $container = $app->getContainer();

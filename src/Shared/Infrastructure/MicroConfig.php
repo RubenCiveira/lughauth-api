@@ -5,14 +5,45 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure;
 
+/**
+ * Configuration class for enabling or disabling microservice features.
+ *
+ * This immutable configuration object controls which optional components
+ * are activated in the microservice infrastructure. Each feature flag
+ * determines whether a specific middleware or subsystem is wired into
+ * the application container and request pipeline.
+ *
+ * @property-read bool $withRate       Enables rate limiting middleware to throttle requests.
+ * @property-read bool $withMetrics    Enables Prometheus metrics collection and export.
+ * @property-read bool $withTelemetry  Enables OpenTelemetry distributed tracing.
+ * @property-read bool $withManagement Enables management endpoints for runtime inspection.
+ * @property-read bool $withAudit      Enables database query auditing and logging.
+ *
+ * @see Micro::build() Where these flags are evaluated to configure the container.
+ */
 class MicroConfig
 {
+    /** @var bool Whether rate limiting middleware is enabled. */
     public readonly bool $withRate;
+
+    /** @var bool Whether Prometheus metrics collection is enabled. */
     public readonly bool $withMetrics;
+
+    /** @var bool Whether OpenTelemetry tracing is enabled. */
     public readonly bool $withTelemetry;
+
+    /** @var bool Whether management endpoints are exposed. */
     public readonly bool $withManagement;
+
+    /** @var bool Whether database audit logging is enabled. */
     public readonly bool $withAudit;
 
+    /**
+     * Initializes the configuration with all features enabled by default.
+     *
+     * Override this class or pass a custom instance to {@see Micro::__construct()}
+     * to selectively disable features for specific deployment environments.
+     */
     public function __construct()
     {
         $this->withRate = true;

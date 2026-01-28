@@ -68,7 +68,7 @@ namespace {
             parent::__construct($logger);
         }
 
-        public function register(\Closure|\Civi\Lughauth\Shared\Infrastructure\StartupProcess $command, int $order = 0)
+        public function register(\Closure|\Civi\Lughauth\Shared\Infrastructure\StartupProcess $command, int $order = 0): void
         {
             $this->callback = $command;
             $this->order = $order;

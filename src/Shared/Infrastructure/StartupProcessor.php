@@ -10,25 +10,85 @@ use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
+/**
+ * Manages and executes ordered startup processes during application initialization.
+ *
+ * The StartupProcessor collects startup tasks from plugins and executes them
+ * in a deterministic order based on priority. Tasks can be either instances
+ * of {@see StartupProcess} or closures. Execution is fault-tolerant: errors
+ * in one task are logged but do not prevent subsequent tasks from running.
+ *
+ * Priority ordering:
+ * - Default priority is 0 (internally stored as position 100).
+ * - Use {@see before()} to compute a priority that runs earlier.
+ * - Use {@see after()} to compute a priority that runs later.
+ * - Tasks with the same priority execute in registration order.
+ *
+ * Example:
+ * ```php
+ * $processor->register(new MigrationRunner(), StartupProcessor::before(0));
+ * $processor->register(new CacheWarmer());  // Runs at default priority
+ * $processor->register(fn($c) => $c->get(Logger::class)->info('Ready'), StartupProcessor::after(0));
+ * ```
+ *
+ * @see StartupProcess   The interface for class-based startup tasks.
+ * @see Micro::run()     Invokes the processor during application boot.
+ */
 class StartupProcessor
 {
+    /**
+     * Computes a priority value that executes before the given priority.
+     *
+     * @param int $number The reference priority value.
+     *
+     * @return int A priority value that sorts before the input.
+     */
     public static function before(int $number): int
     {
         return $number - 1;
     }
 
+    /**
+     * Computes a priority value that executes after the given priority.
+     *
+     * @param int $number The reference priority value.
+     *
+     * @return int A priority value that sorts after the input.
+     */
     public static function after(int $number): int
     {
         return $number + 1;
     }
 
+    /**
+     * Registered startup executors grouped by priority position.
+     *
+     * @var array<int, array<Closure|StartupProcess>>
+     */
     private array $executors = [];
 
+    /**
+     * Creates a new StartupProcessor with the specified logger.
+     *
+     * @param LoggerInterface $logger Logger for recording startup errors.
+     */
     public function __construct(private readonly LoggerInterface $logger)
     {
     }
 
-    public function register(Closure|StartupProcess $command, int $order = 0)
+    /**
+     * Registers a startup task at the specified priority.
+     *
+     * Tasks can be either a {@see StartupProcess} instance or a closure
+     * that receives the container as its only argument. The priority
+     * determines execution order, with lower values running first.
+     *
+     * @param Closure|StartupProcess $command The startup task to register.
+     * @param int                    $order   Priority order (default 0). Use {@see before()}/{@see after()}.
+     *
+     * @return void
+     */
+    public function register(Closure|StartupProcess $command, int $order = 0): void
     {
         $pos = $order + 100;
         if (!isset($this->executors[$pos])) {
@@ -37,7 +97,18 @@ class StartupProcessor
         $this->executors[$pos][] = $command;
     }
 
-    public function run(ContainerInterface $container)
+    /**
+     * Executes all registered startup tasks in priority order.
+     *
+     * Tasks are executed sequentially from lowest to highest priority.
+     * Each task receives the dependency injection container. Exceptions
+     * are caught, logged, and do not interrupt execution of remaining tasks.
+     *
+     * @param ContainerInterface $container The application's DI container.
+     *
+     * @return void
+     */
+    public function run(ContainerInterface $container): void
     {
         $keys = array_keys($this->executors);
         sort($keys);

@@ -7,7 +7,35 @@ namespace Civi\Lughauth\Shared\Infrastructure;
 
 use Psr\Container\ContainerInterface;
 
+/**
+ * Contract for application startup tasks executed once during initialization.
+ *
+ * Implementations of this interface are registered via {@see MicroPlugin::registerStartup()}
+ * and executed by the {@see StartupProcessor} when the application boots for the first
+ * time. Startup tasks are protected by a file-based lock to ensure they run only once
+ * across concurrent requests.
+ *
+ * Common use cases include:
+ * - Running database migrations or schema checks.
+ * - Preloading caches or warming up computed data.
+ * - Registering external service connections or webhooks.
+ * - Performing one-time administrative operations.
+ *
+ * @see StartupProcessor::run()   Executes all registered startup processes.
+ * @see MicroPlugin::registerStartup() Registers startup tasks from plugins.
+ */
 interface StartupProcess
 {
+    /**
+     * Executes the startup logic with access to the dependency injection container.
+     *
+     * This method is invoked once during the application's first request after
+     * deployment. Any exceptions thrown will be logged but will not prevent
+     * other startup processes from executing.
+     *
+     * @param ContainerInterface $container The application's DI container for resolving dependencies.
+     *
+     * @return void
+     */
     public function onStartup(ContainerInterface $container): void;
 }

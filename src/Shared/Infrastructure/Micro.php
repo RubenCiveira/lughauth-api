@@ -79,18 +79,64 @@ use Symfony\Component\Lock\Store\RedisStore;
 use Symfony\Component\RateLimiter\Storage\CacheStorage;
 use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
+/**
+ * Core microservice application container and bootstrap orchestrator.
+ *
+ * The Micro class is the central entry point for building and running a
+ * microservice application. It manages the dependency injection container,
+ * configures middleware, registers plugins, and orchestrates the request
+ * lifecycle.
+ *
+ * Features configured based on {@see MicroConfig}:
+ * - **Rate Limiting**: Throttles requests using Symfony RateLimiter.
+ * - **Metrics**: Exposes Prometheus-compatible metrics endpoints.
+ * - **Telemetry**: Distributed tracing via OpenTelemetry.
+ * - **Management**: Runtime inspection and control endpoints.
+ * - **Audit**: Database query logging and audit trails.
+ *
+ * Usage:
+ * ```php
+ * $builder = new ContainerBuilder();
+ * $micro = new Micro($builder);
+ * $micro->register(new MyPlugin());
+ * $micro->run();
+ * ```
+ *
+ * @see MicroPlugin For extending application functionality.
+ * @see MicroConfig  For feature flag configuration.
+ */
 class Micro
 {
+    /** @var App The Slim application instance, available after build. */
     public readonly App $app;
+
+    /** @var EventBus The application event bus. */
     public readonly EventBus $bus;
+
+    /** @var AppConfig The application configuration loaded from environment. */
     public readonly AppConfig $config;
+
+    /** @var MicroConfig The feature flags controlling optional subsystems. */
     public readonly MicroConfig $definition;
+
+    /** @var ContainerInterface The built dependency injection container. */
     public readonly ContainerInterface $container;
+
+    /** @var ErrorMiddleware The Slim error handling middleware. */
     public readonly ErrorMiddleware $errorHandler;
+
+    /** @var array<mixed> Registered management interface definitions. */
     private array $interfaces = [];
 
+    /** @var MicroPlugin[] Registered plugins awaiting initialization. */
     private array $plugins = [];
 
+    /**
+     * Creates a new Micro application with the specified container builder.
+     *
+     * @param ContainerBuilder  $depenencies The PHP-DI container builder.
+     * @param MicroConfig|null  $def         Optional feature configuration (defaults to all enabled).
+     */
     public function __construct(private readonly ContainerBuilder $depenencies, private readonly ?MicroConfig $def = null)
     {
     }
@@ -193,6 +239,19 @@ class Micro
         }
     }
 
+    /**
+     * Builds, initializes, and runs the microservice application.
+     *
+     * This method orchestrates the complete application lifecycle:
+     * 1. Creates the var directory if needed.
+     * 2. Builds the DI container and Slim application.
+     * 3. Registers management endpoints.
+     * 4. Executes startup processes (once per deployment, file-locked).
+     * 5. Runs either the scheduler (if CRON env is set) or the HTTP app.
+     * 6. Ensures the background supervisor is running.
+     *
+     * @return void
+     */
     public function run(): void
     {
         $vardir = rtrim($this->storeDir(''), '/').'/';
@@ -244,7 +303,18 @@ class Micro
         }
     }
 
-    public function register(MicroPlugin $base)
+    /**
+     * Registers a plugin to be initialized during application build.
+     *
+     * Plugins are stored and later processed in registration order.
+     * Each plugin's service definitions are merged, then all plugins
+     * are bound to the container after it is built.
+     *
+     * @param MicroPlugin $base The plugin instance to register.
+     *
+     * @return void
+     */
+    public function register(MicroPlugin $base): void
     {
         $this->plugins[] = $base;
     }
@@ -532,12 +602,36 @@ class Micro
     }
 }
 
+/**
+ * OpenTelemetry span processor that injects application context attributes.
+ *
+ * This processor extends the standard SimpleSpanProcessor to automatically
+ * add instance-specific attributes (from the application Context) to every
+ * span at creation time. This ensures consistent metadata across all traces.
+ *
+ * @see Context::getInstanceData() Source of the injected attributes.
+ */
 final class InjectResourceAttrsProcessor extends SimpleSpanProcessor
 {
+    /**
+     * Creates a processor with the given exporter and application context.
+     *
+     * @param SpanExporterInterface $exporter The span exporter for sending traces.
+     * @param Context               $context  The application context providing instance data.
+     */
     public function __construct(SpanExporterInterface $exporter, private readonly Context $context)
     {
         parent::__construct($exporter);
     }
+
+    /**
+     * Injects application context attributes into the span when it starts.
+     *
+     * @param ReadWriteSpanInterface $span    The span being started.
+     * @param ContextInterface       $context The OpenTelemetry context.
+     *
+     * @return void
+     */
     #[Override]
     public function onStart(ReadWriteSpanInterface $span, ContextInterface $context): void
     {

@@ -12,16 +12,54 @@ use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 
+/**
+ * Composite plugin that delegates to multiple child plugins.
+ *
+ * AggregatedMicroPlugin implements the Composite pattern, allowing a group
+ * of related plugins to be treated as a single plugin. All lifecycle hooks
+ * are forwarded to each delegated plugin in order, enabling modular
+ * organization of application functionality.
+ *
+ * Use this class to bundle related features (e.g., all authentication
+ * plugins, all API versioned endpoints) into a single registrable unit.
+ *
+ * Example:
+ * ```php
+ * class AuthenticationPlugin extends AggregatedMicroPlugin
+ * {
+ *     public function __construct()
+ *     {
+ *         parent::__construct([
+ *             new JwtPlugin(),
+ *             new OAuth2Plugin(),
+ *             new SessionPlugin(),
+ *         ]);
+ *     }
+ * }
+ * ```
+ *
+ * @see MicroPlugin The base plugin class.
+ */
 abstract class AggregatedMicroPlugin extends MicroPlugin
 {
+    /**
+     * Creates an aggregated plugin with the specified child plugins.
+     *
+     * @param MicroPlugin[] $delegated The child plugins to delegate to.
+     */
     public function __construct(
         /**
-         * @var MicroPlugin[] delegateds
+         * @var MicroPlugin[] $delegated Child plugins that receive delegated calls.
          */
         private readonly array $delegated
     ) {
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Forwards route registration to all delegated plugins.
+     */
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
@@ -30,6 +68,11 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Forwards event listener registration to all delegated plugins.
+     */
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
@@ -38,6 +81,11 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Forwards scheduler registration to all delegated plugins.
+     */
     #[Override]
     public function registerSchedulers(SchedulerManager $scheduler): void
     {
@@ -46,6 +94,11 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Collects and merges management interfaces from all delegated plugins.
+     */
     #[Override]
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
@@ -57,6 +110,11 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         return $result;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Forwards error handler registration to all delegated plugins.
+     */
     #[Override]
     public function registerErrorHandler(ErrorMiddleware $errorHandler): void
     {
@@ -65,6 +123,11 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Forwards startup task registration to all delegated plugins.
+     */
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
     {
@@ -73,6 +136,12 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Chains service definition modifications through all delegated plugins.
+     * Each plugin receives the result of the previous plugin's modifications.
+     */
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
