@@ -10,42 +10,81 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStorageInterface;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
+/**
+ * Decorator for file storage that enables audit trail integration.
+ *
+ * TODO: implement audti operations over files
+ *
+ * This class wraps a FileStorageInterface implementation to provide a hook
+ * point for audit logging of file operations. Currently delegates all
+ * operations to the underlying storage without modification.
+ *
+ * Future enhancements may add actual audit logging for file create, update,
+ * and delete operations.
+ *
+ * @see FileStorageInterface The interface being decorated.
+ */
 class AuditableStore implements FileStorageInterface
 {
-    public function __construct(private readonly FileStorageInterface $base)
-    {
+    /**
+     * Creates the auditable store wrapper.
+     *
+     * @param FileStorageInterface $base The underlying file storage implementation.
+     */
+    public function __construct(
+        /** @var FileStorageInterface The decorated file storage instance. */
+        private readonly FileStorageInterface $base
+    ) {
     }
 
+    /**
+     * {@inheritDoc}
+     */
     #[Override]
     public function tempStore(BinaryContent $source): FileStoreKey
     {
         return $this->base->tempStore($source);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     #[Override]
     public function retrieveTempFile(FileStoreKey $key): ?BinaryContent
     {
         return $this->base->retrieveTempFile($key);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     #[Override]
     public function retrieveFile(FileStoreKey $key): ?BinaryContent
     {
         return $this->base->retrieveFile($key);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     #[Override]
     public function commitContent(FileStoreKey $key): FileStoreKey
     {
         return $this->base->commitContent($key);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     #[Override]
     public function replaceContent(FileStoreKey $key, BinaryContent $content): void
     {
         $this->base->replaceContent($key, $content);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     #[Override]
     public function deleteFile(FileStoreKey $key): void
     {

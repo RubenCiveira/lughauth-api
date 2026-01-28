@@ -7,9 +7,32 @@ namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
 use PDO;
 
+/**
+ * PDO wrapper that enables automatic audit trail capture for database modifications.
+ *
+ * This class extends PDO to configure it with AuditablePdoStatement as the
+ * statement class, enabling automatic capture of INSERT, UPDATE, and DELETE
+ * operations into the audit context.
+ *
+ * Use this class instead of PDO when you need database operations to be
+ * automatically recorded in the audit trail.
+ *
+ * @see AuditablePdoStatement The statement class that captures changes.
+ * @see AuditContext          Where captured changes are accumulated.
+ */
 class AuditablePdoWrapper extends PDO
 {
+    /**
+     * Creates an auditable PDO connection.
+     *
+     * @param AuditContext         $context  The request-scoped audit context.
+     * @param string               $dsn      The Data Source Name for the connection.
+     * @param string               $username Database username.
+     * @param string               $password Database password.
+     * @param array<int, mixed>    $options  Additional PDO options.
+     */
     public function __construct(
+        /** @var AuditContext Request-scoped context for collecting changes. */
         private readonly AuditContext $context,
         string $dsn,
         string $username,

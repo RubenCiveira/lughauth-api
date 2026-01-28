@@ -5,37 +5,79 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
+/**
+ * Request-scoped context for collecting audit trail data during a single HTTP request.
+ *
+ * AuditContext acts as a temporary accumulator for database changes that occur
+ * during request processing. The middleware assigns an action ID at the start
+ * of each request, and auditable PDO statements register their changes here.
+ * At the end of the request, collected changes are persisted to the audit log.
+ *
+ * This class is designed to be registered as a request-scoped singleton in the
+ * dependency injection container.
+ *
+ * @see AuditMiddleware     Sets the action ID and persists collected changes.
+ * @see AuditablePdoStatement Registers changes during query execution.
+ */
 final class AuditContext
 {
+    /** @var string|null The UUID identifying the current audit action. */
     private ?string $actionId = null;
 
-    /** @var AuditChange[] */
+    /** @var AuditChange[] Accumulated changes during the current request. */
     private array $changes = [];
 
+    /**
+     * Sets the action ID for the current request context.
+     *
+     * @param string $actionId The UUID identifying this audit action.
+     *
+     * @return void
+     */
     public function setActionId(string $actionId): void
     {
         $this->actionId = $actionId;
     }
 
+    /**
+     * Returns the current action ID, if set.
+     *
+     * @return string|null The action UUID or null if not in an audit context.
+     */
     public function getActionId(): ?string
     {
         return $this->actionId;
     }
 
+    /**
+     * Checks whether an audit action context is currently active.
+     *
+     * @return bool True if an action ID has been set.
+     */
     public function hasAction(): bool
     {
         return $this->actionId !== null;
     }
 
+    /**
+     * Registers a change to be included in the current audit action.
+     *
+     * @param AuditChange $change The change record to add.
+     *
+     * @return void
+     */
     public function addChange(AuditChange $change): void
     {
         $this->changes[] = $change;
     }
 
     /**
-     * Recupera los cambios acumulados y los vacía.
+     * Retrieves and clears all accumulated changes.
      *
-     * @return AuditChange[]
+     * This method is typically called at the end of a request to persist
+     * the collected changes and prepare for the next request.
+     *
+     * @return AuditChange[] The accumulated changes.
      */
     public function consumeChanges(): array
     {
@@ -44,6 +86,13 @@ final class AuditContext
         return $out;
     }
 
+    /**
+     * Resets the context to its initial state.
+     *
+     * Clears both the action ID and any accumulated changes.
+     *
+     * @return void
+     */
     public function reset(): void
     {
         $this->actionId = null;

@@ -9,30 +9,68 @@ use Override;
 use PDO;
 use PDOStatement;
 
+/**
+ * PDO statement wrapper that automatically captures database modifications for audit logging.
+ *
+ * This class extends PDOStatement to intercept INSERT, UPDATE, and DELETE operations,
+ * automatically recording the affected rows in the audit context. It supports multiple
+ * database drivers (MySQL, PostgreSQL, SQLite, SQL Server) with driver-specific
+ * primary key detection.
+ *
+ * The statement is configured via PDO::ATTR_STATEMENT_CLASS in AuditablePdoWrapper.
+ *
+ * @see AuditablePdoWrapper Configures PDO to use this statement class.
+ * @see AuditContext        Where captured changes are accumulated.
+ */
 class AuditablePdoStatement extends PDOStatement
 {
+    /** @var array<int|string, mixed> Parameters bound via bindParam() or bindValue(). */
     private array $boundParams = [];
 
+    /**
+     * Internal constructor called by PDO when preparing statements.
+     *
+     * @param AuditContext $context The request-scoped audit context.
+     * @param PDO          $pdo     The parent PDO connection.
+     */
     protected function __construct(
+        /** @var AuditContext Request-scoped context for collecting changes. */
         private readonly AuditContext $context,
+        /** @var PDO Parent database connection for metadata queries. */
         private readonly PDO $pdo
     ) {
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Captures the bound parameter for potential use in audit trail resolution.
+     */
     #[Override]
-    public function bindParam($parameter, &$variable, $data_type = \PDO::PARAM_STR, $length = null, $driver_options = null): bool
+    public function bindParam(int|string $param, mixed &$var, int $type = \PDO::PARAM_STR, int $maxLength = 0, mixed $driverOptions = null): bool
     {
-        $this->boundParams[$parameter] = $variable;
-        return parent::bindParam($parameter, $variable, $data_type, $length, $driver_options);
+        $this->boundParams[$param] = $var;
+        return parent::bindParam($param, $var, $type, $maxLength, $driverOptions);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Captures the bound value for potential use in audit trail resolution.
+     */
     #[Override]
-    public function bindValue($parameter, $value, $data_type = \PDO::PARAM_STR): bool
+    public function bindValue(int|string $param, mixed $value, int $type = \PDO::PARAM_STR): bool
     {
-        $this->boundParams[$parameter] = $value;
-        return parent::bindValue($parameter, $value, $data_type);
+        $this->boundParams[$param] = $value;
+        return parent::bindValue($param, $value, $type);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Executes the statement and, for write operations (INSERT/UPDATE/DELETE),
+     * automatically records the affected row state in the audit context.
+     */
     #[Override]
     public function execute(?array $params = null): bool
     {
@@ -54,11 +92,11 @@ class AuditablePdoStatement extends PDOStatement
 
         // Determinar clave primaria de la tabla
         $pkColumn = $this->findPrimaryKeyColumn($table, $driver);
-        if (!$pkColumn) {
+        if ($pkColumn === null) {
             return true; // No se puede auditar sin PK
         }
 
-        if ($params) {
+        if ($params !== null) {
             foreach ($params as $k => $v) {
                 $this->boundParams[$k] = $v;
             }
@@ -78,8 +116,13 @@ class AuditablePdoStatement extends PDOStatement
             return true;
         }
 
+        $actionId = $this->context->getActionId();
+        if ($actionId === null) {
+            return true; // No action context available
+        }
+
         $this->context->addChange(new AuditChange(
-            actionId: $this->context->getActionId(),
+            actionId: $actionId,
             targetType: ucfirst($table),
             targetId: (string) $primaryKeyValue,
             changeType: strtolower($operation),
@@ -89,6 +132,13 @@ class AuditablePdoStatement extends PDOStatement
         return true;
     }
 
+    /**
+     * Extracts the table name from a SQL statement.
+     *
+     * @param string $sql The SQL query string.
+     *
+     * @return string|null The table name or null if not parseable.
+     */
     private function extractTable(string $sql): ?string
     {
         if (preg_match('/^\s*(UPDATE|INSERT INTO|DELETE FROM)\s+`?([a-zA-Z0-9_]+)`?/i', $sql, $m)) {
@@ -97,6 +147,18 @@ class AuditablePdoStatement extends PDOStatement
         return null;
     }
 
+    /**
+     * Resolves the primary key value for the affected row.
+     *
+     * For INSERT operations, retrieves the last inserted ID. For UPDATE/DELETE,
+     * attempts to find the primary key in the bound parameters.
+     *
+     * @param string $operation The SQL operation type (INSERT, UPDATE, DELETE).
+     * @param string $pkColumn  The primary key column name.
+     * @param string $driver    The PDO driver name.
+     *
+     * @return mixed The primary key value or null if unresolvable.
+     */
     private function resolvePrimaryKeyValue(string $operation, string $pkColumn, string $driver): mixed
     {
         if ($operation === 'INSERT') {
@@ -113,6 +175,17 @@ class AuditablePdoStatement extends PDOStatement
         return $this->boundParams[$pkColumn] ?? null;
     }
 
+    /**
+     * Discovers the primary key column name for a given table.
+     *
+     * Uses database-specific introspection queries to determine the primary
+     * key column. Supports MySQL/MariaDB, PostgreSQL, SQL Server, and SQLite.
+     *
+     * @param string $table  The table name to inspect.
+     * @param string $driver The PDO driver name.
+     *
+     * @return string|null The primary key column name or null if not found.
+     */
     private function findPrimaryKeyColumn(string $table, string $driver): ?string
     {
         return match ($driver) {
@@ -146,6 +219,13 @@ class AuditablePdoStatement extends PDOStatement
         };
     }
 
+    /**
+     * Finds the primary key column for a SQLite table using PRAGMA.
+     *
+     * @param string $table The table name to inspect.
+     *
+     * @return string|null The primary key column name or null if not found.
+     */
     private function findPrimaryKeyColumnSqlite(string $table): ?string
     {
         $stmt = $this->pdo->prepare("PRAGMA table_info($table)");
@@ -159,6 +239,14 @@ class AuditablePdoStatement extends PDOStatement
         return null;
     }
 
+    /**
+     * Executes a query and returns the first column of the first row.
+     *
+     * @param string               $sql    The SQL query to execute.
+     * @param array<string, mixed> $params Parameters to bind to the query.
+     *
+     * @return string|null The column value or null if no results.
+     */
     private function queryOne(string $sql, array $params): ?string
     {
         $stmt = $this->pdo->prepare($sql);

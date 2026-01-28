@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
+use Override;
 use PDO;
 use DateTimeInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
@@ -15,14 +16,45 @@ use Ramsey\Uuid\Uuid;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\AppConfig;
 
+/**
+ * PSR-15 middleware that captures and persists audit trail data for HTTP requests.
+ *
+ * This middleware intercepts all modifying HTTP requests (POST, PUT, PATCH, DELETE)
+ * and records the action along with any database changes that occurred during
+ * request processing. It provides:
+ *
+ * - **Action logging**: Records request metadata (actor, IP, path, method).
+ * - **Change tracking**: Persists entity-level changes collected by auditable statements.
+ * - **Retention management**: Automatically exports and purges old audit records.
+ *
+ * The retention policy exports audit data to gzip-compressed JSON files before
+ * deletion, ensuring compliance and forensic capabilities.
+ *
+ * @see AuditContext Where changes are accumulated during the request.
+ * @see AuditablePdoStatement Captures database modifications automatically.
+ */
 class AuditMiddleware implements MiddlewareInterface
 {
+    /** @var int Number of weeks to retain audit records before export and deletion. */
     private readonly int $retentionWeeks;
+
+    /** @var string Directory path for exported audit archives. */
     private readonly string $exportDir;
 
+    /**
+     * Creates the audit middleware with required dependencies.
+     *
+     * @param PDO          $pdo        Database connection for audit table operations.
+     * @param AuditContext $context    Request-scoped context for collecting changes.
+     * @param Context      $appContext Application context providing identity and connection info.
+     * @param AppConfig    $config     Configuration for retention policy settings.
+     */
     public function __construct(
+        /** @var PDO Database connection for persisting audit records. */
         private readonly PDO $pdo,
+        /** @var AuditContext Request-scoped change accumulator. */
         private readonly AuditContext $context,
+        /** @var Context Application context with identity and connection data. */
         private readonly Context $appContext,
         AppConfig $config
     ) {
@@ -31,6 +63,19 @@ class AuditMiddleware implements MiddlewareInterface
         $this->clear();
     }
 
+    /**
+     * Processes the request and records audit trail data for modifying operations.
+     *
+     * For POST, PUT, PATCH, and DELETE requests that complete successfully (status < 400),
+     * this method persists an audit action record along with any entity changes
+     * collected during request handling.
+     *
+     * @param Request                 $request The incoming HTTP request.
+     * @param RequestHandlerInterface $handler The next handler in the middleware chain.
+     *
+     * @return ResponseInterface The response from the handler.
+     */
+    #[Override]
     public function process(Request $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $method = strtoupper($request->getMethod());
@@ -68,11 +113,11 @@ class AuditMiddleware implements MiddlewareInterface
             'actor_type' => 'user',
             'actor_ip' => $connection->source,
             'tenant_id' => $identity->tenant,
-            'session_id' => $identity->token ? substr($identity->token, 0, 100) : '',
+            'session_id' => $identity->token !== null ? substr($identity->token, 0, 100) : '',
             'client_id' => $connection->application,
             'user_agent' => $request->getHeaderLine('User-Agent'),
             'method' => $method,
-            'path' => (string) $request->getUri()->getPath(),
+            'path' => $request->getUri()->getPath(),
             'action_type' => $method . ' ' . $request->getUri()->getPath(),
             'occurred_at' => $now
         ]);
@@ -95,7 +140,7 @@ class AuditMiddleware implements MiddlewareInterface
                     'change_type' => $change->changeType,
                     'change_order' => $i,
                     'payload' => json_encode($change->payload),
-                    'metadata' => $change->metadata ? json_encode($change->metadata) : null,
+                    'metadata' => $change->metadata !== null ? json_encode($change->metadata) : null,
                 ]);
             }
         }
@@ -103,7 +148,15 @@ class AuditMiddleware implements MiddlewareInterface
         return $response;
     }
 
-    private function clear()
+    /**
+     * Checks for and processes audit records that have exceeded the retention period.
+     *
+     * Called during middleware construction to opportunistically clean up old
+     * audit data without requiring a dedicated cron job.
+     *
+     * @return void
+     */
+    private function clear(): void
     {
         $now = new \DateTimeImmutable('now', new \DateTimeZone('UTC'));
 
@@ -123,6 +176,16 @@ class AuditMiddleware implements MiddlewareInterface
         $this->exportAndDeleteBefore($cutoff);
     }
 
+    /**
+     * Exports audit records older than the cutoff date and removes them from the database.
+     *
+     * Records are exported to a gzip-compressed JSON file organized by ISO week,
+     * then deleted within a transaction to ensure data integrity.
+     *
+     * @param DateTimeInterface $cutoff Records older than this date will be exported and deleted.
+     *
+     * @return void
+     */
     private function exportAndDeleteBefore(DateTimeInterface $cutoff): void
     {
         $cutoffStr = $cutoff->format('Y-m-d H:i:s');
@@ -145,8 +208,13 @@ class AuditMiddleware implements MiddlewareInterface
         $filename = sprintf('%s/audit-%s.json.gz', rtrim($this->exportDir, '/'), $cutoff->format('o-W'));
         @mkdir(dirname($filename), recursive: true);
         $gz = gzopen($filename, 'w9');
-        gzwrite($gz, json_encode($data, JSON_PRETTY_PRINT));
-        gzclose($gz);
+        if ($gz !== false) {
+            $json = json_encode($data, JSON_PRETTY_PRINT);
+            if ($json !== false) {
+                gzwrite($gz, $json);
+            }
+            gzclose($gz);
+        }
 
         // Borrar registros
         $this->pdo->beginTransaction();

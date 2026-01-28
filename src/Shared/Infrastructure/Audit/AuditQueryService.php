@@ -7,20 +7,39 @@ namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
 use PDO;
 
+/**
+ * Query service for retrieving audit trail data from the database.
+ *
+ * Provides methods to search and retrieve audit logs with various filtering
+ * options, as well as entity-specific change history. This service is intended
+ * for administrative interfaces and compliance reporting.
+ *
+ * @see AuditMiddleware Where audit data is originally persisted.
+ */
 class AuditQueryService
 {
+    /**
+     * Creates the query service with a database connection.
+     *
+     * @param PDO $pdo Database connection for querying audit tables.
+     */
     public function __construct(
+        /** @var PDO Database connection for audit queries. */
         private readonly PDO $pdo
     ) {
     }
 
     /**
-     * Recupera acciones de auditoría con sus cambios, opcionalmente filtradas por usuario y fecha.
+     * Retrieves audit actions with their associated changes, optionally filtered.
      *
-     * @param string|null $userId
-     * @param \DateTimeInterface|null $from
-     * @param \DateTimeInterface|null $to
-     * @return array
+     * Returns a list of audit actions, each enriched with its related changes.
+     * Results are ordered by occurrence time in descending order (newest first).
+     *
+     * @param string|null             $userId Filter by actor identifier.
+     * @param \DateTimeInterface|null $from   Include only actions on or after this time.
+     * @param \DateTimeInterface|null $to     Include only actions on or before this time.
+     *
+     * @return array<int, array<string, mixed>> List of audit actions with nested changes.
      */
     public function getAuditLog(?string $userId = null, ?\DateTimeInterface $from = null, ?\DateTimeInterface $to = null): array
     {
@@ -59,11 +78,16 @@ class AuditQueryService
     }
 
     /**
-     * Recupera histórico de una entidad (target_type + target_id), ordenado por fecha.
+     * Retrieves the complete change history for a specific entity.
      *
-     * @param string $targetType
-     * @param string $targetId
-     * @return array
+     * Returns all recorded changes for an entity identified by its type and ID,
+     * enriched with action metadata. Results are ordered chronologically
+     * (newest first) with change order preserved within each action.
+     *
+     * @param string $targetType The entity type (e.g., 'User', 'Order').
+     * @param string $targetId   The entity's unique identifier.
+     *
+     * @return array<int, array<string, mixed>> List of changes with action metadata.
      */
     public function getEntityHistory(string $targetType, string $targetId): array
     {

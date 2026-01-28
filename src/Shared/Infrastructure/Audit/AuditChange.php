@@ -5,15 +5,41 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
+/**
+ * Immutable value object representing a single audited change within an action.
+ *
+ * Each AuditChange captures a modification to a specific entity or resource
+ * during an auditable request. Multiple changes can be associated with a
+ * single audit action (e.g., a request that modifies several database rows).
+ *
+ * @see AuditContext::addChange() Where changes are collected during a request.
+ * @see AuditMiddleware::process() Where changes are persisted to the database.
+ */
 class AuditChange
 {
+    /**
+     * Creates a new audit change record.
+     *
+     * @param string      $actionId   UUID of the parent audit action.
+     * @param string      $targetType Entity type identifier (e.g., 'User', 'Order').
+     * @param string      $targetId   Primary key or unique identifier of the affected entity.
+     * @param string      $changeType Operation type: 'insert', 'update', or 'delete'.
+     * @param array       $payload    JSON-serializable data representing the change details.
+     * @param array|null  $metadata   Optional additional context or metadata.
+     */
     public function __construct(
-        public readonly string $actionId,         // UUID de audit_action
-        public readonly string $targetType,       // 'User', 'HTTP:...', etc.
-        public readonly string $targetId,         // ID de entidad o recurso
-        public readonly string $changeType = 'update', // 'update', 'insert', 'call', etc.
-        public readonly array $payload = [],      // Estructura JSON del cambio
-        public readonly ?array $metadata = null   // Info adicional opcional
+        /** @var string UUID linking this change to its parent audit action. */
+        public readonly string $actionId,
+        /** @var string Type of the affected entity (e.g., 'User', 'Product'). */
+        public readonly string $targetType,
+        /** @var string Identifier of the specific entity instance affected. */
+        public readonly string $targetId,
+        /** @var string The type of change: 'insert', 'update', or 'delete'. */
+        public readonly string $changeType = 'update',
+        /** @var array The actual change data, typically the row state after modification. */
+        public readonly array $payload = [],
+        /** @var array|null Optional metadata providing additional context. */
+        public readonly ?array $metadata = null
     ) {
     }
 }
