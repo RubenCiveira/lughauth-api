@@ -9,12 +9,12 @@ use Throwable;
 use Exception;
 use DateInterval;
 use DateTimeImmutable;
+use RuntimeException;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Value\Random;
-use RuntimeException;
 
 /**
  * Orchestrates long-running tasks and tracks their progress.
@@ -58,7 +58,7 @@ class Runner
             steps: [ $step ],
         );
         $interval = DateInterval::createFromDateString('2 days');
-        if( false === $interval ) {
+        if (false === $interval) {
             throw new RuntimeException('2 days interval is a constant, but DateInterval::createFromDateString dont know how to use');
         }
         $this->store->save($progress, new DateTimeImmutable()->add($interval));
