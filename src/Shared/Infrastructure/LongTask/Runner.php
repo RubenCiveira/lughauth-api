@@ -14,6 +14,7 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Value\Random;
+use RuntimeException;
 
 /**
  * Orchestrates long-running tasks and tracks their progress.
@@ -56,8 +57,12 @@ class Runner
             endTime: null,
             steps: [ $step ],
         );
-        $this->store->save($progress, new DateTimeImmutable()->add(DateInterval::createFromDateString('2 days')));
-        $callback = function (TaskProgress $progress, TaskStepProgress $step, ContainerInterface $container, string $descriptorType, array $params) {
+        $interval = DateInterval::createFromDateString('2 days');
+        if( false === $interval ) {
+            throw new RuntimeException('2 days interval is a constant, but DateInterval::createFromDateString dont know how to use');
+        }
+        $this->store->save($progress, new DateTimeImmutable()->add($interval));
+        $callback = function (TaskProgress $progress, TaskStepProgress $step, ContainerInterface $container, string $descriptorType, array $params): void {
             set_time_limit(0);
             $this->logInfo("Running offiline for {$descriptorType}");
             $span = $this->startSpan("Running offline for {$descriptorType}");

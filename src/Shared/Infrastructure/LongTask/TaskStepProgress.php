@@ -38,7 +38,7 @@ class TaskStepProgress
     /**
      * Registers a successful item.
      */
-    public function addOk(string $code)
+    public function addOk(string $code): void
     {
         $this->oks[] = $code;
         $this->processedItems = $this->countProcessedItems();
@@ -47,9 +47,9 @@ class TaskStepProgress
     /**
      * Registers a warning for the step.
      */
-    public function addWarn(string $code, string $message)
+    public function addWarn(string $code, string $message): void
     {
-        if (!$this->warns[$code]) {
+        if (!isset($this->warns[$code])) {
             $this->warns[$code] = [];
         }
         $this->warns[$code][] = $message;
@@ -59,11 +59,8 @@ class TaskStepProgress
     /**
      * Registers an error for the step.
      */
-    public function addError(string $code, Exception $fail)
+    public function addError(string $code, Exception $fail): void
     {
-        if (!$this->errors[$code]) {
-            $this->errors[$code] = [];
-        }
         $this->errors[$code] = $fail;
         $this->processedItems = $this->countProcessedItems();
     }

@@ -18,7 +18,7 @@ interface TaskDescriptorInterface
     /**
      * Finalizes descriptor state after processing.
      */
-    public function finish(TaskContext $state);
+    public function finish(TaskContext $state): void;
 
     /**
      * Returns a human-readable description of an item.
