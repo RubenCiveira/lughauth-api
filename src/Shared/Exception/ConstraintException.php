@@ -13,7 +13,7 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 /**
  * Exception representing a set of validation constraint violations.
  * Implements Iterator to allow iteration over individual constraint failures.
- * @template-implements Iterator<ConstraintFail|false>
+ * @template-implements Iterator<int, ConstraintFail>
  */
 class ConstraintException extends \RuntimeException implements Iterator
 {
@@ -89,13 +89,13 @@ class ConstraintException extends \RuntimeException implements Iterator
 
     /**
      * Returns the current element in the iteration.
-     *
-     * @return ConstraintFail|false
      */
     #[Override]
-    public function current(): ConstraintFail|false
+    public function current(): ConstraintFail
     {
-        return current($this->fails);
+        $key = key($this->fails);
+        assert($key !== null, 'current() called on invalid iterator position');
+        return $this->fails[$key];
     }
     /**
      * Returns the key of the current element.
@@ -128,7 +128,6 @@ class ConstraintException extends \RuntimeException implements Iterator
      *
      * @return bool
      */
-    #[Override]
     public function valid(): bool
     {
         return key($this->fails) !== null;

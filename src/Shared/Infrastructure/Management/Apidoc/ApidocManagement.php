@@ -50,7 +50,7 @@ class ApidocManagement implements ManagementInterface
             $params = $request->getQueryParams();
             if ('yaml' === ($params['format'] ?? '')) {
                 $yaml = file_get_contents(__DIR__ . '/../../../../../templates/api-doc/openapi.yaml');
-                $response->getBody()->write($yaml);
+                $response->getBody()->write($yaml !== false ? $yaml : '');
                 return $response->withHeader('ContentType', 'text/plain');
             } else {
                 $base = $this->context->getBaseUrl() . '/swagger/';

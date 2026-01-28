@@ -39,7 +39,7 @@ final class Supervisor
     /**
      * Ensures the scheduler worker is running for a given URL.
      */
-    public function ensureRunning($url): void
+    public function ensureRunning(string $url): void
     {
         $pidFile  = $this->path($this->pidRel);
         $lockFile = $this->path($this->lockRel);
@@ -60,13 +60,13 @@ final class Supervisor
         try {
             $pid = $this->readPid($pidFile);
 
-            if ($pid && $this->isRunning($pid)) {
+            if ($pid !== null && $this->isRunning($pid)) {
                 // Ya está en marcha
                 return;
             }
 
             // PID inexistente o zombie → limpia y relanza
-            if ($pid) {
+            if ($pid !== null) {
                 @unlink($pidFile);
             }
 
@@ -131,7 +131,10 @@ final class Supervisor
         if ($this->isWindows()) {
             // Windows: no hay PID fiable -> best-effort
             $cmd = 'start /B "" '.$exe.' > NUL 2>&1';
-            pclose(popen($cmd, 'r'));
+            $proc = popen($cmd, 'r');
+            if ($proc !== false) {
+                pclose($proc);
+            }
             return 0; // sin PID fiable en Windows
         }
 
@@ -158,7 +161,8 @@ final class Supervisor
             return 0;
         }
 
-        $pid = (int) trim(stream_get_contents($pipes[1]) ?: '0');
+        $pidContent = stream_get_contents($pipes[1]);
+        $pid = (int) trim($pidContent !== false ? $pidContent : '0');
         foreach ($pipes as $p) {
             if (\is_resource($p)) {
                 fclose($p);
@@ -176,7 +180,7 @@ final class Supervisor
     public function stop(): void
     {
         $pid = $this->readPid($this->path($this->pidRel));
-        if ($pid && $this->isRunning($pid) && function_exists('posix_kill')) {
+        if ($pid !== null && $this->isRunning($pid) && function_exists('posix_kill')) {
             @posix_kill($pid, SIGTERM);
         }
     }
@@ -195,14 +199,14 @@ final class Supervisor
         $candidates = [];
         foreach (['PHP_CLI','PHP','PHP_BIN'] as $env) {
             $v = getenv($env);
-            if ($v) {
+            if ($v !== false && $v !== '') {
                 $candidates[] = $v;
             }
         }
 
         // 4) which php
         $which = @trim((string)@shell_exec('command -v php 2>/dev/null'));
-        if ($which) {
+        if ($which !== '') {
             $candidates[] = $which;
         }
 
@@ -217,7 +221,7 @@ final class Supervisor
 
         // filtra candidatos que existan y no sean php-fpm
         foreach ($candidates as $path) {
-            if ($path && @is_file($path) && @is_executable($path) && !str_contains(basename($path), 'php-fpm')) {
+            if ($path !== '' && @is_file($path) && @is_executable($path) && !str_contains(basename($path), 'php-fpm')) {
                 return $path;
             }
         }

@@ -54,24 +54,30 @@ class HistogramManagement implements ManagementInterface
             if (!$queries) {
                 throw new InvalidArgumentException('Missing query param "q"');
             }
-            $partition = $qp['partition']        ?? 'raw';
+            $partitionVal = $qp['partition'] ?? 'raw';
+            $partition = is_array($partitionVal) ? ($partitionVal[0] ?? 'raw') : $partitionVal;
             // $fill      = $qp['fill']             ?? 'nan';       // nan|zero|ffill|bfill
             // $interp    = $qp['interpolation']    ?? 'none';      // none|linear
             // $down      = $qp['downsample']       ?? 'avg';       // avg|sum|min|max
             $alignTo   = $this->toIntOrNull($qp['align_to'] ?? null);
-            $limitSer  = (int)($qp['limit_series'] ?? 200);
-            $maxPoints = (int)($qp['max_points']  ?? 50_000);
+            $limitSerVal = $qp['limit_series'] ?? 200;
+            $limitSer  = (int)(is_array($limitSerVal) ? ($limitSerVal[0] ?? 200) : $limitSerVal);
+            $maxPointsVal = $qp['max_points'] ?? 50_000;
+            $maxPoints = (int)(is_array($maxPointsVal) ? ($maxPointsVal[0] ?? 50_000) : $maxPointsVal);
             $aliases   = isset($qp['alias']) ? (is_array($qp['alias']) ? $qp['alias'] : [$qp['alias']]) : [];
             $format    = $qp['format'] ?? 'json';
 
             $nowMs   = (int) floor(microtime(true) * 1000);
-            $endMs   = $this->parseTime($qp['end']   ?? 'now', $nowMs);
-            $startMs = $this->parseTime($qp['start'] ?? 'now-1h', $nowMs);
+            $endVal  = $qp['end'] ?? 'now';
+            $endMs   = $this->parseTime(is_array($endVal) ? ($endVal[0] ?? 'now') : $endVal, $nowMs);
+            $startVal = $qp['start'] ?? 'now-1h';
+            $startMs = $this->parseTime(is_array($startVal) ? ($startVal[0] ?? 'now-1h') : $startVal, $nowMs);
             if ($startMs >= $endMs) {
                 throw new InvalidArgumentException('"start" must be < "end"');
             }
 
-            $stepMs = $this->parseStepToMs((string)($qp['step'] ?? '60s'));
+            $stepVal = $qp['step'] ?? '60s';
+            $stepMs = $this->parseStepToMs(is_array($stepVal) ? ($stepVal[0] ?? '60s') : $stepVal);
             if ($stepMs <= 0) {
                 throw new InvalidArgumentException('"step" must be > 0');
             }
@@ -108,7 +114,7 @@ class HistogramManagement implements ManagementInterface
                 $alias = $aliases[$i] ?? null;
                 foreach ($series as &$s) {
                     $s['query'] = $q;
-                    if ($alias) {
+                    if ($alias !== null && $alias !== '') {
                         $s['alias'] = $alias;
                     }
                 }
@@ -217,11 +223,12 @@ class HistogramManagement implements ManagementInterface
         return $out;
     }
 
-    private function toIntOrNull($v): ?int
+    private function toIntOrNull(mixed $v): ?int
     {
         if ($v === null || $v === '') {
             return null;
-        } return is_numeric($v) ? (int)$v : null;
+        }
+        return is_numeric($v) ? (int)$v : null;
     }
 
     private function parseTime(string $v, int $nowMs): int
@@ -280,7 +287,8 @@ class HistogramManagement implements ManagementInterface
         // muy simple: 1 línea por punto por serie
         $rows = ["query,labels,timestamp,value"];
         foreach ($payload['series'] as $s) {
-            $labels = json_encode($s['labels'] ?? [], JSON_UNESCAPED_SLASHES);
+            $labelsJson = json_encode($s['labels'] ?? [], JSON_UNESCAPED_SLASHES);
+            $labels = $labelsJson !== false ? $labelsJson : '{}';
             foreach ($s['points'] as [$t,$v]) {
                 $rows[] = sprintf(
                     '"%s","%s",%d,%s',

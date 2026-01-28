@@ -73,7 +73,7 @@ class AccessControlMiddleware
         $connection = $this->context->getConnection();
 
         $matchedRule = $this->matchRule($path);
-        if (!$matchedRule) {
+        if ($matchedRule === null) {
             return $handler->handle($request); // No hay restricciones
         }
 
@@ -154,7 +154,8 @@ class AccessControlMiddleware
     {
         $responseFactory = new ResponseFactory();
         $response = $responseFactory->createResponse($statusCode);
-        $response->getBody()->write(json_encode(['error' => $message]));
+        $json = json_encode(['error' => $message]);
+        $response->getBody()->write($json !== false ? $json : '{}');
         return $response->withHeader('Content-Type', 'application/json');
     }
 
@@ -164,14 +165,14 @@ class AccessControlMiddleware
      * @param string $key API key provided by the client.
      * @param string $scope Required scope for the request.
      */
-    private function validateApiKey(string $key, string $scope)
+    private function validateApiKey(string $key, string $scope): void
     {
         if ($this->cache->has('api-key-verify--' . $key)) {
             $info = json_decode($this->cache->get('api-key-verify--' . $key), true);
         } else {
             $url = $this->config->get('security.api.key.verify.location');
             $body = json_encode(['api-key' => $key]);
-            $stream = $this->streamFactory->createStream($body);
+            $stream = $this->streamFactory->createStream($body !== false ? $body : '{}');
 
             $response = $this->client->sendRequest($this->requestFactory->createRequest('POST', $url)
                     ->withHeader('Content-Type', 'application/json')

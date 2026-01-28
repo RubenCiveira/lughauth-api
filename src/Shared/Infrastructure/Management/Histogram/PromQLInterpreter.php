@@ -267,7 +267,7 @@ final class PromQLInterpreter
                     'min' => min($vals),
                     default => array_sum($vals),
                 };
-                $pts[] = [(int)$t, (float)$val];
+                $pts[] = [(int)$t, $val];
             }
             $out[] = ['labels' => $b['labels'], 'points' => $pts];
         }

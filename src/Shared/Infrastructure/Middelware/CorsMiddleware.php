@@ -24,10 +24,10 @@ class CorsMiddleware
      *
      * @param App $app Slim application instance.
      */
-    public static function register(App $app)
+    public static function register(App $app): void
     {
         $app->add(CorsMiddleware::class);
-        $app->options('/{routes:.+}', function ($request, $response, $args) {
+        $app->options('/{routes:.+}', function (ServerRequestInterface $_request, ResponseInterface $response, array $_args): ResponseInterface {
             return $response;
         });
     }

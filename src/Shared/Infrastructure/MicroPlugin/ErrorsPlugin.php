@@ -40,7 +40,8 @@ class ErrorsPlugin extends MicroPlugin
                 "errors" => $errors
             ];
             $response = new Response();
-            $response->getBody()->write(json_encode($content));
+            $json = json_encode($content);
+            $response->getBody()->write($json !== false ? $json : '{}');
             return $response->withStatus(422)->withHeader("Content-Type", "application/problem+json");
         });
         $errorHandler->setErrorHandler(UnauthorizedException::class, function (ServerRequestInterface $request, UnauthorizedException $exception): ResponseInterface {
@@ -48,7 +49,8 @@ class ErrorsPlugin extends MicroPlugin
             $data = [
                 'message' => $exception->getMessage()
             ];
-            $response->getBody()->write(json_encode($data));
+            $json = json_encode($data);
+            $response->getBody()->write($json !== false ? $json : '{}');
             return $response->withStatus(401);
         });
         $errorHandler->setErrorHandler(HttpMethodNotAllowedException::class, function (ServerRequestInterface $request, HttpMethodNotAllowedException $exception): ResponseInterface {
@@ -56,7 +58,8 @@ class ErrorsPlugin extends MicroPlugin
             $data = [
                 'message' => $exception->getMessage()
             ];
-            $response->getBody()->write(json_encode($data));
+            $json = json_encode($data);
+            $response->getBody()->write($json !== false ? $json : '{}');
             return $response->withStatus(404);
         });
     }

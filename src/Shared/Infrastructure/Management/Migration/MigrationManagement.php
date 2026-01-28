@@ -36,7 +36,7 @@ class MigrationManagement implements ManagementInterface
     /**
      * Adds a migration provider.
      */
-    public function addProvider(MigrationInterface $provider)
+    public function addProvider(MigrationInterface $provider): void
     {
         $this->providers[] = $provider;
     }

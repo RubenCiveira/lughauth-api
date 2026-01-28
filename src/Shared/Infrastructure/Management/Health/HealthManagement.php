@@ -35,7 +35,7 @@ class HealthManagement implements ManagementInterface
     /**
      * Registers an additional health provider.
      */
-    public function addProvider(HealthProviderInterface $provider)
+    public function addProvider(HealthProviderInterface $provider): void
     {
         $this->providers[] = $provider;
     }
@@ -77,11 +77,11 @@ class HealthManagement implements ManagementInterface
                     $status = $status === 'DOWN' ? 'DOWN' : 'UNKWOWN';
                 }
                 $details[$detail->name] = ['status' => $detail->status];
-                if ($detail->details) {
+                if ($detail->details !== null && $detail->details !== []) {
                     $details[$detail->name]['details'] = $detail->details;
                 }
             }
-            return $details ? ['status' => $status, 'components' => $details] : ['status' => $status];
+            return $details !== [] ? ['status' => $status, 'components' => $details] : ['status' => $status];
         };
     }
 

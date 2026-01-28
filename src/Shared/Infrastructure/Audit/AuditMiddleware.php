@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 
-use Override;
 use PDO;
+use Override;
 use DateTimeInterface;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Message\ResponseInterface;

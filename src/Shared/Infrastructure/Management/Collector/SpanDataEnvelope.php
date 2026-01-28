@@ -12,6 +12,8 @@ use OpenTelemetry\SDK\Resource\ResourceInfo;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScopeInterface;
 use OpenTelemetry\API\Trace\SpanContextInterface;
 use OpenTelemetry\SDK\Trace\StatusDataInterface;
+use OpenTelemetry\SDK\Trace\EventInterface;
+use OpenTelemetry\SDK\Trace\LinkInterface;
 
 /**
  * Provides an immutable implementation of span data for trace export.
@@ -42,9 +44,9 @@ class SpanDataEnvelope implements SpanDataInterface
         private readonly InstrumentationScopeInterface $scope,
         /** @var ResourceInfo Resource information for the span. */
         private readonly ResourceInfo $resource,
-        /** @var array<int, EventInterface> Span events. */
+        /** @var list<EventInterface> Span events. */
         private readonly array $events = [],
-        /** @var array<int, LinkInterface> Span links. */
+        /** @var list<LinkInterface> Span links. */
         private readonly array $links = [],
         /** @var int Number of dropped events. */
         private readonly int $droppedEvents = 0,

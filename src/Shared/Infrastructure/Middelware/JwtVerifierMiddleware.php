@@ -17,6 +17,7 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Signature\Algorithm\RS256;
+use Jose\Component\Signature\JWS;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
@@ -70,7 +71,12 @@ class JwtVerifierMiddleware
             } elseif (isset($_COOKIE['Authorization']) && 'GET' == $request->getMethod()) {
                 $this->verifyAuth($_COOKIE['Authorization'], Identity::AUTH_SCOPE_READ);
             } elseif (isset($_GET['Authorization']) && 'GET' == $request->getMethod()) {
-                $this->verifyAuth($_GET['Authorization'], Identity::AUTH_SCOPE_READ);
+                $authParam = $_GET['Authorization'];
+                if (is_string($authParam)) {
+                    $this->verifyAuth($authParam, Identity::AUTH_SCOPE_READ);
+                } elseif (isset($authParam[0]) && is_string($authParam[0])) {
+                    $this->verifyAuth($authParam[0], Identity::AUTH_SCOPE_READ);
+                }
             }
         }
         return $handler->handle($request);
@@ -92,7 +98,7 @@ class JwtVerifierMiddleware
             try {
                 $jwt = $this->extractJwt($token);
                 if ($this->verify($jwt, $jwks)) {
-                    $payload = json_decode($jwt->getPayload());
+                    $payload = json_decode($jwt->getPayload() ?? '{}');
                     $nbf = $payload->nbf;
                     $exp = $payload->exp;
                     $now = time();
@@ -145,7 +151,11 @@ class JwtVerifierMiddleware
         return $token;
     }
 
-    private function deseiralize($vcc)
+    /**
+     * @param array{0: array<string, mixed>, 1: array<string, mixed>} $vcc
+     * @return array{0: Connection, 1: Identity}
+     */
+    private function deseiralize(array $vcc): array
     {
         [$cc, $ac] = $vcc;
         $identity = new Identity(
@@ -171,27 +181,23 @@ class JwtVerifierMiddleware
         return [$connection, $identity];
     }
 
-    private function extractJwt(string $token)
+    private function extractJwt(string $token): JWS
     {
         $serializer = new CompactSerializer();
         return $serializer->unserialize($token);
     }
 
-    private function verify($jwt, string $jwks)
+    private function verify(JWS $jwt, string $jwks): bool
     {
         $jwkSet = JWKSet::createFromJson($jwks);
-        $isVerified = false;
-        if ($jwt) {
-            // Crear un verificador de JWS con el algoritmo correspondiente
-            $algorithmManager = new AlgorithmManager([new RS256()]);
-            $jwsVerifier = new JWSVerifier($algorithmManager);
-            // Verificar el token con el JWKSet
-            $isVerified = $jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0);
-        }
-        return $isVerified;
+        // Crear un verificador de JWS con el algoritmo correspondiente
+        $algorithmManager = new AlgorithmManager([new RS256()]);
+        $jwsVerifier = new JWSVerifier($algorithmManager);
+        // Verificar el token con el JWKSet
+        return $jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0);
     }
 
-    private function getJwks()
+    private function getJwks(): string
     {
         $cache_key = 'jwks.verify.publickey';
         if ($this->cache->has($cache_key)) {

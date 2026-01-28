@@ -50,7 +50,7 @@ class RoutesManagement implements ManagementInterface
                 foreach ($methods as $method) {
                     $declaredRoutes[] = [
                         'method' => $method,
-                        'path' => $pattern . ($name ? " [name: $name]" : '')
+                        'path' => $pattern . ($name !== null && $name !== '' ? " [name: $name]" : '')
                     ];
                 }
             }

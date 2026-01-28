@@ -69,7 +69,7 @@ class TraceCollector implements ManagementInterface
                     $resource = ResourceInfo::create($attributes);
                     foreach ($resourceSpan['scopeSpans'] as $scopeSpan) {
                         $scope = new InstrumentationScope(
-                            $scopeSpan['scope']['name'] ?? null,
+                            $scopeSpan['scope']['name'] ?? '',
                             $scopeSpan['scope']['version'] ?? null,
                             null,
                             $attributes

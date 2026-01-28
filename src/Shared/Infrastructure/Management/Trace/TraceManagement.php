@@ -63,7 +63,11 @@ class TraceManagement implements ManagementInterface
             ], fn ($v) => $v !== null && $v !== '');
 
             $traceFiles = glob($this->path . '/' . $this->config->name . '-*.jsonl*'); // eg: traces/app-2025-06-04.json
-            rsort($traceFiles); // más recientes primero
+            if ($traceFiles !== false) {
+                rsort($traceFiles); // más recientes primero
+            } else {
+                $traceFiles = [];
+            }
 
             $results = [];
             $matchedSeen = 0;
@@ -77,29 +81,29 @@ class TraceManagement implements ManagementInterface
                     if (!is_array($span)) {
                         continue;
                     }
-                    if ($status && $span['status'] !== $status) {
+                    if ($status !== null && $span['status'] !== $status) {
                         continue;
                     }
-                    if ($service_name && ($span['extra']['service']['sdervice.name']) !== $service_name) {
+                    if ($service_name !== null && ($span['extra']['service']['sdervice.name']) !== $service_name) {
                         continue;
                     }
-                    if ($service_namespace && ($span['extra']['service']['service.namespace']) !== $service_namespace) {
+                    if ($service_namespace !== null && ($span['extra']['service']['service.namespace']) !== $service_namespace) {
                         continue;
                     }
-                    if ($service_version && ($span['extra']['service']['service.version']) !== $service_version) {
+                    if ($service_version !== null && ($span['extra']['service']['service.version']) !== $service_version) {
                         continue;
                     }
-                    if ($service_instance && ($span['extra']['service']['service.instance.id']) !== $service_instance) {
+                    if ($service_instance !== null && ($span['extra']['service']['service.instance.id']) !== $service_instance) {
                         continue;
                     }
-                    if ($environment && ($span['extra']['service']['deployment.environment']) !== $environment) {
+                    if ($environment !== null && ($span['extra']['service']['deployment.environment']) !== $environment) {
                         continue;
                     }
-                    if ($traceId && $traceId !== ($span['traceId'] ?? null)) {
+                    if ($traceId !== null && $traceId !== ($span['traceId'] ?? null)) {
                         continue;
                     }
                     // Búsqueda textual
-                    if ($search && stripos($span['name'], $search) === false) {
+                    if ($search !== null && stripos($span['name'], $search) === false) {
                         continue;
                     }
                     if ($matchedSeen++ < $offset) {

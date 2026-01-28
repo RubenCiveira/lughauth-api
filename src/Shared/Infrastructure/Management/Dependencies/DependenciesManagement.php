@@ -43,7 +43,8 @@ class DependenciesManagement implements ManagementInterface
             if (!file_exists($lockFile)) {
                 throw new \Exception('composer.lock not found');
             }
-            $data = json_decode(file_get_contents($lockFile), true);
+            $contents = file_get_contents($lockFile);
+            $data = json_decode($contents !== false ? $contents : '{}', true);
             $packages = array_merge($data['packages'] ?? [], $data['packages-dev'] ?? []);
 
             return array_map(function ($pkg) {

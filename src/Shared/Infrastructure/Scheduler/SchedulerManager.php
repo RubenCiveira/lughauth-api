@@ -18,8 +18,8 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 class SchedulerManager
 {
     use LoggerAwareTrait;
-    private const CACHE_KEY_STATE = 'scheduler_manager_state';
-    private const LOCK_KEY = 'scheduler_manager_lock';
+    private const string CACHE_KEY_STATE = 'scheduler_manager_state';
+    private const string LOCK_KEY = 'scheduler_manager_lock';
 
     /** @var array<array{CronExpression, string, string}> Registered tasks. */
     private array $tasks = [];
@@ -79,7 +79,7 @@ class SchedulerManager
         } else {
             $this->logInfo('There are pending tasks.');
             // Deferir ejecución para el shutdown, no afectar la request principal
-            register_shutdown_function(function ($manager, $locker, $cache, $runnableTasks, $now, $nextGlobalExecution, $state, $container) {
+            register_shutdown_function(function (SchedulerManager $manager, LockFactory $locker, CacheInterface $cache, array $runnableTasks, DateTimeImmutable $now, ?\DateTimeInterface $nextGlobalExecution, array $state, ContainerInterface $container): void {
                 $manager->logInfo('Run scheduler manager on background');
                 $lock = $locker->createLock(self::LOCK_KEY, 30); // 30s TTL
                 if ($lock->acquire()) {
@@ -100,7 +100,7 @@ class SchedulerManager
                                     $state['last_executions'][$taskKey] = $now->format(DATE_ATOM);
                                 } catch (\Throwable $e) {
                                     // Loguear o ignorar según sea necesario
-                                    $manager->logError("The task {$type}::{$method} has an error " . $e->getMessage(), $e->getTraceAsString());
+                                    $manager->logError("The task {$type}::{$method} has an error " . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
                                 }
                             } else {
                                 $manager->logError("The task {$type} is not on the container");

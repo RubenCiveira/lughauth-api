@@ -30,7 +30,7 @@ class TaskStore
     /**
      * Persists an initial task progress payload.
      */
-    public function save(TaskProgress $progress, DateTimeImmutable $expiration)
+    public function save(TaskProgress $progress, DateTimeImmutable $expiration): void
     {
         $id = $progress->key->uid;
         $txt = json_encode($progress);
@@ -49,7 +49,7 @@ class TaskStore
     /**
      * Updates an existing task progress payload.
      */
-    public function update(TaskProgress $progress)
+    public function update(TaskProgress $progress): void
     {
         $identity = $this->context->getIdentity();
         $user = $identity->id ?? '-';

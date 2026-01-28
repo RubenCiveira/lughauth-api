@@ -61,7 +61,11 @@ class LogManagement implements ManagementInterface
             $limit         = max(1, min(500, (int)($params['limit'] ?? 100)));
 
             $logFiles = glob($this->path . '/'.$this->config->name.'-*.jsonl*'); // incluye app.log, app.log.1, etc.
-            rsort($logFiles); // orden descendente
+            if ($logFiles !== false) {
+                rsort($logFiles); // orden descendente
+            } else {
+                $logFiles = [];
+            }
 
             $matchedSeen = 0;
             $results = [];
@@ -72,47 +76,47 @@ class LogManagement implements ManagementInterface
                         continue;
                     }
                     $record = $this->parseLogLine($line); // convierte línea en array asociativo
-                    if (!$record) {
+                    if ($record === null) {
                         continue;
                     }
                     // Filtrado por fecha
                     $timestamp = strtotime($record['datetime'] ?? '');
-                    if ($from && $timestamp < $from) {
+                    if ($from !== null && $from !== false && $timestamp < $from) {
                         continue;
                     }
-                    if ($to && $timestamp > $to) {
+                    if ($to !== null && $to !== false && $timestamp > $to) {
                         continue;
                     }
-                    if ($service_name && ($record['extra']['service']['service.name']) !== $service_name) {
+                    if ($service_name !== null && ($record['extra']['service']['service.name']) !== $service_name) {
                         continue;
                     }
-                    if ($service_namespace && ($record['extra']['service']['service.namespace']) !== $service_namespace) {
+                    if ($service_namespace !== null && ($record['extra']['service']['service.namespace']) !== $service_namespace) {
                         continue;
                     }
-                    if ($service_version && ($record['extra']['service']['service.version']) !== $service_version) {
+                    if ($service_version !== null && ($record['extra']['service']['service.version']) !== $service_version) {
                         continue;
                     }
-                    if ($service_instance && ($record['extra']['service']['service.instance.id']) !== $service_instance) {
+                    if ($service_instance !== null && ($record['extra']['service']['service.instance.id']) !== $service_instance) {
                         continue;
                     }
-                    if ($environment && ($record['extra']['service']['deployment.environment']) !== $environment) {
+                    if ($environment !== null && ($record['extra']['service']['deployment.environment']) !== $environment) {
                         continue;
                     }
                     // Filtrado por trace/span
-                    if ($traceId && ($record['extra']['traceId'] ?? null) !== $traceId) {
+                    if ($traceId !== null && ($record['extra']['traceId'] ?? null) !== $traceId) {
                         continue;
                     }
-                    if ($spanId && ($record['extra']['spanId'] ?? null) !== $spanId) {
+                    if ($spanId !== null && ($record['extra']['spanId'] ?? null) !== $spanId) {
                         continue;
                     }
-                    if ($level && ($record['level'] < $level)) {
+                    if ($level !== null && ($record['level'] < $level)) {
                         continue;
                     }
-                    if ($levelName && ($record['level_name'] !== $levelName)) {
+                    if ($levelName !== null && ($record['level_name'] !== $levelName)) {
                         continue;
                     }
                     // Búsqueda textual
-                    if ($search && stripos($record['message'], $search) === false) {
+                    if ($search !== null && stripos($record['message'], $search) === false) {
                         continue;
                     }
                     if ($matchedSeen++ < $offset) {
