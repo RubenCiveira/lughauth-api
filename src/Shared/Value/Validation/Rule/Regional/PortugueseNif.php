@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Value\Validation\Rule\Regional;
 
+use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
 
@@ -16,7 +17,8 @@ use Civi\Lughauth\Shared\Value\Validation\RuleFail;
  */
 class PortugueseNif implements Rule
 {
-    public function check(mixed $value): ?RuleFail
+    #[Override]
+    public function check($value): ?RuleFail
     {
         if (!is_string($value)) {
             return new RuleFail('rule_portuguese_nif', $value, []);

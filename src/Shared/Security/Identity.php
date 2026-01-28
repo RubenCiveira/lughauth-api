@@ -14,15 +14,15 @@ class Identity
     /**
      * No authorization scope granted.
      */
-    public const AUTH_SCOPE_NONE = 'none';
+    public const string AUTH_SCOPE_NONE = 'none';
     /**
      * Read-only authorization scope granted.
      */
-    public const AUTH_SCOPE_READ = 'read';
+    public const string AUTH_SCOPE_READ = 'read';
     /**
      * Read and write authorization scope granted.
      */
-    public const AUTH_SCOPE_BOTH = 'read-write';
+    public const string AUTH_SCOPE_BOTH = 'read-write';
 
     /**
      * Creates an anonymous identity.
@@ -41,7 +41,7 @@ class Identity
         /** @var bool Whether the user is anonymous. */
         public readonly bool $anonimous,
         /** @var string|null The authorization scope (none, read, or read-write). */
-        public readonly ?string $authScope = self::AUTH_SCOPE_NONE,
+        public readonly ?string $authScope = Identity::AUTH_SCOPE_NONE,
         /** @var string|null The user identifier. */
         public readonly ?string $id = null,
         /** @var string|null The user display name. */

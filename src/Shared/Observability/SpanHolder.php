@@ -139,16 +139,6 @@ class SpanHolder
      */
     public function setStatus(Status $code, ?string $description = null): SpanHolder
     {
-        if ($this->span) {
-            // Convert enum values to match OpenTelemetry expected format
-            $statusCode = match($code) {
-                Status::OK => 'OK',
-                Status::ERROR => 'ERROR',
-                Status::UNSET => 'UNSET',
-            };
-            return new SpanHolder($this->span->setStatus($statusCode, $description), $this->scope);
-        } else {
-            return $this;
-        }
+        return $this->span ? new SpanHolder($this->span->setStatus($code->value, $description), $this->scope) : $this;
     }
 }

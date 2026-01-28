@@ -22,23 +22,23 @@ class AesCypherService
     /**
      * The cipher algorithm used for encryption and decryption.
      */
-    private const ENCRYPT_ALGO = 'aes-256-gcm';
+    private const string ENCRYPT_ALGO = 'aes-256-gcm';
     /**
      * The length (in bytes) of the IV (Initialization Vector) for the cipher.
      */
-    private const IV_LENGTH_BYTE = 12;
+    private const int IV_LENGTH_BYTE = 12;
     /**
      * The length (in bytes) of the salt used for key derivation.
      */
-    private const SALT_LENGTH_BYTE = 16;
+    private const int SALT_LENGTH_BYTE = 16;
     /**
      * The length (in bits) of the authentication tag used by GCM.
      */
-    private const TAG_LENGTH_BIT = 128;
+    private const int TAG_LENGTH_BIT = 128;
     /**
      * The number of iterations used in PBKDF2 to derive the AES key from a password.
      */
-    private const ITERATIONS = 100000; // PBKDF2 iterations
+    private const int ITERATIONS = 100000; // PBKDF2 iterations
     /**
      * The default cipher key used for application-wide encryption if no key is provided.
      */
@@ -77,8 +77,8 @@ class AesCypherService
     public function encrypt(string $plainText, string $password): string
     {
         // Generar una salt y un IV aleatorios
-        $salt = random_bytes(self::SALT_LENGTH_BYTE);
-        $iv = random_bytes(self::IV_LENGTH_BYTE);
+        $salt = random_bytes(AesCypherService::SALT_LENGTH_BYTE);
+        $iv = random_bytes(AesCypherService::IV_LENGTH_BYTE);
 
         // Derivar la clave usando PBKDF2 con la contraseña y la sal
         $aesKey = $this->getAESKeyFromPassword($password, $salt);
@@ -87,13 +87,13 @@ class AesCypherService
         $tag = '';  // Tag se genera automáticamente
         $cipherText = openssl_encrypt(
             $plainText,
-            self::ENCRYPT_ALGO,
+            AesCypherService::ENCRYPT_ALGO,
             $aesKey,
             OPENSSL_RAW_DATA,
             $iv,
             $tag,
             '',   // AAD (Additional Authenticated Data), vacío en este caso
-            self::TAG_LENGTH_BIT / 8  // Longitud del tag en bytes (16 bytes para 128 bits)
+            AesCypherService::TAG_LENGTH_BIT / 8  // Longitud del tag en bytes (16 bytes para 128 bits)
         );
         $encryptedData = $iv . $salt . (false === $cipherText ? '' : $cipherText) . $tag;
         return base64_encode($encryptedData);
@@ -123,12 +123,12 @@ class AesCypherService
         $decode = base64_decode($cipherText);
 
         // Extraer IV, salt, y ciphertext
-        $iv = substr($decode, 0, self::IV_LENGTH_BYTE);
-        $salt = substr($decode, self::IV_LENGTH_BYTE, self::SALT_LENGTH_BYTE);
-        $cipherBytesWithTag = substr($decode, self::IV_LENGTH_BYTE + self::SALT_LENGTH_BYTE);
+        $iv = substr($decode, 0, AesCypherService::IV_LENGTH_BYTE);
+        $salt = substr($decode, AesCypherService::IV_LENGTH_BYTE, AesCypherService::SALT_LENGTH_BYTE);
+        $cipherBytesWithTag = substr($decode, AesCypherService::IV_LENGTH_BYTE + AesCypherService::SALT_LENGTH_BYTE);
 
         // Extraer Tag
-        $cipherTextLength = strlen($cipherBytesWithTag) - (self::TAG_LENGTH_BIT / 8);
+        $cipherTextLength = strlen($cipherBytesWithTag) - (AesCypherService::TAG_LENGTH_BIT / 8);
         $cipherBytes = substr($cipherBytesWithTag, 0, $cipherTextLength);
         $tag = substr($cipherBytesWithTag, $cipherTextLength);
 
@@ -138,7 +138,7 @@ class AesCypherService
         // Desencriptar los datos
         $plainText = openssl_decrypt(
             $cipherBytes,
-            self::ENCRYPT_ALGO,
+            AesCypherService::ENCRYPT_ALGO,
             $aesKeyFromPassword,
             OPENSSL_RAW_DATA,
             $iv,
@@ -158,6 +158,6 @@ class AesCypherService
     private static function getAESKeyFromPassword(string $password, string $salt): string
     {
         // Derivar la clave usando PBKDF2 y SHA-256 con 100000 iteraciones
-        return hash_pbkdf2('sha256', $password, $salt, self::ITERATIONS, 32, true);
+        return hash_pbkdf2('sha256', $password, $salt, AesCypherService::ITERATIONS, 32, true);
     }
 }
