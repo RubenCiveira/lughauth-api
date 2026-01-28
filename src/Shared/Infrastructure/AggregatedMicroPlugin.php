@@ -14,28 +14,32 @@ use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 
 abstract class AggregatedMicroPlugin extends MicroPlugin
 {
-    public function __construct(private readonly array $delegated)
-    {
+    public function __construct(
+        /**
+         * @var MicroPlugin[] delegateds
+         */
+        private readonly array $delegated
+    ) {
     }
 
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app)
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
         foreach ($this->delegated as $del) {
-            $del->registerRoutes($app);
+            $del->registerRoutes($collector);
         }
     }
 
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         foreach ($this->delegated as $del) {
-            $del->registerEvents($bus);
+            $del->registerEvents($listener);
         }
     }
 
     #[Override]
-    public function registerSchedulers(SchedulerManager $scheduler)
+    public function registerSchedulers(SchedulerManager $scheduler): void
     {
         foreach ($this->delegated as $del) {
             $del->registerSchedulers($scheduler);
@@ -47,13 +51,14 @@ abstract class AggregatedMicroPlugin extends MicroPlugin
     {
         $result = [];
         foreach ($this->delegated as $del) {
-            $result = [...$del->getManagementsInterfaces($container), ...$result];
+            $childs = $del->getManagementsInterfaces($container);
+            $result = [...$childs, ...$result];
         }
         return $result;
     }
 
     #[Override]
-    public function registerErrorHandler(ErrorMiddleware $errorHandler)
+    public function registerErrorHandler(ErrorMiddleware $errorHandler): void
     {
         foreach ($this->delegated as $del) {
             $del->registerErrorHandler($errorHandler);

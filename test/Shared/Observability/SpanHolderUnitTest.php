@@ -114,7 +114,7 @@ final class SpanHolderUnitTest extends TestCase
             ->willReturn($span);
         $span->expects($this->once())
             ->method('setStatus')
-            ->with('OK', 'done')
+            ->with('Ok', 'done')
             ->willReturn($span);
 
         /*

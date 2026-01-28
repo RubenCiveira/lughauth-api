@@ -36,21 +36,21 @@ abstract class MicroPlugin
     /**
      * Registers HTTP routes for the plugin.
      */
-    public function registerRoutes(RouteCollectorProxy $app): void
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
     }
 
     /**
      * Registers event listeners for the plugin.
      */
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
     }
 
     /**
      * Registers scheduled tasks for the plugin.
      */
-    public function registerSchedulers(SchedulerManager $bus): void
+    public function registerSchedulers(SchedulerManager $scheduler): void
     {
     }
 

@@ -24,16 +24,16 @@ class GenericSecurityPlugin extends MicroPlugin
     /**
      * Startup order for the RBAC cache refresh.
      */
-    public const STARTUP_ORDER = 1000;
+    public const int STARTUP_ORDER = 1000;
 
     /**
      * Registers RBAC listeners for allow and field access events.
      */
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus)
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(AllowDecision::class, AllowListener::class);
-        $bus->registerListener(FieldsAccess::class, FieldsListener::class);
+        $listener->registerListener(AllowDecision::class, AllowListener::class);
+        $listener->registerListener(FieldsAccess::class, FieldsListener::class);
     }
 
     /**

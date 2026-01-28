@@ -24,7 +24,7 @@ class ErrorsPlugin extends MicroPlugin
      * Configures error handlers for validation and auth failures.
      */
     #[Override]
-    public function registerErrorHandler(ErrorMiddleware $errorHandler)
+    public function registerErrorHandler(ErrorMiddleware $errorHandler): void
     {
         $errorHandler->setErrorHandler(ConstraintException::class, function (ServerRequestInterface $request, ConstraintException $exception): ResponseInterface {
             $errors = [];

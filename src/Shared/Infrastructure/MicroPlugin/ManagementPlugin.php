@@ -40,9 +40,9 @@ class ManagementPlugin extends MicroPlugin
      * Registers the metrics export scheduler.
      */
     #[Override]
-    public function registerSchedulers(SchedulerManager $bus)
+    public function registerSchedulers(SchedulerManager $scheduler): void
     {
-        $bus->register(new CronExpression('*/15 * * * *'), PrometheusRegistryExporter::class, "forceDump");
+        $scheduler->register(new CronExpression('*/15 * * * *'), PrometheusRegistryExporter::class, "forceDump");
     }
 
     /**
@@ -83,9 +83,9 @@ class ManagementPlugin extends MicroPlugin
      * Registers startup tasks for running migrations.
      */
     #[Override]
-    public function registerStartup(StartupProcessor $container): void
+    public function registerStartup(StartupProcessor $processor): void
     {
-        $container->register(function (ContainerInterface $container) {
+        $processor->register(function (ContainerInterface $container) {
             $migrations = $container->get(MigrationManagement::class);
             $callback = $migrations->set();
             $callback();

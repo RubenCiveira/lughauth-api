@@ -136,11 +136,11 @@ class EnqueuePublisher
 
     private function send(array $data): void
     {
-        if ( !$this->isQueueConnectionConfigured() ) {
+        if (!$this->isQueueConnectionConfigured()) {
             return;
         }
         $json = json_encode($data);
-        if( false === $json ) {
+        if (false === $json) {
             return;
         }
         $entityType = $data['event_type'];
@@ -178,7 +178,7 @@ class EnqueuePublisher
         $context->declareQueue($allQueue);
         $context->bind(new AmqpBind($exchange, $allQueue, '#'));
 
-        $message = $context->createMessage( $json );
+        $message = $context->createMessage($json);
         $message->setContentType('application/json');
         $message->setRoutingKey($entityType);
         $message->setDeliveryMode(AmqpMessage::DELIVERY_MODE_PERSISTENT); // <- clave

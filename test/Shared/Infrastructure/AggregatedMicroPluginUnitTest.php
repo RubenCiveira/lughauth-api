@@ -23,19 +23,19 @@ final class AggregatedMicroPluginUnitTest extends TestCase
             public int $schedulers = 0;
             public int $errors = 0;
             public int $startup = 0;
-            public function registerRoutes(RouteCollectorProxy $app)
+            public function registerRoutes(RouteCollectorProxy $app): void
             {
                 $this->routes++;
             }
-            public function registerEvents(EventListenersRegistrarInterface $bus)
+            public function registerEvents(EventListenersRegistrarInterface $bus): void
             {
                 $this->events++;
             }
-            public function registerSchedulers(SchedulerManager $bus)
+            public function registerSchedulers(SchedulerManager $bus): void
             {
                 $this->schedulers++;
             }
-            public function registerErrorHandler(ErrorMiddleware $errorHandler)
+            public function registerErrorHandler(ErrorMiddleware $errorHandler): void
             {
                 $this->errors++;
             }
@@ -51,19 +51,19 @@ final class AggregatedMicroPluginUnitTest extends TestCase
             public int $schedulers = 0;
             public int $errors = 0;
             public int $startup = 0;
-            public function registerRoutes(RouteCollectorProxy $app)
+            public function registerRoutes(RouteCollectorProxy $app): void
             {
                 $this->routes++;
             }
-            public function registerEvents(EventListenersRegistrarInterface $bus)
+            public function registerEvents(EventListenersRegistrarInterface $bus): void
             {
                 $this->events++;
             }
-            public function registerSchedulers(SchedulerManager $bus)
+            public function registerSchedulers(SchedulerManager $bus): void
             {
                 $this->schedulers++;
             }
-            public function registerErrorHandler(ErrorMiddleware $errorHandler)
+            public function registerErrorHandler(ErrorMiddleware $errorHandler): void
             {
                 $this->errors++;
             }
