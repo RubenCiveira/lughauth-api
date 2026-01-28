@@ -27,10 +27,10 @@ class EnqueuePublisher
 {
     use LoggerAwareTrait;
 
-    /** @var ?string Retention period for published events. */
-    private readonly ?string $sendRetention;
-    /** @var ?string Retention period for stuck events. */
-    private readonly ?string $stuckRetention;
+    /** @var string Retention period for published events. */
+    private readonly string $sendRetention;
+    /** @var string Retention period for stuck events. */
+    private readonly string $stuckRetention;
     /** @var ?string AMQP DNS string. */
     private readonly ?string $dns;
     /** @var ?string AMQP topic name. */
@@ -56,9 +56,9 @@ class EnqueuePublisher
     /**
      * Stores a public event and triggers publishing.
      */
-    public function emitChange(PublicEvent $event)
+    public function emitChange(PublicEvent $event): void
     {
-        if (!$this->dns || !str_starts_with($this->dns, 'amqp://')) {
+        if (null === $this->dns || !str_starts_with($this->dns, 'amqp://')) {
             return;
         }
 
@@ -102,7 +102,7 @@ class EnqueuePublisher
     /**
      * Sends pending events and updates retry metadata.
      */
-    public function sendEvents()
+    public function sendEvents(): void
     {
         $values = $this->template->query(<<<SQL
                 select * from _output_queue_pending_events where status='pending' and next_retry < :now
@@ -134,56 +134,61 @@ class EnqueuePublisher
         $this->clearEvents();
     }
 
-    private function send(array $data)
+    private function send(array $data): void
     {
-        if ($this->dns && str_starts_with($this->dns, 'amqp://')) {
-            $entityType = $data['event_type'];
-            $factory = new AmqpConnectionFactory([
-                'dsn' => $this->dns, // %2f = "/" vhost por defecto
-            ]);
-            $context = $factory->createContext();
-            $exchange = $context->createTopic($this->topic, false, true, false, false);
-            $exchange->setType(AmqpTopic::TYPE_TOPIC);
-            $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
-            $context->declareTopic($exchange);
-
-            // // 2a) Cola por entidad: events.<entityType>
-
-            $join = '';
-            $parts = explode('.', $entityType);
-            foreach ($parts as $part) {
-                $join .= $part;
-                // 2a) Cola por entidad: events.<entityType>
-                $joinQueue = $context->createQueue($this->topic. '.' . $join);
-                $joinQueue->addFlag(AmqpQueue::FLAG_DURABLE);
-                $context->declareQueue($joinQueue);
-                // patrón: <entityType>.*
-                if ($join === $entityType) {
-                    $context->bind(new AmqpBind($exchange, $joinQueue, $join));
-                } else {
-                    $context->bind(new AmqpBind($exchange, $joinQueue, $join . '.*'));
-                }
-                $join .= '.';
-            }
-
-            // 2b) (Opcional) Cola catch-all: events.all -> '#'
-            $allQueue = $context->createQueue($this->topic. '.all');
-            $allQueue->addFlag(AmqpQueue::FLAG_DURABLE);
-            $context->declareQueue($allQueue);
-            $context->bind(new AmqpBind($exchange, $allQueue, '#'));
-
-            $message = $context->createMessage(json_encode($data));
-            $message->setContentType('application/json');
-            $message->setRoutingKey($entityType);
-            $message->setDeliveryMode(AmqpMessage::DELIVERY_MODE_PERSISTENT); // <- clave
-
-            // 5) Enviar
-            $producer = $context->createProducer();
-            $producer->send($exchange, $message);
+        if ( !$this->isQueueConnectionConfigured() ) {
+            return;
         }
+        $json = json_encode($data);
+        if( false === $json ) {
+            return;
+        }
+        $entityType = $data['event_type'];
+        $factory = new AmqpConnectionFactory([
+            'dsn' => $this->dns, // %2f = "/" vhost por defecto
+        ]);
+        $context = $factory->createContext();
+        /** @psalm-suppress PossiblyNullArgument */
+        $exchange = $context->createTopic($this->topic);
+        $exchange->setType(AmqpTopic::TYPE_TOPIC);
+        $exchange->addFlag(AmqpTopic::FLAG_DURABLE);
+        $context->declareTopic($exchange);
+
+        // // 2a) Cola por entidad: events.<entityType>
+        $join = '';
+        $parts = explode('.', $entityType);
+        foreach ($parts as $part) {
+            $join .= $part;
+            // 2a) Cola por entidad: events.<entityType>
+            $joinQueue = $context->createQueue($this->topic. '.' . $join);
+            $joinQueue->addFlag(AmqpQueue::FLAG_DURABLE);
+            $context->declareQueue($joinQueue);
+            // patrón: <entityType>.*
+            if ($join === $entityType) {
+                $context->bind(new AmqpBind($exchange, $joinQueue, $join));
+            } else {
+                $context->bind(new AmqpBind($exchange, $joinQueue, $join . '.*'));
+            }
+            $join .= '.';
+        }
+
+        // 2b) (Opcional) Cola catch-all: events.all -> '#'
+        $allQueue = $context->createQueue($this->topic. '.all');
+        $allQueue->addFlag(AmqpQueue::FLAG_DURABLE);
+        $context->declareQueue($allQueue);
+        $context->bind(new AmqpBind($exchange, $allQueue, '#'));
+
+        $message = $context->createMessage( $json );
+        $message->setContentType('application/json');
+        $message->setRoutingKey($entityType);
+        $message->setDeliveryMode(AmqpMessage::DELIVERY_MODE_PERSISTENT); // <- clave
+
+        // 5) Enviar
+        $producer = $context->createProducer();
+        $producer->send($exchange, $message);
     }
 
-    private function clearEvents()
+    private function clearEvents(): void
     {
         $send = new DateTimeImmutable()->sub(new DateInterval('P'.$this->sendRetention));
         $stuck = new DateTimeImmutable()->sub(new DateInterval('P'.$this->stuckRetention));
@@ -193,5 +198,10 @@ class EnqueuePublisher
                 new SqlParam('send', $send, SqlParam::DATETIME),
                 new SqlParam('stuck', $stuck, SqlParam::DATETIME),
             ]);
+    }
+
+    private function isQueueConnectionConfigured(): bool
+    {
+        return null !== $this->dns && null !== $this->topic && str_starts_with($this->dns, 'amqp://');
     }
 }

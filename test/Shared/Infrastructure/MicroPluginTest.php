@@ -22,22 +22,22 @@ namespace {
         public ?SchedulerManager $schedulers = null;
         public ?ErrorMiddleware $errors = null;
 
-        public function registerRoutes(RouteCollectorProxy $app)
+        public function registerRoutes(RouteCollectorProxy $app): void
         {
             $this->routes = $app;
         }
 
-        public function registerEvents(EventListenersRegistrarInterface $bus)
+        public function registerEvents(EventListenersRegistrarInterface $bus): void
         {
             $this->events = $bus;
         }
 
-        public function registerSchedulers(SchedulerManager $bus)
+        public function registerSchedulers(SchedulerManager $bus): void
         {
             $this->schedulers = $bus;
         }
 
-        public function registerErrorHandler(ErrorMiddleware $errorHandler)
+        public function registerErrorHandler(ErrorMiddleware $errorHandler): void
         {
             $this->errors = $errorHandler;
         }
