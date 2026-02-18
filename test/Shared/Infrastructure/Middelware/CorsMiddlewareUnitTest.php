@@ -8,7 +8,7 @@ use Slim\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\CorsMiddleware;
+use Civi\Lughauth\Bootstrap\Middleware\CorsMiddleware;
 
 /**
  * Unit tests for CorsMiddleware.

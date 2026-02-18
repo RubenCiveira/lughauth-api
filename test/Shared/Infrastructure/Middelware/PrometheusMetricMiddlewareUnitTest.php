@@ -18,10 +18,10 @@ use Prometheus\Gauge;
 use Prometheus\Histogram;
 use Prometheus\Storage\InMemory;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\PrometheusMetricMiddleware;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExporter;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy;
+use Civi\Lughauth\Bootstrap\Middleware\PrometheusMetricMiddleware;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\PrometheusRegistryExporter;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy;
 
 /**
  * Unit tests for PrometheusMetricMiddleware.

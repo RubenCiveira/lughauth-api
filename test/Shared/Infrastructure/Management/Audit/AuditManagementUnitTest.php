@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
-use Civi\Lughauth\Shared\Infrastructure\Management\Audit\AuditManagement;
+use Civi\Lughauth\Bootstrap\Management\Audit\AuditManagement;
 
 /**
  * Unit tests for {@see AuditManagement}.

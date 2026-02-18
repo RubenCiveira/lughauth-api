@@ -9,7 +9,7 @@ namespace {
     use Psr\Http\Message\ServerRequestInterface;
     use Slim\Middleware\ErrorMiddleware;
     use Slim\Exception\HttpMethodNotAllowedException;
-    use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ErrorsPlugin;
+    use Civi\Lughauth\Bootstrap\Plugin\ErrorsPlugin;
     use Civi\Lughauth\Shared\Exception\ConstraintException;
     use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 

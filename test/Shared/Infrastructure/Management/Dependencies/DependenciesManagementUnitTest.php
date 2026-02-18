@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Infrastructure\Management\Dependencies\DependenciesManagement;
+use Civi\Lughauth\Bootstrap\Management\Dependencies\DependenciesManagement;
 
 /**
  * Unit tests for {@see DependenciesManagement}.

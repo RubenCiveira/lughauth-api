@@ -28,3 +28,6 @@ logs/
 storage/
 build/
 var/
+
+.agents/
+.claude/

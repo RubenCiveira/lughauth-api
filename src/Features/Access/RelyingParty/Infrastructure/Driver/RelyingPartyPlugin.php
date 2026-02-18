@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\Relyin
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\Rest\RelyingPartyDisableController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\CreateRelyingPartyOnlyForRootAllow;
@@ -86,7 +86,7 @@ class RelyingPartyPlugin extends MicroPlugin
             $handler->registerResourceAttribute("relying-party", "apiKey", "MANAGE");
             $handler->registerResourceAttribute("relying-party", "enabled", "MANAGE");
             $handler->registerResourceAttribute("relying-party", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForRelyingPartyAcl(RouteCollectorProxy $relyingPartyGroup): void
     {

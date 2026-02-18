@@ -8,7 +8,7 @@ require_once __DIR__ . '/TraceManagementGzOverrides.php';
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Management\Trace\TraceManagement;
+use Civi\Lughauth\Bootstrap\Management\Trace\TraceManagement;
 
 /**
  * Unit tests for {@see TraceManagement}.

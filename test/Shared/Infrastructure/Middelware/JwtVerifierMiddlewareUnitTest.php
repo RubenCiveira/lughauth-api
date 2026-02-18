@@ -18,7 +18,7 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Identity;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\JwtVerifierMiddleware;
+use Civi\Lughauth\Bootstrap\Middleware\JwtVerifierMiddleware;
 
 /**
  * Unit tests for JwtVerifierMiddleware.

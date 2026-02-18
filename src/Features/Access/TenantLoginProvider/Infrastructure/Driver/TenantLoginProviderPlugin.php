@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempMetadataUploadController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
@@ -89,7 +89,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-login-provider", "metadata", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "usersEnabledByDefault", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantLoginProviderAcl(RouteCollectorProxy $tenantLoginProviderGroup): void
     {

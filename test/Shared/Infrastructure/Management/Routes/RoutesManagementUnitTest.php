@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Slim\Interfaces\RouteCollectorInterface;
 use Slim\Interfaces\RouteInterface;
 use Slim\App;
-use Civi\Lughauth\Shared\Infrastructure\Management\Routes\RoutesManagement;
+use Civi\Lughauth\Bootstrap\Management\Routes\RoutesManagement;
 
 /**
  * Unit tests for {@see RoutesManagement}.

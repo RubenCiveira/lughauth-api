@@ -13,7 +13,7 @@ use Civi\Lughauth\Features\Test\Plan\PlanTenant\Infrastructure\Driver\Rest\PlanT
 use Civi\Lughauth\Features\Test\Plan\PlanTenant\Infrastructure\Driver\Rest\PlanTenantRetrieveController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Test\Plan\PlanTenant\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
@@ -48,7 +48,7 @@ class PlanTenantPlugin extends MicroPlugin
 
             $handler->registerResourceAttribute("plan-tenant", "name", "MANAGE");
             $handler->registerResourceAttribute("plan-tenant", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForPlanTenantAcl(RouteCollectorProxy $planTenantGroup)
     {

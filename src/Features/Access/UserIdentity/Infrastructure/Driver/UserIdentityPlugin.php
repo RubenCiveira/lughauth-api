@@ -16,7 +16,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserId
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\Rest\UserIdentityDeleteController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityRestrictFilterToVisibility;
@@ -66,7 +66,7 @@ class UserIdentityPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user-identity", "trustedClient", "MANAGE");
             $handler->registerResourceAttribute("user-identity", "roles", "MANAGE");
             $handler->registerResourceAttribute("user-identity", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForUserIdentityAcl(RouteCollectorProxy $userIdentityGroup): void
     {

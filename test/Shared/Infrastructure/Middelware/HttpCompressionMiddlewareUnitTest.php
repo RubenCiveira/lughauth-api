@@ -8,7 +8,7 @@ use Slim\Psr7\Response;
 use Slim\Psr7\Factory\StreamFactory;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\HttpCompressionMiddleware;
+use Civi\Lughauth\Bootstrap\Middleware\HttpCompressionMiddleware;
 
 /**
  * Unit tests for HttpCompressionMiddleware.

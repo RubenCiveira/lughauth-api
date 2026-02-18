@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
-use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\MarkAckManagement;
+use Civi\Lughauth\Bootstrap\Management\EntityChangelog\MarkAckManagement;
 
 /**
  * Unit tests for {@see MarkAckManagement}.

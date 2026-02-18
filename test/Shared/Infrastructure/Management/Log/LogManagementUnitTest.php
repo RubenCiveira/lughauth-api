@@ -8,7 +8,7 @@ require_once __DIR__ . '/LogManagementGzOverrides.php';
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Management\Log\LogManagement;
+use Civi\Lughauth\Bootstrap\Management\Log\LogManagement;
 
 /**
  * Unit tests for {@see LogManagement}.

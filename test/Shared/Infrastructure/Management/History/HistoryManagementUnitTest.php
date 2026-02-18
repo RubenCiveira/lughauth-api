@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
-use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
+use Civi\Lughauth\Bootstrap\Management\History\HistoryManagement;
 
 /**
  * Unit tests for {@see HistoryManagement}.

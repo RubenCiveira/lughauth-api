@@ -4,9 +4,9 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthManagement;
-use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthDetail;
-use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthProviderInterface;
+use Civi\Lughauth\Bootstrap\Management\Health\HealthManagement;
+use Civi\Lughauth\Bootstrap\Management\Health\HealthDetail;
+use Civi\Lughauth\Bootstrap\Management\Health\HealthProviderInterface;
 
 /**
  * Unit tests for {@see HealthManagement}.

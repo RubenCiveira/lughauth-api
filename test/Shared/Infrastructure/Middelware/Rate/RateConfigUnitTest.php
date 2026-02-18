@@ -6,7 +6,7 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\RateConfig;
+use Civi\Lughauth\Bootstrap\Middleware\Rate\RateConfig;
 
 /**
  * Unit tests for RateConfig.

@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\Trust
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\Rest\TrustedClientDisableController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\CreateTrustedClientOnlyForRootAllow;
@@ -88,7 +88,7 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("trusted-client", "enabled", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTrustedClientAcl(RouteCollectorProxy $trustedClientGroup): void
     {

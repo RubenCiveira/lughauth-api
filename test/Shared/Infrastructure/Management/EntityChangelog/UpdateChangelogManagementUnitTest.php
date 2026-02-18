@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\UpdateChangelogManagement;
+use Civi\Lughauth\Bootstrap\Management\EntityChangelog\UpdateChangelogManagement;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogSyncEvent;
 
 /**

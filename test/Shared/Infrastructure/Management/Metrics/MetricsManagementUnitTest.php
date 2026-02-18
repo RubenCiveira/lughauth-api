@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Prometheus\CollectorRegistry;
-use Civi\Lughauth\Shared\Infrastructure\Management\Metrics\MetricsManagement;
+use Civi\Lughauth\Bootstrap\Management\Metrics\MetricsManagement;
 
 /**
  * Unit tests for {@see MetricsManagement}.

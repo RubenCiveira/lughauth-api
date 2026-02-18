@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\RateLimiter\LimiterStateInterface;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\FileStorage;
+use Civi\Lughauth\Bootstrap\Middleware\Rate\FileStorage;
 
 /**
  * Unit tests for FileStorage.

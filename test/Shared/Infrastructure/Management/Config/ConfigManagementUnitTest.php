@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Management\Config\ConfigManagement;
+use Civi\Lughauth\Bootstrap\Management\Config\ConfigManagement;
 
 /**
  * Unit tests for {@see ConfigManagement}.

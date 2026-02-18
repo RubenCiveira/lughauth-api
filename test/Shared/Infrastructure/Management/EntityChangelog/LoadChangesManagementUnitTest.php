@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
-use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\LoadChangesManagement;
+use Civi\Lughauth\Bootstrap\Management\EntityChangelog\LoadChangesManagement;
 
 /**
  * Unit tests for {@see LoadChangesManagement}.

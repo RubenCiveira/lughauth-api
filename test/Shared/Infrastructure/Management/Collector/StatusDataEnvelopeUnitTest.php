@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Infrastructure\Management\Collector\StatusDataEnvelope;
+use Civi\Lughauth\Bootstrap\Management\Collector\StatusDataEnvelope;
 
 /**
  * Unit tests for {@see StatusDataEnvelope}.

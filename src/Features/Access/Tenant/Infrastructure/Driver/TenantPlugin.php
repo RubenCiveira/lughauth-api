@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\Rest\TenantEnable
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\Rest\TenantDisableController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantRestrictFilterToVisibility;
@@ -88,7 +88,7 @@ class TenantPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant", "markForDelete", "MANAGE");
             $handler->registerResourceAttribute("tenant", "markForDeleteTime", "MANAGE");
             $handler->registerResourceAttribute("tenant", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantAcl(RouteCollectorProxy $tenantGroup): void
     {

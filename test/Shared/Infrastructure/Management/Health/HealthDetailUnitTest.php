@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthDetail;
+use Civi\Lughauth\Bootstrap\Management\Health\HealthDetail;
 
 /**
  * Unit tests for {@see HealthDetail}.

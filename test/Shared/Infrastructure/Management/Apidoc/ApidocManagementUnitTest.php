@@ -8,7 +8,7 @@ use Slim\App;
 use Slim\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
+use Civi\Lughauth\Bootstrap\Management\Apidoc\ApidocManagement;
 
 /**
  * Unit tests for {@see ApidocManagement}.

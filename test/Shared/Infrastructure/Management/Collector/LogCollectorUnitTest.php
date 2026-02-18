@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Psr7\Factory\StreamFactory;
-use Civi\Lughauth\Shared\Infrastructure\Management\Collector\LogCollector;
+use Civi\Lughauth\Bootstrap\Management\Collector\LogCollector;
 
 /**
  * Unit tests for {@see LogCollector}.

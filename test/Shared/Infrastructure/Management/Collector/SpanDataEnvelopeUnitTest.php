@@ -8,8 +8,8 @@ use OpenTelemetry\API\Trace\SpanContext;
 use OpenTelemetry\SDK\Common\Attribute\Attributes;
 use OpenTelemetry\SDK\Common\Instrumentation\InstrumentationScope;
 use OpenTelemetry\SDK\Resource\ResourceInfo;
-use Civi\Lughauth\Shared\Infrastructure\Management\Collector\SpanDataEnvelope;
-use Civi\Lughauth\Shared\Infrastructure\Management\Collector\StatusDataEnvelope;
+use Civi\Lughauth\Bootstrap\Management\Collector\SpanDataEnvelope;
+use Civi\Lughauth\Bootstrap\Management\Collector\StatusDataEnvelope;
 
 /**
  * Unit tests for {@see SpanDataEnvelope}.

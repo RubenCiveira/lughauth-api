@@ -12,7 +12,7 @@ use OpenApi\Generator;
 use OpenApi\Attributes as OA;
 use Symfony\Component\Yaml\Yaml;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
+use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
 
 #[OA\Info(
     title: "Mi API REST",

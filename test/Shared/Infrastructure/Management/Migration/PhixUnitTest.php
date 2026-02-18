@@ -6,7 +6,7 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
+use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
 
 /**
  * Unit tests for {@see Phix}.

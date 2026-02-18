@@ -7,7 +7,7 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
-    use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+    use Civi\Lughauth\Shared\Security\SecurityPlugin;
     use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
     use Civi\Lughauth\Shared\Security\AllowDecision;
@@ -61,9 +61,9 @@ namespace {
     }
 
     /**
-     * Unit tests for {@see GenericSecurityPlugin}.
+     * Unit tests for {@see SecurityPlugin}.
      */
-    final class GenericSecurityPluginTest extends TestCase
+    final class SecurityPluginTest extends TestCase
     {
         /**
          * Ensures RBAC listeners are registered.
@@ -74,7 +74,7 @@ namespace {
              * Arrange: build a fake bus and plugin.
              */
             $bus = new GenericSecurityFakeBus();
-            $plugin = new GenericSecurityPlugin();
+            $plugin = new SecurityPlugin();
 
             /*
              * Act: register event listeners.
@@ -105,7 +105,7 @@ namespace {
             $container = new GenericSecurityFakeContainer([
                 Handler::class => $handler,
             ]);
-            $plugin = new GenericSecurityPlugin();
+            $plugin = new SecurityPlugin();
 
             /*
              * Act: register startup and invoke the captured callback.
@@ -116,7 +116,7 @@ namespace {
             /*
              * Assert: verify the startup order and flush call.
              */
-            $this->assertSame(GenericSecurityPlugin::STARTUP_ORDER, $startup->order);
+            $this->assertSame(SecurityPlugin::STARTUP_ORDER, $startup->order);
             $this->assertTrue(true);
         }
     }

@@ -21,7 +21,7 @@ use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserEnableCont
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\Rest\UserUnlockController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
@@ -102,7 +102,7 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user", "blockedUntil", "MANAGE");
             $handler->registerResourceAttribute("user", "provider", "MANAGE");
             $handler->registerResourceAttribute("user", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForUserAcl(RouteCollectorProxy $userGroup): void
     {

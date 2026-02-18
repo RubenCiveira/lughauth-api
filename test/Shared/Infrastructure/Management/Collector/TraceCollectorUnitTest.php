@@ -8,7 +8,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
 use Slim\Psr7\Factory\StreamFactory;
-use Civi\Lughauth\Shared\Infrastructure\Management\Collector\TraceCollector;
+use Civi\Lughauth\Bootstrap\Management\Collector\TraceCollector;
 
 /**
  * Unit tests for {@see TraceCollector}.

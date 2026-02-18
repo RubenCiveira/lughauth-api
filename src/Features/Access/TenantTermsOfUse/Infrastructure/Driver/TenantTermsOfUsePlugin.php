@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\Te
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Rest\TenantTermsOfUseTempAttachedUploadController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseRestrictFilterToVisibility;
@@ -84,7 +84,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-terms-of-use", "attached", "MANAGE");
             $handler->registerResourceAttribute("tenant-terms-of-use", "activationDate", "MANAGE");
             $handler->registerResourceAttribute("tenant-terms-of-use", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantTermsOfUseAcl(RouteCollectorProxy $tenantTermsOfUseGroup): void
     {

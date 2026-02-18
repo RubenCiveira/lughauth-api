@@ -7,9 +7,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Infrastructure\Management\Histogram\HistogramManagement;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsQuery;
-use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS;
+use Civi\Lughauth\Bootstrap\Management\Histogram\HistogramManagement;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsQuery;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
 
 /**
  * Unit tests for {@see HistogramManagement}.

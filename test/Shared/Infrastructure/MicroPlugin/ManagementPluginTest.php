@@ -8,28 +8,28 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
-    use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\ManagementPlugin;
+    use Civi\Lughauth\Bootstrap\Plugin\ManagementPlugin;
     use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
-    use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Health\HealthManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Config\ConfigManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Routes\RoutesManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Dependencies\DependenciesManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Metrics\MetricsManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Apidoc\ApidocManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Log\LogManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Trace\TraceManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Collector\TraceCollector;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Collector\LogCollector;
-    use Civi\Lughauth\Shared\Infrastructure\Management\History\HistoryManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Audit\AuditManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\Histogram\HistogramManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\LoadChangesManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\MarkAckManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Management\EntityChangelog\UpdateChangelogManagement;
-    use Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\PrometheusRegistryExporter;
+    use Civi\Lughauth\Bootstrap\MicroConfig;
+    use Civi\Lughauth\Bootstrap\Management\Health\HealthManagement;
+    use Civi\Lughauth\Bootstrap\Management\Config\ConfigManagement;
+    use Civi\Lughauth\Bootstrap\Management\Routes\RoutesManagement;
+    use Civi\Lughauth\Bootstrap\Management\Dependencies\DependenciesManagement;
+    use Civi\Lughauth\Bootstrap\Management\Metrics\MetricsManagement;
+    use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
+    use Civi\Lughauth\Bootstrap\Management\Apidoc\ApidocManagement;
+    use Civi\Lughauth\Bootstrap\Management\Log\LogManagement;
+    use Civi\Lughauth\Bootstrap\Management\Trace\TraceManagement;
+    use Civi\Lughauth\Bootstrap\Management\Collector\TraceCollector;
+    use Civi\Lughauth\Bootstrap\Management\Collector\LogCollector;
+    use Civi\Lughauth\Bootstrap\Management\History\HistoryManagement;
+    use Civi\Lughauth\Bootstrap\Management\Audit\AuditManagement;
+    use Civi\Lughauth\Bootstrap\Management\Histogram\HistogramManagement;
+    use Civi\Lughauth\Bootstrap\Management\EntityChangelog\LoadChangesManagement;
+    use Civi\Lughauth\Bootstrap\Management\EntityChangelog\MarkAckManagement;
+    use Civi\Lughauth\Bootstrap\Management\EntityChangelog\UpdateChangelogManagement;
+    use Civi\Lughauth\Bootstrap\Middleware\Metrics\PrometheusRegistryExporter;
 
     final class ManagementFakeContainer implements ContainerInterface
     {

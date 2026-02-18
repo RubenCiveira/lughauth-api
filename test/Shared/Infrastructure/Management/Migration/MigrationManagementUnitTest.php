@@ -6,9 +6,9 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationInterface;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\Phix;
+use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
+use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
+use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
 
 /**
  * Unit tests for {@see MigrationManagement}.

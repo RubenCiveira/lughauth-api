@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Management;
 
 use Override;
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\InstallUsecase;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationInterface;
+use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
 
 class OidcMigrationProvider implements MigrationInterface
 {

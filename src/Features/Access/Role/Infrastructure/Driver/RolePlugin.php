@@ -16,7 +16,7 @@ use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleUpdateCont
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\Rest\RoleDeleteController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
@@ -61,7 +61,7 @@ class RolePlugin extends MicroPlugin
             $handler->registerResourceAttribute("role", "name", "MANAGE");
             $handler->registerResourceAttribute("role", "relyingParty", "MANAGE");
             $handler->registerResourceAttribute("role", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForRoleAcl(RouteCollectorProxy $roleGroup): void
     {

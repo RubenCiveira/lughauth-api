@@ -31,17 +31,17 @@ namespace {
     use OpenTelemetry\Contrib\Otlp\SpanExporter;
     use Civi\Lughauth\Shared\AppConfig;
     use Civi\Lughauth\Shared\Context;
-    use Civi\Lughauth\Shared\Infrastructure\Micro;
-    use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
+    use Civi\Lughauth\Bootstrap\Micro;
+    use Civi\Lughauth\Bootstrap\MicroConfig;
     use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
     use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
     use Civi\Lughauth\Shared\Infrastructure\Log\TraceContextProcessor;
     use Civi\Lughauth\Shared\Infrastructure\Log\SpanJsonGzipRotatingFileExporter;
-    use Civi\Lughauth\Shared\Infrastructure\Management\ManagementInterface;
+    use Civi\Lughauth\Bootstrap\Management\ManagementInterface;
     use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
     use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
-    use Civi\Lughauth\Shared\Infrastructure\InjectResourceAttrsProcessor;
+    use Civi\Lughauth\Bootstrap\Telemetry\InjectResourceAttrsProcessor;
     use Civi\Lughauth\Shared\Observability\TraceContext;
     use Civi\Lughauth\Shared\Infrastructure\Event\EnqueuePublisher;
 
@@ -909,13 +909,13 @@ namespace {
             $this->assertInstanceOf(LockFactory::class, $filesystemLock);
             $this->assertInstanceOf(StorageInterface::class, $filesystemStorage);
 
-            $metricsFs = $defs[\Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS::class]();
-            $metricsPolicy = $defs[\Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy::class]();
+            $metricsFs = $defs[\Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS::class]();
+            $metricsPolicy = $defs[\Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy::class]();
             $registryFile = $defs[CollectorRegistry::class](new ArrayContainer([
                 \PDO::class => new \PDO('sqlite::memory:'),
             ]), $config);
-            $this->assertInstanceOf(\Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\MetricsFS::class, $metricsFs);
-            $this->assertInstanceOf(\Civi\Lughauth\Shared\Infrastructure\Middelware\Metrics\TimeWindowPolicy::class, $metricsPolicy);
+            $this->assertInstanceOf(\Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS::class, $metricsFs);
+            $this->assertInstanceOf(\Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy::class, $metricsPolicy);
             $this->assertInstanceOf(CollectorRegistry::class, $registryFile);
 
             $_ENV['APP_STATE_VAULT_ENGINE'] = 'redis';

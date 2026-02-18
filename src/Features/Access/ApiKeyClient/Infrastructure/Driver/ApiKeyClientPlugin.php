@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKey
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\Rest\ApiKeyClientDisableController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\CreateApiKeyClientOnlyForRootAllow;
@@ -87,7 +87,7 @@ class ApiKeyClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("api-key-client", "enabled", "MANAGE");
             $handler->registerResourceAttribute("api-key-client", "scopes", "MANAGE");
             $handler->registerResourceAttribute("api-key-client", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForApiKeyClientAcl(RouteCollectorProxy $apiKeyClientGroup): void
     {

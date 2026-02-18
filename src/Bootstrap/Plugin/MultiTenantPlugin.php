@@ -9,7 +9,7 @@ use Override;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\Management\Migration\MigrationManagement;
+use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;

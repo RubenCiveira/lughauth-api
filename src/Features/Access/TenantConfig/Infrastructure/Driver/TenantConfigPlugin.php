@@ -16,7 +16,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\Tenant
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest\TenantConfigDeleteController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Shared\Infrastructure\MicroPlugin\GenericSecurityPlugin;
+use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
@@ -76,7 +76,7 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "allowRecoverPass", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "recoverPassEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "version", "MANAGE");
-        }, StartupProcessor::before(GenericSecurityPlugin::STARTUP_ORDER));
+        }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
     public function setRoutesForTenantConfigAcl(RouteCollectorProxy $tenantConfigGroup): void
     {
