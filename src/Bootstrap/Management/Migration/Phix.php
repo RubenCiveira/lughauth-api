@@ -95,8 +95,8 @@ class Phix implements MigrationInterface
         $of = $pg['adapter']; // mysql
         $configArray = [
             'paths' => [
-                'migrations' => realpath(__DIR__ . '/../../../../../migrations/' . $of . '/schema'),
-                'seed' => realpath(__DIR__ . '/../../../../../migrations/' . $of . '/data'),
+                'migrations' => realpath(__DIR__ . '/../../../../migrations/' . $of . '/schema'),
+                'seed' => realpath(__DIR__ . '/../../../../migrations/' . $of . '/data'),
             ],
             'environments' => [
                 'default_migration_table' => '_migration_phix_log',

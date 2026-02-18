@@ -49,7 +49,7 @@ class ApidocManagement implements ManagementInterface
         return function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
             $params = $request->getQueryParams();
             if ('yaml' === ($params['format'] ?? '')) {
-                $yaml = file_get_contents(__DIR__ . '/../../../../../templates/api-doc/openapi.yaml');
+                $yaml = file_get_contents(__DIR__ . '/../../../../templates/api-doc/openapi.yaml');
                 $response->getBody()->write($yaml !== false ? $yaml : '');
                 return $response->withHeader('ContentType', 'text/plain');
             } else {

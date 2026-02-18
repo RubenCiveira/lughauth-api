@@ -19,7 +19,7 @@ class DependenciesManagement implements ManagementInterface
      */
     public function __construct(
         /** @var string Path to the project root. */
-        private readonly string $path = __DIR__ . '/../../../../../'
+        private readonly string $path = __DIR__ . '/../../../../'
     ) {
     }
 

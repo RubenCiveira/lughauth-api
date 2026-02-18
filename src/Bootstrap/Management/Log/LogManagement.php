@@ -23,7 +23,7 @@ class LogManagement implements ManagementInterface
         /** @var AppConfig Application configuration. */
         private readonly AppConfig $config,
         /** @var string Path to the log directory. */
-        private readonly string $path = __DIR__ . '/../../../../../var/log'
+        private readonly string $path = __DIR__ . '/../../../../var/log'
     ) {
     }
 

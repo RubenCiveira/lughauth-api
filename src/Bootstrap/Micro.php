@@ -149,8 +149,8 @@ class Micro
         }
         $this->definition = $def;
         $this->config = new AppConfig();
-        if (file_exists(__DIR__.'/../../var/cache/di-definitions.php')) {
-            $defs = require __DIR__.'/../../var/cache/di-definitions.php';
+        if (file_exists(__DIR__.'/../var/cache/di-definitions.php')) {
+            $defs = require __DIR__.'/../var/cache/di-definitions.php';
         } else {
             $defs = [];
         }
@@ -331,7 +331,7 @@ class Micro
         $scriptName = $this->resolveScriptName();
         $url = $scheme . '://' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ':' . ($_SERVER['SERVER_PORT'] ?? 80)
                     . dirname($scriptName) . '/cron';
-        $supervisor = new Supervisor(__DIR__.'/../../');
+        $supervisor = new Supervisor(__DIR__.'/../');
         $supervisor->ensureRunning($url);
     }
 
@@ -505,7 +505,7 @@ class Micro
 
     protected function storeDir(string $path): string
     {
-        $base = __DIR__ . '/../../var';
+        $base = __DIR__ . '/../var';
         $path = ltrim($path, '/');
         return $path === '' ? $base : $base . '/' . $path;
     }
