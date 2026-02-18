@@ -60,7 +60,7 @@ namespace {
         }
     }
 
-    final class ArrayContainer implements ContainerInterface
+    final class SharedArrayContainer implements ContainerInterface
     {
         public function __construct(private array $entries)
         {
@@ -77,7 +77,7 @@ namespace {
         }
     }
 
-    final class TestManagement implements ManagementInterface
+    final class SharedTestManagement implements ManagementInterface
     {
         public function __construct(
             private readonly string $name,
@@ -245,7 +245,7 @@ namespace {
                 SchedulerManager::class => new SchedulerManagerStub(),
             ]);
 
-            $management = new TestManagement('probe', fn (): array => ['ok' => true], null);
+            $management = new SharedTestManagement('probe', fn (): array => ['ok' => true], null);
             $plugin = new MicroPluginProbe([$management]);
             $micro = new Micro($builder);
             $micro->register($plugin);
@@ -311,7 +311,7 @@ namespace {
              * Arrange: create test management interfaces and a mocked Slim app.
              */
             $interfaces = [];
-            $interfaces[] = new TestManagement(
+            $interfaces[] = new SharedTestManagement(
                 'direct',
                 function (ServerRequestInterface $request, ResponseInterface $response): ResponseInterface {
                     $response = new Response();
@@ -320,35 +320,35 @@ namespace {
                 },
                 null
             );
-            $interfaces[] = new TestManagement(
+            $interfaces[] = new SharedTestManagement(
                 'html',
                 function (ServerRequestInterface $request, ResponseInterface $response): string {
                     return '<html>ok</html>';
                 },
                 null
             );
-            $interfaces[] = new TestManagement(
+            $interfaces[] = new SharedTestManagement(
                 'text',
                 function (ServerRequestInterface $request, ResponseInterface $response): string {
                     return 'ok';
                 },
                 null
             );
-            $interfaces[] = new TestManagement(
+            $interfaces[] = new SharedTestManagement(
                 'json',
                 function (ServerRequestInterface $request, ResponseInterface $response): array {
                     return ['ok' => true];
                 },
                 null
             );
-            $interfaces[] = new TestManagement(
+            $interfaces[] = new SharedTestManagement(
                 'set-text',
                 null,
                 function (ServerRequestInterface $request, array $data): string {
                     return 'saved';
                 }
             );
-            $interfaces[] = new TestManagement(
+            $interfaces[] = new SharedTestManagement(
                 'set-json',
                 null,
                 function (ServerRequestInterface $request, array $data): array {
@@ -367,7 +367,7 @@ namespace {
                 return $this->createMock(RouteInterface::class);
             });
 
-            $container = new ArrayContainer([
+            $container = new SharedArrayContainer([
                 AppConfig::class => new AppConfig($this->rootDir()),
             ]);
             $micro = new Micro(new ContainerBuilder());
@@ -902,7 +902,7 @@ namespace {
             $_ENV['APP_STATE_VAULT_ENGINE'] = 'file';
             $filesystemCache = $defs[CacheInterface::class]($config);
             $filesystemLock = $defs[LockFactory::class]($config);
-            $filesystemStorage = $defs[StorageInterface::class](new ArrayContainer([
+            $filesystemStorage = $defs[StorageInterface::class](new SharedArrayContainer([
                 \PDO::class => new \PDO('sqlite::memory:'),
             ]), $config);
             $this->assertInstanceOf(CacheInterface::class, $filesystemCache);
@@ -911,7 +911,7 @@ namespace {
 
             $metricsFs = $defs[\Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS::class]();
             $metricsPolicy = $defs[\Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy::class]();
-            $registryFile = $defs[CollectorRegistry::class](new ArrayContainer([
+            $registryFile = $defs[CollectorRegistry::class](new SharedArrayContainer([
                 \PDO::class => new \PDO('sqlite::memory:'),
             ]), $config);
             $this->assertInstanceOf(\Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS::class, $metricsFs);
@@ -921,14 +921,14 @@ namespace {
             $_ENV['APP_STATE_VAULT_ENGINE'] = 'redis';
             $redisCache = $defs[CacheInterface::class]($config);
             $redisLock = $defs[LockFactory::class]($config);
-            $redisStorage = $defs[StorageInterface::class](new ArrayContainer([
+            $redisStorage = $defs[StorageInterface::class](new SharedArrayContainer([
                 \PDO::class => new \PDO('sqlite::memory:'),
             ]), $config);
             $this->assertInstanceOf(CacheInterface::class, $redisCache);
             $this->assertInstanceOf(LockFactory::class, $redisLock);
             $this->assertInstanceOf(StorageInterface::class, $redisStorage);
 
-            $registryRedis = $defs[CollectorRegistry::class](new ArrayContainer([
+            $registryRedis = $defs[CollectorRegistry::class](new SharedArrayContainer([
                 \PDO::class => new \PDO('sqlite::memory:'),
             ]), $config);
             $this->assertInstanceOf(CollectorRegistry::class, $registryRedis);
@@ -1033,7 +1033,7 @@ namespace {
         private function createEventBusStub(): EventBus
         {
             $publisher = $this->createMock(EnqueuePublisher::class);
-            $container = new ArrayContainer([
+            $container = new SharedArrayContainer([
                 EnqueuePublisher::class => $publisher,
             ]);
             return new EventBus($container);

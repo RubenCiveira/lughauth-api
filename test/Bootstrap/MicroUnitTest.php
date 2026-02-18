@@ -31,9 +31,9 @@ namespace {
     use OpenTelemetry\Contrib\Otlp\SpanExporter;
     use Civi\Lughauth\Shared\AppConfig;
     use Civi\Lughauth\Shared\Context;
-    use Civi\Lughauth\Shared\Infrastructure\Micro;
-    use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
-    use Civi\Lughauth\Bootstrap\\Plugin\\;
+    use Civi\Lughauth\Bootstrap\Micro;
+    use Civi\Lughauth\Bootstrap\MicroConfig;
+    use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
     use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
     use Civi\Lughauth\Shared\Infrastructure\Log\TraceContextProcessor;
     use Civi\Lughauth\Shared\Infrastructure\Log\SpanJsonGzipRotatingFileExporter;

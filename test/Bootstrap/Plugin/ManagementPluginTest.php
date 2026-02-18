@@ -8,7 +8,7 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
-    use Civi\Lughauth\Bootstrap\\Plugin\\\ManagementPlugin;
+    use Civi\Lughauth\Bootstrap\Plugin\ManagementPlugin;
     use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
     use Civi\Lughauth\Shared\Infrastructure\MicroConfig;

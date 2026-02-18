@@ -10,7 +10,7 @@ namespace {
     use Slim\App;
     use Slim\Routing\RouteCollectorProxy;
     use Slim\Middleware\ErrorMiddleware;
-    use Civi\Lughauth\Bootstrap\\Plugin\\;
+    use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
     use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
     use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
