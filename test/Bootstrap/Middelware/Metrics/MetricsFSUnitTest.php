@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsFS;
 
 /**
  * Unit tests for MetricsFS.

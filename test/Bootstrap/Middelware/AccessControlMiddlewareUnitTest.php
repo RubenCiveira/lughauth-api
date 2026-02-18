@@ -18,7 +18,7 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
-use Civi\Lughauth\Bootstrap\Middleware\AccessControlMiddleware;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\AccessControlMiddleware;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
 /**

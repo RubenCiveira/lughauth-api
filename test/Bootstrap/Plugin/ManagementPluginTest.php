@@ -8,10 +8,10 @@ namespace {
     use PHPUnit\Framework\TestCase;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
-    use Civi\Lughauth\Bootstrap\Plugin\ManagementPlugin;
+    use Civi\Lughauth\Bootstrap\\Plugin\\\ManagementPlugin;
     use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
-    use Civi\Lughauth\Bootstrap\MicroConfig;
+    use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
     use Civi\Lughauth\Bootstrap\Management\Health\HealthManagement;
     use Civi\Lughauth\Bootstrap\Management\Config\ConfigManagement;
     use Civi\Lughauth\Bootstrap\Management\Routes\RoutesManagement;
@@ -29,7 +29,7 @@ namespace {
     use Civi\Lughauth\Bootstrap\Management\EntityChangelog\LoadChangesManagement;
     use Civi\Lughauth\Bootstrap\Management\EntityChangelog\MarkAckManagement;
     use Civi\Lughauth\Bootstrap\Management\EntityChangelog\UpdateChangelogManagement;
-    use Civi\Lughauth\Bootstrap\Middleware\Metrics\PrometheusRegistryExporter;
+    use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\PrometheusRegistryExporter;
 
     final class ManagementFakeContainer implements ContainerInterface
     {

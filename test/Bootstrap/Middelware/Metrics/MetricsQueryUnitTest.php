@@ -4,9 +4,9 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
-use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsQuery;
-use Civi\Lughauth\Bootstrap\Middleware\Metrics\LabelMatcher;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsFS;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsQuery;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\LabelMatcher;
 
 /**
  * Unit tests for MetricsQuery.

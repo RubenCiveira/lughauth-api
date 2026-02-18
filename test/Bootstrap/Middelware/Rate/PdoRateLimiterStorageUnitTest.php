@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\RateLimiter\LimiterStateInterface;
-use Civi\Lughauth\Bootstrap\Middleware\Rate\PdoRateLimiterStorage;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Rate\PdoRateLimiterStorage;
 
 /**
  * Unit tests for PdoRateLimiterStorage.

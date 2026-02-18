@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Bootstrap\Middleware\Rate\IpGranularityResolver;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Rate\IpGranularityResolver;
 
 /**
  * Unit tests for IpGranularityResolver.

@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Bootstrap\Management\Histogram\PromQLInterpreter;
-use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsQuery;
-use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsQuery;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsFS;
 
 /**
  * Unit tests for {@see PromQLInterpreter}.

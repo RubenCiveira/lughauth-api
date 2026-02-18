@@ -10,10 +10,10 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Symfony\Component\RateLimiter\Storage\InMemoryStorage;
 use Slim\Psr7\Response;
 use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Bootstrap\Middleware\RateLimitMiddleware;
-use Civi\Lughauth\Bootstrap\Middleware\Rate\RateConfig;
-use Civi\Lughauth\Bootstrap\Middleware\Rate\BucketResolverInterface;
-use Civi\Lughauth\Bootstrap\Middleware\Rate\ConnectionResolverInterface;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\RateLimitMiddleware;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Rate\RateConfig;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Rate\BucketResolverInterface;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Rate\ConnectionResolverInterface;
 
 /**
  * Unit tests for RateLimitMiddleware.

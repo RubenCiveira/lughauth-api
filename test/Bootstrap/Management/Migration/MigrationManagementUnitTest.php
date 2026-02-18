@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
-use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
+use Civi\Lughauth\Bootstrap\Management\Migration\MigrationInterface;
 use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
 
 /**

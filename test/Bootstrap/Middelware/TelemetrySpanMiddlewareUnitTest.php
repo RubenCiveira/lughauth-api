@@ -15,7 +15,7 @@ use OpenTelemetry\API\Trace\TracerInterface;
 use OpenTelemetry\Context\ScopeInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Observability\TraceContext;
-use Civi\Lughauth\Bootstrap\Middleware\TelemetrySpanMiddleware;
+use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\TelemetrySpanMiddleware;
 
 /**
  * Unit tests for TelemetrySpanMiddleware.

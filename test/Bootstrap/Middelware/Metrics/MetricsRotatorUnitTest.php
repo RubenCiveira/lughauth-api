@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace {
     use PHPUnit\Framework\TestCase;
-    use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsRotator;
-    use Civi\Lughauth\Bootstrap\Middleware\Metrics\FixedIntervalWindowPolicyTestHook;
+    use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsRotator;
+    use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\FixedIntervalWindowPolicyTestHook;
 
     /**
      * Unit tests for MetricsRotator.
