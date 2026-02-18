@@ -22,7 +22,7 @@ class TenantTermsOfUseDisableUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantTermsOfUseVisibilityService $visibility,
         private readonly TenantTermsOfUseWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TenantTermsOfUseDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of Disable usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant terms of use by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantTermsOfUseDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant terms of use by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class TenantTermsOfUseDisableUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TenantTermsOfUseDisableCheck($original));
+            $this->dispatcher->dispatch(new TenantTermsOfUseDisableCheck($original));
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

@@ -22,7 +22,7 @@ class TenantLoginProviderDisableUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantLoginProviderVisibilityService $visibility,
         private readonly TenantLoginProviderWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TenantLoginProviderDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of Disable usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant login provider by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant login provider by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class TenantLoginProviderDisableUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TenantLoginProviderDisableCheck($original));
+            $this->dispatcher->dispatch(new TenantLoginProviderDisableCheck($original));
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

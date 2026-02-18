@@ -22,7 +22,7 @@ class TrustedClientUpdateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientVisibilityService $visibility,
         private readonly TrustedClientWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TrustedClientUpdateUsecase
         $this->logDebug("Check allow update usecase for Trusted client");
         $span = $this->startSpan("Check allow update usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -68,8 +68,8 @@ class TrustedClientUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TrustedClientUpdateCheck($params, $original));
-            $enriched = $this->dispacher->dispatch(new TrustedClientUpdateEnrich($params, $original, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TrustedClientUpdateCheck($params, $original));
+            $enriched = $this->dispatcher->dispatch(new TrustedClientUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->update($input);

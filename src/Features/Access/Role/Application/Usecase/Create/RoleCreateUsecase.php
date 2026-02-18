@@ -21,7 +21,7 @@ class RoleCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleVisibilityService $visibility,
         private readonly RoleWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class RoleCreateUsecase
         $this->logDebug("Check allow of create usecase for Role");
         $span = $this->startSpan("Check allow of create usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new RoleCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class RoleCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new RoleCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new RoleCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new RoleCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new RoleCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = Role::create($input);

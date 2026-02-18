@@ -21,7 +21,7 @@ class UserIdentityCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserIdentityVisibilityService $visibility,
         private readonly UserIdentityWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class UserIdentityCreateUsecase
         $this->logDebug("Check allow of create usecase for User identity");
         $span = $this->startSpan("Check allow of create usecase for User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new UserIdentityCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class UserIdentityCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new UserIdentityCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new UserIdentityCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new UserIdentityCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new UserIdentityCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = UserIdentity::create($input);

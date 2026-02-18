@@ -22,7 +22,7 @@ class RoleDeleteUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleVisibilityService $visibility,
         private readonly RoleWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class RoleDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Role");
         $span = $this->startSpan("Check allow of delete usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RoleDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class RoleDeleteUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new RoleDeleteCheck($original));
+            $this->dispatcher->dispatch(new RoleDeleteCheck($original));
             $deleted = $original->delete();
             $this->writer->delete($deleted);
         } catch (Throwable $ex) {

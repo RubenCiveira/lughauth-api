@@ -26,7 +26,7 @@ class TenantConfigVisibilityService
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantConfigReadGateway $readGateway,
         private readonly TenantConfigWriteGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
@@ -51,7 +51,7 @@ class TenantConfigVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new TenantConfigPresetValues($attributes, $original));
+            $result = $this->dispatcher->dispatch(new TenantConfigPresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -208,7 +208,7 @@ class TenantConfigVisibilityService
         $this->logDebug("Check fields to fix for Tenant config");
         $span = $this->startSpan("Check fields for fix for Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigCollectNonEditableFields(TenantConfig::calculatedFields(), $ref));
+            $result = $this->dispatcher->dispatch(new TenantConfigCollectNonEditableFields(TenantConfig::calculatedFields(), $ref));
             return array_values(array_unique(array_merge($this->fieldsToHide($ref), $result->fields)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -223,7 +223,7 @@ class TenantConfigVisibilityService
         $this->logDebug("Check fields to hide for Tenant config");
         $span = $this->startSpan("Check fields to hide for  Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigCollectNonVisibleFields([], $ref));
+            $result = $this->dispatcher->dispatch(new TenantConfigCollectNonVisibleFields([], $ref));
             return array_values(array_unique($result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -254,7 +254,7 @@ class TenantConfigVisibilityService
         $this->logDebug("Compose visibility filter for Tenant config");
         $span = $this->startSpan("Compose visibility filter for  Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigRestrictFilterToVisibility($filter));
+            $result = $this->dispatcher->dispatch(new TenantConfigRestrictFilterToVisibility($filter));
             return $result->tenantConfigFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -268,7 +268,7 @@ class TenantConfigVisibilityService
         $this->logDebug("Check if item is visible for Tenant config");
         $span = $this->startSpan("Check if item is visible for  Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigVisibilityCheck(true, $value));
+            $result = $this->dispatcher->dispatch(new TenantConfigVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -283,7 +283,7 @@ class TenantConfigVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Tenant config");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new TenantConfigEnrichForView($content, $inlist, $attributes));
+            $result = $this->dispatcher->dispatch(new TenantConfigEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

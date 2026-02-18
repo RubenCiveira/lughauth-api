@@ -21,7 +21,7 @@ class TenantCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantVisibilityService $visibility,
         private readonly TenantWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class TenantCreateUsecase
         $this->logDebug("Check allow of create usecase for Tenant");
         $span = $this->startSpan("Check allow of create usecase for Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new TenantCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class TenantCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new TenantCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new TenantCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TenantCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new TenantCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = Tenant::create($input);

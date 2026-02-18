@@ -22,7 +22,7 @@ class TenantConfigRetrieveUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantConfigVisibilityService $visibility,
         private readonly TenantConfigReadGateway $reader
     ) {
@@ -33,7 +33,7 @@ class TenantConfigRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Tenant config");
         $span = $this->startSpan("Check allow of retrieve usecase for Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantConfigRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

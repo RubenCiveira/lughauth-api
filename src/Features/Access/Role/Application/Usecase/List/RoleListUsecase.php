@@ -23,7 +23,7 @@ class RoleListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleVisibilityService $visibility,
         private readonly RoleReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class RoleListUsecase
         $this->logDebug("Check allow of list usecase for Role");
         $span = $this->startSpan("Check allow of list usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new RoleListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

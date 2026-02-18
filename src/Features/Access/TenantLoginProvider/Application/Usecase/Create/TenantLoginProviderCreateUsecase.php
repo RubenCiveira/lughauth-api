@@ -21,7 +21,7 @@ class TenantLoginProviderCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantLoginProviderVisibilityService $visibility,
         private readonly TenantLoginProviderWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class TenantLoginProviderCreateUsecase
         $this->logDebug("Check allow of create usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of create usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class TenantLoginProviderCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new TenantLoginProviderCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new TenantLoginProviderCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TenantLoginProviderCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new TenantLoginProviderCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = TenantLoginProvider::create($input);

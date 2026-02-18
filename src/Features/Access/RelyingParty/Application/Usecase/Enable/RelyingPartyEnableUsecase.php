@@ -22,7 +22,7 @@ class RelyingPartyEnableUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
         private readonly RelyingPartyWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class RelyingPartyEnableUsecase
         $this->logDebug("Check allow of Enable usecase for Relying party");
         $span = $this->startSpan("Check allow of Enable usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyEnableAllowDecision(Allow::allowed('enable', 'Allowed to Relying party by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RelyingPartyEnableAllowDecision(Allow::allowed('enable', 'Allowed to Relying party by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class RelyingPartyEnableUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new RelyingPartyEnableCheck($original));
+            $this->dispatcher->dispatch(new RelyingPartyEnableCheck($original));
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

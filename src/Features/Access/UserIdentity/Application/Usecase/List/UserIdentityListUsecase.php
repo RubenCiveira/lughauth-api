@@ -23,7 +23,7 @@ class UserIdentityListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserIdentityVisibilityService $visibility,
         private readonly UserIdentityReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class UserIdentityListUsecase
         $this->logDebug("Check allow of list usecase for User identity");
         $span = $this->startSpan("Check allow of list usecase for User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new UserIdentityListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

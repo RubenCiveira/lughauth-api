@@ -21,7 +21,7 @@ class TenantTermsOfUseCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantTermsOfUseVisibilityService $visibility,
         private readonly TenantTermsOfUseWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class TenantTermsOfUseCreateUsecase
         $this->logDebug("Check allow of create usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of create usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new TenantTermsOfUseCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class TenantTermsOfUseCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new TenantTermsOfUseCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new TenantTermsOfUseCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TenantTermsOfUseCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new TenantTermsOfUseCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = TenantTermsOfUse::create($input);

@@ -22,7 +22,7 @@ class UserIdentityUpdateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserIdentityVisibilityService $visibility,
         private readonly UserIdentityWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class UserIdentityUpdateUsecase
         $this->logDebug("Check allow update usecase for User identity");
         $span = $this->startSpan("Check allow update usecase for User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserIdentityUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -68,8 +68,8 @@ class UserIdentityUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new UserIdentityUpdateCheck($params, $original));
-            $enriched = $this->dispacher->dispatch(new UserIdentityUpdateEnrich($params, $original, $params->toAttributes()));
+            $this->dispatcher->dispatch(new UserIdentityUpdateCheck($params, $original));
+            $enriched = $this->dispatcher->dispatch(new UserIdentityUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->update($input);

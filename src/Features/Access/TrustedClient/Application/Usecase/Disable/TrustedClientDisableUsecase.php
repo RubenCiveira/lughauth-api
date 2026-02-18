@@ -22,7 +22,7 @@ class TrustedClientDisableUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientVisibilityService $visibility,
         private readonly TrustedClientWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TrustedClientDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Trusted client");
         $span = $this->startSpan("Check allow of Disable usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientDisableAllowDecision(Allow::allowed('disable', 'Allowed to Trusted client by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientDisableAllowDecision(Allow::allowed('disable', 'Allowed to Trusted client by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class TrustedClientDisableUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TrustedClientDisableCheck($original));
+            $this->dispatcher->dispatch(new TrustedClientDisableCheck($original));
             $modified = $original->disable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

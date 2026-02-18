@@ -22,7 +22,7 @@ class TrustedClientDeleteUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientVisibilityService $visibility,
         private readonly TrustedClientWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TrustedClientDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Trusted client");
         $span = $this->startSpan("Check allow of delete usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class TrustedClientDeleteUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TrustedClientDeleteCheck($original));
+            $this->dispatcher->dispatch(new TrustedClientDeleteCheck($original));
             $deleted = $original->delete();
             $this->writer->delete($deleted);
         } catch (Throwable $ex) {

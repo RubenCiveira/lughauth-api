@@ -22,7 +22,7 @@ class RoleRetrieveUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleVisibilityService $visibility,
         private readonly RoleReadGateway $reader
     ) {
@@ -33,7 +33,7 @@ class RoleRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Role");
         $span = $this->startSpan("Check allow of retrieve usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RoleRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

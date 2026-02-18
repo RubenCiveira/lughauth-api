@@ -22,7 +22,7 @@ class UserIdentityRetrieveUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserIdentityVisibilityService $visibility,
         private readonly UserIdentityReadGateway $reader
     ) {
@@ -33,7 +33,7 @@ class UserIdentityRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for User identity");
         $span = $this->startSpan("Check allow of retrieve usecase for User identity");
         try {
-            $result = $this->dispacher->dispatch(new UserIdentityRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserIdentityRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

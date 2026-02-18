@@ -26,7 +26,7 @@ class RoleVisibilityService
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleReadGateway $readGateway,
         private readonly RoleWriteGateway $writeGateway,
         private readonly RelyingPartyVisibilityService $relyingPartyVisibilityService
@@ -51,7 +51,7 @@ class RoleVisibilityService
             foreach ($fixed as $field) {
                 $visible->unset($field);
             }
-            $result = $this->dispacher->dispatch(new RolePresetValues($attributes, $original));
+            $result = $this->dispatcher->dispatch(new RolePresetValues($attributes, $original));
             return $result->attributes;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -208,7 +208,7 @@ class RoleVisibilityService
         $this->logDebug("Check fields to fix for Role");
         $span = $this->startSpan("Check fields for fix for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleCollectNonEditableFields(Role::calculatedFields(), $ref));
+            $result = $this->dispatcher->dispatch(new RoleCollectNonEditableFields(Role::calculatedFields(), $ref));
             return array_values(array_unique(array_merge($this->fieldsToHide($ref), $result->fields)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -223,7 +223,7 @@ class RoleVisibilityService
         $this->logDebug("Check fields to hide for Role");
         $span = $this->startSpan("Check fields to hide for  Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleCollectNonVisibleFields([], $ref));
+            $result = $this->dispatcher->dispatch(new RoleCollectNonVisibleFields([], $ref));
             return array_values(array_unique($result->fields));
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -254,7 +254,7 @@ class RoleVisibilityService
         $this->logDebug("Compose visibility filter for Role");
         $span = $this->startSpan("Compose visibility filter for  Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleRestrictFilterToVisibility($filter));
+            $result = $this->dispatcher->dispatch(new RoleRestrictFilterToVisibility($filter));
             return $result->roleFilter;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -268,7 +268,7 @@ class RoleVisibilityService
         $this->logDebug("Check if item is visible for Role");
         $span = $this->startSpan("Check if item is visible for  Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleVisibilityCheck(true, $value));
+            $result = $this->dispatcher->dispatch(new RoleVisibilityCheck(true, $value));
             return $result->visible;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -283,7 +283,7 @@ class RoleVisibilityService
         $span = $this->startSpan("Prepare hidratation to visible data for Role");
         try {
             $attributes = $content->toAttributes();
-            $result = $this->dispacher->dispatch(new RoleEnrichForView($content, $inlist, $attributes));
+            $result = $this->dispatcher->dispatch(new RoleEnrichForView($content, $inlist, $attributes));
             return $result->getAttributes();
         } catch (Throwable $ex) {
             $span->recordException($ex);

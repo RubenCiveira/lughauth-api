@@ -22,7 +22,7 @@ class ApiKeyClientDeleteUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
         private readonly ApiKeyClientWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class ApiKeyClientDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Api key client");
         $span = $this->startSpan("Check allow of delete usecase for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new ApiKeyClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class ApiKeyClientDeleteUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new ApiKeyClientDeleteCheck($original));
+            $this->dispatcher->dispatch(new ApiKeyClientDeleteCheck($original));
             $deleted = $original->delete();
             $this->writer->delete($deleted);
         } catch (Throwable $ex) {

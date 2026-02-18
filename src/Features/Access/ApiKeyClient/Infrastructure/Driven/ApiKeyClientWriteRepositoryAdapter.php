@@ -27,7 +27,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
 
     public function __construct(
         private readonly ApiKeyClientPdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -196,7 +196,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

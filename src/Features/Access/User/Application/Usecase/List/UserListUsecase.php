@@ -23,7 +23,7 @@ class UserListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
         private readonly UserReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class UserListUsecase
         $this->logDebug("Check allow of list usecase for User");
         $span = $this->startSpan("Check allow of list usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new UserListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

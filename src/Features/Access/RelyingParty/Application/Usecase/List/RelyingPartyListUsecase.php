@@ -23,7 +23,7 @@ class RelyingPartyListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
         private readonly RelyingPartyReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class RelyingPartyListUsecase
         $this->logDebug("Check allow of list usecase for Relying party");
         $span = $this->startSpan("Check allow of list usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new RelyingPartyListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

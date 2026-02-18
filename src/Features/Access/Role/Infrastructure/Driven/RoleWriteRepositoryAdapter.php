@@ -28,7 +28,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
 
     public function __construct(
         private readonly RolePdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -183,7 +183,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
         $span = $this->startSpan("Count for Role on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

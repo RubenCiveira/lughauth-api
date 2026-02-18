@@ -22,7 +22,7 @@ class RelyingPartyRetrieveUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
         private readonly RelyingPartyReadGateway $reader
     ) {
@@ -33,7 +33,7 @@ class RelyingPartyRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Relying party");
         $span = $this->startSpan("Check allow of retrieve usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RelyingPartyRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

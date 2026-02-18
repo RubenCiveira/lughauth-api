@@ -22,7 +22,7 @@ class TenantLoginProviderUpdateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantLoginProviderVisibilityService $visibility,
         private readonly TenantLoginProviderWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TenantLoginProviderUpdateUsecase
         $this->logDebug("Check allow update usecase for Tenant login provider");
         $span = $this->startSpan("Check allow update usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -68,8 +68,8 @@ class TenantLoginProviderUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TenantLoginProviderUpdateCheck($params, $original));
-            $enriched = $this->dispacher->dispatch(new TenantLoginProviderUpdateEnrich($params, $original, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TenantLoginProviderUpdateCheck($params, $original));
+            $enriched = $this->dispatcher->dispatch(new TenantLoginProviderUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->update($input);

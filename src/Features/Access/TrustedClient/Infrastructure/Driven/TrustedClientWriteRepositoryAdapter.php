@@ -27,7 +27,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
 
     public function __construct(
         private readonly TrustedClientPdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -182,7 +182,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

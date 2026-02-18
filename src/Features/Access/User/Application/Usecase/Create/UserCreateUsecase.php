@@ -21,7 +21,7 @@ class UserCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
         private readonly UserWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class UserCreateUsecase
         $this->logDebug("Check allow of create usecase for User");
         $span = $this->startSpan("Check allow of create usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new UserCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class UserCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new UserCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new UserCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new UserCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new UserCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = User::create($input);

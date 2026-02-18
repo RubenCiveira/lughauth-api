@@ -27,7 +27,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
 
     public function __construct(
         private readonly TenantPdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -196,7 +196,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

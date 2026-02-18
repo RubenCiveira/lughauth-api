@@ -22,7 +22,7 @@ class RelyingPartyDeleteUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
         private readonly RelyingPartyWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class RelyingPartyDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Relying party");
         $span = $this->startSpan("Check allow of delete usecase for Relying party");
         try {
-            $result = $this->dispacher->dispatch(new RelyingPartyDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RelyingPartyDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class RelyingPartyDeleteUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new RelyingPartyDeleteCheck($original));
+            $this->dispatcher->dispatch(new RelyingPartyDeleteCheck($original));
             $deleted = $original->delete();
             $this->writer->delete($deleted);
         } catch (Throwable $ex) {

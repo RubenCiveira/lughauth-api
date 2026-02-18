@@ -21,7 +21,7 @@ class TenantLoginProviderUploadMetadataUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantLoginProviderVisibilityService $visibility,
         private readonly TenantLoginProviderWriteGateway $writer
     ) {
@@ -32,7 +32,7 @@ class TenantLoginProviderUploadMetadataUsecase
         $this->logDebug("Check allow of temp upload Metadata usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of temp upload Metadata usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataAllowDecision(Allow::allowed('upload', 'Allowed to upload by default')));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderUploadMetadataAllowDecision(Allow::allowed('upload', 'Allowed to upload by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -67,8 +67,8 @@ class TenantLoginProviderUploadMetadataUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataCheck($binary));
-            $input = $this->dispacher->dispatch(new TenantLoginProviderUploadMetadataEnrich($binary, $binary));
+            $this->dispatcher->dispatch(new TenantLoginProviderUploadMetadataCheck($binary));
+            $input = $this->dispatcher->dispatch(new TenantLoginProviderUploadMetadataEnrich($binary, $binary));
             return $this->writer->temporalStoreMetadata($input->getResult());
         } catch (Throwable $ex) {
             $span->recordException($ex);

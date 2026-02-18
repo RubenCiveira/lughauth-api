@@ -22,7 +22,7 @@ class ApiKeyClientRetrieveUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
         private readonly ApiKeyClientReadGateway $reader
     ) {
@@ -33,7 +33,7 @@ class ApiKeyClientRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Api key client");
         $span = $this->startSpan("Check allow of retrieve usecase for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new ApiKeyClientRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

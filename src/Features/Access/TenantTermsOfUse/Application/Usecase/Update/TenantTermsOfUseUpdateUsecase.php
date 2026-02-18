@@ -22,7 +22,7 @@ class TenantTermsOfUseUpdateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantTermsOfUseVisibilityService $visibility,
         private readonly TenantTermsOfUseWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TenantTermsOfUseUpdateUsecase
         $this->logDebug("Check allow update usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow update usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantTermsOfUseUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -68,8 +68,8 @@ class TenantTermsOfUseUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TenantTermsOfUseUpdateCheck($params, $original));
-            $enriched = $this->dispacher->dispatch(new TenantTermsOfUseUpdateEnrich($params, $original, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TenantTermsOfUseUpdateCheck($params, $original));
+            $enriched = $this->dispatcher->dispatch(new TenantTermsOfUseUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->update($input);

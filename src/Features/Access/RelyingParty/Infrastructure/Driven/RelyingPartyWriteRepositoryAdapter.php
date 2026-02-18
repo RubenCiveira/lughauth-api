@@ -27,7 +27,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
 
     public function __construct(
         private readonly RelyingPartyPdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -196,7 +196,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

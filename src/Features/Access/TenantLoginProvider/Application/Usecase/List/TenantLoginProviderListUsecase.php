@@ -23,7 +23,7 @@ class TenantLoginProviderListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantLoginProviderVisibilityService $visibility,
         private readonly TenantLoginProviderReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class TenantLoginProviderListUsecase
         $this->logDebug("Check allow of list usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of list usecase for Tenant login provider");
         try {
-            $result = $this->dispacher->dispatch(new TenantLoginProviderListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

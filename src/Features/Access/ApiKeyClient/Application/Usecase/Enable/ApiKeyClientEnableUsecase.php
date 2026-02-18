@@ -22,7 +22,7 @@ class ApiKeyClientEnableUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
         private readonly ApiKeyClientWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class ApiKeyClientEnableUsecase
         $this->logDebug("Check allow of Enable usecase for Api key client");
         $span = $this->startSpan("Check allow of Enable usecase for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientEnableAllowDecision(Allow::allowed('enable', 'Allowed to Api key client by default'), $ref));
+            $result = $this->dispatcher->dispatch(new ApiKeyClientEnableAllowDecision(Allow::allowed('enable', 'Allowed to Api key client by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class ApiKeyClientEnableUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new ApiKeyClientEnableCheck($original));
+            $this->dispatcher->dispatch(new ApiKeyClientEnableCheck($original));
             $modified = $original->enable();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

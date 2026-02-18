@@ -22,7 +22,7 @@ class UserDeleteUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
         private readonly UserWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class UserDeleteUsecase
         $this->logDebug("Check allow of delete usecase for User");
         $span = $this->startSpan("Check allow of delete usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class UserDeleteUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new UserDeleteCheck($original));
+            $this->dispatcher->dispatch(new UserDeleteCheck($original));
             $deleted = $original->delete();
             $this->writer->delete($deleted);
         } catch (Throwable $ex) {

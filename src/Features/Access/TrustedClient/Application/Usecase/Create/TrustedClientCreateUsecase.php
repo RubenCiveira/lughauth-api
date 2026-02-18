@@ -21,7 +21,7 @@ class TrustedClientCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientVisibilityService $visibility,
         private readonly TrustedClientWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class TrustedClientCreateUsecase
         $this->logDebug("Check allow of create usecase for Trusted client");
         $span = $this->startSpan("Check allow of create usecase for Trusted client");
         try {
-            $result = $this->dispacher->dispatch(new TrustedClientCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new TrustedClientCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class TrustedClientCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new TrustedClientCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new TrustedClientCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new TrustedClientCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new TrustedClientCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = TrustedClient::create($input);

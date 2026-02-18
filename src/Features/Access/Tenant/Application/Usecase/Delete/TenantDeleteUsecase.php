@@ -22,7 +22,7 @@ class TenantDeleteUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantVisibilityService $visibility,
         private readonly TenantWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class TenantDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Tenant");
         $span = $this->startSpan("Check allow of delete usecase for Tenant");
         try {
-            $result = $this->dispacher->dispatch(new TenantDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class TenantDeleteUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new TenantDeleteCheck($original));
+            $this->dispatcher->dispatch(new TenantDeleteCheck($original));
             $deleted = $original->delete();
             $this->writer->delete($deleted);
         } catch (Throwable $ex) {

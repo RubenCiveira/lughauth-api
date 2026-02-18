@@ -21,7 +21,7 @@ class TenantTermsOfUseUploadAttachedUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantTermsOfUseVisibilityService $visibility,
         private readonly TenantTermsOfUseWriteGateway $writer
     ) {
@@ -32,7 +32,7 @@ class TenantTermsOfUseUploadAttachedUsecase
         $this->logDebug("Check allow of temp upload Attached usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of temp upload Attached usecase for Tenant terms of use");
         try {
-            $result = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedAllowDecision(Allow::allowed('upload', 'Allowed to upload by default')));
+            $result = $this->dispatcher->dispatch(new TenantTermsOfUseUploadAttachedAllowDecision(Allow::allowed('upload', 'Allowed to upload by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -67,8 +67,8 @@ class TenantTermsOfUseUploadAttachedUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedCheck($binary));
-            $input = $this->dispacher->dispatch(new TenantTermsOfUseUploadAttachedEnrich($binary, $binary));
+            $this->dispatcher->dispatch(new TenantTermsOfUseUploadAttachedCheck($binary));
+            $input = $this->dispatcher->dispatch(new TenantTermsOfUseUploadAttachedEnrich($binary, $binary));
             return $this->writer->temporalStoreAttached($input->getResult());
         } catch (Throwable $ex) {
             $span->recordException($ex);

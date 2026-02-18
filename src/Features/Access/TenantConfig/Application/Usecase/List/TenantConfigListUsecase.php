@@ -23,7 +23,7 @@ class TenantConfigListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantConfigVisibilityService $visibility,
         private readonly TenantConfigReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class TenantConfigListUsecase
         $this->logDebug("Check allow of list usecase for Tenant config");
         $span = $this->startSpan("Check allow of list usecase for Tenant config");
         try {
-            $result = $this->dispacher->dispatch(new TenantConfigListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new TenantConfigListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

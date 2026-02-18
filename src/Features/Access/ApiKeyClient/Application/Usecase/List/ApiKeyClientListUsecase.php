@@ -23,7 +23,7 @@ class ApiKeyClientListUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
         private readonly ApiKeyClientReadGateway $reader
     ) {
@@ -34,7 +34,7 @@ class ApiKeyClientListUsecase
         $this->logDebug("Check allow of list usecase for Api key client");
         $span = $this->startSpan("Check allow of list usecase for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
+            $result = $this->dispatcher->dispatch(new ApiKeyClientListAllowDecision(Allow::allowed('list', 'Allowed to list by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);

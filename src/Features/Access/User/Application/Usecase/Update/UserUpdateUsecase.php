@@ -22,7 +22,7 @@ class UserUpdateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
         private readonly UserWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class UserUpdateUsecase
         $this->logDebug("Check allow update usecase for User");
         $span = $this->startSpan("Check allow update usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -68,8 +68,8 @@ class UserUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new UserUpdateCheck($params, $original));
-            $enriched = $this->dispacher->dispatch(new UserUpdateEnrich($params, $original, $params->toAttributes()));
+            $this->dispatcher->dispatch(new UserUpdateCheck($params, $original));
+            $enriched = $this->dispatcher->dispatch(new UserUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->update($input);

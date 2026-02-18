@@ -21,7 +21,7 @@ class ApiKeyClientCreateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
         private readonly ApiKeyClientWriteGateway $writer,
     ) {
@@ -32,7 +32,7 @@ class ApiKeyClientCreateUsecase
         $this->logDebug("Check allow of create usecase for Api key client");
         $span = $this->startSpan("Check allow of create usecase for Api key client");
         try {
-            $result = $this->dispacher->dispatch(new ApiKeyClientCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
+            $result = $this->dispatcher->dispatch(new ApiKeyClientCreateAllowDecision(Allow::allowed('create', 'Allowed to create by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,8 +50,8 @@ class ApiKeyClientCreateUsecase
             if (!$allow->allowed) {
                 throw new UnauthorizedException($allow->reason);
             }
-            $this->dispacher->dispatch(new ApiKeyClientCreateCheck($params));
-            $enriched = $this->dispacher->dispatch(new ApiKeyClientCreateEnrich($params, $params->toAttributes()));
+            $this->dispatcher->dispatch(new ApiKeyClientCreateCheck($params));
+            $enriched = $this->dispatcher->dispatch(new ApiKeyClientCreateEnrich($params, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $entity = ApiKeyClient::create($input);

@@ -22,7 +22,7 @@ class RoleUpdateUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleVisibilityService $visibility,
         private readonly RoleWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class RoleUpdateUsecase
         $this->logDebug("Check allow update usecase for Role");
         $span = $this->startSpan("Check allow update usecase for Role");
         try {
-            $result = $this->dispacher->dispatch(new RoleUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RoleUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -68,8 +68,8 @@ class RoleUpdateUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new RoleUpdateCheck($params, $original));
-            $enriched = $this->dispacher->dispatch(new RoleUpdateEnrich($params, $original, $params->toAttributes()));
+            $this->dispatcher->dispatch(new RoleUpdateCheck($params, $original));
+            $enriched = $this->dispatcher->dispatch(new RoleUpdateEnrich($params, $original, $params->toAttributes()));
             $attributes = $enriched->getResult();
             $input = $this->visibility->copyWithFixed($attributes);
             $modified = $original->update($input);

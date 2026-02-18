@@ -33,7 +33,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     public function __construct(
         private readonly PdoFileStorage $store,
         private readonly TenantLoginProviderPdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -256,7 +256,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         $span = $this->startSpan("Count for Tenant login provider on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

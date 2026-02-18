@@ -27,7 +27,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
 
     public function __construct(
         private readonly UserIdentityPdoConnector $conn,
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $Dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -168,7 +168,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
         $span = $this->startSpan("Count for User identity on adapter");
         try {
             foreach ($entity->getTheEvents() as $event) {
-                $this->dispacher->dispatch($event);
+                $this->dispatcher->dispatch($event);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);

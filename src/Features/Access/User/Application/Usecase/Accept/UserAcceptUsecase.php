@@ -22,7 +22,7 @@ class UserAcceptUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
         private readonly UserWriteGateway $writer,
     ) {
@@ -33,7 +33,7 @@ class UserAcceptUsecase
         $this->logDebug("Check allow of Accept usecase for User");
         $span = $this->startSpan("Check allow of Accept usecase for User");
         try {
-            $result = $this->dispacher->dispatch(new UserAcceptAllowDecision(Allow::allowed('accept', 'Allowed to User by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserAcceptAllowDecision(Allow::allowed('accept', 'Allowed to User by default'), $ref));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -55,7 +55,7 @@ class UserAcceptUsecase
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);
             }
-            $this->dispacher->dispatch(new UserAcceptCheck($original));
+            $this->dispatcher->dispatch(new UserAcceptCheck($original));
             $modified = $original->accept();
             $result = $this->writer->update($original, $modified);
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
