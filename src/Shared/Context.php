@@ -71,11 +71,12 @@ class Context
 
     public function getInstanceData(): array
     {
+        $pid = getmypid();
         return [
             'service.name' => $this->config->get('app.id.name', 'phylax'),
             'service.namespace' => $this->config->get('app.id.namespace', 'backoffice'),
             'service.version' => $this->config->get('app.id.version', '1.0.0'),
-            'service.instance.id' => $this->config->get('app.id.instance', php_uname('n') . '-' . (string)(getmypid() ?: 0)),
+            'service.instance.id' => $this->config->get('app.id.instance', php_uname('n') . '-' . (false === $pid ? (string)$pid : '0')),
             'deployment.environment' => $this->config->get('app.id.enviroment', 'prod'),
         ];
     }
