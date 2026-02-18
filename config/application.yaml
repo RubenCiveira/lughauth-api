@@ -13,5 +13,5 @@ app:
     policy: sliding_window
     limit: 1500
     interval: 1 minute
-    bucket-resolver: Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\BaseBucketResolver
-    connection-resolver: Civi\Lughauth\Shared\Infrastructure\Middelware\Rate\IpGranularityResolver
+    bucket-resolver: Civi\Lughauth\Bootstrap\Middleware\Rate\BaseBucketResolver
+    connection-resolver: Civi\Lughauth\Bootstrap\Middleware\Rate\IpGranularityResolver

@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\LabelMatcher;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\LabelMatcher;
 
 /**
  * Unit tests for LabelMatcher.

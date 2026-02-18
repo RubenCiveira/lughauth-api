@@ -47,7 +47,7 @@ class AccessControlMiddleware
         private readonly ClientInterface $client,
         /** @var StreamFactoryInterface Stream factory for request bodies. */
         private readonly StreamFactoryInterface $streamFactory,
-        string $rulesFile = __DIR__ . '/../../../../config/guard.yaml'
+        string $rulesFile = __DIR__ . '/../../../config/guard.yaml'
     ) {
         $this->rules = Yaml::parseFile($rulesFile) ?? [];
     }

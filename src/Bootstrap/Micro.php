@@ -149,8 +149,9 @@ class Micro
         }
         $this->definition = $def;
         $this->config = new AppConfig();
-        if (file_exists(__DIR__.'/../var/cache/di-definitions.php')) {
-            $defs = require __DIR__.'/../var/cache/di-definitions.php';
+        $cacheFile = $this->storeDir('cache/di-definitions.php');
+        if (file_exists($cacheFile)) {
+            $defs = require $cacheFile;
         } else {
             $defs = [];
         }
@@ -505,7 +506,7 @@ class Micro
 
     protected function storeDir(string $path): string
     {
-        $base = __DIR__ . '/../var';
+        $base = dirname(__DIR__, 3) . '/var';
         $path = ltrim($path, '/');
         return $path === '' ? $base : $base . '/' . $path;
     }

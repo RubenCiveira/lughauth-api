@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Infrastructure\MicroConfig;
+use Civi\Lughauth\Bootstrap\MicroConfig;
 
 final class MicroConfigUnitTest extends TestCase
 {

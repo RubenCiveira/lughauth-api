@@ -41,7 +41,7 @@ namespace {
     use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
     use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
-    use Civi\Lughauth\Shared\Infrastructure\InjectResourceAttrsProcessor;
+    use Civi\Lughauth\Bootstrap\Telemetry\InjectResourceAttrsProcessor;
     use Civi\Lughauth\Shared\Observability\TraceContext;
     use Civi\Lughauth\Shared\Infrastructure\Event\EnqueuePublisher;
 
@@ -909,13 +909,13 @@ namespace {
             $this->assertInstanceOf(LockFactory::class, $filesystemLock);
             $this->assertInstanceOf(StorageInterface::class, $filesystemStorage);
 
-            $metricsFs = $defs[\Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsFS::class]();
-            $metricsPolicy = $defs[\Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\TimeWindowPolicy::class]();
+            $metricsFs = $defs[\Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS::class]();
+            $metricsPolicy = $defs[\Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy::class]();
             $registryFile = $defs[CollectorRegistry::class](new ArrayContainer([
                 \PDO::class => new \PDO('sqlite::memory:'),
             ]), $config);
-            $this->assertInstanceOf(\Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsFS::class, $metricsFs);
-            $this->assertInstanceOf(\Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\TimeWindowPolicy::class, $metricsPolicy);
+            $this->assertInstanceOf(\Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS::class, $metricsFs);
+            $this->assertInstanceOf(\Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy::class, $metricsPolicy);
             $this->assertInstanceOf(CollectorRegistry::class, $registryFile);
 
             $_ENV['APP_STATE_VAULT_ENGINE'] = 'redis';

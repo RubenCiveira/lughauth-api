@@ -8,8 +8,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Bootstrap\Management\Histogram\HistogramManagement;
-use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsQuery;
-use Civi\Lughauth\Civi\Lughauth\Bootstrap\Middelware\Metrics\MetricsFS;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsQuery;
+use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
 
 /**
  * Unit tests for {@see HistogramManagement}.
