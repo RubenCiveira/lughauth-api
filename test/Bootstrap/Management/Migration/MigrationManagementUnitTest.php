@@ -7,8 +7,8 @@ use PHPUnit\Framework\TestCase;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
-use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
 use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
+use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
 
 /**
  * Unit tests for {@see MigrationManagement}.
