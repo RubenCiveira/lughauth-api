@@ -63,7 +63,7 @@ class LoginAdapter implements LoginGateway
             scope: $client->scope,
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theTenant, $theUser),
-            groups: $this->loadGroups($client, $theTenant, $theUser),
+            groups: $this->loadGroups(),
         );
     }
 
@@ -86,7 +86,7 @@ class LoginAdapter implements LoginGateway
             scope: $client->scope,
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theTenant, $theUser),
-            groups: $this->loadGroups($client, $theTenant, $theUser),
+            groups: $this->loadGroups(),
         );
     }
 
@@ -123,15 +123,18 @@ class LoginAdapter implements LoginGateway
             scope: $client->scope,
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theTenant, $theUser),
-            groups: $this->loadGroups($client, $theTenant, $theUser),
+            groups: $this->loadGroups(),
         );
     }
 
+    /**
+     * @return void
+     */
     private function checkPassword(Tenant $tenant, User $user, string $password)
     {
         if ($user->getPlainPassword($this->cypher) !== $password) {
             $this->markLoginFail($user);
-            throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant?->getName() ?? 'main', $user->getName()));
+            throw new LoginException(auth: AuthenticationResult::wrongCredentials($tenant->getName(), $user->getName()));
         }
     }
 
@@ -166,17 +169,17 @@ class LoginAdapter implements LoginGateway
         return ($user->getSecondFactorSeed() && $user->isUseSecondFactors()) ? AuthenticationResult::mfaRequired() : null;
     }
 
-    private function markLoginFail(User $user)
+    private function markLoginFail(User $user): void
     {
         $this->markLogin($user, true);
     }
 
-    private function markLoginOk(User $user)
+    private function markLoginOk(User $user): void
     {
         $this->markLogin($user, false);
     }
 
-    private function markLogin(User $user, bool $fail)
+    private function markLogin(User $user, bool $fail): void
     {
         $limit = 3;
         $code = $this->users->userCodeForUpdate($user);
@@ -192,6 +195,11 @@ class LoginAdapter implements LoginGateway
         }
     }
 
+    /**
+     * @return array[]
+     *
+     * @psalm-return array<list<mixed>>
+     */
     private function loadRoles(AuthenticationRequest $client, Tenant $tenant, User $user): array
     {
         $main = $tenant->getName() === 'main';
@@ -201,7 +209,7 @@ class LoginAdapter implements LoginGateway
         $this->rolesFromIdentity(new UserIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
-                $roles[$audience] = [...$forAll];
+                $roles[$audience] = $forAll;
                 if ($from = $this->clients->findOneByCode($audience)) {
                     $this->rolesFromIdentity(new UserIdentityFilter(
                         user: $user,
@@ -219,7 +227,7 @@ class LoginAdapter implements LoginGateway
         return $roles;
     }
 
-    private function rolesFromIdentity(UserIdentityFilter $identityFilter, bool $main, &$roles)
+    private function rolesFromIdentity(UserIdentityFilter $identityFilter, bool $main, &$roles): void
     {
         if ($tc = $this->identities->retrieve($identityFilter)) {
             foreach ($tc->getRoles() as $role) {
@@ -232,18 +240,11 @@ class LoginAdapter implements LoginGateway
         }
     }
 
-    private function loadGroups(AuthenticationRequest $client, Tenant $tenant, User $user): array
+    /**
+     * @psalm-return array<never, never>
+     */
+    private function loadGroups(): array
     {
         return [];
-    }
-
-    private function loadScopes(AuthenticationRequest $client, Tenant $tenant, User $user): ?string
-    {
-        return $client->scope;
-    }
-
-    private function loadAudiences(AuthenticationRequest $client, Tenant $tenant, User $user): array
-    {
-        return $client->audiences;
     }
 }

@@ -44,7 +44,7 @@ class UserMfaAdapter implements UserMfaGateway
         $delegated = new TwoFactorAuth(new EndroidQrCodeProvider(), $label);
         $seed = $delegated->createSecret();
         $qrCode = $delegated->getQRCodeImageAsDataUri($username, $seed);
-        $url = $delegated->getQRText($username, $seed);
+        $delegated->getQRText($username, $seed);
         return new PublicLoginMfaBuildResponse(
             seed: $seed,
             message: '',

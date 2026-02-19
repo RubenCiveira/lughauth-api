@@ -15,12 +15,22 @@ class OidcMigrationProvider implements MigrationInterface
         private readonly InstallUsecase $installer
     ) {
     }
+    /**
+     * @return string
+     *
+     * @psalm-return 'oidc-data'
+     */
     #[Override]
     public function name(): string
     {
         return 'oidc-data';
     }
 
+    /**
+     * @return true[]
+     *
+     * @psalm-return array{users: true}
+     */
     #[Override]
     public function migrate(): array
     {
@@ -28,6 +38,11 @@ class OidcMigrationProvider implements MigrationInterface
         return ['users' => true];
     }
 
+    /**
+     * @return false[]
+     *
+     * @psalm-return array{users: false}
+     */
     #[Override]
     public function status(): array
     {

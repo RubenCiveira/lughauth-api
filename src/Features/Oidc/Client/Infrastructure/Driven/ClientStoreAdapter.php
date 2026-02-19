@@ -48,23 +48,23 @@ class ClientStoreAdapter implements ClientStoreGateway
     }
 
     #[Override]
-    public function preValidatedClient(string $id): ?ClientData
+    public function preValidatedClient(string $clientId): ?ClientData
     {
-        $existent = $this->clients->findOneByCode($id);
+        $existent = $this->clients->findOneByCode($clientId);
         if ($existent) {
             if (!$existent->isEnabled()) {
-                $this->notEnabled($id);
+                $this->notEnabled($clientId);
                 // Not enabled
                 return null;
             } elseif (!$existent->isPublicAllow()) {
                 // Not public allowed
-                $this->notPublic($id);
+                $this->notPublic($clientId);
                 return null;
             } else {
-                return new ClientData($id, ['password'], true);
+                return new ClientData($clientId, ['password'], true);
             }
         } else {
-            $this->inexistent($id);
+            $this->inexistent($clientId);
             return null;
         }
     }
@@ -115,27 +115,27 @@ class ClientStoreAdapter implements ClientStoreGateway
         }
     }
 
-    private function notPublic(string $clientId)
+    private function notPublic(string $clientId): void
     {
         $this->logError('Try to get a public token from a not public Trusted Client', ['client-id' => $clientId]);
     }
 
-    private function notEnabled(string $clientId)
+    private function notEnabled(string $clientId): void
     {
         $this->logError('Try to get a token from a not enabled Trusted Client', ['client-id' => $clientId]);
     }
 
-    private function inexistent(string $clientId)
+    private function inexistent(string $clientId): void
     {
         $this->logError('Try to get a token for a inexistent Trusted Client', ['client-id' => $clientId]);
     }
 
-    private function wrongPassword(string $clientId)
+    private function wrongPassword(string $clientId): void
     {
         $this->logError('Try to get a token for a Trusted Client with wrong password', ['client-id' => $clientId]);
     }
 
-    private function notAllowed(string $clientId, string $url)
+    private function notAllowed(string $clientId, string $url): void
     {
         $this->logError('Try to get a token for from a public Trusted Client with wrong redirect url', ['client-id' => $clientId, 'redirect-url' => $url]);
     }

@@ -28,34 +28,44 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         $this->clearTemp();
     }
 
+    #[\Override]
     public function verifyToken(string $token): ?string
     {
         $current = $this->getCurrent();
         return $this->verifyTokenContent($token, $current['current'], $current['old']);
     }
 
-    public function encrypt(string $value): ?string
+    #[\Override]
+    /**
+     * @return string
+     */
+    public function encrypt(string $token): ?string
     {
         $current = $this->getCurrent();
-        return $this->cipher->encrypt($value, $current['current']);
+        return $this->cipher->encrypt($token, $current['current']);
     }
 
-    public function verifyCypher(string $value): ?string
+    #[\Override]
+    /**
+     * @return string
+     */
+    public function verifyCypher(string $token): ?string
     {
         $current = $this->getCurrent();
-        $dec = $this->cipher->decrypt($value, $current['current']);
+        $dec = $this->cipher->decrypt($token, $current['current']);
         if (!$dec) {
-            $dec = $this->cipher->decrypt($value, $current['current']) ?? '';
+            $dec = $this->cipher->decrypt($token, $current['current']) ?? '';
         }
         return $dec;
     }
 
+    #[\Override]
     public function currentKey(): string
     {
-        return ($this->getCurrent())['current'];
+        return (string) ($this->getCurrent())['current'];
     }
 
-    private function clearTemp()
+    private function clearTemp(): void
     {
         $now = new \DateTimeImmutable();
         $row = $this->getCurrent();
@@ -69,7 +79,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         $delCodes->execute();
     }
 
-    private function execute($sql, $old)
+    private function execute($sql, $old): void
     {
         $expires = (new \DateTimeImmutable())->add(new \DateInterval('PT1H'));
         $api = str_replace('\'', '"', Random::apiSecret());
@@ -80,7 +90,12 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         $stmt->execute();
     }
 
-    private function getCurrent()
+    /**
+     * @return (\DateTimeImmutable|mixed)[]|null
+     *
+     * @psalm-return array{expiration: \DateTimeImmutable, current: mixed, old: mixed}|null
+     */
+    private function getCurrent(): array|null
     {
         $stmt = $this->pdo->prepare('SELECT expiration, current, old FROM _oauth_temporal_keys');
         $stmt->execute();
@@ -137,6 +152,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         }
     }
 
+    #[\Override]
     public function registerTemporalAuthCode(TemporalAuthCode $code): string
     {
         $uid = Random::uuid();
@@ -150,6 +166,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         return $uid;
     }
 
+    #[\Override]
     public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode
     {
         $now = (new \DateTimeImmutable());

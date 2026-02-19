@@ -171,7 +171,7 @@ class RegisterUserForm implements StepForm
         $help = $translator->get("registeruser.code.help");
         $send = $translator->get("registeruser.code.send");
         $code = $translator->get("registeruser.code.validation");
-        $pass = $translator->get("registeruser.code.newpass");
+        $translator->get("registeruser.code.newpass");
 
         $backText = $translator->get(
             "registeruser.code.back-text",

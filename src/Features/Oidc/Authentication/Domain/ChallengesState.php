@@ -66,6 +66,11 @@ final class ChallengesState
         );
     }
 
+    /**
+     * @return (array|bool|int|null|string)[]
+     *
+     * @psalm-return array{v: 1, with_mfa: bool, session: bool, username: null|string, extra: array}
+     */
     public function toArray(): array
     {
         return [

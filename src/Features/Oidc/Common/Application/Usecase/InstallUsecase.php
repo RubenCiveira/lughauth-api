@@ -60,7 +60,7 @@ class InstallUsecase
     ) {
     }
 
-    public function install()
+    public function install(): void
     {
         try {
             $this->template->begin();
@@ -71,7 +71,7 @@ class InstallUsecase
         }
     }
 
-    private function init(string $password)
+    private function init(string $password): void
     {
         $party = new RelyingPartyAttributes();
         $party->uid(Random::comb());

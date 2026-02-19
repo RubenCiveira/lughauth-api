@@ -63,9 +63,6 @@ class KeysManagerService
         return $serializer->serialize($token, 0);
     }
 
-    /**
-     *  @param KeyPair[] $elementos Array de objetos de tipo MiClase
-     */
     public function keysAsJwks(string $tenant): JWKSet
     {
         $this->checkNewNeeded($tenant);
@@ -124,7 +121,7 @@ class KeysManagerService
         return $result;
     }
 
-    private function checkNewNeeded(string $tenant)
+    private function checkNewNeeded(string $tenant): void
     {
         $expected = new \DateTime();
         for ($i = 0; $i < $this->config->futures; $i++) {
@@ -169,7 +166,7 @@ class KeysManagerService
         );
     }
 
-    private function intervalInSeconds(\DateInterval $range)
+    private function intervalInSeconds(\DateInterval $range): int
     {
         return $range->y * 31536000
                    + $range->m * 2419200

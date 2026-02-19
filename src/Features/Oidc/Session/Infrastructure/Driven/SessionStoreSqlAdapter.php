@@ -50,7 +50,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     #[Override]
     public function saveSession(
         string $state,
-        ClientData $client,
+        ClientData $clientDetails,
         string $issuer,
         ChallengesState $keypass,
         AuthenticationResult $validationData,
@@ -67,13 +67,16 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
             '(:state, :expiration, :client, :issuer, :data, :csid)');
         $stmt->bindValue('state', $state, PDO::PARAM_STR);
         $stmt->bindValue('expiration', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $stmt->bindValue('client', $client->id, PDO::PARAM_STR);
+        $stmt->bindValue('client', $clientDetails->id, PDO::PARAM_STR);
         $stmt->bindValue('issuer', $issuer, PDO::PARAM_STR);
         $stmt->bindValue('data', json_encode($data), PDO::PARAM_STR);
         $stmt->bindValue('csid', $csid, PDO::PARAM_STR);
         $stmt->execute();
     }
 
+    /**
+     * @return void
+     */
     #[Override]
     public function updateSession(string $newState, string $oldState)
     {
@@ -83,6 +86,9 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $stmt->execute();
     }
 
+    /**
+     * @return void
+     */
     #[Override]
     public function deleteSession(String $state)
     {
@@ -91,7 +97,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $stmt->execute();
     }
 
-    private function clearTemp()
+    private function clearTemp(): void
     {
         $now = new \DateTimeImmutable();
         $stmt = $this->pdo->prepare('DELETE FROM _oauth_session where expiration < :expiration');

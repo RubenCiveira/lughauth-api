@@ -150,9 +150,14 @@ class AuthenticateUser
         );
     }
 
+    /**
+     * @return (mixed|string)[]
+     *
+     * @psalm-return non-empty-list<mixed|string>
+     */
     private function tokenAudiences(string $clientId, array $audiences): array
     {
-        return array_values(array_unique([$clientId, ...$audiences ?? []]));
+        return array_values(array_unique([$clientId, ...$audiences]));
     }
 
     public static function generateHash(string $value): string

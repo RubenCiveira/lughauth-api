@@ -26,7 +26,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         if (!$this->useTenant) {
             $tenant = "-";
         }
-        $since = new \DateTIme();
+        $since = new \DateTime();
         $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE expiration >= :since and since <= :since and tenant = :tenant');
         $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
@@ -44,7 +44,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         if (!$this->useTenant) {
             $tenant = "-";
         }
-        $since = new \DateTIme();
+        $since = new \DateTime();
         $stmt = $this->pdo->prepare('SELECT MAX(expiration) as expiration FROM _oauth_keys_storer WHERE since >= :since and tenant = :tenant');
         $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
@@ -58,7 +58,11 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
 
     /**
      * return PublicKey[]
-    */
+     *
+     * @return KeyPair[]
+     *
+     * @psalm-return list{0?: KeyPair,...}
+     */
     #[Override]
     public function listKeys(string $tenant): array
     {
@@ -66,7 +70,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
             $tenant = "-";
         }
         $result = [];
-        $since = new \DateTIme();
+        $since = new \DateTime();
         $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE expiration >= :since and tenant = :tenant');
         $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
@@ -77,6 +81,9 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         return $result;
     }
 
+    /**
+     * @return void
+     */
     #[Override]
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad)
     {
@@ -93,7 +100,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         $stmt->execute();
     }
 
-    private function clearTemp()
+    private function clearTemp(): void
     {
         $now = new \DateTime();
         $expires = $now->sub(new \DateInterval('PT1H'));

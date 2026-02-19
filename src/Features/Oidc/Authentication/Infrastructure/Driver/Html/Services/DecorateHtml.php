@@ -36,7 +36,7 @@ class DecorateHtml
         return $callback($theme, $title, $innerContent, $locale);
     }
 
-    private function dumpTheme(string $srcDir, string $targetDir)
+    private function dumpTheme(string $srcDir, string $targetDir): void
     {
         $allowedExtensions = ['html', 'js', 'css', 'png', 'jpg', 'jpeg', 'webp']; // añade las que necesites
 

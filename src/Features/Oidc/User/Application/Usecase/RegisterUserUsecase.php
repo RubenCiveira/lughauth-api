@@ -23,7 +23,7 @@ class RegisterUserUsecase
         return $this->gateway->getRegisterConsent($tenant);
     }
 
-    public function requestForRegister(string $url, string $tenant, string $email, string $password)
+    public function requestForRegister(string $url, string $tenant, string $email, string $password): void
     {
         $this->gateway->requestForRegister($url, $tenant, $email, $password);
     }

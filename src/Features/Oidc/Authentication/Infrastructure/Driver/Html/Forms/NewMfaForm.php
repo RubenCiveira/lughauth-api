@@ -33,7 +33,6 @@ class NewMfaForm implements StepForm
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
         $locale = '';
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
         $tenant = $input->context->tenant;
         $challenges = $input->challenges;
 

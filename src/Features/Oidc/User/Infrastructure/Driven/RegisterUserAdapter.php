@@ -44,6 +44,9 @@ class RegisterUserAdapter implements RegisterUserGateway
         return ($conf && $conf->isAllowRegister());
     }
 
+    /**
+     * @return string
+     */
     #[Override]
     public function getRegisterConsent(string $tenant): ?string
     {
@@ -52,6 +55,9 @@ class RegisterUserAdapter implements RegisterUserGateway
         return $terms ? $terms->getText() : '';
     }
 
+    /**
+     * @return void
+     */
     #[Override]
     public function requestForRegister(string $url, string $tenant, string $email, string $password)
     {

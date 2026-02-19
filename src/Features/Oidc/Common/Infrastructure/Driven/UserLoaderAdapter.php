@@ -90,7 +90,9 @@ class UserLoaderAdapter
     }
 
     /**
-     * @return array{0: User, 1: UserAccessTemporalCode}
+     * @return (User|UserAccessTemporalCode)[]
+     *
+     * @psalm-return list{User, UserAccessTemporalCode}
      */
     public function checkUserByRecoveryCode(Tenant $tenant, string $code): array
     {
@@ -107,7 +109,9 @@ class UserLoaderAdapter
     }
 
     /**
-     * @return array{0: User, 1: UserAccessTemporalCode}
+     * @return (User|UserAccessTemporalCode)[]
+     *
+     * @psalm-return list{User, UserAccessTemporalCode}
      */
     public function checkUserByRegisterCode(Tenant $tenant, string $code): array
     {
@@ -168,32 +172,32 @@ class UserLoaderAdapter
         return $theUser;
     }
 
-    private function disabledTenant(string $tenant)
+    private function disabledTenant(string $tenant): void
     {
         $this->logError('Try login on a disabled tenant', ['tenant-name' => $tenant]);
     }
 
-    private function inexistentTenant(string $tenant)
+    private function inexistentTenant(string $tenant): void
     {
         $this->logError('Try login on an inexistent tenant', ['tenant-name' => $tenant]);
     }
 
-    private function inexistentUser(string $tenant, string $user)
+    private function inexistentUser(string $tenant, string $user): void
     {
         $this->logError('Try login on an inexistent user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
     }
 
-    private function unacceptedUser(string $tenant, string $user)
+    private function unacceptedUser(string $tenant, string $user): void
     {
         $this->logError('Try login with a disabled user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
     }
 
-    private function disabledUser(string $tenant, string $user)
+    private function disabledUser(string $tenant, string $user): void
     {
         $this->logError('Try login with a disabled user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
     }
 
-    private function blockedUser(string $tenant, string $user)
+    private function blockedUser(string $tenant, string $user): void
     {
         $this->logError('Try login with a blocked user on a tenant', ['tenant-name' => $tenant, 'user-name' => $user]);
     }

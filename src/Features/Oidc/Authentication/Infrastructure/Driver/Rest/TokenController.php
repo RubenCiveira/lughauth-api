@@ -31,7 +31,6 @@ class TokenController
         $tenant = $args['tenant'];
         $params = $request->getParsedBody();
         // Get client data
-        $withRefresh = true;
         $grant = $params['grant_type'] ?? '';
         $scopes = $params['scope'] ?? '';
         if ("authorization_code" == $grant) {
@@ -41,7 +40,6 @@ class TokenController
             }
             $client = $code->client;
             $auth = $code->data;
-            $withRefresh = true;
             $identity = ['nonce' => $code->nonce ];
             $scopes = $code->request->scope;
         } elseif ("refresh_token" == $grant) {
@@ -109,16 +107,14 @@ class TokenController
                 'groups' => $auth->groups
             ]), $expiration),
         ];
-        if ($withRefresh) {
-            $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'] ], new \DateInterval("PT10H"));
-        }
+        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'] ], new \DateInterval("PT10H"));
         $response->getBody()->write(json_encode($data));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
-    private function tokenAudiences($clientId, $audiences)
+    private function tokenAudiences(string $clientId, ?array $audiences): string|array
     {
-        $aud = array_values(array_unique([$clientId, ...$audiences ?? []]));
+        $aud = array_values(array_unique([$clientId, ...($audiences ?? [])]));
         return count($aud) == 1 ? $aud[0] : $aud;
     }
 }

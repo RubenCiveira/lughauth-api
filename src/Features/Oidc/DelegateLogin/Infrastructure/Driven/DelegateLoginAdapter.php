@@ -71,7 +71,7 @@ class DelegateLoginAdapter implements DelegateLoginGateway
             $attr->password(UserPasswordVO::fromPlainText($this->cypher, Random::password()));
             $prev = $this->users->create(User::create($attr));
             if ($enabled) {
-                $prev = $this->users->update($prev, $prev->enable());
+                $this->users->update($prev, $prev->enable());
             }
         }
         $challenges = (new ChallengesState())->withUsername($user->email);
@@ -88,6 +88,11 @@ class DelegateLoginAdapter implements DelegateLoginGateway
             groups: ['group-1']
         );
     }
+    /**
+     * @return DelegatedLoginProvider[]
+     *
+     * @psalm-return list{0?: DelegatedLoginProvider,...}
+     */
     #[Override]
     public function providers(string $tenant): array
     {
@@ -121,7 +126,7 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         throw new NotFoundException('');
     }
 
-    private function loadProvider(TenantLoginProvider $provider): ?DelegatedLoginProvider
+    private function loadProvider(TenantLoginProvider $provider): GoogleOAuthProvider|null
     {
         if ($provider->isDisabled()) {
             return null;

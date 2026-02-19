@@ -38,12 +38,12 @@ class HtmlSecurer
         return $this->addSignCode($name, false, '');
     }
 
-    public function encrypt(string $value): string
+    public function encrypt(string $value): string|null
     {
         return $this->keys->encrypt($value);
     }
 
-    public function decrypt(string $value): string
+    public function decrypt(string $value): string|null
     {
         return $this->keys->verifyCypher($value);
     }
@@ -58,7 +58,7 @@ class HtmlSecurer
         return new Snipped(code: "document.getElementById('".$form."').submit();", dependecies: []);
     }
 
-    public function cypher(array $fields, string $form)
+    public function cypher(array $fields, string $form): Snipped
     {
         $secret = $this->keys->currentKey();
         $group = "";

@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 
 final class OidcUrlBuilder
 {

@@ -77,7 +77,7 @@ final class OidcStepRouter
         return $this->steps[$this->fallbackStep] ?? null;
     }
 
-    private function normalizeStep(?string $step): ?string
+    private function normalizeStep(?string $step): string|null
     {
         if ($step === null) {
             return null;

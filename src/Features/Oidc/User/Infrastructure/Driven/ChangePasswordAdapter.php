@@ -63,6 +63,9 @@ class ChangePasswordAdapter implements ChangePasswordGateway
         return $user->getName();
     }
 
+    /**
+     * @return true
+     */
     #[Override]
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool
     {

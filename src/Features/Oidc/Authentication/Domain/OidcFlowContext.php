@@ -56,6 +56,11 @@ final class OidcFlowContext
         );
     }
 
+    /**
+     * @return string[]
+     *
+     * @psalm-return list<non-empty-string>
+     */
     private static function normalizeAudiences(mixed $audience): array
     {
         if (is_array($audience)) {

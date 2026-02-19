@@ -33,8 +33,6 @@ class UseMfaForm implements StepForm
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
         $locale = '';
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-        $tenant = $input->context->tenant;
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),

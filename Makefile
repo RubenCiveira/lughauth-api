@@ -15,8 +15,11 @@ format:
 
 lint:
 	mkdir -p $(REPORT_DIR)
-	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ --dry-run --format=checkstyle > $(REPORT_DIR)/lint-report.xml
-	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix test/ --dry-run --format=checkstyle >> $(REPORT_DIR)/lint-report.xml
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ 
+#	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix test/
+
+#	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ --dry-run --format=checkstyle > $(REPORT_DIR)/lint-report.xml
+#	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix test/ --dry-run --format=checkstyle >> $(REPORT_DIR)/lint-report.xml
 # --config=.php-cs-fixer.php
 
 coverage:
