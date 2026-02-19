@@ -24,10 +24,10 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
-use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginRepository;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 
-class LoginAdapter implements LoginRepository
+class LoginAdapter implements LoginGateway
 {
     use LoggerAwareTrait;
 

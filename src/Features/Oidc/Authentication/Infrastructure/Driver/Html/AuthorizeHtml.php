@@ -21,7 +21,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreRepository;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
@@ -34,7 +34,7 @@ class AuthorizeHtml
     private readonly string $base;
     public function __construct(
         private readonly Context $context,
-        private readonly ClientStoreRepository $clients,
+        private readonly ClientStoreGateway $clients,
         private readonly SessionManager $sessions,
         private readonly AuthenticateUser $authenticator,
         private readonly HtmlSecurer $securer,

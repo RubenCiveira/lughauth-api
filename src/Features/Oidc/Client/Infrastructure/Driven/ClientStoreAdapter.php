@@ -10,10 +10,10 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreRepository;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 
-class ClientStoreAdapter implements ClientStoreRepository
+class ClientStoreAdapter implements ClientStoreGateway
 {
     use LoggerAwareTrait;
 

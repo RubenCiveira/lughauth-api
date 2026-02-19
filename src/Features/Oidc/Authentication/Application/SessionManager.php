@@ -5,13 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Application;
 
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreRepository;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\SessionInfo;
 
 class SessionManager
 {
     public function __construct(
-        private readonly SessionStoreRepository $sessionStore
+        private readonly SessionStoreGateway $sessionStore
     ) {
     }
 

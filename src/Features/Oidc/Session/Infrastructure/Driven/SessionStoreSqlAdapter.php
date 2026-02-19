@@ -12,10 +12,10 @@ use DateTimeImmutable;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreRepository;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\SessionInfo;
 
-class SessionStoreSqlAdapter implements SessionStoreRepository
+class SessionStoreSqlAdapter implements SessionStoreGateway
 {
     public function __construct(
         private readonly PDO $pdo

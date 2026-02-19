@@ -5,30 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Client\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driven\ClientStoreAdapter;
 
-class ClientStoreGateway
+interface ClientStoreGateway
 {
-    private readonly ClientStoreRepository $repository;
-    public function __construct(ContainerInterface $container, ?ClientStoreRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(ClientStoreAdapter::class);
-    }
+    public function clientData(string $clientId, string $clientSecret): ?ClientData;
 
-    public function clientData(string $clientId, string $clientSecret): ?ClientData
-    {
-        return $this->repository->clientData($clientId, $clientSecret);
-    }
+    public function preValidatedClient(string $clientId): ?ClientData;
 
-    public function preValidatedClient(string $clientId): ?ClientData
-    {
-        return $this->repository->preValidatedClient($clientId);
-    }
-
-    public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
-    {
-        return $this->repository->publicClientData($id, $tenant, $redirectUrl, $scope);
-    }
+    public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData;
 }

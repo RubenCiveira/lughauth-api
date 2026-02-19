@@ -8,39 +8,25 @@ namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\LoginAdapter;
-use Psr\Container\ContainerInterface;
 
-class LoginGateway
+interface LoginGateway
 {
-    private readonly LoginRepository $repository;
-    public function __construct(ContainerInterface $container, ?LoginRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(LoginAdapter::class);
-    }
-
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
         ChallengesState $challenges
-    ): AuthenticationResult {
-        return $this->repository->fillPreLoadById($tenant, $client, $challenges);
-    }
+    ): AuthenticationResult;
 
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
         ChallengesState $challenges
-    ): AuthenticationResult {
-        return $this->repository->fillPreAuthenticated($tenant, $client, $challenges);
-    }
+    ): AuthenticationResult;
 
     public function validatedUserData(
         string $tenant,
         string $username,
         string $password,
         AuthenticationRequest $client
-    ): AuthenticationResult {
-        return $this->repository->validatedUserData($tenant, $username, $password, $client);
-    }
+    ): AuthenticationResult;
 }

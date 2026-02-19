@@ -12,15 +12,15 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreRepository;
-use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginRepository;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
 class AuthenticateUser
 {
     public function __construct(
-        private readonly LoginRepository $loginRepository,
-        private readonly SessionStoreRepository $sessionStore,
+        private readonly LoginGateway $loginRepository,
+        private readonly SessionStoreGateway $sessionStore,
         private readonly KeysManagerService $manager
     ) {
     }

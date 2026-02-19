@@ -28,7 +28,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreRepository;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
 /**
@@ -72,7 +72,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
 
-        $clients = $this->createMock(ClientStoreRepository::class);
+        $clients = $this->createMock(ClientStoreGateway::class);
         $clients->expects($this->once())
             ->method('publicClientData')
             ->with('client-123', 'tenant1', 'https://client.example/callback', 'openid')
@@ -138,7 +138,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
 
-        $clients = $this->createMock(ClientStoreRepository::class);
+        $clients = $this->createMock(ClientStoreGateway::class);
         $clients->expects($this->once())
             ->method('publicClientData')
             ->with('client-123', 'tenant1', 'https://client.example/callback', 'openid')
