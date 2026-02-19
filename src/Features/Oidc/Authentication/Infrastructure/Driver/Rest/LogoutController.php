@@ -6,37 +6,70 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class LogoutController
 {
-    public function __construct(private readonly SessionManager $sessionStore)
-    {
+    private readonly string $base;
+
+    public function __construct(
+        private readonly Context $context,
+        private readonly SessionManager $sessionStore,
+        private readonly ClientStoreGateway $clients
+    ) {
+        $this->base = $this->context->getBaseUrl() . '/oauth';
     }
 
     public function logout(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $session = $request->getCookieParams();
-        $redirect = $request->getQueryParams();
-        return $this->destroy($response, $session['AUTH_SESSION_ID'] ?? '')->withStatus(302)->withHeader('Location', $redirect['post_logout_redirect_uri']);
+        $tenant = $args['tenant'];
+        $cookies = $request->getCookieParams();
+        $query = $request->getQueryParams();
+
+        $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? '';
+        $this->sessionStore->removeSesion($sessionId);
+
+        $redirectUri = $query['post_logout_redirect_uri'] ?? '';
+        $clientId = $query['client_id'] ?? '';
+
+        if ($redirectUri === '' || $clientId === '' || !$this->isAllowedRedirect($clientId, $tenant, $redirectUri)) {
+            $response->getBody()->write('{"error":"invalid_request"}');
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        $response = $response->withStatus(302)->withHeader('Location', $redirectUri);
+        return $this->clearCookies($response, $tenant);
     }
 
     public function revoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $session = $request->getCookieParams();
-        return $this->destroy($response, $session['AUTH_SESSION_ID'] ?? '');
+        $body = $request->getParsedBody();
+        $token = $body['token'] ?? '';
+
+        if ($token === '') {
+            $response->getBody()->write('{"error":"invalid_request","error_description":"missing token parameter"}');
+            return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+        }
+
+        $this->sessionStore->removeSesion($token);
+
+        return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
 
-    private function destroy(
-        ResponseInterface $response,
-        string $session
-    ): ResponseInterface {
-        $this->sessionStore->removeSesion($session);
-        // remove cookies
-        $authCookie = new Cookie(name: 'AUTH_SESSION_ID');
-        $preCookie = new Cookie(name: 'PRE_SESSION_ID');
+    private function clearCookies(ResponseInterface $response, string $tenant): ResponseInterface
+    {
+        $path = $this->base . '/openid/' . $tenant . '/';
+        $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $path);
+        $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $path);
         return $preCookie->remove($authCookie->remove($response));
+    }
+
+    private function isAllowedRedirect(string $clientId, string $tenant, string $redirectUri): bool
+    {
+        return $this->clients->publicClientData($clientId, $tenant, $redirectUri, '') !== null;
     }
 }
