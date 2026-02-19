@@ -28,7 +28,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
 
     public function __construct(
         private readonly UserAccessTemporalCodePdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -205,7 +205,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
             $span->end();
         }
     }
-    private function dispach(UserAccessTemporalCode $entity)
+    private function dispatch(UserAccessTemporalCode $entity): void
     {
         $this->logDebug("Count for User access temporal code on adapter ");
         $span = $this->startSpan("Count for User access temporal code on adapter");
