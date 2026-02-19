@@ -7,20 +7,20 @@ namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 
 interface LoginRepository
 {
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult;
 
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult;
 
     public function validatedUserData(

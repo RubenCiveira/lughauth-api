@@ -22,7 +22,7 @@ use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginRepository;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
@@ -48,10 +48,11 @@ class LoginAdapter implements LoginRepository
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult {
-        $theTenant = $this->users->checkTenant($tenant, $challenges->username);
-        $theUser = $this->users->checkUserSubjet($theTenant, $challenges->username);
+        $username = $challenges->username ?? '';
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $theUser = $this->users->checkUserSubjet($theTenant, $username);
         return new AuthenticationResult(
             valid: true,
             id: $theUser->uid(),
@@ -70,10 +71,11 @@ class LoginAdapter implements LoginRepository
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult {
-        $theTenant = $this->users->checkTenant($tenant, $challenges->username);
-        $theUser = $this->users->checkUser($theTenant, $challenges->username);
+        $username = $challenges->username ?? '';
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $theUser = $this->users->checkUser($theTenant, $username);
         return new AuthenticationResult(
             valid: true,
             id: $theUser->uid(),
@@ -239,6 +241,7 @@ class LoginAdapter implements LoginRepository
     {
         return $client->scope;
     }
+
     private function loadAudiences(AuthenticationRequest $client, Tenant $tenant, User $user): array
     {
         return $client->audiences;

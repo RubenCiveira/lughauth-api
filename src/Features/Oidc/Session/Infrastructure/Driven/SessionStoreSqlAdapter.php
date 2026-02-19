@@ -10,7 +10,7 @@ use Override;
 use DateInterval;
 use DateTimeImmutable;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreRepository;
 use Civi\Lughauth\Features\Oidc\Session\Domain\SessionInfo;
@@ -52,14 +52,14 @@ class SessionStoreSqlAdapter implements SessionStoreRepository
         string $state,
         ClientData $client,
         string $issuer,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         AuthenticationResult $validationData,
         string $csid,
         DateInterval $expiration
     ): void {
         $now = new DateTimeImmutable();
 
-        $data = ['withMfa' => $keypass->mfa, 'userId' => $validationData->id ];
+        $data = ['withMfa' => $keypass->withMfa, 'userId' => $validationData->id ];
         $expires = $now->add($expiration);
 
         $stmt = $this->pdo->prepare('INSERT INTO _oauth_session ' .

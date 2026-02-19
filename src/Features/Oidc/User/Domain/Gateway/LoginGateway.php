@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\LoginAdapter;
 use Psr\Container\ContainerInterface;
 
@@ -22,7 +22,7 @@ class LoginGateway
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult {
         return $this->repository->fillPreLoadById($tenant, $client, $challenges);
     }
@@ -30,7 +30,7 @@ class LoginGateway
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult {
         return $this->repository->fillPreAuthenticated($tenant, $client, $challenges);
     }

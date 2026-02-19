@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Application\TokenGranter;
 use Override;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\LoginUsecase;
 
@@ -32,9 +32,9 @@ class ResolverForRefresh implements TokenGranterStrategy
     {
         $token = $params['refresh_token'];
         $key = $this->manager->verifiedKeypass($tenant, $token);
-        $challenges = new AuthorizedChalleges();
-        $challenges->session = true;
-        $challenges->username = $key;
+        $challenges = (new ChallengesState())
+            ->withSession(true)
+            ->withUsername((string) $key);
         return $this->userLoginGateway->fillPreLoadById($tenant, $client, $challenges);
     }
 }

@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Session\Domain\Gateway;
 
 use PDO;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Session\Domain\SessionInfo;
 use Civi\Lughauth\Features\Oidc\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
@@ -30,7 +30,7 @@ class SessionStoreGateway
         string $state,
         ClientData $clientDetails,
         string $issuer,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         AuthenticationResult $validationData,
         string $csid,
         \DateInterval $expiration

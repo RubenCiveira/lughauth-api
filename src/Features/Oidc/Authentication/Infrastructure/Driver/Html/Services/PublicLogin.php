@@ -10,7 +10,6 @@ use Ramsey\Uuid\Uuid;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
@@ -64,7 +63,7 @@ class PublicLogin
 
     public function confirmRegisterUser(
         AuthenticationRequest $client,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $code,
         string $tenant,
         string $issuer,
@@ -74,7 +73,7 @@ class PublicLogin
     ): PublicLoginAuthResponse {
         $user = $this->userRegisterGateway->verifyRegister($tenant, $code);
         if ($user) {
-            $keypass->username = $user;
+            $keypass = $keypass->withUsername($user);
             return $this->preAutenticate($client, $keypass, $tenant, $issuer, $csid, $state, $nonce);
         } else {
             throw new LoginException(auth: AuthenticationResult::waitNewuserVerify('', 'Invalid code'));
@@ -101,7 +100,7 @@ class PublicLogin
 
     public function confirmPassChange(
         AuthenticationRequest $client,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $code,
         string $newpass,
         string $tenant,
@@ -112,7 +111,7 @@ class PublicLogin
     ): PublicLoginAuthResponse {
         $user = $this->userChpassGateway->validateChangeRequest($tenant, $code, $newpass);
         if ($user) {
-            $keypass->username = $user;
+            $keypass = $keypass->withUsername($user);
             return $this->preAutenticate($client, $keypass, $tenant, $issuer, $csid, $state, $nonce);
         } else {
             throw new LoginException(auth: AuthenticationResult::waitNewpass('', 'Unable to change to password: please retry'));
@@ -121,7 +120,7 @@ class PublicLogin
 
     public function validateForcePassChange(
         AuthenticationRequest $client,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $oldpass,
         string $newpass,
         string $tenant,
@@ -130,7 +129,7 @@ class PublicLogin
         string $state,
         string $nonce
     ): PublicLoginAuthResponse {
-        if ($this->userChpassGateway->forceUpdatePassword($tenant, $keypass->username, $oldpass, $newpass)) {
+        if ($this->userChpassGateway->forceUpdatePassword($tenant, $keypass->username ?? '', $oldpass, $newpass)) {
             return $this->preAutenticate($client, $keypass, $tenant, $issuer, $csid, $state, $nonce);
         } else {
             throw new LoginException(auth: AuthenticationResult::newPasswordRequired('unable_to_change'));
@@ -166,7 +165,7 @@ class PublicLogin
 
     public function sessionAutenticated(
         AuthenticationRequest $request,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $tenant,
         string $issuer,
         string $csid,
@@ -186,7 +185,7 @@ class PublicLogin
 
     public function preAutenticate(
         AuthenticationRequest $request,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $tenant,
         string $issuer,
         string $csid,
@@ -206,7 +205,7 @@ class PublicLogin
 
     public function autenticate(
         AuthenticationRequest $request,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $tenant,
         string $username,
         string $password,
@@ -229,13 +228,13 @@ class PublicLogin
         string $stateValue,
         string $nonce
     ): PublicLoginAuthResponse {
-        return $this->autenticate($request, $state->toLegacy(), $tenant, $username, $password, $issuer, $csid, $stateValue, $nonce);
+        return $this->autenticate($request, $state, $tenant, $username, $password, $issuer, $csid, $stateValue, $nonce);
     }
 
     private function saveIt(
         AuthenticationResult $validation,
         AuthenticationRequest $request,
-        AuthorizedChalleges $keypass,
+        ChallengesState $keypass,
         string $issuer,
         string $csid,
         string $state,

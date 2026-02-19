@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
@@ -30,7 +30,7 @@ class LoginForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
         $js = $this->securer->configureScripts([
@@ -154,7 +154,7 @@ class LoginForm implements OidcStep
             $input->context->locale,
             $base,
             $input->context->tenant,
-            $input->challenges->toLegacy(),
+            $input->challenges,
             $input->body ?? [],
             $input->request,
             $response
@@ -170,11 +170,12 @@ class LoginForm implements OidcStep
         string $csid,
         string $state,
         string $nonce,
-        AuthorizedChalleges $challenges,
+        ChallengesState $challenges,
         mixed $body
     ): PublicLoginAuthResponse {
-        $password = $this->securer->decrypt($body["password"]);
-        $challenges->username = $body['username'];
-        return $this->publicLogin->autenticate($request, $challenges, $tenant, $body['username'], $password, $issuer, $csid, $state, $nonce);
+        $password = $this->securer->decrypt((string) ($body["password"] ?? ''));
+        $username = (string) ($body['username'] ?? '');
+        $challenges = $challenges->withUsername($username);
+        return $this->publicLogin->autenticate($request, $challenges, $tenant, $username, $password, $issuer, $csid, $state, $nonce);
     }
 }

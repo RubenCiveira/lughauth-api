@@ -10,7 +10,6 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
@@ -77,10 +76,10 @@ class AuthorizeHtml
             if ($csid !== $sess->csid) {
                 return $this->redirectToLogin($response, $flow);
             }
-            $challenges = new AuthorizedChalleges();
-            $challenges->username = $sess->userId;
-            $challenges->mfa = $sess->withMfa;
-            $challenges->session = true;
+            $challenges = (new ChallengesState())
+                ->withUsername($sess->userId)
+                ->withMfa($sess->withMfa)
+                ->withSession(true);
             // auth-csid
             $auth = $this->publicLogin->sessionAutenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
             return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $authRequest);

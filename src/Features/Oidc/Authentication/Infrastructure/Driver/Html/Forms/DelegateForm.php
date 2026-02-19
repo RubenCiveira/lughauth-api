@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
@@ -29,7 +29,7 @@ class DelegateForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $body = $request->getParsedBody();
         $params = $request->getQueryParams();
@@ -80,14 +80,14 @@ class DelegateForm implements OidcStep
         string $csid,
         string $state,
         string $nonce,
-        AuthorizedChalleges $challenges,
+        ChallengesState $challenges,
         mixed $body
     ): PublicLoginAuthResponse {
         $route = '/oauth/openid/-/delegated/verify';
         $result = $this->delegated->validateRedirection($route, $body['provider'], $body['provider-data'], $tenant, $request);
         if ($result && $result->valid) {
-            $challenges->username = $result->id;
-            return $this->publicLogin->preAutenticate($request, $challenges, $tenant, $issuer, $csid, $state, $nonce);
+            $updated = $challenges->withUsername($result->id);
+            return $this->publicLogin->preAutenticate($request, $updated, $tenant, $issuer, $csid, $state, $nonce);
         } else {
             throw new UnauthorizedException('-');
         }
@@ -100,7 +100,6 @@ class DelegateForm implements OidcStep
         ?string $step,
         ?string $csid
     ): StepResult {
-        $legacyChallenges = $input->challenges->toLegacy();
         $base = rtrim($input->context->baseUrl, '/') . '/oauth';
 
         if ($csid !== null) {
@@ -111,7 +110,7 @@ class DelegateForm implements OidcStep
                 $csid,
                 $input->context->state,
                 $input->context->nonce,
-                $legacyChallenges,
+                $input->challenges,
                 $input->body ?? []
             );
             return StepResult::proceed($auth);
@@ -122,7 +121,7 @@ class DelegateForm implements OidcStep
             $input->context->locale,
             $base,
             $input->context->tenant,
-            $legacyChallenges,
+            $input->challenges,
             $input->body ?? [],
             $input->request,
             $response

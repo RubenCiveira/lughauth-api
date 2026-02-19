@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
@@ -31,11 +31,11 @@ class NewMfaForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
 
-        $token = $this->publicMfa->configurationForNewMfa($tenant, $challenges->username);
+        $token = $this->publicMfa->configurationForNewMfa($tenant, $challenges->username ?? '');
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
@@ -103,14 +103,14 @@ class NewMfaForm implements OidcStep
         string $csid,
         string $state,
         string $nonce,
-        AuthorizedChalleges $challenges,
+        ChallengesState $challenges,
         mixed $body
     ): PublicLoginAuthResponse {
         $seed = isset($body["seed"]) ? $this->securer->decrypt($body["seed"]) : '';
         $code = $body['mfa_code'] ?? '';
-        if ($seed && $this->publicMfa->verifyNewOpt($tenant, $challenges->username, $seed, $code)) {
-            $challenges->mfa = true;
-            return $this->publicLogin->preAutenticate($request, $challenges, $tenant, $issuer, $csid, $state, $nonce);
+        if ($seed && $this->publicMfa->verifyNewOpt($tenant, $challenges->username ?? '', $seed, $code)) {
+            $updated = $challenges->withMfa(true);
+            return $this->publicLogin->preAutenticate($request, $updated, $tenant, $issuer, $csid, $state, $nonce);
         } else {
             throw new LoginException(auth: AuthenticationResult::newMfaRequired('wrong_auth_code'));
         }
@@ -123,7 +123,6 @@ class NewMfaForm implements OidcStep
         ?string $step,
         ?string $csid
     ): StepResult {
-        $legacyChallenges = $input->challenges->toLegacy();
         $base = rtrim($input->context->baseUrl, '/') . '/oauth';
 
         if ($csid !== null) {
@@ -134,7 +133,7 @@ class NewMfaForm implements OidcStep
                 $csid,
                 $input->context->state,
                 $input->context->nonce,
-                $legacyChallenges,
+                $input->challenges,
                 $input->body ?? []
             );
             return StepResult::proceed($auth);
@@ -145,7 +144,7 @@ class NewMfaForm implements OidcStep
             $input->context->locale,
             $base,
             $input->context->tenant,
-            $legacyChallenges,
+            $input->challenges,
             $input->body ?? [],
             $input->request,
             $response

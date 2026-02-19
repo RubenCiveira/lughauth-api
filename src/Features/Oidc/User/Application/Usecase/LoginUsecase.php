@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\User\Application\Usecase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 
 class LoginUsecase
@@ -22,7 +22,7 @@ class LoginUsecase
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult {
         $result = $this->gateway->fillPreLoadById($tenant, $client, $challenges);
         if ($result->valid && !$challenges->session) {
@@ -34,7 +34,7 @@ class LoginUsecase
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
-        AuthorizedChalleges $challenges
+        ChallengesState $challenges
     ): AuthenticationResult {
         $result = $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
         if ($result->valid && !$challenges->session) {

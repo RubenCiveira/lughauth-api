@@ -17,6 +17,36 @@ final class ChallengesState
     ) {
     }
 
+    public function withUsername(string $username): self
+    {
+        return new self(
+            withMfa: $this->withMfa,
+            session: $this->session,
+            username: $username,
+            extra: $this->extra
+        );
+    }
+
+    public function withMfa(bool $withMfa): self
+    {
+        return new self(
+            withMfa: $withMfa,
+            session: $this->session,
+            username: $this->username,
+            extra: $this->extra
+        );
+    }
+
+    public function withSession(bool $session): self
+    {
+        return new self(
+            withMfa: $this->withMfa,
+            session: $session,
+            username: $this->username,
+            extra: $this->extra
+        );
+    }
+
     public static function fromArray(array $data): self
     {
         if (isset($data['v'])) {
@@ -47,22 +77,4 @@ final class ChallengesState
         ];
     }
 
-    public static function fromLegacy(AuthorizedChalleges $legacy): self
-    {
-        return new self(
-            withMfa: $legacy->mfa,
-            session: $legacy->session,
-            username: $legacy->username,
-            extra: []
-        );
-    }
-
-    public function toLegacy(): AuthorizedChalleges
-    {
-        $legacy = new AuthorizedChalleges();
-        $legacy->mfa = $this->withMfa;
-        $legacy->session = $this->session;
-        $legacy->username = $this->username;
-        return $legacy;
-    }
 }

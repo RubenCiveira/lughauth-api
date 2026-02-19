@@ -9,7 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
@@ -31,7 +31,7 @@ class UseMfaForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
 
@@ -89,16 +89,16 @@ class UseMfaForm implements OidcStep
         string $csid,
         string $state,
         string $nonce,
-        AuthorizedChalleges $challenges,
+        ChallengesState $challenges,
         mixed $body
     ): PublicLoginAuthResponse {
-        if ($challenges->mfa) {
+        if ($challenges->withMfa) {
             return $this->publicLogin->preAutenticate($request, $challenges, $tenant, $issuer, $csid, $state, $nonce);
         } else {
-            $otp = $body['mfa_code'];
-            if ($this->publicMfa->verifyOtp($tenant, $challenges->username, $otp)) {
-                $challenges->mfa = true;
-                return $this->publicLogin->preAutenticate($request, $challenges, $tenant, $issuer, $csid, $state, $nonce);
+            $otp = $body['mfa_code'] ?? '';
+            if ($this->publicMfa->verifyOtp($tenant, $challenges->username ?? '', $otp)) {
+                $updated = $challenges->withMfa(true);
+                return $this->publicLogin->preAutenticate($request, $updated, $tenant, $issuer, $csid, $state, $nonce);
             } else {
                 throw new LoginException(auth: AuthenticationResult::mfaRequired('wrong_auth_code'));
             }
@@ -112,7 +112,6 @@ class UseMfaForm implements OidcStep
         ?string $step,
         ?string $csid
     ): StepResult {
-        $legacyChallenges = $input->challenges->toLegacy();
         $base = rtrim($input->context->baseUrl, '/') . '/oauth';
 
         if ($csid !== null) {
@@ -123,7 +122,7 @@ class UseMfaForm implements OidcStep
                 $csid,
                 $input->context->state,
                 $input->context->nonce,
-                $legacyChallenges,
+                $input->challenges,
                 $input->body ?? []
             );
             return StepResult::proceed($auth);
@@ -134,7 +133,7 @@ class UseMfaForm implements OidcStep
             $input->context->locale,
             $base,
             $input->context->tenant,
-            $legacyChallenges,
+            $input->challenges,
             $input->body ?? [],
             $input->request,
             $response

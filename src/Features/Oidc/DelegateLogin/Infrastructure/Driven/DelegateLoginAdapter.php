@@ -21,7 +21,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedUserData;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginRepository;
@@ -74,8 +74,7 @@ class DelegateLoginAdapter implements DelegateLoginRepository
                 $prev = $this->users->update($prev, $prev->enable());
             }
         }
-        $challenges = new AuthorizedChalleges();
-        $challenges->username = $user->email;
+        $challenges = (new ChallengesState())->withUsername($user->email);
         $this->login->fillPreAuthenticated($tenant, $client, $challenges);
         // Si no existe lo creo
         return new AuthenticationResult(
