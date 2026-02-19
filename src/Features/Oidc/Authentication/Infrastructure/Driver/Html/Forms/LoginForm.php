@@ -10,6 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
@@ -63,7 +64,7 @@ class LoginForm implements StepForm
         $enter = $translator->get("login.enter");
 
         $delegatedLogins = "";
-        $delegatedStep = StepInput::STEP_DELEGATED_LOGIN;
+        $delegatedStep = StepName::DELEGATED_LOGIN->value;
         foreach ($this->delegated->providers($tenant) as $provider) {
             $info = $provider->info();
             $delegatedLogins .= <<<HTML
@@ -78,7 +79,7 @@ class LoginForm implements StepForm
         }
         $recoverPass = "";
         if ($this->changePassword->allowRecover($tenant)) {
-            $recoverStep = StepInput::STEP_RECOVER_PASS;
+            $recoverStep = StepName::RECOVER_PASS->value;
             $recoverPass .= <<<HTML
                 <form method="POST">
                     <input type="hidden" name="step" value="{$recoverStep}" />
@@ -88,7 +89,7 @@ class LoginForm implements StepForm
         }
         $registerUser = "";
         if ($this->registerUser->allowRegister($tenant)) {
-            $registerStep = StepInput::STEP_REGISTER_USER;
+            $registerStep = StepName::REGISTER_USER->value;
             $registerUser .= <<<HTML
                 <form method="POST">
                     <input type="hidden" name="step" value="{$registerStep}" />

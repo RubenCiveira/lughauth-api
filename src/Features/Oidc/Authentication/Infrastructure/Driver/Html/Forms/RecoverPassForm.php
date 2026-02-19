@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
@@ -108,7 +109,7 @@ class RecoverPassForm implements StepForm
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("recoverpass.ask.back-label") . "\" />"]
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
-        $step = StepInput::STEP_RECOVER_PASS;
+        $step = StepName::RECOVER_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',
@@ -161,7 +162,7 @@ class RecoverPassForm implements StepForm
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
         $defaultCode = $params['_use_code'] ?? '';
-        $step = StepInput::STEP_RECOVER_PASS;
+        $step = StepName::RECOVER_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',

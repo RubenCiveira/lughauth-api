@@ -12,6 +12,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
@@ -59,7 +60,7 @@ class ConsentForm implements StepForm
 
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
 
-        $step = StepInput::STEP_CONSENT;
+        $step = StepName::CONSENT->value;
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $input->request,

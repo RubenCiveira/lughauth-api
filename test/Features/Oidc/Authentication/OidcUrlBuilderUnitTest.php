@@ -9,7 +9,7 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 
 /**
@@ -78,7 +78,7 @@ final class OidcUrlBuilderUnitTest extends TestCase
         $url = $builder->registerUserUrl($request, 'tenant1', 'state-xyz', 'nonce-abc', '&_use_code=');
 
         $query = $this->parseQuery($url);
-        $this->assertSame(StepInput::STEP_REGISTER_USER, $query['step']);
+        $this->assertSame(StepName::REGISTER_USER->value, $query['step']);
         $this->assertSame('true', $query['verify_send']);
         $this->assertStringEndsWith('_use_code=', $url);
     }
@@ -101,7 +101,7 @@ final class OidcUrlBuilderUnitTest extends TestCase
         $url = $builder->recoverPassUrl($request, 'tenant1', 'state-xyz', 'nonce-abc', '&_use_code=');
 
         $query = $this->parseQuery($url);
-        $this->assertSame(StepInput::STEP_RECOVER_PASS, $query['step']);
+        $this->assertSame(StepName::RECOVER_PASS->value, $query['step']);
         $this->assertSame('true', $query['recover_send']);
         $this->assertStringEndsWith('_use_code=', $url);
     }

@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\StepForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
@@ -26,15 +27,15 @@ final class OidcStepRouter
 
     /** @var array<string, string> */
     private const ERROR_MAP = [
-        AuthenticationResult::ERR_CONSENT_REQUIRED => StepInput::STEP_CONSENT,
-        AuthenticationResult::ERR_MFA_REQUIRED => StepInput::STEP_MFA,
-        AuthenticationResult::ERR_NEW_MFA_REQUIRED => StepInput::STEP_NEW_MFA,
-        AuthenticationResult::ERR_NEW_PASSWORD_REQUIRED => StepInput::STEP_NEW_PASS,
-        AuthenticationResult::ERR_WAITING_PASSCHANGE_CODE => StepInput::STEP_RECOVER_PASS,
-        AuthenticationResult::ERR_WAITING_USER_VERIFY => StepInput::STEP_REGISTER_USER,
-        AuthenticationResult::ERR_UNKNOW_USER => StepInput::STEP_LOGIN,
-        AuthenticationResult::ERR_WRONG_CREDENTIAL => StepInput::STEP_LOGIN,
-        AuthenticationResult::ERR_NOT_ALLOWED_ACCESS => StepInput::STEP_LOGIN,
+        AuthenticationResult::ERR_CONSENT_REQUIRED => StepName::CONSENT->value,
+        AuthenticationResult::ERR_MFA_REQUIRED => StepName::MFA->value,
+        AuthenticationResult::ERR_NEW_MFA_REQUIRED => StepName::NEW_MFA->value,
+        AuthenticationResult::ERR_NEW_PASSWORD_REQUIRED => StepName::NEW_PASS->value,
+        AuthenticationResult::ERR_WAITING_PASSCHANGE_CODE => StepName::RECOVER_PASS->value,
+        AuthenticationResult::ERR_WAITING_USER_VERIFY => StepName::REGISTER_USER->value,
+        AuthenticationResult::ERR_UNKNOW_USER => StepName::LOGIN->value,
+        AuthenticationResult::ERR_WRONG_CREDENTIAL => StepName::LOGIN->value,
+        AuthenticationResult::ERR_NOT_ALLOWED_ACCESS => StepName::LOGIN->value,
     ];
 
     public function __construct(
@@ -46,17 +47,17 @@ final class OidcStepRouter
         RecoverPassForm $recover,
         DelegateForm $delegate,
         RegisterUserForm $register,
-        private readonly string $fallbackStep = StepInput::STEP_LOGIN
+        private readonly string $fallbackStep = StepName::LOGIN->value
     ) {
         $this->steps = [
-            StepInput::STEP_LOGIN => $login,
-            StepInput::STEP_CONSENT => $conset,
-            StepInput::STEP_MFA => $useMfa,
-            StepInput::STEP_NEW_MFA => $mfa,
-            StepInput::STEP_RECOVER_PASS => $recover,
-            StepInput::STEP_NEW_PASS => $pass,
-            StepInput::STEP_REGISTER_USER => $register,
-            StepInput::STEP_DELEGATED_LOGIN => $delegate,
+            StepName::LOGIN->value => $login,
+            StepName::CONSENT->value => $conset,
+            StepName::MFA->value => $useMfa,
+            StepName::NEW_MFA->value => $mfa,
+            StepName::RECOVER_PASS->value => $recover,
+            StepName::NEW_PASS->value => $pass,
+            StepName::REGISTER_USER->value => $register,
+            StepName::DELEGATED_LOGIN->value => $delegate,
         ];
     }
 

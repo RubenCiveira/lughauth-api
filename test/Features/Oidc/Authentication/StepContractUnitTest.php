@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 
 /**
@@ -74,7 +75,7 @@ final class StepContractUnitTest extends TestCase
             context: $flow,
             authRequest: $authRequest,
             challenges: $challenges,
-            body: ['step' => StepInput::STEP_LOGIN],
+            body: ['step' => StepName::LOGIN->value],
             request: $request
         );
 
@@ -82,7 +83,7 @@ final class StepContractUnitTest extends TestCase
         $this->assertSame($flow, $input->context);
         $this->assertSame($authRequest, $input->authRequest);
         $this->assertSame($challenges, $input->challenges);
-        $this->assertSame(['step' => StepInput::STEP_LOGIN], $input->body);
+        $this->assertSame(['step' => StepName::LOGIN->value], $input->body);
         $this->assertSame($request, $input->request);
     }
 

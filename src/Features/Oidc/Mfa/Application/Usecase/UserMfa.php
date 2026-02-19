@@ -30,6 +30,6 @@ class UserMfa
     }
     public function storeSeed(string $seed, string $tenant, string $username): void
     {
-        $this->gateway->storeSeed($seed, $tenant, $username);
+        $this->gateway->storeSeed($tenant, $username, $seed);
     }
 }

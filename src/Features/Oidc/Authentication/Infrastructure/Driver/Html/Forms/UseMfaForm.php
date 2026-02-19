@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicMfa;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
@@ -56,7 +57,7 @@ class UseMfaForm implements StepForm
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
-        $step = StepInput::STEP_MFA;
+        $step = StepName::MFA->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,
             'Mfa',

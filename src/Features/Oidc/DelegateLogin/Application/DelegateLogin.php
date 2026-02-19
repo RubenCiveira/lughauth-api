@@ -10,7 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
 
@@ -34,7 +34,7 @@ class DelegateLogin
         $info = json_decode(base64_decode($state), true);
         $tenant = $info['tenant'] ?? null;
         unset($info['tenant']);
-        $info['step'] = StepInput::STEP_DELEGATED_LOGIN;
+        $info['step'] = StepName::DELEGATED_LOGIN->value;
         $info['provider-data'] = base64_encode(json_encode($params));
 
         $url = $this->context->getBaseUrl() . $directory . $tenant . $path;

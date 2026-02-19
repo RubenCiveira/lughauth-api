@@ -13,6 +13,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
@@ -78,7 +79,7 @@ class NewPassForm implements StepForm
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
-        $step = StepInput::STEP_NEW_PASS;
+        $step = StepName::NEW_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,
             'New pass',

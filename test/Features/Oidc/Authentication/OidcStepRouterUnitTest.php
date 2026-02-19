@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
@@ -64,10 +65,10 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            StepInput::STEP_LOGIN
+            StepName::LOGIN->value
         );
 
-        $result = $router->resolve(StepInput::STEP_CONSENT, AuthenticationResult::consentRequired());
+        $result = $router->resolve(StepName::CONSENT->value, AuthenticationResult::consentRequired());
 
         $this->assertSame($consent, $result);
     }
@@ -89,7 +90,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            StepInput::STEP_LOGIN
+            StepName::LOGIN->value
         );
 
         $result = $router->resolve('', AuthenticationResult::consentRequired());
@@ -114,7 +115,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            StepInput::STEP_LOGIN
+            StepName::LOGIN->value
         );
 
         $result = $router->resolve('', null);
@@ -141,7 +142,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            StepInput::STEP_LOGIN
+            StepName::LOGIN->value
         );
 
         $request = (new ServerRequestFactory())
@@ -171,12 +172,12 @@ final class OidcStepRouterUnitTest extends TestCase
             context: $flow,
             authRequest: $authRequest,
             challenges: new ChallengesState(withMfa: false, session: false, username: 'user-1'),
-            body: ['step' => StepInput::STEP_LOGIN],
+            body: ['step' => StepName::LOGIN->value],
             request: $request
         );
 
         $response = new Response();
-        $result = $router->run($input, $response, null, StepInput::STEP_LOGIN, 'csid-123');
+        $result = $router->run($input, $response, null, StepName::LOGIN->value, 'csid-123');
 
         $this->assertInstanceOf(StepResult::class, $result);
         $this->assertSame(StepResult::TYPE_PROCEED, $result?->type);
@@ -201,7 +202,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            StepInput::STEP_LOGIN
+            StepName::LOGIN->value
         );
 
         $request = (new ServerRequestFactory())
@@ -231,12 +232,12 @@ final class OidcStepRouterUnitTest extends TestCase
             context: $flow,
             authRequest: $authRequest,
             challenges: new ChallengesState(withMfa: false, session: false, username: 'user-1'),
-            body: ['step' => StepInput::STEP_LOGIN],
+            body: ['step' => StepName::LOGIN->value],
             request: $request
         );
 
         $response = new Response();
-        $result = $router->run($input, $response, null, StepInput::STEP_LOGIN, null);
+        $result = $router->run($input, $response, null, StepName::LOGIN->value, null);
 
         $this->assertInstanceOf(StepResult::class, $result);
         $this->assertSame(StepResult::TYPE_RENDER, $result?->type);
