@@ -43,12 +43,18 @@ class TokenController
             $identity = ['nonce' => $code->nonce ];
             $scopes = $code->request->scope;
         } elseif ("refresh_token" == $grant) {
+            $refreshPayload = $this->manager->verifyTokenPayload($tenant, $params['refresh_token'] ?? '');
+            if (!$refreshPayload) {
+                throw new UnauthorizedException("Invalid refresh token");
+            }
+            $originalScope = $refreshPayload['original_scope'] ?? '';
+            $scopes = $params['scope'] ?? $originalScope;
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
             $auth = $this->granter->autenticate(
                 $grant,
                 $tenant,
-                new AuthenticationRequest($client, "", "", null, [$client->id, ...$audiences]),
+                new AuthenticationRequest($client, $originalScope, "", null, [$client->id, ...$audiences]),
                 $params
             );
             $identity = [];
@@ -107,7 +113,7 @@ class TokenController
                 'groups' => $auth->groups
             ]), $expiration),
         ];
-        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'] ], new \DateInterval("PT10H"));
+        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ], new \DateInterval("PT10H"));
         $response->getBody()->write(json_encode($data));
         return $response->withHeader('Content-Type', 'application/json');
     }

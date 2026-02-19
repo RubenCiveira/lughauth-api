@@ -31,7 +31,11 @@ class ResolverForRefresh implements TokenGranterStrategy
     public function autenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {
         $token = $params['refresh_token'];
-        $key = $this->manager->verifiedKeypass($tenant, $token);
+        $payload = $this->manager->verifyTokenPayload($tenant, $token);
+        $key = $payload['keypass'] ?? null;
+        if (!$key) {
+            return AuthenticationResult::wrongCredentials($tenant, '');
+        }
         $challenges = (new ChallengesState())
             ->withSession(true)
             ->withUsername((string) $key);

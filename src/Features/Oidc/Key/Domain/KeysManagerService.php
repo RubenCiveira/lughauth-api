@@ -83,42 +83,37 @@ class KeysManagerService
         return $this->sign($tenant, ['keypass' => $data], $expiration);
     }
 
-    public function verifiedKeypass(string $tenant, string $token)
+    public function verifyTokenPayload(string $tenant, string $token): ?array
     {
         $jwkSet = $this->keysAsJwks($tenant);
-        // $jwkSet = JWKSet::createFromJson($info->jwks);
         $serializer = new CompactSerializer();
         try {
             $jwt = $serializer->unserialize($token);
-        } catch (\InvalidArgumentException $je) {
-            $jwt = null;
+        } catch (\InvalidArgumentException) {
+            return null;
         }
-        $isVerified = false;
-        if ($jwt) {
-            // Crear un verificador de JWS con el algoritmo correspondiente
-            $algorithmManager = new AlgorithmManager([new RS256()]);
-            $jwsVerifier = new JWSVerifier($algorithmManager);
-            // Verificar el token con el JWKSet
-            $isVerified = $jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0);
+        $algorithmManager = new AlgorithmManager([new RS256()]);
+        $jwsVerifier = new JWSVerifier($algorithmManager);
+        if (!$jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0)) {
+            return null;
         }
-        $result = null;
-        if ($isVerified) {
-            $payload = json_decode($jwt->getPayload());
-            $nbf = $payload->nbf;
-            $exp = $payload->exp;
-            $result = $payload->keypass;
-            if (!$nbf || !$exp) {
-                $result = null;
-            }
-            $now = time();
-            if ($now < $nbf) {
-                $result = null;
-            }
-            if ($now > $exp) {
-                $result = null;
-            }
+        $payload = json_decode($jwt->getPayload(), true);
+        $nbf = $payload['nbf'] ?? null;
+        $exp = $payload['exp'] ?? null;
+        if (!$nbf || !$exp) {
+            return null;
         }
-        return $result;
+        $now = time();
+        if ($now < $nbf || $now > $exp) {
+            return null;
+        }
+        return $payload;
+    }
+
+    public function verifiedKeypass(string $tenant, string $token)
+    {
+        $payload = $this->verifyTokenPayload($tenant, $token);
+        return $payload['keypass'] ?? null;
     }
 
     private function checkNewNeeded(string $tenant): void
