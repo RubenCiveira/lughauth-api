@@ -11,7 +11,10 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
@@ -37,6 +40,7 @@ class AuthorizeHtml
 {
     private readonly array $forms;
     private readonly string $base;
+    private readonly OidcStepRouter $router;
 
     public function __construct(
         private readonly Context $context,
@@ -56,6 +60,7 @@ class AuthorizeHtml
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
         $this->forms = [$conset, $login, $mfa, $pass, $useMfa, $recover, $register, $delegate ];
+        $this->router = new OidcStepRouter($this->forms, '');
     }
 
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
@@ -67,14 +72,21 @@ class AuthorizeHtml
 
         // Public login interface => client allowed
         // Session => direct login
-        $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
+        $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $sess = $this->publicLogin->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
             return $this->cisdPage($request, $response, $tenant, $base, $flow->locale, $flow->responseType, $flow->clientId, $flow->state, $flow->redirect, $flow->scope, $flow->nonce, $audiences, $flow->prompt);
         } elseif ("none" === $flow->prompt) {
             return $this->redirectError($base, $tenant, $flow->redirect, 'No session', $response);
         } else {
-            return $this->paint(null, $flow->locale, $base, $tenant, null, [], null, $request, $response);
+            $input = $this->buildStepInput($flow, $request, new AuthenticationRequest(
+                client: $client,
+                scope: $flow->scope,
+                redirect: $flow->redirect,
+                responseType: $flow->responseType,
+                audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
+            ), new AuthorizedChalleges(), []);
+            return $this->renderStep(null, null, $input, $response, null);
         }
     }
 
@@ -137,47 +149,30 @@ class AuthorizeHtml
             $challenges->decode((array) $keypass['challenges'] ?? []);
         }
         $step = $body['step'] ?? '';
+        $input = $this->buildStepInput($flow, $request, $clientRequest, $challenges, $body ?? []);
         try {
-            $issuer = $flow->issuer;
             // Tengo que sacar la password de fuera
             if (isset($body['csid'])) {
                 $csid = $this->securer->verifyToken($body['csid']);
                 if (!$csid) {
                     throw new UnauthorizedException('missingin_csid');
                 }
-                $auth = null;
-                foreach ($this->forms as $form) {
-                    if ($step == $form->step()) {
-                        $auth = $form->autenticate($clientRequest, $tenant, $issuer, $csid ?? null, $flow->state, $flow->nonce, $challenges, $body);
-                        break;
-                    }
-                }
-                if (!$auth) {
-                    // loger no form
+                $result = $this->router->run($input, $response, null, $step, $csid);
+                if (!$result || $result->type !== StepResult::TYPE_PROCEED || !$result->authResponse) {
                     throw new UnauthorizedException();
                 }
-                return $this->redirectOk($base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $clientRequest);
+                return $this->redirectOk($base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $result->authResponse, $response, $client, $clientRequest);
             } elseif (!$step) {
-                return $this->paint(null, $flow->locale, $base, $tenant, null, [], null, $request, $response);
+                return $this->renderStep(null, null, $input, $response, null);
             } else {
-                $result = null;
-                foreach ($this->forms as $form) {
-                    if ($step == $form->step()) {
-                        $result = $form->paint(null, $flow->locale, $base, $tenant, $challenges ?? new AuthorizedChalleges(), $body ?? [], $request, $response);
-                        break;
-                    }
-                }
-                if (!$result) {
-                    throw new UnauthorizedException();
-                }
-                return $result;
+                return $this->renderStep(null, null, $input, $response, $step);
             }
         } catch (LoginException $ex) {
-            $response = $this->paint($ex->getMessage(), $flow->locale, $base, $tenant, $challenges, $body, $ex->auth, $request, $response);
+            $response = $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null);
             $cookie = $this->storePreSession($base, $tenant, $challenges);
             return $cookie->attach($response);
         } catch (UnauthorizedException $ex) {
-            $response = $this->paint($ex->getMessage(), $flow->locale, $base, $tenant, $challenges, $body, null, $request, $response);
+            $response = $this->renderStep($ex->getMessage(), null, $input, $response, null);
             $cookie = $this->storePreSession($base, $tenant, $challenges);
             return $cookie->attach($response);
         }
@@ -255,22 +250,33 @@ class AuthorizeHtml
         return $cookie->attach($response);
     }
 
-    private function paint(?string $message, string $locale, string $base, string $tenant, ?AuthorizedChalleges $challenges, ?array $body, ?AuthenticationResult $error, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride): ResponseInterface
     {
-        $result = null;
-        $params = $request->getQueryParams();
-        foreach ($this->forms as $form) {
-            $handle = isset($params['step']) && $error == null ? $form->step() === $params['step'] : $form->handle($error);
-            if ($handle) {
-                $error = !$error && $message ? new AuthenticationResult(valid: false, errorMessage: $message) : $error;
-                $result = $form->paint($error, $locale, $base, $tenant, $challenges ?? new AuthorizedChalleges(), $body ?? [], $request, $response);
-                break;
-            }
-        }
-        if (!$result) {
+        $error = !$error && $message ? new AuthenticationResult(valid: false, errorMessage: $message) : $error;
+        $step = $error ? null : ($stepOverride ?? ($input->request->getQueryParams()['step'] ?? null));
+        $result = $this->router->run($input, $response, $error, $step, null);
+        if (!$result || $result->type !== StepResult::TYPE_RENDER || !$result->response) {
             throw new UnauthorizedException();
         }
-        return $this->clearSession($result, $base, $tenant);
+        return $this->clearSession($result->response, $this->base, $input->context->tenant);
+    }
+
+    private function buildStepInput(
+        OidcFlowContext $flow,
+        ServerRequestInterface $request,
+        AuthenticationRequest $authRequest,
+        AuthorizedChalleges $challenges,
+        ?array $body
+    ): StepInput {
+        $state = ChallengesState::fromLegacy($challenges);
+
+        return new StepInput(
+            context: $flow,
+            authRequest: $authRequest,
+            challenges: $state,
+            body: $body ?? [],
+            request: $request
+        );
     }
 
     private function clearSession(ResponseInterface $response, string $base, string $tenant): ResponseInterface

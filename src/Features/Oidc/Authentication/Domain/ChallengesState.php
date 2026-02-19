@@ -14,4 +14,23 @@ final class ChallengesState
         public readonly array $extra = [],
     ) {
     }
+
+    public static function fromLegacy(AuthorizedChalleges $legacy): self
+    {
+        return new self(
+            withMfa: $legacy->mfa,
+            session: $legacy->session,
+            username: $legacy->username,
+            extra: []
+        );
+    }
+
+    public function toLegacy(): AuthorizedChalleges
+    {
+        $legacy = new AuthorizedChalleges();
+        $legacy->mfa = $this->withMfa;
+        $legacy->session = $this->session;
+        $legacy->username = $this->username;
+        return $legacy;
+    }
 }

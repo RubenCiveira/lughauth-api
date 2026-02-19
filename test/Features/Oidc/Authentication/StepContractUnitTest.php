@@ -16,6 +16,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 
 /**
  * Unit tests for step contract DTOs.
@@ -108,5 +109,29 @@ final class StepContractUnitTest extends TestCase
         $this->assertSame(StepResult::TYPE_PROCEED, $proceed->type);
         $this->assertSame($authResponse, $proceed->authResponse);
         $this->assertNull($proceed->response);
+    }
+
+    /**
+     * Verifies ChallengesState legacy mapping.
+     */
+    public function testChallengesStateLegacyMapping(): void
+    {
+        /* Arrange: create legacy challenges. */
+        $legacy = new AuthorizedChalleges();
+        $legacy->mfa = true;
+        $legacy->session = true;
+        $legacy->username = 'user-1';
+
+        /* Act: convert to state and back. */
+        $state = ChallengesState::fromLegacy($legacy);
+        $roundTrip = $state->toLegacy();
+
+        /* Assert: mapping preserves known fields. */
+        $this->assertTrue($state->withMfa);
+        $this->assertTrue($state->session);
+        $this->assertSame('user-1', $state->username);
+        $this->assertTrue($roundTrip->mfa);
+        $this->assertTrue($roundTrip->session);
+        $this->assertSame('user-1', $roundTrip->username);
     }
 }
