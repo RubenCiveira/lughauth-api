@@ -15,8 +15,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 
 /**
  * Unit tests for step contract DTOs.
@@ -43,7 +43,6 @@ final class StepContractUnitTest extends TestCase
      */
     public function testStepInputStoresContextAndRequest(): void
     {
-        /* Arrange: create context and authentication request. */
         $request = (new ServerRequestFactory())
             ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
             ->withQueryParams([
@@ -70,7 +69,6 @@ final class StepContractUnitTest extends TestCase
         );
         $challenges = new ChallengesState(withMfa: true, session: false, username: 'user-1', extra: ['k' => 'v']);
 
-        /* Act: build StepInput. */
         $input = new StepInput(
             context: $flow,
             authRequest: $authRequest,
@@ -79,7 +77,6 @@ final class StepContractUnitTest extends TestCase
             request: $request
         );
 
-        /* Assert: all references are kept. */
         $this->assertSame($flow, $input->context);
         $this->assertSame($authRequest, $input->authRequest);
         $this->assertSame($challenges, $input->challenges);
@@ -92,20 +89,16 @@ final class StepContractUnitTest extends TestCase
      */
     public function testStepResultFactories(): void
     {
-        /* Arrange: build response and auth response stub. */
         $response = new Response();
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
 
-        /* Act: create StepResult instances. */
         $render = StepResult::render($response);
         $proceed = StepResult::proceed($authResponse);
 
-        /* Assert: render result. */
         $this->assertSame(StepResult::TYPE_RENDER, $render->type);
         $this->assertSame($response, $render->response);
         $this->assertNull($render->authResponse);
 
-        /* Assert: proceed result. */
         $this->assertSame(StepResult::TYPE_PROCEED, $proceed->type);
         $this->assertSame($authResponse, $proceed->authResponse);
         $this->assertNull($proceed->response);

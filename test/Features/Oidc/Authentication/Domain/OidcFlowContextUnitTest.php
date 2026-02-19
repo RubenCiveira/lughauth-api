@@ -35,7 +35,6 @@ final class OidcFlowContextUnitTest extends TestCase
      */
     public function testFromRequestBuildsNormalizedContext(): void
     {
-        /* Arrange: build request with query, cookies, and locale. */
         $request = (new ServerRequestFactory())
             ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
             ->withQueryParams([
@@ -57,10 +56,8 @@ final class OidcFlowContextUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
 
-        /* Act: build context from request. */
         $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
 
-        /* Assert: context values are normalized and derived. */
         $this->assertSame('tenant1', $flow->tenant);
         $this->assertSame('client-123', $flow->clientId);
         $this->assertSame('https://client.example/callback', $flow->redirect);
