@@ -15,11 +15,13 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreRepository;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
@@ -32,7 +34,9 @@ class AuthorizeHtml
     private readonly string $base;
     public function __construct(
         private readonly Context $context,
-        private readonly PublicLogin $publicLogin,
+        private readonly ClientStoreRepository $clients,
+        private readonly SessionManager $sessions,
+        private readonly AuthenticateUser $authenticator,
         private readonly HtmlSecurer $securer,
         private readonly DecorateHtml  $decorator,
         private readonly KeysManagerService  $keys,
@@ -49,7 +53,7 @@ class AuthorizeHtml
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $authRequest = $this->buildAuthRequest($flow, $client);
-        $sess = $this->publicLogin->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
+        $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
             return $this->cisdPage($request, $response, $flow);
         } elseif ("none" === $flow->prompt) {
@@ -71,7 +75,7 @@ class AuthorizeHtml
         if (!$csid) {
             throw new UnauthorizedException();
         }
-        $sess = $this->publicLogin->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
+        $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
             if ($csid !== $sess->csid) {
                 return $this->redirectToLogin($response, $flow);
@@ -81,7 +85,7 @@ class AuthorizeHtml
                 ->withMfa($sess->withMfa)
                 ->withSession(true);
             // auth-csid
-            $auth = $this->publicLogin->sessionAutenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
+            $auth = $this->authenticator->sessionAutenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
             return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $authRequest);
         } else {
             return $this->redirectToLogin($response, $flow);
@@ -150,7 +154,7 @@ class AuthorizeHtml
 
     private function verifyClient(string $clientId, string $tenant, string $redirect, string $scope): ClientData
     {
-        $client = $this->publicLogin->publicClientData($clientId, $tenant, $redirect, $scope);
+        $client = $this->clients->publicClientData($clientId, $tenant, $redirect, $scope);
         if (!$client) {
             throw new UnauthorizedException('Client not allowed');
         } else {

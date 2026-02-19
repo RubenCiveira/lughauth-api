@@ -5,14 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 class LogoutController
 {
-    public function __construct(private readonly SessionStoreGateway $sessionStore)
+    public function __construct(private readonly SessionManager $sessionStore)
     {
     }
 
@@ -33,7 +33,7 @@ class LogoutController
         ResponseInterface $response,
         string $session
     ): ResponseInterface {
-        $this->sessionStore->deleteSession($session);
+        $this->sessionStore->removeSesion($session);
         // remove cookies
         $authCookie = new Cookie(name: 'AUTH_SESSION_ID');
         $preCookie = new Cookie(name: 'PRE_SESSION_ID');

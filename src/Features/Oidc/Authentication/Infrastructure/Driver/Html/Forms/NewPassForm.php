@@ -9,19 +9,22 @@ use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 
 class NewPassForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly DecorateHtml $decorator,
-        private readonly HtmlSecurer $securer
+        private readonly HtmlSecurer $securer,
+        private readonly ChangePasswordUsecase $changePassword
     ) {
     }
 
@@ -29,20 +32,22 @@ class NewPassForm implements StepForm
     public function authenticate(StepInput $input): PublicLoginAuthResponse
     {
         $body = $input->body ?? [];
-        $newpass = $this->securer->decrypt($body["new_pass"]);
         $oldpass = $this->securer->decrypt($body["old_pass"]);
+        $newpass = $this->securer->decrypt($body["new_pass"]);
         $csid = (string) ($body['csid'] ?? '');
-        return $this->publicLogin->validateForcePassChange(
-            $input->authRequest,
-            $input->challenges,
-            $oldpass,
-            $newpass,
-            $input->context->tenant,
-            $input->context->issuer,
-            $csid,
-            $input->context->state,
-            $input->context->nonce
-        );
+        if ($this->changePassword->forceUpdatePassword($input->context->tenant, $input->challenges->username ?? '', $oldpass, $newpass)) {
+            return $this->authenticator->preAutenticate(
+                $input->authRequest,
+                $input->challenges,
+                $input->context->tenant,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce
+            );
+        }
+
+        throw new LoginException(auth: AuthenticationResult::newPasswordRequired('unable_to_change'));
     }
 
     #[Override]

@@ -16,9 +16,24 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\UserIn
 use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driver\Rest\ApiKeyController;
 use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest\JwksController;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Rest\OpenIdConfigurationController;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreRepository;
+use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driven\ClientStoreAdapter;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginRepository;
+use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\LoginAdapter;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreRepository;
+use Civi\Lughauth\Features\Oidc\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[ClientStoreRepository::class] = \DI\autowire(ClientStoreAdapter::class);
+        $def[LoginRepository::class] = \DI\autowire(LoginAdapter::class);
+        $def[SessionStoreRepository::class] = \DI\autowire(SessionStoreSqlAdapter::class);
+        return $def;
+    }
+
     #[Override]
     public function registerRoutes(RouteCollectorProxy $app): void
     {

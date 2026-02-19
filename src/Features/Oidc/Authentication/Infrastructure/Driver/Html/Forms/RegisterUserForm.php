@@ -11,20 +11,24 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
 
 class RegisterUserForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly DecorateHtml $decorator,
-        private readonly HtmlSecurer $securer
+        private readonly HtmlSecurer $securer,
+        private readonly OidcUrlBuilder $urlBuilder,
+        private readonly RegisterUserUsecase $registerUser
     ) {
     }
 
@@ -40,35 +44,40 @@ class RegisterUserForm implements StepForm
                 throw new LoginException(AuthenticationResult::unknowUser($input->context->tenant, $user, 'conditions_requierd'));
             }
 
-            $url = $this->publicLogin->askRegisterUser(
+            $url = $this->urlBuilder->registerUserUrl(
                 $input->authRequest,
-                '&_use_code=',
-                $user,
-                $pass,
                 $input->context->tenant,
                 $input->context->state,
-                $input->context->nonce
+                $input->context->nonce,
+                '&_use_code='
             );
+            $this->registerUser->requestForRegister($url, $input->context->tenant, $user, $pass);
             throw new LoginException(AuthenticationResult::waitNewuserVerify($url));
         }
 
         $code = $this->securer->decrypt($body["code"]);
         $csid = (string) ($body['csid'] ?? '');
-        return $this->publicLogin->confirmRegisterUser(
-            $input->authRequest,
-            $input->challenges,
-            $code,
-            $input->context->tenant,
-            $input->context->issuer,
-            $csid,
-            $input->context->state,
-            $input->context->nonce
-        );
+        $user = $this->registerUser->verifyRegister($input->context->tenant, $code);
+        if ($user) {
+            $updated = $input->challenges->withUsername($user);
+            return $this->authenticator->preAutenticate(
+                $input->authRequest,
+                $updated,
+                $input->context->tenant,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce
+            );
+        }
+
+        throw new LoginException(auth: AuthenticationResult::waitNewuserVerify('', 'Invalid code'));
     }
 
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
         $locale = '';
         $params = $input->request->getQueryParams();
         if (($params['verify_send'] ?? 'false') === 'true') {
@@ -102,7 +111,7 @@ class RegisterUserForm implements StepForm
         $pass = $translator->get("registeruser.ask.password");
 
         $accept = '<input type="hidden" name="accept" value="accept" />';
-        if ($terms = $this->publicLogin->getRegisterConsent($tenant)) {
+        if ($terms = $this->registerUser->getRegisterConsent($tenant)) {
             $accept = '<input type="checkbox" name="accept" value="accept" />' .
                             '<textarea type="text" readonly>' . $terms . '</textarea>';
         }

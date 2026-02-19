@@ -16,9 +16,11 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -92,8 +94,8 @@ final class LoginFormStepUnitTest extends TestCase
             ->with('enc-pass')
             ->willReturn('plain-pass');
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
             ->method('autenticate')
             ->with(
                 $authRequest,
@@ -110,10 +112,12 @@ final class LoginFormStepUnitTest extends TestCase
 
         $form = new LoginForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $this->createMock(DecorateHtml::class),
             $securer,
-            $this->createMock(DelegateLogin::class)
+            $this->createMock(DelegateLogin::class),
+            $this->createMock(ChangePasswordUsecase::class),
+            $this->createMock(RegisterUserUsecase::class)
         );
 
         /* Act: authenticate with StepInput. */

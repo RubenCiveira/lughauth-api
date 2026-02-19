@@ -14,6 +14,8 @@ use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
@@ -26,7 +28,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreRepository;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
 /**
@@ -70,12 +72,13 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $clients = $this->createMock(ClientStoreRepository::class);
+        $clients->expects($this->once())
             ->method('publicClientData')
             ->with('client-123', 'tenant1', 'https://client.example/callback', 'openid')
             ->willReturn(new ClientData('client-123', ['code'], true));
-        $publicLogin->expects($this->once())
+        $sessions = $this->createMock(SessionManager::class);
+        $sessions->expects($this->once())
             ->method('loadSession')
             ->willReturn(null);
 
@@ -97,7 +100,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $authorize = new AuthorizeHtml(
             $context,
-            $publicLogin,
+            $clients,
+            $sessions,
+            $this->createMock(AuthenticateUser::class),
             $this->createMock(HtmlSecurer::class),
             $this->createMock(DecorateHtml::class),
             $this->createMock(KeysManagerService::class),
@@ -133,8 +138,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $clients = $this->createMock(ClientStoreRepository::class);
+        $clients->expects($this->once())
             ->method('publicClientData')
             ->with('client-123', 'tenant1', 'https://client.example/callback', 'openid')
             ->willReturn(new ClientData('client-123', ['code'], true));
@@ -187,7 +192,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $authorize = new AuthorizeHtml(
             $context,
-            $publicLogin,
+            $clients,
+            $this->createMock(SessionManager::class),
+            $this->createMock(AuthenticateUser::class),
             $securer,
             $this->createMock(DecorateHtml::class),
             $this->createMock(KeysManagerService::class),

@@ -13,6 +13,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
@@ -20,13 +21,15 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicMfa;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -54,8 +57,8 @@ final class OidcFormsStepUnitTest extends TestCase
         $input = $this->buildInput(['accept' => 'accept'], new ChallengesState(username: 'user-1'));
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
             ->method('preAutenticate')
             ->willReturn($authResponse);
 
@@ -66,7 +69,7 @@ final class OidcFormsStepUnitTest extends TestCase
 
         $form = new ConsentForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $consent,
             $this->createMock(DecorateHtml::class),
             $this->createMock(HtmlSecurer::class)
@@ -82,14 +85,14 @@ final class OidcFormsStepUnitTest extends TestCase
         $input = $this->buildInput(['mfa_code' => '123456'], new ChallengesState(withMfa: true, username: 'user-1'));
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
             ->method('preAutenticate')
             ->willReturn($authResponse);
 
         $form = new UseMfaForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $this->createMock(PublicMfa::class),
             $this->createMock(DecorateHtml::class),
             $this->createMock(HtmlSecurer::class)
@@ -117,14 +120,14 @@ final class OidcFormsStepUnitTest extends TestCase
             ->with('tenant1', 'user-1', 'seed', '123456')
             ->willReturn(true);
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
             ->method('preAutenticate')
             ->willReturn($authResponse);
 
         $form = new NewMfaForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $publicMfa,
             $this->createMock(DecorateHtml::class),
             $securer
@@ -145,16 +148,24 @@ final class OidcFormsStepUnitTest extends TestCase
             ->method('decrypt')
             ->willReturnOnConsecutiveCalls('code-1', 'new-pass');
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
-            ->method('confirmPassChange')
+        $changePassword = $this->createMock(ChangePasswordUsecase::class);
+        $changePassword->expects($this->once())
+            ->method('validateChangeRequest')
+            ->with('tenant1', 'code-1', 'new-pass')
+            ->willReturn('user-1');
+
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
+            ->method('preAutenticate')
             ->willReturn($authResponse);
 
         $form = new RecoverPassForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $this->createMock(DecorateHtml::class),
-            $securer
+            $securer,
+            $this->createUrlBuilder(),
+            $changePassword
         );
 
         $result = $form->authenticate($input);
@@ -172,16 +183,23 @@ final class OidcFormsStepUnitTest extends TestCase
             ->method('decrypt')
             ->willReturnOnConsecutiveCalls('old', 'new');
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
-            ->method('validateForcePassChange')
+        $changePassword = $this->createMock(ChangePasswordUsecase::class);
+        $changePassword->expects($this->once())
+            ->method('forceUpdatePassword')
+            ->with('tenant1', 'user-1', 'old', 'new')
+            ->willReturn(true);
+
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
+            ->method('preAutenticate')
             ->willReturn($authResponse);
 
         $form = new NewPassForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $this->createMock(DecorateHtml::class),
-            $securer
+            $securer,
+            $changePassword
         );
 
         $result = $form->authenticate($input);
@@ -200,16 +218,24 @@ final class OidcFormsStepUnitTest extends TestCase
             ->with('enc-code')
             ->willReturn('code-1');
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
-            ->method('confirmRegisterUser')
+        $registerUser = $this->createMock(RegisterUserUsecase::class);
+        $registerUser->expects($this->once())
+            ->method('verifyRegister')
+            ->with('tenant1', 'code-1')
+            ->willReturn('user-1');
+
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
+            ->method('preAutenticate')
             ->willReturn($authResponse);
 
         $form = new RegisterUserForm(
             $this->createMock(MessageProvider::class),
-            $publicLogin,
+            $authenticator,
             $this->createMock(DecorateHtml::class),
-            $securer
+            $securer,
+            $this->createUrlBuilder(),
+            $registerUser
         );
 
         $result = $form->authenticate($input);
@@ -227,14 +253,14 @@ final class OidcFormsStepUnitTest extends TestCase
             ->method('validateRedirection')
             ->willReturn(new \Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult(valid: true, id: 'user-1'));
 
-        $publicLogin = $this->createMock(PublicLogin::class);
-        $publicLogin->expects($this->once())
+        $authenticator = $this->createMock(AuthenticateUser::class);
+        $authenticator->expects($this->once())
             ->method('preAutenticate')
             ->willReturn($authResponse);
 
         $form = new DelegateForm(
             $delegated,
-            $publicLogin,
+            $authenticator,
             $this->createMock(DecorateHtml::class),
             $this->createMock(HtmlSecurer::class)
         );
@@ -278,5 +304,13 @@ final class OidcFormsStepUnitTest extends TestCase
             body: $body,
             request: $request
         );
+    }
+
+    private function createUrlBuilder(): OidcUrlBuilder
+    {
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+        return new OidcUrlBuilder($context);
     }
 }

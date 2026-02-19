@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
@@ -21,7 +21,7 @@ class ConsentForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly ConsentUsecase $publicConsent,
         private readonly DecorateHtml $decorator,
         private readonly HtmlSecurer $securer
@@ -99,7 +99,7 @@ class ConsentForm implements StepForm
         if ($accept) {
             $this->publicConsent->storeAcceptedConsent($input->context->tenant, $input->challenges->username ?? '');
             $csid = (string) ($input->body['csid'] ?? '');
-            return $this->publicLogin->preAutenticate(
+            return $this->authenticator->preAutenticate(
                 $input->authRequest,
                 $input->challenges,
                 $input->context->tenant,

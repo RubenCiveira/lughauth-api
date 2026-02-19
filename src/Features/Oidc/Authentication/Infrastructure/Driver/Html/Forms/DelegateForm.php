@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
@@ -20,7 +20,7 @@ class DelegateForm implements StepForm
 {
     public function __construct(
         private readonly DelegateLogin $delegated,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly DecorateHtml $decorator,
         private readonly HtmlSecurer $securer
     ) {
@@ -41,7 +41,7 @@ class DelegateForm implements StepForm
         if ($result && $result->valid) {
             $csid = (string) ($body['csid'] ?? '');
             $updated = $input->challenges->withUsername($result->id);
-            return $this->publicLogin->preAutenticate(
+            return $this->authenticator->preAutenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,

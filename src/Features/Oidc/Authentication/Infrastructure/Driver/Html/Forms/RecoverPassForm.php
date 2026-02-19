@@ -11,20 +11,24 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 
 class RecoverPassForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly DecorateHtml $decorator,
-        private readonly HtmlSecurer $securer
+        private readonly HtmlSecurer $securer,
+        private readonly OidcUrlBuilder $urlBuilder,
+        private readonly ChangePasswordUsecase $changePassword
     ) {
     }
 
@@ -34,36 +38,41 @@ class RecoverPassForm implements StepForm
         $body = $input->body ?? [];
         if (isset($body['user'])) {
             $user = $body['user'];
-            $url = $this->publicLogin->askPassChange(
+            $url = $this->urlBuilder->recoverPassUrl(
                 $input->authRequest,
-                '&_use_code=',
-                $user,
                 $input->context->tenant,
                 $input->context->state,
-                $input->context->nonce
+                $input->context->nonce,
+                '&_use_code='
             );
+            $this->changePassword->requestForChange($url, $input->context->tenant, $user);
             throw new LoginException(AuthenticationResult::waitNewpass($url));
         }
 
         $code = $this->securer->decrypt($body["code"]);
         $newpass  = $this->securer->decrypt($body["new_pass"]);
         $csid = (string) ($body['csid'] ?? '');
-        return $this->publicLogin->confirmPassChange(
-            $input->authRequest,
-            $input->challenges,
-            $code,
-            $newpass,
-            $input->context->tenant,
-            $input->context->issuer,
-            $csid,
-            $input->context->state,
-            $input->context->nonce
-        );
+        $user = $this->changePassword->validateChangeRequest($input->context->tenant, $code, $newpass);
+        if ($user) {
+            $updated = $input->challenges->withUsername($user);
+            return $this->authenticator->preAutenticate(
+                $input->authRequest,
+                $updated,
+                $input->context->tenant,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce
+            );
+        }
+
+        throw new LoginException(auth: AuthenticationResult::waitNewpass('', 'Unable to change to password: please retry'));
     }
 
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
         $locale = '';
         $params = $input->request->getQueryParams();
         if (($params['recover_send'] ?? 'false') === 'true') {

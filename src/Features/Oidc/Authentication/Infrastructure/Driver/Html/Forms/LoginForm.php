@@ -11,19 +11,23 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
+use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 class LoginForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly DecorateHtml $decorator,
         private readonly HtmlSecurer $securer,
         private readonly DelegateLogin $delegated,
+        private readonly ChangePasswordUsecase $changePassword,
+        private readonly RegisterUserUsecase $registerUser,
     ) {
     }
 
@@ -73,7 +77,7 @@ class LoginForm implements StepForm
                 HTML;
         }
         $recoverPass = "";
-        if ($this->publicLogin->allowUserRecoverPassword($tenant)) {
+        if ($this->changePassword->allowRecover($tenant)) {
             $recoverStep = StepInput::STEP_RECOVER_PASS;
             $recoverPass .= <<<HTML
                 <form method="POST">
@@ -83,7 +87,7 @@ class LoginForm implements StepForm
                 HTML;
         }
         $registerUser = "";
-        if ($this->publicLogin->allowUserRegister($tenant)) {
+        if ($this->registerUser->allowRegister($tenant)) {
             $registerStep = StepInput::STEP_REGISTER_USER;
             $registerUser .= <<<HTML
                 <form method="POST">
@@ -133,7 +137,7 @@ class LoginForm implements StepForm
         $csid = (string) ($input->body['csid'] ?? '');
         $challenges = $input->challenges->withUsername($username);
 
-        return $this->publicLogin->autenticate(
+        return $this->authenticator->autenticate(
             $input->authRequest,
             $challenges,
             $input->context->tenant,

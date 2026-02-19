@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicMfa;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
@@ -21,7 +21,7 @@ class NewMfaForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
-        private readonly PublicLogin $publicLogin,
+        private readonly AuthenticateUser $authenticator,
         private readonly PublicMfa $publicMfa,
         private readonly DecorateHtml $decorator,
         private readonly HtmlSecurer $securer
@@ -107,7 +107,7 @@ class NewMfaForm implements StepForm
 
         if ($seed && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
             $updated = $input->challenges->withMfa(true);
-            return $this->publicLogin->preAutenticate(
+            return $this->authenticator->preAutenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,
