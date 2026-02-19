@@ -147,19 +147,19 @@ class LoginForm implements AuthorizationForm, OidcStep
         ?string $step,
         ?string $csid
     ): StepResult {
-        $legacyChallenges = $input->challenges->toLegacy();
         $base = rtrim($input->context->baseUrl, '/') . '/oauth';
 
         if ($csid !== null) {
-            $auth = $this->autenticate(
+            $auth = $this->publicLogin->autenticateWithState(
                 $input->authRequest,
+                $input->challenges,
                 $input->context->tenant,
+                (string) ($input->body['username'] ?? ''),
+                $this->securer->decrypt((string) ($input->body['password'] ?? '')),
                 $input->context->issuer,
                 $csid,
                 $input->context->state,
-                $input->context->nonce,
-                $legacyChallenges,
-                $input->body ?? []
+                $input->context->nonce
             );
             return StepResult::proceed($auth);
         }
@@ -169,7 +169,7 @@ class LoginForm implements AuthorizationForm, OidcStep
             $input->context->locale,
             $base,
             $input->context->tenant,
-            $legacyChallenges,
+            $input->challenges->toLegacy(),
             $input->body ?? [],
             $input->request,
             $response

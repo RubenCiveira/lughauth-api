@@ -85,7 +85,7 @@ class AuthorizeHtml
                 redirect: $flow->redirect,
                 responseType: $flow->responseType,
                 audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
-            ), new AuthorizedChalleges(), []);
+            ), new ChallengesState(), []);
             return $this->renderStep(null, null, $input, $response, null);
         }
     }
@@ -142,13 +142,13 @@ class AuthorizeHtml
             responseType: $flow->responseType,
             audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
         );
-        $challenges = new AuthorizedChalleges();
+        $state = new ChallengesState();
         if ($flow->preSessionId) {
             $keypass = (array) $this->keys->verifiedKeypass($tenant, $flow->preSessionId);
-            $challenges->decode((array) $keypass['challenges'] ?? []);
+            $state = ChallengesState::fromArray((array) ($keypass['challenges'] ?? []));
         }
         $step = $body['step'] ?? null;
-        $input = $this->buildStepInput($flow, $request, $clientRequest, $challenges, $body ?? []);
+        $input = $this->buildStepInput($flow, $request, $clientRequest, $state, $body ?? []);
         try {
             // Tengo que sacar la password de fuera
             $csid = null;
@@ -170,11 +170,11 @@ class AuthorizeHtml
             throw new UnauthorizedException();
         } catch (LoginException $ex) {
             $response = $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null);
-            $cookie = $this->storePreSession($base, $tenant, $challenges);
+            $cookie = $this->storePreSession($base, $tenant, $state);
             return $cookie->attach($response);
         } catch (UnauthorizedException $ex) {
             $response = $this->renderStep($ex->getMessage(), null, $input, $response, null);
-            $cookie = $this->storePreSession($base, $tenant, $challenges);
+            $cookie = $this->storePreSession($base, $tenant, $state);
             return $cookie->attach($response);
         }
     }
@@ -280,11 +280,9 @@ class AuthorizeHtml
         OidcFlowContext $flow,
         ServerRequestInterface $request,
         AuthenticationRequest $authRequest,
-        AuthorizedChalleges $challenges,
+        ChallengesState $state,
         ?array $body
     ): StepInput {
-        $state = ChallengesState::fromLegacy($challenges);
-
         return new StepInput(
             context: $flow,
             authRequest: $authRequest,
@@ -301,10 +299,10 @@ class AuthorizeHtml
         return $preCookie->remove($authCookie->remove($response));
     }
 
-    private function storePreSession(string $base, string $tenant, AuthorizedChalleges $challenges): Cookie
+    private function storePreSession(string $base, string $tenant, ChallengesState $challenges): Cookie
     {
         $duration = new \DateInterval("PT10M");
-        $text = $this->keys->signKeypass($tenant, ['challenges' => $challenges->encode()], $duration);
+        $text = $this->keys->signKeypass($tenant, ['challenges' => $challenges->toArray()], $duration);
         return new Cookie(
             name: 'PRE_SESSION_ID',
             value: $text,

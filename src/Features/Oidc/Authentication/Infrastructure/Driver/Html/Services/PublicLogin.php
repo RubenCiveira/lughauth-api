@@ -11,6 +11,8 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Entities\PublicLoginSessionResponse;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
@@ -26,6 +28,7 @@ class PublicLogin
 {
     public function __construct(
         private readonly Context $context,
+        private readonly OidcUrlBuilder $urlBuilder,
         private readonly KeysManagerService $manager,
         private readonly LoginUsecase $userLoginGateway,
         private readonly SessionStoreGateway $session,
@@ -54,15 +57,7 @@ class PublicLogin
         string $state,
         string $nonce
     ): string {
-        $url = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize?'
-            . 'client_id=' . urlencode($client->client->id)
-            . '&scope=' . urlencode($client->scope)
-            . '&state=' . urlencode($state)
-            . '&nonce=' . urlencode($nonce)
-            . '&audience=' . urlencode(implode(',', $client->audiences))
-            . '&redirect_uri=' . urlencode($client->redirect)
-            . '&response_type=' . urlencode($client->responseType)
-            . '&step=register-user&verify_send=true' . $suffix;
+        $url = $this->urlBuilder->registerUserUrl($client, $tenant, $state, $nonce, $suffix);
         $this->userRegisterGateway->requestForRegister($url, $tenant, $email, $password);
         return $url;
     }
@@ -99,15 +94,7 @@ class PublicLogin
         string $state,
         string $nonce
     ): string {
-        $url = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize?'
-            . 'client_id=' . urlencode($client->client->id)
-            . '&scope=' . urlencode($client->scope)
-            . '&state=' . urlencode($state)
-            . '&nonce=' . urlencode($nonce)
-            . '&audience=' . urlencode(implode(',', $client->audiences))
-            . '&redirect_uri=' . urlencode($client->redirect)
-            . '&response_type=' . urlencode($client->responseType)
-            . '&step=recover-pass&recover_send=true' . $suffix;
+        $url = $this->urlBuilder->recoverPassUrl($client, $tenant, $state, $nonce, $suffix);
         $this->userChpassGateway->requestForChange($url, $tenant, $user);
         return $url;
     }
@@ -229,6 +216,20 @@ class PublicLogin
         string $nonce
     ): PublicLoginAuthResponse {
         return $this->saveIt($this->userLoginGateway->validatedUserData($tenant, $username, $password, $request), $request, $keypass, $issuer, $csid, $state, $nonce);
+    }
+
+    public function autenticateWithState(
+        AuthenticationRequest $request,
+        ChallengesState $state,
+        string $tenant,
+        string $username,
+        string $password,
+        string $issuer,
+        string $csid,
+        string $stateValue,
+        string $nonce
+    ): PublicLoginAuthResponse {
+        return $this->autenticate($request, $state->toLegacy(), $tenant, $username, $password, $issuer, $csid, $stateValue, $nonce);
     }
 
     private function saveIt(

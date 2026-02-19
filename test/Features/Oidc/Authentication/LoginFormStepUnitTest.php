@@ -11,7 +11,6 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
@@ -96,12 +95,10 @@ final class LoginFormStepUnitTest extends TestCase
 
         $publicLogin = $this->createMock(PublicLogin::class);
         $publicLogin->expects($this->once())
-            ->method('autenticate')
+            ->method('autenticateWithState')
             ->with(
                 $authRequest,
-                $this->callback(static function (AuthorizedChalleges $challenges): bool {
-                    return $challenges->username === 'user@example.com';
-                }),
+                $this->isInstanceOf(ChallengesState::class),
                 'tenant1',
                 'user@example.com',
                 'plain-pass',

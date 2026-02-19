@@ -12,6 +12,8 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
@@ -24,6 +26,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
+use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
 /**
  * Integration tests for {@see AuthorizeHtml} step delegation.
@@ -113,5 +116,99 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
 
         $this->assertInstanceOf(Response::class, $response);
+    }
+
+    /**
+     * Verifies formAuthorize proceeds through the step router.
+     */
+    public function testFormAuthorizeProceedsWithCsid(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('POST', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+            ])
+            ->withParsedBody([
+                'csid' => 'signed-csid'
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+
+        $publicLogin = $this->createMock(PublicLogin::class);
+        $publicLogin->expects($this->once())
+            ->method('publicClientData')
+            ->with('client-123', 'tenant1', 'https://client.example/callback', 'openid')
+            ->willReturn(new ClientData('client-123', ['code'], true));
+
+        $securer = $this->createMock(HtmlSecurer::class);
+        $securer->expects($this->once())
+            ->method('verifyToken')
+            ->with('signed-csid')
+            ->willReturn('csid-123');
+
+        $authResponse = $this->createMock(PublicLoginAuthResponse::class);
+        $authResponse->expects($this->once())
+            ->method('getSessionId')
+            ->willReturn('sess-123');
+        $authResponse->expects($this->once())
+            ->method('getSessionExpiration')
+            ->willReturn(new \DateInterval('PT10M'));
+        $authResponse->expects($this->once())
+            ->method('asAuthenticationResult')
+            ->willReturn(new AuthenticationResult(valid: true, id: 'user-1'));
+
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->expects($this->once())
+            ->method('handle')
+            ->willReturn(true);
+        $loginForm->expects($this->once())
+            ->method('run')
+            ->willReturn(StepResult::proceed($authResponse));
+
+        $temporals = $this->createMock(TemporalKeysGateway::class);
+        $temporals->expects($this->once())
+            ->method('registerTemporalAuthCode')
+            ->willReturn('temp-code');
+
+        $consentForm = $this->createConfiguredMock(ConsentForm::class, [
+            'handle' => false,
+            'step' => 'consent'
+        ]);
+        $newMfaForm = $this->createConfiguredMock(NewMfaForm::class, ['handle' => false]);
+        $newPassForm = $this->createConfiguredMock(NewPassForm::class, ['handle' => false]);
+        $useMfaForm = $this->createConfiguredMock(UseMfaForm::class, ['handle' => false]);
+        $recoverForm = $this->createConfiguredMock(RecoverPassForm::class, ['handle' => false]);
+        $delegateForm = $this->createConfiguredMock(DelegateForm::class, ['handle' => false]);
+        $registerForm = $this->createConfiguredMock(RegisterUserForm::class, ['handle' => false]);
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $publicLogin,
+            $securer,
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(KeysManagerService::class),
+            $temporals,
+            $consentForm,
+            $loginForm,
+            $newMfaForm,
+            $newPassForm,
+            $useMfaForm,
+            $recoverForm,
+            $delegateForm,
+            $registerForm
+        );
+
+        $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertStringContainsString('code=temp-code', $response->getHeaderLine('Location'));
+        $this->assertStringContainsString('state=state-xyz', $response->getHeaderLine('Location'));
     }
 }

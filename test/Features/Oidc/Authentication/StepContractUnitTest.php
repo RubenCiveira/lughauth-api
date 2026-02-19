@@ -134,4 +134,22 @@ final class StepContractUnitTest extends TestCase
         $this->assertTrue($roundTrip->session);
         $this->assertSame('user-1', $roundTrip->username);
     }
+
+    /**
+     * Verifies ChallengesState array serialization with versioning.
+     */
+    public function testChallengesStateArraySerialization(): void
+    {
+        $state = new ChallengesState(withMfa: true, session: true, username: 'user-2', extra: ['foo' => 'bar']);
+        $data = $state->toArray();
+
+        $this->assertSame(ChallengesState::VERSION, $data['v']);
+        $this->assertSame(['foo' => 'bar'], $data['extra']);
+
+        $roundTrip = ChallengesState::fromArray($data);
+        $this->assertTrue($roundTrip->withMfa);
+        $this->assertTrue($roundTrip->session);
+        $this->assertSame('user-2', $roundTrip->username);
+        $this->assertSame(['foo' => 'bar'], $roundTrip->extra);
+    }
 }

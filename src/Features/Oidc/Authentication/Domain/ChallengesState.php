@@ -7,12 +7,44 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 
 final class ChallengesState
 {
+    public const VERSION = 1;
+
     public function __construct(
         public readonly bool $withMfa = false,
         public readonly bool $session = false,
         public readonly ?string $username = null,
         public readonly array $extra = [],
     ) {
+    }
+
+    public static function fromArray(array $data): self
+    {
+        if (isset($data['v'])) {
+            return new self(
+                withMfa: (bool) ($data['with_mfa'] ?? false),
+                session: (bool) ($data['session'] ?? false),
+                username: $data['username'] ?? null,
+                extra: is_array($data['extra'] ?? null) ? $data['extra'] : []
+            );
+        }
+
+        return new self(
+            withMfa: (bool) ($data['mfa'] ?? false),
+            session: (bool) ($data['session'] ?? false),
+            username: $data['username'] ?? null,
+            extra: []
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'v' => self::VERSION,
+            'with_mfa' => $this->withMfa,
+            'session' => $this->session,
+            'username' => $this->username,
+            'extra' => $this->extra
+        ];
     }
 
     public static function fromLegacy(AuthorizedChalleges $legacy): self
