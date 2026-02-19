@@ -26,6 +26,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
+use Civi\Lughauth\Features\Oidc\Scopes\Application\Usecase\ScopesConsentUsecase;
 
 class LoginAdapter implements LoginGateway
 {
@@ -41,6 +42,7 @@ class LoginAdapter implements LoginGateway
         private readonly RelyingPartyReadGateway $parties,
         private readonly UserWriteGateway $writeUsers,
         private readonly RoleReadGateway $roles,
+        private readonly ScopesConsentUsecase $scopesConsent,
     ) {
     }
 
@@ -112,6 +114,9 @@ class LoginAdapter implements LoginGateway
         if ($terms = $this->checkTerms($theTenant, $theUser)) {
             return $terms;
         }
+        if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
+            return $scopes;
+        }
         $this->markLoginOk($theUser);
         return new AuthenticationResult(
             valid: true,
@@ -150,6 +155,17 @@ class LoginAdapter implements LoginGateway
             return $accepted ? null : AuthenticationResult::consentRequired($terms->getText());
         }
         return null;
+    }
+
+    private function checkScopesConsent(Tenant $tenant, User $user, AuthenticationRequest $client): ?AuthenticationResult
+    {
+        $pending = $this->scopesConsent->pendingScopes(
+            $tenant->getName(),
+            $user->getName(),
+            $client->client->id,
+            $client->scope
+        );
+        return $pending ? AuthenticationResult::scopesConsentRequired() : null;
     }
 
     private function checkMfaConfigurationRequired(Tenant $tenant, User $user): ?AuthenticationResult

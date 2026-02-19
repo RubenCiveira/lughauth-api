@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
@@ -61,6 +62,7 @@ final class OidcStepRouterUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consent,
+            $this->createMock(ScopesConsentForm::class),
             $login,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -86,6 +88,7 @@ final class OidcStepRouterUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consent,
+            $this->createMock(ScopesConsentForm::class),
             $login,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -111,6 +114,7 @@ final class OidcStepRouterUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consent,
+            $this->createMock(ScopesConsentForm::class),
             $login,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -138,6 +142,7 @@ final class OidcStepRouterUnitTest extends TestCase
             ->willReturn($authResponse);
         $router = new OidcStepRouter(
             $this->createMock(ConsentForm::class),
+            $this->createMock(ScopesConsentForm::class),
             $form,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -198,6 +203,7 @@ final class OidcStepRouterUnitTest extends TestCase
             ->willReturn(new Response());
         $router = new OidcStepRouter(
             $this->createMock(ConsentForm::class),
+            $this->createMock(ScopesConsentForm::class),
             $form,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),

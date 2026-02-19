@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
+use DateInterval;
+use DateTimeImmutable;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
@@ -92,15 +94,16 @@ class TokenController
             'roles' => $auth->roles,
             'groups' => $auth->groups
         ];
-        if (str_contains($scopes, 'profile')) {
+        $scopesForClaims = $auth->scope ?? $scopes;
+        if (str_contains($scopesForClaims, 'profile')) {
             $detail['name'] = $auth->name ?? '';
         }
-        if (str_contains($scopes, 'email')) {
+        if (str_contains($scopesForClaims, 'email')) {
             $detail['email'] = $auth->email ?? '';
         }
         $identity = [...$detail, ...$identity];
-        $expiration = new \DateInterval("PT10M");
-        $now = new \DateTimeImmutable();
+        $expiration = new DateInterval("PT10M");
+        $now = new DateTimeImmutable();
         $expires = $now->add($expiration);
         $data = [
             'token_type' => 'Bearer',
@@ -113,7 +116,7 @@ class TokenController
                 'groups' => $auth->groups
             ]), $expiration),
         ];
-        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ], new \DateInterval("PT10H"));
+        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ], new DateInterval("PT10H"));
         $response->getBody()->write(json_encode($data));
         return $response->withHeader('Content-Type', 'application/json');
     }

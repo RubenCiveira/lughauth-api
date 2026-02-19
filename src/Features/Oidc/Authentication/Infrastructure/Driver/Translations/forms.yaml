@@ -112,8 +112,20 @@ consent:
   back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
   back-label: aqui
 
+scopes:
+  title: Permisos solicitados
+  help: Esta aplicacion solicita permisos adicionales. Seleccione los permisos opcionales que desea aprobar.
+  required-title: Permisos obligatorios
+  optional-title: Permisos opcionales
+  error-format: "Error: {0}"
+  send: Confirmar
+  back-text: Pulse {0} si quiere cancelar y volver a la pantalla de login
+  back-label: aqui
+  empty: No hay permisos adicionales para aprobar
+
 error:
   wrong_credential: Usuario o contraseña incorrectos.
   wrong_old_pass: No se ha indicado correctamente la contraseña anterior.
   unable_to_change: Ha habido un error al intentar cambiar la contraseña.
   wrong_auth_code: El código otp no es válido, vuelva a intentarlo.
+  missing_scopes_consent: Debe aprobar los permisos obligatorios.

@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
@@ -92,6 +93,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consentForm,
+            $this->createMock(ScopesConsentForm::class),
             $this->createMock(LoginForm::class),
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -175,6 +177,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->willReturn('temp-code');
 
         $consentForm = $this->createMock(ConsentForm::class);
+        $scopesConsentForm = $this->createMock(ScopesConsentForm::class);
         $newMfaForm = $this->createMock(NewMfaForm::class);
         $newPassForm = $this->createMock(NewPassForm::class);
         $useMfaForm = $this->createMock(UseMfaForm::class);
@@ -184,6 +187,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consentForm,
+            $scopesConsentForm,
             $loginForm,
             $newMfaForm,
             $newPassForm,

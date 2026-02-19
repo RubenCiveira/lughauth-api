@@ -9,6 +9,7 @@ enum StepName: string
 {
     case LOGIN = 'login';
     case CONSENT = 'consent';
+    case SCOPES_CONSENT = 'scopes-consent';
     case MFA = 'mfa';
     case NEW_MFA = 'build-mfa';
     case RECOVER_PASS = 'recover-pass';

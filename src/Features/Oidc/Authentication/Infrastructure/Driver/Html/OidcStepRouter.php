@@ -11,6 +11,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\StepForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
@@ -28,6 +29,7 @@ final class OidcStepRouter
     /** @var array<string, string> */
     private const ERROR_MAP = [
         AuthenticationResult::ERR_CONSENT_REQUIRED => StepName::CONSENT->value,
+        AuthenticationResult::ERR_SCOPES_CONSENT_REQUIRED => StepName::SCOPES_CONSENT->value,
         AuthenticationResult::ERR_MFA_REQUIRED => StepName::MFA->value,
         AuthenticationResult::ERR_NEW_MFA_REQUIRED => StepName::NEW_MFA->value,
         AuthenticationResult::ERR_NEW_PASSWORD_REQUIRED => StepName::NEW_PASS->value,
@@ -40,6 +42,7 @@ final class OidcStepRouter
 
     public function __construct(
         ConsentForm $conset,
+        ScopesConsentForm $scopesConsent,
         LoginForm $login,
         NewMfaForm $mfa,
         NewPassForm $pass,
@@ -52,6 +55,7 @@ final class OidcStepRouter
         $this->steps = [
             StepName::LOGIN->value => $login,
             StepName::CONSENT->value => $conset,
+            StepName::SCOPES_CONSENT->value => $scopesConsent,
             StepName::MFA->value => $useMfa,
             StepName::NEW_MFA->value => $mfa,
             StepName::RECOVER_PASS->value => $recover,

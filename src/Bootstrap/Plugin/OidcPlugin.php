@@ -38,6 +38,8 @@ use Civi\Lughauth\Features\Oidc\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\Oidc\Mfa\Infrastructure\Driven\UserMfaAdapter;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Driven\DelegateLoginAdapter;
+use Civi\Lughauth\Features\Oidc\Scopes\Domain\Gateway\ScopesConsentGateway;
+use Civi\Lughauth\Features\Oidc\Scopes\Infrastructure\Driven\ScopesConsentAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -55,6 +57,7 @@ class OidcPlugin extends MicroPlugin
         $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
+        $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
         return $def;
     }
 

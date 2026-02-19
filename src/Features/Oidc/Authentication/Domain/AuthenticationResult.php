@@ -10,6 +10,7 @@ class AuthenticationResult
     public const ERR_MFA_REQUIRED = 'MFA_REQUIRED';
     public const ERR_NEW_MFA_REQUIRED = 'NEW_MFA_REQUIRED';
     public const ERR_CONSENT_REQUIRED = 'CONSENT_REQUIRED';
+    public const ERR_SCOPES_CONSENT_REQUIRED = 'SCOPES_CONSENT_REQUIRED';
     public const ERR_NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED';
     public const ERR_WAITING_PASSCHANGE_CODE = 'WAITING_PASSCHANGE_CODE';
     public const ERR_WAITING_USER_VERIFY = 'WAITING_USER_VERIFY';
@@ -36,6 +37,10 @@ class AuthenticationResult
     public static function consentRequired(?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_CONSENT_REQUIRED, errorMessage: $detail);
+    }
+    public static function scopesConsentRequired(?string $detail = null): AuthenticationResult
+    {
+        return new AuthenticationResult(valid: false, error: self::ERR_SCOPES_CONSENT_REQUIRED, errorMessage: $detail);
     }
     public static function newPasswordRequired(?string $detail = null): AuthenticationResult
     {
