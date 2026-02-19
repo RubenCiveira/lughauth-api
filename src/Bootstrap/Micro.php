@@ -332,7 +332,7 @@ class Micro
         $scriptName = $this->resolveScriptName();
         $url = $scheme . '://' . ($_SERVER['SERVER_NAME'] ?? 'localhost') . ':' . ($_SERVER['SERVER_PORT'] ?? 80)
                     . dirname($scriptName) . '/cron';
-        $supervisor = new Supervisor(__DIR__.'/../');
+        $supervisor = new Supervisor($this->storeDir(''));// dirname(__DIR__, 3));
         $supervisor->ensureRunning($url);
     }
 
