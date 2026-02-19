@@ -12,12 +12,12 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
-use Civi\Lughauth\Features\Oidc\Mfa\Domain\Gateway\UserMfaRepository;
+use Civi\Lughauth\Features\Oidc\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\Oidc\Mfa\Domain\PublicLoginMfaBuildResponse;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 
-class UserMfaAdapter implements UserMfaRepository
+class UserMfaAdapter implements UserMfaGateway
 {
     public function __construct(
         private readonly TenantReadGateway $tenants,

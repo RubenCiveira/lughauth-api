@@ -12,10 +12,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfU
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
-use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ConsentRepository;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ConsentGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 
-class ConsentAdapter implements ConsentRepository
+class ConsentAdapter implements ConsentGateway
 {
     public function __construct(
         private readonly UserLoaderAdapter $users,

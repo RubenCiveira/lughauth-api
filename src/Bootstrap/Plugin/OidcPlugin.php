@@ -18,10 +18,26 @@ use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest\JwksController;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driven\ClientStoreAdapter;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ApiKeyStoreGateway;
+use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driven\ApiKeyStoreAdapter;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\LoginAdapter;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ConsentGateway;
+use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\ConsentAdapter;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserGateway;
+use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\RegisterUserAdapter;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ChangePasswordGateway;
+use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\ChangePasswordAdapter;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\Oidc\Session\Infrastructure\Driven\SessionStoreSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
+use Civi\Lughauth\Features\Oidc\Session\Infrastructure\Driven\TemporalKeysSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenStoreGateway;
+use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven\TokenStoreSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Mfa\Domain\Gateway\UserMfaGateway;
+use Civi\Lughauth\Features\Oidc\Mfa\Infrastructure\Driven\UserMfaAdapter;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Driven\DelegateLoginAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -29,8 +45,16 @@ class OidcPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[ClientStoreGateway::class] = \DI\autowire(ClientStoreAdapter::class);
+        $def[ApiKeyStoreGateway::class] = \DI\autowire(ApiKeyStoreAdapter::class);
         $def[LoginGateway::class] = \DI\autowire(LoginAdapter::class);
+        $def[ConsentGateway::class] = \DI\autowire(ConsentAdapter::class);
+        $def[RegisterUserGateway::class] = \DI\autowire(RegisterUserAdapter::class);
+        $def[ChangePasswordGateway::class] = \DI\autowire(ChangePasswordAdapter::class);
         $def[SessionStoreGateway::class] = \DI\autowire(SessionStoreSqlAdapter::class);
+        $def[TemporalKeysGateway::class] = \DI\autowire(TemporalKeysSqlAdapter::class);
+        $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
+        $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
+        $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
         return $def;
     }
 

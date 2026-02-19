@@ -24,11 +24,11 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedUserData;
-use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginRepository;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\GoogleOAuthProvider;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 
-class DelegateLoginAdapter implements DelegateLoginRepository
+class DelegateLoginAdapter implements DelegateLoginGateway
 {
     private readonly string $clientId;
     private readonly string $secretId;

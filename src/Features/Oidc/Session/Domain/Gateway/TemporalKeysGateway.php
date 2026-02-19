@@ -5,46 +5,19 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Session\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
-use Civi\Lughauth\Features\Oidc\Session\Infrastructure\Driven\TemporalKeysSqlAdapter;
 
-class TemporalKeysGateway
+interface TemporalKeysGateway
 {
-    private readonly TemporalKeysRepository $repository;
+    public function currentKey(): string;
 
-    public function __construct(ContainerInterface $container, ?TemporalKeysRepository $repository = null)
-    {
-        $this->repository = null == $repository ? $container->get(TemporalKeysSqlAdapter::class) : $repository;
-    }
+    public function encrypt(string $token): ?string;
 
-    public function currentKey(): string
-    {
-        return $this->repository->currentKey();
-    }
+    public function verifyCypher(string $token): ?string;
 
-    public function encrypt(string $token): ?string
-    {
-        return $this->repository->encrypt($token);
-    }
+    public function verifyToken(string $token): ?string;
 
-    public function verifyCypher(string $token): ?string
-    {
-        return $this->repository->verifyCypher($token);
-    }
+    public function registerTemporalAuthCode(TemporalAuthCode $code): string;
 
-    public function verifyToken(string $token): ?string
-    {
-        return $this->repository->verifyToken($token);
-    }
-
-    public function registerTemporalAuthCode(TemporalAuthCode $code): string
-    {
-        return $this->repository->registerTemporalAuthCode($code);
-    }
-
-    public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode
-    {
-        return $this->repository->retrieveTemporalAuthCode($code);
-    }
+    public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode;
 }

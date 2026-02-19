@@ -5,38 +5,18 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Key\Domain\Gateway;
 
-use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven\TokenStoreSqlAdapter;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeyPair;
-use PDO;
 
-class TokenStoreGateway
+interface TokenStoreGateway
 {
-    private readonly TokenStoreRepository $repository;
+    public function currentKey(string $tenant): ?KeyPair;
 
-    public function __construct(PDO $connector)
-    {
-        $this->repository = new TokenStoreSqlAdapter($connector);
-    }
-    public function currentKey(string $tenant): ?KeyPair
-    {
-        return $this->repository->currentKey($tenant);
-    }
-
-    public function nextKeysExpiration(string $tenant): \DateTimeImmutable
-    {
-        return $this->repository->nextKeysExpiration($tenant);
-    }
+    public function nextKeysExpiration(string $tenant): \DateTimeImmutable;
 
     /**
      * return PublicKey[]
     */
-    public function listKeys(string $tenant): array
-    {
-        return $this->repository->listKeys($tenant);
-    }
+    public function listKeys(string $tenant): array;
 
-    public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad)
-    {
-        $this->repository->saveKey($tenant, $pair, $start, $caducidad);
-    }
+    public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad);
 }

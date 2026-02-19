@@ -14,12 +14,12 @@ use Jose\Component\Core\AlgorithmManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysRepository;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Value\Random;
 
-class TemporalKeysSqlAdapter implements TemporalKeysRepository
+class TemporalKeysSqlAdapter implements TemporalKeysGateway
 {
     public function __construct(
         private readonly PDO $pdo,

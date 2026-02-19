@@ -5,23 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
-use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\ConsentAdapter;
-
-class ConsentGateway
+interface ConsentGateway
 {
-    private readonly ConsentRepository $repository;
-    public function __construct(ContainerInterface $container, ?ConsentRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(ConsentAdapter::class);
-    }
-    public function getPendingConsent(string $tenant, string $username): ?string
-    {
-        return $this->repository->getPendingConsent($tenant, $username);
-    }
+    public function getPendingConsent(string $tenant, string $username): ?string;
 
-    public function storeAcceptedConsent(string $tenant, string $username): void
-    {
-        $this->repository->storeAcceptedConsent($tenant, $username);
-    }
+    public function storeAcceptedConsent(string $tenant, string $username): void;
 }

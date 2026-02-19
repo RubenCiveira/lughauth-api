@@ -21,9 +21,9 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTer
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
-use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserRepository;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserGateway;
 
-class RegisterUserAdapter implements RegisterUserRepository
+class RegisterUserAdapter implements RegisterUserGateway
 {
     public function __construct(
         private readonly UserLoaderAdapter $users,

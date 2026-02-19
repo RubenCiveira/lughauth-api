@@ -5,33 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
-use Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven\RegisterUserAdapter;
-
-class RegisterUserGateway
+interface RegisterUserGateway
 {
-    private readonly RegisterUserRepository $repository;
-    public function __construct(ContainerInterface $container, ?RegisterUserRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(RegisterUserAdapter::class);
-    }
-    public function allowRegister(string $tenant): bool
-    {
-        return $this->repository->allowRegister($tenant);
-    }
+    public function allowRegister(string $tenant): bool;
 
-    public function getRegisterConsent(string $tenant): ?string
-    {
-        return $this->repository->getRegisterConsent($tenant);
-    }
+    public function getRegisterConsent(string $tenant): ?string;
 
-    public function requestForRegister(string $url, string $tenant, string $email, string $password)
-    {
-        $this->repository->requestForRegister($url, $tenant, $email, $password);
-    }
+    public function requestForRegister(string $url, string $tenant, string $email, string $password);
 
-    public function verifyRegister(string $tenant, string $code): ?string
-    {
-        return $this->repository->verifyRegister($tenant, $code);
-    }
+    public function verifyRegister(string $tenant, string $code): ?string;
 }

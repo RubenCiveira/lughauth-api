@@ -8,9 +8,9 @@ namespace Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven;
 use PDO;
 use Override;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeyPair;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenStoreRepository;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenStoreGateway;
 
-class TokenStoreSqlAdapter implements TokenStoreRepository
+class TokenStoreSqlAdapter implements TokenStoreGateway
 {
     private readonly bool $useTenant;
     public function __construct(

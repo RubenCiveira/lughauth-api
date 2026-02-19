@@ -7,10 +7,10 @@ namespace Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driven;
 
 use Override;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ApiKeyData;
-use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ApiKeyStoreRepository;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ApiKeyStoreGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
 
-class ApiKeyStoreAdapter implements ApiKeyStoreRepository
+class ApiKeyStoreAdapter implements ApiKeyStoreGateway
 {
     public function __construct(
         private readonly ApiKeyClientReadGateway $apiKeys

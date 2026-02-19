@@ -16,9 +16,9 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGa
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
-use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ChangePasswordRepository;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ChangePasswordGateway;
 
-class ChangePasswordAdapter implements ChangePasswordRepository
+class ChangePasswordAdapter implements ChangePasswordGateway
 {
     public function __construct(
         private readonly UserLoaderAdapter $users,
