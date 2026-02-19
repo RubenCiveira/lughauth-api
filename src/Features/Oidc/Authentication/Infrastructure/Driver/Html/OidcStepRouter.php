@@ -9,6 +9,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\AuthorizationForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\OidcStep;
 use Psr\Http\Message\ResponseInterface;
 
 final class OidcStepRouter
@@ -55,6 +56,10 @@ final class OidcStepRouter
         $form = $this->resolve($step, $error);
         if (!$form) {
             return null;
+        }
+
+        if ($form instanceof OidcStep) {
+            return $form->run($input, $response, $error, $step, $csid);
         }
 
         $legacyChallenges = $input->challenges->toLegacy();

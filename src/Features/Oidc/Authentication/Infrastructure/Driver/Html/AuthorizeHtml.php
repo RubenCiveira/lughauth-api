@@ -134,7 +134,6 @@ class AuthorizeHtml
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $base = $this->base;
-        $audiences = implode(',', $flow->audiences);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $clientRequest = new AuthenticationRequest(
             client: $client,
@@ -148,25 +147,27 @@ class AuthorizeHtml
             $keypass = (array) $this->keys->verifiedKeypass($tenant, $flow->preSessionId);
             $challenges->decode((array) $keypass['challenges'] ?? []);
         }
-        $step = $body['step'] ?? '';
+        $step = $body['step'] ?? null;
         $input = $this->buildStepInput($flow, $request, $clientRequest, $challenges, $body ?? []);
         try {
             // Tengo que sacar la password de fuera
+            $csid = null;
             if (isset($body['csid'])) {
                 $csid = $this->securer->verifyToken($body['csid']);
                 if (!$csid) {
                     throw new UnauthorizedException('missingin_csid');
                 }
-                $result = $this->router->run($input, $response, null, $step, $csid);
-                if (!$result || $result->type !== StepResult::TYPE_PROCEED || !$result->authResponse) {
-                    throw new UnauthorizedException();
-                }
-                return $this->redirectOk($base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $result->authResponse, $response, $client, $clientRequest);
-            } elseif (!$step) {
-                return $this->renderStep(null, null, $input, $response, null);
-            } else {
-                return $this->renderStep(null, null, $input, $response, $step);
             }
+
+            $result = $this->executeStep($input, $response, null, $step, $csid);
+            if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
+                return $this->redirectOk($base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $result->authResponse, $response, $client, $clientRequest);
+            }
+            if ($result->type === StepResult::TYPE_RENDER && $result->response) {
+                return $this->clearSession($result->response, $this->base, $tenant);
+            }
+
+            throw new UnauthorizedException();
         } catch (LoginException $ex) {
             $response = $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null);
             $cookie = $this->storePreSession($base, $tenant, $challenges);
@@ -254,11 +255,25 @@ class AuthorizeHtml
     {
         $error = !$error && $message ? new AuthenticationResult(valid: false, errorMessage: $message) : $error;
         $step = $error ? null : ($stepOverride ?? ($input->request->getQueryParams()['step'] ?? null));
-        $result = $this->router->run($input, $response, $error, $step, null);
-        if (!$result || $result->type !== StepResult::TYPE_RENDER || !$result->response) {
+        $result = $this->executeStep($input, $response, $error, $step, null);
+        if ($result->type !== StepResult::TYPE_RENDER || !$result->response) {
             throw new UnauthorizedException();
         }
         return $this->clearSession($result->response, $this->base, $input->context->tenant);
+    }
+
+    private function executeStep(
+        StepInput $input,
+        ResponseInterface $response,
+        ?AuthenticationResult $error,
+        ?string $step,
+        ?string $csid
+    ): StepResult {
+        $result = $this->router->run($input, $response, $error, $step, $csid);
+        if (!$result) {
+            throw new UnauthorizedException();
+        }
+        return $result;
     }
 
     private function buildStepInput(

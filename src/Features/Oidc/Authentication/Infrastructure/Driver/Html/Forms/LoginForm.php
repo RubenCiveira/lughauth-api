@@ -9,9 +9,11 @@ use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
@@ -19,7 +21,7 @@ use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class LoginForm implements AuthorizationForm
+class LoginForm implements AuthorizationForm, OidcStep
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -136,6 +138,44 @@ class LoginForm implements AuthorizationForm
             )
         );
         return $response;
+    }
+
+    public function run(
+        StepInput $input,
+        ResponseInterface $response,
+        ?AuthenticationResult $error,
+        ?string $step,
+        ?string $csid
+    ): StepResult {
+        $legacyChallenges = $input->challenges->toLegacy();
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
+
+        if ($csid !== null) {
+            $auth = $this->autenticate(
+                $input->authRequest,
+                $input->context->tenant,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce,
+                $legacyChallenges,
+                $input->body ?? []
+            );
+            return StepResult::proceed($auth);
+        }
+
+        $response = $this->paint(
+            $error,
+            $input->context->locale,
+            $base,
+            $input->context->tenant,
+            $legacyChallenges,
+            $input->body ?? [],
+            $input->request,
+            $response
+        );
+
+        return StepResult::render($response);
     }
 
     #[Override]
