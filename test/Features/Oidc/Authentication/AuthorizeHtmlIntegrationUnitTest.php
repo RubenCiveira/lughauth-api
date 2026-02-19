@@ -83,18 +83,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->method('step')
             ->willReturn('consent');
         $consentForm->expects($this->once())
-            ->method('paint')
-            ->with(
-                $this->anything(),
-                '',
-                'https://example.com/oauth',
-                'tenant1',
-                $this->anything(),
-                $this->anything(),
-                $request,
-                $this->isInstanceOf(Response::class)
-            )
-            ->willReturn(new Response());
+            ->method('run')
+            ->willReturn(StepResult::render(new Response()));
 
         $authorize = new AuthorizeHtml(
             $context,

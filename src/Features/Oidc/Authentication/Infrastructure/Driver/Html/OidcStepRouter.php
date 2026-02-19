@@ -57,39 +57,6 @@ final class OidcStepRouter
         if (!$form) {
             return null;
         }
-
-        if ($form instanceof OidcStep) {
-            return $form->run($input, $response, $error, $step, $csid);
-        }
-
-        $legacyChallenges = $input->challenges->toLegacy();
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-
-        if ($csid !== null) {
-            $auth = $form->autenticate(
-                $input->authRequest,
-                $input->context->tenant,
-                $input->context->issuer,
-                $csid,
-                $input->context->state,
-                $input->context->nonce,
-                $legacyChallenges,
-                $input->body ?? []
-            );
-            return StepResult::proceed($auth);
-        }
-
-        $response = $form->paint(
-            $error,
-            $input->context->locale,
-            $base,
-            $input->context->tenant,
-            $legacyChallenges,
-            $input->body ?? [],
-            $input->request,
-            $response
-        );
-
-        return StepResult::render($response);
+        return $form->run($input, $response, $error, $step, $csid);
     }
 }

@@ -11,13 +11,15 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class NewPassForm implements AuthorizationForm
+class NewPassForm implements AuthorizationForm, OidcStep
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -111,5 +113,43 @@ class NewPassForm implements AuthorizationForm
         $newpass = $this->securer->decrypt($body["new_pass"]);
         $oldpass = $this->securer->decrypt($body["old_pass"]);
         return $this->publicLogin->validateForcePassChange($request, $challenges, $oldpass, $newpass, $tenant, $issuer, $csid, $state, $nonce);
+    }
+
+    public function run(
+        StepInput $input,
+        ResponseInterface $response,
+        ?AuthenticationResult $error,
+        ?string $step,
+        ?string $csid
+    ): StepResult {
+        $legacyChallenges = $input->challenges->toLegacy();
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
+
+        if ($csid !== null) {
+            $auth = $this->autenticate(
+                $input->authRequest,
+                $input->context->tenant,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce,
+                $legacyChallenges,
+                $input->body ?? []
+            );
+            return StepResult::proceed($auth);
+        }
+
+        $response = $this->paint(
+            $error,
+            $input->context->locale,
+            $base,
+            $input->context->tenant,
+            $legacyChallenges,
+            $input->body ?? [],
+            $input->request,
+            $response
+        );
+
+        return StepResult::render($response);
     }
 }

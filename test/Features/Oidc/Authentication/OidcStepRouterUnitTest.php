@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\AuthorizationForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\OidcStep;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
@@ -185,7 +186,7 @@ final class OidcStepRouterUnitTest extends TestCase
     }
 }
 
-final class RouterFormStub implements AuthorizationForm
+final class RouterFormStub implements AuthorizationForm, OidcStep
 {
     public function __construct(private readonly string $stepValue, private readonly bool $handles)
     {
@@ -226,9 +227,19 @@ final class RouterFormStub implements AuthorizationForm
     ): PublicLoginAuthResponse {
         throw new RuntimeException('not used');
     }
+
+    public function run(
+        StepInput $input,
+        ResponseInterface $response,
+        ?AuthenticationResult $error,
+        ?string $step,
+        ?string $csid
+    ): StepResult {
+        return StepResult::render($response);
+    }
 }
 
-final class RouterRunFormStub implements AuthorizationForm
+final class RouterRunFormStub implements AuthorizationForm, OidcStep
 {
     public bool $paintCalled = false;
     public bool $authCalled = false;
@@ -276,5 +287,21 @@ final class RouterRunFormStub implements AuthorizationForm
     ): PublicLoginAuthResponse {
         $this->authCalled = true;
         return $this->authResponse;
+    }
+
+    public function run(
+        StepInput $input,
+        ResponseInterface $response,
+        ?AuthenticationResult $error,
+        ?string $step,
+        ?string $csid
+    ): StepResult {
+        if ($csid !== null) {
+            $this->authCalled = true;
+            return StepResult::proceed($this->authResponse);
+        }
+
+        $this->paintCalled = true;
+        return StepResult::render($response);
     }
 }
