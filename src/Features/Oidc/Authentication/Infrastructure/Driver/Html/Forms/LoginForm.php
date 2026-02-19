@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
-use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
@@ -18,10 +17,9 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class LoginForm implements AuthorizationForm, OidcStep
+class LoginForm implements OidcStep
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -32,23 +30,7 @@ class LoginForm implements AuthorizationForm, OidcStep
     ) {
     }
 
-    #[Override]
-    public function step(): string
-    {
-        return '';
-    }
-
-    #[Override]
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return $pe === null
-            || $pe instanceof UnauthorizedException
-            || $pe->error == AuthenticationResult::ERR_WRONG_CREDENTIAL
-            || $pe->error == AuthenticationResult::ERR_UNKNOW_USER;
-    }
-
-    #[Override]
-    public function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
         $js = $this->securer->configureScripts([
@@ -77,11 +59,12 @@ class LoginForm implements AuthorizationForm, OidcStep
         $enter = $translator->get("login.enter");
 
         $delegatedLogins = "";
+        $delegatedStep = StepInput::STEP_DELEGATED_LOGIN;
         foreach ($this->delegated->providers($tenant) as $provider) {
             $info = $provider->info();
             $delegatedLogins .= <<<HTML
                 <form method="POST" id="social-form-{$info->id}" class="social-form">
-                    <input type="hidden" name="step" value="delegated-login" />
+                    <input type="hidden" name="step" value="{$delegatedStep}" />
                     <input type="hidden" name="delegated-provider" value="{$info->id}" />
                     <button type="submit" class="social-button">
                         <img src="{$info->logo}" alt="{$info->name}" />
@@ -91,18 +74,20 @@ class LoginForm implements AuthorizationForm, OidcStep
         }
         $recoverPass = "";
         if ($this->publicLogin->allowUserRecoverPassword($tenant)) {
+            $recoverStep = StepInput::STEP_RECOVER_PASS;
             $recoverPass .= <<<HTML
                 <form method="POST">
-                    <input type="hidden" name="step" value="recover-pass" />
+                    <input type="hidden" name="step" value="{$recoverStep}" />
                     {$recoverText}
                 </form>
                 HTML;
         }
         $registerUser = "";
         if ($this->publicLogin->allowUserRegister($tenant)) {
+            $registerStep = StepInput::STEP_REGISTER_USER;
             $registerUser .= <<<HTML
                 <form method="POST">
-                    <input type="hidden" name="step" value="register-user" />
+                    <input type="hidden" name="step" value="{$registerStep}" />
                     {$registerText}
                 </form>
                 HTML;
@@ -178,7 +163,6 @@ class LoginForm implements AuthorizationForm, OidcStep
         return StepResult::render($response);
     }
 
-    #[Override]
     public function autenticate(
         AuthenticationRequest $request,
         string $tenant,

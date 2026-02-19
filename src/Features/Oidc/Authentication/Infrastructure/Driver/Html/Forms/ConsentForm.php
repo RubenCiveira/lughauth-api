@@ -5,23 +5,22 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
-use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class ConsentForm implements AuthorizationForm, OidcStep
+class ConsentForm implements OidcStep
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -32,18 +31,7 @@ class ConsentForm implements AuthorizationForm, OidcStep
     ) {
     }
 
-    #[Override]
-    public function step(): string
-    {
-        return 'consent';
-    }
-    #[Override]
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return $pe?->error == AuthenticationResult::ERR_CONSENT_REQUIRED;
-    }
-    #[Override]
-    public function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
 
@@ -70,6 +58,7 @@ class ConsentForm implements AuthorizationForm, OidcStep
 
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
 
+        $step = StepInput::STEP_CONSENT;
         $response->getBody()->write(
             $this->decorator->getFullPage(
                 $request,
@@ -80,7 +69,7 @@ class ConsentForm implements AuthorizationForm, OidcStep
                     {$error}
                     <form method="POST">
                         <input type="hidden" name="csid" id="sign" />
-                        <input type="hidden" name="step" value="consent" />
+                        <input type="hidden" name="step" value="{$step}" />
                         <label>{$code}
                             <textarea type="text" name="conditions" id="conditions" readonly>
                                 {$pending}
@@ -102,7 +91,6 @@ class ConsentForm implements AuthorizationForm, OidcStep
         return $response;
     }
 
-    #[Override]
     public function autenticate(
         AuthenticationRequest $request,
         string $tenant,

@@ -16,18 +16,10 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
@@ -38,10 +30,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
 class AuthorizeHtml
 {
-    private readonly array $forms;
     private readonly string $base;
-    private readonly OidcStepRouter $router;
-
     public function __construct(
         private readonly Context $context,
         private readonly PublicLogin $publicLogin,
@@ -49,43 +38,25 @@ class AuthorizeHtml
         private readonly DecorateHtml  $decorator,
         private readonly KeysManagerService  $keys,
         private readonly TemporalKeysGateway $temporals,
-        ConsentForm $conset,
-        LoginForm $login,
-        NewMfaForm $mfa,
-        NewPassForm $pass,
-        UseMfaForm $useMfa,
-        RecoverPassForm $recover,
-        DelegateForm $delegate,
-        RegisterUserForm $register,
+        private readonly OidcStepRouter $router
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
-        $this->forms = [$conset, $login, $mfa, $pass, $useMfa, $recover, $register, $delegate ];
-        $this->router = new OidcStepRouter($this->forms, '');
     }
+
 
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
-        $base = $this->base;
-        $audiences = implode(',', $flow->audiences);
-
-        // Public login interface => client allowed
-        // Session => direct login
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
+        $authRequest = $this->buildAuthRequest($flow, $client);
         $sess = $this->publicLogin->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
-            return $this->cisdPage($request, $response, $tenant, $base, $flow->locale, $flow->responseType, $flow->clientId, $flow->state, $flow->redirect, $flow->scope, $flow->nonce, $audiences, $flow->prompt);
+            return $this->cisdPage($request, $response, $flow);
         } elseif ("none" === $flow->prompt) {
-            return $this->redirectError($base, $tenant, $flow->redirect, 'No session', $response);
+            return $this->redirectError($this->base, $tenant, $flow->redirect, 'No session', $response);
         } else {
-            $input = $this->buildStepInput($flow, $request, new AuthenticationRequest(
-                client: $client,
-                scope: $flow->scope,
-                redirect: $flow->redirect,
-                responseType: $flow->responseType,
-                audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
-            ), new ChallengesState(), []);
+            $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
             return $this->renderStep(null, null, $input, $response, null);
         }
     }
@@ -95,10 +66,8 @@ class AuthorizeHtml
         $body = $request->getParsedBody();
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
-        $base = $this->base;
-        $audiences = implode(',', $flow->audiences);
-
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
+        $authRequest = $this->buildAuthRequest($flow, $client);
         $csid = $this->securer->verifyToken($body['csid']);
         if (!$csid) {
             throw new UnauthorizedException();
@@ -106,25 +75,17 @@ class AuthorizeHtml
         $sess = $this->publicLogin->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
             if ($csid !== $sess->csid) {
-                return $this->redirectToLogin($request, $response, 'Only refresh from same device', $tenant, $base, $flow->locale, $flow->responseType, $flow->clientId, $flow->state, $flow->redirect, $flow->scope, $flow->nonce, $audiences, $flow->prompt);
+                return $this->redirectToLogin($response, $flow);
             }
-            $authRequest = new AuthenticationRequest(
-                client: $client,
-                scope: $flow->scope,
-                redirect: $flow->redirect,
-                responseType: $flow->responseType,
-                audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
-            );
             $challenges = new AuthorizedChalleges();
             $challenges->username = $sess->userId;
             $challenges->mfa = $sess->withMfa;
             $challenges->session = true;
-            $issuer = $flow->issuer;
             // auth-csid
-            $auth = $this->publicLogin->sessionAutenticated($authRequest, $challenges, $tenant, $issuer, $csid, $flow->state, $flow->nonce);
-            return $this->redirectOk($base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $authRequest);
+            $auth = $this->publicLogin->sessionAutenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
+            return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $authRequest);
         } else {
-            return $this->redirectToLogin($request, $response, 'No session', $tenant, $base, $flow->locale, $flow->responseType, $flow->clientId, $flow->state, $flow->redirect, $flow->scope, $flow->nonce, $audiences, $flow->prompt);
+            return $this->redirectToLogin($response, $flow);
         }
     }
 
@@ -133,15 +94,8 @@ class AuthorizeHtml
         $body = $request->getParsedBody();
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
-        $base = $this->base;
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
-        $clientRequest = new AuthenticationRequest(
-            client: $client,
-            scope: $flow->scope,
-            redirect: $flow->redirect,
-            responseType: $flow->responseType,
-            audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
-        );
+        $clientRequest = $this->buildAuthRequest($flow, $client);
         $state = new ChallengesState();
         if ($flow->preSessionId) {
             $keypass = (array) $this->keys->verifiedKeypass($tenant, $flow->preSessionId);
@@ -161,7 +115,7 @@ class AuthorizeHtml
 
             $result = $this->executeStep($input, $response, null, $step, $csid);
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
-                return $this->redirectOk($base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $result->authResponse, $response, $client, $clientRequest);
+                return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $result->authResponse, $response, $client, $clientRequest);
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
                 return $this->clearSession($result->response, $this->base, $tenant);
@@ -170,11 +124,11 @@ class AuthorizeHtml
             throw new UnauthorizedException();
         } catch (LoginException $ex) {
             $response = $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null);
-            $cookie = $this->storePreSession($base, $tenant, $state);
+            $cookie = $this->storePreSession($flow, $state);
             return $cookie->attach($response);
         } catch (UnauthorizedException $ex) {
             $response = $this->renderStep($ex->getMessage(), null, $input, $response, null);
-            $cookie = $this->storePreSession($base, $tenant, $state);
+            $cookie = $this->storePreSession($flow, $state);
             return $cookie->attach($response);
         }
     }
@@ -182,6 +136,17 @@ class AuthorizeHtml
     private function buildContext(ServerRequestInterface $request, string $tenant): OidcFlowContext
     {
         return OidcFlowContext::fromRequest($request, $tenant, $this->context);
+    }
+
+    private function buildAuthRequest(OidcFlowContext $flow, ClientData $client): AuthenticationRequest
+    {
+        return new AuthenticationRequest(
+            client: $client,
+            scope: $flow->scope,
+            redirect: $flow->redirect,
+            responseType: $flow->responseType,
+            audiences: array_values(array_unique([$flow->clientId, ...$flow->audiences]))
+        );
     }
 
     private function verifyClient(string $clientId, string $tenant, string $redirect, string $scope): ClientData
@@ -294,24 +259,30 @@ class AuthorizeHtml
 
     private function clearSession(ResponseInterface $response, string $base, string $tenant): ResponseInterface
     {
-        $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $base . '/openid/' . $tenant . '/');
-        $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $base . '/openid/' . $tenant . '/');
+        $path = $this->cookiePath($tenant);
+        $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $path);
+        $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $path);
         return $preCookie->remove($authCookie->remove($response));
     }
 
-    private function storePreSession(string $base, string $tenant, ChallengesState $challenges): Cookie
+    private function storePreSession(OidcFlowContext $flow, ChallengesState $challenges): Cookie
     {
         $duration = new \DateInterval("PT10M");
-        $text = $this->keys->signKeypass($tenant, ['challenges' => $challenges->toArray()], $duration);
+        $text = $this->keys->signKeypass($flow->tenant, ['challenges' => $challenges->toArray()], $duration);
         return new Cookie(
             name: 'PRE_SESSION_ID',
             value: $text,
-            path: $base . '/openid/' . $tenant . '/',
+            path: $this->cookiePath($flow->tenant),
             expiration: $duration,
             secure: false,
             sameSite: true,
             httpOnly: true
         );
+    }
+
+    private function cookiePath(string $tenant): string
+    {
+        return $this->base . '/openid/' . $tenant . '/';
     }
 
     private function hasResponse($response_type, $token): bool
@@ -320,73 +291,65 @@ class AuthorizeHtml
     }
 
     private function redirectToLogin(
-        RequestInterface $request,
         ResponseInterface $response,
-        string $message,
-        string $tenant,
-        string $base,
-        string $locale,
-        string $responseType,
-        string $clientId,
-        string $state,
-        string $redirect,
-        string $scope,
-        string $nonce,
-        string $audiences,
-        string $prompt,
+        OidcFlowContext $flow
     ): ResponseInterface {
-        if ($prompt == 'none') {
-            return $this->redirectError($base, $tenant, $redirect, 'Only refresh from same device', $response);
+        if ($flow->prompt === 'none') {
+            return $this->redirectError($this->base, $flow->tenant, $flow->redirect, 'Only refresh from same device', $response);
         } else {
-            $url = $base."/openid/".$tenant. "/authorize"
-                . "?response_type=".urlencode($responseType)
-                . "&client_id=".urlencode($clientId)
-                . "&state=".urlencode($state)
-                . "&redirect_uri=".urlencode($redirect)
-                . "&scope=".urlencode($scope)
-                . "&nonce=".urlencode($nonce)
-                . "&audience=".urlencode($audiences)
-                . "&prompt=".urlencode($prompt)
-            ;
+            $url = $this->buildAuthorizeUrl($flow);
             $response = $response->withStatus(302)->withHeader('Location', $url);
-            return $this->clearSession($response, $base, $tenant);
+            return $this->clearSession($response, $this->base, $flow->tenant);
         }
     }
 
     private function cisdPage(
         RequestInterface $request,
         ResponseInterface $response,
-        string $tenant,
-        string $base,
-        string $locale,
-        string $responseType,
-        string $clientId,
-        string $state,
-        string $redirect,
-        string $scope,
-        string $nonce,
-        string $audiences,
-        string $prompt,
+        OidcFlowContext $flow
     ): ResponseInterface {
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
             $this->securer->autoSubmit("refresh")
         ]);
-        $url = $base."/openid/".$tenant. "/check-session"
-            . "?response_type=".urlencode($responseType)
-            . "&client_id=".urlencode($clientId)
-            . "&state=".urlencode($state)
-            . "&redirect_uri=".urlencode($redirect)
-            . "&scope=".urlencode($scope)
-            . "&nonce=".urlencode($nonce)
-            . "&audience=".urlencode($audiences)
-            . "&prompt=".urlencode($prompt)
-        ;
+        $url = $this->buildCheckSessionUrl($flow);
         $response->getBody()->write($this->decorator->getFullPage($request, 'Mfa', $js . "<h1>Verifiy login source...</h1>"
             . "<form id=\"refresh\" action=\"".$url."\" method=\"POST\">"
             . "<input type=\"hidden\" name=\"csid\" id=\"sign\" />"
             . "<input type=\"submit\" />"
-            . "</form>", $locale));
+            . "</form>", $flow->locale));
         return $response;
+    }
+
+    private function buildAuthorizeUrl(OidcFlowContext $flow): string
+    {
+        $params = [
+            'response_type' => $flow->responseType,
+            'client_id' => $flow->clientId,
+            'state' => $flow->state,
+            'redirect_uri' => $flow->redirect,
+            'scope' => $flow->scope,
+            'nonce' => $flow->nonce,
+            'audience' => implode(',', $flow->audiences),
+            'prompt' => $flow->prompt,
+        ];
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        return $this->base . '/openid/' . $flow->tenant . '/authorize?' . $query;
+    }
+
+    private function buildCheckSessionUrl(OidcFlowContext $flow): string
+    {
+        $params = [
+            'response_type' => $flow->responseType,
+            'client_id' => $flow->clientId,
+            'state' => $flow->state,
+            'redirect_uri' => $flow->redirect,
+            'scope' => $flow->scope,
+            'nonce' => $flow->nonce,
+            'audience' => implode(',', $flow->audiences),
+            'prompt' => $flow->prompt,
+        ];
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        return $this->base . '/openid/' . $flow->tenant . '/check-session?' . $query;
     }
 }

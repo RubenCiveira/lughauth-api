@@ -8,47 +8,82 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\AuthorizationForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\OidcStep;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Psr\Http\Message\ResponseInterface;
 
 final class OidcStepRouter
 {
-    /** @var AuthorizationForm[] */
-    private array $forms;
+    /** @var array<string, OidcStep> */
+    private array $steps;
 
-    public function __construct(array $forms, private readonly string $fallbackStep = '')
-    {
-        $this->forms = $forms;
+    /** @var array<string, string> */
+    private const ERROR_MAP = [
+        AuthenticationResult::ERR_CONSENT_REQUIRED => StepInput::STEP_CONSENT,
+        AuthenticationResult::ERR_MFA_REQUIRED => StepInput::STEP_MFA,
+        AuthenticationResult::ERR_NEW_MFA_REQUIRED => StepInput::STEP_NEW_MFA,
+        AuthenticationResult::ERR_NEW_PASSWORD_REQUIRED => StepInput::STEP_NEW_PASS,
+        AuthenticationResult::ERR_WAITING_PASSCHANGE_CODE => StepInput::STEP_RECOVER_PASS,
+        AuthenticationResult::ERR_WAITING_USER_VERIFY => StepInput::STEP_REGISTER_USER,
+        AuthenticationResult::ERR_UNKNOW_USER => StepInput::STEP_LOGIN,
+        AuthenticationResult::ERR_WRONG_CREDENTIAL => StepInput::STEP_LOGIN,
+        AuthenticationResult::ERR_NOT_ALLOWED_ACCESS => StepInput::STEP_LOGIN,
+    ];
+
+    public function __construct(
+        ConsentForm $conset,
+        LoginForm $login,
+        NewMfaForm $mfa,
+        NewPassForm $pass,
+        UseMfaForm $useMfa,
+        RecoverPassForm $recover,
+        DelegateForm $delegate,
+        RegisterUserForm $register,
+        private readonly string $fallbackStep = StepInput::STEP_LOGIN
+    ) {
+        $this->steps = [
+            StepInput::STEP_LOGIN => $login,
+            StepInput::STEP_CONSENT => $conset,
+            StepInput::STEP_MFA => $useMfa,
+            StepInput::STEP_NEW_MFA => $mfa,
+            StepInput::STEP_RECOVER_PASS => $recover,
+            StepInput::STEP_NEW_PASS => $pass,
+            StepInput::STEP_REGISTER_USER => $register,
+            StepInput::STEP_DELEGATED_LOGIN => $delegate,
+        ];
     }
 
-    public function resolve(?string $step, ?AuthenticationResult $error): ?AuthorizationForm
+    public function resolve(?string $step, ?AuthenticationResult $error): ?OidcStep
     {
-        $step = $step ?? '';
-
-        if ($step !== '') {
-            foreach ($this->forms as $form) {
-                if ($form->step() === $step) {
-                    return $form;
-                }
-            }
+        $key = $this->normalizeStep($step);
+        if ($key !== null && isset($this->steps[$key])) {
+            return $this->steps[$key];
         }
 
-        foreach ($this->forms as $form) {
-            if ($form->handle($error)) {
-                return $form;
-            }
+        $errorKey = $error?->error;
+        if ($errorKey && isset(self::ERROR_MAP[$errorKey])) {
+            $mapped = self::ERROR_MAP[$errorKey];
+            return $this->steps[$mapped] ?? null;
         }
 
-        if ($this->fallbackStep !== '') {
-            foreach ($this->forms as $form) {
-                if ($form->step() === $this->fallbackStep) {
-                    return $form;
-                }
-            }
+        return $this->steps[$this->fallbackStep] ?? null;
+    }
+
+    private function normalizeStep(?string $step): ?string
+    {
+        if ($step === null) {
+            return null;
         }
 
-        return null;
+        $step = trim($step);
+        return $step === '' ? null : $step;
     }
 
     public function run(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error, ?string $step, ?string $csid): ?StepResult

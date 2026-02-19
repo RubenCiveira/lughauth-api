@@ -5,22 +5,25 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use DI\ContainerBuilder;
-use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
 use Slim\Psr7\Response;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\AuthorizationForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\OidcStep;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
@@ -45,14 +48,24 @@ final class OidcStepRouterUnitTest extends TestCase
     }
 
     /**
-     * Verifies explicit step takes precedence over handle().
+     * Verifies explicit step mapping takes precedence.
      */
     public function testResolveUsesExplicitStep(): void
     {
-        $login = new RouterFormStub('login', true);
-        $consent = new RouterFormStub('consent', false);
+        $login = $this->createMock(LoginForm::class);
+        $consent = $this->createMock(ConsentForm::class);
 
-        $router = new OidcStepRouter([$login, $consent], 'login');
+        $router = new OidcStepRouter(
+            $consent,
+            $login,
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class),
+            StepInput::STEP_LOGIN
+        );
 
         $result = $router->resolve('consent', AuthenticationResult::consentRequired());
 
@@ -60,14 +73,24 @@ final class OidcStepRouterUnitTest extends TestCase
     }
 
     /**
-     * Verifies handle() is used when no step is provided.
+     * Verifies error mapping is used when no step is provided.
      */
-    public function testResolveUsesHandleWhenNoStep(): void
+    public function testResolveUsesErrorMappingWhenNoStep(): void
     {
-        $login = new RouterFormStub('login', false);
-        $consent = new RouterFormStub('consent', true);
+        $login = $this->createMock(LoginForm::class);
+        $consent = $this->createMock(ConsentForm::class);
 
-        $router = new OidcStepRouter([$login, $consent], 'login');
+        $router = new OidcStepRouter(
+            $consent,
+            $login,
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class),
+            StepInput::STEP_LOGIN
+        );
 
         $result = $router->resolve('', AuthenticationResult::consentRequired());
 
@@ -75,14 +98,24 @@ final class OidcStepRouterUnitTest extends TestCase
     }
 
     /**
-     * Verifies fallback step is used when no handle matches.
+     * Verifies fallback step is used when no mapping matches.
      */
     public function testResolveFallsBackWhenNoMatch(): void
     {
-        $login = new RouterFormStub('login', false);
-        $consent = new RouterFormStub('consent', false);
+        $login = $this->createMock(LoginForm::class);
+        $consent = $this->createMock(ConsentForm::class);
 
-        $router = new OidcStepRouter([$consent, $login], 'login');
+        $router = new OidcStepRouter(
+            $consent,
+            $login,
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class),
+            StepInput::STEP_LOGIN
+        );
 
         $result = $router->resolve('', null);
 
@@ -95,8 +128,21 @@ final class OidcStepRouterUnitTest extends TestCase
     public function testRunProceedsWithCsid(): void
     {
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
-        $form = new RouterRunFormStub('login', false, $authResponse);
-        $router = new OidcStepRouter([$form], 'login');
+        $form = $this->createMock(LoginForm::class);
+        $form->expects($this->once())
+            ->method('run')
+            ->willReturn(StepResult::proceed($authResponse));
+        $router = new OidcStepRouter(
+            $this->createMock(ConsentForm::class),
+            $form,
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class),
+            StepInput::STEP_LOGIN
+        );
 
         $request = (new ServerRequestFactory())
             ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
@@ -125,7 +171,7 @@ final class OidcStepRouterUnitTest extends TestCase
             context: $flow,
             authRequest: $authRequest,
             challenges: new ChallengesState(withMfa: false, session: false, username: 'user-1'),
-            body: ['step' => 'login'],
+            body: ['step' => StepInput::STEP_LOGIN],
             request: $request
         );
 
@@ -134,7 +180,7 @@ final class OidcStepRouterUnitTest extends TestCase
 
         $this->assertInstanceOf(StepResult::class, $result);
         $this->assertSame(StepResult::TYPE_PROCEED, $result?->type);
-        $this->assertTrue($form->authCalled);
+        $this->assertSame($authResponse, $result?->authResponse);
     }
 
     /**
@@ -143,8 +189,21 @@ final class OidcStepRouterUnitTest extends TestCase
     public function testRunRendersWithoutCsid(): void
     {
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
-        $form = new RouterRunFormStub('login', true, $authResponse);
-        $router = new OidcStepRouter([$form], 'login');
+        $form = $this->createMock(LoginForm::class);
+        $form->expects($this->once())
+            ->method('run')
+            ->willReturn(StepResult::render(new Response()));
+        $router = new OidcStepRouter(
+            $this->createMock(ConsentForm::class),
+            $form,
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class),
+            StepInput::STEP_LOGIN
+        );
 
         $request = (new ServerRequestFactory())
             ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
@@ -173,7 +232,7 @@ final class OidcStepRouterUnitTest extends TestCase
             context: $flow,
             authRequest: $authRequest,
             challenges: new ChallengesState(withMfa: false, session: false, username: 'user-1'),
-            body: ['step' => 'login'],
+            body: ['step' => StepInput::STEP_LOGIN],
             request: $request
         );
 
@@ -182,126 +241,6 @@ final class OidcStepRouterUnitTest extends TestCase
 
         $this->assertInstanceOf(StepResult::class, $result);
         $this->assertSame(StepResult::TYPE_RENDER, $result?->type);
-        $this->assertTrue($form->paintCalled);
-    }
-}
-
-final class RouterFormStub implements AuthorizationForm, OidcStep
-{
-    public function __construct(private readonly string $stepValue, private readonly bool $handles)
-    {
-    }
-
-    public function step(): string
-    {
-        return $this->stepValue;
-    }
-
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return $this->handles;
-    }
-
-    public function paint(
-        ?AuthenticationResult $error,
-        string $locale,
-        string $base,
-        string $tenant,
-        AuthorizedChalleges $challenges,
-        ?array $body,
-        ServerRequestInterface $request,
-        ResponseInterface $response
-    ): ResponseInterface {
-        return $response;
-    }
-
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        AuthorizedChalleges $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        throw new RuntimeException('not used');
-    }
-
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        return StepResult::render($response);
-    }
-}
-
-final class RouterRunFormStub implements AuthorizationForm, OidcStep
-{
-    public bool $paintCalled = false;
-    public bool $authCalled = false;
-
-    public function __construct(
-        private readonly string $stepValue,
-        private readonly bool $handles,
-        private readonly PublicLoginAuthResponse $authResponse
-    ) {
-    }
-
-    public function step(): string
-    {
-        return $this->stepValue;
-    }
-
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return $this->handles;
-    }
-
-    public function paint(
-        ?AuthenticationResult $error,
-        string $locale,
-        string $base,
-        string $tenant,
-        AuthorizedChalleges $challenges,
-        ?array $body,
-        ServerRequestInterface $request,
-        ResponseInterface $response
-    ): ResponseInterface {
-        $this->paintCalled = true;
-        return $response;
-    }
-
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        AuthorizedChalleges $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        $this->authCalled = true;
-        return $this->authResponse;
-    }
-
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        if ($csid !== null) {
-            $this->authCalled = true;
-            return StepResult::proceed($this->authResponse);
-        }
-
-        $this->paintCalled = true;
-        return StepResult::render($response);
+        $this->assertSame(StepResult::TYPE_RENDER, $result?->type);
     }
 }

@@ -5,23 +5,22 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
-use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicMfa;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class UseMfaForm implements AuthorizationForm, OidcStep
+class UseMfaForm implements OidcStep
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -32,20 +31,7 @@ class UseMfaForm implements AuthorizationForm, OidcStep
     ) {
     }
 
-    #[Override]
-    public function step(): string
-    {
-        return 'mfa';
-    }
-
-    #[Override]
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return $pe?->error == AuthenticationResult::ERR_MFA_REQUIRED;
-    }
-
-    #[Override]
-    public function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
 
@@ -70,6 +56,7 @@ class UseMfaForm implements AuthorizationForm, OidcStep
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $step = StepInput::STEP_MFA;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'Mfa',
@@ -79,7 +66,7 @@ class UseMfaForm implements AuthorizationForm, OidcStep
                     {$error}
                     <form method="POST">
                         <input type="hidden" name="csid" id="sign" />
-                        <input type="hidden" name="step" value="mfa" />
+                        <input type="hidden" name="step" value="{$step}" />
                         <label> {$code}
                             <input type="text" name="mfa_code" id="mfa_code" value="" />
                         </label>
@@ -95,7 +82,6 @@ class UseMfaForm implements AuthorizationForm, OidcStep
         return $response;
     }
 
-    #[Override]
     public function autenticate(
         AuthenticationRequest $request,
         string $tenant,

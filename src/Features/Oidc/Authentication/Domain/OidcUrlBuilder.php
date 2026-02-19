@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 
 final class OidcUrlBuilder
 {
@@ -60,7 +61,7 @@ final class OidcUrlBuilder
             $tenant,
             $state,
             $nonce,
-            ['step' => 'register-user', 'verify_send' => 'true'],
+            ['step' => StepInput::STEP_REGISTER_USER, 'verify_send' => 'true'],
             $suffix
         );
     }
@@ -77,7 +78,7 @@ final class OidcUrlBuilder
             $tenant,
             $state,
             $nonce,
-            ['step' => 'recover-pass', 'recover_send' => 'true'],
+            ['step' => StepInput::STEP_RECOVER_PASS, 'recover_send' => 'true'],
             $suffix
         );
     }

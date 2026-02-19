@@ -9,6 +9,15 @@ use Psr\Http\Message\ServerRequestInterface;
 
 final class StepInput
 {
+    public const STEP_LOGIN = 'login';
+    public const STEP_CONSENT = 'consent';
+    public const STEP_MFA = 'mfa';
+    public const STEP_NEW_MFA = 'build-mfa';
+    public const STEP_RECOVER_PASS = 'recover-pass';
+    public const STEP_NEW_PASS = 'new-pass';
+    public const STEP_REGISTER_USER = 'register-user';
+    public const STEP_DELEGATED_LOGIN = 'delegated-login';
+
     public function __construct(
         public readonly OidcFlowContext $context,
         public readonly AuthenticationRequest $authRequest,

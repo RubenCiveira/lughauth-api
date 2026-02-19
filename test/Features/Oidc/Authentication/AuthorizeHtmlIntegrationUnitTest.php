@@ -14,6 +14,8 @@ use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
@@ -62,7 +64,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 'redirect_uri' => 'https://client.example/callback',
                 'scope' => 'openid',
                 'nonce' => 'nonce-abc',
-                'step' => 'consent',
+                'step' => StepInput::STEP_CONSENT,
             ]);
 
         $builder = new ContainerBuilder();
@@ -79,20 +81,11 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->willReturn(null);
 
         $consentForm = $this->createMock(ConsentForm::class);
-        $consentForm->expects($this->any())
-            ->method('step')
-            ->willReturn('consent');
         $consentForm->expects($this->once())
             ->method('run')
             ->willReturn(StepResult::render(new Response()));
 
-        $authorize = new AuthorizeHtml(
-            $context,
-            $publicLogin,
-            $this->createMock(HtmlSecurer::class),
-            $this->createMock(DecorateHtml::class),
-            $this->createMock(KeysManagerService::class),
-            $this->createMock(TemporalKeysGateway::class),
+        $router = new OidcStepRouter(
             $consentForm,
             $this->createMock(LoginForm::class),
             $this->createMock(NewMfaForm::class),
@@ -101,6 +94,16 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class)
+        );
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $publicLogin,
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(KeysManagerService::class),
+            $this->createMock(TemporalKeysGateway::class),
+            $router
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -156,9 +159,6 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $loginForm = $this->createMock(LoginForm::class);
         $loginForm->expects($this->once())
-            ->method('handle')
-            ->willReturn(true);
-        $loginForm->expects($this->once())
             ->method('run')
             ->willReturn(StepResult::proceed($authResponse));
 
@@ -167,24 +167,15 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->method('registerTemporalAuthCode')
             ->willReturn('temp-code');
 
-        $consentForm = $this->createConfiguredMock(ConsentForm::class, [
-            'handle' => false,
-            'step' => 'consent'
-        ]);
-        $newMfaForm = $this->createConfiguredMock(NewMfaForm::class, ['handle' => false]);
-        $newPassForm = $this->createConfiguredMock(NewPassForm::class, ['handle' => false]);
-        $useMfaForm = $this->createConfiguredMock(UseMfaForm::class, ['handle' => false]);
-        $recoverForm = $this->createConfiguredMock(RecoverPassForm::class, ['handle' => false]);
-        $delegateForm = $this->createConfiguredMock(DelegateForm::class, ['handle' => false]);
-        $registerForm = $this->createConfiguredMock(RegisterUserForm::class, ['handle' => false]);
+        $consentForm = $this->createMock(ConsentForm::class);
+        $newMfaForm = $this->createMock(NewMfaForm::class);
+        $newPassForm = $this->createMock(NewPassForm::class);
+        $useMfaForm = $this->createMock(UseMfaForm::class);
+        $recoverForm = $this->createMock(RecoverPassForm::class);
+        $delegateForm = $this->createMock(DelegateForm::class);
+        $registerForm = $this->createMock(RegisterUserForm::class);
 
-        $authorize = new AuthorizeHtml(
-            $context,
-            $publicLogin,
-            $securer,
-            $this->createMock(DecorateHtml::class),
-            $this->createMock(KeysManagerService::class),
-            $temporals,
+        $router = new OidcStepRouter(
             $consentForm,
             $loginForm,
             $newMfaForm,
@@ -193,6 +184,16 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $recoverForm,
             $delegateForm,
             $registerForm
+        );
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $publicLogin,
+            $securer,
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(KeysManagerService::class),
+            $temporals,
+            $router
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);

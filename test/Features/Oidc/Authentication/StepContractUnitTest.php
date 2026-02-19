@@ -75,7 +75,7 @@ final class StepContractUnitTest extends TestCase
             context: $flow,
             authRequest: $authRequest,
             challenges: $challenges,
-            body: ['step' => 'login'],
+            body: ['step' => StepInput::STEP_LOGIN],
             request: $request
         );
 
@@ -83,7 +83,7 @@ final class StepContractUnitTest extends TestCase
         $this->assertSame($flow, $input->context);
         $this->assertSame($authRequest, $input->authRequest);
         $this->assertSame($challenges, $input->challenges);
-        $this->assertSame(['step' => 'login'], $input->body);
+        $this->assertSame(['step' => StepInput::STEP_LOGIN], $input->body);
         $this->assertSame($request, $input->request);
     }
 

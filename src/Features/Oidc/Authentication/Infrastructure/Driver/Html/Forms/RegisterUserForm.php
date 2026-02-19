@@ -5,22 +5,21 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
-use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class RegisterUserForm implements AuthorizationForm, OidcStep
+class RegisterUserForm implements OidcStep
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -30,20 +29,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
     ) {
     }
 
-    #[Override]
-    public function step(): string
-    {
-        return 'register-user';
-    }
-
-    #[Override]
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return $pe?->error == AuthenticationResult::ERR_WAITING_USER_VERIFY;
-    }
-
-    #[Override]
-    public function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $locale = '';
         $params = $request->getQueryParams();
@@ -56,7 +42,6 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
         }
     }
 
-    #[Override]
     public function autenticate(
         AuthenticationRequest $request,
         string $tenant,
@@ -121,7 +106,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
         return StepResult::render($response);
     }
 
-    public function paintAsk(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paintAsk(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
@@ -151,6 +136,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("registeruser.ask.back-label") . "\" />"]
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $step = StepInput::STEP_REGISTER_USER;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',
@@ -160,7 +146,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
                     {$error}
                     <form id="regform" method="POST">
                         <input type="hidden" name="csid" id="sign" />
-                        <input type="hidden" name="step" value="register-user" />
+                        <input type="hidden" name="step" value="{$step}" />
                         <label>{$name}
                             <input type="text" name="user" id="user" value="" />
                         </label>
@@ -181,7 +167,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
         return $response;
     }
 
-    public function paintConfirm(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paintConfirm(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $params = $request->getQueryParams();
         $js = $this->securer->configureScripts([
@@ -207,6 +193,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
         );
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
         $defaultCode = $params['_use_code'] ?? '';
+        $step = StepInput::STEP_REGISTER_USER;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',
@@ -216,7 +203,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
                     {$error}
                     <form id="recform" method="POST">
                         <input type="hidden" name="csid" id="sign" />
-                        <input type="hidden" name="step" value="register-user" />
+                        <input type="hidden" name="step" value="{$step}" />
                         <input type="hidden" name="code" id="code" value="" />
                         <label>{$code}
                             <input type="text" id="type_code" value="{$defaultCode}" />
@@ -234,7 +221,7 @@ class RegisterUserForm implements AuthorizationForm, OidcStep
         return $response;
     }
 
-    public function paintWait(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paintWait(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),

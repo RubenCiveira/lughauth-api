@@ -24,10 +24,10 @@ El objetivo es reducir acoplamiento y redundancia, y facilitar:
 
 Dependencias principales:
 - `PublicLogin`, `HtmlSecurer`, `DecorateHtml`, `KeysManagerService`, `TemporalKeysGateway`.
-- Coleccion de `AuthorizationForm`.
+- Coleccion de `OidcStep`.
 
 ### Formularios (steps)
-`AuthorizationForm` define:
+`OidcStep` define:
 - `step()`
 - `handle()`
 - `paint()`
@@ -171,7 +171,7 @@ Ventaja:
 ### Fase 4: Router de pasos
 
 Crear un `OidcStepRouter` que:
-- Mapea `step` a `AuthorizationForm`.
+- Mapea `step` a `OidcStep` con constantes en `OidcStepRouter`.
 - Tiene reglas de fallback (por ejemplo, `handle()` basado en error, o paso explicitado en query).
 
 `AuthorizeHtml` se reduce a:
@@ -209,7 +209,7 @@ Esto elimina concatenaciones repetidas y reduce errores al agregar parametros nu
 - Eliminar todos los parametros duplicados en metodos privados.
 - Usar `context->issuer` y `context->baseUrl`.
 
-### 3) Refactor `AuthorizationForm`
+### 3) Refactor `OidcStep`
 De:
 ```php
 public function autenticate(AuthenticationRequest $request, string $tenant, string $issuer, string $csid, string $state, string $nonce, AuthorizedChalleges $challenges, mixed $body): PublicLoginAuthResponse;

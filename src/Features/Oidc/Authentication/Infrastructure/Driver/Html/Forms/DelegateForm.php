@@ -5,22 +5,21 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
-use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthorizedChalleges;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
-class DelegateForm implements AuthorizationForm, OidcStep
+class DelegateForm implements OidcStep
 {
     public function __construct(
         private readonly DelegateLogin $delegated,
@@ -30,18 +29,7 @@ class DelegateForm implements AuthorizationForm, OidcStep
     ) {
     }
 
-    #[Override]
-    public function step(): string
-    {
-        return 'delegated-login';
-    }
-    #[Override]
-    public function handle(?AuthenticationResult $pe): bool
-    {
-        return false;
-    }
-    #[Override]
-    public function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, AuthorizedChalleges $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $body = $request->getParsedBody();
         $params = $request->getQueryParams();
@@ -51,6 +39,7 @@ class DelegateForm implements AuthorizationForm, OidcStep
                 $this->securer->addSign("sign"),
                 $this->securer->autoSubmit("login")
             ]);
+            $step = StepInput::STEP_DELEGATED_LOGIN;
             $html = $this->decorator->getFullPage(
                 $request,
                 'Login',
@@ -59,7 +48,7 @@ class DelegateForm implements AuthorizationForm, OidcStep
                         <input type="hidden" name="csid" id="sign" />
                         <input type="hidden" name="provider" value="{$params['provider']}" />
                         <input type="hidden" name="provider-data" value="{$params['provider-data']}" />
-                        <input type="hidden" name="step" value="delegated-login" />
+                        <input type="hidden" name="step" value="{$step}" />
                     </form>
                 HTML,
                 'es'
@@ -84,7 +73,6 @@ class DelegateForm implements AuthorizationForm, OidcStep
         }
     }
 
-    #[Override]
     public function autenticate(
         AuthenticationRequest $request,
         string $tenant,
