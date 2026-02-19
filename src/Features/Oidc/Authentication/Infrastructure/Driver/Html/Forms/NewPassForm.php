@@ -5,12 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -18,7 +15,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class NewPassForm implements OidcStep
+class NewPassForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -28,7 +25,28 @@ class NewPassForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Override]
+    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    {
+        $body = $input->body ?? [];
+        $newpass = $this->securer->decrypt($body["new_pass"]);
+        $oldpass = $this->securer->decrypt($body["old_pass"]);
+        $csid = (string) ($body['csid'] ?? '');
+        return $this->publicLogin->validateForcePassChange(
+            $input->authRequest,
+            $input->challenges,
+            $oldpass,
+            $newpass,
+            $input->context->tenant,
+            $input->context->issuer,
+            $csid,
+            $input->context->state,
+            $input->context->nonce
+        );
+    }
+
+    #[Override]
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
         $locale = '';
 
@@ -41,8 +59,8 @@ class NewPassForm implements OidcStep
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("newpass.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("newpass.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
+        $error = $error?->errorMessage
+            ? $translator->get("newpass.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
             : false;
 
         $help = $translator->get("newpass.help");
@@ -57,7 +75,7 @@ class NewPassForm implements OidcStep
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
         $step = StepInput::STEP_NEW_PASS;
         $response->getBody()->write($this->decorator->getFullPage(
-            $request,
+            $input->request,
             'New pass',
             $js . <<<HTML
                     <h1>{$title}</h1>
@@ -84,57 +102,5 @@ class NewPassForm implements OidcStep
             $locale
         ));
         return $response;
-    }
-
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        ChallengesState $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        $newpass = $this->securer->decrypt($body["new_pass"]);
-        $oldpass = $this->securer->decrypt($body["old_pass"]);
-        return $this->publicLogin->validateForcePassChange($request, $challenges, $oldpass, $newpass, $tenant, $issuer, $csid, $state, $nonce);
-    }
-
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-
-        if ($csid !== null) {
-            $auth = $this->autenticate(
-                $input->authRequest,
-                $input->context->tenant,
-                $input->context->issuer,
-                $csid,
-                $input->context->state,
-                $input->context->nonce,
-                $input->challenges,
-                $input->body ?? []
-            );
-            return StepResult::proceed($auth);
-        }
-
-        $response = $this->paint(
-            $error,
-            $input->context->locale,
-            $base,
-            $input->context->tenant,
-            $input->challenges,
-            $input->body ?? [],
-            $input->request,
-            $response
-        );
-
-        return StepResult::render($response);
     }
 }

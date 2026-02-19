@@ -5,12 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -20,7 +17,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class NewMfaForm implements OidcStep
+class NewMfaForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -31,9 +28,13 @@ class NewMfaForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Override]
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
         $locale = '';
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
+        $tenant = $input->context->tenant;
+        $challenges = $input->challenges;
 
         $token = $this->publicMfa->configurationForNewMfa($tenant, $challenges->username ?? '');
 
@@ -45,8 +46,8 @@ class NewMfaForm implements OidcStep
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("newmfa.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("newmfa.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
+        $error = $error?->errorMessage
+            ? $translator->get("newmfa.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
             : false;
         $help = $translator->get("newmfa.help");
         $code = $translator->get("newmfa.code");
@@ -63,8 +64,9 @@ class NewMfaForm implements OidcStep
         $image = $token->image ? "<img src=\"" . $token->image . "\" />" : "";
 
         $step = StepInput::STEP_NEW_MFA;
+        $backStep = StepInput::STEP_LOGIN;
         $response->getBody()->write($this->decorator->getFullPage(
-            $request,
+            $input->request,
             'New mfa',
             $js . <<<HTML
                     <h1>{$title}</h1>
@@ -87,7 +89,7 @@ class NewMfaForm implements OidcStep
                         <input class="inline" type="submit" value="RESET" />
                     </form>
                     <form method="POST">
-                        <input type="hidden" name="step" value="start" />
+                        <input type="hidden" name="step" value="{$backStep}" />
                         {$backText}
                     </form>
                 HTML,
@@ -96,60 +98,26 @@ class NewMfaForm implements OidcStep
         return $response;
     }
 
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        ChallengesState $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        $seed = isset($body["seed"]) ? $this->securer->decrypt($body["seed"]) : '';
-        $code = $body['mfa_code'] ?? '';
-        if ($seed && $this->publicMfa->verifyNewOpt($tenant, $challenges->username ?? '', $seed, $code)) {
-            $updated = $challenges->withMfa(true);
-            return $this->publicLogin->preAutenticate($request, $updated, $tenant, $issuer, $csid, $state, $nonce);
-        } else {
-            throw new LoginException(auth: AuthenticationResult::newMfaRequired('wrong_auth_code'));
-        }
-    }
+    #[Override]
+    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    {
+        $csid = (string) ($input->body['csid'] ?? '');
+        $seed = isset($input->body['seed']) ? $this->securer->decrypt((string) $input->body['seed']) : '';
+        $code = $input->body['mfa_code'] ?? '';
 
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-
-        if ($csid !== null) {
-            $auth = $this->autenticate(
+        if ($seed && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
+            $updated = $input->challenges->withMfa(true);
+            return $this->publicLogin->preAutenticate(
                 $input->authRequest,
+                $updated,
                 $input->context->tenant,
                 $input->context->issuer,
                 $csid,
                 $input->context->state,
-                $input->context->nonce,
-                $input->challenges,
-                $input->body ?? []
+                $input->context->nonce
             );
-            return StepResult::proceed($auth);
         }
 
-        $response = $this->paint(
-            $error,
-            $input->context->locale,
-            $base,
-            $input->context->tenant,
-            $input->challenges,
-            $input->body ?? [],
-            $input->request,
-            $response
-        );
-
-        return StepResult::render($response);
+        throw new LoginException(auth: AuthenticationResult::newMfaRequired('wrong_auth_code'));
     }
 }

@@ -67,7 +67,7 @@ final class OidcStepRouterUnitTest extends TestCase
             StepInput::STEP_LOGIN
         );
 
-        $result = $router->resolve('consent', AuthenticationResult::consentRequired());
+        $result = $router->resolve(StepInput::STEP_CONSENT, AuthenticationResult::consentRequired());
 
         $this->assertSame($consent, $result);
     }
@@ -130,8 +130,8 @@ final class OidcStepRouterUnitTest extends TestCase
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
         $form = $this->createMock(LoginForm::class);
         $form->expects($this->once())
-            ->method('run')
-            ->willReturn(StepResult::proceed($authResponse));
+            ->method('authenticate')
+            ->willReturn($authResponse);
         $router = new OidcStepRouter(
             $this->createMock(ConsentForm::class),
             $form,
@@ -176,7 +176,7 @@ final class OidcStepRouterUnitTest extends TestCase
         );
 
         $response = new Response();
-        $result = $router->run($input, $response, null, 'login', 'csid-123');
+        $result = $router->run($input, $response, null, StepInput::STEP_LOGIN, 'csid-123');
 
         $this->assertInstanceOf(StepResult::class, $result);
         $this->assertSame(StepResult::TYPE_PROCEED, $result?->type);
@@ -188,11 +188,10 @@ final class OidcStepRouterUnitTest extends TestCase
      */
     public function testRunRendersWithoutCsid(): void
     {
-        $authResponse = $this->createMock(PublicLoginAuthResponse::class);
         $form = $this->createMock(LoginForm::class);
         $form->expects($this->once())
-            ->method('run')
-            ->willReturn(StepResult::render(new Response()));
+            ->method('render')
+            ->willReturn(new Response());
         $router = new OidcStepRouter(
             $this->createMock(ConsentForm::class),
             $form,
@@ -237,7 +236,7 @@ final class OidcStepRouterUnitTest extends TestCase
         );
 
         $response = new Response();
-        $result = $router->run($input, $response, null, 'login', null);
+        $result = $router->run($input, $response, null, StepInput::STEP_LOGIN, null);
 
         $this->assertInstanceOf(StepResult::class, $result);
         $this->assertSame(StepResult::TYPE_RENDER, $result?->type);

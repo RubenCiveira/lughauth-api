@@ -5,12 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -19,7 +16,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
-class DelegateForm implements OidcStep
+class DelegateForm implements StepForm
 {
     public function __construct(
         private readonly DelegateLogin $delegated,
@@ -29,10 +26,40 @@ class DelegateForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Override]
+    public function authenticate(StepInput $input): PublicLoginAuthResponse
     {
-        $body = $request->getParsedBody();
-        $params = $request->getQueryParams();
+        $route = '/oauth/openid/-/delegated/verify';
+        $body = $input->body ?? [];
+        $result = $this->delegated->validateRedirection(
+            $route,
+            $body['provider'],
+            $body['provider-data'],
+            $input->context->tenant,
+            $input->authRequest
+        );
+        if ($result && $result->valid) {
+            $csid = (string) ($body['csid'] ?? '');
+            $updated = $input->challenges->withUsername($result->id);
+            return $this->publicLogin->preAutenticate(
+                $input->authRequest,
+                $updated,
+                $input->context->tenant,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce
+            );
+        }
+
+        throw new UnauthorizedException('-');
+    }
+
+    #[Override]
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    {
+        $body = $input->request->getParsedBody();
+        $params = $input->request->getQueryParams();
         $route = '/oauth/openid/-/delegated/verify';
         if (isset($params['provider-data']) && isset($params['provider'])) {
             $js = $this->securer->configureScripts([
@@ -41,7 +68,7 @@ class DelegateForm implements OidcStep
             ]);
             $step = StepInput::STEP_DELEGATED_LOGIN;
             $html = $this->decorator->getFullPage(
-                $request,
+                $input->request,
                 'Login',
                 $js . <<<HTML
                     <form id="login" method="POST">
@@ -55,79 +82,22 @@ class DelegateForm implements OidcStep
             );
             $response->getBody()->write($html);
             return $response;
-        } else {
-            $target = $this->delegated->getTargetEndpoint($route, $tenant, $body['delegated-provider'], $request->getQueryParams());
-            if ($target->method == 'GET') {
-                return $response->withStatus(302)->withHeader('Location', $target->url);
-            } else {
-                $response->getBody()->write(
-                    $this->decorator->getFullPage(
-                        $request,
-                        'Delegated login',
-                        "<h1>Tengo que definir el método de url para {$target->method}</h1>",
-                        $locale
-                    )
-                );
-                return $response;
-            }
-        }
-    }
-
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        ChallengesState $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        $route = '/oauth/openid/-/delegated/verify';
-        $result = $this->delegated->validateRedirection($route, $body['provider'], $body['provider-data'], $tenant, $request);
-        if ($result && $result->valid) {
-            $updated = $challenges->withUsername($result->id);
-            return $this->publicLogin->preAutenticate($request, $updated, $tenant, $issuer, $csid, $state, $nonce);
-        } else {
-            throw new UnauthorizedException('-');
-        }
-    }
-
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-
-        if ($csid !== null) {
-            $auth = $this->autenticate(
-                $input->authRequest,
-                $input->context->tenant,
-                $input->context->issuer,
-                $csid,
-                $input->context->state,
-                $input->context->nonce,
-                $input->challenges,
-                $input->body ?? []
-            );
-            return StepResult::proceed($auth);
         }
 
-        $response = $this->paint(
-            $error,
-            $input->context->locale,
-            $base,
-            $input->context->tenant,
-            $input->challenges,
-            $input->body ?? [],
-            $input->request,
-            $response
+        $target = $this->delegated->getTargetEndpoint($route, $input->context->tenant, $body['delegated-provider'], $input->request->getQueryParams());
+        if ($target->method == 'GET') {
+            return $response->withStatus(302)->withHeader('Location', $target->url);
+        }
+
+        $response->getBody()->write(
+            $this->decorator->getFullPage(
+                $input->request,
+                'Delegated login',
+                "<h1>Tengo que definir el método de url para {$target->method}</h1>",
+                $input->context->locale
+            )
         );
-
-        return StepResult::render($response);
+        return $response;
     }
 
 }

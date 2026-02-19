@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\OidcStep;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\StepForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
@@ -21,7 +21,7 @@ use Psr\Http\Message\ResponseInterface;
 
 final class OidcStepRouter
 {
-    /** @var array<string, OidcStep> */
+    /** @var array<string, StepForm> */
     private array $steps;
 
     /** @var array<string, string> */
@@ -60,7 +60,7 @@ final class OidcStepRouter
         ];
     }
 
-    public function resolve(?string $step, ?AuthenticationResult $error): ?OidcStep
+    public function resolve(?string $step, ?AuthenticationResult $error): ?StepForm
     {
         $key = $this->normalizeStep($step);
         if ($key !== null && isset($this->steps[$key])) {
@@ -92,6 +92,22 @@ final class OidcStepRouter
         if (!$form) {
             return null;
         }
-        return $form->run($input, $response, $error, $step, $csid);
+        if ($csid !== null) {
+            $body = $input->body ?? [];
+            $body['csid'] = $csid;
+            $input = new StepInput(
+                context: $input->context,
+                authRequest: $input->authRequest,
+                challenges: $input->challenges,
+                body: $body,
+                request: $input->request
+            );
+
+            $auth = $form->authenticate($input);
+            return StepResult::proceed($auth);
+        }
+
+        $response = $form->render($input, $response, $error);
+        return StepResult::render($response);
     }
 }

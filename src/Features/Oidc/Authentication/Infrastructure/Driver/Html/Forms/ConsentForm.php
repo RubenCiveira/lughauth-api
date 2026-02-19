@@ -5,12 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -20,7 +17,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class ConsentForm implements OidcStep
+class ConsentForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -31,9 +28,13 @@ class ConsentForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Override]
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
         $locale = '';
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
+        $tenant = $input->context->tenant;
+        $challenges = $input->challenges;
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign")
@@ -41,8 +42,8 @@ class ConsentForm implements OidcStep
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("consent.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("consent.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
+        $error = $error?->errorMessage
+            ? $translator->get("consent.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
             : false;
 
         $help = $translator->get("consent.help");
@@ -61,7 +62,7 @@ class ConsentForm implements OidcStep
         $step = StepInput::STEP_CONSENT;
         $response->getBody()->write(
             $this->decorator->getFullPage(
-                $request,
+                $input->request,
                 'Consent',
                 $js . <<< HTML
                     <h1>{$title}</h1>
@@ -91,60 +92,25 @@ class ConsentForm implements OidcStep
         return $response;
     }
 
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        ChallengesState $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        $accept = isset($body['accept']);
+    #[Override]
+    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    {
+        $accept = isset($input->body['accept']);
         if ($accept) {
-            $this->publicConsent->storeAcceptedConsent($tenant, $challenges->username);
-            return $this->publicLogin->preAutenticate($request, $challenges, $tenant, $issuer, $csid, $state, $nonce);
-        } else {
-            throw new LoginException(auth: AuthenticationResult::consentRequired(), message: 'must_accept_condition');
-        }
-    }
-
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-
-        if ($csid !== null) {
-            $auth = $this->autenticate(
+            $this->publicConsent->storeAcceptedConsent($input->context->tenant, $input->challenges->username ?? '');
+            $csid = (string) ($input->body['csid'] ?? '');
+            return $this->publicLogin->preAutenticate(
                 $input->authRequest,
+                $input->challenges,
                 $input->context->tenant,
                 $input->context->issuer,
                 $csid,
                 $input->context->state,
-                $input->context->nonce,
-                $input->challenges,
-                $input->body ?? []
+                $input->context->nonce
             );
-            return StepResult::proceed($auth);
         }
 
-        $response = $this->paint(
-            $error,
-            $input->context->locale,
-            $base,
-            $input->context->tenant,
-            $input->challenges,
-            $input->body ?? [],
-            $input->request,
-            $response
-        );
-
-        return StepResult::render($response);
+        throw new LoginException(auth: AuthenticationResult::consentRequired(), message: 'must_accept_condition');
     }
 
 }

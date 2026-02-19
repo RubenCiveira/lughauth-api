@@ -6,7 +6,6 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use DI\ContainerBuilder;
 use Slim\Psr7\Factory\ServerRequestFactory;
-use Slim\Psr7\Response;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
@@ -14,7 +13,6 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
@@ -74,10 +72,9 @@ final class OidcFormsStepUnitTest extends TestCase
             $this->createMock(HtmlSecurer::class)
         );
 
-        $result = $form->run($input, new Response(), null, 'consent', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     public function testUseMfaFormRunProceeds(): void
@@ -98,10 +95,9 @@ final class OidcFormsStepUnitTest extends TestCase
             $this->createMock(HtmlSecurer::class)
         );
 
-        $result = $form->run($input, new Response(), null, 'mfa', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     public function testNewMfaFormRunProceeds(): void
@@ -134,10 +130,9 @@ final class OidcFormsStepUnitTest extends TestCase
             $securer
         );
 
-        $result = $form->run($input, new Response(), null, 'build-mfa', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     public function testRecoverPassFormRunProceeds(): void
@@ -162,10 +157,9 @@ final class OidcFormsStepUnitTest extends TestCase
             $securer
         );
 
-        $result = $form->run($input, new Response(), null, 'recover-pass', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     public function testNewPassFormRunProceeds(): void
@@ -190,10 +184,9 @@ final class OidcFormsStepUnitTest extends TestCase
             $securer
         );
 
-        $result = $form->run($input, new Response(), null, 'new-pass', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     public function testRegisterUserFormRunProceeds(): void
@@ -219,10 +212,9 @@ final class OidcFormsStepUnitTest extends TestCase
             $securer
         );
 
-        $result = $form->run($input, new Response(), null, 'register-user', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     public function testDelegateFormRunProceeds(): void
@@ -247,14 +239,14 @@ final class OidcFormsStepUnitTest extends TestCase
             $this->createMock(HtmlSecurer::class)
         );
 
-        $result = $form->run($input, new Response(), null, 'delegated-login', 'csid-123');
+        $result = $form->authenticate($input);
 
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($authResponse, $result);
     }
 
     private function buildInput(array $body, ChallengesState $state): StepInput
     {
+        $body = array_merge(['csid' => 'csid-123'], $body);
         $request = (new ServerRequestFactory())
             ->createServerRequest('POST', '/oauth/openid/tenant1/authorize')
             ->withQueryParams([

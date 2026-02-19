@@ -5,21 +5,18 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class LoginForm implements OidcStep
+class LoginForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -30,9 +27,12 @@ class LoginForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Override]
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
     {
         $locale = '';
+        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
+        $tenant = $input->context->tenant;
         $js = $this->securer->configureScripts([
             $this->securer->focusOn("username"),
             $this->securer->addSign("sign"),
@@ -42,8 +42,8 @@ class LoginForm implements OidcStep
 
         $title = $translator->get("login.title");
         $help = $translator->get("login.help", ['tenant' => $tenant]);
-        $error = $pe?->error
-            ? $translator->get("login.error-format", ['error' => $translator->get('error.' . strtolower($pe?->error))])
+        $error = $error?->error
+            ? $translator->get("login.error-format", ['error' => $translator->get('error.' . strtolower($error?->error))])
             : false;
 
         $username = $translator->get("login.username");
@@ -98,7 +98,7 @@ class LoginForm implements OidcStep
 
         $response->getBody()->write(
             $this->decorator->getFullPage(
-                $request,
+                $input->request,
                 'Login',
                 $js . <<<HTML
                     <h1>{$title}</h1>
@@ -125,57 +125,24 @@ class LoginForm implements OidcStep
         return $response;
     }
 
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
+    #[Override]
+    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    {
+        $password = $this->securer->decrypt((string) ($input->body['password'] ?? ''));
+        $username = (string) ($input->body['username'] ?? '');
+        $csid = (string) ($input->body['csid'] ?? '');
+        $challenges = $input->challenges->withUsername($username);
 
-        if ($csid !== null) {
-            $auth = $this->publicLogin->autenticateWithState(
-                $input->authRequest,
-                $input->challenges,
-                $input->context->tenant,
-                (string) ($input->body['username'] ?? ''),
-                $this->securer->decrypt((string) ($input->body['password'] ?? '')),
-                $input->context->issuer,
-                $csid,
-                $input->context->state,
-                $input->context->nonce
-            );
-            return StepResult::proceed($auth);
-        }
-
-        $response = $this->paint(
-            $error,
-            $input->context->locale,
-            $base,
+        return $this->publicLogin->autenticate(
+            $input->authRequest,
+            $challenges,
             $input->context->tenant,
-            $input->challenges,
-            $input->body ?? [],
-            $input->request,
-            $response
+            $username,
+            $password,
+            $input->context->issuer,
+            $csid,
+            $input->context->state,
+            $input->context->nonce
         );
-
-        return StepResult::render($response);
-    }
-
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        ChallengesState $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
-        $password = $this->securer->decrypt((string) ($body["password"] ?? ''));
-        $username = (string) ($body['username'] ?? '');
-        $challenges = $challenges->withUsername($username);
-        return $this->publicLogin->autenticate($request, $challenges, $tenant, $username, $password, $issuer, $csid, $state, $nonce);
     }
 }

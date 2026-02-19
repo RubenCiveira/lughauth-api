@@ -8,15 +8,8 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 
-interface OidcStep
+interface StepRenderer
 {
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult;
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface;
 }

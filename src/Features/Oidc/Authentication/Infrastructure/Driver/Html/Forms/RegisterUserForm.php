@@ -5,12 +5,11 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
+use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -19,7 +18,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-class RegisterUserForm implements OidcStep
+class RegisterUserForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,
@@ -29,80 +28,58 @@ class RegisterUserForm implements OidcStep
     ) {
     }
 
-    private function paint(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+    #[Override]
+    public function authenticate(StepInput $input): PublicLoginAuthResponse
     {
-        $locale = '';
-        $params = $request->getQueryParams();
-        if (($params['verify_send'] ?? 'false') === 'true') {
-            return $this->paintConfirm($pe, $locale, $base, $tenant, $challenges, $body, $request, $response);
-        } elseif ($pe) {
-            return $this->paintWait($pe, $locale, $base, $tenant, $challenges, $body, $request, $response);
-        } else {
-            return $this->paintAsk($pe, $locale, $base, $tenant, $challenges, $body, $request, $response);
-        }
-    }
-
-    public function autenticate(
-        AuthenticationRequest $request,
-        string $tenant,
-        string $issuer,
-        string $csid,
-        string $state,
-        string $nonce,
-        ChallengesState $challenges,
-        mixed $body
-    ): PublicLoginAuthResponse {
+        $body = $input->body ?? [];
         if (isset($body['user'])) {
             $user = $body['user'] ?? '';
             $accept = $body['accept'] ?? false;
             $pass  = $this->securer->decrypt($body["pass"] ?? '');
             if ($accept !== 'accept') {
-                throw new LoginException(AuthenticationResult::unknowUser($tenant, $user, 'conditions_requierd'));
-            } else {
-                $url = $this->publicLogin->askRegisterUser($request, '&_use_code=', $user, $pass, $tenant, $state, $nonce);
-                throw new LoginException(AuthenticationResult::waitNewuserVerify($url));
+                throw new LoginException(AuthenticationResult::unknowUser($input->context->tenant, $user, 'conditions_requierd'));
             }
-        } else {
-            $code = $this->securer->decrypt($body["code"]);
-            return $this->publicLogin->confirmRegisterUser($request, $challenges, $code, $tenant, $issuer, $csid, $state, $nonce);
+
+            $url = $this->publicLogin->askRegisterUser(
+                $input->authRequest,
+                '&_use_code=',
+                $user,
+                $pass,
+                $input->context->tenant,
+                $input->context->state,
+                $input->context->nonce
+            );
+            throw new LoginException(AuthenticationResult::waitNewuserVerify($url));
         }
+
+        $code = $this->securer->decrypt($body["code"]);
+        $csid = (string) ($body['csid'] ?? '');
+        return $this->publicLogin->confirmRegisterUser(
+            $input->authRequest,
+            $input->challenges,
+            $code,
+            $input->context->tenant,
+            $input->context->issuer,
+            $csid,
+            $input->context->state,
+            $input->context->nonce
+        );
     }
 
-    public function run(
-        StepInput $input,
-        ResponseInterface $response,
-        ?AuthenticationResult $error,
-        ?string $step,
-        ?string $csid
-    ): StepResult {
-        $base = rtrim($input->context->baseUrl, '/') . '/oauth';
-
-        if ($csid !== null) {
-            $auth = $this->autenticate(
-                $input->authRequest,
-                $input->context->tenant,
-                $input->context->issuer,
-                $csid,
-                $input->context->state,
-                $input->context->nonce,
-                $input->challenges,
-                $input->body ?? []
-            );
-            return StepResult::proceed($auth);
+    #[Override]
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    {
+        $locale = '';
+        $params = $input->request->getQueryParams();
+        if (($params['verify_send'] ?? 'false') === 'true') {
+            return $this->paintConfirm($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
         }
 
-        $response = $this->paint(
-            $error,
-            $input->context->locale,
-            $base,
-            $input->context->tenant,
-            $input->challenges,
-            $input->body ?? [],
-            $input->request,
-            $response
-        );
+        if ($error) {
+            return $this->paintWait($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+        }
 
-        return StepResult::render($response);
+        return $this->paintAsk($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
     }
 
     private function paintAsk(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface

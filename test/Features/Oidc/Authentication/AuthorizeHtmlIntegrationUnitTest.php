@@ -13,7 +13,6 @@ use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
@@ -82,8 +81,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $consentForm = $this->createMock(ConsentForm::class);
         $consentForm->expects($this->once())
-            ->method('run')
-            ->willReturn(StepResult::render(new Response()));
+            ->method('render')
+            ->willReturn(new Response());
 
         $router = new OidcStepRouter(
             $consentForm,
@@ -159,8 +158,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $loginForm = $this->createMock(LoginForm::class);
         $loginForm->expects($this->once())
-            ->method('run')
-            ->willReturn(StepResult::proceed($authResponse));
+            ->method('authenticate')
+            ->willReturn($authResponse);
 
         $temporals = $this->createMock(TemporalKeysGateway::class);
         $temporals->expects($this->once())

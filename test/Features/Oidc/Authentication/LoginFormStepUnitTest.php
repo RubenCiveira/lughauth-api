@@ -6,7 +6,6 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use DI\ContainerBuilder;
 use Slim\Psr7\Factory\ServerRequestFactory;
-use Slim\Psr7\Response;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
@@ -14,7 +13,6 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -44,9 +42,9 @@ final class LoginFormStepUnitTest extends TestCase
     }
 
     /**
-     * Verifies run() uses StepInput to authenticate when CSID is provided.
+     * Verifies authenticate() uses StepInput values.
      */
-    public function testRunProceedsWithStepInput(): void
+    public function testAuthenticateUsesStepInput(): void
     {
         /* Arrange: build flow context and StepInput. */
         $request = (new ServerRequestFactory())
@@ -80,7 +78,8 @@ final class LoginFormStepUnitTest extends TestCase
             challenges: new ChallengesState(),
             body: [
                 'username' => 'user@example.com',
-                'password' => 'enc-pass'
+                'password' => 'enc-pass',
+                'csid' => 'csid-123'
             ],
             request: $request
         );
@@ -95,7 +94,7 @@ final class LoginFormStepUnitTest extends TestCase
 
         $publicLogin = $this->createMock(PublicLogin::class);
         $publicLogin->expects($this->once())
-            ->method('autenticateWithState')
+            ->method('autenticate')
             ->with(
                 $authRequest,
                 $this->isInstanceOf(ChallengesState::class),
@@ -117,11 +116,10 @@ final class LoginFormStepUnitTest extends TestCase
             $this->createMock(DelegateLogin::class)
         );
 
-        /* Act: run the step with CSID. */
-        $result = $form->run($input, new Response(), null, null, 'csid-123');
+        /* Act: authenticate with StepInput. */
+        $result = $form->authenticate($input);
 
-        /* Assert: proceed result is returned. */
-        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
-        $this->assertSame($authResponse, $result->authResponse);
+        /* Assert: auth response is returned. */
+        $this->assertSame($authResponse, $result);
     }
 }
