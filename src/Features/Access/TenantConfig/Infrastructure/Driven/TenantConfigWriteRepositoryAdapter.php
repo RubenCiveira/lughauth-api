@@ -28,7 +28,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
 
     public function __construct(
         private readonly TenantConfigPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -104,7 +104,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -121,7 +121,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof TenantConfig) ? $reference : $this->conn->retrieve(new TenantConfigFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -139,7 +139,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('tenant-config', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -177,7 +177,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
             $span->end();
         }
     }
-    private function dispach(TenantConfig $entity)
+    private function dispatch(TenantConfig $entity)
     {
         $this->logDebug("Count for Tenant config on adapter ");
         $span = $this->startSpan("Count for Tenant config on adapter");

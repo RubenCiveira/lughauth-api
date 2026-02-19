@@ -104,7 +104,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -121,7 +121,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof UserAccessTemporalCode) ? $reference : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -139,7 +139,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('user-access-temporal-code', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -205,7 +205,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
             $span->end();
         }
     }
-    private function dispatch(UserAccessTemporalCode $entity): void
+    private function dispatch(UserAccessTemporalCode $entity)
     {
         $this->logDebug("Count for User access temporal code on adapter ");
         $span = $this->startSpan("Count for User access temporal code on adapter");

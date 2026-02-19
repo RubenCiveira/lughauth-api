@@ -27,7 +27,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
 
     public function __construct(
         private readonly RelyingPartyPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -103,7 +103,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -120,7 +120,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof RelyingParty) ? $reference : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -138,7 +138,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('relying-party', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -190,7 +190,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
             $span->end();
         }
     }
-    private function dispach(RelyingParty $entity)
+    private function dispatch(RelyingParty $entity)
     {
         $this->logDebug("Count for Relying party on adapter ");
         $span = $this->startSpan("Count for Relying party on adapter");

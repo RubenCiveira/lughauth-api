@@ -32,7 +32,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
     public function __construct(
         private readonly PdoFileStorage $store,
         private readonly TenantTermsOfUsePdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -111,7 +111,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
                 $entity->commitAttachedWith($this->store);
             }
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -139,7 +139,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
                 }
             }
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -161,7 +161,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
             if ($currAttached) {
                 $this->store->deleteFile(new FileStoreKey($currAttached));
             }
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -235,7 +235,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteRep
             $span->end();
         }
     }
-    private function dispach(TenantTermsOfUse $entity)
+    private function dispatch(TenantTermsOfUse $entity)
     {
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");

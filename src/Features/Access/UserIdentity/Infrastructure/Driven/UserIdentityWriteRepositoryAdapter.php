@@ -27,7 +27,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
 
     public function __construct(
         private readonly UserIdentityPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -103,7 +103,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
         $span = $this->startSpan("Count for User identity on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('user-identity', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -120,7 +120,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
         $span = $this->startSpan("Count for User identity on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof UserIdentity) ? $reference : $this->conn->retrieve(new UserIdentityFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -138,7 +138,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
         $span = $this->startSpan("Count for User identity on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('user-identity', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -162,7 +162,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
             $span->end();
         }
     }
-    private function dispach(UserIdentity $entity)
+    private function dispatch(UserIdentity $entity)
     {
         $this->logDebug("Count for User identity on adapter ");
         $span = $this->startSpan("Count for User identity on adapter");

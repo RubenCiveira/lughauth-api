@@ -27,7 +27,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
 
     public function __construct(
         private readonly ApiKeyClientPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -103,7 +103,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -120,7 +120,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -138,7 +138,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('api-key-client', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -190,7 +190,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
             $span->end();
         }
     }
-    private function dispach(ApiKeyClient $entity)
+    private function dispatch(ApiKeyClient $entity)
     {
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");

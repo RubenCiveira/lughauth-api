@@ -27,7 +27,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
 
     public function __construct(
         private readonly TrustedClientPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -103,7 +103,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -120,7 +120,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof TrustedClient) ? $reference : $this->conn->retrieve(new TrustedClientFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -138,7 +138,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('trusted-client', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -176,7 +176,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteRepositor
             $span->end();
         }
     }
-    private function dispach(TrustedClient $entity)
+    private function dispatch(TrustedClient $entity)
     {
         $this->logDebug("Count for Trusted client on adapter ");
         $span = $this->startSpan("Count for Trusted client on adapter");

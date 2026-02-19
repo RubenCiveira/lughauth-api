@@ -28,7 +28,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
 
     public function __construct(
         private readonly UserPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -104,7 +104,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         $span = $this->startSpan("Count for User on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -121,7 +121,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         $span = $this->startSpan("Count for User on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof User) ? $reference : $this->conn->retrieve(new UserFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -139,7 +139,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
         $span = $this->startSpan("Count for User on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('user', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -177,7 +177,7 @@ class UserWriteRepositoryAdapter implements UserWriteRepository
             $span->end();
         }
     }
-    private function dispach(User $entity)
+    private function dispatch(User $entity)
     {
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");

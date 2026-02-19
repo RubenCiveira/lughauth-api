@@ -29,7 +29,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
 
     public function __construct(
         private readonly UserAcceptedTermnsOfUsePdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -105,7 +105,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -122,7 +122,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof UserAcceptedTermnsOfUse) ? $reference : $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -140,7 +140,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -178,7 +178,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
             $span->end();
         }
     }
-    private function dispach(UserAcceptedTermnsOfUse $entity)
+    private function dispatch(UserAcceptedTermnsOfUse $entity)
     {
         $this->logDebug("Count for User accepted termns of use on adapter ");
         $span = $this->startSpan("Count for User accepted termns of use on adapter");

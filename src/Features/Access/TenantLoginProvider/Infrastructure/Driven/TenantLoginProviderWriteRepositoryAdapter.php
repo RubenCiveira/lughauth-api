@@ -33,7 +33,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     public function __construct(
         private readonly PdoFileStorage $store,
         private readonly TenantLoginProviderPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -112,7 +112,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 $entity->commitMetadataWith($this->store);
             }
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -140,7 +140,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 }
             }
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof TenantLoginProvider) ? $reference : $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -162,7 +162,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             if ($currMetadata) {
                 $this->store->deleteFile(new FileStoreKey($currMetadata));
             }
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('tenant-login-provider', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -250,7 +250,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             $span->end();
         }
     }
-    private function dispach(TenantLoginProvider $entity)
+    private function dispatch(TenantLoginProvider $entity)
     {
         $this->logDebug("Count for Tenant login provider on adapter ");
         $span = $this->startSpan("Count for Tenant login provider on adapter");

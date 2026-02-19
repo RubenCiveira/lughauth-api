@@ -27,7 +27,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
 
     public function __construct(
         private readonly TenantPdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -103,7 +103,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -120,7 +120,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof Tenant) ? $reference : $this->conn->retrieve(new TenantFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -138,7 +138,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('tenant', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -190,7 +190,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteRepository
             $span->end();
         }
     }
-    private function dispach(Tenant $entity)
+    private function dispatch(Tenant $entity)
     {
         $this->logDebug("Count for Tenant on adapter ");
         $span = $this->startSpan("Count for Tenant on adapter");

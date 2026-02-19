@@ -28,7 +28,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
 
     public function __construct(
         private readonly RolePdoConnector $conn,
-        private readonly EventDispatcherInterface $Dispatcher,
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly EntityChangelogService $changelog,
     ) {
     }
@@ -104,7 +104,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), []);
             return $created;
         } catch (Throwable $ex) {
@@ -121,7 +121,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $updated = $this->conn->update($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $original = ($reference instanceof Role) ? $reference : $this->conn->retrieve(new RoleFilter(uids: [ $reference->uid() ]));
             $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
@@ -139,7 +139,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $result = $this->conn->delete($entity);
-            $this->dispach($entity);
+            $this->dispatch($entity);
             $this->changelog->recordDeletion('role', $entity->uid(), $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
@@ -177,7 +177,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteRepository
             $span->end();
         }
     }
-    private function dispach(Role $entity)
+    private function dispatch(Role $entity)
     {
         $this->logDebug("Count for Role on adapter ");
         $span = $this->startSpan("Count for Role on adapter");
