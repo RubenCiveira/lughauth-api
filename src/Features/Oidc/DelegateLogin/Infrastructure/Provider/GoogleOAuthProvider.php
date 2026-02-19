@@ -54,7 +54,7 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
         ]));
     }
 
-    #[\Override]
+    #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {
         $provider = new Google([

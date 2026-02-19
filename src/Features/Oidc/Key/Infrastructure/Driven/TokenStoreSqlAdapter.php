@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven;
 
 use PDO;
+use DateTime;
 use Override;
 use Civi\Lughauth\Features\Oidc\Key\Domain\KeyPair;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenStoreGateway;
@@ -26,7 +27,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         if (!$this->useTenant) {
             $tenant = "-";
         }
-        $since = new \DateTime();
+        $since = new DateTime();
         $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE expiration >= :since and since <= :since and tenant = :tenant');
         $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
@@ -44,7 +45,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         if (!$this->useTenant) {
             $tenant = "-";
         }
-        $since = new \DateTime();
+        $since = new DateTime();
         $stmt = $this->pdo->prepare('SELECT MAX(expiration) as expiration FROM _oauth_keys_storer WHERE since >= :since and tenant = :tenant');
         $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
@@ -58,11 +59,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
 
     /**
      * return PublicKey[]
-     *
-     * @return KeyPair[]
-     *
-     * @psalm-return list{0?: KeyPair,...}
-     */
+    */
     #[Override]
     public function listKeys(string $tenant): array
     {
@@ -70,7 +67,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
             $tenant = "-";
         }
         $result = [];
-        $since = new \DateTime();
+        $since = new DateTime();
         $stmt = $this->pdo->prepare('SELECT keyid, private, public FROM _oauth_keys_storer WHERE expiration >= :since and tenant = :tenant');
         $stmt->bindValue('since', $since->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('tenant', $tenant);
@@ -81,9 +78,6 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         return $result;
     }
 
-    /**
-     * @return void
-     */
     #[Override]
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad)
     {
@@ -102,14 +96,14 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
 
     private function clearTemp(): void
     {
-        $now = new \DateTime();
+        $now = new DateTime();
         $expires = $now->sub(new \DateInterval('PT1H'));
         $stmt = $this->pdo->prepare('DELETE FROM _oauth_keys_storer WHERE expiration < :expiration');
         $stmt->bindValue('expiration', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->execute();
     }
 
-    private function map($row): KeyPair
+    private function map(array $row): KeyPair
     {
         return new KeyPair(kid: $row['keyid'], alg: 'RS256', keyUse: 'sig', publicKey: $row['public'], privateKey: $row['private']);
     }
