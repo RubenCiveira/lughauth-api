@@ -87,7 +87,7 @@ class UserSecondFactorSeedVO
     ) {
         $this->validateCyphered($this->secondFactorSeed);
     }
-    private function validateCyphered(?string $key)
+    private function validateCyphered(?string $key): void
     {
         if ($key && strpos($key, 'cyphered://') !== 0) {
             throw new \InvalidArgumentException($key . ' is not a valid chypered text');
@@ -95,14 +95,14 @@ class UserSecondFactorSeedVO
     }
     public function value(): ?string
     {
-        return $this->secondFactorSeed ? "****" . substr($this->secondFactorSeed, -2) : null;
+        return null !== $this->secondFactorSeed ? "****" . substr($this->secondFactorSeed, -2) : null;
     }
     public function cypheredValueWith(AesCypherService $cypher): ?string
     {
-        return $this->secondFactorSeed ? substr($this->secondFactorSeed, 11) : null;
+        return null !== $this->secondFactorSeed ? substr($this->secondFactorSeed, 11) : null;
     }
     public function plainValueWith(AesCypherService $cypher): ?string
     {
-        return $this->secondFactorSeed ? $cypher->decryptForAll(substr($this->secondFactorSeed, 11)) : null;
+        return null !== $this->secondFactorSeed ? $cypher->decryptForAll(substr($this->secondFactorSeed, 11)) : null;
     }
 }

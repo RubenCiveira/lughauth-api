@@ -38,16 +38,16 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
         return $this->conn->retrieveForUpdate(new UserFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?UserFilter $filter = null, ?UserCursor $sort = null): UserSlide
+    public function listForUpdate(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide
     {
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new UserSlide(function ($slide, $next) use ($filter) {
+            return new UserSlide(function (UserSlide $slide, ?UserCursor $next) use ($filter): UserSlide {
                 return $this->listForUpdate($filter, $next);
-            }, new UserCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -115,14 +115,15 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
         }
     }
     #[Override]
-    public function update(UserRef $reference, User $entity): User
+    public function update(UserRef $ref, User $entity): User
     {
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof User) ? $reference : $this->conn->retrieve(new UserFilter(uids: [ $reference->uid() ]));
+            $original = ($ref instanceof User) ? $ref : $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -177,7 +178,7 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
             $span->end();
         }
     }
-    private function dispatch(User $entity)
+    private function dispatch(User $entity): void
     {
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");

@@ -15,7 +15,7 @@ class UserPresetValues
         public readonly ?User $user
     ) {
     }
-    public function with(UserAttributes $attributes)
+    public function with(UserAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

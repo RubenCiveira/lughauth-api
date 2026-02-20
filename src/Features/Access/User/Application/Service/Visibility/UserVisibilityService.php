@@ -84,17 +84,19 @@ class UserVisibilityService
         $this->logDebug("Check visibility of an iterator for User");
         $span = $this->startSpan("Check visibility of an iterator for  User");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new UserRef($value));
+            } elseif ($value instanceof UserRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof \Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new UserFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, UserRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new UserRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -110,7 +112,7 @@ class UserVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (User $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -141,7 +143,7 @@ class UserVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (User $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -249,7 +251,7 @@ class UserVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(UserFilter $filter)
+    private function applyPreVisibilityFilter(UserFilter $filter): UserFilter
     {
         $this->logDebug("Compose visibility filter for User");
         $span = $this->startSpan("Compose visibility filter for  User");

@@ -38,7 +38,7 @@ class UserUpdateParams
     use UserProviderAttributeHolder;
     use UserVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'name' => 'unsetName',
@@ -57,7 +57,7 @@ class UserUpdateParams
 
     public function __construct(UserAttributes|null $att = null)
     {
-        if ($att) {
+        if ($att !== null) {
             $this->uid($att->getUidOrDefault(null));
             $this->tenant($att->getTenantOrDefault(null));
             $this->name($att->getNameOrDefault(null));
@@ -77,51 +77,51 @@ class UserUpdateParams
     public function toAttributes(): UserAttributes
     {
         $att = new UserAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->tenant) {
+        if ($this->tenantAssigned) {
             $att->tenant($this->tenant);
         }
-        if ($this->name) {
+        if ($this->nameAssigned) {
             $att->name($this->name);
         }
-        if ($this->password) {
+        if ($this->passwordAssigned) {
             $att->password($this->password);
         }
-        if ($this->email) {
+        if ($this->emailAssigned) {
             $att->email($this->email);
         }
-        if ($this->wellcomeAt) {
+        if ($this->wellcomeAtAssigned) {
             $att->wellcomeAt($this->wellcomeAt);
         }
-        if ($this->enabled) {
+        if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
         }
-        if ($this->approve) {
+        if ($this->approveAssigned) {
             $att->approve($this->approve);
         }
-        if ($this->temporalPassword) {
+        if ($this->temporalPasswordAssigned) {
             $att->temporalPassword($this->temporalPassword);
         }
-        if ($this->useSecondFactors) {
+        if ($this->useSecondFactorsAssigned) {
             $att->useSecondFactors($this->useSecondFactors);
         }
-        if ($this->secondFactorSeed) {
+        if ($this->secondFactorSeedAssigned) {
             $att->secondFactorSeed($this->secondFactorSeed);
         }
-        if ($this->blockedUntil) {
+        if ($this->blockedUntilAssigned) {
             $att->blockedUntil($this->blockedUntil);
         }
-        if ($this->provider) {
+        if ($this->providerAssigned) {
             $att->provider($this->provider);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

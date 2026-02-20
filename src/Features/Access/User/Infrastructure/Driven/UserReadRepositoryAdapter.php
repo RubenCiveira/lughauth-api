@@ -38,16 +38,16 @@ class UserReadRepositoryAdapter implements UserReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?UserFilter $filter = null, ?UserCursor $sort = null): UserSlide
+    public function list(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide
     {
         $this->logDebug("List for User on adapter ");
         $span = $this->startSpan("List for User on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new UserSlide(function ($slide, $next) use ($filter) {
+            return new UserSlide(function (UserSlide $slide, ?UserCursor $next) use ($filter): UserSlide {
                 return $this->list($filter, $next);
-            }, new UserCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -61,7 +61,7 @@ class UserReadRepositoryAdapter implements UserReadGateway
         $this->logDebug("Retrieve for User on adapter ");
         $span = $this->startSpan("Retrieve for User on adapter");
         try {
-            return $this->conn->retrieve($filter);
+            return $this->conn->retrieve($filter ?? new UserFilter() );
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -70,7 +70,7 @@ class UserReadRepositoryAdapter implements UserReadGateway
         }
     }
     #[Override]
-    public function exists(?UserFilter $filter): bool
+    public function exists(UserFilter $filter): bool
     {
         $this->logDebug("Exists for User on adapter ");
         $span = $this->startSpan("Exists for User on adapter");

@@ -57,8 +57,8 @@ class UserCreateUsecase
             $entity = User::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn ($created) =>
-                            $this->visibility->checkVisibility($created)
+                fn (User $created): bool =>
+                    $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
             return new UserCreateResult($output);

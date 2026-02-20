@@ -34,7 +34,7 @@ class UserTaskAccept implements TaskDescriptorInterface
     }
 
     #[Override]
-    public function finish(TaskContext $state)
+    public function finish(TaskContext $state): void
     {
     }
 

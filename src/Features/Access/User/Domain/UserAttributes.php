@@ -52,7 +52,7 @@ class UserAttributes
     use UserProviderAttributeHolder;
     use UserVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'name' => 'unsetName',
@@ -88,7 +88,12 @@ class UserAttributes
         $version = UserVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new User(
+        }
+        \assert($uid !== null);
+        \assert($tenant !== null);
+        \assert($name !== null);
+        \assert($password !== null);
+        return new User(
             uid: $uid,
             tenant: $tenant,
             name: $name,
@@ -128,7 +133,7 @@ class UserAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

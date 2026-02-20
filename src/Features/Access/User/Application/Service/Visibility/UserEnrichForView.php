@@ -20,7 +20,7 @@ class UserEnrichForView
     {
         return $this->userAttributes;
     }
-    public function with(UserAttributes $userAttributes)
+    public function with(UserAttributes $userAttributes): void
     {
         $this->userAttributes = $userAttributes;
     }

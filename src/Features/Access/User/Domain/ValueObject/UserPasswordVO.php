@@ -20,11 +20,11 @@ class UserPasswordVO
     {
         return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): UserPasswordVO
+    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserPasswordVO
     {
         return self::tryFrom('cyphered://' . $value, $list);
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): UserPasswordVO
+    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserPasswordVO
     {
         return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
     }
@@ -81,7 +81,7 @@ class UserPasswordVO
     ) {
         $this->validateCyphered($this->password);
     }
-    private function validateCyphered(?string $key)
+    private function validateCyphered(?string $key): void
     {
         if ($key && strpos($key, 'cyphered://') !== 0) {
             throw new \InvalidArgumentException($key . ' is not a valid chypered text');

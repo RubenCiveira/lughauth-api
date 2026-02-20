@@ -85,7 +85,7 @@ class UserPdoConnector
         $this->logDebug("Make query for entities for User");
         $span = $this->startSpan("Make query for entities for User");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): User => $this->mapper($row)) : $this->db->query($query, $params, fn (array $row): User => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -98,7 +98,7 @@ class UserPdoConnector
         $this->logDebug("Make raw query for User");
         $span = $this->startSpan("Make raw query for User");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -112,7 +112,7 @@ class UserPdoConnector
         $span = $this->startSpan("Retrieve query for User");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): User => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -126,7 +126,7 @@ class UserPdoConnector
         $span = $this->startSpan("Retrieve query for update of User");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row): User => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -266,7 +266,7 @@ class UserPdoConnector
         $span = $this->startSpan("Execute count sql query for User");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -280,7 +280,7 @@ class UserPdoConnector
         $span = $this->startSpan("Execute count sql query for update of User");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -288,7 +288,7 @@ class UserPdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(User $entity, bool $creation)
+    private function checkDuplicates(User $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for User");
         $span = $this->startSpan("Query to check duplicates for User");
@@ -308,7 +308,7 @@ class UserPdoConnector
             $span->end();
         }
     }
-    private function filter(?UserFilter $filter, ?UserCursor $sort, bool $count)
+    private function filter(?UserFilter $filter, ?UserCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of User");
         $span = $this->startSpan("Build query filter of User");
@@ -416,19 +416,20 @@ class UserPdoConnector
         $this->logDebug("Mapping from sql to entity for User");
         $span = $this->startSpan("Mapping from sql to enttiy for User");
         try {
+            \assert(isset($row['uid'], $row['tenant'], $row['name'], $row['password']));
             return new User(
-                uid: $row['uid'] ?? null,
-                tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
-                name: $row['name'] ?? null,
-                password: UserPasswordVO::fromCypheredText($this->cypher, $row['password'] ?? ''),
+                uid: $row['uid'],
+                tenant: new TenantRef(uid: $row['tenant']),
+                name: $row['name'],
+                password: UserPasswordVO::fromCypheredText($this->cypher, $row['password']),
                 email: $row['email'] ?? null,
-                wellcomeAt: $row['wellcome_at'] ? new \DateTimeImmutable($row['wellcome_at']) : null,
+                wellcomeAt: isset($row['wellcome_at']) && $row['wellcome_at'] ? new \DateTimeImmutable($row['wellcome_at']) : null,
                 enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
                 approve: isset($row['approve']) && $row['approve'] ? UserApproveVO::fromString($row['approve']) : UserApproveVO::empty(),
                 temporalPassword: isset($row['temporal_password']) ? !! $row['temporal_password'] : null,
                 useSecondFactors: isset($row['use_second_factors']) ? !! $row['use_second_factors'] : null,
                 secondFactorSeed: isset($row['second_factor_seed']) && $row['second_factor_seed'] ? UserSecondFactorSeedVO::fromCypheredText($this->cypher, $row['second_factor_seed']) : UserSecondFactorSeedVO::empty(),
-                blockedUntil: $row['blocked_until'] ? new \DateTimeImmutable($row['blocked_until']) : null,
+                blockedUntil: isset($row['blocked_until']) && $row['blocked_until'] ? new \DateTimeImmutable($row['blocked_until']) : null,
                 provider: $row['provider'] ?? null,
                 version: $row['version'] ?? null,
             );

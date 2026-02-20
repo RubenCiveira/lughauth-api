@@ -15,7 +15,8 @@ class UserCreateEnrich
     public function getResult(): UserAttributes
     {
         return $this->result;
-    }  public function with(UserAttributes $result)
+    }
+    public function with(UserAttributes $result): void
     {
         $this->result = $result;
     }

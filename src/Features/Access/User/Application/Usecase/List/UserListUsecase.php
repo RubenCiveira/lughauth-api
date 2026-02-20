@@ -14,6 +14,8 @@ use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserAttributesSlide;
+use Civi\Lughauth\Features\Access\User\Domain\User;
+use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -70,7 +72,13 @@ class UserListUsecase
                 throw new UnauthorizedException($allow->reason);
             }
             $slide = $this->visibility->listVisibles($filter, $cursor);
-            return new UserAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($item)), $slide->values()));
+            return new UserAttributesSlide(
+                $slide->nextCursor(),
+                array_map(
+                    fn (User $item): UserAttributes => $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($item)),
+                    $slide->values()
+                )
+            );
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

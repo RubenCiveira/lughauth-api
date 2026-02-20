@@ -13,7 +13,7 @@ class UserRestrictFilterToVisibility
         public UserFilter $userFilter
     ) {
     }
-    public function with(UserFilter $userFilter)
+    public function with(UserFilter $userFilter): void
     {
         $this->userFilter = $userFilter;
     }
