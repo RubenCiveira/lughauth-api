@@ -137,7 +137,7 @@ class LoginForm implements StepForm
         $csid = (string) ($input->body['csid'] ?? '');
         $challenges = $input->challenges->withUsername($username);
 
-        return $this->authenticator->autenticate(
+        return $this->authenticator->authenticate(
             $input->authRequest,
             $challenges,
             $input->context->tenant,

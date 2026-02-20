@@ -23,25 +23,25 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\CreateRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create\RelyingPartyCreateAllowDecision;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update\RelyingPartyUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Update\UpdateRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Retrieve\RetrieveRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\RelyingPartyRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\List\ListRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\List\RelyingPartyListAllowDecision;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\List\IsAuthenticatedListAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Delete\DeleteRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Delete\RelyingPartyDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\EnableRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Enable\RelyingPartyEnableAllowDecision;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\DisableRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
-use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
@@ -55,19 +55,19 @@ class RelyingPartyPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(RelyingPartyCreateAllowDecision::class, CreateRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(RelyingPartyUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(RelyingPartyCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $bus->registerListener(RelyingPartyUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(RelyingPartyUpdateAllowDecision::class, UpdateRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, RetrieveRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
         $bus->registerListener(RelyingPartyListAllowDecision::class, ListRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(RelyingPartyListAllowDecision::class, IsAuthenticatedListAllow::class);
         $bus->registerListener(RelyingPartyDeleteAllowDecision::class, DeleteRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(RelyingPartyDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $bus->registerListener(RelyingPartyEnableAllowDecision::class, EnableRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(RelyingPartyEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
         $bus->registerListener(RelyingPartyDisableAllowDecision::class, DisableRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(RelyingPartyDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

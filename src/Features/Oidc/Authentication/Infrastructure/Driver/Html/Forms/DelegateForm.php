@@ -42,7 +42,7 @@ class DelegateForm implements StepForm
         if ($result && $result->valid) {
             $csid = (string) ($body['csid'] ?? '');
             $updated = $input->challenges->withUsername($result->id);
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,

@@ -107,7 +107,7 @@ class NewMfaForm implements StepForm
 
         if ($seed && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
             $updated = $input->challenges->withMfa(true);
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,

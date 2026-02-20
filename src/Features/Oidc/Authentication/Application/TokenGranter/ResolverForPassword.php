@@ -24,7 +24,7 @@ class ResolverForPassword implements TokenGranterStrategy
     }
 
     #[Override]
-    public function autenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
+    public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {
         return $this->userLoginGateway->validatedUserData($tenant, $params['username'], $params['password'], $client);
     }

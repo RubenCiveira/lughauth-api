@@ -21,15 +21,15 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility\UserIdentityRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Create\UserIdentityCreateAllowDecision;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Update\UserIdentityUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Retrieve\UserIdentityRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsAuthenticatedListAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
-use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
 
 class UserIdentityPlugin extends MicroPlugin
@@ -44,11 +44,11 @@ class UserIdentityPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(UserIdentityRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(UserIdentityCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(UserIdentityUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(UserIdentityListAllowDecision::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(UserIdentityCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $bus->registerListener(UserIdentityUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $bus->registerListener(UserIdentityRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $bus->registerListener(UserIdentityListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(UserIdentityDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

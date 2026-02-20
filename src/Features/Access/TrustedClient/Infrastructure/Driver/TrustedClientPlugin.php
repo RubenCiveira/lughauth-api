@@ -23,25 +23,25 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\CreateTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Update\UpdateTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\RetrieveTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\TrustedClientRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\ListTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\List\TrustedClientListAllowDecision;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\List\IsAuthenticatedListAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\DeleteTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\EnableTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\DisableTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -55,19 +55,19 @@ class TrustedClientPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
         $bus->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
+        $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(TrustedClientUpdateAllowDecision::class, UpdateTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
+        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
         $bus->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientListAllowDecision::class, IsAutenticatedListAllow::class);
+        $bus->registerListener(TrustedClientListAllowDecision::class, IsAuthenticatedListAllow::class);
         $bus->registerListener(TrustedClientDeleteAllowDecision::class, DeleteTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $bus->registerListener(TrustedClientEnableAllowDecision::class, EnableTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
+        $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
         $bus->registerListener(TrustedClientDisableAllowDecision::class, DisableTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
+        $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -85,7 +85,7 @@ class AuthorizeHtml
                 ->withMfa($sess->withMfa)
                 ->withSession(true);
             // auth-csid
-            $auth = $this->authenticator->sessionAutenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
+            $auth = $this->authenticator->sessionAuthenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
             return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $authRequest);
         } else {
             return $this->redirectToLogin($response, $flow);

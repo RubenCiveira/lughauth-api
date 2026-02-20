@@ -26,21 +26,21 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibilit
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\List\IsAuthenticatedListAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\UploadAttached\IsAutenticatedUploadAttachedAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\UploadAttached\IsAuthenticatedUploadAttachedAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\UploadAttached\TenantTermsOfUseUploadAttachedAllowDecision;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
@@ -56,14 +56,14 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     {
         $bus->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $bus->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantTermsOfUseListAllowDecision::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAutenticatedUploadAttachedAllow::class);
+        $bus->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $bus->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $bus->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $bus->registerListener(TenantTermsOfUseListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $bus->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAuthenticatedUploadAttachedAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

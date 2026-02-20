@@ -106,7 +106,7 @@ class ScopesConsentForm implements StepForm
 
         $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope);
         if (!$pending) {
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $input->challenges,
                 $tenant,
@@ -140,7 +140,7 @@ class ScopesConsentForm implements StepForm
             audiences: $input->authRequest->audiences
         );
 
-        return $this->authenticator->preAutenticate(
+        return $this->authenticator->preAuthenticate(
             $authRequest,
             $input->challenges,
             $tenant,

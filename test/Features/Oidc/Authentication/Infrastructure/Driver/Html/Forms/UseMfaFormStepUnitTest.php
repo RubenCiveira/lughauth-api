@@ -26,7 +26,7 @@ final class UseMfaFormStepUnitTest extends FormsTestCase
 
         $authenticator = $this->createMock(AuthenticateUser::class);
         $authenticator->expects($this->once())
-            ->method('preAutenticate')
+            ->method('preAuthenticate')
             ->willReturn($authResponse);
 
         $form = new UseMfaForm(

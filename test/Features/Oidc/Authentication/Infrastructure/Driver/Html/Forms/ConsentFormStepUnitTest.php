@@ -26,7 +26,7 @@ final class ConsentFormStepUnitTest extends FormsTestCase
 
         $authenticator = $this->createMock(AuthenticateUser::class);
         $authenticator->expects($this->once())
-            ->method('preAutenticate')
+            ->method('preAuthenticate')
             ->willReturn($authResponse);
 
         $consent = $this->createMock(ConsentUsecase::class);

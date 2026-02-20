@@ -16,7 +16,7 @@ class TokenGranterMediator
         $this->granters = [ $passResolver, $refreshResolver ];
     }
 
-    public function autenticate(
+    public function authenticate(
         string $grantType,
         string $tenant,
         AuthenticationRequest $client,
@@ -24,7 +24,7 @@ class TokenGranterMediator
     ): ?AuthenticationResult {
         foreach ($this->granters as $granter) {
             if ($granter->canHandle($grantType, $params)) {
-                return $granter->autenticate($tenant, $client, $params);
+                return $granter->authenticate($tenant, $client, $params);
             }
         }
         return null;

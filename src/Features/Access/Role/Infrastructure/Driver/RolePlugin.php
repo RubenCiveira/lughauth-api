@@ -19,15 +19,15 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAuthenticatedListAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
 
 class RolePlugin extends MicroPlugin
@@ -41,11 +41,11 @@ class RolePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $bus): void
     {
-        $bus->registerListener(RoleCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(RoleUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(RoleRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(RoleListAllowDecision::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(RoleDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
+        $bus->registerListener(RoleCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $bus->registerListener(RoleUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $bus->registerListener(RoleRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $bus->registerListener(RoleListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(RoleDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

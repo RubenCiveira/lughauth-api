@@ -81,7 +81,7 @@ final class LoginFormStepUnitTest extends FormsTestCase
 
         $authenticator = $this->createMock(AuthenticateUser::class);
         $authenticator->expects($this->once())
-            ->method('autenticate')
+            ->method('authenticate')
             ->with(
                 $authRequest,
                 $this->isInstanceOf(ChallengesState::class),

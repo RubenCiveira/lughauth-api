@@ -12,7 +12,7 @@ interface TokenGranterStrategy
 {
     public function canHandle(string $grantType, array $params): bool;
 
-    public function autenticate(
+    public function authenticate(
         string $tenant,
         AuthenticationRequest $client,
         array $params

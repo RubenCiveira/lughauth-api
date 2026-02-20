@@ -37,7 +37,7 @@ class NewPassForm implements StepForm
         $newpass = $this->securer->decrypt($body["new_pass"]);
         $csid = (string) ($body['csid'] ?? '');
         if ($this->changePassword->forceUpdatePassword($input->context->tenant, $input->challenges->username ?? '', $oldpass, $newpass)) {
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $input->challenges,
                 $input->context->tenant,

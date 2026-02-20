@@ -23,7 +23,7 @@ class AuthenticateUser
     ) {
     }
 
-    public function sessionAutenticated(
+    public function sessionAuthenticated(
         AuthenticationRequest $request,
         ChallengesState $challenges,
         string $tenant,
@@ -43,7 +43,7 @@ class AuthenticateUser
         );
     }
 
-    public function preAutenticate(
+    public function preAuthenticate(
         AuthenticationRequest $request,
         ChallengesState $challenges,
         string $tenant,
@@ -63,7 +63,7 @@ class AuthenticateUser
         );
     }
 
-    public function autenticate(
+    public function authenticate(
         AuthenticationRequest $request,
         ChallengesState $challenges,
         string $tenant,
@@ -85,7 +85,7 @@ class AuthenticateUser
         );
     }
 
-    public function autenticateWithState(
+    public function authenticateWithState(
         AuthenticationRequest $request,
         ChallengesState $challenges,
         string $tenant,
@@ -96,7 +96,7 @@ class AuthenticateUser
         string $stateValue,
         string $nonce
     ): PublicLoginAuthResponse {
-        return $this->autenticate($request, $challenges, $tenant, $username, $password, $issuer, $csid, $stateValue, $nonce);
+        return $this->authenticate($request, $challenges, $tenant, $username, $password, $issuer, $csid, $stateValue, $nonce);
     }
 
     private function saveIt(

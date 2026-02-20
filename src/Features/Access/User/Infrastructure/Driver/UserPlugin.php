@@ -28,25 +28,25 @@ use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestri
 use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Create\IsAutenticatedCreateAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update\IsAutenticatedUpdateAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\IsAutenticatedRetrieveAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\IsAutenticatedListAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\IsAuthenticatedListAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\IsAutenticatedDeleteAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Accept\IsAutenticatedAcceptAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Accept\IsAuthenticatedAcceptAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Accept\UserAcceptAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\IsAutenticatedRejectAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\IsAuthenticatedRejectAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable\IsAutenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\IsAutenticatedEnableAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAutenticatedUnlockAllow;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAuthenticatedUnlockAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 
 class UserPlugin extends MicroPlugin
@@ -62,16 +62,16 @@ class UserPlugin extends MicroPlugin
     {
         $bus->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
         $bus->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $bus->registerListener(UserCreateAllowDecision::class, IsAutenticatedCreateAllow::class);
-        $bus->registerListener(UserUpdateAllowDecision::class, IsAutenticatedUpdateAllow::class);
-        $bus->registerListener(UserRetrieveAllowDecision::class, IsAutenticatedRetrieveAllow::class);
-        $bus->registerListener(UserListAllowDecision::class, IsAutenticatedListAllow::class);
-        $bus->registerListener(UserDeleteAllowDecision::class, IsAutenticatedDeleteAllow::class);
-        $bus->registerListener(UserAcceptAllowDecision::class, IsAutenticatedAcceptAllow::class);
-        $bus->registerListener(UserRejectAllowDecision::class, IsAutenticatedRejectAllow::class);
-        $bus->registerListener(UserDisableAllowDecision::class, IsAutenticatedDisableAllow::class);
-        $bus->registerListener(UserEnableAllowDecision::class, IsAutenticatedEnableAllow::class);
-        $bus->registerListener(UserUnlockAllowDecision::class, IsAutenticatedUnlockAllow::class);
+        $bus->registerListener(UserCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $bus->registerListener(UserUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $bus->registerListener(UserRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $bus->registerListener(UserListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(UserDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $bus->registerListener(UserAcceptAllowDecision::class, IsAuthenticatedAcceptAllow::class);
+        $bus->registerListener(UserRejectAllowDecision::class, IsAuthenticatedRejectAllow::class);
+        $bus->registerListener(UserDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $bus->registerListener(UserEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $bus->registerListener(UserUnlockAllowDecision::class, IsAuthenticatedUnlockAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

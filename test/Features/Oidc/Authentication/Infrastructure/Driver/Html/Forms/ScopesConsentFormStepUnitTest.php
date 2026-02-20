@@ -56,7 +56,7 @@ final class ScopesConsentFormStepUnitTest extends FormsTestCase
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
         $authenticator = $this->createMock(AuthenticateUser::class);
         $authenticator->expects($this->once())
-            ->method('preAutenticate')
+            ->method('preAuthenticate')
             ->with(
                 $this->callback(function (AuthenticationRequest $request): bool {
                     $this->assertSame('openid email', $request->scope);

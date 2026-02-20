@@ -88,7 +88,7 @@ class UseMfaForm implements StepForm
         $challenges = $input->challenges;
 
         if ($challenges->withMfa) {
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $challenges,
                 $input->context->tenant,
@@ -102,7 +102,7 @@ class UseMfaForm implements StepForm
         $otp = $input->body['mfa_code'] ?? '';
         if ($this->publicMfa->verifyOtp($input->context->tenant, $challenges->username ?? '', $otp)) {
             $updated = $challenges->withMfa(true);
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,

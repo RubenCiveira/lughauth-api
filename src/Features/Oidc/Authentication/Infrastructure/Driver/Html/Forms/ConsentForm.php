@@ -99,7 +99,7 @@ class ConsentForm implements StepForm
         if ($accept) {
             $this->publicConsent->storeAcceptedConsent($input->context->tenant, $input->challenges->username ?? '');
             $csid = (string) ($input->body['csid'] ?? '');
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $input->challenges,
                 $input->context->tenant,

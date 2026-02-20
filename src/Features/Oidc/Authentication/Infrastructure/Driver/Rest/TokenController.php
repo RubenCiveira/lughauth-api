@@ -53,7 +53,7 @@ class TokenController
             $scopes = $params['scope'] ?? $originalScope;
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
-            $auth = $this->granter->autenticate(
+            $auth = $this->granter->authenticate(
                 $grant,
                 $tenant,
                 new AuthenticationRequest($client, $originalScope, "", null, [$client->id, ...$audiences]),
@@ -72,7 +72,7 @@ class TokenController
                 throw new UnauthorizedException(message: 'Unauthorized.');
             }
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
-            $auth = $this->granter->autenticate(
+            $auth = $this->granter->authenticate(
                 $grant,
                 $tenant,
                 new AuthenticationRequest($client, "", "", null, [$client->id, ...$audiences]),

@@ -61,7 +61,7 @@ class RegisterUserForm implements StepForm
         $user = $this->registerUser->verifyRegister($input->context->tenant, $code);
         if ($user) {
             $updated = $input->challenges->withUsername($user);
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,

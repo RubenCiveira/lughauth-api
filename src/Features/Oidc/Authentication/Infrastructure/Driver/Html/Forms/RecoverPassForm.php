@@ -56,7 +56,7 @@ class RecoverPassForm implements StepForm
         $user = $this->changePassword->validateChangeRequest($input->context->tenant, $code, $newpass);
         if ($user) {
             $updated = $input->challenges->withUsername($user);
-            return $this->authenticator->preAutenticate(
+            return $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,
