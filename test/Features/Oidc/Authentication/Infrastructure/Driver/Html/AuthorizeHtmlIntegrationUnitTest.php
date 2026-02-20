@@ -155,16 +155,27 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->with('signed-csid')
             ->willReturn('csid-123');
 
-        $authResponse = $this->createMock(PublicLoginAuthResponse::class);
-        $authResponse->expects($this->once())
-            ->method('getSessionId')
-            ->willReturn('sess-123');
-        $authResponse->expects($this->once())
-            ->method('getSessionExpiration')
-            ->willReturn(new \DateInterval('PT10M'));
-        $authResponse->expects($this->once())
-            ->method('asAuthenticationResult')
-            ->willReturn(new AuthenticationResult(valid: true, id: 'user-1'));
+        $authResponse = new PublicLoginAuthResponse(
+            tenant: 'tenant1',
+            authData: [
+                'aud' => ['client-123'],
+                'azp' => 'client-123',
+                'iss' => 'https://example.com/oauth/openid/tenant1',
+                'sub' => 'user-1',
+                'name' => 'User 1',
+                'email' => 'user@example.com',
+                'tenant' => 'tenant1',
+                'tenant-name' => 'Tenant 1',
+                'scope' => 'openid',
+                'roles' => [],
+                'groups' => []
+            ],
+            authExpiration: new \DateInterval('PT10M'),
+            idData: [],
+            idExpiration: new \DateInterval('PT10M'),
+            sessionId: 'sess-123',
+            sessionExpiration: new \DateInterval('PT10M')
+        );
 
         $loginForm = $this->createMock(LoginForm::class);
         $loginForm->expects($this->once())

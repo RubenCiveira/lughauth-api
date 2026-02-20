@@ -182,12 +182,12 @@ class AuthorizeHtml
     ): ResponseInterface {
         $cookie = new Cookie(
             name: 'AUTH_SESSION_ID_' . strtoupper($tenant),
-            value: $auth->getSessionId(),
+            value: $auth->sessionId,
             path: $base . '/openid/' . $tenant . '/',
             secure: false,
             sameSite: true,
             httpOnly: true,
-            expiration: $auth->getSessionExpiration()
+            expiration: $auth->sessionExpiration
         );
         $location = $redirect;
         $hasCode =  $this->hasResponse($responseType, 'code');
@@ -205,18 +205,33 @@ class AuthorizeHtml
         }
         $hasId = $this->hasResponse($responseType, 'id_token');
         $hasAccess = $this->hasResponse($responseType, 'token');
+        $accessToken = null;
         if ($hasId) {
-            $location .= '&id_token=' . $auth->withIdToken($hasAccess);
+            $idData = array_merge($auth->authData, $auth->idData);
+            if ($hasAccess) {
+                $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
+                $idData['at_hash'] = self::generateHash($accessToken);
+            }
+            $location .= '&id_token=' . $this->keys->sign($auth->tenant, $idData, $auth->idExpiration);
         }
         if ($hasAccess) {
             $now = new \DateTimeImmutable();
-            $until = $now->add($auth->getAccessExpiration());
-
-            $location .= '&access_token=' . $auth->withAccessToken();
+            $until = $now->add($auth->authExpiration);
+            if ($accessToken === null) {
+                $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
+            }
+            $location .= '&access_token=' . $accessToken;
             $location .= '&expires_in=' . ($until->getTimestamp() - $now->getTimestamp());
         }
         $response = $response->withStatus(302)->withHeader('Location', $location);
         return $cookie->attach($response);
+    }
+
+    private static function generateHash(string $value): string
+    {
+        $hashedValue = hash('sha256', $value, true);
+        $halfHashedValue = substr($hashedValue, 0, strlen($hashedValue) / 2);
+        return rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
     }
 
     private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride): ResponseInterface

@@ -7,20 +7,17 @@ namespace Civi\Lughauth\Features\Oidc\User\Domain;
 
 use DateInterval;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 
 class PublicLoginAuthResponse
 {
-    private $authToken;
     public function __construct(
-        private readonly string $tenant,
-        private readonly KeysManagerService $manager,
-        private readonly array $authData,
-        private readonly DateInterval $authExpiration,
-        private readonly array $idData,
-        private readonly DateInterval $idExpiration,
-        private readonly string $sessionId,
-        private readonly DateInterval $sessionExpiration
+        public readonly string $tenant,
+        public readonly array $authData,
+        public readonly DateInterval $authExpiration,
+        public readonly array $idData,
+        public readonly DateInterval $idExpiration,
+        public readonly string $sessionId,
+        public readonly DateInterval $sessionExpiration
     ) {
     }
 
@@ -40,46 +37,4 @@ class PublicLoginAuthResponse
         );
     }
 
-    public function withIdToken(bool $alsoAccess): string
-    {
-        $data = array_merge($this->authData, $this->idData);
-        if ($alsoAccess) {
-            $data['at_hash'] = $this->generateHash($this->withAccessToken());
-        }
-        return $this->manager->sign($this->tenant, $data, $this->idExpiration);
-    }
-
-    public function withAccessToken(): string
-    {
-        if (!$this->authToken) {
-            $this->authToken = $this->manager->sign($this->tenant, $this->authData, $this->authExpiration);
-        }
-        return $this->authToken;
-    }
-
-    public function getSessionId(): string
-    {
-        return $this->sessionId;
-    }
-
-    public function getSessionExpiration(): DateInterval
-    {
-        return $this->sessionExpiration;
-    }
-
-    public function getAccessExpiration(): DateInterval
-    {
-        return $this->authExpiration;
-    }
-
-    private function generateHash(string $value): string
-    {
-        // Obtener la instancia de SHA-256
-        $hashedValue = hash('sha256', $value, true);
-        // Tomar la primera mitad de los bytes resultantes
-        $halfHashedValue = substr($hashedValue, 0, strlen($hashedValue) / 2);
-        // Codificar la mitad del hash en base64url sin relleno
-        $base64Url = rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
-        return $base64Url;
-    }
 }

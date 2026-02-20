@@ -11,7 +11,6 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
@@ -20,8 +19,7 @@ class AuthenticateUser
 {
     public function __construct(
         private readonly LoginGateway $loginRepository,
-        private readonly SessionStoreGateway $sessionStore,
-        private readonly KeysManagerService $manager
+        private readonly SessionStoreGateway $sessionStore
     ) {
     }
 
@@ -140,7 +138,6 @@ class AuthenticateUser
 
         return new PublicLoginAuthResponse(
             tenant: $validation->tenant,
-            manager: $this->manager,
             authData: $authData,
             authExpiration: new DateInterval("PT10M"),
             idData: $idData,
