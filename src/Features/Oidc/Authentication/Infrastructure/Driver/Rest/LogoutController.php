@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use Psr\Http\Message\ResponseInterface;
@@ -19,7 +20,8 @@ class LogoutController
     public function __construct(
         private readonly Context $context,
         private readonly SessionManager $sessionStore,
-        private readonly ClientStoreGateway $clients
+        private readonly ClientStoreGateway $clients,
+        private readonly KeysManagerService $keys
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
     }
@@ -35,6 +37,11 @@ class LogoutController
 
         $redirectUri = $query['post_logout_redirect_uri'] ?? '';
         $clientId = $query['client_id'] ?? '';
+
+        if ($clientId === '' && isset($query['id_token_hint'])) {
+            $payload = $this->keys->verifyTokenPayload($tenant, $query['id_token_hint']);
+            $clientId = $payload['azp'] ?? '';
+        }
 
         if ($redirectUri === '' || $clientId === '' || !$this->isAllowedRedirect($clientId, $tenant, $redirectUri)) {
             $response->getBody()->write('{"error":"invalid_request"}');
