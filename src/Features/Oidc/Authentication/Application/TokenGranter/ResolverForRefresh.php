@@ -9,14 +9,14 @@ use Override;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\LoginUsecase;
 
 class ResolverForRefresh implements TokenGranterStrategy
 {
     public function __construct(
         private readonly LoginUsecase $userLoginGateway,
-        private readonly KeysManagerService $manager
+        private readonly TokenSigner $manager
     ) {
 
     }

@@ -14,6 +14,7 @@ use Jose\Component\Core\AlgorithmManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Exception\SignatureVerificationException;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Shared\Security\AesCypherService;
@@ -137,7 +138,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
                 // Retornar el valor del claim 'identity', si existe
                 return $payload['identity'] ?? null;
             } else {
-                throw new \Exception("Signature verification failed");
+                throw new SignatureVerificationException("Signature verification failed");
             }
         } catch (\Exception $e) {
             if ($fallback === null) {

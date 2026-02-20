@@ -14,7 +14,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\TokenGranter\TokenGranterMediator;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 
 class TokenController
@@ -24,7 +24,7 @@ class TokenController
         private readonly TokenGranterMediator $granter,
         private readonly ClientStoreGateway $clientDataGateway,
         private readonly TemporalKeysGateway $temporals,
-        private readonly KeysManagerService $manager
+        private readonly TokenSigner $manager
     ) {
     }
 

@@ -9,11 +9,11 @@ use DateInterval;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\SimpleCache\CacheInterface;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 
 class JwksController
 {
-    public function __construct(private readonly KeysManagerService $tokenHandler, private readonly CacheInterface $cacheInterface)
+    public function __construct(private readonly TokenSigner $tokenHandler, private readonly CacheInterface $cacheInterface)
     {
     }
 

@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 
@@ -18,7 +18,7 @@ class OidcCookieManager
 
     public function __construct(
         private readonly Context $context,
-        private readonly KeysManagerService $keys
+        private readonly TokenSigner $keys
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
     }

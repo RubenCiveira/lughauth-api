@@ -15,6 +15,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\TokenC
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\UserInfoController;
 use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driver\Rest\ApiKeyController;
 use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest\JwksController;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven\JoseTokenSigner;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Rest\OpenIdConfigurationController;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driven\ClientStoreAdapter;
@@ -55,6 +57,7 @@ class OidcPlugin extends MicroPlugin
         $def[SessionStoreGateway::class] = \DI\autowire(SessionStoreSqlAdapter::class);
         $def[TemporalKeysGateway::class] = \DI\autowire(TemporalKeysSqlAdapter::class);
         $def[TokenStoreGateway::class] = \DI\autowire(TokenStoreSqlAdapter::class);
+        $def[TokenSigner::class] = \DI\autowire(JoseTokenSigner::class);
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);

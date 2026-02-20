@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use Psr\Http\Message\ResponseInterface;
@@ -21,7 +21,7 @@ class LogoutController
         private readonly Context $context,
         private readonly SessionManager $sessionStore,
         private readonly ClientStoreGateway $clients,
-        private readonly KeysManagerService $keys
+        private readonly TokenSigner $keys
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
     }

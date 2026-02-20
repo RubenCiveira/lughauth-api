@@ -7,9 +7,10 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
@@ -17,7 +18,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 class OidcResponseBuilder
 {
     public function __construct(
-        private readonly KeysManagerService $keys,
+        private readonly TokenSigner $keys,
         private readonly TemporalKeysGateway $temporals,
         private readonly OidcCookieManager $cookies
     ) {
@@ -58,7 +59,7 @@ class OidcResponseBuilder
             $idData = array_merge($auth->authData, $auth->idData);
             if ($hasAccess) {
                 $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
-                $idData['at_hash'] = self::generateHash($accessToken);
+                $idData['at_hash'] = AuthenticateUser::generateHash($accessToken);
             }
             $location .= '&id_token=' . $this->keys->sign($auth->tenant, $idData, $auth->idExpiration);
         }
@@ -81,10 +82,4 @@ class OidcResponseBuilder
         return !!preg_match('/(?<=^|\s)' . $token . '(?=\s|$)/', $responseType);
     }
 
-    private static function generateHash(string $value): string
-    {
-        $hashedValue = hash('sha256', $value, true);
-        $halfHashedValue = substr($hashedValue, 0, strlen($hashedValue) / 2);
-        return rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
-    }
 }

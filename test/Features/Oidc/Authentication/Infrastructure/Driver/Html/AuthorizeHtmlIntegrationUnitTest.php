@@ -32,7 +32,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 
 /**
@@ -216,9 +216,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $registerForm
         );
 
-        $cookies = new OidcCookieManager($context, $this->createMock(KeysManagerService::class));
+        $cookies = new OidcCookieManager($context, $this->createMock(TokenSigner::class));
         $responseBuilder = new OidcResponseBuilder(
-            $this->createMock(KeysManagerService::class),
+            $this->createMock(TokenSigner::class),
             $temporals,
             $cookies
         );
