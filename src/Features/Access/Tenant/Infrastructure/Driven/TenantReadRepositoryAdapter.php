@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Connector\Pdo\TenantPdoConnector;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadRepository;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class TenantReadRepositoryAdapter implements TenantReadRepository
+class TenantReadRepositoryAdapter implements TenantReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

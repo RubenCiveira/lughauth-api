@@ -5,57 +5,21 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Closure;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientWriteRepositoryAdapter;
 
-class ApiKeyClientWriteGateway
+interface ApiKeyClientWriteGateway
 {
-    private ApiKeyClientWriteRepository $repository;
-    public function __construct(ContainerInterface $container, ?ApiKeyClientWriteRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(ApiKeyClientWriteRepositoryAdapter::class);
-    }
-    public function create(ApiKeyClient $entity, ?Closure $verify = null): ApiKeyClient
-    {
-        return $this->repository->create($entity, $verify);
-    }
-    public function update(ApiKeyClientRef $ref, ApiKeyClient $entity): ApiKeyClient
-    {
-        return $this->repository->update($ref, $entity);
-    }
-    public function delete(ApiKeyClient $entity): bool
-    {
-        return $this->repository->delete($entity);
-    }
-    public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide
-    {
-        return $this->repository->listForUpdate($filter, $cursor);
-    }
-    public function retrieveForUpdate(ApiKeyClientFilter $filter): ?ApiKeyClient
-    {
-        return $this->repository->retrieveForUpdate($filter);
-    }
-    public function existsForUpdate(?ApiKeyClientFilter $filter): bool
-    {
-        return $this->repository->existsForUpdate($filter);
-    }
-    public function countForUpdate(?ApiKeyClientFilter $filter = null): int
-    {
-        return $this->repository->countForUpdate($filter);
-    }
-    public function findOneForUpdateByUid(string $uid): ?ApiKeyClient
-    {
-        return $this->repository->findOneForUpdateByUid($uid);
-    }
-    public function findOneForUpdateByCode(string $code): ?ApiKeyClient
-    {
-        return $this->repository->findOneForUpdateByCode($code);
-    }
-    public function findOneForUpdateByKey(?string $key): ?ApiKeyClient
-    {
-        return $this->repository->findOneForUpdateByKey($key);
-    }
+    public function create(ApiKeyClient $entity, ?Closure $verify = null): ApiKeyClient;
+    public function update(ApiKeyClientRef $ref, ApiKeyClient $entity): ApiKeyClient;
+    public function delete(ApiKeyClient $entity): bool;
+    public function resolveForUpdate(ApiKeyClientRef $ref): ?ApiKeyClient;
+    public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide;
+    public function retrieveForUpdate(ApiKeyClientFilter $filter): ?ApiKeyClient;
+    public function existsForUpdate(?ApiKeyClientFilter $filter): bool;
+    public function countForUpdate(?ApiKeyClientFilter $filter = null): int;
+    public function findOneForUpdateByUid(string $uid): ?ApiKeyClient;
+    public function findOneForUpdateByCode(string $code): ?ApiKeyClient;
+    public function findOneForUpdateByKey(?string $key): ?ApiKeyClient;
 }

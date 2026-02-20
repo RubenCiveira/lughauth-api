@@ -14,7 +14,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteRepository;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Connector\Pdo\TenantLoginProviderPdoConnector;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderSlide;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCursor;
@@ -25,7 +25,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWriteRepository
+class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

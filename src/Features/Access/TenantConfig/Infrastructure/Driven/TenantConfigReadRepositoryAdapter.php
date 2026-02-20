@@ -9,7 +9,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Connector\Pdo\TenantConfigPdoConnector;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadRepository;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigSlide;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCursor;
@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class TenantConfigReadRepositoryAdapter implements TenantConfigReadRepository
+class TenantConfigReadRepositoryAdapter implements TenantConfigReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

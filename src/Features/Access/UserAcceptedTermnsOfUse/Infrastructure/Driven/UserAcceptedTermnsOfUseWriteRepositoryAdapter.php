@@ -11,7 +11,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteRepository;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Connector\Pdo\UserAcceptedTermnsOfUsePdoConnector;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseSlide;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseCursor;
@@ -22,7 +22,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermnsOfUseWriteRepository
+class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermnsOfUseWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Connector\Pdo\TrustedClientPdoConnector;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadRepository;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientSlide;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCursor;
@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class TrustedClientReadRepositoryAdapter implements TrustedClientReadRepository
+class TrustedClientReadRepositoryAdapter implements TrustedClientReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

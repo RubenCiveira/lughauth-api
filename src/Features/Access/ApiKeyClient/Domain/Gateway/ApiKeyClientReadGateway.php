@@ -5,48 +5,17 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 
-class ApiKeyClientReadGateway
+interface ApiKeyClientReadGateway
 {
-    private ApiKeyClientReadRepository $repository;
-    public function __construct(ContainerInterface $container, ?ApiKeyClientReadRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(ApiKeyClientReadRepositoryAdapter::class);
-    }
-    public function resolve(ApiKeyClientRef $ref): ?ApiKeyClient
-    {
-        return $this->repository->resolve($ref);
-    }
-    public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide
-    {
-        return $this->repository->list($filter, $cursor);
-    }
-    public function retrieve(ApiKeyClientFilter $filter): ?ApiKeyClient
-    {
-        return $this->repository->retrieve($filter);
-    }
-    public function exists(?ApiKeyClientFilter $filter): bool
-    {
-        return $this->repository->exists($filter);
-    }
-    public function count(?ApiKeyClientFilter $filter = null): int
-    {
-        return $this->repository->count($filter);
-    }
-    public function findOneByUid(string $uid): ?ApiKeyClient
-    {
-        return $this->repository->findOneByUid($uid);
-    }
-    public function findOneByCode(string $code): ?ApiKeyClient
-    {
-        return $this->repository->findOneByCode($code);
-    }
-    public function findOneByKey(?string $key): ?ApiKeyClient
-    {
-        return $this->repository->findOneByKey($key);
-    }
+    public function resolve(ApiKeyClientRef $ref): ?ApiKeyClient;
+    public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide;
+    public function retrieve(ApiKeyClientFilter $filter): ?ApiKeyClient;
+    public function exists(ApiKeyClientFilter $filter): bool;
+    public function count(?ApiKeyClientFilter $filter = null): int;
+    public function findOneByUid(string $uid): ?ApiKeyClient;
+    public function findOneByCode(string $code): ?ApiKeyClient;
+    public function findOneByKey(?string $key): ?ApiKeyClient;
 }

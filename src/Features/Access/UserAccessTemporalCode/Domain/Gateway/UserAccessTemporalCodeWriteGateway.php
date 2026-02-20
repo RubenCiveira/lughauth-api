@@ -5,62 +5,23 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Closure;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeRef;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driven\UserAccessTemporalCodeWriteRepositoryAdapter;
 
-class UserAccessTemporalCodeWriteGateway
+interface UserAccessTemporalCodeWriteGateway
 {
-    private UserAccessTemporalCodeWriteRepository $repository;
-    public function __construct(ContainerInterface $container, ?UserAccessTemporalCodeWriteRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(UserAccessTemporalCodeWriteRepositoryAdapter::class);
-    }
-    public function create(UserAccessTemporalCode $entity, ?Closure $verify = null): UserAccessTemporalCode
-    {
-        return $this->repository->create($entity, $verify);
-    }
-    public function update(UserAccessTemporalCodeRef $ref, UserAccessTemporalCode $entity): UserAccessTemporalCode
-    {
-        return $this->repository->update($ref, $entity);
-    }
-    public function delete(UserAccessTemporalCode $entity): bool
-    {
-        return $this->repository->delete($entity);
-    }
-    public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide
-    {
-        return $this->repository->listForUpdate($filter, $cursor);
-    }
-    public function retrieveForUpdate(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode
-    {
-        return $this->repository->retrieveForUpdate($filter);
-    }
-    public function existsForUpdate(?UserAccessTemporalCodeFilter $filter): bool
-    {
-        return $this->repository->existsForUpdate($filter);
-    }
-    public function countForUpdate(?UserAccessTemporalCodeFilter $filter = null): int
-    {
-        return $this->repository->countForUpdate($filter);
-    }
-    public function findOneForUpdateByUid(string $uid): ?UserAccessTemporalCode
-    {
-        return $this->repository->findOneForUpdateByUid($uid);
-    }
-    public function findOneForUpdateByUser(UserRef $user): ?UserAccessTemporalCode
-    {
-        return $this->repository->findOneForUpdateByUser($user);
-    }
-    public function findOneForUpdateByRegisterCode(?string $registerCode): ?UserAccessTemporalCode
-    {
-        return $this->repository->findOneForUpdateByRegisterCode($registerCode);
-    }
-    public function findOneForUpdateByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode
-    {
-        return $this->repository->findOneForUpdateByRecoveryCode($recoveryCode);
-    }
+    public function create(UserAccessTemporalCode $entity, ?Closure $verify = null): UserAccessTemporalCode;
+    public function update(UserAccessTemporalCodeRef $ref, UserAccessTemporalCode $entity): UserAccessTemporalCode;
+    public function delete(UserAccessTemporalCode $entity): bool;
+    public function resolveForUpdate(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode;
+    public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide;
+    public function retrieveForUpdate(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode;
+    public function existsForUpdate(?UserAccessTemporalCodeFilter $filter): bool;
+    public function countForUpdate(?UserAccessTemporalCodeFilter $filter = null): int;
+    public function findOneForUpdateByUid(string $uid): ?UserAccessTemporalCode;
+    public function findOneForUpdateByUser(UserRef $user): ?UserAccessTemporalCode;
+    public function findOneForUpdateByRegisterCode(?string $registerCode): ?UserAccessTemporalCode;
+    public function findOneForUpdateByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode;
 }

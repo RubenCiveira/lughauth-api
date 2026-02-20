@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteRepository;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Connector\Pdo\RelyingPartyPdoConnector;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartySlide;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteRepository
+class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

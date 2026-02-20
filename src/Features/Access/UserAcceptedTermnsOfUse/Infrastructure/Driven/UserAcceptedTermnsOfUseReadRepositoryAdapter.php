@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Connector\Pdo\UserAcceptedTermnsOfUsePdoConnector;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadRepository;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseSlide;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseFilter;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseCursor;
@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTer
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermnsOfUseReadRepository
+class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermnsOfUseReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

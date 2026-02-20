@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteRepository;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Connector\Pdo\TenantConfigPdoConnector;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigSlide;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteRepository
+class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

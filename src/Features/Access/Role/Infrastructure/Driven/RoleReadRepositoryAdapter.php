@@ -9,7 +9,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Connector\Pdo\RolePdoConnector;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadRepository;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleSlide;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class RoleReadRepositoryAdapter implements RoleReadRepository
+class RoleReadRepositoryAdapter implements RoleReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

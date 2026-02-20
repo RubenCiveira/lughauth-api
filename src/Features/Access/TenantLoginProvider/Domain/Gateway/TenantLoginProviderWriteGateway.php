@@ -5,67 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Closure;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderWriteRepositoryAdapter;
 
-class TenantLoginProviderWriteGateway
+interface TenantLoginProviderWriteGateway
 {
-    private TenantLoginProviderWriteRepository $repository;
-    public function __construct(ContainerInterface $container, ?TenantLoginProviderWriteRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(TenantLoginProviderWriteRepositoryAdapter::class);
-    }
-    public function create(TenantLoginProvider $entity, ?Closure $verify = null): TenantLoginProvider
-    {
-        return $this->repository->create($entity, $verify);
-    }
-    public function update(TenantLoginProviderRef $ref, TenantLoginProvider $entity): TenantLoginProvider
-    {
-        return $this->repository->update($ref, $entity);
-    }
-    public function delete(TenantLoginProvider $entity): bool
-    {
-        return $this->repository->delete($entity);
-    }
-    public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide
-    {
-        return $this->repository->listForUpdate($filter, $cursor);
-    }
-    public function retrieveForUpdate(TenantLoginProviderFilter $filter): ?TenantLoginProvider
-    {
-        return $this->repository->retrieveForUpdate($filter);
-    }
-    public function existsForUpdate(?TenantLoginProviderFilter $filter): bool
-    {
-        return $this->repository->existsForUpdate($filter);
-    }
-    public function countForUpdate(?TenantLoginProviderFilter $filter = null): int
-    {
-        return $this->repository->countForUpdate($filter);
-    }
-    public function temporalStoreMetadata(BinaryContent $binary): string
-    {
-        return $this->repository->temporalStoreMetadata($binary);
-    }
-    public function readTemporalMetadata(string $key): BinaryContent
-    {
-        return $this->repository->readTemporalMetadata($key);
-    }
-    public function commitMetadata(string $key, ?string $original = null): string
-    {
-        return $this->repository->commitMetadata($key, $original);
-    }
-    public function findOneForUpdateByUid(string $uid): ?TenantLoginProvider
-    {
-        return $this->repository->findOneForUpdateByUid($uid);
-    }
-    public function findOneForUpdateByTenantAndName(TenantRef $tenant, string $name): ?TenantLoginProvider
-    {
-        return $this->repository->findOneForUpdateByTenantAndName($tenant, $name);
-    }
+    public function create(TenantLoginProvider $entity, ?Closure $verify = null): TenantLoginProvider;
+    public function update(TenantLoginProviderRef $ref, TenantLoginProvider $entity): TenantLoginProvider;
+    public function delete(TenantLoginProvider $entity): bool;
+    public function resolveForUpdate(TenantLoginProviderRef $ref): ?TenantLoginProvider;
+    public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide;
+    public function retrieveForUpdate(TenantLoginProviderFilter $filter): ?TenantLoginProvider;
+    public function existsForUpdate(?TenantLoginProviderFilter $filter): bool;
+    public function countForUpdate(?TenantLoginProviderFilter $filter = null): int;
+    public function temporalStoreMetadata(BinaryContent $binary): string;
+    public function readTemporalMetadata(string $key): BinaryContent;
+    public function commitMetadata(string $key, ?string $original = null): string;
+    public function findOneForUpdateByUid(string $uid): ?TenantLoginProvider;
+    public function findOneForUpdateByTenantAndName(TenantRef $tenant, string $name): ?TenantLoginProvider;
 }

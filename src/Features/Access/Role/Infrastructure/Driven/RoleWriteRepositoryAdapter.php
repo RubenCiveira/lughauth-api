@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteRepository;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Connector\Pdo\RolePdoConnector;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleSlide;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class RoleWriteRepositoryAdapter implements RoleWriteRepository
+class RoleWriteRepositoryAdapter implements RoleWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

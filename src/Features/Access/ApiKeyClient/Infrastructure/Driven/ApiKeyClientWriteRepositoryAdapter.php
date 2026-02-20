@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteRepository;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Connector\Pdo\ApiKeyClientPdoConnector;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientSlide;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteRepository
+class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

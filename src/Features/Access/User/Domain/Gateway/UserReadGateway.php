@@ -5,45 +5,17 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\User\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\User;
-use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 
-class UserReadGateway
+interface UserReadGateway
 {
-    private UserReadRepository $repository;
-    public function __construct(ContainerInterface $container, ?UserReadRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(UserReadRepositoryAdapter::class);
-    }
-    public function resolve(UserRef $ref): ?User
-    {
-        return $this->repository->resolve($ref);
-    }
-    public function list(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide
-    {
-        return $this->repository->list($filter, $cursor);
-    }
-    public function retrieve(UserFilter $filter): ?User
-    {
-        return $this->repository->retrieve($filter);
-    }
-    public function exists(?UserFilter $filter): bool
-    {
-        return $this->repository->exists($filter);
-    }
-    public function count(?UserFilter $filter = null): int
-    {
-        return $this->repository->count($filter);
-    }
-    public function findOneByUid(string $uid): ?User
-    {
-        return $this->repository->findOneByUid($uid);
-    }
-    public function findOneByTenantAndName(TenantRef $tenant, string $name): ?User
-    {
-        return $this->repository->findOneByTenantAndName($tenant, $name);
-    }
+    public function resolve(UserRef $ref): ?User;
+    public function list(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide;
+    public function retrieve(UserFilter $filter): ?User;
+    public function exists(UserFilter $filter): bool;
+    public function count(?UserFilter $filter = null): int;
+    public function findOneByUid(string $uid): ?User;
+    public function findOneByTenantAndName(TenantRef $tenant, string $name): ?User;
 }

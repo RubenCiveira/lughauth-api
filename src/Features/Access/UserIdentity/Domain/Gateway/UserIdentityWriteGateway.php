@@ -5,49 +5,19 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Closure;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityRef;
-use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityWriteRepositoryAdapter;
 
-class UserIdentityWriteGateway
+interface UserIdentityWriteGateway
 {
-    private UserIdentityWriteRepository $repository;
-    public function __construct(ContainerInterface $container, ?UserIdentityWriteRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(UserIdentityWriteRepositoryAdapter::class);
-    }
-    public function create(UserIdentity $entity, ?Closure $verify = null): UserIdentity
-    {
-        return $this->repository->create($entity, $verify);
-    }
-    public function update(UserIdentityRef $ref, UserIdentity $entity): UserIdentity
-    {
-        return $this->repository->update($ref, $entity);
-    }
-    public function delete(UserIdentity $entity): bool
-    {
-        return $this->repository->delete($entity);
-    }
-    public function listForUpdate(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide
-    {
-        return $this->repository->listForUpdate($filter, $cursor);
-    }
-    public function retrieveForUpdate(UserIdentityFilter $filter): ?UserIdentity
-    {
-        return $this->repository->retrieveForUpdate($filter);
-    }
-    public function existsForUpdate(?UserIdentityFilter $filter): bool
-    {
-        return $this->repository->existsForUpdate($filter);
-    }
-    public function countForUpdate(?UserIdentityFilter $filter = null): int
-    {
-        return $this->repository->countForUpdate($filter);
-    }
-    public function findOneForUpdateByUid(string $uid): ?UserIdentity
-    {
-        return $this->repository->findOneForUpdateByUid($uid);
-    }
+    public function create(UserIdentity $entity, ?Closure $verify = null): UserIdentity;
+    public function update(UserIdentityRef $ref, UserIdentity $entity): UserIdentity;
+    public function delete(UserIdentity $entity): bool;
+    public function resolveForUpdate(UserIdentityRef $ref): ?UserIdentity;
+    public function listForUpdate(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide;
+    public function retrieveForUpdate(UserIdentityFilter $filter): ?UserIdentity;
+    public function existsForUpdate(?UserIdentityFilter $filter): bool;
+    public function countForUpdate(?UserIdentityFilter $filter = null): int;
+    public function findOneForUpdateByUid(string $uid): ?UserIdentity;
 }

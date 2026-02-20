@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Connector\Pdo\ApiKeyClientPdoConnector;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadRepository;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientSlide;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadRepository
+class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

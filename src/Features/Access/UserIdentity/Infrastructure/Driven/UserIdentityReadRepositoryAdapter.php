@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Connector\Pdo\UserIdentityPdoConnector;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadRepository;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentitySlide;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityCursor;
@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class UserIdentityReadRepositoryAdapter implements UserIdentityReadRepository
+class UserIdentityReadRepositoryAdapter implements UserIdentityReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

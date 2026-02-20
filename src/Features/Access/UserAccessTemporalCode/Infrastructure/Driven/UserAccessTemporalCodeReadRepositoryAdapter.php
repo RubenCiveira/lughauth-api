@@ -9,7 +9,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Connector\Pdo\UserAccessTemporalCodePdoConnector;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeReadRepository;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeReadGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeSlide;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeFilter;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeCursor;
@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalCodeReadRepository
+class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalCodeReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

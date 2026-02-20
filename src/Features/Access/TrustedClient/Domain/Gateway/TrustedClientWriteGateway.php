@@ -5,53 +5,20 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway;
 
-use Psr\Container\ContainerInterface;
 use Closure;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientWriteRepositoryAdapter;
 
-class TrustedClientWriteGateway
+interface TrustedClientWriteGateway
 {
-    private TrustedClientWriteRepository $repository;
-    public function __construct(ContainerInterface $container, ?TrustedClientWriteRepository $repository = null)
-    {
-        $this->repository = $repository ?? $container->get(TrustedClientWriteRepositoryAdapter::class);
-    }
-    public function create(TrustedClient $entity, ?Closure $verify = null): TrustedClient
-    {
-        return $this->repository->create($entity, $verify);
-    }
-    public function update(TrustedClientRef $ref, TrustedClient $entity): TrustedClient
-    {
-        return $this->repository->update($ref, $entity);
-    }
-    public function delete(TrustedClient $entity): bool
-    {
-        return $this->repository->delete($entity);
-    }
-    public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide
-    {
-        return $this->repository->listForUpdate($filter, $cursor);
-    }
-    public function retrieveForUpdate(TrustedClientFilter $filter): ?TrustedClient
-    {
-        return $this->repository->retrieveForUpdate($filter);
-    }
-    public function existsForUpdate(?TrustedClientFilter $filter): bool
-    {
-        return $this->repository->existsForUpdate($filter);
-    }
-    public function countForUpdate(?TrustedClientFilter $filter = null): int
-    {
-        return $this->repository->countForUpdate($filter);
-    }
-    public function findOneForUpdateByUid(string $uid): ?TrustedClient
-    {
-        return $this->repository->findOneForUpdateByUid($uid);
-    }
-    public function findOneForUpdateByCode(string $code): ?TrustedClient
-    {
-        return $this->repository->findOneForUpdateByCode($code);
-    }
+    public function create(TrustedClient $entity, ?Closure $verify = null): TrustedClient;
+    public function update(TrustedClientRef $ref, TrustedClient $entity): TrustedClient;
+    public function delete(TrustedClient $entity): bool;
+    public function resolveForUpdate(TrustedClientRef $ref): ?TrustedClient;
+    public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide;
+    public function retrieveForUpdate(TrustedClientFilter $filter): ?TrustedClient;
+    public function existsForUpdate(?TrustedClientFilter $filter): bool;
+    public function countForUpdate(?TrustedClientFilter $filter = null): int;
+    public function findOneForUpdateByUid(string $uid): ?TrustedClient;
+    public function findOneForUpdateByCode(string $code): ?TrustedClient;
 }

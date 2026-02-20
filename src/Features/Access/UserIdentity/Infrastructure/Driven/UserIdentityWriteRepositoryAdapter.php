@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteRepository;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteGateway;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Connector\Pdo\UserIdentityPdoConnector;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentitySlide;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteRepository
+class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

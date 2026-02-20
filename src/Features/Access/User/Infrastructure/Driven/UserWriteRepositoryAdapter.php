@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteRepository;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Connector\Pdo\UserPdoConnector;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserSlide;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserWriteRepositoryAdapter implements UserWriteRepository
+class UserWriteRepositoryAdapter implements UserWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

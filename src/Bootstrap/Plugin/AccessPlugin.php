@@ -7,9 +7,11 @@ namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\RolePlugin;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driver\UserAccessTemporalCodePlugin;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\UserIdentityPlugin;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Driver\UserAcceptedTermnsOfUsePlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
@@ -23,9 +25,11 @@ class AccessPlugin extends AggregatedMicroPlugin
     {
         parent::__construct([
           new RolePlugin(),
+          new UserAccessTemporalCodePlugin(),
           new RelyingPartyPlugin(),
           new TrustedClientPlugin(),
           new UserIdentityPlugin(),
+          new UserAcceptedTermnsOfUsePlugin(),
           new TenantConfigPlugin(),
           new ApiKeyClientPlugin(),
           new TenantLoginProviderPlugin(),

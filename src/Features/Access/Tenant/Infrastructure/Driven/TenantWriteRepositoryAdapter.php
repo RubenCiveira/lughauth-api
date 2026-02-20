@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteRepository;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Connector\Pdo\TenantPdoConnector;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TenantWriteRepositoryAdapter implements TenantWriteRepository
+class TenantWriteRepositoryAdapter implements TenantWriteGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;

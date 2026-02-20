@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Connector\Pdo\RelyingPartyPdoConnector;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadRepository;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartySlide;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
-class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadRepository
+class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
