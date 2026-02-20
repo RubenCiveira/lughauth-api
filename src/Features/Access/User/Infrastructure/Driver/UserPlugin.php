@@ -48,9 +48,20 @@ use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\IsAuthent
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAuthenticatedUnlockAllow;
 use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 
 class UserPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[UserReadGateway::class] = \DI\autowire(UserReadRepositoryAdapter::class);
+        $def[UserWriteGateway::class] = \DI\autowire(UserWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {

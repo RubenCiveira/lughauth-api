@@ -42,9 +42,20 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\DisableRelyingPartyOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[RelyingPartyReadGateway::class] = \DI\autowire(RelyingPartyReadRepositoryAdapter::class);
+        $def[RelyingPartyWriteGateway::class] = \DI\autowire(RelyingPartyWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
@@ -56,12 +67,12 @@ class RelyingPartyPlugin extends MicroPlugin
     {
         $bus->registerListener(RelyingPartyCreateAllowDecision::class, CreateRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(RelyingPartyUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(RelyingPartyUpdateAllowDecision::class, UpdateRelyingPartyOnlyForRootAllow::class);
-        $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, RetrieveRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(RelyingPartyListAllowDecision::class, ListRelyingPartyOnlyForRootAllow::class);
+        $bus->registerListener(RelyingPartyRetrieveAllowDecision::class, RetrieveRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(RelyingPartyListAllowDecision::class, ListRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyDeleteAllowDecision::class, DeleteRelyingPartyOnlyForRootAllow::class);
         $bus->registerListener(RelyingPartyDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $bus->registerListener(RelyingPartyEnableAllowDecision::class, EnableRelyingPartyOnlyForRootAllow::class);

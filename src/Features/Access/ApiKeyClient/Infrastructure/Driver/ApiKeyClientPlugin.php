@@ -42,9 +42,20 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\I
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\DisableApiKeyClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[ApiKeyClientReadGateway::class] = \DI\autowire(ApiKeyClientReadRepositoryAdapter::class);
+        $def[ApiKeyClientWriteGateway::class] = \DI\autowire(ApiKeyClientWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
@@ -56,12 +67,12 @@ class ApiKeyClientPlugin extends MicroPlugin
     {
         $bus->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
         $bus->registerListener(ApiKeyClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, UpdateApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
+        $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
         $bus->registerListener(ApiKeyClientListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
         $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, DeleteApiKeyClientOnlyForRootAllow::class);
         $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $bus->registerListener(ApiKeyClientEnableAllowDecision::class, EnableApiKeyClientOnlyForRootAllow::class);

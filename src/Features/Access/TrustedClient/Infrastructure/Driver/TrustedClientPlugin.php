@@ -42,9 +42,20 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Enable\
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\DisableTrustedClientOnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
+use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
 
 class TrustedClientPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[TrustedClientReadGateway::class] = \DI\autowire(TrustedClientReadRepositoryAdapter::class);
+        $def[TrustedClientWriteGateway::class] = \DI\autowire(TrustedClientWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
@@ -56,12 +67,12 @@ class TrustedClientPlugin extends MicroPlugin
     {
         $bus->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(TrustedClientUpdateAllowDecision::class, UpdateTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $bus->registerListener(TrustedClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
+        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $bus->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientDeleteAllowDecision::class, DeleteTrustedClientOnlyForRootAllow::class);
         $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $bus->registerListener(TrustedClientEnableAllowDecision::class, EnableTrustedClientOnlyForRootAllow::class);

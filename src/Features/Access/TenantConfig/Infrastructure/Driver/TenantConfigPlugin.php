@@ -33,9 +33,20 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
 
 class TenantConfigPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[TenantConfigReadGateway::class] = \DI\autowire(TenantConfigReadRepositoryAdapter::class);
+        $def[TenantConfigWriteGateway::class] = \DI\autowire(TenantConfigWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {

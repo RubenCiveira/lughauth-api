@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Oidc\Scopes\Infrastructure\Driven;
 
 use Override;
 use Civi\Lughauth\Features\Oidc\Scopes\Domain\Gateway\ScopesConsentGateway;
-use Civi\Lughauth\Features\Oidc\Scopes\Domain\ScopePermission;
 
 class ScopesConsentAdapter implements ScopesConsentGateway
 {

@@ -29,9 +29,20 @@ use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAuthentic
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
 
 class RolePlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[RoleReadGateway::class] = \DI\autowire(RoleReadRepositoryAdapter::class);
+        $def[RoleWriteGateway::class] = \DI\autowire(RoleWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {

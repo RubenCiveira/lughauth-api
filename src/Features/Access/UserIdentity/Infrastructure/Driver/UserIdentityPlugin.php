@@ -31,9 +31,20 @@ use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\List\IsA
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\List\UserIdentityListAllowDecision;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
 use Civi\Lughauth\Features\Access\UserIdentity\Application\Usecase\Delete\UserIdentityDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driven\UserIdentityWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteGateway;
 
 class UserIdentityPlugin extends MicroPlugin
 {
+    #[Override]
+    public function registerServiceDefinition(array $def): array
+    {
+        $def[UserIdentityReadGateway::class] = \DI\autowire(UserIdentityReadRepositoryAdapter::class);
+        $def[UserIdentityWriteGateway::class] = \DI\autowire(UserIdentityWriteRepositoryAdapter::class);
+        return $def;
+    }
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
