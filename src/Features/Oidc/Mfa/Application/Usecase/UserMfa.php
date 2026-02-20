@@ -28,7 +28,7 @@ class UserMfa
     {
         return $this->gateway->verifyNewOpt($tenant, $username, $seed, $otp);
     }
-    public function storeSeed(string $seed, string $tenant, string $username): void
+    public function storeSeed(string $tenant, string $username, string $seed): void
     {
         $this->gateway->storeSeed($tenant, $username, $seed);
     }
