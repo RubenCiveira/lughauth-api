@@ -11,8 +11,6 @@ use Slim\Psr7\Factory\ServerRequestFactory;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
@@ -29,8 +27,13 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
+use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 
 /**
  * Integration tests for {@see AuthorizeHtml} step delegation.
@@ -102,6 +105,11 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(RegisterUserForm::class)
         );
 
+        $cookies = $this->createMock(OidcCookieManager::class);
+        $cookies->expects($this->once())
+            ->method('clearSession')
+            ->willReturn(new Response());
+
         $authorize = new AuthorizeHtml(
             $context,
             $clients,
@@ -109,8 +117,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(AuthenticateUser::class),
             $this->createMock(HtmlSecurer::class),
             $this->createMock(DecorateHtml::class),
-            $this->createMock(KeysManagerService::class),
-            $this->createMock(TemporalKeysGateway::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $cookies,
+            new OidcUrlBuilder($context),
             $router
         );
 
@@ -207,6 +216,14 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $registerForm
         );
 
+        $cookies = new OidcCookieManager($context, $this->createMock(KeysManagerService::class));
+        $responseBuilder = new OidcResponseBuilder(
+            $this->createMock(KeysManagerService::class),
+            $temporals,
+            $cookies
+        );
+        $urlBuilder = new OidcUrlBuilder($context);
+
         $authorize = new AuthorizeHtml(
             $context,
             $clients,
@@ -214,8 +231,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(AuthenticateUser::class),
             $securer,
             $this->createMock(DecorateHtml::class),
-            $this->createMock(KeysManagerService::class),
-            $temporals,
+            $responseBuilder,
+            $cookies,
+            $urlBuilder,
             $router
         );
 

@@ -85,20 +85,6 @@ class AuthenticateUser
         );
     }
 
-    public function authenticateWithState(
-        AuthenticationRequest $request,
-        ChallengesState $challenges,
-        string $tenant,
-        string $username,
-        string $password,
-        string $issuer,
-        string $csid,
-        string $stateValue,
-        string $nonce
-    ): PublicLoginAuthResponse {
-        return $this->authenticate($request, $challenges, $tenant, $username, $password, $issuer, $csid, $stateValue, $nonce);
-    }
-
     private function saveIt(
         AuthenticationResult $validation,
         AuthenticationRequest $request,

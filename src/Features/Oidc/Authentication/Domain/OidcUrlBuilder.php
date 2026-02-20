@@ -24,28 +24,32 @@ final class OidcUrlBuilder
         array $extra = [],
         string $suffix = ''
     ): string {
-        $params = [
-            'client_id' => $client->client->id,
-            'scope' => $client->scope,
-            'state' => $state,
-            'nonce' => $nonce,
-            'audience' => implode(',', $client->audiences),
-            'redirect_uri' => $client->redirect,
-            'response_type' => (string) $client->responseType,
-        ];
+        return $this->buildUrl(
+            $client,
+            $this->baseAuthorizeUrl($tenant),
+            $state,
+            $nonce,
+            $extra,
+            $suffix
+        );
+    }
 
-        foreach ($extra as $key => $value) {
-            $params[$key] = $value;
-        }
-
-        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-        $url = $this->baseAuthorizeUrl($tenant) . '?' . $query;
-
-        if ($suffix !== '') {
-            $url .= $suffix;
-        }
-
-        return $url;
+    public function checkSessionUrl(
+        AuthenticationRequest $client,
+        string $tenant,
+        string $state,
+        string $nonce,
+        array $extra = [],
+        string $suffix = ''
+    ): string {
+        return $this->buildUrl(
+            $client,
+            $this->baseCheckSessionUrl($tenant),
+            $state,
+            $nonce,
+            $extra,
+            $suffix
+        );
     }
 
     public function registerUserUrl(
@@ -85,5 +89,42 @@ final class OidcUrlBuilder
     private function baseAuthorizeUrl(string $tenant): string
     {
         return $this->baseUrl . $tenant . '/authorize';
+    }
+
+    private function baseCheckSessionUrl(string $tenant): string
+    {
+        return $this->baseUrl . $tenant . '/check-session';
+    }
+
+    private function buildUrl(
+        AuthenticationRequest $client,
+        string $baseUrl,
+        string $state,
+        string $nonce,
+        array $extra,
+        string $suffix
+    ): string {
+        $params = [
+            'client_id' => $client->client->id,
+            'scope' => $client->scope,
+            'state' => $state,
+            'nonce' => $nonce,
+            'audience' => implode(',', $client->audiences),
+            'redirect_uri' => $client->redirect,
+            'response_type' => (string) $client->responseType,
+        ];
+
+        foreach ($extra as $key => $value) {
+            $params[$key] = $value;
+        }
+
+        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
+        $url = $baseUrl . '?' . $query;
+
+        if ($suffix !== '') {
+            $url .= $suffix;
+        }
+
+        return $url;
     }
 }

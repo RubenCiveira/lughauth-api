@@ -14,24 +14,21 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\KeysManagerService;
-use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
-use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Shared\Context;
-use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
 class AuthorizeHtml
 {
-    private readonly string $base;
     public function __construct(
         private readonly Context $context,
         private readonly ClientStoreGateway $clients,
@@ -39,11 +36,11 @@ class AuthorizeHtml
         private readonly AuthenticateUser $authenticator,
         private readonly HtmlSecurer $securer,
         private readonly DecorateHtml  $decorator,
-        private readonly KeysManagerService  $keys,
-        private readonly TemporalKeysGateway $temporals,
+        private readonly OidcResponseBuilder $responseBuilder,
+        private readonly OidcCookieManager $cookies,
+        private readonly OidcUrlBuilder $urlBuilder,
         private readonly OidcStepRouter $router
     ) {
-        $this->base = $this->context->getBaseUrl() . '/oauth';
     }
 
 
@@ -55,9 +52,9 @@ class AuthorizeHtml
         $authRequest = $this->buildAuthRequest($flow, $client);
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
-            return $this->cisdPage($request, $response, $flow);
+            return $this->cisdPage($request, $response, $flow, $authRequest);
         } elseif ("none" === $flow->prompt) {
-            return $this->redirectError($this->base, $tenant, $flow->redirect, 'No session', $response);
+            return $this->redirectError($tenant, $flow->redirect, 'No session', $response);
         } else {
             $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
             return $this->renderStep(null, null, $input, $response, null);
@@ -78,7 +75,7 @@ class AuthorizeHtml
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
             if ($csid !== $sess->csid) {
-                return $this->redirectToLogin($response, $flow);
+                return $this->redirectToLogin($response, $flow, $authRequest);
             }
             $challenges = (new ChallengesState())
                 ->withUsername($sess->userId)
@@ -86,9 +83,9 @@ class AuthorizeHtml
                 ->withSession(true);
             // auth-csid
             $auth = $this->authenticator->sessionAuthenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
-            return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $auth, $response, $client, $authRequest);
+            return $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response);
         } else {
-            return $this->redirectToLogin($response, $flow);
+            return $this->redirectToLogin($response, $flow, $authRequest);
         }
     }
 
@@ -101,8 +98,7 @@ class AuthorizeHtml
         $clientRequest = $this->buildAuthRequest($flow, $client);
         $state = new ChallengesState();
         if ($flow->preSessionId) {
-            $keypass = (array) $this->keys->verifiedKeypass($tenant, $flow->preSessionId);
-            $state = ChallengesState::fromArray((array) ($keypass['challenges'] ?? []));
+            $state = $this->cookies->loadPreSessionChallenges($tenant, $flow->preSessionId);
         }
         $step = $body['step'] ?? null;
         $input = $this->buildStepInput($flow, $request, $clientRequest, $state, $body ?? []);
@@ -118,20 +114,20 @@ class AuthorizeHtml
 
             $result = $this->executeStep($input, $response, null, $step, $csid);
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
-                return $this->redirectOk($this->base, $tenant, $flow->responseType, $flow->redirect, $flow->state, $flow->nonce, $result->authResponse, $response, $client, $clientRequest);
+                return $this->responseBuilder->buildSuccessRedirect($flow, $result->authResponse, $client, $clientRequest, $response);
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
-                return $this->clearSession($result->response, $this->base, $tenant);
+                return $this->cookies->clearSession($result->response, $tenant);
             }
 
             throw new UnauthorizedException();
         } catch (LoginException $ex) {
             $response = $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null);
-            $cookie = $this->storePreSession($flow, $state);
+            $cookie = $this->cookies->storePreSession($flow, $state);
             return $cookie->attach($response);
         } catch (UnauthorizedException $ex) {
             $response = $this->renderStep($ex->getMessage(), null, $input, $response, null);
-            $cookie = $this->storePreSession($flow, $state);
+            $cookie = $this->cookies->storePreSession($flow, $state);
             return $cookie->attach($response);
         }
     }
@@ -162,76 +158,10 @@ class AuthorizeHtml
         }
     }
 
-    private function redirectError(string $base, string $tenant, string $redirect, string $error, ResponseInterface $response): ResponseInterface
+    private function redirectError(string $tenant, string $redirect, string $error, ResponseInterface $response): ResponseInterface
     {
         $response = $response->withStatus(302)->withHeader('Location', $redirect . '#error=' . urlencode($error));
-        return $this->clearSession($response, $base, $tenant);
-    }
-
-    private function redirectOk(
-        string $base,
-        string $tenant,
-        string $responseType,
-        string $redirect,
-        string $state,
-        string $nonce,
-        PublicLoginAuthResponse $auth,
-        ResponseInterface $response,
-        ClientData $client,
-        AuthenticationRequest $authRequest
-    ): ResponseInterface {
-        $cookie = new Cookie(
-            name: 'AUTH_SESSION_ID_' . strtoupper($tenant),
-            value: $auth->sessionId,
-            path: $base . '/openid/' . $tenant . '/',
-            secure: false,
-            sameSite: true,
-            httpOnly: true,
-            expiration: $auth->sessionExpiration
-        );
-        $location = $redirect;
-        $hasCode =  $this->hasResponse($responseType, 'code');
-        if ($hasCode) {
-            $location .= '?state=' . $state ;
-            $data = new TemporalAuthCode(
-                data: $auth->asAuthenticationResult(),
-                client: $client,
-                nonce: $nonce,
-                request: $authRequest
-            );
-            $location .= '&code=' . $this->temporals->registerTemporalAuthCode($data);
-        } else {
-            $location .= '#state=' . $state . '&nonce=' . $nonce;
-        }
-        $hasId = $this->hasResponse($responseType, 'id_token');
-        $hasAccess = $this->hasResponse($responseType, 'token');
-        $accessToken = null;
-        if ($hasId) {
-            $idData = array_merge($auth->authData, $auth->idData);
-            if ($hasAccess) {
-                $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
-                $idData['at_hash'] = self::generateHash($accessToken);
-            }
-            $location .= '&id_token=' . $this->keys->sign($auth->tenant, $idData, $auth->idExpiration);
-        }
-        if ($hasAccess) {
-            $now = new \DateTimeImmutable();
-            $until = $now->add($auth->authExpiration);
-            if ($accessToken === null) {
-                $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
-            }
-            $location .= '&access_token=' . $accessToken;
-            $location .= '&expires_in=' . ($until->getTimestamp() - $now->getTimestamp());
-        }
-        $response = $response->withStatus(302)->withHeader('Location', $location);
-        return $cookie->attach($response);
-    }
-
-    private static function generateHash(string $value): string
-    {
-        $hashedValue = hash('sha256', $value, true);
-        $halfHashedValue = substr($hashedValue, 0, strlen($hashedValue) / 2);
-        return rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
+        return $this->cookies->clearSession($response, $tenant);
     }
 
     private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride): ResponseInterface
@@ -242,7 +172,7 @@ class AuthorizeHtml
         if ($result->type !== StepResult::TYPE_RENDER || !$result->response) {
             throw new UnauthorizedException();
         }
-        return $this->clearSession($result->response, $this->base, $input->context->tenant);
+        return $this->cookies->clearSession($result->response, $input->context->tenant);
     }
 
     private function executeStep(
@@ -275,99 +205,48 @@ class AuthorizeHtml
         );
     }
 
-    private function clearSession(ResponseInterface $response, string $base, string $tenant): ResponseInterface
-    {
-        $path = $this->cookiePath($tenant);
-        $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $path);
-        $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $path);
-        return $preCookie->remove($authCookie->remove($response));
-    }
-
-    private function storePreSession(OidcFlowContext $flow, ChallengesState $challenges): Cookie
-    {
-        $duration = new \DateInterval("PT10M");
-        $text = $this->keys->signKeypass($flow->tenant, ['challenges' => $challenges->toArray()], $duration);
-        return new Cookie(
-            name: 'PRE_SESSION_ID',
-            value: $text,
-            path: $this->cookiePath($flow->tenant),
-            expiration: $duration,
-            secure: false,
-            sameSite: true,
-            httpOnly: true
-        );
-    }
-
-    private function cookiePath(string $tenant): string
-    {
-        return $this->base . '/openid/' . $tenant . '/';
-    }
-
-    private function hasResponse($response_type, $token): bool
-    {
-        return !!preg_match('/(?<=^|\s)' . $token . '(?=\s|$)/', $response_type);
-    }
-
     private function redirectToLogin(
         ResponseInterface $response,
-        OidcFlowContext $flow
+        OidcFlowContext $flow,
+        AuthenticationRequest $authRequest
     ): ResponseInterface {
         if ($flow->prompt === 'none') {
-            return $this->redirectError($this->base, $flow->tenant, $flow->redirect, 'Only refresh from same device', $response);
+            return $this->redirectError($flow->tenant, $flow->redirect, 'Only refresh from same device', $response);
         } else {
-            $url = $this->buildAuthorizeUrl($flow);
+            $url = $this->urlBuilder->authorizeUrl(
+                $authRequest,
+                $flow->tenant,
+                $flow->state,
+                $flow->nonce,
+                ['prompt' => $flow->prompt]
+            );
             $response = $response->withStatus(302)->withHeader('Location', $url);
-            return $this->clearSession($response, $this->base, $flow->tenant);
+            return $this->cookies->clearSession($response, $flow->tenant);
         }
     }
 
     private function cisdPage(
         RequestInterface $request,
         ResponseInterface $response,
-        OidcFlowContext $flow
+        OidcFlowContext $flow,
+        AuthenticationRequest $authRequest
     ): ResponseInterface {
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign"),
             $this->securer->autoSubmit("refresh")
         ]);
-        $url = $this->buildCheckSessionUrl($flow);
+        $url = $this->urlBuilder->checkSessionUrl(
+            $authRequest,
+            $flow->tenant,
+            $flow->state,
+            $flow->nonce,
+            ['prompt' => $flow->prompt]
+        );
         $response->getBody()->write($this->decorator->getFullPage($request, 'Mfa', $js . "<h1>Verifiy login source...</h1>"
             . "<form id=\"refresh\" action=\"".$url."\" method=\"POST\">"
             . "<input type=\"hidden\" name=\"csid\" id=\"sign\" />"
             . "<input type=\"submit\" />"
             . "</form>", $flow->locale));
         return $response;
-    }
-
-    private function buildAuthorizeUrl(OidcFlowContext $flow): string
-    {
-        $params = [
-            'response_type' => $flow->responseType,
-            'client_id' => $flow->clientId,
-            'state' => $flow->state,
-            'redirect_uri' => $flow->redirect,
-            'scope' => $flow->scope,
-            'nonce' => $flow->nonce,
-            'audience' => implode(',', $flow->audiences),
-            'prompt' => $flow->prompt,
-        ];
-        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-        return $this->base . '/openid/' . $flow->tenant . '/authorize?' . $query;
-    }
-
-    private function buildCheckSessionUrl(OidcFlowContext $flow): string
-    {
-        $params = [
-            'response_type' => $flow->responseType,
-            'client_id' => $flow->clientId,
-            'state' => $flow->state,
-            'redirect_uri' => $flow->redirect,
-            'scope' => $flow->scope,
-            'nonce' => $flow->nonce,
-            'audience' => implode(',', $flow->audiences),
-            'prompt' => $flow->prompt,
-        ];
-        $query = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-        return $this->base . '/openid/' . $flow->tenant . '/check-session?' . $query;
     }
 }
