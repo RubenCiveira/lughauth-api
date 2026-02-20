@@ -14,7 +14,7 @@ class TenantTermsOfUseVisibilityCheck
         public readonly TenantTermsOfUse $tenantTermsOfUse
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

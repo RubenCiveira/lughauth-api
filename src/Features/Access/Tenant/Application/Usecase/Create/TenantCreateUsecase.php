@@ -48,7 +48,7 @@ class TenantCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Tenant');
             }
             $this->dispatcher->dispatch(new TenantCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new TenantCreateEnrich($params, $params->toAttributes()));

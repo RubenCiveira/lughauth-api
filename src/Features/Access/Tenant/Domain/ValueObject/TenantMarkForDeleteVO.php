@@ -12,7 +12,7 @@ class TenantMarkForDeleteVO
 {
     public static function from(TenantMarkForDeleteVO|bool $value): TenantMarkForDeleteVO
     {
-        if (is_a($value, TenantMarkForDeleteVO::class)) {
+        if ($value instanceof TenantMarkForDeleteVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -22,6 +22,7 @@ class TenantMarkForDeleteVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantMarkForDeleteVO);
             return $candidate;
         }
     }

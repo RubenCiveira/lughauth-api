@@ -38,16 +38,16 @@ class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalC
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $sort = null): UserAccessTemporalCodeSlide
+    public function list(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide
     {
         $this->logDebug("List for User access temporal code on adapter ");
         $span = $this->startSpan("List for User access temporal code on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new UserAccessTemporalCodeSlide(function ($slide, $next) use ($filter) {
+            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeFilter $slide, ?UserAccessTemporalCodeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserAccessTemporalCodeCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -56,7 +56,7 @@ class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalC
         }
     }
     #[Override]
-    public function retrieve(?UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode
+    public function retrieve(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode
     {
         $this->logDebug("Retrieve for User access temporal code on adapter ");
         $span = $this->startSpan("Retrieve for User access temporal code on adapter");
@@ -70,7 +70,7 @@ class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalC
         }
     }
     #[Override]
-    public function exists(?UserAccessTemporalCodeFilter $filter): bool
+    public function exists(UserAccessTemporalCodeFilter $filter): bool
     {
         $this->logDebug("Exists for User access temporal code on adapter ");
         $span = $this->startSpan("Exists for User access temporal code on adapter");

@@ -22,7 +22,7 @@ class UserIdentityCreateParams
     use UserIdentityRolesAttributeHolder;
     use UserIdentityVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'user' => 'unsetUser',
       'relyingParty' => 'unsetRelyingParty',
@@ -45,27 +45,27 @@ class UserIdentityCreateParams
     public function toAttributes(): UserIdentityAttributes
     {
         $att = new UserIdentityAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->user) {
+        if ($this->userAssigned) {
             $att->user($this->user);
         }
-        if ($this->relyingParty) {
+        if ($this->relyingPartyAssigned) {
             $att->relyingParty($this->relyingParty);
         }
-        if ($this->trustedClient) {
+        if ($this->trustedClientAssigned) {
             $att->trustedClient($this->trustedClient);
         }
-        if ($this->roles) {
+        if ($this->rolesAssigned) {
             $att->roles($this->roles);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

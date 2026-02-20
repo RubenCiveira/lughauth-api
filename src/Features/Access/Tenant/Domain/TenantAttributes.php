@@ -34,7 +34,7 @@ class TenantAttributes
     use TenantMarkForDeleteTimeAttributeHolder;
     use TenantVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'name' => 'unsetName',
       'root' => 'unsetRoot',
@@ -58,7 +58,13 @@ class TenantAttributes
         $version = TenantVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new Tenant(
+        }
+        \assert($uid !== null);
+        \assert($name !== null);
+        \assert($domain !== null);
+        \assert($enabled !== null);
+        \assert($markForDelete !== null);
+        return new Tenant(
             uid: $uid,
             name: $name,
             root: $root,
@@ -86,7 +92,7 @@ class TenantAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

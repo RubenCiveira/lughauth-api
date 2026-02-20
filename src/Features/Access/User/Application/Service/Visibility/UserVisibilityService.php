@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -79,7 +80,7 @@ class UserVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|UserRef $value): bool
+    public function checkVisibility(Iterator|string|UserRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for User");
         $span = $this->startSpan("Check visibility of an iterator for  User");
@@ -88,7 +89,7 @@ class UserVisibilityService
                 return !!$this->retrieveVisibleForUpdate(new UserRef($value));
             } elseif ($value instanceof UserRef) {
                 return !!$this->retrieveVisibleForUpdate($value);
-            } elseif ($value instanceof \Iterator) {
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
@@ -241,7 +242,7 @@ class UserVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  User");
         try {
             if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
-                throw new NotFoundException("Unknow Tenant " . $attributes->getTenant());
+                throw new NotFoundException("Unknown Tenant " . $attributes->getTenant());
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -281,8 +282,8 @@ class UserVisibilityService
     }
     private function prepareVisibleDataCallback(User $content, bool $inlist): UserAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for User");
-        $span = $this->startSpan("Prepare hidratation to visible data for User");
+        $this->logDebug("Prepare hydration to visible data for User");
+        $span = $this->startSpan("Prepare hydration to visible data for User");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new UserEnrichForView($content, $inlist, $attributes));

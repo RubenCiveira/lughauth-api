@@ -48,7 +48,7 @@ class RelyingPartyCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Relying party');
             }
             $this->dispatcher->dispatch(new RelyingPartyCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new RelyingPartyCreateEnrich($params, $params->toAttributes()));

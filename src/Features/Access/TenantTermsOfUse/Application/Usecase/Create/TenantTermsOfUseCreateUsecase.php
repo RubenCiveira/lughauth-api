@@ -48,7 +48,7 @@ class TenantTermsOfUseCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Tenant terms of use');
             }
             $this->dispatcher->dispatch(new TenantTermsOfUseCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new TenantTermsOfUseCreateEnrich($params, $params->toAttributes()));

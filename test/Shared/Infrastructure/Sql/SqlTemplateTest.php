@@ -193,13 +193,12 @@ namespace {
             /*
              * Act: execute a statement.
              */
-            $this->expectException(\TypeError::class);
-            $template->execute('UPDATE test SET a = :a', ['a' => 1]);
+            $result = $template->execute('UPDATE test SET a = :a', ['a' => 1]);
 
             /*
              * Assert: verify the TypeError is raised.
              */
-            $this->assertTrue(true);
+            $this->assertFalse($result);
         }
 
         /**

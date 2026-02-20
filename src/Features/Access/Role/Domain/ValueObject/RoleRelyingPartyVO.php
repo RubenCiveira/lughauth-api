@@ -17,7 +17,7 @@ class RoleRelyingPartyVO
     }
     public static function from(RoleRelyingPartyVO|RelyingPartyRef|null $value): RoleRelyingPartyVO
     {
-        if (is_a($value, RoleRelyingPartyVO::class)) {
+        if ($value instanceof RoleRelyingPartyVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -27,6 +27,7 @@ class RoleRelyingPartyVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof RoleRelyingPartyVO);
             return $candidate;
         }
     }

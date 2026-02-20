@@ -131,7 +131,7 @@ class UserDisableController
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
-            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
+            $dto->welcomeAt = $value->getWelcomeAt()?->format(DateTime::ATOM);
             $dto->enabled = $value->isEnabled();
             $dto->approve = $value->getApprove();
             $dto->temporalPassword = $value->isTemporalPassword();

@@ -50,7 +50,7 @@ class TenantTermsOfUseListUsecase
         try {
             $allow = $this->allowList();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to list Tenant terms of use');
             }
             return $this->visibility->countVisibles($filter);
         } catch (Throwable $ex) {

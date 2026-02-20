@@ -48,7 +48,7 @@ class RoleCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Role');
             }
             $this->dispatcher->dispatch(new RoleCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new RoleCreateEnrich($params, $params->toAttributes()));

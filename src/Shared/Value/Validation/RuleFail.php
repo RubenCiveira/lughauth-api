@@ -20,7 +20,7 @@ class RuleFail
         public readonly string $code,
         /** @var mixed The value that failed validation. */
         public readonly mixed $value,
-        /** @var array<string, mixed> Expected values or limits for the rule. */
+        /** @var mixed[] Expected values or limits for the rule. */
         public readonly array $expectedValues = [],
     ) {
     }

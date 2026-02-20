@@ -157,7 +157,7 @@ class LughMapper
 
     private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
-        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->roles ?? [], '@everyone', $user->anonymous ? '@anonymous' : '@authenticated' ];
         $all = [];
         $visibles = [];
         foreach ($roles as $role) {
@@ -175,7 +175,7 @@ class LughMapper
 
     private function isAllowed(array $grants, Identity $user, string $resource, string $on, string $with): bool
     {
-        $roles = [...$user->roles ?? [], '@everyone', $user->anonimous ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->roles ?? [], '@everyone', $user->anonymous ? '@anonymous' : '@authenticated' ];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with]) {
                 return true;

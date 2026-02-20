@@ -29,7 +29,7 @@ class Context
     public function getIdentity(): Identity
     {
         if ($this->identity == null) {
-            $this->identity = Identity::anonimous();
+            $this->identity = Identity::anonymous();
         }
         return $this->identity;
     }

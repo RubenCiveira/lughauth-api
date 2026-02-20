@@ -8,19 +8,13 @@ namespace Civi\Lughauth\Features\Access\User\Application\Usecase\Enable;
 use Override;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
-use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 
 class UserEnableAllowDecision extends AllowDecision
 {
     public function __construct(
-        Allow $allow,
-        private ?UserRef $ref = null
+        Allow $allow
     ) {
         parent::__construct($allow);
-    }
-    public function ref(): ?UserRef
-    {
-        return $this->ref;
     }
     #[Override]
     public function actionName(): string

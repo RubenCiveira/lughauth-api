@@ -26,7 +26,7 @@ class UserApproveVO
     }
     public static function from(UserApproveVO|UserApproveOptions|null $value): UserApproveVO
     {
-        if (is_a($value, UserApproveVO::class)) {
+        if ($value instanceof UserApproveVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -36,6 +36,7 @@ class UserApproveVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserApproveVO);
             return $candidate;
         }
     }

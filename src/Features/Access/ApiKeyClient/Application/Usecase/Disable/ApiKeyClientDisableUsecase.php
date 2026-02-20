@@ -33,7 +33,7 @@ class ApiKeyClientDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Api key client");
         $span = $this->startSpan("Check allow of Disable usecase for Api key client");
         try {
-            $result = $this->dispatcher->dispatch(new ApiKeyClientDisableAllowDecision(Allow::allowed('disable', 'Allowed to Api key client by default'), $ref));
+            $result = $this->dispatcher->dispatch(new ApiKeyClientDisableAllowDecision(Allow::allowed('disable', 'Allowed to Api key client by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class ApiKeyClientDisableUsecase
             $ref = new ApiKeyClientRef($uid);
             $allow = $this->allowDisable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Disable Api key client');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

@@ -37,16 +37,16 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         return $this->conn->retrieveForUpdate(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $sort = null): ApiKeyClientSlide
+    public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide
     {
-        $this->logDebug("Count for Api key client on adapter ");
-        $span = $this->startSpan("Count for Api key client on adapter");
+        $this->logDebug("List for update of Api key client on adapter ");
+        $span = $this->startSpan("List for update of Api key client on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new ApiKeyClientSlide(function ($slide, $next) use ($filter) {
+            return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ?ApiKeyClientCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new ApiKeyClientCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -57,8 +57,8 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
     #[Override]
     public function retrieveForUpdate(ApiKeyClientFilter $filter): ?ApiKeyClient
     {
-        $this->logDebug("Count for Api key client on adapter ");
-        $span = $this->startSpan("Count for Api key client on adapter");
+        $this->logDebug("Retrieve for update of Api key client on adapter ");
+        $span = $this->startSpan("Retrieve for update of Api key client on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -71,8 +71,8 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
     #[Override]
     public function existsForUpdate(?ApiKeyClientFilter $filter): bool
     {
-        $this->logDebug("Count for Api key client on adapter ");
-        $span = $this->startSpan("Count for Api key client on adapter");
+        $this->logDebug("Exists for update of Api key client on adapter ");
+        $span = $this->startSpan("Exists for update of Api key client on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -85,8 +85,8 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
     #[Override]
     public function countForUpdate(?ApiKeyClientFilter $filter = null): int
     {
-        $this->logDebug("Count for Api key client on adapter ");
-        $span = $this->startSpan("Count for Api key client on adapter");
+        $this->logDebug("Count for update of Api key client on adapter ");
+        $span = $this->startSpan("Count for update of Api key client on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -114,14 +114,15 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         }
     }
     #[Override]
-    public function update(ApiKeyClientRef $reference, ApiKeyClient $entity): ApiKeyClient
+    public function update(ApiKeyClientRef $ref, ApiKeyClient $entity): ApiKeyClient
     {
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -190,7 +191,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
             $span->end();
         }
     }
-    private function dispatch(ApiKeyClient $entity)
+    private function dispatch(ApiKeyClient $entity): void
     {
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");

@@ -26,7 +26,7 @@ class TenantEnableResult
     use TenantMarkForDeleteTimeAttributeHolder;
     use TenantVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'name' => 'unsetName',
       'root' => 'unsetRoot',
@@ -53,33 +53,33 @@ class TenantEnableResult
     public function toAttributes(): TenantAttributes
     {
         $att = new TenantAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->name) {
+        if ($this->nameAssigned) {
             $att->name($this->name);
         }
-        if ($this->root) {
+        if ($this->rootAssigned) {
             $att->root($this->root);
         }
-        if ($this->domain) {
+        if ($this->domainAssigned) {
             $att->domain($this->domain);
         }
-        if ($this->enabled) {
+        if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
         }
-        if ($this->markForDelete) {
+        if ($this->markForDeleteAssigned) {
             $att->markForDelete($this->markForDelete);
         }
-        if ($this->markForDeleteTime) {
+        if ($this->markForDeleteTimeAssigned) {
             $att->markForDeleteTime($this->markForDeleteTime);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

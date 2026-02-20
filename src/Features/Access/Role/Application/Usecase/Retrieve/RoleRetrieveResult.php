@@ -18,7 +18,7 @@ class RoleRetrieveResult
     use RoleRelyingPartyAttributeHolder;
     use RoleVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'name' => 'unsetName',
       'relyingParty' => 'unsetRelyingParty',
@@ -37,21 +37,21 @@ class RoleRetrieveResult
     public function toAttributes(): RoleAttributes
     {
         $att = new RoleAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->name) {
+        if ($this->nameAssigned) {
             $att->name($this->name);
         }
-        if ($this->relyingParty) {
+        if ($this->relyingPartyAssigned) {
             $att->relyingParty($this->relyingParty);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

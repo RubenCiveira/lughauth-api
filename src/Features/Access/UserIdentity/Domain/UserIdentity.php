@@ -7,16 +7,16 @@ namespace Civi\Lughauth\Features\Access\UserIdentity\Domain;
 
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityUidVO;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityUserVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityUserAccesor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityUserAccessor;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRelyingPartyVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityRelyingPartyAccesor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityRelyingPartyAccessor;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityTrustedClientVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityTrustedClientAccesor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityTrustedClientAccessor;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesListRef;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityRolesAccesor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityRolesAccessor;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityVersionVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityVersionAccesor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityVersionAccessor;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Event\UserIdentityCreateEvent;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Event\UserIdentityUpdateEvent;
 use Civi\Lughauth\Features\Access\UserIdentity\Domain\Event\UserIdentityDeleteEvent;
@@ -26,11 +26,11 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 
 class UserIdentity extends UserIdentityRef
 {
-    use UserIdentityUserAccesor;
-    use UserIdentityRelyingPartyAccesor;
-    use UserIdentityTrustedClientAccesor;
-    use UserIdentityRolesAccesor;
-    use UserIdentityVersionAccesor;
+    use UserIdentityUserAccessor;
+    use UserIdentityRelyingPartyAccessor;
+    use UserIdentityTrustedClientAccessor;
+    use UserIdentityRolesAccessor;
+    use UserIdentityVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

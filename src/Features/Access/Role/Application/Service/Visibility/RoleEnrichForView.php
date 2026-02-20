@@ -20,7 +20,7 @@ class RoleEnrichForView
     {
         return $this->roleAttributes;
     }
-    public function with(RoleAttributes $roleAttributes)
+    public function with(RoleAttributes $roleAttributes): void
     {
         $this->roleAttributes = $roleAttributes;
     }

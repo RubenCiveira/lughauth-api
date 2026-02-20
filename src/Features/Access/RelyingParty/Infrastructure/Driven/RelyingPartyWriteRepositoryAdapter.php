@@ -37,16 +37,16 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         return $this->conn->retrieveForUpdate(new RelyingPartyFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $sort = null): RelyingPartySlide
+    public function listForUpdate(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide
     {
-        $this->logDebug("Count for Relying party on adapter ");
-        $span = $this->startSpan("Count for Relying party on adapter");
+        $this->logDebug("List for update of Relying party on adapter ");
+        $span = $this->startSpan("List for update of Relying party on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new RelyingPartySlide(function ($slide, $next) use ($filter) {
+            return new RelyingPartySlide(function (RelyingPartySlide $slide, ?RelyingPartyCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new RelyingPartyCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RelyingPartyCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -57,8 +57,8 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
     #[Override]
     public function retrieveForUpdate(RelyingPartyFilter $filter): ?RelyingParty
     {
-        $this->logDebug("Count for Relying party on adapter ");
-        $span = $this->startSpan("Count for Relying party on adapter");
+        $this->logDebug("Retrieve for update of Relying party on adapter ");
+        $span = $this->startSpan("Retrieve for update of Relying party on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -71,8 +71,8 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
     #[Override]
     public function existsForUpdate(?RelyingPartyFilter $filter): bool
     {
-        $this->logDebug("Count for Relying party on adapter ");
-        $span = $this->startSpan("Count for Relying party on adapter");
+        $this->logDebug("Exists for update of Relying party on adapter ");
+        $span = $this->startSpan("Exists for update of Relying party on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -85,8 +85,8 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
     #[Override]
     public function countForUpdate(?RelyingPartyFilter $filter = null): int
     {
-        $this->logDebug("Count for Relying party on adapter ");
-        $span = $this->startSpan("Count for Relying party on adapter");
+        $this->logDebug("Count for update of Relying party on adapter ");
+        $span = $this->startSpan("Count for update of Relying party on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -114,14 +114,15 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         }
     }
     #[Override]
-    public function update(RelyingPartyRef $reference, RelyingParty $entity): RelyingParty
+    public function update(RelyingPartyRef $ref, RelyingParty $entity): RelyingParty
     {
         $this->logDebug("Count for Relying party on adapter ");
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof RelyingParty) ? $reference : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof RelyingParty) ? $reference : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -190,7 +191,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
             $span->end();
         }
     }
-    private function dispatch(RelyingParty $entity)
+    private function dispatch(RelyingParty $entity): void
     {
         $this->logDebug("Count for Relying party on adapter ");
         $span = $this->startSpan("Count for Relying party on adapter");

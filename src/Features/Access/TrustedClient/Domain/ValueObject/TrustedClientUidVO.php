@@ -13,7 +13,7 @@ class TrustedClientUidVO
 {
     public static function from(TrustedClientUidVO|string $value): TrustedClientUidVO
     {
-        if (is_a($value, TrustedClientUidVO::class)) {
+        if ($value instanceof TrustedClientUidVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class TrustedClientUidVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TrustedClientUidVO);
             return $candidate;
         }
     }

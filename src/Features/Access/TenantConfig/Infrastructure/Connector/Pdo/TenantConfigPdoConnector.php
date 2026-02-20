@@ -80,7 +80,7 @@ class TenantConfigPdoConnector
         $this->logDebug("Make query for entities for Tenant config");
         $span = $this->startSpan("Make query for entities for Tenant config");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): TenantConfig => $this->mapper($row)) : $this->db->query($query, $params, fn (array $row): TenantConfig => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -93,7 +93,7 @@ class TenantConfigPdoConnector
         $this->logDebug("Make raw query for Tenant config");
         $span = $this->startSpan("Make raw query for Tenant config");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -107,7 +107,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Retrieve query for Tenant config");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): TenantConfig => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -121,7 +121,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Retrieve query for update of Tenant config");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row): TenantConfig => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -135,14 +135,14 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant config");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "allow_register", "enable_register_users", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :allowRegister, :enableRegisterUsers, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "allow_register", "enable_register_users", "welcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :allowRegister, :enableRegisterUsers, :welcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $entity->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $entity->isForceMfa(), type: SqlParam::BOOL),
                      new SqlParam(name: 'allowRegister', value: $entity->isAllowRegister(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enableRegisterUsers', value: $entity->isEnableRegisterUsers(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'wellcomeEmail', value: $entity->getWellcomeEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'welcomeEmail', value: $entity->getWelcomeEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'registerdEmail', value: $entity->getRegisterdEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'disabledUserEmail', value: $entity->getDisabledUserEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'enabledUserEmail', value: $entity->getEnabledUserEmail(), type: SqlParam::TEXT),
@@ -175,14 +175,14 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant config");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "welcome_email" = :welcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $update->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $update->isForceMfa(), type: SqlParam::BOOL),
                      new SqlParam(name: 'allowRegister', value: $update->isAllowRegister(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enableRegisterUsers', value: $update->isEnableRegisterUsers(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'wellcomeEmail', value: $update->getWellcomeEmail(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'welcomeEmail', value: $update->getWelcomeEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'registerdEmail', value: $update->getRegisterdEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'disabledUserEmail', value: $update->getDisabledUserEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'enabledUserEmail', value: $update->getEnabledUserEmail(), type: SqlParam::TEXT),
@@ -259,7 +259,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute count sql query for Tenant config");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -273,7 +273,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute count sql query for update of Tenant config");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row) => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -281,7 +281,7 @@ class TenantConfigPdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(TenantConfig $entity, bool $creation)
+    private function checkDuplicates(TenantConfig $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for Tenant config");
         $span = $this->startSpan("Query to check duplicates for Tenant config");
@@ -301,7 +301,7 @@ class TenantConfigPdoConnector
             $span->end();
         }
     }
-    private function filter(?TenantConfigFilter $filter, ?TenantConfigCursor $sort, bool $count)
+    private function filter(?TenantConfigFilter $filter, ?TenantConfigCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of Tenant config");
         $span = $this->startSpan("Build query filter of Tenant config");
@@ -372,7 +372,7 @@ class TenantConfigPdoConnector
     private function mapper($row): TenantConfig
     {
         $this->logDebug("Mapping from sql to entity for Tenant config");
-        $span = $this->startSpan("Mapping from sql to enttiy for Tenant config");
+        $span = $this->startSpan("Mapping from sql to entity for Tenant config");
         try {
             return new TenantConfig(
                 uid: $row['uid'] ?? null,
@@ -381,7 +381,7 @@ class TenantConfigPdoConnector
                 forceMfa: isset($row['force_mfa']) ? !! $row['force_mfa'] : null,
                 allowRegister: isset($row['allow_register']) ? !! $row['allow_register'] : null,
                 enableRegisterUsers: isset($row['enable_register_users']) ? !! $row['enable_register_users'] : null,
-                wellcomeEmail: $row['wellcome_email'] ?? null,
+                welcomeEmail: $row['welcome_email'] ?? null,
                 registerdEmail: $row['registerd_email'] ?? null,
                 disabledUserEmail: $row['disabled_user_email'] ?? null,
                 enabledUserEmail: $row['enabled_user_email'] ?? null,

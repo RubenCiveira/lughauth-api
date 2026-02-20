@@ -16,7 +16,7 @@ class TenantLoginProviderDisabledVO
     }
     public static function from(TenantLoginProviderDisabledVO|bool|null $value): TenantLoginProviderDisabledVO
     {
-        if (is_a($value, TenantLoginProviderDisabledVO::class)) {
+        if ($value instanceof TenantLoginProviderDisabledVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class TenantLoginProviderDisabledVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantLoginProviderDisabledVO);
             return $candidate;
         }
     }

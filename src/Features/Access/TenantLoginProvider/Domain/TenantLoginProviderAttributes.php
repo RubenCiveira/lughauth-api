@@ -46,7 +46,7 @@ class TenantLoginProviderAttributes
     use TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
     use TenantLoginProviderVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'name' => 'unsetName',
@@ -78,7 +78,13 @@ class TenantLoginProviderAttributes
         $version = TenantLoginProviderVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new TenantLoginProvider(
+        }
+        \assert($uid !== null);
+        \assert($tenant !== null);
+        \assert($name !== null);
+        \assert($source !== null);
+        \assert($usersEnabledByDefault !== null);
+        return new TenantLoginProvider(
             uid: $uid,
             tenant: $tenant,
             name: $name,
@@ -114,7 +120,7 @@ class TenantLoginProviderAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

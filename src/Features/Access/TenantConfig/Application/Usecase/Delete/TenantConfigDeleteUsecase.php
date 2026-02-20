@@ -33,7 +33,7 @@ class TenantConfigDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Tenant config");
         $span = $this->startSpan("Check allow of delete usecase for Tenant config");
         try {
-            $result = $this->dispatcher->dispatch(new TenantConfigDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantConfigDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TenantConfigDeleteUsecase
             $ref = new TenantConfigRef($uid);
             $allow = $this->allowDelete($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to delete Tenant config');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

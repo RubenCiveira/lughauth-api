@@ -17,8 +17,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWelcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWelcomeEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
@@ -41,7 +41,7 @@ class TenantConfigAttributes
     use TenantConfigForceMfaAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
-    use TenantConfigWellcomeEmailAttributeHolder;
+    use TenantConfigWelcomeEmailAttributeHolder;
     use TenantConfigRegisterdEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
     use TenantConfigEnabledUserEmailAttributeHolder;
@@ -49,14 +49,14 @@ class TenantConfigAttributes
     use TenantConfigRecoverPassEmailAttributeHolder;
     use TenantConfigVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'innerLabel' => 'unsetInnerLabel',
       'forceMfa' => 'unsetForceMfa',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
-      'wellcomeEmail' => 'unsetWellcomeEmail',
+      'welcomeEmail' => 'unsetWelcomeEmail',
       'registerdEmail' => 'unsetRegisterdEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
       'enabledUserEmail' => 'unsetEnabledUserEmail',
@@ -74,7 +74,7 @@ class TenantConfigAttributes
         $forceMfa = TenantConfigForceMfaVO::tryFrom($this->forceMfa, $errors);
         $allowRegister = TenantConfigAllowRegisterVO::tryFrom($this->allowRegister, $errors);
         $enableRegisterUsers = TenantConfigEnableRegisterUsersVO::tryFrom($this->enableRegisterUsers, $errors);
-        $wellcomeEmail = TenantConfigWellcomeEmailVO::tryFrom($this->wellcomeEmail, $errors);
+        $welcomeEmail = TenantConfigWelcomeEmailVO::tryFrom($this->welcomeEmail, $errors);
         $registerdEmail = TenantConfigRegisterdEmailVO::tryFrom($this->registerdEmail, $errors);
         $disabledUserEmail = TenantConfigDisabledUserEmailVO::tryFrom($this->disabledUserEmail, $errors);
         $enabledUserEmail = TenantConfigEnabledUserEmailVO::tryFrom($this->enabledUserEmail, $errors);
@@ -83,14 +83,18 @@ class TenantConfigAttributes
         $version = TenantConfigVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new TenantConfig(
+        }
+        \assert($uid !== null);
+        \assert($tenant !== null);
+        \assert($forceMfa !== null);
+        return new TenantConfig(
             uid: $uid,
             tenant: $tenant,
             innerLabel: $innerLabel,
             forceMfa: $forceMfa,
             allowRegister: $allowRegister,
             enableRegisterUsers: $enableRegisterUsers,
-            wellcomeEmail: $wellcomeEmail,
+            welcomeEmail: $welcomeEmail,
             registerdEmail: $registerdEmail,
             disabledUserEmail: $disabledUserEmail,
             enabledUserEmail: $enabledUserEmail,
@@ -109,7 +113,7 @@ class TenantConfigAttributes
         $this->withAssertedForceMfaRules($value, $errorsList);
         $this->withAssertedAllowRegisterRules($value, $errorsList);
         $this->withAssertedEnableRegisterUsersRules($value, $errorsList);
-        $this->withAssertedWellcomeEmailRules($value, $errorsList);
+        $this->withAssertedWelcomeEmailRules($value, $errorsList);
         $this->withAssertedRegisterdEmailRules($value, $errorsList);
         $this->withAssertedDisabledUserEmailRules($value, $errorsList);
         $this->withAssertedEnabledUserEmailRules($value, $errorsList);
@@ -121,7 +125,7 @@ class TenantConfigAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);
@@ -135,7 +139,7 @@ class TenantConfigAttributes
         $this->withDefaultForceMfa();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
-        $this->withDefaultWellcomeEmail();
+        $this->withDefaultWelcomeEmail();
         $this->withDefaultRegisterdEmail();
         $this->withDefaultDisabledUserEmail();
         $this->withDefaultEnabledUserEmail();

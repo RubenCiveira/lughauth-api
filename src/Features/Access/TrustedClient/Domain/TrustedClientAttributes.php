@@ -31,7 +31,7 @@ class TrustedClientAttributes
     use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
       'publicAllow' => 'unsetPublicAllow',
@@ -53,7 +53,13 @@ class TrustedClientAttributes
         $version = TrustedClientVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new TrustedClient(
+        }
+        \assert($uid !== null);
+        \assert($code !== null);
+        \assert($publicAllow !== null);
+        \assert($enabled !== null);
+        \assert($allowedRedirects !== null);
+        return new TrustedClient(
             uid: $uid,
             code: $code,
             publicAllow: $publicAllow,
@@ -79,7 +85,7 @@ class TrustedClientAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

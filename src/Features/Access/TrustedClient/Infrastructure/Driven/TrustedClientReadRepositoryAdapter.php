@@ -37,16 +37,16 @@ class TrustedClientReadRepositoryAdapter implements TrustedClientReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $sort = null): TrustedClientSlide
+    public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide
     {
         $this->logDebug("List for Trusted client on adapter ");
         $span = $this->startSpan("List for Trusted client on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new TrustedClientSlide(function ($slide, $next) use ($filter) {
+            return new TrustedClientSlide(function (TrustedClientFilter $slide, ?TrustedClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TrustedClientCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TrustedClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -55,7 +55,7 @@ class TrustedClientReadRepositoryAdapter implements TrustedClientReadGateway
         }
     }
     #[Override]
-    public function retrieve(?TrustedClientFilter $filter): ?TrustedClient
+    public function retrieve(TrustedClientFilter $filter): ?TrustedClient
     {
         $this->logDebug("Retrieve for Trusted client on adapter ");
         $span = $this->startSpan("Retrieve for Trusted client on adapter");
@@ -69,7 +69,7 @@ class TrustedClientReadRepositoryAdapter implements TrustedClientReadGateway
         }
     }
     #[Override]
-    public function exists(?TrustedClientFilter $filter): bool
+    public function exists(TrustedClientFilter $filter): bool
     {
         $this->logDebug("Exists for Trusted client on adapter ");
         $span = $this->startSpan("Exists for Trusted client on adapter");

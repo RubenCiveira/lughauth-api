@@ -33,7 +33,7 @@ class TenantLoginProviderDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of Disable usecase for Tenant login provider");
         try {
-            $result = $this->dispatcher->dispatch(new TenantLoginProviderDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant login provider by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant login provider by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TenantLoginProviderDisableUsecase
             $ref = new TenantLoginProviderRef($uid);
             $allow = $this->allowDisable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Disable Tenant login provider');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

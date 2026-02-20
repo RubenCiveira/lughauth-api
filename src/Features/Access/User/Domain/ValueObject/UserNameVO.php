@@ -13,7 +13,7 @@ class UserNameVO
 {
     public static function from(UserNameVO|string $value): UserNameVO
     {
-        if (is_a($value, UserNameVO::class)) {
+        if ($value instanceof UserNameVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class UserNameVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserNameVO);
             return $candidate;
         }
     }

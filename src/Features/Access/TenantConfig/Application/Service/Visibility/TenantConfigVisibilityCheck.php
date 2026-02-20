@@ -14,7 +14,7 @@ class TenantConfigVisibilityCheck
         public readonly TenantConfig $tenantConfig
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

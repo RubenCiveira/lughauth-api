@@ -16,7 +16,7 @@ class TenantConfigAllowRegisterVO
     }
     public static function from(TenantConfigAllowRegisterVO|bool|null $value): TenantConfigAllowRegisterVO
     {
-        if (is_a($value, TenantConfigAllowRegisterVO::class)) {
+        if ($value instanceof TenantConfigAllowRegisterVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class TenantConfigAllowRegisterVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantConfigAllowRegisterVO);
             return $candidate;
         }
     }

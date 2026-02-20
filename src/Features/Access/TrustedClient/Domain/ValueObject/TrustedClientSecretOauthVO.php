@@ -20,11 +20,11 @@ class TrustedClientSecretOauthVO
     {
         return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): TrustedClientSecretOauthVO
+    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientSecretOauthVO
     {
         return self::tryFrom('cyphered://' . $value, $list);
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): TrustedClientSecretOauthVO
+    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?TrustedClientSecretOauthVO
     {
         return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
     }
@@ -38,7 +38,7 @@ class TrustedClientSecretOauthVO
     }
     public static function from(TrustedClientSecretOauthVO|string|null $value): TrustedClientSecretOauthVO
     {
-        if (is_a($value, TrustedClientSecretOauthVO::class)) {
+        if ($value instanceof TrustedClientSecretOauthVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -48,6 +48,7 @@ class TrustedClientSecretOauthVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TrustedClientSecretOauthVO);
             return $candidate;
         }
     }
@@ -87,22 +88,22 @@ class TrustedClientSecretOauthVO
     ) {
         $this->validateCyphered($this->secretOauth);
     }
-    private function validateCyphered(?string $key)
+    private function validateCyphered(?string $key): void
     {
-        if ($key && strpos($key, 'cyphered://') !== 0) {
-            throw new \InvalidArgumentException($key . ' is not a valid chypered text');
+        if (null !== $key && strpos($key, 'cyphered://') !== 0) {
+            throw new \InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
     public function value(): ?string
     {
-        return $this->secretOauth ? "****" . substr($this->secretOauth, -2) : null;
+        return null !== $this->secretOauth ? "****" . substr($this->secretOauth, -2) : null;
     }
     public function cypheredValueWith(AesCypherService $cypher): ?string
     {
-        return $this->secretOauth ? substr($this->secretOauth, 11) : null;
+        return null !== $this->secretOauth ? substr($this->secretOauth, 11) : null;
     }
     public function plainValueWith(AesCypherService $cypher): ?string
     {
-        return $this->secretOauth ? $cypher->decryptForAll(substr($this->secretOauth, 11)) : null;
+        return null !== $this->secretOauth ? $cypher->decryptForAll(substr($this->secretOauth, 11)) : null;
     }
 }

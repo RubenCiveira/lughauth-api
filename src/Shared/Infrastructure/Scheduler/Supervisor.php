@@ -116,7 +116,7 @@ final class Supervisor
     {
         @mkdir(dirname($logFile), 0775, true);
 
-        $phpCli = $this->resolvePhpCli($this->phpBin);
+        $phpCli = $this->resolvePhpCli();
         $php = escapeshellarg($phpCli ?: 'php');
 
         $workerPath = realpath($worker);
@@ -139,6 +139,7 @@ final class Supervisor
         }
 
         // POSIX: usamos /bin/sh para poder capturar $!
+        /** @psalm-suppress ForbiddenCode */
         $hasSetsid = (bool) @shell_exec('command -v setsid 2>/dev/null');
 
         if ($hasSetsid) {
@@ -164,9 +165,7 @@ final class Supervisor
         $pidContent = stream_get_contents($pipes[1]);
         $pid = (int) trim($pidContent !== false ? $pidContent : '0');
         foreach ($pipes as $p) {
-            if (\is_resource($p)) {
-                fclose($p);
-            }
+            fclose($p);
         }
         @proc_close($proc);
 
@@ -205,6 +204,7 @@ final class Supervisor
         }
 
         // 4) which php
+        /** @psalm-suppress ForbiddenCode */
         $which = @trim((string)@shell_exec('command -v php 2>/dev/null'));
         if ($which !== '') {
             $candidates[] = $which;

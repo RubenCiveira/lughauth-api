@@ -80,7 +80,7 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "forceMfa", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "allowRegister", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "enableRegisterUsers", "MANAGE");
-            $handler->registerResourceAttribute("tenant-config", "wellcomeEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "welcomeEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "registerdEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "disabledUserEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "enabledUserEmail", "MANAGE");

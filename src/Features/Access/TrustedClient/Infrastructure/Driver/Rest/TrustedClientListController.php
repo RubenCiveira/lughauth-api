@@ -55,7 +55,7 @@ class TrustedClientListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapTrustedClient($item), $result->values())];
+            $value = ['items' => array_map(fn (TrustedClientAttributes $item): TrustedClientApiDTO => $this->mapTrustedClient($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -106,10 +106,10 @@ class TrustedClientListController
             if ($value && $value->sinceUid()) {
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
-            if ($value && strpos('CODE-ASC', $params['order'] ?? '') !== false && $value->sinceCode()) {
+            if (strpos('CODE-ASC', $params['order'] ?? '') !== false && $value->sinceCode()) {
                 $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
             }
-            if ($value && strpos('CODE-DESC', $params['order'] ?? '') !== false && $value->sinceCode()) {
+            if (strpos('CODE-DESC', $params['order'] ?? '') !== false && $value->sinceCode()) {
                 $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
             }
             return implode('&', $link);

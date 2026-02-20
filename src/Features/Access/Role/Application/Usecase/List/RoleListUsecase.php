@@ -50,7 +50,7 @@ class RoleListUsecase
         try {
             $allow = $this->allowList();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to list Role');
             }
             return $this->visibility->countVisibles($filter);
         } catch (Throwable $ex) {

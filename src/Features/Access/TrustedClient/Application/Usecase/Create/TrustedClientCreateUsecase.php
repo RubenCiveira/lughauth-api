@@ -48,7 +48,7 @@ class TrustedClientCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Trusted client');
             }
             $this->dispatcher->dispatch(new TrustedClientCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new TrustedClientCreateEnrich($params, $params->toAttributes()));

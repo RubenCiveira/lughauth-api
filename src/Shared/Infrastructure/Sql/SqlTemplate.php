@@ -79,12 +79,16 @@ class SqlTemplate
     /**
      * Executes a statement and returns whether rows were affected.
      */
-    public function execute($query, array $params): bool
+    public function execute(string $query, array $params): bool
     {
         try {
             $stmt = $this->prepare($query, $params);
-            $result = $stmt->execute();
-            return $result ? $stmt->rowCount() > 0 : 0;
+            if (false !== $stmt) {
+                $result = $stmt->execute();
+                return $result ? $stmt->rowCount() > 0 : false;
+            } else {
+                return false;
+            }
         } catch (PDOException $ex) {
             throw $this->exception($ex);
         }
@@ -93,74 +97,98 @@ class SqlTemplate
     /**
      * Executes a query and returns all rows as an array.
      */
-    public function query($query, array $params, ?Closure $clousure = null): array
+    public function query(string $query, array $params, ?Closure $clousure = null): array
     {
         $stmt = $this->prepare($query, $params);
-        $stmt->execute();
-        $keys = [];
-        while ($fila = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $keys[] = $clousure ? $clousure($fila) : $fila;
+        if (false !== $stmt) {
+            $stmt->execute();
+            $keys = [];
+            while ($fila = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $keys[] = $clousure ? $clousure($fila) : $fila;
+            }
+            return $keys;
+        } else {
+            return [];
         }
-        return $keys;
     }
 
     /**
      * Executes a query for update and returns all rows as an array.
      */
-    public function queryForUpdate($query, array $params, ?Closure $clousure = null): array
+    public function queryForUpdate(string $query, array $params, ?Closure $clousure = null): array
     {
         $stmt = $this->prepare($query, $params);
-        $stmt->execute();
-        $keys = [];
-        while ($fila = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $keys[] = $clousure ? $clousure($fila) : $fila;
+        if (false !== $stmt) {
+            $stmt->execute();
+            $keys = [];
+            while ($fila = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $keys[] = $clousure ? $clousure($fila) : $fila;
+            }
+            return $keys;
+        } else {
+            return [];
         }
-        return $keys;
     }
 
     /**
      * Finds a single row or returns null when no match exists.
      */
-    public function findOne($query, array $params, ?Closure $clousure = null)
+    public function findOne(string $query, array $params, ?Closure $clousure = null): mixed
     {
         $stmt = $this->prepare($query, $params);
-        $stmt->execute();
-        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
+        if (false !== $stmt) {
+            $stmt->execute();
+            $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
+        } else {
+            return null;
+        }
     }
 
     /**
      * Finds a single row for update or returns null when no match exists.
      */
-    public function findOneForUpdate($query, array $params, ?Closure $clousure = null)
+    public function findOneForUpdate(string $query, array $params, ?Closure $clousure = null): mixed
     {
         $stmt = $this->prepare($query, $params);
-        $stmt->execute();
-        $fila = $stmt->fetch(PDO::FETCH_ASSOC);
-        return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
+        if (false !== $stmt) {
+            $stmt->execute();
+            $fila = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $fila ? ($clousure ? $clousure($fila) : $fila) : null;
+        } else {
+            return null;
+        }
     }
 
     /**
      * Returns true when the query yields at least one row.
      */
-    public function exists($query, array $params): bool
+    public function exists(string $query, array $params): bool
     {
         $stmt = $this->prepare($query, $params);
-        $stmt->execute();
-        return !!$stmt->fetch();
+        if (false !== $stmt) {
+            $stmt->execute();
+            return !!$stmt->fetch();
+        } else {
+            return false;
+        }
     }
 
     /**
      * Returns true when the query yields at least one row for update.
      */
-    public function existsForUpdate($query, array $params): bool
+    public function existsForUpdate(string $query, array $params): bool
     {
         $stmt = $this->prepare($query, $params);
-        $stmt->execute();
-        return !!$stmt->fetch();
+        if (false !== $stmt) {
+            $stmt->execute();
+            return !!$stmt->fetch();
+        } else {
+            return false;
+        }
     }
 
-    private function prepare($query, array $params): PDOStatement | false
+    private function prepare(string $query, array $params): PDOStatement | false
     {
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if ('mysql' == $driver) {
@@ -173,11 +201,14 @@ class SqlTemplate
                 // $pattern = '/\s+(IN|in)\s*\(\s*:' . preg_quote($name, '/') . '\s*\)/i';
                 // $query = preg_replace($pattern, $this->paramExpand($name, $value), $query);
                 $pattern = '/(?<field>`?\w+`?|"\w+"|\w+)\s+(?<op>NOT\s+IN|IN)\s*\(\s*:' . preg_quote($name, '/') . '\s*\)/i';
-                $query = preg_replace_callback($pattern, function ($matches) use ($name, $value) {
+                $replaced = preg_replace_callback($pattern, function ($matches) use ($name, $value) {
                     $field = $matches['field'];
                     $op = strtoupper(trim($matches['op']));
                     return $this->paramExpand($field, $name, $value, $op === 'NOT IN');
                 }, $query);
+                if (is_string($replaced)) {
+                    $query = $replaced;
+                }
             }
         }
         $stmt = $this->pdo->prepare($query);
@@ -187,23 +218,23 @@ class SqlTemplate
             if (is_array($value)) {
                 for ($i = 0; $i < count($value); $i++) {
                     if (is_a($param, SqlParam::class)) {
-                        $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i], $param->type), $this->podType($param->type));
+                        $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i]), $this->podType($param->type));
                     } else {
-                        $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i], null));
+                        $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i]));
                     }
                 }
             } else {
                 if (is_a($param, SqlParam::class)) {
-                    $stmt->bindValue($name, $this->podValue($value, $param->type), $this->podType($param->type));
+                    $stmt->bindValue($name, $this->podValue($value), $this->podType($param->type));
                 } else {
-                    $stmt->bindValue($name, $this->podValue($value, null));
+                    $stmt->bindValue($name, $this->podValue($value));
                 }
             }
         }
         return $stmt;
     }
 
-    private function paramExpand($field, $name, $elements, bool $not = false): string
+    private function paramExpand(string $field, string $name, array $elements, bool $not = false): string
     {
         if (count($elements) === 0) {
             return $not ? '1 = 1' : '0 = 1'; // NOT IN [] → siempre verdadero
@@ -216,7 +247,7 @@ class SqlTemplate
         return "$field $op (" . implode(', ', $params) . ")";
     }
 
-    private function podValue($value, $type): mixed
+    private function podValue(mixed $value): mixed
     {
         if ($value instanceof \DateTime || $value instanceof \DateTimeInterface) {
             return $value->format('Y-m-d H:i:s');
@@ -255,7 +286,7 @@ class SqlTemplate
     }
     private function isDuplicatedInMysql(PDOException $ex): bool
     {
-        return $ex->errorInfo[0] == 23000 && $ex->errorInfo[1] == 1062;
+        return is_array($ex->errorInfo) && $ex->errorInfo[0] == 23000 && $ex->errorInfo[1] == 1062;
     }
     private function isReferenced(PDOException $ex, string $driver): bool
     {

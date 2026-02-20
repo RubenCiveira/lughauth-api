@@ -7,13 +7,13 @@ namespace Civi\Lughauth\Features\Access\RelyingParty\Domain;
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyUidVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyCodeVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accesor\RelyingPartyCodeAccesor;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accessor\RelyingPartyCodeAccessor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyApiKeyVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accesor\RelyingPartyApiKeyAccesor;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accessor\RelyingPartyApiKeyAccessor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEnabledVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accesor\RelyingPartyEnabledAccesor;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accessor\RelyingPartyEnabledAccessor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyVersionVO;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accesor\RelyingPartyVersionAccesor;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Accessor\RelyingPartyVersionAccessor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Event\RelyingPartyCreateEvent;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Event\RelyingPartyUpdateEvent;
@@ -23,10 +23,10 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\Event\RelyingPartyDisableE
 
 class RelyingParty extends RelyingPartyRef
 {
-    use RelyingPartyCodeAccesor;
-    use RelyingPartyApiKeyAccesor;
-    use RelyingPartyEnabledAccesor;
-    use RelyingPartyVersionAccesor;
+    use RelyingPartyCodeAccessor;
+    use RelyingPartyApiKeyAccessor;
+    use RelyingPartyEnabledAccessor;
+    use RelyingPartyVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

@@ -12,7 +12,7 @@ class UserIdentityRolesVO
 {
     public static function from(UserIdentityRolesVO|UserIdentityRolesListRef| array |null $value): UserIdentityRolesVO
     {
-        if (is_a($value, UserIdentityRolesVO::class)) {
+        if ($value instanceof UserIdentityRolesVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -22,6 +22,7 @@ class UserIdentityRolesVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserIdentityRolesVO);
             return $candidate;
         }
     }

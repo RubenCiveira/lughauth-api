@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -79,22 +80,24 @@ class TenantTermsOfUseVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|TenantTermsOfUseRef $value): bool
+    public function checkVisibility(Iterator|string|TenantTermsOfUseRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Tenant terms of use");
         $span = $this->startSpan("Check visibility of an iterator for  Tenant terms of use");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new TenantTermsOfUseRef($value));
+            } elseif ($value instanceof TenantTermsOfUseRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new TenantTermsOfUseFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, TenantTermsOfUseRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new TenantTermsOfUseRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -110,7 +113,7 @@ class TenantTermsOfUseVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (TenantTermsOfUse $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -141,7 +144,7 @@ class TenantTermsOfUseVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (TenantTermsOfUse $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -239,7 +242,7 @@ class TenantTermsOfUseVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  Tenant terms of use");
         try {
             if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
-                throw new NotFoundException("Unknow Tenant " . $attributes->getTenant());
+                throw new NotFoundException("Unknown Tenant " . $attributes->getTenant());
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -249,7 +252,7 @@ class TenantTermsOfUseVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(TenantTermsOfUseFilter $filter)
+    private function applyPreVisibilityFilter(TenantTermsOfUseFilter $filter): TenantTermsOfUseFilter
     {
         $this->logDebug("Compose visibility filter for Tenant terms of use");
         $span = $this->startSpan("Compose visibility filter for  Tenant terms of use");
@@ -279,8 +282,8 @@ class TenantTermsOfUseVisibilityService
     }
     private function prepareVisibleDataCallback(TenantTermsOfUse $content, bool $inlist): TenantTermsOfUseAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Tenant terms of use");
-        $span = $this->startSpan("Prepare hidratation to visible data for Tenant terms of use");
+        $this->logDebug("Prepare hydration to visible data for Tenant terms of use");
+        $span = $this->startSpan("Prepare hydration to visible data for Tenant terms of use");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new TenantTermsOfUseEnrichForView($content, $inlist, $attributes));

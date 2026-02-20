@@ -122,7 +122,7 @@ class JwtVerifierMiddleware
                             unset($claims[$property]);
                         }
                         $identity = new Identity(
-                            anonimous: false,
+                            anonymous: false,
                             authScope: $authScope,
                             id: $payload->sub,
                             name: $payload->name ?? $payload->sub,
@@ -159,7 +159,7 @@ class JwtVerifierMiddleware
     {
         [$cc, $ac] = $vcc;
         $identity = new Identity(
-            anonimous: $ac['anonimous'],
+            anonymous: $ac['anonymous'],
             authScope: $ac['authScope'],
             id: $ac['id'],
             name: $ac['name'],

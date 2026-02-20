@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -78,22 +79,24 @@ class TrustedClientVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|TrustedClientRef $value): bool
+    public function checkVisibility(Iterator|string|TrustedClientRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Trusted client");
         $span = $this->startSpan("Check visibility of an iterator for  Trusted client");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new TrustedClientRef($value));
+            } elseif ($value instanceof TrustedClientRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new TrustedClientFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, TrustedClientRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new TrustedClientRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -109,7 +112,7 @@ class TrustedClientVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (TrustedClient $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -140,7 +143,7 @@ class TrustedClientVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (TrustedClient $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -238,7 +241,7 @@ class TrustedClientVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  Trusted client");
         try {
             if ($attributes->getAllowedRedirects() && !$this->checkVisibilityForAllowedRedirects($attributes->getAllowedRedirects())) {
-                throw new NotFoundException("Unknow AllowedRedirects " . $attributes->getAllowedRedirects()->uid());
+                throw new NotFoundException("Unknown AllowedRedirects " . $attributes->getAllowedRedirects()->uid());
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -248,7 +251,7 @@ class TrustedClientVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(TrustedClientFilter $filter)
+    private function applyPreVisibilityFilter(TrustedClientFilter $filter): TrustedClientFilter
     {
         $this->logDebug("Compose visibility filter for Trusted client");
         $span = $this->startSpan("Compose visibility filter for  Trusted client");
@@ -293,8 +296,8 @@ class TrustedClientVisibilityService
     }
     private function prepareVisibleDataCallback(TrustedClient $content, bool $inlist): TrustedClientAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Trusted client");
-        $span = $this->startSpan("Prepare hidratation to visible data for Trusted client");
+        $this->logDebug("Prepare hydration to visible data for Trusted client");
+        $span = $this->startSpan("Prepare hydration to visible data for Trusted client");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new TrustedClientEnrichForView($content, $inlist, $attributes));

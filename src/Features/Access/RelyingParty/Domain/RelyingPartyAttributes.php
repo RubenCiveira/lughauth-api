@@ -25,7 +25,7 @@ class RelyingPartyAttributes
     use RelyingPartyEnabledAttributeHolder;
     use RelyingPartyVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
       'apiKey' => 'unsetApiKey',
@@ -43,7 +43,11 @@ class RelyingPartyAttributes
         $version = RelyingPartyVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new RelyingParty(
+        }
+        \assert($uid !== null);
+        \assert($code !== null);
+        \assert($apiKey !== null);
+        return new RelyingParty(
             uid: $uid,
             code: $code,
             apiKey: $apiKey,
@@ -65,7 +69,7 @@ class RelyingPartyAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

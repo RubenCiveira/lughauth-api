@@ -29,9 +29,9 @@ class Identity
      *
      * @return Identity An instance representing an anonymous user.
      */
-    public static function anonimous(): Identity
+    public static function anonymous(): Identity
     {
-        return new Identity(anonimous: true);
+        return new Identity(anonymous: true);
     }
 
     /**
@@ -39,7 +39,7 @@ class Identity
      */
     public function __construct(
         /** @var bool Whether the user is anonymous. */
-        public readonly bool $anonimous,
+        public readonly bool $anonymous,
         /** @var string|null The authorization scope (none, read, or read-write). */
         public readonly ?string $authScope = Identity::AUTH_SCOPE_NONE,
         /** @var string|null The user identifier. */

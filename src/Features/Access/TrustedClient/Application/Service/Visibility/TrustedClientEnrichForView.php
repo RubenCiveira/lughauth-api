@@ -20,7 +20,7 @@ class TrustedClientEnrichForView
     {
         return $this->trustedClientAttributes;
     }
-    public function with(TrustedClientAttributes $trustedClientAttributes)
+    public function with(TrustedClientAttributes $trustedClientAttributes): void
     {
         $this->trustedClientAttributes = $trustedClientAttributes;
     }

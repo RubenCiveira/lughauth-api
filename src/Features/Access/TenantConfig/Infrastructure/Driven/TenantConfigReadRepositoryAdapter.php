@@ -38,16 +38,16 @@ class TenantConfigReadRepositoryAdapter implements TenantConfigReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?TenantConfigFilter $filter = null, ?TenantConfigCursor $sort = null): TenantConfigSlide
+    public function list(?TenantConfigFilter $filter = null, ?TenantConfigCursor $cursor = null): TenantConfigSlide
     {
         $this->logDebug("List for Tenant config on adapter ");
         $span = $this->startSpan("List for Tenant config on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new TenantConfigSlide(function ($slide, $next) use ($filter) {
+            return new TenantConfigSlide(function (TenantConfigFilter $slide, ?TenantConfigCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantConfigCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantConfigCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -56,7 +56,7 @@ class TenantConfigReadRepositoryAdapter implements TenantConfigReadGateway
         }
     }
     #[Override]
-    public function retrieve(?TenantConfigFilter $filter): ?TenantConfig
+    public function retrieve(TenantConfigFilter $filter): ?TenantConfig
     {
         $this->logDebug("Retrieve for Tenant config on adapter ");
         $span = $this->startSpan("Retrieve for Tenant config on adapter");
@@ -70,7 +70,7 @@ class TenantConfigReadRepositoryAdapter implements TenantConfigReadGateway
         }
     }
     #[Override]
-    public function exists(?TenantConfigFilter $filter): bool
+    public function exists(TenantConfigFilter $filter): bool
     {
         $this->logDebug("Exists for Tenant config on adapter ");
         $span = $this->startSpan("Exists for Tenant config on adapter");

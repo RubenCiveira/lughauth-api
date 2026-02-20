@@ -19,12 +19,12 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: create an anonymous identity instance.
          */
-        $identity = Identity::anonimous();
+        $identity = Identity::anonymous();
 
         /*
          * Act: access the identity properties.
          */
-        $anonimous = $identity->anonimous;
+        $anonymous = $identity->anonymous;
         $authScope = $identity->authScope;
         $id = $identity->id;
         $name = $identity->name;
@@ -39,7 +39,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Assert: verify the default values on the anonymous identity.
          */
-        $this->assertTrue($anonimous);
+        $this->assertTrue($anonymous);
         $this->assertSame(Identity::AUTH_SCOPE_NONE, $authScope);
         $this->assertNull($id);
         $this->assertNull($name);
@@ -249,7 +249,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with multiple scopes.
          */
-        $identity = new Identity(anonimous: false, scope: 'read write delete');
+        $identity = new Identity(anonymous: false, scope: 'read write delete');
 
         /*
          * Act: check for individual scope values.
@@ -276,7 +276,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a null scope.
          */
-        $identity = new Identity(anonimous: false, scope: null);
+        $identity = new Identity(anonymous: false, scope: null);
 
         /*
          * Act: check for a scope when none exists.
@@ -297,7 +297,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with an empty scope string.
          */
-        $identity = new Identity(anonimous: false, scope: '');
+        $identity = new Identity(anonymous: false, scope: '');
 
         /*
          * Act: check for a scope when the list is empty.
@@ -318,7 +318,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a non-empty scope list.
          */
-        $identity = new Identity(anonimous: false, scope: 'read');
+        $identity = new Identity(anonymous: false, scope: 'read');
 
         /*
          * Act: search for an empty scope value.
@@ -339,7 +339,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with duplicate scopes.
          */
-        $identity = new Identity(anonimous: false, scope: 'read read');
+        $identity = new Identity(anonymous: false, scope: 'read read');
 
         /*
          * Act: check for the duplicated scope.
@@ -360,7 +360,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a concatenated scope value.
          */
-        $identity = new Identity(anonimous: false, scope: 'readwrite');
+        $identity = new Identity(anonymous: false, scope: 'readwrite');
 
         /*
          * Act: check for a partial scope value.

@@ -15,7 +15,7 @@ class TenantTermsOfUsePresetValues
         public readonly ?TenantTermsOfUse $tenantTermsOfUse
     ) {
     }
-    public function with(TenantTermsOfUseAttributes $attributes)
+    public function with(TenantTermsOfUseAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

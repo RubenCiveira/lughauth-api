@@ -38,16 +38,16 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         return $this->conn->retrieveForUpdate(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $sort = null): UserAccessTemporalCodeSlide
+    public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide
     {
-        $this->logDebug("Count for User access temporal code on adapter ");
-        $span = $this->startSpan("Count for User access temporal code on adapter");
+        $this->logDebug("List for update of User access temporal code on adapter ");
+        $span = $this->startSpan("List for update of User access temporal code on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new UserAccessTemporalCodeSlide(function ($slide, $next) use ($filter) {
+            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, ?UserAccessTemporalCodeCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserAccessTemporalCodeCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -58,8 +58,8 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
     #[Override]
     public function retrieveForUpdate(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode
     {
-        $this->logDebug("Count for User access temporal code on adapter ");
-        $span = $this->startSpan("Count for User access temporal code on adapter");
+        $this->logDebug("Retrieve for update of User access temporal code on adapter ");
+        $span = $this->startSpan("Retrieve for update of User access temporal code on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -72,8 +72,8 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
     #[Override]
     public function existsForUpdate(?UserAccessTemporalCodeFilter $filter): bool
     {
-        $this->logDebug("Count for User access temporal code on adapter ");
-        $span = $this->startSpan("Count for User access temporal code on adapter");
+        $this->logDebug("Exists for update of User access temporal code on adapter ");
+        $span = $this->startSpan("Exists for update of User access temporal code on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -86,8 +86,8 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
     #[Override]
     public function countForUpdate(?UserAccessTemporalCodeFilter $filter = null): int
     {
-        $this->logDebug("Count for User access temporal code on adapter ");
-        $span = $this->startSpan("Count for User access temporal code on adapter");
+        $this->logDebug("Count for update of User access temporal code on adapter ");
+        $span = $this->startSpan("Count for update of User access temporal code on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -115,14 +115,15 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         }
     }
     #[Override]
-    public function update(UserAccessTemporalCodeRef $reference, UserAccessTemporalCode $entity): UserAccessTemporalCode
+    public function update(UserAccessTemporalCodeRef $ref, UserAccessTemporalCode $entity): UserAccessTemporalCode
     {
         $this->logDebug("Count for User access temporal code on adapter ");
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof UserAccessTemporalCode) ? $reference : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof UserAccessTemporalCode) ? $reference : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -205,7 +206,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
             $span->end();
         }
     }
-    private function dispatch(UserAccessTemporalCode $entity)
+    private function dispatch(UserAccessTemporalCode $entity): void
     {
         $this->logDebug("Count for User access temporal code on adapter ");
         $span = $this->startSpan("Count for User access temporal code on adapter");

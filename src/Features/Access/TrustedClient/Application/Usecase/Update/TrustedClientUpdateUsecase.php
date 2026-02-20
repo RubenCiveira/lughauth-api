@@ -33,7 +33,7 @@ class TrustedClientUpdateUsecase
         $this->logDebug("Check allow update usecase for Trusted client");
         $span = $this->startSpan("Check allow update usecase for Trusted client");
         try {
-            $result = $this->dispatcher->dispatch(new TrustedClientUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class TrustedClientUpdateUsecase
             $ref = new TrustedClientRef($uid);
             $allow = $this->allowUpdate($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to update Trusted client');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

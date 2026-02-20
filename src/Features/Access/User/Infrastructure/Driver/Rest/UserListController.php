@@ -107,7 +107,7 @@ class UserListController
             if (isset($params['limit'])) {
                 $link['limit'] = 'limit=' . $params['limit'];
             }
-            if ($value->sinceUid()) {
+            if ($value && $value->sinceUid()) {
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
             if (strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
@@ -137,7 +137,7 @@ class UserListController
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
-            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
+            $dto->welcomeAt = $value->getWelcomeAt()?->format(DateTime::ATOM);
             $dto->enabled = $value->isEnabled();
             $dto->approve = $value->getApprove();
             $dto->temporalPassword = $value->isTemporalPassword();

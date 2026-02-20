@@ -7,18 +7,18 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Domain;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientCodeAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientCodeAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientPublicAllowAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientPublicAllowAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientSecretOauthAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientSecretOauthAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientEnabledAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientEnabledAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientAllowedRedirectsAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedRedirectsAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientVersionAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientVersionAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Event\TrustedClientCreateEvent;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Event\TrustedClientUpdateEvent;
@@ -28,12 +28,12 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\Event\TrustedClientDisabl
 
 class TrustedClient extends TrustedClientRef
 {
-    use TrustedClientCodeAccesor;
-    use TrustedClientPublicAllowAccesor;
-    use TrustedClientSecretOauthAccesor;
-    use TrustedClientEnabledAccesor;
-    use TrustedClientAllowedRedirectsAccesor;
-    use TrustedClientVersionAccesor;
+    use TrustedClientCodeAccessor;
+    use TrustedClientPublicAllowAccessor;
+    use TrustedClientSecretOauthAccessor;
+    use TrustedClientEnabledAccessor;
+    use TrustedClientAllowedRedirectsAccessor;
+    use TrustedClientVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

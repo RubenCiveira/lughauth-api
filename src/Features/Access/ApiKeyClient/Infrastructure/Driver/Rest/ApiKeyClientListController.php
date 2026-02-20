@@ -52,7 +52,7 @@ class ApiKeyClientListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapApiKeyClient($item), $result->values())];
+            $value = ['items' => array_map(fn (ApiKeyClientAttributes $item): ApiKeyClientApiDTO => $this->mapApiKeyClient($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }

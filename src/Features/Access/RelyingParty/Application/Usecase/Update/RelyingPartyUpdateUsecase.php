@@ -33,7 +33,7 @@ class RelyingPartyUpdateUsecase
         $this->logDebug("Check allow update usecase for Relying party");
         $span = $this->startSpan("Check allow update usecase for Relying party");
         try {
-            $result = $this->dispatcher->dispatch(new RelyingPartyUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RelyingPartyUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class RelyingPartyUpdateUsecase
             $ref = new RelyingPartyRef($uid);
             $allow = $this->allowUpdate($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to update Relying party');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

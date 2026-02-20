@@ -33,7 +33,7 @@ class UserUpdateUsecase
         $this->logDebug("Check allow update usecase for User");
         $span = $this->startSpan("Check allow update usecase for User");
         try {
-            $result = $this->dispatcher->dispatch(new UserUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class UserUpdateUsecase
             $ref = new UserRef($uid);
             $allow = $this->allowUpdate($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to update User');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

@@ -43,16 +43,16 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $sort = null): TenantLoginProviderSlide
+    public function list(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide
     {
         $this->logDebug("List for Tenant login provider on adapter ");
         $span = $this->startSpan("List for Tenant login provider on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new TenantLoginProviderSlide(function ($slide, $next) use ($filter) {
+            return new TenantLoginProviderSlide(function (TenantLoginProviderFilter $slide, ?TenantLoginProviderCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantLoginProviderCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -61,7 +61,7 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
         }
     }
     #[Override]
-    public function retrieve(?TenantLoginProviderFilter $filter): ?TenantLoginProvider
+    public function retrieve(TenantLoginProviderFilter $filter): ?TenantLoginProvider
     {
         $this->logDebug("Retrieve for Tenant login provider on adapter ");
         $span = $this->startSpan("Retrieve for Tenant login provider on adapter");
@@ -75,7 +75,7 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
         }
     }
     #[Override]
-    public function exists(?TenantLoginProviderFilter $filter): bool
+    public function exists(TenantLoginProviderFilter $filter): bool
     {
         $this->logDebug("Exists for Tenant login provider on adapter ");
         $span = $this->startSpan("Exists for Tenant login provider on adapter");

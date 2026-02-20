@@ -33,7 +33,7 @@ class UserDeleteUsecase
         $this->logDebug("Check allow of delete usecase for User");
         $span = $this->startSpan("Check allow of delete usecase for User");
         try {
-            $result = $this->dispatcher->dispatch(new UserDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class UserDeleteUsecase
             $ref = new UserRef($uid);
             $allow = $this->allowDelete($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to delete User');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

@@ -48,7 +48,7 @@ class UserIdentityCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create User identity');
             }
             $this->dispatcher->dispatch(new UserIdentityCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new UserIdentityCreateEnrich($params, $params->toAttributes()));

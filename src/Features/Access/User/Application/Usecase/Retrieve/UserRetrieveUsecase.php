@@ -33,7 +33,7 @@ class UserRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for User");
         $span = $this->startSpan("Check allow of retrieve usecase for User");
         try {
-            $result = $this->dispatcher->dispatch(new UserRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class UserRetrieveUsecase
             $ref = new UserRef($uid);
             $allow = $this->allowRetrieve($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve User');
             }
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);

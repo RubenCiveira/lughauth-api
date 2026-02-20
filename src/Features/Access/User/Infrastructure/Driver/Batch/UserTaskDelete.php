@@ -35,7 +35,7 @@ class UserTaskDelete implements TaskDescriptorInterface
     }
 
     #[Override]
-    public function finish(TaskContext $state): void
+    public function finish(TaskContext $state)
     {
     }
 

@@ -13,7 +13,7 @@ class ApiKeyClientRestrictFilterToVisibility
         public ApiKeyClientFilter $apiKeyClientFilter
     ) {
     }
-    public function with(ApiKeyClientFilter $apiKeyClientFilter)
+    public function with(ApiKeyClientFilter $apiKeyClientFilter): void
     {
         $this->apiKeyClientFilter = $apiKeyClientFilter;
     }

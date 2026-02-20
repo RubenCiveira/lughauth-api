@@ -48,7 +48,7 @@ class ApiKeyClientCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Api key client');
             }
             $this->dispatcher->dispatch(new ApiKeyClientCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new ApiKeyClientCreateEnrich($params, $params->toAttributes()));

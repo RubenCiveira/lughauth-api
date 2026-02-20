@@ -48,7 +48,7 @@ class TenantLoginProviderCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Tenant login provider');
             }
             $this->dispatcher->dispatch(new TenantLoginProviderCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new TenantLoginProviderCreateEnrich($params, $params->toAttributes()));

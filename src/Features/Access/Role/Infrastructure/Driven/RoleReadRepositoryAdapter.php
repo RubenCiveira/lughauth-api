@@ -38,16 +38,16 @@ class RoleReadRepositoryAdapter implements RoleReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?RoleFilter $filter = null, ?RoleCursor $sort = null): RoleSlide
+    public function list(?RoleFilter $filter = null, ?RoleCursor $cursor = null): RoleSlide
     {
         $this->logDebug("List for Role on adapter ");
         $span = $this->startSpan("List for Role on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new RoleSlide(function ($slide, $next) use ($filter) {
+            return new RoleSlide(function (RoleFilter $slide, ?RoleCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new RoleCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RoleCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -56,7 +56,7 @@ class RoleReadRepositoryAdapter implements RoleReadGateway
         }
     }
     #[Override]
-    public function retrieve(?RoleFilter $filter): ?Role
+    public function retrieve(RoleFilter $filter): ?Role
     {
         $this->logDebug("Retrieve for Role on adapter ");
         $span = $this->startSpan("Retrieve for Role on adapter");
@@ -70,7 +70,7 @@ class RoleReadRepositoryAdapter implements RoleReadGateway
         }
     }
     #[Override]
-    public function exists(?RoleFilter $filter): bool
+    public function exists(RoleFilter $filter): bool
     {
         $this->logDebug("Exists for Role on adapter ");
         $span = $this->startSpan("Exists for Role on adapter");

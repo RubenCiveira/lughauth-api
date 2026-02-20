@@ -20,11 +20,11 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
     {
         return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): UserAccessTemporalCodeTempSecondFactorSeedVO
+    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserAccessTemporalCodeTempSecondFactorSeedVO
     {
         return self::tryFrom('cyphered://' . $value, $list);
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): UserAccessTemporalCodeTempSecondFactorSeedVO
+    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserAccessTemporalCodeTempSecondFactorSeedVO
     {
         return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
     }
@@ -38,7 +38,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
     }
     public static function from(UserAccessTemporalCodeTempSecondFactorSeedVO|string|null $value): UserAccessTemporalCodeTempSecondFactorSeedVO
     {
-        if (is_a($value, UserAccessTemporalCodeTempSecondFactorSeedVO::class)) {
+        if ($value instanceof UserAccessTemporalCodeTempSecondFactorSeedVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -48,6 +48,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserAccessTemporalCodeTempSecondFactorSeedVO);
             return $candidate;
         }
     }
@@ -87,22 +88,22 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
     ) {
         $this->validateCyphered($this->tempSecondFactorSeed);
     }
-    private function validateCyphered(?string $key)
+    private function validateCyphered(?string $key): void
     {
-        if ($key && strpos($key, 'cyphered://') !== 0) {
-            throw new \InvalidArgumentException($key . ' is not a valid chypered text');
+        if (null !== $key && strpos($key, 'cyphered://') !== 0) {
+            throw new \InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
     public function value(): ?string
     {
-        return $this->tempSecondFactorSeed ? "****" . substr($this->tempSecondFactorSeed, -2) : null;
+        return null !== $this->tempSecondFactorSeed ? "****" . substr($this->tempSecondFactorSeed, -2) : null;
     }
     public function cypheredValueWith(AesCypherService $cypher): ?string
     {
-        return $this->tempSecondFactorSeed ? substr($this->tempSecondFactorSeed, 11) : null;
+        return null !== $this->tempSecondFactorSeed ? substr($this->tempSecondFactorSeed, 11) : null;
     }
     public function plainValueWith(AesCypherService $cypher): ?string
     {
-        return $this->tempSecondFactorSeed ? $cypher->decryptForAll(substr($this->tempSecondFactorSeed, 11)) : null;
+        return null !== $this->tempSecondFactorSeed ? $cypher->decryptForAll(substr($this->tempSecondFactorSeed, 11)) : null;
     }
 }

@@ -7,25 +7,25 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeUidVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeUserVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeUserAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeUserAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeTempSecondFactorSeedAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeTempSecondFactorSeedAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedExpirationVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeTempSecondFactorSeedExpirationAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeFailedLoginAttemptsVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeFailedLoginAttemptsAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeFailedLoginAttemptsAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRegisterCodeAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeRegisterCodeAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeUrlVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRegisterCodeUrlAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeRegisterCodeUrlAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeExpirationVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRegisterCodeExpirationAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeRegisterCodeExpirationAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRecoveryCodeAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeRecoveryCodeAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeExpirationVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeRecoveryCodeExpirationAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeRecoveryCodeExpirationAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeVersionVO;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accesor\UserAccessTemporalCodeVersionAccesor;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Accessor\UserAccessTemporalCodeVersionAccessor;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Formula\FailedLoginAttemptsCalculator;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeCreateEvent;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeUpdateEvent;
@@ -44,16 +44,16 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class UserAccessTemporalCode extends UserAccessTemporalCodeRef
 {
-    use UserAccessTemporalCodeUserAccesor;
-    use UserAccessTemporalCodeTempSecondFactorSeedAccesor;
-    use UserAccessTemporalCodeTempSecondFactorSeedExpirationAccesor;
-    use UserAccessTemporalCodeFailedLoginAttemptsAccesor;
-    use UserAccessTemporalCodeRegisterCodeAccesor;
-    use UserAccessTemporalCodeRegisterCodeUrlAccesor;
-    use UserAccessTemporalCodeRegisterCodeExpirationAccesor;
-    use UserAccessTemporalCodeRecoveryCodeAccesor;
-    use UserAccessTemporalCodeRecoveryCodeExpirationAccesor;
-    use UserAccessTemporalCodeVersionAccesor;
+    use UserAccessTemporalCodeUserAccessor;
+    use UserAccessTemporalCodeTempSecondFactorSeedAccessor;
+    use UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessor;
+    use UserAccessTemporalCodeFailedLoginAttemptsAccessor;
+    use UserAccessTemporalCodeRegisterCodeAccessor;
+    use UserAccessTemporalCodeRegisterCodeUrlAccessor;
+    use UserAccessTemporalCodeRegisterCodeExpirationAccessor;
+    use UserAccessTemporalCodeRecoveryCodeAccessor;
+    use UserAccessTemporalCodeRecoveryCodeExpirationAccessor;
+    use UserAccessTemporalCodeVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

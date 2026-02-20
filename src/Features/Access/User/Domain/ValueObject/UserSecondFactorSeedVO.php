@@ -20,11 +20,11 @@ class UserSecondFactorSeedVO
     {
         return self::from(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value));
     }
-    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): UserSecondFactorSeedVO
+    public static function tryFromCypheredText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
     {
         return self::tryFrom('cyphered://' . $value, $list);
     }
-    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): UserSecondFactorSeedVO
+    public static function tryFromPlainText(AesCypherService $cypher, string $value, ConstraintFailList $list): ?UserSecondFactorSeedVO
     {
         return self::tryFrom(self::isCyphered($value) ? $value : 'cyphered://' . $cypher->encryptForAll($value), $list);
     }
@@ -38,7 +38,7 @@ class UserSecondFactorSeedVO
     }
     public static function from(UserSecondFactorSeedVO|string|null $value): UserSecondFactorSeedVO
     {
-        if (is_a($value, UserSecondFactorSeedVO::class)) {
+        if ($value instanceof UserSecondFactorSeedVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -48,6 +48,7 @@ class UserSecondFactorSeedVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserSecondFactorSeedVO);
             return $candidate;
         }
     }
@@ -89,8 +90,8 @@ class UserSecondFactorSeedVO
     }
     private function validateCyphered(?string $key): void
     {
-        if ($key && strpos($key, 'cyphered://') !== 0) {
-            throw new \InvalidArgumentException($key . ' is not a valid chypered text');
+        if (null !== $key && strpos($key, 'cyphered://') !== 0) {
+            throw new \InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
     public function value(): ?string

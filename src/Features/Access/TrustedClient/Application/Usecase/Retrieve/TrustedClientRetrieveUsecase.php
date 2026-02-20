@@ -33,7 +33,7 @@ class TrustedClientRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Trusted client");
         $span = $this->startSpan("Check allow of retrieve usecase for Trusted client");
         try {
-            $result = $this->dispatcher->dispatch(new TrustedClientRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class TrustedClientRetrieveUsecase
             $ref = new TrustedClientRef($uid);
             $allow = $this->allowRetrieve($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve Trusted client');
             }
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);

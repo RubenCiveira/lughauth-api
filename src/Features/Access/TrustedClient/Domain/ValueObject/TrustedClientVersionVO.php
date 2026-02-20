@@ -16,7 +16,7 @@ class TrustedClientVersionVO
     }
     public static function from(TrustedClientVersionVO|int|null $value): TrustedClientVersionVO
     {
-        if (is_a($value, TrustedClientVersionVO::class)) {
+        if ($value instanceof TrustedClientVersionVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class TrustedClientVersionVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TrustedClientVersionVO);
             return $candidate;
         }
     }

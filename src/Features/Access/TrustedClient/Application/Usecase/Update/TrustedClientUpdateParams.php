@@ -24,7 +24,7 @@ class TrustedClientUpdateParams
     use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
       'publicAllow' => 'unsetPublicAllow',
@@ -49,30 +49,30 @@ class TrustedClientUpdateParams
     public function toAttributes(): TrustedClientAttributes
     {
         $att = new TrustedClientAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->code) {
+        if ($this->codeAssigned) {
             $att->code($this->code);
         }
-        if ($this->publicAllow) {
+        if ($this->publicAllowAssigned) {
             $att->publicAllow($this->publicAllow);
         }
-        if ($this->secretOauth) {
+        if ($this->secretOauthAssigned) {
             $att->secretOauth($this->secretOauth);
         }
-        if ($this->enabled) {
+        if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
         }
-        if ($this->allowedRedirects) {
+        if ($this->allowedRedirectsAssigned) {
             $att->allowedRedirects($this->allowedRedirects);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

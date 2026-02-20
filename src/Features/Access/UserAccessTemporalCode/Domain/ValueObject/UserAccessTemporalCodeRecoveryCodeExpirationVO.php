@@ -18,7 +18,7 @@ class UserAccessTemporalCodeRecoveryCodeExpirationVO
     }
     public static function from(UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null $value): UserAccessTemporalCodeRecoveryCodeExpirationVO
     {
-        if (is_a($value, UserAccessTemporalCodeRecoveryCodeExpirationVO::class)) {
+        if ($value instanceof UserAccessTemporalCodeRecoveryCodeExpirationVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -28,6 +28,7 @@ class UserAccessTemporalCodeRecoveryCodeExpirationVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserAccessTemporalCodeRecoveryCodeExpirationVO);
             return $candidate;
         }
     }

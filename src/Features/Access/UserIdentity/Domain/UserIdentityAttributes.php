@@ -28,7 +28,7 @@ class UserIdentityAttributes
     use UserIdentityRolesAttributeHolder;
     use UserIdentityVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'user' => 'unsetUser',
       'relyingParty' => 'unsetRelyingParty',
@@ -48,7 +48,11 @@ class UserIdentityAttributes
         $version = UserIdentityVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new UserIdentity(
+        }
+        \assert($uid !== null);
+        \assert($user !== null);
+        \assert($roles !== null);
+        return new UserIdentity(
             uid: $uid,
             user: $user,
             relyingParty: $relyingParty,
@@ -72,7 +76,7 @@ class UserIdentityAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

@@ -56,12 +56,12 @@ class TenantConfigApiDTO
     )]
     public ?bool $enableRegisterUsers;
     #[OA\Property(
-        property: "wellcomeEmail",
-        title: "wellcome email",
+        property: "welcomeEmail",
+        title: "welcome email",
         description:"Email send to the enabled user",
         type: "string"
     )]
-    public ?string $wellcomeEmail;
+    public ?string $welcomeEmail;
     #[OA\Property(
         property: "registerdEmail",
         title: "registerd email",

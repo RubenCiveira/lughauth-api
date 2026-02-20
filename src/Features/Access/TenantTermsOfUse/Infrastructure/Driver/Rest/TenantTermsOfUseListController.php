@@ -56,7 +56,7 @@ class TenantTermsOfUseListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapTenantTermsOfUse($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantTermsOfUseAttributes $item): TenantTermsOfUseApiDTO => $this->mapTenantTermsOfUse($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }

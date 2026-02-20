@@ -15,7 +15,7 @@ class TenantLoginProviderPresetValues
         public readonly ?TenantLoginProvider $tenantLoginProvider
     ) {
     }
-    public function with(TenantLoginProviderAttributes $attributes)
+    public function with(TenantLoginProviderAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

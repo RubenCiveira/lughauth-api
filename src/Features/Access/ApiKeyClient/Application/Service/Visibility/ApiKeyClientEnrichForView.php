@@ -20,7 +20,7 @@ class ApiKeyClientEnrichForView
     {
         return $this->apiKeyClientAttributes;
     }
-    public function with(ApiKeyClientAttributes $apiKeyClientAttributes)
+    public function with(ApiKeyClientAttributes $apiKeyClientAttributes): void
     {
         $this->apiKeyClientAttributes = $apiKeyClientAttributes;
     }

@@ -7,27 +7,27 @@ namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUidVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderTenantVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderTenantAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderTenantAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderNameVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderNameAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderNameAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderSourceAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderSourceAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDisabledVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderDisabledAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderDisabledAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDirectAccessVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderDirectAccessAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderDirectAccessAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPublicKeyVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderPublicKeyAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderPublicKeyAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPrivateKeyVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderPrivateKeyAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderPrivateKeyAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderCertificateVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderCertificateAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderCertificateAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderMetadataAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderMetadataAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUsersEnabledByDefaultVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderUsersEnabledByDefaultAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderUsersEnabledByDefaultAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderVersionVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accesor\TenantLoginProviderVersionAccesor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderVersionAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Formula\DisabledCalculator;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Event\TenantLoginProviderCreateEvent;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Event\TenantLoginProviderUpdateEvent;
@@ -40,17 +40,17 @@ use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
 class TenantLoginProvider extends TenantLoginProviderRef
 {
-    use TenantLoginProviderTenantAccesor;
-    use TenantLoginProviderNameAccesor;
-    use TenantLoginProviderSourceAccesor;
-    use TenantLoginProviderDisabledAccesor;
-    use TenantLoginProviderDirectAccessAccesor;
-    use TenantLoginProviderPublicKeyAccesor;
-    use TenantLoginProviderPrivateKeyAccesor;
-    use TenantLoginProviderCertificateAccesor;
-    use TenantLoginProviderMetadataAccesor;
-    use TenantLoginProviderUsersEnabledByDefaultAccesor;
-    use TenantLoginProviderVersionAccesor;
+    use TenantLoginProviderTenantAccessor;
+    use TenantLoginProviderNameAccessor;
+    use TenantLoginProviderSourceAccessor;
+    use TenantLoginProviderDisabledAccessor;
+    use TenantLoginProviderDirectAccessAccessor;
+    use TenantLoginProviderPublicKeyAccessor;
+    use TenantLoginProviderPrivateKeyAccessor;
+    use TenantLoginProviderCertificateAccessor;
+    use TenantLoginProviderMetadataAccessor;
+    use TenantLoginProviderUsersEnabledByDefaultAccessor;
+    use TenantLoginProviderVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

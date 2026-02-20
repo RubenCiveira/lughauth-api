@@ -34,7 +34,7 @@ class TenantLoginProviderCreateParams
     use TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
     use TenantLoginProviderVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'name' => 'unsetName',
@@ -69,45 +69,45 @@ class TenantLoginProviderCreateParams
     public function toAttributes(): TenantLoginProviderAttributes
     {
         $att = new TenantLoginProviderAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->tenant) {
+        if ($this->tenantAssigned) {
             $att->tenant($this->tenant);
         }
-        if ($this->name) {
+        if ($this->nameAssigned) {
             $att->name($this->name);
         }
-        if ($this->source) {
+        if ($this->sourceAssigned) {
             $att->source($this->source);
         }
-        if ($this->disabled) {
+        if ($this->disabledAssigned) {
             $att->disabled($this->disabled);
         }
-        if ($this->directAccess) {
+        if ($this->directAccessAssigned) {
             $att->directAccess($this->directAccess);
         }
-        if ($this->publicKey) {
+        if ($this->publicKeyAssigned) {
             $att->publicKey($this->publicKey);
         }
-        if ($this->privateKey) {
+        if ($this->privateKeyAssigned) {
             $att->privateKey($this->privateKey);
         }
-        if ($this->certificate) {
+        if ($this->certificateAssigned) {
             $att->certificate($this->certificate);
         }
-        if ($this->metadata) {
+        if ($this->metadataAssigned) {
             $att->metadata($this->metadata);
         }
-        if ($this->usersEnabledByDefault) {
+        if ($this->usersEnabledByDefaultAssigned) {
             $att->usersEnabledByDefault($this->usersEnabledByDefault);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

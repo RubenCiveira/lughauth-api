@@ -83,7 +83,7 @@ class UserAccessTemporalCodePdoConnector
         $this->logDebug("Make query for entities for User access temporal code");
         $span = $this->startSpan("Make query for entities for User access temporal code");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): UserAccessTemporalCode => $this->mapper($row)) : $this->db->query($query, $params, fn (array $row): UserAccessTemporalCode => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -96,7 +96,7 @@ class UserAccessTemporalCodePdoConnector
         $this->logDebug("Make raw query for User access temporal code");
         $span = $this->startSpan("Make raw query for User access temporal code");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -110,7 +110,7 @@ class UserAccessTemporalCodePdoConnector
         $span = $this->startSpan("Retrieve query for User access temporal code");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): UserAccessTemporalCode => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -124,7 +124,7 @@ class UserAccessTemporalCodePdoConnector
         $span = $this->startSpan("Retrieve query for update of User access temporal code");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row): UserAccessTemporalCode => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -258,7 +258,7 @@ class UserAccessTemporalCodePdoConnector
         $span = $this->startSpan("Execute count sql query for User access temporal code");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -272,7 +272,7 @@ class UserAccessTemporalCodePdoConnector
         $span = $this->startSpan("Execute count sql query for update of User access temporal code");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row) => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -280,7 +280,7 @@ class UserAccessTemporalCodePdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(UserAccessTemporalCode $entity, bool $creation)
+    private function checkDuplicates(UserAccessTemporalCode $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for User access temporal code");
         $span = $this->startSpan("Query to check duplicates for User access temporal code");
@@ -308,7 +308,7 @@ class UserAccessTemporalCodePdoConnector
             $span->end();
         }
     }
-    private function filter(?UserAccessTemporalCodeFilter $filter, ?UserAccessTemporalCodeCursor $sort, bool $count)
+    private function filter(?UserAccessTemporalCodeFilter $filter, ?UserAccessTemporalCodeCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of User access temporal code");
         $span = $this->startSpan("Build query filter of User access temporal code");
@@ -389,7 +389,7 @@ class UserAccessTemporalCodePdoConnector
     private function mapper($row): UserAccessTemporalCode
     {
         $this->logDebug("Mapping from sql to entity for User access temporal code");
-        $span = $this->startSpan("Mapping from sql to enttiy for User access temporal code");
+        $span = $this->startSpan("Mapping from sql to entity for User access temporal code");
         try {
             return new UserAccessTemporalCode(
                 uid: $row['uid'] ?? null,

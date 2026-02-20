@@ -16,7 +16,7 @@ class UserIdentityRolesVersionVO
     }
     public static function from(UserIdentityRolesVersionVO|int|null $value): UserIdentityRolesVersionVO
     {
-        if (is_a($value, UserIdentityRolesVersionVO::class)) {
+        if ($value instanceof UserIdentityRolesVersionVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class UserIdentityRolesVersionVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserIdentityRolesVersionVO);
             return $candidate;
         }
     }

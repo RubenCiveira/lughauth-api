@@ -18,7 +18,7 @@ class TenantTermsOfUseActivationDateVO
     }
     public static function from(TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $value): TenantTermsOfUseActivationDateVO
     {
-        if (is_a($value, TenantTermsOfUseActivationDateVO::class)) {
+        if ($value instanceof TenantTermsOfUseActivationDateVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -28,6 +28,7 @@ class TenantTermsOfUseActivationDateVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantTermsOfUseActivationDateVO);
             return $candidate;
         }
     }

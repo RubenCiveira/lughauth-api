@@ -22,7 +22,7 @@ class TenantLoginProviderSourceVO
     }
     public static function from(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $value): TenantLoginProviderSourceVO
     {
-        if (is_a($value, TenantLoginProviderSourceVO::class)) {
+        if ($value instanceof TenantLoginProviderSourceVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -32,6 +32,7 @@ class TenantLoginProviderSourceVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantLoginProviderSourceVO);
             return $candidate;
         }
     }

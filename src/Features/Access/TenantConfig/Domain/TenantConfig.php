@@ -7,29 +7,29 @@ namespace Civi\Lughauth\Features\Access\TenantConfig\Domain;
 
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigUidVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigTenantVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigTenantAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigTenantAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInnerLabelVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigInnerLabelAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigInnerLabelAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigForceMfaAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigForceMfaAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigAllowRegisterAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigAllowRegisterAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigEnableRegisterUsersAccesor;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigWellcomeEmailAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigEnableRegisterUsersAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWelcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWelcomeEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigRegisterdEmailAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRegisterdEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigDisabledUserEmailAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigDisabledUserEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigEnabledUserEmailAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigEnabledUserEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRecoverPassVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigAllowRecoverPassAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigAllowRecoverPassAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRecoverPassEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigRecoverPassEmailAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRecoverPassEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigVersionVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accesor\TenantConfigVersionAccesor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigVersionAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Event\TenantConfigCreateEvent;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Event\TenantConfigUpdateEvent;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Event\TenantConfigDeleteEvent;
@@ -37,18 +37,18 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 class TenantConfig extends TenantConfigRef
 {
-    use TenantConfigTenantAccesor;
-    use TenantConfigInnerLabelAccesor;
-    use TenantConfigForceMfaAccesor;
-    use TenantConfigAllowRegisterAccesor;
-    use TenantConfigEnableRegisterUsersAccesor;
-    use TenantConfigWellcomeEmailAccesor;
-    use TenantConfigRegisterdEmailAccesor;
-    use TenantConfigDisabledUserEmailAccesor;
-    use TenantConfigEnabledUserEmailAccesor;
-    use TenantConfigAllowRecoverPassAccesor;
-    use TenantConfigRecoverPassEmailAccesor;
-    use TenantConfigVersionAccesor;
+    use TenantConfigTenantAccessor;
+    use TenantConfigInnerLabelAccessor;
+    use TenantConfigForceMfaAccessor;
+    use TenantConfigAllowRegisterAccessor;
+    use TenantConfigEnableRegisterUsersAccessor;
+    use TenantConfigWelcomeEmailAccessor;
+    use TenantConfigRegisterdEmailAccessor;
+    use TenantConfigDisabledUserEmailAccessor;
+    use TenantConfigEnabledUserEmailAccessor;
+    use TenantConfigAllowRecoverPassAccessor;
+    use TenantConfigRecoverPassEmailAccessor;
+    use TenantConfigVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(
@@ -58,7 +58,7 @@ class TenantConfig extends TenantConfigRef
         TenantConfigInnerLabelVO|string|null $innerLabel = null,
         TenantConfigAllowRegisterVO|bool|null $allowRegister = null,
         TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null,
-        TenantConfigWellcomeEmailVO|string|null $wellcomeEmail = null,
+        TenantConfigWelcomeEmailVO|string|null $welcomeEmail = null,
         TenantConfigRegisterdEmailVO|string|null $registerdEmail = null,
         TenantConfigDisabledUserEmailVO|string|null $disabledUserEmail = null,
         TenantConfigEnabledUserEmailVO|string|null $enabledUserEmail = null,
@@ -72,7 +72,7 @@ class TenantConfig extends TenantConfigRef
         $this->_forceMfa = TenantConfigForceMfaVO::from($forceMfa);
         $this->_allowRegister = null === $allowRegister ? TenantConfigAllowRegisterVO::empty() : TenantConfigAllowRegisterVO::from($allowRegister);
         $this->_enableRegisterUsers = null === $enableRegisterUsers ? TenantConfigEnableRegisterUsersVO::empty() : TenantConfigEnableRegisterUsersVO::from($enableRegisterUsers);
-        $this->_wellcomeEmail = null === $wellcomeEmail ? TenantConfigWellcomeEmailVO::empty() : TenantConfigWellcomeEmailVO::from($wellcomeEmail);
+        $this->_welcomeEmail = null === $welcomeEmail ? TenantConfigWelcomeEmailVO::empty() : TenantConfigWelcomeEmailVO::from($welcomeEmail);
         $this->_registerdEmail = null === $registerdEmail ? TenantConfigRegisterdEmailVO::empty() : TenantConfigRegisterdEmailVO::from($registerdEmail);
         $this->_disabledUserEmail = null === $disabledUserEmail ? TenantConfigDisabledUserEmailVO::empty() : TenantConfigDisabledUserEmailVO::from($disabledUserEmail);
         $this->_enabledUserEmail = null === $enabledUserEmail ? TenantConfigEnabledUserEmailVO::empty() : TenantConfigEnabledUserEmailVO::from($enabledUserEmail);
@@ -88,7 +88,7 @@ class TenantConfig extends TenantConfigRef
         $value->_forceMfa = $values->getForceMfaOrDefault($this->_forceMfa);
         $value->_allowRegister = $values->getAllowRegisterOrDefault($this->_allowRegister);
         $value->_enableRegisterUsers = $values->getEnableRegisterUsersOrDefault($this->_enableRegisterUsers);
-        $value->_wellcomeEmail = $values->getWellcomeEmailOrDefault($this->_wellcomeEmail);
+        $value->_welcomeEmail = $values->getWelcomeEmailOrDefault($this->_welcomeEmail);
         $value->_registerdEmail = $values->getRegisterdEmailOrDefault($this->_registerdEmail);
         $value->_disabledUserEmail = $values->getDisabledUserEmailOrDefault($this->_disabledUserEmail);
         $value->_enabledUserEmail = $values->getEnabledUserEmailOrDefault($this->_enabledUserEmail);
@@ -144,7 +144,7 @@ class TenantConfig extends TenantConfigRef
           ->forceMfa($this->_forceMfa)
           ->allowRegister($this->_allowRegister)
           ->enableRegisterUsers($this->_enableRegisterUsers)
-          ->wellcomeEmail($this->_wellcomeEmail)
+          ->welcomeEmail($this->_welcomeEmail)
           ->registerdEmail($this->_registerdEmail)
           ->disabledUserEmail($this->_disabledUserEmail)
           ->enabledUserEmail($this->_enabledUserEmail)

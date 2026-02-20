@@ -31,7 +31,7 @@ class TenantTermsOfUseAttributes
     use TenantTermsOfUseActivationDateAttributeHolder;
     use TenantTermsOfUseVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'text' => 'unsetText',
@@ -53,7 +53,12 @@ class TenantTermsOfUseAttributes
         $version = TenantTermsOfUseVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new TenantTermsOfUse(
+        }
+        \assert($uid !== null);
+        \assert($tenant !== null);
+        \assert($text !== null);
+        \assert($enabled !== null);
+        return new TenantTermsOfUse(
             uid: $uid,
             tenant: $tenant,
             text: $text,
@@ -79,7 +84,7 @@ class TenantTermsOfUseAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

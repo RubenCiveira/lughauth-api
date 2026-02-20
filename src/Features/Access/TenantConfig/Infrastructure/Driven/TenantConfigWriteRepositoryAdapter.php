@@ -38,16 +38,16 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         return $this->conn->retrieveForUpdate(new TenantConfigFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?TenantConfigFilter $filter = null, ?TenantConfigCursor $sort = null): TenantConfigSlide
+    public function listForUpdate(?TenantConfigFilter $filter = null, ?TenantConfigCursor $cursor = null): TenantConfigSlide
     {
-        $this->logDebug("Count for Tenant config on adapter ");
-        $span = $this->startSpan("Count for Tenant config on adapter");
+        $this->logDebug("List for update of Tenant config on adapter ");
+        $span = $this->startSpan("List for update of Tenant config on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new TenantConfigSlide(function ($slide, $next) use ($filter) {
+            return new TenantConfigSlide(function (TenantConfigSlide $slide, ?TenantConfigCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantConfigCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantConfigCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -58,8 +58,8 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
     #[Override]
     public function retrieveForUpdate(TenantConfigFilter $filter): ?TenantConfig
     {
-        $this->logDebug("Count for Tenant config on adapter ");
-        $span = $this->startSpan("Count for Tenant config on adapter");
+        $this->logDebug("Retrieve for update of Tenant config on adapter ");
+        $span = $this->startSpan("Retrieve for update of Tenant config on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -72,8 +72,8 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
     #[Override]
     public function existsForUpdate(?TenantConfigFilter $filter): bool
     {
-        $this->logDebug("Count for Tenant config on adapter ");
-        $span = $this->startSpan("Count for Tenant config on adapter");
+        $this->logDebug("Exists for update of Tenant config on adapter ");
+        $span = $this->startSpan("Exists for update of Tenant config on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -86,8 +86,8 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
     #[Override]
     public function countForUpdate(?TenantConfigFilter $filter = null): int
     {
-        $this->logDebug("Count for Tenant config on adapter ");
-        $span = $this->startSpan("Count for Tenant config on adapter");
+        $this->logDebug("Count for update of Tenant config on adapter ");
+        $span = $this->startSpan("Count for update of Tenant config on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -115,14 +115,15 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         }
     }
     #[Override]
-    public function update(TenantConfigRef $reference, TenantConfig $entity): TenantConfig
+    public function update(TenantConfigRef $ref, TenantConfig $entity): TenantConfig
     {
         $this->logDebug("Count for Tenant config on adapter ");
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TenantConfig) ? $reference : $this->conn->retrieve(new TenantConfigFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof TenantConfig) ? $reference : $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -177,7 +178,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
             $span->end();
         }
     }
-    private function dispatch(TenantConfig $entity)
+    private function dispatch(TenantConfig $entity): void
     {
         $this->logDebug("Count for Tenant config on adapter ");
         $span = $this->startSpan("Count for Tenant config on adapter");

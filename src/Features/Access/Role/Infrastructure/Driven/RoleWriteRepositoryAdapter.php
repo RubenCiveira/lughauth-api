@@ -38,16 +38,16 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         return $this->conn->retrieveForUpdate(new RoleFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?RoleFilter $filter = null, ?RoleCursor $sort = null): RoleSlide
+    public function listForUpdate(?RoleFilter $filter = null, ?RoleCursor $cursor = null): RoleSlide
     {
-        $this->logDebug("Count for Role on adapter ");
-        $span = $this->startSpan("Count for Role on adapter");
+        $this->logDebug("List for update of Role on adapter ");
+        $span = $this->startSpan("List for update of Role on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new RoleSlide(function ($slide, $next) use ($filter) {
+            return new RoleSlide(function (RoleSlide $slide, ?RoleCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new RoleCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RoleCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -58,8 +58,8 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
     #[Override]
     public function retrieveForUpdate(RoleFilter $filter): ?Role
     {
-        $this->logDebug("Count for Role on adapter ");
-        $span = $this->startSpan("Count for Role on adapter");
+        $this->logDebug("Retrieve for update of Role on adapter ");
+        $span = $this->startSpan("Retrieve for update of Role on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -72,8 +72,8 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
     #[Override]
     public function existsForUpdate(?RoleFilter $filter): bool
     {
-        $this->logDebug("Count for Role on adapter ");
-        $span = $this->startSpan("Count for Role on adapter");
+        $this->logDebug("Exists for update of Role on adapter ");
+        $span = $this->startSpan("Exists for update of Role on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -86,8 +86,8 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
     #[Override]
     public function countForUpdate(?RoleFilter $filter = null): int
     {
-        $this->logDebug("Count for Role on adapter ");
-        $span = $this->startSpan("Count for Role on adapter");
+        $this->logDebug("Count for update of Role on adapter ");
+        $span = $this->startSpan("Count for update of Role on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -115,14 +115,15 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         }
     }
     #[Override]
-    public function update(RoleRef $reference, Role $entity): Role
+    public function update(RoleRef $ref, Role $entity): Role
     {
         $this->logDebug("Count for Role on adapter ");
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof Role) ? $reference : $this->conn->retrieve(new RoleFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof Role) ? $reference : $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -177,7 +178,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
             $span->end();
         }
     }
-    private function dispatch(Role $entity)
+    private function dispatch(Role $entity): void
     {
         $this->logDebug("Count for Role on adapter ");
         $span = $this->startSpan("Count for Role on adapter");

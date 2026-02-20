@@ -50,12 +50,12 @@ class UserApiDTO
     )]
     public ?string $email;
     #[OA\Property(
-        property: "wellcomeAt",
-        title: "wellcome at",
-        description:"The date when a wellcome email is send",
+        property: "welcomeAt",
+        title: "welcome at",
+        description:"The date when a welcome email is send",
         type: "string"
     )]
-    public ?string $wellcomeAt;
+    public ?string $welcomeAt;
     #[OA\Property(
         property: "enabled",
         title: "enabled",

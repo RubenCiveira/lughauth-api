@@ -33,7 +33,7 @@ class UserUnlockUsecase
         $this->logDebug("Check allow of Unlock usecase for User");
         $span = $this->startSpan("Check allow of Unlock usecase for User");
         try {
-            $result = $this->dispatcher->dispatch(new UserUnlockAllowDecision(Allow::allowed('unlock', 'Allowed to User by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserUnlockAllowDecision(Allow::allowed('unlock', 'Allowed to User by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class UserUnlockUsecase
             $ref = new UserRef($uid);
             $allow = $this->allowUnlock($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Unlock User');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

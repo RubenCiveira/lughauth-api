@@ -13,7 +13,7 @@ class RelyingPartyApiKeyVO
 {
     public static function from(RelyingPartyApiKeyVO|string $value): RelyingPartyApiKeyVO
     {
-        if (is_a($value, RelyingPartyApiKeyVO::class)) {
+        if ($value instanceof RelyingPartyApiKeyVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class RelyingPartyApiKeyVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof RelyingPartyApiKeyVO);
             return $candidate;
         }
     }

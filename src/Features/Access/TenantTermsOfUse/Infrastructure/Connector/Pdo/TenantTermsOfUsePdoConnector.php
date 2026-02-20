@@ -81,7 +81,7 @@ class TenantTermsOfUsePdoConnector
         $this->logDebug("Make query for entities for Tenant terms of use");
         $span = $this->startSpan("Make query for entities for Tenant terms of use");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): TenantTermsOfUse => $this->mapper($row)) : $this->db->query($query, $params, fn (array $row): TenantTermsOfUse => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -94,7 +94,7 @@ class TenantTermsOfUsePdoConnector
         $this->logDebug("Make raw query for Tenant terms of use");
         $span = $this->startSpan("Make raw query for Tenant terms of use");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -108,7 +108,7 @@ class TenantTermsOfUsePdoConnector
         $span = $this->startSpan("Retrieve query for Tenant terms of use");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): TenantTermsOfUse => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -122,7 +122,7 @@ class TenantTermsOfUsePdoConnector
         $span = $this->startSpan("Retrieve query for update of Tenant terms of use");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row): TenantTermsOfUse => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -248,7 +248,7 @@ class TenantTermsOfUsePdoConnector
         $span = $this->startSpan("Execute count sql query for Tenant terms of use");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -262,7 +262,7 @@ class TenantTermsOfUsePdoConnector
         $span = $this->startSpan("Execute count sql query for update of Tenant terms of use");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row) => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -270,7 +270,7 @@ class TenantTermsOfUsePdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(TenantTermsOfUse $entity, bool $creation)
+    private function checkDuplicates(TenantTermsOfUse $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for Tenant terms of use");
         $span = $this->startSpan("Query to check duplicates for Tenant terms of use");
@@ -286,7 +286,7 @@ class TenantTermsOfUsePdoConnector
             $span->end();
         }
     }
-    private function filter(?TenantTermsOfUseFilter $filter, ?TenantTermsOfUseCursor $sort, bool $count)
+    private function filter(?TenantTermsOfUseFilter $filter, ?TenantTermsOfUseCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of Tenant terms of use");
         $span = $this->startSpan("Build query filter of Tenant terms of use");
@@ -352,7 +352,7 @@ class TenantTermsOfUsePdoConnector
     private function mapper($row): TenantTermsOfUse
     {
         $this->logDebug("Mapping from sql to entity for Tenant terms of use");
-        $span = $this->startSpan("Mapping from sql to enttiy for Tenant terms of use");
+        $span = $this->startSpan("Mapping from sql to entity for Tenant terms of use");
         try {
             return new TenantTermsOfUse(
                 uid: $row['uid'] ?? null,

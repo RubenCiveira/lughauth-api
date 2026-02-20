@@ -40,7 +40,7 @@ class ConstraintFail
         public readonly array $fields,
         /** @var array<int, mixed> The actual values that did not pass validation. */
         public readonly array $wrongValues,
-        /** @var array<string, mixed> The values that would have passed validation. */
+        /** @var mixed[] The values that would have passed validation. */
         public readonly array $expectedValues = [],
     ) {
     }

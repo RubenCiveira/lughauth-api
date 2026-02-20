@@ -43,16 +43,16 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         return $this->conn->retrieveForUpdate(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $sort = null): TenantLoginProviderSlide
+    public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide
     {
-        $this->logDebug("Count for Tenant login provider on adapter ");
-        $span = $this->startSpan("Count for Tenant login provider on adapter");
+        $this->logDebug("List for update of Tenant login provider on adapter ");
+        $span = $this->startSpan("List for update of Tenant login provider on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new TenantLoginProviderSlide(function ($slide, $next) use ($filter) {
+            return new TenantLoginProviderSlide(function (TenantLoginProviderSlide $slide, ?TenantLoginProviderCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantLoginProviderCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -63,8 +63,8 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     #[Override]
     public function retrieveForUpdate(TenantLoginProviderFilter $filter): ?TenantLoginProvider
     {
-        $this->logDebug("Count for Tenant login provider on adapter ");
-        $span = $this->startSpan("Count for Tenant login provider on adapter");
+        $this->logDebug("Retrieve for update of Tenant login provider on adapter ");
+        $span = $this->startSpan("Retrieve for update of Tenant login provider on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -77,8 +77,8 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     #[Override]
     public function existsForUpdate(?TenantLoginProviderFilter $filter): bool
     {
-        $this->logDebug("Count for Tenant login provider on adapter ");
-        $span = $this->startSpan("Count for Tenant login provider on adapter");
+        $this->logDebug("Exists for update of Tenant login provider on adapter ");
+        $span = $this->startSpan("Exists for update of Tenant login provider on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -91,8 +91,8 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     #[Override]
     public function countForUpdate(?TenantLoginProviderFilter $filter = null): int
     {
-        $this->logDebug("Count for Tenant login provider on adapter ");
-        $span = $this->startSpan("Count for Tenant login provider on adapter");
+        $this->logDebug("Count for update of Tenant login provider on adapter ");
+        $span = $this->startSpan("Count for update of Tenant login provider on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -123,7 +123,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         }
     }
     #[Override]
-    public function update(TenantLoginProviderRef $reference, TenantLoginProvider $entity): TenantLoginProvider
+    public function update(TenantLoginProviderRef $ref, TenantLoginProvider $entity): TenantLoginProvider
     {
         $this->logDebug("Count for Tenant login provider on adapter ");
         $span = $this->startSpan("Count for Tenant login provider on adapter");
@@ -141,7 +141,8 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             }
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TenantLoginProvider) ? $reference : $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof TenantLoginProvider) ? $reference : $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -250,7 +251,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             $span->end();
         }
     }
-    private function dispatch(TenantLoginProvider $entity)
+    private function dispatch(TenantLoginProvider $entity): void
     {
         $this->logDebug("Count for Tenant login provider on adapter ");
         $span = $this->startSpan("Count for Tenant login provider on adapter");

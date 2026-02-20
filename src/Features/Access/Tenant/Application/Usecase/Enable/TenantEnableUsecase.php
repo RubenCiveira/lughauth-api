@@ -33,7 +33,7 @@ class TenantEnableUsecase
         $this->logDebug("Check allow of Enable usecase for Tenant");
         $span = $this->startSpan("Check allow of Enable usecase for Tenant");
         try {
-            $result = $this->dispatcher->dispatch(new TenantEnableAllowDecision(Allow::allowed('enable', 'Allowed to Tenant by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantEnableAllowDecision(Allow::allowed('enable', 'Allowed to Tenant by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TenantEnableUsecase
             $ref = new TenantRef($uid);
             $allow = $this->allowEnable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Enable Tenant');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

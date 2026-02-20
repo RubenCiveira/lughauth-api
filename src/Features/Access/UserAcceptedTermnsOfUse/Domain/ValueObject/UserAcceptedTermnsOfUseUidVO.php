@@ -13,7 +13,7 @@ class UserAcceptedTermnsOfUseUidVO
 {
     public static function from(UserAcceptedTermnsOfUseUidVO|string $value): UserAcceptedTermnsOfUseUidVO
     {
-        if (is_a($value, UserAcceptedTermnsOfUseUidVO::class)) {
+        if ($value instanceof UserAcceptedTermnsOfUseUidVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class UserAcceptedTermnsOfUseUidVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserAcceptedTermnsOfUseUidVO);
             return $candidate;
         }
     }

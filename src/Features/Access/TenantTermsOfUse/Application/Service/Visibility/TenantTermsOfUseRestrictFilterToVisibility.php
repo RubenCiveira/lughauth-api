@@ -13,7 +13,7 @@ class TenantTermsOfUseRestrictFilterToVisibility
         public TenantTermsOfUseFilter $tenantTermsOfUseFilter
     ) {
     }
-    public function with(TenantTermsOfUseFilter $tenantTermsOfUseFilter)
+    public function with(TenantTermsOfUseFilter $tenantTermsOfUseFilter): void
     {
         $this->tenantTermsOfUseFilter = $tenantTermsOfUseFilter;
     }

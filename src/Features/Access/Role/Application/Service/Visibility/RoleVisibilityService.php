@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Role\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -79,22 +80,24 @@ class RoleVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|RoleRef $value): bool
+    public function checkVisibility(Iterator|string|RoleRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Role");
         $span = $this->startSpan("Check visibility of an iterator for  Role");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new RoleRef($value));
+            } elseif ($value instanceof RoleRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new RoleFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, RoleRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new RoleRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -110,7 +113,7 @@ class RoleVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (Role $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -141,7 +144,7 @@ class RoleVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (Role $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -239,7 +242,7 @@ class RoleVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  Role");
         try {
             if ($attributes->getRelyingParty() && !$this->relyingPartyVisibilityService->checkVisibility($attributes->getRelyingParty())) {
-                throw new NotFoundException("Unknow RelyingParty " . $attributes->getRelyingParty());
+                throw new NotFoundException("Unknown RelyingParty " . $attributes->getRelyingParty());
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -249,7 +252,7 @@ class RoleVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(RoleFilter $filter)
+    private function applyPreVisibilityFilter(RoleFilter $filter): RoleFilter
     {
         $this->logDebug("Compose visibility filter for Role");
         $span = $this->startSpan("Compose visibility filter for  Role");
@@ -279,8 +282,8 @@ class RoleVisibilityService
     }
     private function prepareVisibleDataCallback(Role $content, bool $inlist): RoleAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Role");
-        $span = $this->startSpan("Prepare hidratation to visible data for Role");
+        $this->logDebug("Prepare hydration to visible data for Role");
+        $span = $this->startSpan("Prepare hydration to visible data for Role");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new RoleEnrichForView($content, $inlist, $attributes));

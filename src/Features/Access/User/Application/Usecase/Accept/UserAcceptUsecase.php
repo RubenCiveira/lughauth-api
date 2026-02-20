@@ -33,7 +33,7 @@ class UserAcceptUsecase
         $this->logDebug("Check allow of Accept usecase for User");
         $span = $this->startSpan("Check allow of Accept usecase for User");
         try {
-            $result = $this->dispatcher->dispatch(new UserAcceptAllowDecision(Allow::allowed('accept', 'Allowed to User by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserAcceptAllowDecision(Allow::allowed('accept', 'Allowed to User by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class UserAcceptUsecase
             $ref = new UserRef($uid);
             $allow = $this->allowAccept($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Accept User');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

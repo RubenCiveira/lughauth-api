@@ -14,7 +14,7 @@ class UserCreateCheck
     public function __construct(public readonly UserCreateParams $input)
     {
     }
-    public function reject(RuntimeException|ConstraintFail $fail): void
+    public function reject(RuntimeException|ConstraintFail $fail)
     {
         if ($fail instanceof ConstraintFail) {
             throw ConstraintException::ofFail($fail);

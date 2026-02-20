@@ -14,7 +14,7 @@ class RoleVisibilityCheck
         public readonly Role $role
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

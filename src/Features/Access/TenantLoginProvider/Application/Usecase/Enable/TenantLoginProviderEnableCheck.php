@@ -15,7 +15,7 @@ class TenantLoginProviderEnableCheck
     public function __construct(public readonly TenantLoginProvider $current)
     {
     }
-    public function reject(RuntimeException|ConstraintFail $fail)
+    public function reject(RuntimeException|ConstraintFail $fail): void
     {
         if ($fail instanceof ConstraintFail) {
             throw ConstraintException::ofFail($fail);

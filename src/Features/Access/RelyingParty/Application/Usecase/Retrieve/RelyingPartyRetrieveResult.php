@@ -20,7 +20,7 @@ class RelyingPartyRetrieveResult
     use RelyingPartyEnabledAttributeHolder;
     use RelyingPartyVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
       'apiKey' => 'unsetApiKey',
@@ -41,24 +41,24 @@ class RelyingPartyRetrieveResult
     public function toAttributes(): RelyingPartyAttributes
     {
         $att = new RelyingPartyAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->code) {
+        if ($this->codeAssigned) {
             $att->code($this->code);
         }
-        if ($this->apiKey) {
+        if ($this->apiKeyAssigned) {
             $att->apiKey($this->apiKey);
         }
-        if ($this->enabled) {
+        if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

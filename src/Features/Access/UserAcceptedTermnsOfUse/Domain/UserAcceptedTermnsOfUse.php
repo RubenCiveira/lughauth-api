@@ -7,13 +7,13 @@ namespace Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain;
 
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseUidVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseUserVO;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accesor\UserAcceptedTermnsOfUseUserAccesor;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseUserAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseConditionsVO;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accesor\UserAcceptedTermnsOfUseConditionsAccesor;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseConditionsAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseAcceptDateVO;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accesor\UserAcceptedTermnsOfUseAcceptDateAccesor;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseAcceptDateAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseVersionVO;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accesor\UserAcceptedTermnsOfUseVersionAccesor;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseVersionAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Event\UserAcceptedTermnsOfUseCreateEvent;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Event\UserAcceptedTermnsOfUseUpdateEvent;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Event\UserAcceptedTermnsOfUseDeleteEvent;
@@ -22,10 +22,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
 
 class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
 {
-    use UserAcceptedTermnsOfUseUserAccesor;
-    use UserAcceptedTermnsOfUseConditionsAccesor;
-    use UserAcceptedTermnsOfUseAcceptDateAccesor;
-    use UserAcceptedTermnsOfUseVersionAccesor;
+    use UserAcceptedTermnsOfUseUserAccessor;
+    use UserAcceptedTermnsOfUseConditionsAccessor;
+    use UserAcceptedTermnsOfUseAcceptDateAccessor;
+    use UserAcceptedTermnsOfUseVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

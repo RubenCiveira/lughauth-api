@@ -20,7 +20,7 @@ class TenantLoginProviderEnrichForView
     {
         return $this->tenantLoginProviderAttributes;
     }
-    public function with(TenantLoginProviderAttributes $tenantLoginProviderAttributes)
+    public function with(TenantLoginProviderAttributes $tenantLoginProviderAttributes): void
     {
         $this->tenantLoginProviderAttributes = $tenantLoginProviderAttributes;
     }

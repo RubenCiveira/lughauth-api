@@ -28,7 +28,7 @@ class ApiKeyClientAttributes
     use ApiKeyClientScopesAttributeHolder;
     use ApiKeyClientVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
       'key' => 'unsetKey',
@@ -48,7 +48,11 @@ class ApiKeyClientAttributes
         $version = ApiKeyClientVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new ApiKeyClient(
+        }
+        \assert($uid !== null);
+        \assert($code !== null);
+        \assert($enabled !== null);
+        return new ApiKeyClient(
             uid: $uid,
             code: $code,
             key: $key,
@@ -72,7 +76,7 @@ class ApiKeyClientAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

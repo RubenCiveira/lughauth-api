@@ -37,16 +37,16 @@ class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $sort = null): ApiKeyClientSlide
+    public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide
     {
         $this->logDebug("List for Api key client on adapter ");
         $span = $this->startSpan("List for Api key client on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new ApiKeyClientSlide(function ($slide, $next) use ($filter) {
+            return new ApiKeyClientSlide(function (ApiKeyClientFilter $slide, ?ApiKeyClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new ApiKeyClientCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -55,7 +55,7 @@ class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadGateway
         }
     }
     #[Override]
-    public function retrieve(?ApiKeyClientFilter $filter): ?ApiKeyClient
+    public function retrieve(ApiKeyClientFilter $filter): ?ApiKeyClient
     {
         $this->logDebug("Retrieve for Api key client on adapter ");
         $span = $this->startSpan("Retrieve for Api key client on adapter");
@@ -69,7 +69,7 @@ class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadGateway
         }
     }
     #[Override]
-    public function exists(?ApiKeyClientFilter $filter): bool
+    public function exists(ApiKeyClientFilter $filter): bool
     {
         $this->logDebug("Exists for Api key client on adapter ");
         $span = $this->startSpan("Exists for Api key client on adapter");

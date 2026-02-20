@@ -14,7 +14,7 @@ class TrustedClientVisibilityCheck
         public readonly TrustedClient $trustedClient
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

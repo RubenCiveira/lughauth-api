@@ -34,7 +34,7 @@ class TenantTermsOfUseTaskEnable implements TaskDescriptorInterface
     }
 
     #[Override]
-    public function finish(TaskContext $state)
+    public function finish(TaskContext $state): void
     {
     }
 

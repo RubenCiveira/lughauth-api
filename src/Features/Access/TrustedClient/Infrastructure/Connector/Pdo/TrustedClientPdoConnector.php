@@ -102,7 +102,7 @@ class TrustedClientPdoConnector
         $this->logDebug("Make raw query for Trusted client");
         $span = $this->startSpan("Make raw query for Trusted client");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -257,7 +257,7 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute count sql query for Trusted client");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -271,7 +271,7 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute count sql query for update of Trusted client");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row) => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -279,7 +279,7 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(TrustedClient $entity, bool $creation)
+    private function checkDuplicates(TrustedClient $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for Trusted client");
         $span = $this->startSpan("Query to check duplicates for Trusted client");
@@ -299,7 +299,7 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    private function filter(?TrustedClientFilter $filter, ?TrustedClientCursor $sort, bool $count)
+    private function filter(?TrustedClientFilter $filter, ?TrustedClientCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of Trusted client");
         $span = $this->startSpan("Build query filter of Trusted client");
@@ -481,7 +481,7 @@ class TrustedClientPdoConnector
     private function mapper($row): TrustedClient
     {
         $this->logDebug("Mapping from sql to entity for Trusted client");
-        $span = $this->startSpan("Mapping from sql to enttiy for Trusted client");
+        $span = $this->startSpan("Mapping from sql to entity for Trusted client");
         try {
             return new TrustedClient(
                 uid: $row['uid'] ?? null,

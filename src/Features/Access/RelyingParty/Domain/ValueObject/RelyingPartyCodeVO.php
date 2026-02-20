@@ -13,7 +13,7 @@ class RelyingPartyCodeVO
 {
     public static function from(RelyingPartyCodeVO|string $value): RelyingPartyCodeVO
     {
-        if (is_a($value, RelyingPartyCodeVO::class)) {
+        if ($value instanceof RelyingPartyCodeVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class RelyingPartyCodeVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof RelyingPartyCodeVO);
             return $candidate;
         }
     }

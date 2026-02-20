@@ -33,7 +33,7 @@ class RelyingPartyDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Relying party");
         $span = $this->startSpan("Check allow of Disable usecase for Relying party");
         try {
-            $result = $this->dispatcher->dispatch(new RelyingPartyDisableAllowDecision(Allow::allowed('disable', 'Allowed to Relying party by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RelyingPartyDisableAllowDecision(Allow::allowed('disable', 'Allowed to Relying party by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class RelyingPartyDisableUsecase
             $ref = new RelyingPartyRef($uid);
             $allow = $this->allowDisable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Disable Relying party');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

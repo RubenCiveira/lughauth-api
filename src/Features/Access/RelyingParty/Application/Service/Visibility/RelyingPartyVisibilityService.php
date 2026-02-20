@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
@@ -76,22 +77,24 @@ class RelyingPartyVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|RelyingPartyRef $value): bool
+    public function checkVisibility(Iterator|string|RelyingPartyRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Relying party");
         $span = $this->startSpan("Check visibility of an iterator for  Relying party");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new RelyingPartyRef($value));
+            } elseif ($value instanceof RelyingPartyRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new RelyingPartyFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, RelyingPartyRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new RelyingPartyRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -107,7 +110,7 @@ class RelyingPartyVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (RelyingParty $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -138,7 +141,7 @@ class RelyingPartyVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (RelyingParty $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -243,7 +246,7 @@ class RelyingPartyVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(RelyingPartyFilter $filter)
+    private function applyPreVisibilityFilter(RelyingPartyFilter $filter): RelyingPartyFilter
     {
         $this->logDebug("Compose visibility filter for Relying party");
         $span = $this->startSpan("Compose visibility filter for  Relying party");
@@ -273,8 +276,8 @@ class RelyingPartyVisibilityService
     }
     private function prepareVisibleDataCallback(RelyingParty $content, bool $inlist): RelyingPartyAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Relying party");
-        $span = $this->startSpan("Prepare hidratation to visible data for Relying party");
+        $this->logDebug("Prepare hydration to visible data for Relying party");
+        $span = $this->startSpan("Prepare hydration to visible data for Relying party");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new RelyingPartyEnrichForView($content, $inlist, $attributes));

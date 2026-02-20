@@ -25,7 +25,7 @@ class UserAcceptedTermnsOfUseAttributes
     use UserAcceptedTermnsOfUseAcceptDateAttributeHolder;
     use UserAcceptedTermnsOfUseVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'user' => 'unsetUser',
       'conditions' => 'unsetConditions',
@@ -43,7 +43,11 @@ class UserAcceptedTermnsOfUseAttributes
         $version = UserAcceptedTermnsOfUseVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new UserAcceptedTermnsOfUse(
+        }
+        \assert($uid !== null);
+        \assert($user !== null);
+        \assert($conditions !== null);
+        return new UserAcceptedTermnsOfUse(
             uid: $uid,
             user: $user,
             conditions: $conditions,
@@ -65,7 +69,7 @@ class UserAcceptedTermnsOfUseAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

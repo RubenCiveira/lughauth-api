@@ -18,7 +18,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     }
     public static function from(UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $value): UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     {
-        if (is_a($value, UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::class)) {
+        if ($value instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -28,6 +28,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO);
             return $candidate;
         }
     }

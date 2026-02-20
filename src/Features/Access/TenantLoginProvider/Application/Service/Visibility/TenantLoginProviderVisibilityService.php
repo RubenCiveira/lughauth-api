@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -79,22 +80,24 @@ class TenantLoginProviderVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|TenantLoginProviderRef $value): bool
+    public function checkVisibility(Iterator|string|TenantLoginProviderRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Tenant login provider");
         $span = $this->startSpan("Check visibility of an iterator for  Tenant login provider");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new TenantLoginProviderRef($value));
+            } elseif ($value instanceof TenantLoginProviderRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new TenantLoginProviderFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, TenantLoginProviderRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new TenantLoginProviderRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -110,7 +113,7 @@ class TenantLoginProviderVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (TenantLoginProvider $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -141,7 +144,7 @@ class TenantLoginProviderVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (TenantLoginProvider $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -239,7 +242,7 @@ class TenantLoginProviderVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  Tenant login provider");
         try {
             if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
-                throw new NotFoundException("Unknow Tenant " . $attributes->getTenant());
+                throw new NotFoundException("Unknown Tenant " . $attributes->getTenant());
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -249,7 +252,7 @@ class TenantLoginProviderVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(TenantLoginProviderFilter $filter)
+    private function applyPreVisibilityFilter(TenantLoginProviderFilter $filter): TenantLoginProviderFilter
     {
         $this->logDebug("Compose visibility filter for Tenant login provider");
         $span = $this->startSpan("Compose visibility filter for  Tenant login provider");
@@ -279,8 +282,8 @@ class TenantLoginProviderVisibilityService
     }
     private function prepareVisibleDataCallback(TenantLoginProvider $content, bool $inlist): TenantLoginProviderAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Tenant login provider");
-        $span = $this->startSpan("Prepare hidratation to visible data for Tenant login provider");
+        $this->logDebug("Prepare hydration to visible data for Tenant login provider");
+        $span = $this->startSpan("Prepare hydration to visible data for Tenant login provider");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new TenantLoginProviderEnrichForView($content, $inlist, $attributes));

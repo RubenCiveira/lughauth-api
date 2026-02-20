@@ -39,16 +39,16 @@ class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermns
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $sort = null): UserAcceptedTermnsOfUseSlide
+    public function list(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $cursor = null): UserAcceptedTermnsOfUseSlide
     {
         $this->logDebug("List for User accepted termns of use on adapter ");
         $span = $this->startSpan("List for User accepted termns of use on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new UserAcceptedTermnsOfUseSlide(function ($slide, $next) use ($filter) {
+            return new UserAcceptedTermnsOfUseSlide(function (UserAcceptedTermnsOfUseFilter $slide, ?UserAcceptedTermnsOfUseCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserAcceptedTermnsOfUseCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAcceptedTermnsOfUseCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -57,7 +57,7 @@ class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermns
         }
     }
     #[Override]
-    public function retrieve(?UserAcceptedTermnsOfUseFilter $filter): ?UserAcceptedTermnsOfUse
+    public function retrieve(UserAcceptedTermnsOfUseFilter $filter): ?UserAcceptedTermnsOfUse
     {
         $this->logDebug("Retrieve for User accepted termns of use on adapter ");
         $span = $this->startSpan("Retrieve for User accepted termns of use on adapter");
@@ -71,7 +71,7 @@ class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermns
         }
     }
     #[Override]
-    public function exists(?UserAcceptedTermnsOfUseFilter $filter): bool
+    public function exists(UserAcceptedTermnsOfUseFilter $filter): bool
     {
         $this->logDebug("Exists for User accepted termns of use on adapter ");
         $span = $this->startSpan("Exists for User accepted termns of use on adapter");

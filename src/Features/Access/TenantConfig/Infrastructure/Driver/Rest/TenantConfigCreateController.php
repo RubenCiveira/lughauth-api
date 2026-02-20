@@ -20,7 +20,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigIn
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWelcomeEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
@@ -89,7 +89,7 @@ class TenantConfigCreateController
             $value->forceMfa(TenantConfigForceMfaVO::tryFrom($body['forceMfa'] ?? null, $errorsList));
             $value->allowRegister(TenantConfigAllowRegisterVO::tryFrom($body['allowRegister'] ?? null, $errorsList));
             $value->enableRegisterUsers(TenantConfigEnableRegisterUsersVO::tryFrom($body['enableRegisterUsers'] ?? null, $errorsList));
-            $value->wellcomeEmail(TenantConfigWellcomeEmailVO::tryFrom($body['wellcomeEmail'] ?? null, $errorsList));
+            $value->welcomeEmail(TenantConfigWelcomeEmailVO::tryFrom($body['welcomeEmail'] ?? null, $errorsList));
             $value->registerdEmail(TenantConfigRegisterdEmailVO::tryFrom($body['registerdEmail'] ?? null, $errorsList));
             $value->disabledUserEmail(TenantConfigDisabledUserEmailVO::tryFrom($body['disabledUserEmail'] ?? null, $errorsList));
             $value->enabledUserEmail(TenantConfigEnabledUserEmailVO::tryFrom($body['enabledUserEmail'] ?? null, $errorsList));
@@ -120,7 +120,7 @@ class TenantConfigCreateController
             $dto->forceMfa = $value->isForceMfa();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
-            $dto->wellcomeEmail = $value->getWellcomeEmail();
+            $dto->welcomeEmail = $value->getWelcomeEmail();
             $dto->registerdEmail = $value->getRegisterdEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();
             $dto->enabledUserEmail = $value->getEnabledUserEmail();

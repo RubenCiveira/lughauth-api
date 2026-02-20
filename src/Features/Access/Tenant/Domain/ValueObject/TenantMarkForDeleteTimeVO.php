@@ -18,7 +18,7 @@ class TenantMarkForDeleteTimeVO
     }
     public static function from(TenantMarkForDeleteTimeVO|\DateTimeImmutable|null $value): TenantMarkForDeleteTimeVO
     {
-        if (is_a($value, TenantMarkForDeleteTimeVO::class)) {
+        if ($value instanceof TenantMarkForDeleteTimeVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -28,6 +28,7 @@ class TenantMarkForDeleteTimeVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantMarkForDeleteTimeVO);
             return $candidate;
         }
     }

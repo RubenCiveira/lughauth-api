@@ -20,7 +20,7 @@ class UserIdentityEnrichForView
     {
         return $this->userIdentityAttributes;
     }
-    public function with(UserIdentityAttributes $userIdentityAttributes)
+    public function with(UserIdentityAttributes $userIdentityAttributes): void
     {
         $this->userIdentityAttributes = $userIdentityAttributes;
     }

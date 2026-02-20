@@ -7,11 +7,11 @@ namespace Civi\Lughauth\Features\Access\Role\Domain;
 
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleUidVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleNameAccesor;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accessor\RoleNameAccessor;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleRelyingPartyVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleRelyingPartyAccesor;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accessor\RoleRelyingPartyAccessor;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accesor\RoleVersionAccesor;
+use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Accessor\RoleVersionAccessor;
 use Civi\Lughauth\Features\Access\Role\Domain\Event\RoleCreateEvent;
 use Civi\Lughauth\Features\Access\Role\Domain\Event\RoleUpdateEvent;
 use Civi\Lughauth\Features\Access\Role\Domain\Event\RoleDeleteEvent;
@@ -19,9 +19,9 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 
 class Role extends RoleRef
 {
-    use RoleNameAccesor;
-    use RoleRelyingPartyAccesor;
-    use RoleVersionAccesor;
+    use RoleNameAccessor;
+    use RoleRelyingPartyAccessor;
+    use RoleVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

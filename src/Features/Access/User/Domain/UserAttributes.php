@@ -15,8 +15,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAtt
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWelcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWelcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
@@ -42,7 +42,7 @@ class UserAttributes
     use UserNameAttributeHolder;
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
-    use UserWellcomeAtAttributeHolder;
+    use UserWelcomeAtAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserApproveAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
@@ -58,7 +58,7 @@ class UserAttributes
       'name' => 'unsetName',
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
-      'wellcomeAt' => 'unsetWellcomeAt',
+      'welcomeAt' => 'unsetWelcomeAt',
       'enabled' => 'unsetEnabled',
       'approve' => 'unsetApprove',
       'temporalPassword' => 'unsetTemporalPassword',
@@ -77,7 +77,7 @@ class UserAttributes
         $name = UserNameVO::tryFrom($this->name, $errors);
         $password = UserPasswordVO::tryFrom($this->password, $errors);
         $email = UserEmailVO::tryFrom($this->email, $errors);
-        $wellcomeAt = UserWellcomeAtVO::tryFrom($this->wellcomeAt, $errors);
+        $welcomeAt = UserWelcomeAtVO::tryFrom($this->welcomeAt, $errors);
         $enabled = UserEnabledVO::tryFrom($this->enabled, $errors);
         $approve = UserApproveVO::tryFrom($this->approve, $errors);
         $temporalPassword = UserTemporalPasswordVO::tryFrom($this->temporalPassword, $errors);
@@ -99,7 +99,7 @@ class UserAttributes
             name: $name,
             password: $password,
             email: $email,
-            wellcomeAt: $wellcomeAt,
+            welcomeAt: $welcomeAt,
             enabled: $enabled,
             approve: $approve,
             temporalPassword: $temporalPassword,
@@ -119,7 +119,7 @@ class UserAttributes
         $this->withAssertedNameRules($value, $errorsList);
         $this->withAssertedPasswordRules($value, $errorsList);
         $this->withAssertedEmailRules($value, $errorsList);
-        $this->withAssertedWellcomeAtRules($value, $errorsList);
+        $this->withAssertedWelcomeAtRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedApproveRules($value, $errorsList);
         $this->withAssertedTemporalPasswordRules($value, $errorsList);
@@ -146,7 +146,7 @@ class UserAttributes
         $this->withDefaultName();
         $this->withDefaultPassword();
         $this->withDefaultEmail();
-        $this->withDefaultWellcomeAt();
+        $this->withDefaultWelcomeAt();
         $this->withDefaultEnabled();
         $this->withDefaultApprove();
         $this->withDefaultTemporalPassword();

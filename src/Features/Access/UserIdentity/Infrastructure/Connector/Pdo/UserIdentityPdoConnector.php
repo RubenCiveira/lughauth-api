@@ -103,7 +103,7 @@ class UserIdentityPdoConnector
         $this->logDebug("Make raw query for User identity");
         $span = $this->startSpan("Make raw query for User identity");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -256,7 +256,7 @@ class UserIdentityPdoConnector
         $span = $this->startSpan("Execute count sql query for User identity");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -270,7 +270,7 @@ class UserIdentityPdoConnector
         $span = $this->startSpan("Execute count sql query for update of User identity");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row) => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -278,7 +278,7 @@ class UserIdentityPdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(UserIdentity $entity, bool $creation)
+    private function checkDuplicates(UserIdentity $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for User identity");
         $span = $this->startSpan("Query to check duplicates for User identity");
@@ -294,7 +294,7 @@ class UserIdentityPdoConnector
             $span->end();
         }
     }
-    private function filter(?UserIdentityFilter $filter, ?UserIdentityCursor $sort, bool $count)
+    private function filter(?UserIdentityFilter $filter, ?UserIdentityCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of User identity");
         $span = $this->startSpan("Build query filter of User identity");
@@ -474,7 +474,7 @@ class UserIdentityPdoConnector
     private function mapper($row): UserIdentity
     {
         $this->logDebug("Mapping from sql to entity for User identity");
-        $span = $this->startSpan("Mapping from sql to enttiy for User identity");
+        $span = $this->startSpan("Mapping from sql to entity for User identity");
         try {
             return new UserIdentity(
                 uid: $row['uid'] ?? null,

@@ -16,7 +16,7 @@ class ApiKeyClientVersionVO
     }
     public static function from(ApiKeyClientVersionVO|int|null $value): ApiKeyClientVersionVO
     {
-        if (is_a($value, ApiKeyClientVersionVO::class)) {
+        if ($value instanceof ApiKeyClientVersionVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class ApiKeyClientVersionVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof ApiKeyClientVersionVO);
             return $candidate;
         }
     }

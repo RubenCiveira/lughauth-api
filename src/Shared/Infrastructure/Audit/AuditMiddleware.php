@@ -109,7 +109,7 @@ class AuditMiddleware implements MiddlewareInterface
 
         $stmt->execute([
             'id' => $actionId,
-            'actor_id' => $identity->anonimous ? 'anonimous' : $identity->name,
+            'actor_id' => $identity->anonymous ? 'anonymous' : $identity->name,
             'actor_type' => 'user',
             'actor_ip' => $connection->source,
             'tenant_id' => $identity->tenant,

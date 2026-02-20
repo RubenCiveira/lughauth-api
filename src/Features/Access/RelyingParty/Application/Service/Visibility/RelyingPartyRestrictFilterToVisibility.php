@@ -13,7 +13,7 @@ class RelyingPartyRestrictFilterToVisibility
         public RelyingPartyFilter $relyingPartyFilter
     ) {
     }
-    public function with(RelyingPartyFilter $relyingPartyFilter)
+    public function with(RelyingPartyFilter $relyingPartyFilter): void
     {
         $this->relyingPartyFilter = $relyingPartyFilter;
     }

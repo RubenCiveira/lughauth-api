@@ -15,7 +15,7 @@ class RelyingPartyPresetValues
         public readonly ?RelyingParty $relyingParty
     ) {
     }
-    public function with(RelyingPartyAttributes $attributes)
+    public function with(RelyingPartyAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

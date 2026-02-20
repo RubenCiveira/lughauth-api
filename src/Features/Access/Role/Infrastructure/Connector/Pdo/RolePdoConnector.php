@@ -80,7 +80,7 @@ class RolePdoConnector
         $this->logDebug("Make query for entities for Role");
         $span = $this->startSpan("Make query for entities for Role");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $this->mapper($row)) : $this->db->query($query, $params, fn ($row) => $this->mapper($row));
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): Role => $this->mapper($row)) : $this->db->query($query, $params, fn (array $row): Role => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -93,7 +93,7 @@ class RolePdoConnector
         $this->logDebug("Make raw query for Role");
         $span = $this->startSpan("Make raw query for Role");
         try {
-            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+            return $forUpdate ? $this->db->queryForUpdate($query, $params, fn (array $row): array => $row) : $this->db->query($query, $params, fn (array $row): array => $row);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -107,7 +107,7 @@ class RolePdoConnector
         $span = $this->startSpan("Retrieve query for Role");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): Role => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -121,7 +121,7 @@ class RolePdoConnector
         $span = $this->startSpan("Retrieve query for update of Role");
         try {
             $sqlFilter = $this->filter($filter, null, false);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $this->mapper($row));
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row): Role => $this->mapper($row));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -241,7 +241,7 @@ class RolePdoConnector
         $span = $this->startSpan("Execute count sql query for Role");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOne($sqlFilter['query'], $sqlFilter['params'], fn (array $row): int => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -255,7 +255,7 @@ class RolePdoConnector
         $span = $this->startSpan("Execute count sql query for update of Role");
         try {
             $sqlFilter = $this->filter($filter, null, true);
-            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn ($row) => $row['count']);
+            return $this->db->findOneForUpdate($sqlFilter['query'], $sqlFilter['params'], fn (array $row) => (int) $row['count']);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -263,7 +263,7 @@ class RolePdoConnector
             $span->end();
         }
     }
-    private function checkDuplicates(Role $entity, bool $creation)
+    private function checkDuplicates(Role $entity, bool $creation): void
     {
         $this->logDebug("Query to check duplicates for Role");
         $span = $this->startSpan("Query to check duplicates for Role");
@@ -283,7 +283,7 @@ class RolePdoConnector
             $span->end();
         }
     }
-    private function filter(?RoleFilter $filter, ?RoleCursor $sort, bool $count)
+    private function filter(?RoleFilter $filter, ?RoleCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of Role");
         $span = $this->startSpan("Build query filter of Role");
@@ -379,7 +379,7 @@ class RolePdoConnector
     private function mapper($row): Role
     {
         $this->logDebug("Mapping from sql to entity for Role");
-        $span = $this->startSpan("Mapping from sql to enttiy for Role");
+        $span = $this->startSpan("Mapping from sql to entity for Role");
         try {
             return new Role(
                 uid: $row['uid'] ?? null,

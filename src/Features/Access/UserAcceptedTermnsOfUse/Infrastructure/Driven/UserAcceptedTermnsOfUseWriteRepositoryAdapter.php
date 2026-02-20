@@ -39,16 +39,16 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         return $this->conn->retrieveForUpdate(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $sort = null): UserAcceptedTermnsOfUseSlide
+    public function listForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $cursor = null): UserAcceptedTermnsOfUseSlide
     {
-        $this->logDebug("Count for User accepted termns of use on adapter ");
-        $span = $this->startSpan("Count for User accepted termns of use on adapter");
+        $this->logDebug("List for update of User accepted termns of use on adapter ");
+        $span = $this->startSpan("List for update of User accepted termns of use on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new UserAcceptedTermnsOfUseSlide(function ($slide, $next) use ($filter) {
+            return new UserAcceptedTermnsOfUseSlide(function (UserAcceptedTermnsOfUseSlide $slide, ?UserAcceptedTermnsOfUseCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserAcceptedTermnsOfUseCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAcceptedTermnsOfUseCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -59,8 +59,8 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
     #[Override]
     public function retrieveForUpdate(UserAcceptedTermnsOfUseFilter $filter): ?UserAcceptedTermnsOfUse
     {
-        $this->logDebug("Count for User accepted termns of use on adapter ");
-        $span = $this->startSpan("Count for User accepted termns of use on adapter");
+        $this->logDebug("Retrieve for update of User accepted termns of use on adapter ");
+        $span = $this->startSpan("Retrieve for update of User accepted termns of use on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -73,8 +73,8 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
     #[Override]
     public function existsForUpdate(?UserAcceptedTermnsOfUseFilter $filter): bool
     {
-        $this->logDebug("Count for User accepted termns of use on adapter ");
-        $span = $this->startSpan("Count for User accepted termns of use on adapter");
+        $this->logDebug("Exists for update of User accepted termns of use on adapter ");
+        $span = $this->startSpan("Exists for update of User accepted termns of use on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -87,8 +87,8 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
     #[Override]
     public function countForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null): int
     {
-        $this->logDebug("Count for User accepted termns of use on adapter ");
-        $span = $this->startSpan("Count for User accepted termns of use on adapter");
+        $this->logDebug("Count for update of User accepted termns of use on adapter ");
+        $span = $this->startSpan("Count for update of User accepted termns of use on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -116,14 +116,15 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         }
     }
     #[Override]
-    public function update(UserAcceptedTermnsOfUseRef $reference, UserAcceptedTermnsOfUse $entity): UserAcceptedTermnsOfUse
+    public function update(UserAcceptedTermnsOfUseRef $ref, UserAcceptedTermnsOfUse $entity): UserAcceptedTermnsOfUse
     {
         $this->logDebug("Count for User accepted termns of use on adapter ");
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof UserAcceptedTermnsOfUse) ? $reference : $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof UserAcceptedTermnsOfUse) ? $reference : $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -178,7 +179,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
             $span->end();
         }
     }
-    private function dispatch(UserAcceptedTermnsOfUse $entity)
+    private function dispatch(UserAcceptedTermnsOfUse $entity): void
     {
         $this->logDebug("Count for User accepted termns of use on adapter ");
         $span = $this->startSpan("Count for User accepted termns of use on adapter");

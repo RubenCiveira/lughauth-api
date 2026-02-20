@@ -19,7 +19,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: true,
             allowRegister: true,
             enableRegisterUsers: true,
-            wellcomeEmail: 'one',
+            welcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
@@ -45,8 +45,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged());
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged());
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
         $this->assertTrue($one->isRegisterdEmailChanged());
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
@@ -70,7 +70,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: true,
             allowRegister: true,
             enableRegisterUsers: true,
-            wellcomeEmail: 'one',
+            welcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
@@ -85,7 +85,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: false,
             allowRegister: false,
             enableRegisterUsers: false,
-            wellcomeEmail: 'other',
+            welcomeEmail: 'other',
             registerdEmail: 'other',
             disabledUserEmail: 'other',
             enabledUserEmail: 'other',
@@ -109,8 +109,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged($base));
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged($base));
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
         $this->assertTrue($one->isRegisterdEmailChanged($base));
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
@@ -134,7 +134,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: true,
             allowRegister: true,
             enableRegisterUsers: true,
-            wellcomeEmail: 'one',
+            welcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
@@ -166,7 +166,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: true,
             allowRegister: true,
             enableRegisterUsers: true,
-            wellcomeEmail: 'one',
+            welcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
@@ -190,8 +190,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged());
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged());
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
         $this->assertTrue($one->isRegisterdEmailChanged());
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
@@ -216,7 +216,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: true,
             allowRegister: true,
             enableRegisterUsers: true,
-            wellcomeEmail: 'one',
+            welcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
@@ -231,7 +231,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: false,
             allowRegister: false,
             enableRegisterUsers: false,
-            wellcomeEmail: 'other',
+            welcomeEmail: 'other',
             registerdEmail: 'other',
             disabledUserEmail: 'other',
             enabledUserEmail: 'other',
@@ -255,8 +255,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged($base));
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged($base));
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
         $this->assertTrue($one->isRegisterdEmailChanged($base));
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
@@ -282,7 +282,7 @@ final class TenantConfigUnitTest extends TestCase
             forceMfa: true,
             allowRegister: true,
             enableRegisterUsers: true,
-            wellcomeEmail: 'one',
+            welcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
@@ -306,8 +306,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged());
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged());
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
         $this->assertTrue($one->isRegisterdEmailChanged());
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());

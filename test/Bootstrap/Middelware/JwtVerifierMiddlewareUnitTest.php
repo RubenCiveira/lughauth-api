@@ -89,7 +89,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'locale' => 'en'
         ];
         $identity = [
-            'anonimous' => false,
+            'anonymous' => false,
             'authScope' => Identity::AUTH_SCOPE_BOTH,
             'id' => 'user',
             'name' => 'user',
@@ -635,7 +635,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'locale' => 'en'
         ];
         $identity = [
-            'anonimous' => false,
+            'anonymous' => false,
             'authScope' => $scope,
             'id' => 'user',
             'name' => 'user',

@@ -53,7 +53,7 @@ class TenantConfigListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapTenantConfig($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantConfigAttributes $item): TenantConfigApiDTO => $this->mapTenantConfig($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -104,7 +104,7 @@ class TenantConfigListController
             $dto->forceMfa = $value->isForceMfa();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
-            $dto->wellcomeEmail = $value->getWellcomeEmail();
+            $dto->welcomeEmail = $value->getWelcomeEmail();
             $dto->registerdEmail = $value->getRegisterdEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();
             $dto->enabledUserEmail = $value->getEnabledUserEmail();

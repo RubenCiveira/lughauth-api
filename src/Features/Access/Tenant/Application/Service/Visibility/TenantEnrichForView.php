@@ -20,7 +20,7 @@ class TenantEnrichForView
     {
         return $this->tenantAttributes;
     }
-    public function with(TenantAttributes $tenantAttributes)
+    public function with(TenantAttributes $tenantAttributes): void
     {
         $this->tenantAttributes = $tenantAttributes;
     }

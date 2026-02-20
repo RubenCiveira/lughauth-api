@@ -17,7 +17,7 @@ class TenantConfigInnerLabelVO
     }
     public static function from(TenantConfigInnerLabelVO|string|null $value): TenantConfigInnerLabelVO
     {
-        if (is_a($value, TenantConfigInnerLabelVO::class)) {
+        if ($value instanceof TenantConfigInnerLabelVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -27,6 +27,7 @@ class TenantConfigInnerLabelVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantConfigInnerLabelVO);
             return $candidate;
         }
     }

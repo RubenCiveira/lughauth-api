@@ -22,7 +22,7 @@ class RoleAttributes
     use RoleRelyingPartyAttributeHolder;
     use RoleVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'name' => 'unsetName',
       'relyingParty' => 'unsetRelyingParty',
@@ -38,7 +38,10 @@ class RoleAttributes
         $version = RoleVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new Role(
+        }
+        \assert($uid !== null);
+        \assert($name !== null);
+        return new Role(
             uid: $uid,
             name: $name,
             relyingParty: $relyingParty,
@@ -58,7 +61,7 @@ class RoleAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

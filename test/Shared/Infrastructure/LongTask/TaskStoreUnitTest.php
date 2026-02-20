@@ -217,7 +217,7 @@ final class TaskStoreUnitTest extends TestCase
     private function mockContext(string $id): Context
     {
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(anonimous: true, id: $id));
+        $context->method('getIdentity')->willReturn(new Identity(anonymous: true, id: $id));
         return $context;
     }
 

@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigForceMfaAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWelcomeEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnabledUserEmailAttributeHolder;
@@ -28,7 +28,7 @@ class TenantConfigRetrieveResult
     use TenantConfigForceMfaAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
-    use TenantConfigWellcomeEmailAttributeHolder;
+    use TenantConfigWelcomeEmailAttributeHolder;
     use TenantConfigRegisterdEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
     use TenantConfigEnabledUserEmailAttributeHolder;
@@ -36,14 +36,14 @@ class TenantConfigRetrieveResult
     use TenantConfigRecoverPassEmailAttributeHolder;
     use TenantConfigVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'innerLabel' => 'unsetInnerLabel',
       'forceMfa' => 'unsetForceMfa',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
-      'wellcomeEmail' => 'unsetWellcomeEmail',
+      'welcomeEmail' => 'unsetWelcomeEmail',
       'registerdEmail' => 'unsetRegisterdEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
       'enabledUserEmail' => 'unsetEnabledUserEmail',
@@ -61,7 +61,7 @@ class TenantConfigRetrieveResult
             $this->forceMfa($att->getForceMfaOrDefault(null));
             $this->allowRegister($att->getAllowRegisterOrDefault(null));
             $this->enableRegisterUsers($att->getEnableRegisterUsersOrDefault(null));
-            $this->wellcomeEmail($att->getWellcomeEmailOrDefault(null));
+            $this->welcomeEmail($att->getWelcomeEmailOrDefault(null));
             $this->registerdEmail($att->getRegisterdEmailOrDefault(null));
             $this->disabledUserEmail($att->getDisabledUserEmailOrDefault(null));
             $this->enabledUserEmail($att->getEnabledUserEmailOrDefault(null));
@@ -73,48 +73,48 @@ class TenantConfigRetrieveResult
     public function toAttributes(): TenantConfigAttributes
     {
         $att = new TenantConfigAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->tenant) {
+        if ($this->tenantAssigned) {
             $att->tenant($this->tenant);
         }
-        if ($this->innerLabel) {
+        if ($this->innerLabelAssigned) {
             $att->innerLabel($this->innerLabel);
         }
-        if ($this->forceMfa) {
+        if ($this->forceMfaAssigned) {
             $att->forceMfa($this->forceMfa);
         }
-        if ($this->allowRegister) {
+        if ($this->allowRegisterAssigned) {
             $att->allowRegister($this->allowRegister);
         }
-        if ($this->enableRegisterUsers) {
+        if ($this->enableRegisterUsersAssigned) {
             $att->enableRegisterUsers($this->enableRegisterUsers);
         }
-        if ($this->wellcomeEmail) {
-            $att->wellcomeEmail($this->wellcomeEmail);
+        if ($this->welcomeEmailAssigned) {
+            $att->welcomeEmail($this->welcomeEmail);
         }
-        if ($this->registerdEmail) {
+        if ($this->registerdEmailAssigned) {
             $att->registerdEmail($this->registerdEmail);
         }
-        if ($this->disabledUserEmail) {
+        if ($this->disabledUserEmailAssigned) {
             $att->disabledUserEmail($this->disabledUserEmail);
         }
-        if ($this->enabledUserEmail) {
+        if ($this->enabledUserEmailAssigned) {
             $att->enabledUserEmail($this->enabledUserEmail);
         }
-        if ($this->allowRecoverPass) {
+        if ($this->allowRecoverPassAssigned) {
             $att->allowRecoverPass($this->allowRecoverPass);
         }
-        if ($this->recoverPassEmail) {
+        if ($this->recoverPassEmailAssigned) {
             $att->recoverPassEmail($this->recoverPassEmail);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);
@@ -128,7 +128,7 @@ class TenantConfigRetrieveResult
         $this->withDefaultForceMfa();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
-        $this->withDefaultWellcomeEmail();
+        $this->withDefaultWelcomeEmail();
         $this->withDefaultRegisterdEmail();
         $this->withDefaultDisabledUserEmail();
         $this->withDefaultEnabledUserEmail();

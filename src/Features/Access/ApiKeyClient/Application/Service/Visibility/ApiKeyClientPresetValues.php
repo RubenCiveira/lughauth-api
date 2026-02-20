@@ -15,7 +15,7 @@ class ApiKeyClientPresetValues
         public readonly ?ApiKeyClient $apiKeyClient
     ) {
     }
-    public function with(ApiKeyClientAttributes $attributes)
+    public function with(ApiKeyClientAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

@@ -22,7 +22,7 @@ class ApiKeyClientRetrieveResult
     use ApiKeyClientScopesAttributeHolder;
     use ApiKeyClientVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
       'key' => 'unsetKey',
@@ -45,27 +45,27 @@ class ApiKeyClientRetrieveResult
     public function toAttributes(): ApiKeyClientAttributes
     {
         $att = new ApiKeyClientAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->code) {
+        if ($this->codeAssigned) {
             $att->code($this->code);
         }
-        if ($this->key) {
+        if ($this->keyAssigned) {
             $att->key($this->key);
         }
-        if ($this->enabled) {
+        if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
         }
-        if ($this->scopes) {
+        if ($this->scopesAssigned) {
             $att->scopes($this->scopes);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

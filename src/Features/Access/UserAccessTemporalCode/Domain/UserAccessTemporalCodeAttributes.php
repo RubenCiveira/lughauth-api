@@ -43,7 +43,7 @@ class UserAccessTemporalCodeAttributes
     use UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder;
     use UserAccessTemporalCodeVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'user' => 'unsetUser',
       'tempSecondFactorSeed' => 'unsetTempSecondFactorSeed',
@@ -73,7 +73,10 @@ class UserAccessTemporalCodeAttributes
         $version = UserAccessTemporalCodeVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
-        }    return new UserAccessTemporalCode(
+        }
+        \assert($uid !== null);
+        \assert($user !== null);
+        return new UserAccessTemporalCode(
             uid: $uid,
             user: $user,
             tempSecondFactorSeed: $tempSecondFactorSeed,
@@ -107,7 +110,7 @@ class UserAccessTemporalCodeAttributes
         }
         return $value;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

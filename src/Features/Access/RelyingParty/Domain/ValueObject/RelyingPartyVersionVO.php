@@ -16,7 +16,7 @@ class RelyingPartyVersionVO
     }
     public static function from(RelyingPartyVersionVO|int|null $value): RelyingPartyVersionVO
     {
-        if (is_a($value, RelyingPartyVersionVO::class)) {
+        if ($value instanceof RelyingPartyVersionVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class RelyingPartyVersionVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof RelyingPartyVersionVO);
             return $candidate;
         }
     }

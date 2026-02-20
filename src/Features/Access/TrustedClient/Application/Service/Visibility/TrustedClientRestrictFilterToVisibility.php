@@ -13,7 +13,7 @@ class TrustedClientRestrictFilterToVisibility
         public TrustedClientFilter $trustedClientFilter
     ) {
     }
-    public function with(TrustedClientFilter $trustedClientFilter)
+    public function with(TrustedClientFilter $trustedClientFilter): void
     {
         $this->trustedClientFilter = $trustedClientFilter;
     }

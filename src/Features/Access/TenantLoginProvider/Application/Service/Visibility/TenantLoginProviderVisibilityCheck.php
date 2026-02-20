@@ -14,7 +14,7 @@ class TenantLoginProviderVisibilityCheck
         public readonly TenantLoginProvider $tenantLoginProvider
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

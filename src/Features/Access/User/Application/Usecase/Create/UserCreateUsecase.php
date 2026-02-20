@@ -48,7 +48,7 @@ class UserCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create User');
             }
             $this->dispatcher->dispatch(new UserCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new UserCreateEnrich($params, $params->toAttributes()));
@@ -57,8 +57,8 @@ class UserCreateUsecase
             $entity = User::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn (User $created): bool =>
-                    $this->visibility->checkVisibility($created)
+                fn ($created) =>
+                            $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));
             return new UserCreateResult($output);

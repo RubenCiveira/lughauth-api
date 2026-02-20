@@ -7,17 +7,17 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain;
 
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseUidVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accesor\TenantTermsOfUseTenantAccesor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseTenantAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accesor\TenantTermsOfUseTextAccesor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseTextAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accesor\TenantTermsOfUseEnabledAccesor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseEnabledAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accesor\TenantTermsOfUseAttachedAccesor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseAttachedAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseActivationDateVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accesor\TenantTermsOfUseActivationDateAccesor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseActivationDateAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseVersionVO;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accesor\TenantTermsOfUseVersionAccesor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseVersionAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event\TenantTermsOfUseCreateEvent;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event\TenantTermsOfUseUpdateEvent;
@@ -30,12 +30,12 @@ use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
 class TenantTermsOfUse extends TenantTermsOfUseRef
 {
-    use TenantTermsOfUseTenantAccesor;
-    use TenantTermsOfUseTextAccesor;
-    use TenantTermsOfUseEnabledAccesor;
-    use TenantTermsOfUseAttachedAccesor;
-    use TenantTermsOfUseActivationDateAccesor;
-    use TenantTermsOfUseVersionAccesor;
+    use TenantTermsOfUseTenantAccessor;
+    use TenantTermsOfUseTextAccessor;
+    use TenantTermsOfUseEnabledAccessor;
+    use TenantTermsOfUseAttachedAccessor;
+    use TenantTermsOfUseActivationDateAccessor;
+    use TenantTermsOfUseVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

@@ -20,7 +20,7 @@ class RelyingPartyEnrichForView
     {
         return $this->relyingPartyAttributes;
     }
-    public function with(RelyingPartyAttributes $relyingPartyAttributes)
+    public function with(RelyingPartyAttributes $relyingPartyAttributes): void
     {
         $this->relyingPartyAttributes = $relyingPartyAttributes;
     }

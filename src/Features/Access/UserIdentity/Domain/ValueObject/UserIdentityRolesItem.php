@@ -5,13 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject;
 
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityRolesRoleAccesor;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accesor\UserIdentityRolesVersionAccesor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityRolesRoleAccessor;
+use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\Accessor\UserIdentityRolesVersionAccessor;
 
 class UserIdentityRolesItem
 {
-    use UserIdentityRolesRoleAccesor;
-    use UserIdentityRolesVersionAccesor;
+    use UserIdentityRolesRoleAccessor;
+    use UserIdentityRolesVersionAccessor;
     private readonly UserIdentityRolesUidVO $_uid;
     public function __construct(
         UserIdentityRolesUidVO|null $uid,

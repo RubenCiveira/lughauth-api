@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
@@ -76,22 +77,24 @@ class ApiKeyClientVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|ApiKeyClientRef $value): bool
+    public function checkVisibility(Iterator|string|ApiKeyClientRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Api key client");
         $span = $this->startSpan("Check visibility of an iterator for  Api key client");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new ApiKeyClientRef($value));
+            } elseif ($value instanceof ApiKeyClientRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new ApiKeyClientFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, ApiKeyClientRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new ApiKeyClientRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -107,7 +110,7 @@ class ApiKeyClientVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (ApiKeyClient $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -138,7 +141,7 @@ class ApiKeyClientVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (ApiKeyClient $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -243,7 +246,7 @@ class ApiKeyClientVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(ApiKeyClientFilter $filter)
+    private function applyPreVisibilityFilter(ApiKeyClientFilter $filter): ApiKeyClientFilter
     {
         $this->logDebug("Compose visibility filter for Api key client");
         $span = $this->startSpan("Compose visibility filter for  Api key client");
@@ -273,8 +276,8 @@ class ApiKeyClientVisibilityService
     }
     private function prepareVisibleDataCallback(ApiKeyClient $content, bool $inlist): ApiKeyClientAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Api key client");
-        $span = $this->startSpan("Prepare hidratation to visible data for Api key client");
+        $this->logDebug("Prepare hydration to visible data for Api key client");
+        $span = $this->startSpan("Prepare hydration to visible data for Api key client");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new ApiKeyClientEnrichForView($content, $inlist, $attributes));

@@ -7,15 +7,15 @@ namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain;
 
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientUidVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientCodeVO;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accesor\ApiKeyClientCodeAccesor;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accessor\ApiKeyClientCodeAccessor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accesor\ApiKeyClientKeyAccesor;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accessor\ApiKeyClientKeyAccessor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientEnabledVO;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accesor\ApiKeyClientEnabledAccesor;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accessor\ApiKeyClientEnabledAccessor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientScopesVO;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accesor\ApiKeyClientScopesAccesor;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accessor\ApiKeyClientScopesAccessor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientVersionVO;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accesor\ApiKeyClientVersionAccesor;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Accessor\ApiKeyClientVersionAccessor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Event\ApiKeyClientCreateEvent;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Event\ApiKeyClientUpdateEvent;
@@ -25,11 +25,11 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Event\ApiKeyClientDisableE
 
 class ApiKeyClient extends ApiKeyClientRef
 {
-    use ApiKeyClientCodeAccesor;
-    use ApiKeyClientKeyAccesor;
-    use ApiKeyClientEnabledAccesor;
-    use ApiKeyClientScopesAccesor;
-    use ApiKeyClientVersionAccesor;
+    use ApiKeyClientCodeAccessor;
+    use ApiKeyClientKeyAccessor;
+    use ApiKeyClientEnabledAccessor;
+    use ApiKeyClientScopesAccessor;
+    use ApiKeyClientVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

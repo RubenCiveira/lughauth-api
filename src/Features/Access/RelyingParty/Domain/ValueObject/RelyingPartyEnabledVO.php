@@ -16,7 +16,7 @@ class RelyingPartyEnabledVO
     }
     public static function from(RelyingPartyEnabledVO|bool|null $value): RelyingPartyEnabledVO
     {
-        if (is_a($value, RelyingPartyEnabledVO::class)) {
+        if ($value instanceof RelyingPartyEnabledVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class RelyingPartyEnabledVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof RelyingPartyEnabledVO);
             return $candidate;
         }
     }

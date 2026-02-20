@@ -37,16 +37,16 @@ class UserIdentityReadRepositoryAdapter implements UserIdentityReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?UserIdentityFilter $filter = null, ?UserIdentityCursor $sort = null): UserIdentitySlide
+    public function list(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide
     {
         $this->logDebug("List for User identity on adapter ");
         $span = $this->startSpan("List for User identity on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new UserIdentitySlide(function ($slide, $next) use ($filter) {
+            return new UserIdentitySlide(function (UserIdentityFilter $slide, ?UserIdentityCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserIdentityCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserIdentityCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -55,7 +55,7 @@ class UserIdentityReadRepositoryAdapter implements UserIdentityReadGateway
         }
     }
     #[Override]
-    public function retrieve(?UserIdentityFilter $filter): ?UserIdentity
+    public function retrieve(UserIdentityFilter $filter): ?UserIdentity
     {
         $this->logDebug("Retrieve for User identity on adapter ");
         $span = $this->startSpan("Retrieve for User identity on adapter");
@@ -69,7 +69,7 @@ class UserIdentityReadRepositoryAdapter implements UserIdentityReadGateway
         }
     }
     #[Override]
-    public function exists(?UserIdentityFilter $filter): bool
+    public function exists(UserIdentityFilter $filter): bool
     {
         $this->logDebug("Exists for User identity on adapter ");
         $span = $this->startSpan("Exists for User identity on adapter");

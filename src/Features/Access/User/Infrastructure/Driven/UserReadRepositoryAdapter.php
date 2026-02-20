@@ -45,7 +45,7 @@ class UserReadRepositoryAdapter implements UserReadGateway
         try {
             $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new UserSlide(function (UserSlide $slide, ?UserCursor $next) use ($filter): UserSlide {
+            return new UserSlide(function (UserFilter $slide, ?UserCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, new UserCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
@@ -56,12 +56,12 @@ class UserReadRepositoryAdapter implements UserReadGateway
         }
     }
     #[Override]
-    public function retrieve(?UserFilter $filter): ?User
+    public function retrieve(UserFilter $filter): ?User
     {
         $this->logDebug("Retrieve for User on adapter ");
         $span = $this->startSpan("Retrieve for User on adapter");
         try {
-            return $this->conn->retrieve($filter ?? new UserFilter() );
+            return $this->conn->retrieve($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -13,7 +13,7 @@ class TenantLoginProviderRestrictFilterToVisibility
         public TenantLoginProviderFilter $tenantLoginProviderFilter
     ) {
     }
-    public function with(TenantLoginProviderFilter $tenantLoginProviderFilter)
+    public function with(TenantLoginProviderFilter $tenantLoginProviderFilter): void
     {
         $this->tenantLoginProviderFilter = $tenantLoginProviderFilter;
     }

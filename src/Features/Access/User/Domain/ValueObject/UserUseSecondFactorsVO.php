@@ -16,7 +16,7 @@ class UserUseSecondFactorsVO
     }
     public static function from(UserUseSecondFactorsVO|bool|null $value): UserUseSecondFactorsVO
     {
-        if (is_a($value, UserUseSecondFactorsVO::class)) {
+        if ($value instanceof UserUseSecondFactorsVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class UserUseSecondFactorsVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserUseSecondFactorsVO);
             return $candidate;
         }
     }

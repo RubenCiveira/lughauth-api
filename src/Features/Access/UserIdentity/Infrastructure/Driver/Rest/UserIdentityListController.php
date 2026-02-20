@@ -59,7 +59,7 @@ class UserIdentityListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapUserIdentity($item), $result->values())];
+            $value = ['items' => array_map(fn (UserIdentityAttributes $item): UserIdentityApiDTO => $this->mapUserIdentity($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }

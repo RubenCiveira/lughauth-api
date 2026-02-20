@@ -14,7 +14,7 @@ class RelyingPartyVisibilityCheck
         public readonly RelyingParty $relyingParty
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

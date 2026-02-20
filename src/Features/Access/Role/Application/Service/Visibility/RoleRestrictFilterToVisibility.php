@@ -13,7 +13,7 @@ class RoleRestrictFilterToVisibility
         public RoleFilter $roleFilter
     ) {
     }
-    public function with(RoleFilter $roleFilter)
+    public function with(RoleFilter $roleFilter): void
     {
         $this->roleFilter = $roleFilter;
     }

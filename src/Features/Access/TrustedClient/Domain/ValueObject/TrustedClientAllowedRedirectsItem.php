@@ -5,13 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientAllowedRedirectsUrlAccesor;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accesor\TrustedClientAllowedRedirectsVersionAccesor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedRedirectsUrlAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedRedirectsVersionAccessor;
 
 class TrustedClientAllowedRedirectsItem
 {
-    use TrustedClientAllowedRedirectsUrlAccesor;
-    use TrustedClientAllowedRedirectsVersionAccesor;
+    use TrustedClientAllowedRedirectsUrlAccessor;
+    use TrustedClientAllowedRedirectsVersionAccessor;
     private readonly TrustedClientAllowedRedirectsUidVO $_uid;
     public function __construct(
         TrustedClientAllowedRedirectsUidVO|null $uid,

@@ -33,7 +33,7 @@ class TenantLoginProviderDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Tenant login provider");
         $span = $this->startSpan("Check allow of delete usecase for Tenant login provider");
         try {
-            $result = $this->dispatcher->dispatch(new TenantLoginProviderDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantLoginProviderDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TenantLoginProviderDeleteUsecase
             $ref = new TenantLoginProviderRef($uid);
             $allow = $this->allowDelete($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to delete Tenant login provider');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

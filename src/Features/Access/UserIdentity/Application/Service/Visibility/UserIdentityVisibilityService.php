@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserIdentity\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserVisibilityService;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
@@ -86,22 +87,24 @@ class UserIdentityVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|UserIdentityRef $value): bool
+    public function checkVisibility(Iterator|string|UserIdentityRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for User identity");
         $span = $this->startSpan("Check visibility of an iterator for  User identity");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new UserIdentityRef($value));
+            } elseif ($value instanceof UserIdentityRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new UserIdentityFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, UserIdentityRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new UserIdentityRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -117,7 +120,7 @@ class UserIdentityVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (UserIdentity $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -148,7 +151,7 @@ class UserIdentityVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (UserIdentity $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -246,16 +249,16 @@ class UserIdentityVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  User identity");
         try {
             if ($attributes->getUser() && !$this->userVisibilityService->checkVisibility($attributes->getUser())) {
-                throw new NotFoundException("Unknow User " . $attributes->getUser());
+                throw new NotFoundException("Unknown User " . $attributes->getUser());
             }
             if ($attributes->getRelyingParty() && !$this->relyingPartyVisibilityService->checkVisibility($attributes->getRelyingParty())) {
-                throw new NotFoundException("Unknow RelyingParty " . $attributes->getRelyingParty());
+                throw new NotFoundException("Unknown RelyingParty " . $attributes->getRelyingParty());
             }
             if ($attributes->getTrustedClient() && !$this->trustedClientVisibilityService->checkVisibility($attributes->getTrustedClient())) {
-                throw new NotFoundException("Unknow TrustedClient " . $attributes->getTrustedClient());
+                throw new NotFoundException("Unknown TrustedClient " . $attributes->getTrustedClient());
             }
             if ($attributes->getRoles() && !$this->checkVisibilityForRoles($attributes->getRoles())) {
-                throw new NotFoundException("Unknow Roles " . $attributes->getRoles()->uid());
+                throw new NotFoundException("Unknown Roles " . $attributes->getRoles()->uid());
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -265,7 +268,7 @@ class UserIdentityVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(UserIdentityFilter $filter)
+    private function applyPreVisibilityFilter(UserIdentityFilter $filter): UserIdentityFilter
     {
         $this->logDebug("Compose visibility filter for User identity");
         $span = $this->startSpan("Compose visibility filter for  User identity");
@@ -286,7 +289,7 @@ class UserIdentityVisibilityService
         try {
             foreach ($items as $item) {
                 if ($item->getRole() && !$this->roleVisibilityService->checkVisibility($item->getRole())) {
-                    throw new NotFoundException("Unknow Role " . $item->getRole()->uid());
+                    throw new NotFoundException("Unknown Role " . $item->getRole()->uid());
                 }
             }
             return $items;
@@ -313,8 +316,8 @@ class UserIdentityVisibilityService
     }
     private function prepareVisibleDataCallback(UserIdentity $content, bool $inlist): UserIdentityAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for User identity");
-        $span = $this->startSpan("Prepare hidratation to visible data for User identity");
+        $this->logDebug("Prepare hydration to visible data for User identity");
+        $span = $this->startSpan("Prepare hydration to visible data for User identity");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new UserIdentityEnrichForView($content, $inlist, $attributes));

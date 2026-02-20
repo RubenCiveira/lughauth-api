@@ -37,16 +37,16 @@ class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $sort = null): RelyingPartySlide
+    public function list(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide
     {
         $this->logDebug("List for Relying party on adapter ");
         $span = $this->startSpan("List for Relying party on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new RelyingPartySlide(function ($slide, $next) use ($filter) {
+            return new RelyingPartySlide(function (RelyingPartyFilter $slide, ?RelyingPartyCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new RelyingPartyCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RelyingPartyCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -55,7 +55,7 @@ class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadGateway
         }
     }
     #[Override]
-    public function retrieve(?RelyingPartyFilter $filter): ?RelyingParty
+    public function retrieve(RelyingPartyFilter $filter): ?RelyingParty
     {
         $this->logDebug("Retrieve for Relying party on adapter ");
         $span = $this->startSpan("Retrieve for Relying party on adapter");
@@ -69,7 +69,7 @@ class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadGateway
         }
     }
     #[Override]
-    public function exists(?RelyingPartyFilter $filter): bool
+    public function exists(RelyingPartyFilter $filter): bool
     {
         $this->logDebug("Exists for Relying party on adapter ");
         $span = $this->startSpan("Exists for Relying party on adapter");

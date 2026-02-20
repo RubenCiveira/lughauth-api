@@ -48,7 +48,7 @@ class TenantConfigCreateUsecase
         try {
             $allow = $this->allowCreate();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to create Tenant config');
             }
             $this->dispatcher->dispatch(new TenantConfigCreateCheck($params));
             $enriched = $this->dispatcher->dispatch(new TenantConfigCreateEnrich($params, $params->toAttributes()));

@@ -15,7 +15,7 @@ class UserDeleteCheck
     public function __construct(public readonly User $current)
     {
     }
-    public function reject(RuntimeException|ConstraintFail $fail): void
+    public function reject(RuntimeException|ConstraintFail $fail)
     {
         if ($fail instanceof ConstraintFail) {
             throw ConstraintException::ofFail($fail);

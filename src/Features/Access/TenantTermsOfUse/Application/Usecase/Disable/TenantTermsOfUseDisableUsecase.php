@@ -33,7 +33,7 @@ class TenantTermsOfUseDisableUsecase
         $this->logDebug("Check allow of Disable usecase for Tenant terms of use");
         $span = $this->startSpan("Check allow of Disable usecase for Tenant terms of use");
         try {
-            $result = $this->dispatcher->dispatch(new TenantTermsOfUseDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant terms of use by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantTermsOfUseDisableAllowDecision(Allow::allowed('disable', 'Allowed to Tenant terms of use by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TenantTermsOfUseDisableUsecase
             $ref = new TenantTermsOfUseRef($uid);
             $allow = $this->allowDisable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Disable Tenant terms of use');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

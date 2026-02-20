@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility;
 
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
@@ -76,22 +77,24 @@ class TenantVisibilityService
         }
     }
 
-    public function checkVisibility(\Iterator|string|TenantRef $value): bool
+    public function checkVisibility(Iterator|string|TenantRef $value): bool
     {
         $this->logDebug("Check visibility of an iterator for Tenant");
         $span = $this->startSpan("Check visibility of an iterator for  Tenant");
         try {
-            if (is_a($value, \Iterator::class)) {
+            if (is_string($value)) {
+                return !!$this->retrieveVisibleForUpdate(new TenantRef($value));
+            } elseif ($value instanceof TenantRef) {
+                return !!$this->retrieveVisibleForUpdate($value);
+            } elseif ($value instanceof Iterator) {
                 $ids = [];
                 foreach ($value as $val) {
                     $ids[] = $val->uid();
                 }
                 $filter = new TenantFilter(uids: $ids);
                 return count($ids) == $this->countVisibles($filter);
-            } elseif (is_a($value, TenantRef::class)) {
-                return !!$this->retrieveVisibleForUpdate($value);
             } else {
-                return !!$this->retrieveVisibleForUpdate(new TenantRef($value));
+                return false;
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -107,7 +110,7 @@ class TenantVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->readGateway->list($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (Tenant $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -138,7 +141,7 @@ class TenantVisibilityService
         try {
             $visibleFilter = $this->applyPreVisibilityFilter($filter);
             $result = $this->writeGateway->listForUpdate($visibleFilter, $cursor);
-            return $result->slide(function ($item) {
+            return $result->slide(function (Tenant $item): bool {
                 return $this->evaluatePostVisibility($item);
             });
         } catch (Throwable $ex) {
@@ -243,7 +246,7 @@ class TenantVisibilityService
             $span->end();
         }
     }
-    private function applyPreVisibilityFilter(TenantFilter $filter)
+    private function applyPreVisibilityFilter(TenantFilter $filter): TenantFilter
     {
         $this->logDebug("Compose visibility filter for Tenant");
         $span = $this->startSpan("Compose visibility filter for  Tenant");
@@ -273,8 +276,8 @@ class TenantVisibilityService
     }
     private function prepareVisibleDataCallback(Tenant $content, bool $inlist): TenantAttributes
     {
-        $this->logDebug("Prepare hidratation to visible data for Tenant");
-        $span = $this->startSpan("Prepare hidratation to visible data for Tenant");
+        $this->logDebug("Prepare hydration to visible data for Tenant");
+        $span = $this->startSpan("Prepare hydration to visible data for Tenant");
         try {
             $attributes = $content->toAttributes();
             $result = $this->dispatcher->dispatch(new TenantEnrichForView($content, $inlist, $attributes));

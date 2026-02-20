@@ -24,7 +24,7 @@ class TenantTermsOfUseUpdateResult
     use TenantTermsOfUseActivationDateAttributeHolder;
     use TenantTermsOfUseVersionAttributeHolder;
 
-    private const UNSETS = [
+    private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
       'text' => 'unsetText',
@@ -49,30 +49,30 @@ class TenantTermsOfUseUpdateResult
     public function toAttributes(): TenantTermsOfUseAttributes
     {
         $att = new TenantTermsOfUseAttributes();
-        if ($this->uid) {
+        if ($this->uidAssigned) {
             $att->uid($this->uid);
         }
-        if ($this->tenant) {
+        if ($this->tenantAssigned) {
             $att->tenant($this->tenant);
         }
-        if ($this->text) {
+        if ($this->textAssigned) {
             $att->text($this->text);
         }
-        if ($this->enabled) {
+        if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
         }
-        if ($this->attached) {
+        if ($this->attachedAssigned) {
             $att->attached($this->attached);
         }
-        if ($this->activationDate) {
+        if ($this->activationDateAssigned) {
             $att->activationDate($this->activationDate);
         }
-        if ($this->version) {
+        if ($this->versionAssigned) {
             $att->version($this->version);
         }
         return $att;
     }
-    public function unset($field)
+    public function unset(string $field): void
     {
         if (isset(self::UNSETS[$field])) {
             call_user_func([$this, self::UNSETS[$field]]);

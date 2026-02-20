@@ -33,7 +33,7 @@ class TenantConfigRetrieveUsecase
         $this->logDebug("Check allow of retrieve usecase for Tenant config");
         $span = $this->startSpan("Check allow of retrieve usecase for Tenant config");
         try {
-            $result = $this->dispatcher->dispatch(new TenantConfigRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TenantConfigRetrieveAllowDecision(Allow::allowed('retrieve', 'Allowed to retrieve by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class TenantConfigRetrieveUsecase
             $ref = new TenantConfigRef($uid);
             $allow = $this->allowRetrieve($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve Tenant config');
             }
             if (!$result = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);

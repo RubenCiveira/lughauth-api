@@ -56,7 +56,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
          * Arrange: configure a rule that requires authentication.
          */
         $middleware = $this->middleware([
-            '/secure' => ['anonimous' => false]
+            '/secure' => ['anonymous' => false]
         ], new Identity(true));
 
         /*
@@ -316,7 +316,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
          * Arrange: configure a rule for the root path and request base path only.
          */
         $middleware = $this->middleware([
-            '/' => ['anonimous' => false]
+            '/' => ['anonymous' => false]
         ], new Identity(true));
         $request = $this->request('/api');
 

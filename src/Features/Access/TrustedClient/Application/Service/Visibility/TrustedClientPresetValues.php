@@ -15,7 +15,7 @@ class TrustedClientPresetValues
         public readonly ?TrustedClient $trustedClient
     ) {
     }
-    public function with(TrustedClientAttributes $attributes)
+    public function with(TrustedClientAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

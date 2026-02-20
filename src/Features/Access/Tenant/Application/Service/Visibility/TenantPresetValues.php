@@ -15,7 +15,7 @@ class TenantPresetValues
         public readonly ?Tenant $tenant
     ) {
     }
-    public function with(TenantAttributes $attributes)
+    public function with(TenantAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

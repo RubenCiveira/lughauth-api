@@ -37,16 +37,16 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         return $this->conn->retrieveForUpdate(new TrustedClientFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $sort = null): TrustedClientSlide
+    public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide
     {
-        $this->logDebug("Count for Trusted client on adapter ");
-        $span = $this->startSpan("Count for Trusted client on adapter");
+        $this->logDebug("List for update of Trusted client on adapter ");
+        $span = $this->startSpan("List for update of Trusted client on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new TrustedClientSlide(function ($slide, $next) use ($filter) {
+            return new TrustedClientSlide(function (TrustedClientSlide $slide, ?TrustedClientCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TrustedClientCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TrustedClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -57,8 +57,8 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
     #[Override]
     public function retrieveForUpdate(TrustedClientFilter $filter): ?TrustedClient
     {
-        $this->logDebug("Count for Trusted client on adapter ");
-        $span = $this->startSpan("Count for Trusted client on adapter");
+        $this->logDebug("Retrieve for update of Trusted client on adapter ");
+        $span = $this->startSpan("Retrieve for update of Trusted client on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -71,8 +71,8 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
     #[Override]
     public function existsForUpdate(?TrustedClientFilter $filter): bool
     {
-        $this->logDebug("Count for Trusted client on adapter ");
-        $span = $this->startSpan("Count for Trusted client on adapter");
+        $this->logDebug("Exists for update of Trusted client on adapter ");
+        $span = $this->startSpan("Exists for update of Trusted client on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -85,8 +85,8 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
     #[Override]
     public function countForUpdate(?TrustedClientFilter $filter = null): int
     {
-        $this->logDebug("Count for Trusted client on adapter ");
-        $span = $this->startSpan("Count for Trusted client on adapter");
+        $this->logDebug("Count for update of Trusted client on adapter ");
+        $span = $this->startSpan("Count for update of Trusted client on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -114,14 +114,15 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         }
     }
     #[Override]
-    public function update(TrustedClientRef $reference, TrustedClient $entity): TrustedClient
+    public function update(TrustedClientRef $ref, TrustedClient $entity): TrustedClient
     {
         $this->logDebug("Count for Trusted client on adapter ");
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TrustedClient) ? $reference : $this->conn->retrieve(new TrustedClientFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof TrustedClient) ? $reference : $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -176,7 +177,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
             $span->end();
         }
     }
-    private function dispatch(TrustedClient $entity)
+    private function dispatch(TrustedClient $entity): void
     {
         $this->logDebug("Count for Trusted client on adapter ");
         $span = $this->startSpan("Count for Trusted client on adapter");

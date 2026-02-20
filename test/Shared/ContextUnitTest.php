@@ -51,7 +51,7 @@ final class ContextUnitTest extends TestCase
         $identity = $context->getIdentity();
 
         /* Assert: anonymous identity is returned. */
-        $this->assertTrue($identity->anonimous);
+        $this->assertTrue($identity->anonymous);
     }
 
     /**

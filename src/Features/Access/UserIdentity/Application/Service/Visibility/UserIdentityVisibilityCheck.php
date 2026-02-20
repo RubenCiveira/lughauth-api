@@ -14,7 +14,7 @@ class UserIdentityVisibilityCheck
         public readonly UserIdentity $userIdentity
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

@@ -33,7 +33,7 @@ class RoleUpdateUsecase
         $this->logDebug("Check allow update usecase for Role");
         $span = $this->startSpan("Check allow update usecase for Role");
         try {
-            $result = $this->dispatcher->dispatch(new RoleUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RoleUpdateAllowDecision(Allow::allowed('update', 'Allowed to update by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -63,7 +63,7 @@ class RoleUpdateUsecase
             $ref = new RoleRef($uid);
             $allow = $this->allowUpdate($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to update Role');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

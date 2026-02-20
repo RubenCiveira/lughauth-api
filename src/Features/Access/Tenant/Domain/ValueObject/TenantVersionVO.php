@@ -16,7 +16,7 @@ class TenantVersionVO
     }
     public static function from(TenantVersionVO|int|null $value): TenantVersionVO
     {
-        if (is_a($value, TenantVersionVO::class)) {
+        if ($value instanceof TenantVersionVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class TenantVersionVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantVersionVO);
             return $candidate;
         }
     }

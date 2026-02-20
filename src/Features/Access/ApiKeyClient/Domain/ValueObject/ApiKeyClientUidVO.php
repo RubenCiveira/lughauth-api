@@ -13,7 +13,7 @@ class ApiKeyClientUidVO
 {
     public static function from(ApiKeyClientUidVO|string $value): ApiKeyClientUidVO
     {
-        if (is_a($value, ApiKeyClientUidVO::class)) {
+        if ($value instanceof ApiKeyClientUidVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class ApiKeyClientUidVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof ApiKeyClientUidVO);
             return $candidate;
         }
     }

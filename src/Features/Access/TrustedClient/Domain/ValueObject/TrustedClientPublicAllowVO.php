@@ -12,7 +12,7 @@ class TrustedClientPublicAllowVO
 {
     public static function from(TrustedClientPublicAllowVO|bool $value): TrustedClientPublicAllowVO
     {
-        if (is_a($value, TrustedClientPublicAllowVO::class)) {
+        if ($value instanceof TrustedClientPublicAllowVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -22,6 +22,7 @@ class TrustedClientPublicAllowVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TrustedClientPublicAllowVO);
             return $candidate;
         }
     }

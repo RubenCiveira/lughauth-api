@@ -34,7 +34,7 @@ class UserPasswordVO
     }
     public static function from(UserPasswordVO|string $value): UserPasswordVO
     {
-        if (is_a($value, UserPasswordVO::class)) {
+        if ($value instanceof UserPasswordVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -44,6 +44,7 @@ class UserPasswordVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserPasswordVO);
             return $candidate;
         }
     }
@@ -83,8 +84,8 @@ class UserPasswordVO
     }
     private function validateCyphered(?string $key): void
     {
-        if ($key && strpos($key, 'cyphered://') !== 0) {
-            throw new \InvalidArgumentException($key . ' is not a valid chypered text');
+        if (null !== $key && strpos($key, 'cyphered://') !== 0) {
+            throw new \InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
     public function value(): string
@@ -93,10 +94,10 @@ class UserPasswordVO
     }
     public function cypheredValueWith(AesCypherService $cypher): string
     {
-        return $this->password ? substr($this->password, 11) : "";
+        return null !== $this->password ? substr($this->password, 11) : "";
     }
     public function plainValueWith(AesCypherService $cypher): string
     {
-        return $this->password ? $cypher->decryptForAll(substr($this->password, 11)) : "";
+        return null !== $this->password ? $cypher->decryptForAll(substr($this->password, 11)) : "";
     }
 }

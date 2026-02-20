@@ -12,7 +12,7 @@ class TenantConfigForceMfaVO
 {
     public static function from(TenantConfigForceMfaVO|bool $value): TenantConfigForceMfaVO
     {
-        if (is_a($value, TenantConfigForceMfaVO::class)) {
+        if ($value instanceof TenantConfigForceMfaVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -22,6 +22,7 @@ class TenantConfigForceMfaVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantConfigForceMfaVO);
             return $candidate;
         }
     }

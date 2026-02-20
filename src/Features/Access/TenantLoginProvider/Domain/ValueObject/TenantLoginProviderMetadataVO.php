@@ -51,7 +51,7 @@ class TenantLoginProviderMetadataVO
     }
     public static function from(TenantLoginProviderMetadataVO|string|null $value): TenantLoginProviderMetadataVO
     {
-        if (is_a($value, TenantLoginProviderMetadataVO::class)) {
+        if ($value instanceof TenantLoginProviderMetadataVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -61,6 +61,7 @@ class TenantLoginProviderMetadataVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantLoginProviderMetadataVO);
             return $candidate;
         }
     }

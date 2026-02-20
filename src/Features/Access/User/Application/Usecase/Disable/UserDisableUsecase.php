@@ -33,7 +33,7 @@ class UserDisableUsecase
         $this->logDebug("Check allow of Disable usecase for User");
         $span = $this->startSpan("Check allow of Disable usecase for User");
         try {
-            $result = $this->dispatcher->dispatch(new UserDisableAllowDecision(Allow::allowed('disable', 'Allowed to User by default'), $ref));
+            $result = $this->dispatcher->dispatch(new UserDisableAllowDecision(Allow::allowed('disable', 'Allowed to User by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class UserDisableUsecase
             $ref = new UserRef($uid);
             $allow = $this->allowDisable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Disable User');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

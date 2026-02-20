@@ -37,16 +37,16 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
         return $this->conn->retrieveForUpdate(new UserIdentityFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?UserIdentityFilter $filter = null, ?UserIdentityCursor $sort = null): UserIdentitySlide
+    public function listForUpdate(?UserIdentityFilter $filter = null, ?UserIdentityCursor $cursor = null): UserIdentitySlide
     {
-        $this->logDebug("Count for User identity on adapter ");
-        $span = $this->startSpan("Count for User identity on adapter");
+        $this->logDebug("List for update of User identity on adapter ");
+        $span = $this->startSpan("List for update of User identity on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new UserIdentitySlide(function ($slide, $next) use ($filter) {
+            return new UserIdentitySlide(function (UserIdentitySlide $slide, ?UserIdentityCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserIdentityCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserIdentityCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -57,8 +57,8 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
     #[Override]
     public function retrieveForUpdate(UserIdentityFilter $filter): ?UserIdentity
     {
-        $this->logDebug("Count for User identity on adapter ");
-        $span = $this->startSpan("Count for User identity on adapter");
+        $this->logDebug("Retrieve for update of User identity on adapter ");
+        $span = $this->startSpan("Retrieve for update of User identity on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -71,8 +71,8 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
     #[Override]
     public function existsForUpdate(?UserIdentityFilter $filter): bool
     {
-        $this->logDebug("Count for User identity on adapter ");
-        $span = $this->startSpan("Count for User identity on adapter");
+        $this->logDebug("Exists for update of User identity on adapter ");
+        $span = $this->startSpan("Exists for update of User identity on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -85,8 +85,8 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
     #[Override]
     public function countForUpdate(?UserIdentityFilter $filter = null): int
     {
-        $this->logDebug("Count for User identity on adapter ");
-        $span = $this->startSpan("Count for User identity on adapter");
+        $this->logDebug("Count for update of User identity on adapter ");
+        $span = $this->startSpan("Count for update of User identity on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -114,14 +114,15 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
         }
     }
     #[Override]
-    public function update(UserIdentityRef $reference, UserIdentity $entity): UserIdentity
+    public function update(UserIdentityRef $ref, UserIdentity $entity): UserIdentity
     {
         $this->logDebug("Count for User identity on adapter ");
         $span = $this->startSpan("Count for User identity on adapter");
         try {
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof UserIdentity) ? $reference : $this->conn->retrieve(new UserIdentityFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof UserIdentity) ? $reference : $this->conn->retrieve(new UserIdentityFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('user-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -162,7 +163,7 @@ class UserIdentityWriteRepositoryAdapter implements UserIdentityWriteGateway
             $span->end();
         }
     }
-    private function dispatch(UserIdentity $entity)
+    private function dispatch(UserIdentity $entity): void
     {
         $this->logDebug("Count for User identity on adapter ");
         $span = $this->startSpan("Count for User identity on adapter");

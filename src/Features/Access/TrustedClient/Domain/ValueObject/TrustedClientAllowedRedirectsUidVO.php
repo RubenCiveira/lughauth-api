@@ -13,7 +13,7 @@ class TrustedClientAllowedRedirectsUidVO
 {
     public static function from(TrustedClientAllowedRedirectsUidVO|string $value): TrustedClientAllowedRedirectsUidVO
     {
-        if (is_a($value, TrustedClientAllowedRedirectsUidVO::class)) {
+        if ($value instanceof TrustedClientAllowedRedirectsUidVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class TrustedClientAllowedRedirectsUidVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TrustedClientAllowedRedirectsUidVO);
             return $candidate;
         }
     }

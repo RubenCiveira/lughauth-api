@@ -13,7 +13,7 @@ class TenantUidVO
 {
     public static function from(TenantUidVO|string $value): TenantUidVO
     {
-        if (is_a($value, TenantUidVO::class)) {
+        if ($value instanceof TenantUidVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -23,6 +23,7 @@ class TenantUidVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantUidVO);
             return $candidate;
         }
     }

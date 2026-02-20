@@ -20,7 +20,7 @@ class TenantTermsOfUseEnrichForView
     {
         return $this->tenantTermsOfUseAttributes;
     }
-    public function with(TenantTermsOfUseAttributes $tenantTermsOfUseAttributes)
+    public function with(TenantTermsOfUseAttributes $tenantTermsOfUseAttributes): void
     {
         $this->tenantTermsOfUseAttributes = $tenantTermsOfUseAttributes;
     }

@@ -14,7 +14,7 @@ class ApiKeyClientVisibilityCheck
         public readonly ApiKeyClient $apiKeyClient
     ) {
     }
-    public function deny()
+    public function deny(): void
     {
         $this->visible = false;
     }

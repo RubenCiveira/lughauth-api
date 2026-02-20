@@ -20,7 +20,7 @@ class TenantConfigEnrichForView
     {
         return $this->tenantConfigAttributes;
     }
-    public function with(TenantConfigAttributes $tenantConfigAttributes)
+    public function with(TenantConfigAttributes $tenantConfigAttributes): void
     {
         $this->tenantConfigAttributes = $tenantConfigAttributes;
     }

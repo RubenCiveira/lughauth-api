@@ -17,7 +17,7 @@ class UserIdentityTrustedClientVO
     }
     public static function from(UserIdentityTrustedClientVO|TrustedClientRef|null $value): UserIdentityTrustedClientVO
     {
-        if (is_a($value, UserIdentityTrustedClientVO::class)) {
+        if ($value instanceof UserIdentityTrustedClientVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -27,6 +27,7 @@ class UserIdentityTrustedClientVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserIdentityTrustedClientVO);
             return $candidate;
         }
     }

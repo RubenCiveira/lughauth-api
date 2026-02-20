@@ -33,7 +33,7 @@ class RelyingPartyDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Relying party");
         $span = $this->startSpan("Check allow of delete usecase for Relying party");
         try {
-            $result = $this->dispatcher->dispatch(new RelyingPartyDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new RelyingPartyDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class RelyingPartyDeleteUsecase
             $ref = new RelyingPartyRef($uid);
             $allow = $this->allowDelete($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to delete Relying party');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

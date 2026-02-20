@@ -15,7 +15,7 @@ class TenantConfigPresetValues
         public readonly ?TenantConfig $tenantConfig
     ) {
     }
-    public function with(TenantConfigAttributes $attributes)
+    public function with(TenantConfigAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

@@ -16,7 +16,7 @@ class TenantConfigRecoverPassEmailVO
     }
     public static function from(TenantConfigRecoverPassEmailVO|string|null $value): TenantConfigRecoverPassEmailVO
     {
-        if (is_a($value, TenantConfigRecoverPassEmailVO::class)) {
+        if ($value instanceof TenantConfigRecoverPassEmailVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class TenantConfigRecoverPassEmailVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantConfigRecoverPassEmailVO);
             return $candidate;
         }
     }

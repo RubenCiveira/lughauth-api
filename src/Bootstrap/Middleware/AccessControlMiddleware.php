@@ -78,7 +78,7 @@ class AccessControlMiddleware
         }
 
         // Validaciones
-        if (isset($matchedRule['anonimous']) && !$matchedRule['anonimous'] && $identity->anonimous) {
+        if (isset($matchedRule['anonymous']) && !$matchedRule['anonymous'] && $identity->anonymous) {
             return $this->deny(401, "Unauthorized");
         }
 

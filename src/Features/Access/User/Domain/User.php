@@ -7,32 +7,32 @@ namespace Civi\Lughauth\Features\Access\User\Domain;
 
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUidVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTenantVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserTenantAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserTenantAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserNameVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserNameAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserNameAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserPasswordAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserPasswordAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserEmailAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserWellcomeAtAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEmailAccessor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWelcomeAtVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserWelcomeAtAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserEnabledAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEnabledAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserApproveAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserApproveAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserTemporalPasswordAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserTemporalPasswordAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserUseSecondFactorsAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserUseSecondFactorsAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserSecondFactorSeedAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserSecondFactorSeedAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserBlockedUntilAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserBlockedUntilAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserProviderAccesor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserProviderAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accesor\UserVersionAccesor;
-use Civi\Lughauth\Features\Access\User\Domain\Formula\WellcomeAtCalculator;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserVersionAccessor;
+use Civi\Lughauth\Features\Access\User\Domain\Formula\WelcomeAtCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\ApproveCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\SecondFactorSeedCalculator;
@@ -56,19 +56,19 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 
 class User extends UserRef
 {
-    use UserTenantAccesor;
-    use UserNameAccesor;
-    use UserPasswordAccesor;
-    use UserEmailAccesor;
-    use UserWellcomeAtAccesor;
-    use UserEnabledAccesor;
-    use UserApproveAccesor;
-    use UserTemporalPasswordAccesor;
-    use UserUseSecondFactorsAccesor;
-    use UserSecondFactorSeedAccesor;
-    use UserBlockedUntilAccesor;
-    use UserProviderAccesor;
-    use UserVersionAccesor;
+    use UserTenantAccessor;
+    use UserNameAccessor;
+    use UserPasswordAccessor;
+    use UserEmailAccessor;
+    use UserWelcomeAtAccessor;
+    use UserEnabledAccessor;
+    use UserApproveAccessor;
+    use UserTemporalPasswordAccessor;
+    use UserUseSecondFactorsAccessor;
+    use UserSecondFactorSeedAccessor;
+    use UserBlockedUntilAccessor;
+    use UserProviderAccessor;
+    use UserVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(
@@ -77,7 +77,7 @@ class User extends UserRef
         UserNameVO|string $name,
         UserPasswordVO|string $password,
         UserEmailVO|string|null $email = null,
-        UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null,
+        UserWelcomeAtVO|\DateTimeImmutable|null $welcomeAt = null,
         UserEnabledVO|bool|null $enabled = null,
         UserApproveVO|UserApproveOptions|null $approve = null,
         UserTemporalPasswordVO|bool|null $temporalPassword = null,
@@ -92,7 +92,7 @@ class User extends UserRef
         $this->_name = UserNameVO::from($name);
         $this->_password = UserPasswordVO::from($password);
         $this->_email = null === $email ? UserEmailVO::empty() : UserEmailVO::from($email);
-        $this->_wellcomeAt = null === $wellcomeAt ? UserWellcomeAtVO::empty() : UserWellcomeAtVO::from($wellcomeAt);
+        $this->_welcomeAt = null === $welcomeAt ? UserWelcomeAtVO::empty() : UserWelcomeAtVO::from($welcomeAt);
         $this->_enabled = null === $enabled ? UserEnabledVO::empty() : UserEnabledVO::from($enabled);
         $this->_approve = null === $approve ? UserApproveVO::empty() : UserApproveVO::from($approve);
         $this->_temporalPassword = null === $temporalPassword ? UserTemporalPasswordVO::empty() : UserTemporalPasswordVO::from($temporalPassword);
@@ -109,7 +109,7 @@ class User extends UserRef
         $value->_name = $values->getNameOrDefault($this->_name);
         $value->_password = $values->getPasswordOrDefault($this->_password);
         $value->_email = $values->getEmailOrDefault($this->_email);
-        $value->_wellcomeAt = $values->getWellcomeAtOrDefault($this->_wellcomeAt);
+        $value->_welcomeAt = $values->getWelcomeAtOrDefault($this->_welcomeAt);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
         $value->_approve = $values->getApproveOrDefault($this->_approve);
         $value->_temporalPassword = $values->getTemporalPasswordOrDefault($this->_temporalPassword);
@@ -122,12 +122,12 @@ class User extends UserRef
     }
     public static function calculatedFields(): array
     {
-        return [ 'wellcomeAt', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'];
+        return [ 'welcomeAt', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'];
     }
     public static function create(UserAttributes $values): User
     {
         $calculated = clone $values;
-        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $calculated->welcomeAt(WelcomeAtCalculator::calculateWelcomeAt());
         $calculated->enabled(EnabledCalculator::calculateEnabled());
         $calculated->approve(ApproveCalculator::calculateApprove());
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
@@ -140,7 +140,7 @@ class User extends UserRef
     public function update(UserAttributes $values): User
     {
         $calculated = clone $values;
-        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt($this));
+        $calculated->welcomeAt(WelcomeAtCalculator::calculateWelcomeAt($this));
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $calculated->approve(ApproveCalculator::calculateApprove($this));
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed($this));
@@ -166,7 +166,7 @@ class User extends UserRef
         $attributes->tenant(UserTenantVO::from($tenant));
         $attributes->enabled(UserEnabledVO::from(true));
         $attributes->approve(UserApproveVO::from(UserApproveOptions::UNVERIFIED));
-        $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $attributes->welcomeAt(WelcomeAtCalculator::calculateWelcomeAt());
         $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $attributes->provider(ProviderCalculator::calculateProvider());
@@ -249,7 +249,7 @@ class User extends UserRef
         }
         $data['name'] = $this->getName();
         $data['email'] = $this->getEmail();
-        $data['wellcomeAt'] = $this->getWellcomeAt();
+        $data['welcomeAt'] = $this->getWelcomeAt();
         $data['enabled'] = $this->isEnabled();
         $data['approve'] = $this->getApprove();
         $data['temporalPassword'] = $this->isTemporalPassword();
@@ -267,7 +267,7 @@ class User extends UserRef
           ->name($this->_name)
           ->password($this->_password)
           ->email($this->_email)
-          ->wellcomeAt($this->_wellcomeAt)
+          ->welcomeAt($this->_welcomeAt)
           ->enabled($this->_enabled)
           ->approve($this->_approve)
           ->temporalPassword($this->_temporalPassword)

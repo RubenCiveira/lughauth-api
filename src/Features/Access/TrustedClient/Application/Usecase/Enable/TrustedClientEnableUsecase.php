@@ -33,7 +33,7 @@ class TrustedClientEnableUsecase
         $this->logDebug("Check allow of Enable usecase for Trusted client");
         $span = $this->startSpan("Check allow of Enable usecase for Trusted client");
         try {
-            $result = $this->dispatcher->dispatch(new TrustedClientEnableAllowDecision(Allow::allowed('enable', 'Allowed to Trusted client by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientEnableAllowDecision(Allow::allowed('enable', 'Allowed to Trusted client by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TrustedClientEnableUsecase
             $ref = new TrustedClientRef($uid);
             $allow = $this->allowEnable($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to Enable Trusted client');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

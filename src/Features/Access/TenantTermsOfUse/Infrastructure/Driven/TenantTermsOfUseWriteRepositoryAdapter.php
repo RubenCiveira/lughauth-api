@@ -42,16 +42,16 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         return $this->conn->retrieveForUpdate(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
     }
     #[Override]
-    public function listForUpdate(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $sort = null): TenantTermsOfUseSlide
+    public function listForUpdate(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $cursor = null): TenantTermsOfUseSlide
     {
-        $this->logDebug("Count for Tenant terms of use on adapter ");
-        $span = $this->startSpan("Count for Tenant terms of use on adapter");
+        $this->logDebug("List for update of Tenant terms of use on adapter ");
+        $span = $this->startSpan("List for update of Tenant terms of use on adapter");
         try {
-            $values = $this->conn->listForUpdate($filter, $sort);
+            $values = $this->conn->listForUpdate($filter, $cursor);
             $last = end($values);
-            return new TenantTermsOfUseSlide(function ($slide, $next) use ($filter) {
+            return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, ?TenantTermsOfUseCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantTermsOfUseCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantTermsOfUseCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -62,8 +62,8 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
     #[Override]
     public function retrieveForUpdate(TenantTermsOfUseFilter $filter): ?TenantTermsOfUse
     {
-        $this->logDebug("Count for Tenant terms of use on adapter ");
-        $span = $this->startSpan("Count for Tenant terms of use on adapter");
+        $this->logDebug("Retrieve for update of Tenant terms of use on adapter ");
+        $span = $this->startSpan("Retrieve for update of Tenant terms of use on adapter");
         try {
             return $this->conn->retrieveForUpdate($filter);
         } catch (Throwable $ex) {
@@ -76,8 +76,8 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
     #[Override]
     public function existsForUpdate(?TenantTermsOfUseFilter $filter): bool
     {
-        $this->logDebug("Count for Tenant terms of use on adapter ");
-        $span = $this->startSpan("Count for Tenant terms of use on adapter");
+        $this->logDebug("Exists for update of Tenant terms of use on adapter ");
+        $span = $this->startSpan("Exists for update of Tenant terms of use on adapter");
         try {
             return $this->conn->existsForUpdate($filter);
         } catch (Throwable $ex) {
@@ -90,8 +90,8 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
     #[Override]
     public function countForUpdate(?TenantTermsOfUseFilter $filter = null): int
     {
-        $this->logDebug("Count for Tenant terms of use on adapter ");
-        $span = $this->startSpan("Count for Tenant terms of use on adapter");
+        $this->logDebug("Count for update of Tenant terms of use on adapter ");
+        $span = $this->startSpan("Count for update of Tenant terms of use on adapter");
         try {
             return $this->conn->countForUpdate($filter);
         } catch (Throwable $ex) {
@@ -122,7 +122,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         }
     }
     #[Override]
-    public function update(TenantTermsOfUseRef $reference, TenantTermsOfUse $entity): TenantTermsOfUse
+    public function update(TenantTermsOfUseRef $ref, TenantTermsOfUse $entity): TenantTermsOfUse
     {
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");
@@ -140,7 +140,8 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
             }
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $reference->uid() ]));
+            $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
@@ -235,7 +236,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
             $span->end();
         }
     }
-    private function dispatch(TenantTermsOfUse $entity)
+    private function dispatch(TenantTermsOfUse $entity): void
     {
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");

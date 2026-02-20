@@ -15,7 +15,7 @@ class RolePresetValues
         public readonly ?Role $role
     ) {
     }
-    public function with(RoleAttributes $attributes)
+    public function with(RoleAttributes $attributes): void
     {
         $this->attributes = $attributes;
     }

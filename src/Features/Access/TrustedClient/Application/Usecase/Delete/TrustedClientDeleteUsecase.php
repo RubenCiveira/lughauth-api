@@ -33,7 +33,7 @@ class TrustedClientDeleteUsecase
         $this->logDebug("Check allow of delete usecase for Trusted client");
         $span = $this->startSpan("Check allow of delete usecase for Trusted client");
         try {
-            $result = $this->dispatcher->dispatch(new TrustedClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default'), $ref));
+            $result = $this->dispatcher->dispatch(new TrustedClientDeleteAllowDecision(Allow::allowed('delete', 'Allowed to delete by default')));
             return $result->getAllow();
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -50,7 +50,7 @@ class TrustedClientDeleteUsecase
             $ref = new TrustedClientRef($uid);
             $allow = $this->allowDelete($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to delete Trusted client');
             }
             if (!$original = $this->visibility->retrieveVisibleForUpdate($ref)) {
                 throw new NotFoundException($uid);

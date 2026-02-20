@@ -17,7 +17,7 @@ class UserAccessTemporalCodeRecoveryCodeVO
     }
     public static function from(UserAccessTemporalCodeRecoveryCodeVO|string|null $value): UserAccessTemporalCodeRecoveryCodeVO
     {
-        if (is_a($value, UserAccessTemporalCodeRecoveryCodeVO::class)) {
+        if ($value instanceof UserAccessTemporalCodeRecoveryCodeVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -27,6 +27,7 @@ class UserAccessTemporalCodeRecoveryCodeVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserAccessTemporalCodeRecoveryCodeVO);
             return $candidate;
         }
     }

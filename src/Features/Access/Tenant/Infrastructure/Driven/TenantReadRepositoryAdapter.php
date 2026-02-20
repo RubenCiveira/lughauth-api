@@ -37,16 +37,16 @@ class TenantReadRepositoryAdapter implements TenantReadGateway
         return $ref->_private_resolve;
     }
     #[Override]
-    public function list(?TenantFilter $filter = null, ?TenantCursor $sort = null): TenantSlide
+    public function list(?TenantFilter $filter = null, ?TenantCursor $cursor = null): TenantSlide
     {
         $this->logDebug("List for Tenant on adapter ");
         $span = $this->startSpan("List for Tenant on adapter");
         try {
-            $values = $this->conn->list($filter, $sort);
+            $values = $this->conn->list($filter, $cursor);
             $last = end($values);
-            return new TenantSlide(function ($slide, $next) use ($filter) {
+            return new TenantSlide(function (TenantFilter $slide, ?TenantCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantCursor($sort?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -55,7 +55,7 @@ class TenantReadRepositoryAdapter implements TenantReadGateway
         }
     }
     #[Override]
-    public function retrieve(?TenantFilter $filter): ?Tenant
+    public function retrieve(TenantFilter $filter): ?Tenant
     {
         $this->logDebug("Retrieve for Tenant on adapter ");
         $span = $this->startSpan("Retrieve for Tenant on adapter");
@@ -69,7 +69,7 @@ class TenantReadRepositoryAdapter implements TenantReadGateway
         }
     }
     #[Override]
-    public function exists(?TenantFilter $filter): bool
+    public function exists(TenantFilter $filter): bool
     {
         $this->logDebug("Exists for Tenant on adapter ");
         $span = $this->startSpan("Exists for Tenant on adapter");

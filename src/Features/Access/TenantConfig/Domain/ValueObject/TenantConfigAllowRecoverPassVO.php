@@ -16,7 +16,7 @@ class TenantConfigAllowRecoverPassVO
     }
     public static function from(TenantConfigAllowRecoverPassVO|bool|null $value): TenantConfigAllowRecoverPassVO
     {
-        if (is_a($value, TenantConfigAllowRecoverPassVO::class)) {
+        if ($value instanceof TenantConfigAllowRecoverPassVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class TenantConfigAllowRecoverPassVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantConfigAllowRecoverPassVO);
             return $candidate;
         }
     }

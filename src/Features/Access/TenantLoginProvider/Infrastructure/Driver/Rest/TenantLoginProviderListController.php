@@ -58,7 +58,7 @@ class TenantLoginProviderListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn ($item) => $this->mapTenantLoginProvider($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantLoginProviderAttributes $item): TenantLoginProviderApiDTO => $this->mapTenantLoginProvider($item), $result->values())];
             if ($nextLink = $this->nextLink($result->cursor(), $params)) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -109,10 +109,10 @@ class TenantLoginProviderListController
             if ($value && $value->sinceUid()) {
                 $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
             }
-            if ($value && strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
+            if (strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
-            if ($value && strpos('NAME-DESC', $params['order'] ?? '') !== false && $value->sinceName()) {
+            if (strpos('NAME-DESC', $params['order'] ?? '') !== false && $value->sinceName()) {
                 $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
             }
             return implode('&', $link);

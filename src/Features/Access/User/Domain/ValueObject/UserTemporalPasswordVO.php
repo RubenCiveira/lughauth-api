@@ -16,7 +16,7 @@ class UserTemporalPasswordVO
     }
     public static function from(UserTemporalPasswordVO|bool|null $value): UserTemporalPasswordVO
     {
-        if (is_a($value, UserTemporalPasswordVO::class)) {
+        if ($value instanceof UserTemporalPasswordVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -26,6 +26,7 @@ class UserTemporalPasswordVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserTemporalPasswordVO);
             return $candidate;
         }
     }

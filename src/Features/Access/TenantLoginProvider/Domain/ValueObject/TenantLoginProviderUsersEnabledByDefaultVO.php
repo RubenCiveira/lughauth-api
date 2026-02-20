@@ -12,7 +12,7 @@ class TenantLoginProviderUsersEnabledByDefaultVO
 {
     public static function from(TenantLoginProviderUsersEnabledByDefaultVO|bool $value): TenantLoginProviderUsersEnabledByDefaultVO
     {
-        if (is_a($value, TenantLoginProviderUsersEnabledByDefaultVO::class)) {
+        if ($value instanceof TenantLoginProviderUsersEnabledByDefaultVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -22,6 +22,7 @@ class TenantLoginProviderUsersEnabledByDefaultVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof TenantLoginProviderUsersEnabledByDefaultVO);
             return $candidate;
         }
     }

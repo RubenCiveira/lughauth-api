@@ -7,19 +7,19 @@ namespace Civi\Lughauth\Features\Access\Tenant\Domain;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantUidVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantNameVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantNameAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantNameAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantRootAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantRootAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantDomainVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantDomainAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantDomainAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantEnabledAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantEnabledAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantMarkForDeleteAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantMarkForDeleteAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteTimeVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantMarkForDeleteTimeAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantMarkForDeleteTimeAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantVersionVO;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accesor\TenantVersionAccesor;
+use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Accessor\TenantVersionAccessor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Formula\MarkForDeleteCalculator;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Formula\MarkForDeleteTimeCalculator;
@@ -31,13 +31,13 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Event\TenantDisableEvent;
 
 class Tenant extends TenantRef
 {
-    use TenantNameAccesor;
-    use TenantRootAccesor;
-    use TenantDomainAccesor;
-    use TenantEnabledAccesor;
-    use TenantMarkForDeleteAccesor;
-    use TenantMarkForDeleteTimeAccesor;
-    use TenantVersionAccesor;
+    use TenantNameAccessor;
+    use TenantRootAccessor;
+    use TenantDomainAccessor;
+    use TenantEnabledAccessor;
+    use TenantMarkForDeleteAccessor;
+    use TenantMarkForDeleteTimeAccessor;
+    use TenantVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(

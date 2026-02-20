@@ -13,7 +13,7 @@ class TenantRestrictFilterToVisibility
         public TenantFilter $tenantFilter
     ) {
     }
-    public function with(TenantFilter $tenantFilter)
+    public function with(TenantFilter $tenantFilter): void
     {
         $this->tenantFilter = $tenantFilter;
     }
