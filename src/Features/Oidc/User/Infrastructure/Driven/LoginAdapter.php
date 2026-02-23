@@ -111,7 +111,7 @@ class LoginAdapter implements LoginGateway
         if ($mfa = $this->checkMfa($theTenant, $theUser)) {
             return $mfa;
         }
-        if ($terms = $this->checkTerms($theTenant, $theUser, $client)) {
+        if ($terms = $this->checkTerms($theTenant, $theUser)) {
             return $terms;
         }
         if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
@@ -148,28 +148,11 @@ class LoginAdapter implements LoginGateway
         return $user->isTemporalPassword() ? AuthenticationResult::newPasswordRequired() : null;
     }
 
-    private function checkTerms(Tenant $tenant, User $user, AuthenticationRequest $client): ?AuthenticationResult
+    private function checkTerms(Tenant $tenant, User $user): ?AuthenticationResult
     {
-        $audiences = $client->audiences ?? [];
-        if (!$audiences) {
-            if ($terms = $this->users->loadTenantTerms($tenant)) {
-                $accepted = $this->userTerms->findOneByUserAndConditions($user, $terms);
-                return $accepted ? null : AuthenticationResult::consentRequired($terms->getText());
-            }
-            return null;
-        }
-        foreach ($audiences as $audience) {
-            $trusted = $this->clients->findOneByCode($audience);
-            $party = $this->parties->findOneByCode($audience);
-            if (!$trusted && !$party) {
-                continue;
-            }
-            if ($terms = $this->users->loadTenantTerms($tenant)) {
-                $accepted = $this->userTerms->findOneByUserAndConditions($user, $terms);
-                if (!$accepted) {
-                    return AuthenticationResult::consentRequired($terms->getText());
-                }
-            }
+        if ($terms = $this->users->loadTenantTerms($tenant)) {
+            $accepted = $this->userTerms->findOneByUserAndConditions($user, $terms);
+            return $accepted ? null : AuthenticationResult::consentRequired($terms->getText());
         }
         return null;
     }

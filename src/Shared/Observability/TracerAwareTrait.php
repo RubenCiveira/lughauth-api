@@ -81,6 +81,6 @@ trait TracerAwareTrait
     private function writeTraceFallback(string $operationName, array $attributes = []): void
     {
         $attributesStr = !empty($attributes) ? json_encode($attributes) : '';
-        error_log('[TRACE] ' . $operationName . ($attributesStr ? ' ' . $attributesStr : ''));
+        error_log('[TRACE] ' . $operationName . ( false !== $attributesStr ? ' ' . $attributesStr : ''));
     }
 }
