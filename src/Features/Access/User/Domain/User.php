@@ -14,8 +14,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserPasswordAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEmailAccessor;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWelcomeAtVO;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserWelcomeAtAccessor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserWellcomeAtAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEnabledAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
@@ -32,7 +32,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserProviderAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserVersionAccessor;
-use Civi\Lughauth\Features\Access\User\Domain\Formula\WelcomeAtCalculator;
+use Civi\Lughauth\Features\Access\User\Domain\Formula\WellcomeAtCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\ApproveCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\SecondFactorSeedCalculator;
@@ -60,7 +60,7 @@ class User extends UserRef
     use UserNameAccessor;
     use UserPasswordAccessor;
     use UserEmailAccessor;
-    use UserWelcomeAtAccessor;
+    use UserWellcomeAtAccessor;
     use UserEnabledAccessor;
     use UserApproveAccessor;
     use UserTemporalPasswordAccessor;
@@ -77,7 +77,7 @@ class User extends UserRef
         UserNameVO|string $name,
         UserPasswordVO|string $password,
         UserEmailVO|string|null $email = null,
-        UserWelcomeAtVO|\DateTimeImmutable|null $welcomeAt = null,
+        UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null,
         UserEnabledVO|bool|null $enabled = null,
         UserApproveVO|UserApproveOptions|null $approve = null,
         UserTemporalPasswordVO|bool|null $temporalPassword = null,
@@ -92,7 +92,7 @@ class User extends UserRef
         $this->_name = UserNameVO::from($name);
         $this->_password = UserPasswordVO::from($password);
         $this->_email = null === $email ? UserEmailVO::empty() : UserEmailVO::from($email);
-        $this->_welcomeAt = null === $welcomeAt ? UserWelcomeAtVO::empty() : UserWelcomeAtVO::from($welcomeAt);
+        $this->_wellcomeAt = null === $wellcomeAt ? UserWellcomeAtVO::empty() : UserWellcomeAtVO::from($wellcomeAt);
         $this->_enabled = null === $enabled ? UserEnabledVO::empty() : UserEnabledVO::from($enabled);
         $this->_approve = null === $approve ? UserApproveVO::empty() : UserApproveVO::from($approve);
         $this->_temporalPassword = null === $temporalPassword ? UserTemporalPasswordVO::empty() : UserTemporalPasswordVO::from($temporalPassword);
@@ -109,7 +109,7 @@ class User extends UserRef
         $value->_name = $values->getNameOrDefault($this->_name);
         $value->_password = $values->getPasswordOrDefault($this->_password);
         $value->_email = $values->getEmailOrDefault($this->_email);
-        $value->_welcomeAt = $values->getWelcomeAtOrDefault($this->_welcomeAt);
+        $value->_wellcomeAt = $values->getWellcomeAtOrDefault($this->_wellcomeAt);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
         $value->_approve = $values->getApproveOrDefault($this->_approve);
         $value->_temporalPassword = $values->getTemporalPasswordOrDefault($this->_temporalPassword);
@@ -122,12 +122,12 @@ class User extends UserRef
     }
     public static function calculatedFields(): array
     {
-        return [ 'welcomeAt', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'];
+        return [ 'wellcomeAt', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'];
     }
     public static function create(UserAttributes $values): User
     {
         $calculated = clone $values;
-        $calculated->welcomeAt(WelcomeAtCalculator::calculateWelcomeAt());
+        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
         $calculated->enabled(EnabledCalculator::calculateEnabled());
         $calculated->approve(ApproveCalculator::calculateApprove());
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
@@ -140,7 +140,7 @@ class User extends UserRef
     public function update(UserAttributes $values): User
     {
         $calculated = clone $values;
-        $calculated->welcomeAt(WelcomeAtCalculator::calculateWelcomeAt($this));
+        $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt($this));
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $calculated->approve(ApproveCalculator::calculateApprove($this));
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed($this));
@@ -166,7 +166,7 @@ class User extends UserRef
         $attributes->tenant(UserTenantVO::from($tenant));
         $attributes->enabled(UserEnabledVO::from(true));
         $attributes->approve(UserApproveVO::from(UserApproveOptions::UNVERIFIED));
-        $attributes->welcomeAt(WelcomeAtCalculator::calculateWelcomeAt());
+        $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
         $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $attributes->provider(ProviderCalculator::calculateProvider());
@@ -249,7 +249,7 @@ class User extends UserRef
         }
         $data['name'] = $this->getName();
         $data['email'] = $this->getEmail();
-        $data['welcomeAt'] = $this->getWelcomeAt();
+        $data['wellcomeAt'] = $this->getWellcomeAt();
         $data['enabled'] = $this->isEnabled();
         $data['approve'] = $this->getApprove();
         $data['temporalPassword'] = $this->isTemporalPassword();
@@ -267,7 +267,7 @@ class User extends UserRef
           ->name($this->_name)
           ->password($this->_password)
           ->email($this->_email)
-          ->welcomeAt($this->_welcomeAt)
+          ->wellcomeAt($this->_wellcomeAt)
           ->enabled($this->_enabled)
           ->approve($this->_approve)
           ->temporalPassword($this->_temporalPassword)

@@ -71,7 +71,7 @@ class TenantConfigRetrieveController
             $dto->forceMfa = $value->isForceMfa();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
-            $dto->welcomeEmail = $value->getWelcomeEmail();
+            $dto->wellcomeEmail = $value->getWellcomeEmail();
             $dto->registerdEmail = $value->getRegisterdEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();
             $dto->enabledUserEmail = $value->getEnabledUserEmail();

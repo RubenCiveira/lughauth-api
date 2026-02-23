@@ -17,8 +17,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWelcomeEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWelcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
@@ -41,7 +41,7 @@ class TenantConfigAttributes
     use TenantConfigForceMfaAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
-    use TenantConfigWelcomeEmailAttributeHolder;
+    use TenantConfigWellcomeEmailAttributeHolder;
     use TenantConfigRegisterdEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
     use TenantConfigEnabledUserEmailAttributeHolder;
@@ -56,7 +56,7 @@ class TenantConfigAttributes
       'forceMfa' => 'unsetForceMfa',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
-      'welcomeEmail' => 'unsetWelcomeEmail',
+      'wellcomeEmail' => 'unsetWellcomeEmail',
       'registerdEmail' => 'unsetRegisterdEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
       'enabledUserEmail' => 'unsetEnabledUserEmail',
@@ -74,7 +74,7 @@ class TenantConfigAttributes
         $forceMfa = TenantConfigForceMfaVO::tryFrom($this->forceMfa, $errors);
         $allowRegister = TenantConfigAllowRegisterVO::tryFrom($this->allowRegister, $errors);
         $enableRegisterUsers = TenantConfigEnableRegisterUsersVO::tryFrom($this->enableRegisterUsers, $errors);
-        $welcomeEmail = TenantConfigWelcomeEmailVO::tryFrom($this->welcomeEmail, $errors);
+        $wellcomeEmail = TenantConfigWellcomeEmailVO::tryFrom($this->wellcomeEmail, $errors);
         $registerdEmail = TenantConfigRegisterdEmailVO::tryFrom($this->registerdEmail, $errors);
         $disabledUserEmail = TenantConfigDisabledUserEmailVO::tryFrom($this->disabledUserEmail, $errors);
         $enabledUserEmail = TenantConfigEnabledUserEmailVO::tryFrom($this->enabledUserEmail, $errors);
@@ -94,7 +94,7 @@ class TenantConfigAttributes
             forceMfa: $forceMfa,
             allowRegister: $allowRegister,
             enableRegisterUsers: $enableRegisterUsers,
-            welcomeEmail: $welcomeEmail,
+            wellcomeEmail: $wellcomeEmail,
             registerdEmail: $registerdEmail,
             disabledUserEmail: $disabledUserEmail,
             enabledUserEmail: $enabledUserEmail,
@@ -113,7 +113,7 @@ class TenantConfigAttributes
         $this->withAssertedForceMfaRules($value, $errorsList);
         $this->withAssertedAllowRegisterRules($value, $errorsList);
         $this->withAssertedEnableRegisterUsersRules($value, $errorsList);
-        $this->withAssertedWelcomeEmailRules($value, $errorsList);
+        $this->withAssertedWellcomeEmailRules($value, $errorsList);
         $this->withAssertedRegisterdEmailRules($value, $errorsList);
         $this->withAssertedDisabledUserEmailRules($value, $errorsList);
         $this->withAssertedEnabledUserEmailRules($value, $errorsList);
@@ -139,7 +139,7 @@ class TenantConfigAttributes
         $this->withDefaultForceMfa();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
-        $this->withDefaultWelcomeEmail();
+        $this->withDefaultWellcomeEmail();
         $this->withDefaultRegisterdEmail();
         $this->withDefaultDisabledUserEmail();
         $this->withDefaultEnabledUserEmail();

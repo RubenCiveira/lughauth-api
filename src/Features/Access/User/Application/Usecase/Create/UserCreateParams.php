@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTenantAttri
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserNameAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWelcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
@@ -28,7 +28,7 @@ class UserCreateParams
     use UserNameAttributeHolder;
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
-    use UserWelcomeAtAttributeHolder;
+    use UserWellcomeAtAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserApproveAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
@@ -44,7 +44,7 @@ class UserCreateParams
       'name' => 'unsetName',
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
-      'welcomeAt' => 'unsetWelcomeAt',
+      'wellcomeAt' => 'unsetWellcomeAt',
       'enabled' => 'unsetEnabled',
       'approve' => 'unsetApprove',
       'temporalPassword' => 'unsetTemporalPassword',
@@ -63,7 +63,7 @@ class UserCreateParams
             $this->name($att->getNameOrDefault(null));
             $this->password($att->getPasswordOrDefault(null));
             $this->email($att->getEmailOrDefault(null));
-            $this->welcomeAt($att->getWelcomeAtOrDefault(null));
+            $this->wellcomeAt($att->getWellcomeAtOrDefault(null));
             $this->enabled($att->getEnabledOrDefault(null));
             $this->approve($att->getApproveOrDefault(null));
             $this->temporalPassword($att->getTemporalPasswordOrDefault(null));
@@ -92,8 +92,8 @@ class UserCreateParams
         if ($this->emailAssigned) {
             $att->email($this->email);
         }
-        if ($this->welcomeAtAssigned) {
-            $att->welcomeAt($this->welcomeAt);
+        if ($this->wellcomeAtAssigned) {
+            $att->wellcomeAt($this->wellcomeAt);
         }
         if ($this->enabledAssigned) {
             $att->enabled($this->enabled);
@@ -134,7 +134,7 @@ class UserCreateParams
         $this->withDefaultName();
         $this->withDefaultPassword();
         $this->withDefaultEmail();
-        $this->withDefaultWelcomeAt();
+        $this->withDefaultWellcomeAt();
         $this->withDefaultEnabled();
         $this->withDefaultApprove();
         $this->withDefaultTemporalPassword();

@@ -137,7 +137,7 @@ class UserListController
             $dto->name = $value->getName();
             $dto->password = '******';
             $dto->email = $value->getEmail();
-            $dto->welcomeAt = $value->getWelcomeAt()?->format(DateTime::ATOM);
+            $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
             $dto->enabled = $value->isEnabled();
             $dto->approve = $value->getApprove();
             $dto->temporalPassword = $value->isTemporalPassword();

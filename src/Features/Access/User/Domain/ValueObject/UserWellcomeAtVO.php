@@ -18,7 +18,7 @@ class UserWellcomeAtVO
     }
     public static function from(UserWellcomeAtVO|\DateTimeImmutable|null $value): UserWellcomeAtVO
     {
-        if (is_a($value, UserWellcomeAtVO::class)) {
+        if ($value instanceof UserWellcomeAtVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -28,6 +28,7 @@ class UserWellcomeAtVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
+            \assert($candidate instanceof UserWellcomeAtVO);
             return $candidate;
         }
     }

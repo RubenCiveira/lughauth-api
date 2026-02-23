@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigForceMfaAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWelcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnabledUserEmailAttributeHolder;
@@ -28,7 +28,7 @@ class TenantConfigUpdateParams
     use TenantConfigForceMfaAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
-    use TenantConfigWelcomeEmailAttributeHolder;
+    use TenantConfigWellcomeEmailAttributeHolder;
     use TenantConfigRegisterdEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
     use TenantConfigEnabledUserEmailAttributeHolder;
@@ -43,7 +43,7 @@ class TenantConfigUpdateParams
       'forceMfa' => 'unsetForceMfa',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
-      'welcomeEmail' => 'unsetWelcomeEmail',
+      'wellcomeEmail' => 'unsetWellcomeEmail',
       'registerdEmail' => 'unsetRegisterdEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
       'enabledUserEmail' => 'unsetEnabledUserEmail',
@@ -61,7 +61,7 @@ class TenantConfigUpdateParams
             $this->forceMfa($att->getForceMfaOrDefault(null));
             $this->allowRegister($att->getAllowRegisterOrDefault(null));
             $this->enableRegisterUsers($att->getEnableRegisterUsersOrDefault(null));
-            $this->welcomeEmail($att->getWelcomeEmailOrDefault(null));
+            $this->wellcomeEmail($att->getWellcomeEmailOrDefault(null));
             $this->registerdEmail($att->getRegisterdEmailOrDefault(null));
             $this->disabledUserEmail($att->getDisabledUserEmailOrDefault(null));
             $this->enabledUserEmail($att->getEnabledUserEmailOrDefault(null));
@@ -91,8 +91,8 @@ class TenantConfigUpdateParams
         if ($this->enableRegisterUsersAssigned) {
             $att->enableRegisterUsers($this->enableRegisterUsers);
         }
-        if ($this->welcomeEmailAssigned) {
-            $att->welcomeEmail($this->welcomeEmail);
+        if ($this->wellcomeEmailAssigned) {
+            $att->wellcomeEmail($this->wellcomeEmail);
         }
         if ($this->registerdEmailAssigned) {
             $att->registerdEmail($this->registerdEmail);
@@ -128,7 +128,7 @@ class TenantConfigUpdateParams
         $this->withDefaultForceMfa();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
-        $this->withDefaultWelcomeEmail();
+        $this->withDefaultWellcomeEmail();
         $this->withDefaultRegisterdEmail();
         $this->withDefaultDisabledUserEmail();
         $this->withDefaultEnabledUserEmail();
