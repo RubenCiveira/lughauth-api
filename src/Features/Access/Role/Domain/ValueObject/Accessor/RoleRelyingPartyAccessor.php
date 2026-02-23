@@ -21,7 +21,7 @@ trait RoleRelyingPartyAccessor
     }
     public function isRelyingPartyChanged(?self $original = null): bool
     {
-        return $this->_relyingParty->value() !== ($original ? $original->_relyingParty->value() : null);
+        return $this->_relyingParty?->value() !== ($original ? $original->_relyingParty?->value() : null);
     }
     public function withRelyingParty(RoleRelyingPartyVO|RelyingPartyRef|null $relyingParty): self
     {

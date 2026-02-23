@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder
     }
     public function getRecoveryCodeExpiration(): ?\DateTimeImmutable
     {
-        return is_a($this->recoveryCodeExpiration, UserAccessTemporalCodeRecoveryCodeExpirationVO::class) ? $this->recoveryCodeExpiration->value() : $this->recoveryCodeExpiration;
+        return is_a($this->recoveryCodeExpiration, UserAccessTemporalCodeRecoveryCodeExpirationVO::class) ? $this->recoveryCodeExpiration?->value() : $this->recoveryCodeExpiration;
     }
     public function unsetRecoveryCodeExpiration(): static
     {

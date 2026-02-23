@@ -25,7 +25,7 @@ trait TenantConfigEnableRegisterUsersAttributeHolder
     }
     public function isEnableRegisterUsers(): ?bool
     {
-        return is_a($this->enableRegisterUsers, TenantConfigEnableRegisterUsersVO::class) ? $this->enableRegisterUsers->value() : $this->enableRegisterUsers;
+        return is_a($this->enableRegisterUsers, TenantConfigEnableRegisterUsersVO::class) ? $this->enableRegisterUsers?->value() : $this->enableRegisterUsers;
     }
     public function unsetEnableRegisterUsers(): static
     {

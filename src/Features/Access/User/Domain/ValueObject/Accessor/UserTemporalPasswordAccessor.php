@@ -20,7 +20,7 @@ trait UserTemporalPasswordAccessor
     }
     public function isTemporalPasswordChanged(?self $original = null): bool
     {
-        return $this->_temporalPassword->value() !== ($original ? $original->_temporalPassword->value() : null);
+        return $this->_temporalPassword?->value() !== ($original ? $original->_temporalPassword?->value() : null);
     }
     public function withTemporalPassword(UserTemporalPasswordVO|bool|null $temporalPassword): self
     {

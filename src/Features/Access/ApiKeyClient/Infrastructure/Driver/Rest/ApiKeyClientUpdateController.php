@@ -63,7 +63,8 @@ class ApiKeyClientUpdateController
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
             $value = $this->mapApiKeyClient($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -80,7 +81,8 @@ class ApiKeyClientUpdateController
         $this->logDebug("Read entity for Api key client");
         $span = $this->startSpan("Read entity for Api key client");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new ApiKeyClientUpdateParams();
             $value->uid(ApiKeyClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));

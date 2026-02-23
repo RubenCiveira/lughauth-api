@@ -20,7 +20,7 @@ trait TenantLoginProviderPrivateKeyAccessor
     }
     public function isPrivateKeyChanged(?self $original = null): bool
     {
-        return $this->_privateKey->value() !== ($original ? $original->_privateKey->value() : null);
+        return $this->_privateKey?->value() !== ($original ? $original->_privateKey?->value() : null);
     }
     public function withPrivateKey(TenantLoginProviderPrivateKeyVO|string|null $privateKey): self
     {

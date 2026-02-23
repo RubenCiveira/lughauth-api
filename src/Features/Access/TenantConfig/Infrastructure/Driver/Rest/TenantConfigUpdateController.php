@@ -72,7 +72,8 @@ class TenantConfigUpdateController
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
             $value = $this->mapTenantConfig($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -89,7 +90,8 @@ class TenantConfigUpdateController
         $this->logDebug("Read entity for Tenant config");
         $span = $this->startSpan("Read entity for Tenant config");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantConfigUpdateParams();
             $value->uid(TenantConfigUidVO::tryFrom($body['uid'] ?? null, $errorsList));

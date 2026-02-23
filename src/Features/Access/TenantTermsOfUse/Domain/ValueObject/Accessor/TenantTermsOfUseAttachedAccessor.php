@@ -20,7 +20,7 @@ trait TenantTermsOfUseAttachedAccessor
     }
     public function isAttachedChanged(?self $original = null): bool
     {
-        return $this->_attached->value() !== ($original ? $original->_attached->value() : null);
+        return $this->_attached?->value() !== ($original ? $original->_attached?->value() : null);
     }
     public function withAttached(TenantTermsOfUseAttachedVO|string|null $attached): self
     {

@@ -59,7 +59,8 @@ class TrustedClientEnableController
             $result = $this->enableUsecase->enable($uid);
             $this->sql->commit();
             $value = $this->mapTrustedClient($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -82,7 +83,8 @@ class TrustedClientEnableController
                 code: $params['code'] ?? null,
             );
             $res = $this->runner->run(TrustedClientTaskEnable::class, ['filter' => $filter]);
-            $response->getBody()->write(json_encode($res));
+            $encoded = json_encode($res);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -104,7 +106,8 @@ class TrustedClientEnableController
             if (!$info) {
                 throw new NotFoundException('-');
             }
-            $response->getBody()->write(json_encode($info));
+            $encoded = json_encode($info);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {

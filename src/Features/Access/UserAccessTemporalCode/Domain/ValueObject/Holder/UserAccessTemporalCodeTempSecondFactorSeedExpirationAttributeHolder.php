@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeTempSecondFactorSeedExpirationAttributeHolder
     }
     public function getTempSecondFactorSeedExpiration(): ?\DateTimeImmutable
     {
-        return is_a($this->tempSecondFactorSeedExpiration, UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::class) ? $this->tempSecondFactorSeedExpiration->value() : $this->tempSecondFactorSeedExpiration;
+        return is_a($this->tempSecondFactorSeedExpiration, UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::class) ? $this->tempSecondFactorSeedExpiration?->value() : $this->tempSecondFactorSeedExpiration;
     }
     public function unsetTempSecondFactorSeedExpiration(): static
     {

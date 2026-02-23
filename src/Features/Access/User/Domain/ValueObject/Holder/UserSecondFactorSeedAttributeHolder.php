@@ -25,7 +25,7 @@ trait UserSecondFactorSeedAttributeHolder
     }
     public function getSecondFactorSeed(): ?string
     {
-        return is_a($this->secondFactorSeed, UserSecondFactorSeedVO::class) ? $this->secondFactorSeed->value() : $this->secondFactorSeed;
+        return is_a($this->secondFactorSeed, UserSecondFactorSeedVO::class) ? $this->secondFactorSeed?->value() : $this->secondFactorSeed;
     }
     public function unsetSecondFactorSeed(): static
     {

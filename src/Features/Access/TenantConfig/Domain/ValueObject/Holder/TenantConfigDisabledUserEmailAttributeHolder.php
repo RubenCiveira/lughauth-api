@@ -25,7 +25,7 @@ trait TenantConfigDisabledUserEmailAttributeHolder
     }
     public function getDisabledUserEmail(): ?string
     {
-        return is_a($this->disabledUserEmail, TenantConfigDisabledUserEmailVO::class) ? $this->disabledUserEmail->value() : $this->disabledUserEmail;
+        return is_a($this->disabledUserEmail, TenantConfigDisabledUserEmailVO::class) ? $this->disabledUserEmail?->value() : $this->disabledUserEmail;
     }
     public function unsetDisabledUserEmail(): static
     {

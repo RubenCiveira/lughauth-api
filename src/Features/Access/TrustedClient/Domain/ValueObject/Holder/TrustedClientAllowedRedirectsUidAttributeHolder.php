@@ -25,7 +25,7 @@ trait TrustedClientAllowedRedirectsUidAttributeHolder
     }
     public function getUid(): ?string
     {
-        return is_a($this->uid, TrustedClientAllowedRedirectsUidVO::class) ? $this->uid->value() : $this->uid;
+        return is_a($this->uid, TrustedClientAllowedRedirectsUidVO::class) ? $this->uid?->value() : $this->uid;
     }
     public function unsetUid(): static
     {

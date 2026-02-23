@@ -63,18 +63,18 @@ class TenantTermsOfUsePlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/tenants-terms-of-use', [$this, 'setRoutesForTenantTermsOfUseAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $bus->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantTermsOfUseListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $bus->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $bus->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $bus->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAuthenticatedUploadAttachedAllow::class);
+        $listener->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(TenantTermsOfUseListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $listener->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAuthenticatedUploadAttachedAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

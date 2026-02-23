@@ -18,6 +18,7 @@ class UserApproveVO
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
         }
+        \assert($candidate instanceof UserApproveVO);
         return $candidate;
     }
     public static function empty(): UserApproveVO

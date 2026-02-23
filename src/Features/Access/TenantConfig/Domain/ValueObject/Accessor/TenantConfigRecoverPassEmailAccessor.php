@@ -20,7 +20,7 @@ trait TenantConfigRecoverPassEmailAccessor
     }
     public function isRecoverPassEmailChanged(?self $original = null): bool
     {
-        return $this->_recoverPassEmail->value() !== ($original ? $original->_recoverPassEmail->value() : null);
+        return $this->_recoverPassEmail?->value() !== ($original ? $original->_recoverPassEmail?->value() : null);
     }
     public function withRecoverPassEmail(TenantConfigRecoverPassEmailVO|string|null $recoverPassEmail): self
     {

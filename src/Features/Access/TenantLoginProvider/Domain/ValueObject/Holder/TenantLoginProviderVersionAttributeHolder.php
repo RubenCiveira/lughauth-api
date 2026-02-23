@@ -25,7 +25,7 @@ trait TenantLoginProviderVersionAttributeHolder
     }
     public function getVersion(): ?int
     {
-        return is_a($this->version, TenantLoginProviderVersionVO::class) ? $this->version->value() : $this->version;
+        return is_a($this->version, TenantLoginProviderVersionVO::class) ? $this->version?->value() : $this->version;
     }
     public function unsetVersion(): static
     {

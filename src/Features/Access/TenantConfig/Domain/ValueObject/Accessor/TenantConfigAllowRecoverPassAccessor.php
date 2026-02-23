@@ -20,7 +20,7 @@ trait TenantConfigAllowRecoverPassAccessor
     }
     public function isAllowRecoverPassChanged(?self $original = null): bool
     {
-        return $this->_allowRecoverPass->value() !== ($original ? $original->_allowRecoverPass->value() : null);
+        return $this->_allowRecoverPass?->value() !== ($original ? $original->_allowRecoverPass?->value() : null);
     }
     public function withAllowRecoverPass(TenantConfigAllowRecoverPassVO|bool|null $allowRecoverPass): self
     {

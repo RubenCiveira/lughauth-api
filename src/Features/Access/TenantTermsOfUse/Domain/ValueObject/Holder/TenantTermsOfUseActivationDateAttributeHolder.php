@@ -25,7 +25,7 @@ trait TenantTermsOfUseActivationDateAttributeHolder
     }
     public function getActivationDate(): ?\DateTimeImmutable
     {
-        return is_a($this->activationDate, TenantTermsOfUseActivationDateVO::class) ? $this->activationDate->value() : $this->activationDate;
+        return is_a($this->activationDate, TenantTermsOfUseActivationDateVO::class) ? $this->activationDate?->value() : $this->activationDate;
     }
     public function unsetActivationDate(): static
     {

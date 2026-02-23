@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeRecoveryCodeExpirationAccessor
     }
     public function isRecoveryCodeExpirationChanged(?self $original = null): bool
     {
-        return $this->_recoveryCodeExpiration->value() !== ($original ? $original->_recoveryCodeExpiration->value() : null);
+        return $this->_recoveryCodeExpiration?->value() !== ($original ? $original->_recoveryCodeExpiration?->value() : null);
     }
     public function withRecoveryCodeExpiration(UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null $recoveryCodeExpiration): self
     {

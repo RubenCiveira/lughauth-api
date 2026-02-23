@@ -61,7 +61,8 @@ class TrustedClientCreateController
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
             $value = $this->mapTrustedClient($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -78,14 +79,15 @@ class TrustedClientCreateController
         $this->logDebug("Read entity for Trusted client");
         $span = $this->startSpan("Read entity for Trusted client");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TrustedClientCreateParams();
             $value->uid(TrustedClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $value->code(TrustedClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
             $value->publicAllow(TrustedClientPublicAllowVO::tryFrom($body['publicAllow'] ?? null, $errorsList));
             $readSecretOauth = $body['secretOauth'] ?? '******';
-            if ($readSecretOauth && '******' !== $readSecretOauth) {
+            if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
                 $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
             }
             $allowedRedirectsList = [];

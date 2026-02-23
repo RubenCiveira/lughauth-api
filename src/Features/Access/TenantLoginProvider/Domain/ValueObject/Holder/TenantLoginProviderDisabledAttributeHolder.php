@@ -25,7 +25,7 @@ trait TenantLoginProviderDisabledAttributeHolder
     }
     public function isDisabled(): ?bool
     {
-        return is_a($this->disabled, TenantLoginProviderDisabledVO::class) ? $this->disabled->value() : $this->disabled;
+        return is_a($this->disabled, TenantLoginProviderDisabledVO::class) ? $this->disabled?->value() : $this->disabled;
     }
     public function unsetDisabled(): static
     {

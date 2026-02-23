@@ -20,7 +20,7 @@ trait ApiKeyClientKeyAccessor
     }
     public function isKeyChanged(?self $original = null): bool
     {
-        return $this->_key->value() !== ($original ? $original->_key->value() : null);
+        return $this->_key?->value() !== ($original ? $original->_key?->value() : null);
     }
     public function withKey(ApiKeyClientKeyVO|string|null $key): self
     {

@@ -25,7 +25,7 @@ trait UserAcceptedTermnsOfUseAcceptDateAttributeHolder
     }
     public function getAcceptDate(): ?\DateTimeImmutable
     {
-        return is_a($this->acceptDate, UserAcceptedTermnsOfUseAcceptDateVO::class) ? $this->acceptDate->value() : $this->acceptDate;
+        return is_a($this->acceptDate, UserAcceptedTermnsOfUseAcceptDateVO::class) ? $this->acceptDate?->value() : $this->acceptDate;
     }
     public function unsetAcceptDate(): static
     {

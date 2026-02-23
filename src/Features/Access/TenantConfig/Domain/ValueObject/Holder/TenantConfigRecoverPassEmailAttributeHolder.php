@@ -25,7 +25,7 @@ trait TenantConfigRecoverPassEmailAttributeHolder
     }
     public function getRecoverPassEmail(): ?string
     {
-        return is_a($this->recoverPassEmail, TenantConfigRecoverPassEmailVO::class) ? $this->recoverPassEmail->value() : $this->recoverPassEmail;
+        return is_a($this->recoverPassEmail, TenantConfigRecoverPassEmailVO::class) ? $this->recoverPassEmail?->value() : $this->recoverPassEmail;
     }
     public function unsetRecoverPassEmail(): static
     {

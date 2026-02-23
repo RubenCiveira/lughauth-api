@@ -25,7 +25,7 @@ trait TenantLoginProviderPublicKeyAttributeHolder
     }
     public function getPublicKey(): ?string
     {
-        return is_a($this->publicKey, TenantLoginProviderPublicKeyVO::class) ? $this->publicKey->value() : $this->publicKey;
+        return is_a($this->publicKey, TenantLoginProviderPublicKeyVO::class) ? $this->publicKey?->value() : $this->publicKey;
     }
     public function unsetPublicKey(): static
     {

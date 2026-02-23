@@ -20,7 +20,7 @@ trait TrustedClientAllowedRedirectsUrlAccessor
     }
     public function isUrlChanged(?self $original = null): bool
     {
-        return $this->_url->value() !== ($original ? $original->_url->value() : null);
+        return $this->_url?->value() !== ($original ? $original->_url?->value() : null);
     }
     public function withUrl(TrustedClientAllowedRedirectsUrlVO|string $url): self
     {

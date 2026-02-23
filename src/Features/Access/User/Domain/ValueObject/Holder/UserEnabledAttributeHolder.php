@@ -25,7 +25,7 @@ trait UserEnabledAttributeHolder
     }
     public function isEnabled(): ?bool
     {
-        return is_a($this->enabled, UserEnabledVO::class) ? $this->enabled->value() : $this->enabled;
+        return is_a($this->enabled, UserEnabledVO::class) ? $this->enabled?->value() : $this->enabled;
     }
     public function unsetEnabled(): static
     {

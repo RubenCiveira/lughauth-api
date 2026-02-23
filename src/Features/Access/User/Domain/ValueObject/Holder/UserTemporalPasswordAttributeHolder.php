@@ -25,7 +25,7 @@ trait UserTemporalPasswordAttributeHolder
     }
     public function isTemporalPassword(): ?bool
     {
-        return is_a($this->temporalPassword, UserTemporalPasswordVO::class) ? $this->temporalPassword->value() : $this->temporalPassword;
+        return is_a($this->temporalPassword, UserTemporalPasswordVO::class) ? $this->temporalPassword?->value() : $this->temporalPassword;
     }
     public function unsetTemporalPassword(): static
     {

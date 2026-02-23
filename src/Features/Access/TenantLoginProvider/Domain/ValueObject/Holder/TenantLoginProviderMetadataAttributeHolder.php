@@ -25,7 +25,7 @@ trait TenantLoginProviderMetadataAttributeHolder
     }
     public function getMetadata(): ?string
     {
-        return is_a($this->metadata, TenantLoginProviderMetadataVO::class) ? $this->metadata->value() : $this->metadata;
+        return is_a($this->metadata, TenantLoginProviderMetadataVO::class) ? $this->metadata?->value() : $this->metadata;
     }
     public function unsetMetadata(): static
     {

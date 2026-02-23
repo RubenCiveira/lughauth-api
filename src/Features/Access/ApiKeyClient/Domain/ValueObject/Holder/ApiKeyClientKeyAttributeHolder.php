@@ -25,7 +25,7 @@ trait ApiKeyClientKeyAttributeHolder
     }
     public function getKey(): ?string
     {
-        return is_a($this->key, ApiKeyClientKeyVO::class) ? $this->key->value() : $this->key;
+        return is_a($this->key, ApiKeyClientKeyVO::class) ? $this->key?->value() : $this->key;
     }
     public function unsetKey(): static
     {

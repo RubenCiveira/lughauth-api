@@ -334,7 +334,7 @@ class UserAcceptedTermnsOfUsePdoConnector
                 }
                 if ($filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible()) {
                     $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_user_accepted_termns_of_use"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantTenantAccesibleUser"."userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
+                    $query .= ' and "userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
                     $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
                 }
             }

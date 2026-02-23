@@ -25,7 +25,7 @@ trait TenantTermsOfUseAttachedAttributeHolder
     }
     public function getAttached(): ?string
     {
-        return is_a($this->attached, TenantTermsOfUseAttachedVO::class) ? $this->attached->value() : $this->attached;
+        return is_a($this->attached, TenantTermsOfUseAttachedVO::class) ? $this->attached?->value() : $this->attached;
     }
     public function unsetAttached(): static
     {

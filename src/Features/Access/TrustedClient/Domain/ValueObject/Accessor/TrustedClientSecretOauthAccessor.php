@@ -29,7 +29,7 @@ trait TrustedClientSecretOauthAccessor
     }
     public function isSecretOauthChanged(?self $original = null): bool
     {
-        return $this->_secretOauth->value() !== ($original ? $original->_secretOauth->value() : null);
+        return $this->_secretOauth?->value() !== ($original ? $original->_secretOauth?->value() : null);
     }
     public function withSecretOauth(TrustedClientSecretOauthVO|string|null $secretOauth): self
     {

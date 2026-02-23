@@ -57,7 +57,8 @@ class TenantTermsOfUseCreateController
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
             $value = $this->mapTenantTermsOfUse($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -74,7 +75,8 @@ class TenantTermsOfUseCreateController
         $this->logDebug("Read entity for Tenant terms of use");
         $span = $this->startSpan("Read entity for Tenant terms of use");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantTermsOfUseCreateParams();
             $value->uid(TenantTermsOfUseUidVO::tryFrom($body['uid'] ?? null, $errorsList));

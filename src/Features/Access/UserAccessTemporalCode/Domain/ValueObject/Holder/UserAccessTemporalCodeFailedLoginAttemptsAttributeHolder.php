@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder
     }
     public function getFailedLoginAttempts(): ?int
     {
-        return is_a($this->failedLoginAttempts, UserAccessTemporalCodeFailedLoginAttemptsVO::class) ? $this->failedLoginAttempts->value() : $this->failedLoginAttempts;
+        return is_a($this->failedLoginAttempts, UserAccessTemporalCodeFailedLoginAttemptsVO::class) ? $this->failedLoginAttempts?->value() : $this->failedLoginAttempts;
     }
     public function unsetFailedLoginAttempts(): static
     {

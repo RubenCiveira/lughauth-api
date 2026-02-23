@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeRecoveryCodeAttributeHolder
     }
     public function getRecoveryCode(): ?string
     {
-        return is_a($this->recoveryCode, UserAccessTemporalCodeRecoveryCodeVO::class) ? $this->recoveryCode->value() : $this->recoveryCode;
+        return is_a($this->recoveryCode, UserAccessTemporalCodeRecoveryCodeVO::class) ? $this->recoveryCode?->value() : $this->recoveryCode;
     }
     public function unsetRecoveryCode(): static
     {

@@ -63,21 +63,21 @@ class TenantPlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/tenants', [$this, 'setRoutesForTenantAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(TenantRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantCreateAllowDecision::class, CreateTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(TenantUpdateAllowDecision::class, UpdateTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(TenantRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(TenantDeleteAllowDecision::class, DeleteTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $bus->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $bus->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
-        $bus->registerListener(TenantDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TenantRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantCreateAllowDecision::class, CreateTenantOnlyForRootAllow::class);
+        $listener->registerListener(TenantCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(TenantUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(TenantUpdateAllowDecision::class, UpdateTenantOnlyForRootAllow::class);
+        $listener->registerListener(TenantRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(TenantListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(TenantDeleteAllowDecision::class, DeleteTenantOnlyForRootAllow::class);
+        $listener->registerListener(TenantDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(TenantEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $listener->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
+        $listener->registerListener(TenantDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

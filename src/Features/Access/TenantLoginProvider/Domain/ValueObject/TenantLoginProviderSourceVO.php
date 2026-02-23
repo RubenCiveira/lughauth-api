@@ -18,6 +18,7 @@ class TenantLoginProviderSourceVO
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
         }
+        \assert($candidate instanceof TenantLoginProviderSourceVO);
         return $candidate;
     }
     public static function from(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $value): TenantLoginProviderSourceVO

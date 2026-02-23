@@ -26,7 +26,7 @@ class ListTrustedClientOnlyForRootAllow
         try {
             $userContext = $this->context->getIdentity();
             if ($proposal->isAllowed()) {
-                if (! $userContext->hasAnyRole('root:admin')) {
+                if (! $userContext->hasAnyRole('platform:admin')) {
                     $proposal->deny('Disabled if not ListTrustedClientOnlyForRoot');
                 }
             }

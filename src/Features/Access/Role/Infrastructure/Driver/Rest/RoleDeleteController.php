@@ -81,7 +81,8 @@ class RoleDeleteController
                 relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
             );
             $res = $this->runner->run(RoleTaskDelete::class, ['filter' => $filter]);
-            $response->getBody()->write(json_encode($res));
+            $encoded = json_encode($res);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -103,7 +104,8 @@ class RoleDeleteController
             if (!$info) {
                 throw new NotFoundException('-');
             }
-            $response->getBody()->write(json_encode($info));
+            $encoded = json_encode($info);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {

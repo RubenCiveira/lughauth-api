@@ -63,22 +63,22 @@ class ApiKeyClientPlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/api-key-clients', [$this, 'setRoutesForApiKeyClientAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, UpdateApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, DeleteApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $bus->registerListener(ApiKeyClientEnableAllowDecision::class, EnableApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $bus->registerListener(ApiKeyClientDisableAllowDecision::class, DisableApiKeyClientOnlyForRootAllow::class);
-        $bus->registerListener(ApiKeyClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, UpdateApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, DeleteApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(ApiKeyClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $listener->registerListener(ApiKeyClientEnableAllowDecision::class, EnableApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, DisableApiKeyClientOnlyForRootAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

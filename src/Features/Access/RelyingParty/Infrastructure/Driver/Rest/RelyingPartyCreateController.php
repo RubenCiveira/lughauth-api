@@ -51,7 +51,8 @@ class RelyingPartyCreateController
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
             $value = $this->mapRelyingParty($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -68,7 +69,8 @@ class RelyingPartyCreateController
         $this->logDebug("Read entity for Relying party");
         $span = $this->startSpan("Read entity for Relying party");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new RelyingPartyCreateParams();
             $value->uid(RelyingPartyUidVO::tryFrom($body['uid'] ?? null, $errorsList));

@@ -60,7 +60,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('emergency', (string)$message, $context);
         } else {
-            $this->logger?->emergency($message, $context);
+            $this->logger->emergency($message, $context);
         }
     }
 
@@ -78,7 +78,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('alert', (string)$message, $context);
         } else {
-            $this->logger?->alert($message, $context);
+            $this->logger->alert($message, $context);
         }
     }
 
@@ -96,7 +96,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('critical', (string)$message, $context);
         } else {
-            $this->logger?->critical($message, $context);
+            $this->logger->critical($message, $context);
         }
     }
 
@@ -114,7 +114,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('error', (string)$message, $context);
         } else {
-            $this->logger?->error($message, $context);
+            $this->logger->error($message, $context);
         }
     }
 
@@ -132,7 +132,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('warning', (string)$message, $context);
         } else {
-            $this->logger?->warning($message, $context);
+            $this->logger->warning($message, $context);
         }
     }
 
@@ -150,7 +150,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('notice', (string)$message, $context);
         } else {
-            $this->logger?->notice($message, $context);
+            $this->logger->notice($message, $context);
         }
     }
 
@@ -168,7 +168,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('info', (string)$message, $context);
         } else {
-            $this->logger?->info($message, $context);
+            $this->logger->info($message, $context);
         }
     }
 
@@ -186,7 +186,7 @@ trait LoggerAwareTrait
         if (null === $this->logger) {
             $this->writeLogFallback('debug', (string)$message, $context);
         } else {
-            $this->logger?->debug($message, $context);
+            $this->logger->debug($message, $context);
         }
     }
 
@@ -199,7 +199,7 @@ trait LoggerAwareTrait
      */
     private function writeLogFallback(string $level, string $message, array $context = []): void
     {
-        $contextStr = !empty($context) ? json_encode($context) : '';
-        error_log(strtoupper($level) . ': ' . $message . ($contextStr ? ' ' . $contextStr : ''));
+        $contextStr = json_encode($context);
+        error_log(strtoupper($level) . ': ' . $message . (false !== $contextStr ? ' ' . $contextStr : ''));
     }
 }

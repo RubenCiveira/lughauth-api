@@ -63,18 +63,18 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/login-providers', [$this, 'setRoutesForTenantLoginProviderAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $bus->registerListener(TenantLoginProviderCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(TenantLoginProviderUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(TenantLoginProviderRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantLoginProviderListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $bus->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $bus->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $bus->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAuthenticatedUploadMetadataAllow::class);
+        $listener->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TenantLoginProviderCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(TenantLoginProviderUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(TenantLoginProviderRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(TenantLoginProviderListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $listener->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAuthenticatedUploadMetadataAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -25,7 +25,7 @@ trait UserEmailAttributeHolder
     }
     public function getEmail(): ?string
     {
-        return is_a($this->email, UserEmailVO::class) ? $this->email->value() : $this->email;
+        return is_a($this->email, UserEmailVO::class) ? $this->email?->value() : $this->email;
     }
     public function unsetEmail(): static
     {

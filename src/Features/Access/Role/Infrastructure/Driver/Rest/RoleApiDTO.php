@@ -33,7 +33,7 @@ class RoleApiDTO
           new OA\Property(property: "\$ref", type: "string")
     ]
     )]
-    public ?array $relyingParty;
+    public ?array $relyingParty = null;
     #[OA\Property(
         property: "version",
         title: "version",

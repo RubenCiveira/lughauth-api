@@ -25,7 +25,7 @@ trait TenantConfigAllowRecoverPassAttributeHolder
     }
     public function isAllowRecoverPass(): ?bool
     {
-        return is_a($this->allowRecoverPass, TenantConfigAllowRecoverPassVO::class) ? $this->allowRecoverPass->value() : $this->allowRecoverPass;
+        return is_a($this->allowRecoverPass, TenantConfigAllowRecoverPassVO::class) ? $this->allowRecoverPass?->value() : $this->allowRecoverPass;
     }
     public function unsetAllowRecoverPass(): static
     {

@@ -13,8 +13,10 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityFilter;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityReadGateway;
+use Civi\Lughauth\Features\Access\ClientIdentity\Domain\Gateway\ClientIdentityFilter;
+use Civi\Lughauth\Features\Access\ClientIdentity\Domain\Gateway\ClientIdentityReadGateway;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway\PlatformIdentityFilter;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway\PlatformIdentityReadGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
@@ -37,7 +39,8 @@ class LoginAdapter implements LoginGateway
         private readonly UserLoaderAdapter $users,
         private readonly TenantConfigReadGateway $configs,
         private readonly UserAcceptedTermnsOfUseReadGateway $userTerms,
-        private readonly UserIdentityReadGateway $identities,
+        private readonly PlatformIdentityReadGateway $platformIdentities,
+        private readonly ClientIdentityReadGateway $clientIdentities,
         private readonly TrustedClientReadGateway $clients,
         private readonly RelyingPartyReadGateway $parties,
         private readonly UserWriteGateway $writeUsers,
@@ -222,20 +225,25 @@ class LoginAdapter implements LoginGateway
         $roles = [];
         // Tengo roles para cualquier audiencia
         $forAll = [];
-        $this->rolesFromIdentity(new UserIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
+        $this->clientRolesFromIdentity(new ClientIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
+        $this->platformRolesFromIdentity(new PlatformIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
                 $roles[$audience] = $forAll;
                 if ($from = $this->clients->findOneByCode($audience)) {
-                    $this->rolesFromIdentity(new UserIdentityFilter(
+                    $this->platformRolesFromIdentity(new PlatformIdentityFilter(
                         user: $user,
                         trustedClient: $from
                     ), $main, $roles[$audience]);
                 }
                 if ($from = $this->parties->findOneByCode($audience)) {
-                    $this->rolesFromIdentity(new UserIdentityFilter(
+                    $this->platformRolesFromIdentity(new PlatformIdentityFilter(
                         user: $user,
                         relyingParty: $from
+                    ), $main, $roles[$audience]);
+                    $this->clientRolesFromIdentity(new ClientIdentityFilter(
+                         user: $user,
+                         relyingParty: $from
                     ), $main, $roles[$audience]);
                 }
             }
@@ -243,14 +251,36 @@ class LoginAdapter implements LoginGateway
         return $roles;
     }
 
-    private function rolesFromIdentity(UserIdentityFilter $identityFilter, bool $main, &$roles): void
+    private function platformRolesFromIdentity(PlatformIdentityFilter $identityFilter, bool $main, array &$roles): void
     {
-        if ($tc = $this->identities->retrieve($identityFilter)) {
-            foreach ($tc->getRoles() as $role) {
-                $ref = $role->getRole();
-                $theRole = $this->roles->resolve($ref);
-                if ($theRole) {
-                    $roles[] = $main ? 'root:' . $theRole->getName() : str_replace(':', '_', $theRole->getName());
+        if ($tc = $this->platformIdentities->retrieve($identityFilter)) {
+            $hisRoles = $tc->getRoles();
+            if (null !== $hisRoles) {
+                foreach ($hisRoles as $role) {
+                    $ref = $role->getRole();
+                    $theRole = $this->roles->resolve($ref);
+                    if ($theRole) {
+                        $roleName = 'platform:' . strtolower($theRole->getName());
+                        if (!in_array($roleName, $roles, true)) {
+                            $roles[] =   $roleName;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private function clientRolesFromIdentity(ClientIdentityFilter $identityFilter, bool $main, array &$roles): void
+    {
+        if ($tc = $this->clientIdentities->retrieve($identityFilter)) {
+            $hisRoles = $tc->getRoles();
+            if (null !== $hisRoles) {
+                $roles = explode(",", $hisRoles);
+                foreach ($roles as $role) {
+                    $roleName = str_replace(':', '-',  strtolower($role) );
+                    if (!in_array($roleName, $roles, true)) {
+                        $roles[] = $roleName;
+                    }
                 }
             }
         }

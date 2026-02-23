@@ -20,7 +20,7 @@ trait TenantMarkForDeleteTimeAccessor
     }
     public function isMarkForDeleteTimeChanged(?self $original = null): bool
     {
-        return $this->_markForDeleteTime->value() !== ($original ? $original->_markForDeleteTime->value() : null);
+        return $this->_markForDeleteTime?->value() !== ($original ? $original->_markForDeleteTime?->value() : null);
     }
     public function withMarkForDeleteTime(TenantMarkForDeleteTimeVO|\DateTimeImmutable|null $markForDeleteTime): self
     {

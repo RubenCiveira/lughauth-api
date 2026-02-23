@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeRegisterCodeUrlAttributeHolder
     }
     public function getRegisterCodeUrl(): ?string
     {
-        return is_a($this->registerCodeUrl, UserAccessTemporalCodeRegisterCodeUrlVO::class) ? $this->registerCodeUrl->value() : $this->registerCodeUrl;
+        return is_a($this->registerCodeUrl, UserAccessTemporalCodeRegisterCodeUrlVO::class) ? $this->registerCodeUrl?->value() : $this->registerCodeUrl;
     }
     public function unsetRegisterCodeUrl(): static
     {

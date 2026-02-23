@@ -70,8 +70,8 @@ class Role extends RoleRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['name'] = $this->getName();
-        $relyingParty = $this->getRelyingParty()?->uid();
-        if ($relyingParty) {
+        $relyingParty = $this->getRelyingParty()->uid();
+        if (null !== $relyingParty) {
             $data['relyingParty'] = ['$ref' => $relyingParty];
         }
         $data['version'] = $this->getVersion();

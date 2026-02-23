@@ -25,7 +25,7 @@ trait UserBlockedUntilAttributeHolder
     }
     public function getBlockedUntil(): ?\DateTimeImmutable
     {
-        return is_a($this->blockedUntil, UserBlockedUntilVO::class) ? $this->blockedUntil->value() : $this->blockedUntil;
+        return is_a($this->blockedUntil, UserBlockedUntilVO::class) ? $this->blockedUntil?->value() : $this->blockedUntil;
     }
     public function unsetBlockedUntil(): static
     {

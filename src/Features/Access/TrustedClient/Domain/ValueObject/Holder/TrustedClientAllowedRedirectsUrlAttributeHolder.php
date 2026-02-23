@@ -25,7 +25,7 @@ trait TrustedClientAllowedRedirectsUrlAttributeHolder
     }
     public function getUrl(): ?string
     {
-        return is_a($this->url, TrustedClientAllowedRedirectsUrlVO::class) ? $this->url->value() : $this->url;
+        return is_a($this->url, TrustedClientAllowedRedirectsUrlVO::class) ? $this->url?->value() : $this->url;
     }
     public function unsetUrl(): static
     {

@@ -26,7 +26,7 @@ class TenantConfigApiDTO
           new OA\Property(property: "\$ref", type: "string")
     ]
     )]
-    public ?array $tenant;
+    public ?array $tenant = null;
     #[OA\Property(
         property: "innerLabel",
         title: "inner label",

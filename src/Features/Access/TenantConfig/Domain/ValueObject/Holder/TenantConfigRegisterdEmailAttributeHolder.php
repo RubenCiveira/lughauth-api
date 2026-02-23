@@ -25,7 +25,7 @@ trait TenantConfigRegisterdEmailAttributeHolder
     }
     public function getRegisterdEmail(): ?string
     {
-        return is_a($this->registerdEmail, TenantConfigRegisterdEmailVO::class) ? $this->registerdEmail->value() : $this->registerdEmail;
+        return is_a($this->registerdEmail, TenantConfigRegisterdEmailVO::class) ? $this->registerdEmail?->value() : $this->registerdEmail;
     }
     public function unsetRegisterdEmail(): static
     {

@@ -48,7 +48,8 @@ class TenantRetrieveController
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
             $value = $this->mapTenant($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {

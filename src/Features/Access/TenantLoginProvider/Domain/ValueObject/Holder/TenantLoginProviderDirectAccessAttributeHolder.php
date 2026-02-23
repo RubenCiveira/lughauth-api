@@ -25,7 +25,7 @@ trait TenantLoginProviderDirectAccessAttributeHolder
     }
     public function isDirectAccess(): ?bool
     {
-        return is_a($this->directAccess, TenantLoginProviderDirectAccessVO::class) ? $this->directAccess->value() : $this->directAccess;
+        return is_a($this->directAccess, TenantLoginProviderDirectAccessVO::class) ? $this->directAccess?->value() : $this->directAccess;
     }
     public function unsetDirectAccess(): static
     {

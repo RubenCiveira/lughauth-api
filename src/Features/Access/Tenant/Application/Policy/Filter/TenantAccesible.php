@@ -26,8 +26,8 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible Tenant");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('root:admin')) {
-                if (!$userContext->anonimous && $tenantAccesible = $userContext->tenant) {
+            if (!$userContext->hasAnyRole('platform:*')) {
+                if (!$userContext->anonymous && $tenantAccesible = $userContext->tenant) {
                     $event->tenantFilter = $event->tenantFilter->withTenantAccesible($tenantAccesible);
                 } else {
                     throw new UnauthorizedException('The claim tenant is required');

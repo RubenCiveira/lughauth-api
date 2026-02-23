@@ -59,7 +59,8 @@ class UserCreateController
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
             $value = $this->mapUser($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -76,7 +77,8 @@ class UserCreateController
         $this->logDebug("Read entity for User");
         $span = $this->startSpan("Read entity for User");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new UserCreateParams();
             $value->uid(UserUidVO::tryFrom($body['uid'] ?? null, $errorsList));
@@ -85,7 +87,7 @@ class UserCreateController
             }
             $value->name(UserNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $readPassword = $body['password'] ?? '******';
-            if ($readPassword && '******' !== $readPassword) {
+            if (null !== $readPassword && '******' !== $readPassword) {
                 $value->password(UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList));
             }
             $value->email(UserEmailVO::tryFrom($body['email'] ?? null, $errorsList));

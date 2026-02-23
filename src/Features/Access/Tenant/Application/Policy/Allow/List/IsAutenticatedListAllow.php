@@ -26,7 +26,7 @@ class IsAutenticatedListAllow
         try {
             $userContext = $this->context->getIdentity();
             if ($proposal->isAllowed()) {
-                if (! !$userContext->anonimous) {
+                if (! !$userContext->anonymous) {
                     $proposal->deny('Disabled if not IsAutenticatedList');
                 }
             }

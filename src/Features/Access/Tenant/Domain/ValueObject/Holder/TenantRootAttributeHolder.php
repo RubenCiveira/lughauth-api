@@ -25,7 +25,7 @@ trait TenantRootAttributeHolder
     }
     public function isRoot(): ?bool
     {
-        return is_a($this->root, TenantRootVO::class) ? $this->root->value() : $this->root;
+        return is_a($this->root, TenantRootVO::class) ? $this->root?->value() : $this->root;
     }
     public function unsetRoot(): static
     {

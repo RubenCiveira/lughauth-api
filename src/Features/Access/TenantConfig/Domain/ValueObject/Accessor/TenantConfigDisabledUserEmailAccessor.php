@@ -20,7 +20,7 @@ trait TenantConfigDisabledUserEmailAccessor
     }
     public function isDisabledUserEmailChanged(?self $original = null): bool
     {
-        return $this->_disabledUserEmail->value() !== ($original ? $original->_disabledUserEmail->value() : null);
+        return $this->_disabledUserEmail?->value() !== ($original ? $original->_disabledUserEmail?->value() : null);
     }
     public function withDisabledUserEmail(TenantConfigDisabledUserEmailVO|string|null $disabledUserEmail): self
     {

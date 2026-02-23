@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeVersionAttributeHolder
     }
     public function getVersion(): ?int
     {
-        return is_a($this->version, UserAccessTemporalCodeVersionVO::class) ? $this->version->value() : $this->version;
+        return is_a($this->version, UserAccessTemporalCodeVersionVO::class) ? $this->version?->value() : $this->version;
     }
     public function unsetVersion(): static
     {

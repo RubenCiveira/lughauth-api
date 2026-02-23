@@ -25,7 +25,7 @@ trait UserUseSecondFactorsAttributeHolder
     }
     public function isUseSecondFactors(): ?bool
     {
-        return is_a($this->useSecondFactors, UserUseSecondFactorsVO::class) ? $this->useSecondFactors->value() : $this->useSecondFactors;
+        return is_a($this->useSecondFactors, UserUseSecondFactorsVO::class) ? $this->useSecondFactors?->value() : $this->useSecondFactors;
     }
     public function unsetUseSecondFactors(): static
     {

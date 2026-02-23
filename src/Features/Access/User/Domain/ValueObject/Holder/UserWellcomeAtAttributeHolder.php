@@ -25,7 +25,7 @@ trait UserWellcomeAtAttributeHolder
     }
     public function getWellcomeAt(): ?\DateTimeImmutable
     {
-        return is_a($this->wellcomeAt, UserWellcomeAtVO::class) ? $this->wellcomeAt->value() : $this->wellcomeAt;
+        return is_a($this->wellcomeAt, UserWellcomeAtVO::class) ? $this->wellcomeAt?->value() : $this->wellcomeAt;
     }
     public function unsetWellcomeAt(): static
     {

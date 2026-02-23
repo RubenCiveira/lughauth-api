@@ -25,7 +25,7 @@ trait UserProviderAttributeHolder
     }
     public function getProvider(): ?string
     {
-        return is_a($this->provider, UserProviderVO::class) ? $this->provider->value() : $this->provider;
+        return is_a($this->provider, UserProviderVO::class) ? $this->provider?->value() : $this->provider;
     }
     public function unsetProvider(): static
     {

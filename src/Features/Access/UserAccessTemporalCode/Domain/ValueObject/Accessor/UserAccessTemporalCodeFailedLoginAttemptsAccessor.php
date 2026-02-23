@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeFailedLoginAttemptsAccessor
     }
     public function isFailedLoginAttemptsChanged(?self $original = null): bool
     {
-        return $this->_failedLoginAttempts->value() !== ($original ? $original->_failedLoginAttempts->value() : null);
+        return $this->_failedLoginAttempts?->value() !== ($original ? $original->_failedLoginAttempts?->value() : null);
     }
     public function withFailedLoginAttempts(UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts): self
     {

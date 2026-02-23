@@ -50,13 +50,13 @@ class RolePlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/roles', [$this, 'setRoutesForRoleAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(RoleCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(RoleUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(RoleRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(RoleListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(RoleDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(RoleCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(RoleUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(RoleRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(RoleListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(RoleDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

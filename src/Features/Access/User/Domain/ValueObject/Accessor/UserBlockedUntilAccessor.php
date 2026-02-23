@@ -20,7 +20,7 @@ trait UserBlockedUntilAccessor
     }
     public function isBlockedUntilChanged(?self $original = null): bool
     {
-        return $this->_blockedUntil->value() !== ($original ? $original->_blockedUntil->value() : null);
+        return $this->_blockedUntil?->value() !== ($original ? $original->_blockedUntil?->value() : null);
     }
     public function withBlockedUntil(UserBlockedUntilVO|\DateTimeImmutable|null $blockedUntil): self
     {

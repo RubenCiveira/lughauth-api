@@ -25,7 +25,7 @@ trait TrustedClientSecretOauthAttributeHolder
     }
     public function getSecretOauth(): ?string
     {
-        return is_a($this->secretOauth, TrustedClientSecretOauthVO::class) ? $this->secretOauth->value() : $this->secretOauth;
+        return is_a($this->secretOauth, TrustedClientSecretOauthVO::class) ? $this->secretOauth?->value() : $this->secretOauth;
     }
     public function unsetSecretOauth(): static
     {

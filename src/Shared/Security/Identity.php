@@ -114,6 +114,26 @@ class Identity
      */
     public function hasRole(string $role): bool
     {
-        return null !== $this->roles ? false !== array_search($role, $this->roles) : false;
+        if (null === $this->roles || empty($this->roles)) {
+            return false;
+        }
+
+        // Match exact
+        if (in_array($role, $this->roles, true)) {
+            return true;
+        }
+
+        // Wildcard prefix match: e.g. "platform:*" matches "platform:admin", "platform:support"
+        if (str_ends_with($role, ':*')) {
+            $prefix = substr($role, 0, -1); // keep trailing ":" (e.g. "platform:")
+
+            foreach ($this->roles as $r) {
+                if (str_starts_with($r, $prefix)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

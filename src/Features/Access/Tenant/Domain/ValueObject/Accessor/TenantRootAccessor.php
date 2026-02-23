@@ -20,7 +20,7 @@ trait TenantRootAccessor
     }
     public function isRootChanged(?self $original = null): bool
     {
-        return $this->_root->value() !== ($original ? $original->_root->value() : null);
+        return $this->_root?->value() !== ($original ? $original->_root?->value() : null);
     }
     public function withRoot(TenantRootVO|bool|null $root): self
     {

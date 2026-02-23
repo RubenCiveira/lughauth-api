@@ -25,7 +25,7 @@ trait TenantConfigWellcomeEmailAttributeHolder
     }
     public function getWellcomeEmail(): ?string
     {
-        return is_a($this->wellcomeEmail, TenantConfigWellcomeEmailVO::class) ? $this->wellcomeEmail->value() : $this->wellcomeEmail;
+        return is_a($this->wellcomeEmail, TenantConfigWellcomeEmailVO::class) ? $this->wellcomeEmail?->value() : $this->wellcomeEmail;
     }
     public function unsetWellcomeEmail(): static
     {

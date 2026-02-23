@@ -10,13 +10,14 @@ use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\RolePlugin;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driver\UserAccessTemporalCodePlugin;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
-use Civi\Lughauth\Features\Access\UserIdentity\Infrastructure\Driver\UserIdentityPlugin;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Driver\UserAcceptedTermnsOfUsePlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
+use Civi\Lughauth\Features\Access\ClientIdentity\Infrastructure\Driver\ClientIdentityPlugin;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\UserPlugin;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Infrastructure\Driver\PlatformIdentityPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
 
 class AccessPlugin extends AggregatedMicroPlugin
@@ -28,13 +29,14 @@ class AccessPlugin extends AggregatedMicroPlugin
           new UserAccessTemporalCodePlugin(),
           new RelyingPartyPlugin(),
           new TrustedClientPlugin(),
-          new UserIdentityPlugin(),
           new UserAcceptedTermnsOfUsePlugin(),
           new TenantConfigPlugin(),
           new ApiKeyClientPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
+          new ClientIdentityPlugin(),
           new UserPlugin(),
+          new PlatformIdentityPlugin(),
           new TenantPlugin(),
 ]);
     }

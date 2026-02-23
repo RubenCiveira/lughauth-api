@@ -27,17 +27,17 @@ use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\Gateway\UserIdentityWriteGateway;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentity;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\UserIdentityAttributes;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesItem;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesListRef;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesRoleVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesUidVO;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesVersionVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway\PlatformIdentityWriteGateway;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\PlatformIdentity;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\PlatformIdentityAttributes;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesItem;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesListRef;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesRoleVO;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesUidVO;
+use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
@@ -55,7 +55,7 @@ class InstallUsecase
         private readonly TenantWriteGateway $createTenant,
         private readonly RoleWriteGateway $createRole,
         private readonly UserWriteGateway $createUser,
-        private readonly UserIdentityWriteGateway $createIdentity,
+        private readonly PlatformIdentityWriteGateway $createPlatformIdentity,
         private readonly ApiKeyClientWriteGateway $apiKeys,
     ) {
     }
@@ -107,6 +107,11 @@ class InstallUsecase
         $root->name("ROOT");
         $root = $this->createRole->create(Role::create($root));
 
+        $iam = new RoleAttributes();
+        $iam->uid(Random::comb());
+        $iam->name("IAM");
+        $iam = $this->createRole->create(Role::create($iam));
+
         $tenant = new TenantAttributes();
         $tenant->uid(Random::comb());
         $tenant->root(true);
@@ -124,22 +129,27 @@ class InstallUsecase
         $created = $this->createUser->create(User::create($user));
         $this->createUser->update($created, $created->enable());
 
-        $roleAdmin = new UserIdentityRolesItem(
-            uid: UserIdentityRolesUidVO::from(Random::comb()),
-            role: UserIdentityRolesRoleVO::from(new RoleRef($admin->uid())),
-            version: UserIdentityRolesVersionVO::from(0)
+        $roleAdmin = new PlatformIdentityRolesItem(
+            uid: PlatformIdentityRolesUidVO::from(Random::comb()),
+            role: PlatformIdentityRolesRoleVO::from(new RoleRef($admin->uid())),
+            version: PlatformIdentityRolesVersionVO::from(0)
         );
-        $roleRoot = new UserIdentityRolesItem(
-            uid: UserIdentityRolesUidVO::from(Random::comb()),
-            role: UserIdentityRolesRoleVO::from(new RoleRef($root->uid())),
-            version: UserIdentityRolesVersionVO::from(0)
+        $roleRoot = new PlatformIdentityRolesItem(
+            uid: PlatformIdentityRolesUidVO::from(Random::comb()),
+            role: PlatformIdentityRolesRoleVO::from(new RoleRef($root->uid())),
+            version: PlatformIdentityRolesVersionVO::from(0)
+        );
+        $iamAdmin = new PlatformIdentityRolesItem(
+            uid: PlatformIdentityRolesUidVO::from(Random::comb()),
+            role: PlatformIdentityRolesRoleVO::from(new RoleRef($iam->uid())),
+            version: PlatformIdentityRolesVersionVO::from(0)
         );
 
-        $identity = new UserIdentityAttributes();
+        $identity = new PlatformIdentityAttributes();
         $identity->uid(Random::comb());
         $identity->user(new UserRef($user->getUid()));
-        $identity->roles(new UserIdentityRolesListRef($roleAdmin, $roleRoot));
-        $this->createIdentity->create(UserIdentity::create($identity));
+        $identity->roles(new PlatformIdentityRolesListRef($roleAdmin, $roleRoot, $iamAdmin));
+        $this->createPlatformIdentity->create(PlatformIdentity::create($identity));
 
         $apiKey = new ApiKeyClientAttributes();
         $apiKey->uid(Random::comb());

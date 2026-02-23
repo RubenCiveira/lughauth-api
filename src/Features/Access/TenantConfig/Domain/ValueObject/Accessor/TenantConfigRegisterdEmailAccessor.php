@@ -20,7 +20,7 @@ trait TenantConfigRegisterdEmailAccessor
     }
     public function isRegisterdEmailChanged(?self $original = null): bool
     {
-        return $this->_registerdEmail->value() !== ($original ? $original->_registerdEmail->value() : null);
+        return $this->_registerdEmail?->value() !== ($original ? $original->_registerdEmail?->value() : null);
     }
     public function withRegisterdEmail(TenantConfigRegisterdEmailVO|string|null $registerdEmail): self
     {

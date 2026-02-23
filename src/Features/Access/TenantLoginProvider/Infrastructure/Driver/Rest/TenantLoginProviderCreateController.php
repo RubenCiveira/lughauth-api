@@ -61,7 +61,8 @@ class TenantLoginProviderCreateController
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
             $value = $this->mapTenantLoginProvider($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -78,7 +79,8 @@ class TenantLoginProviderCreateController
         $this->logDebug("Read entity for Tenant login provider");
         $span = $this->startSpan("Read entity for Tenant login provider");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantLoginProviderCreateParams();
             $value->uid(TenantLoginProviderUidVO::tryFrom($body['uid'] ?? null, $errorsList));

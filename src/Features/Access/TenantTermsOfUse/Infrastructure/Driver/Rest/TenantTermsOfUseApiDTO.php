@@ -26,7 +26,7 @@ class TenantTermsOfUseApiDTO
           new OA\Property(property: "\$ref", type: "string")
     ]
     )]
-    public ?array $tenant;
+    public ?array $tenant = null;
     #[OA\Property(
         property: "text",
         title: "text",

@@ -54,15 +54,15 @@ class TenantConfigPlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/tenants-config', [$this, 'setRoutesForTenantConfigAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $bus->registerListener(TenantConfigCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(TenantConfigUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(TenantConfigRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(TenantConfigListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(TenantConfigDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(TenantConfigCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(TenantConfigUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(TenantConfigRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(TenantConfigListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(TenantConfigDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

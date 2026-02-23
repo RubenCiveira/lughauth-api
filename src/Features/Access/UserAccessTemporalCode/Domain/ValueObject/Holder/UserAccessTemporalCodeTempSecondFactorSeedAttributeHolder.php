@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeTempSecondFactorSeedAttributeHolder
     }
     public function getTempSecondFactorSeed(): ?string
     {
-        return is_a($this->tempSecondFactorSeed, UserAccessTemporalCodeTempSecondFactorSeedVO::class) ? $this->tempSecondFactorSeed->value() : $this->tempSecondFactorSeed;
+        return is_a($this->tempSecondFactorSeed, UserAccessTemporalCodeTempSecondFactorSeedVO::class) ? $this->tempSecondFactorSeed?->value() : $this->tempSecondFactorSeed;
     }
     public function unsetTempSecondFactorSeed(): static
     {

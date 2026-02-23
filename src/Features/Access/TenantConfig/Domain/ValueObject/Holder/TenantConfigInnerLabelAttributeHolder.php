@@ -25,7 +25,7 @@ trait TenantConfigInnerLabelAttributeHolder
     }
     public function getInnerLabel(): ?string
     {
-        return is_a($this->innerLabel, TenantConfigInnerLabelVO::class) ? $this->innerLabel->value() : $this->innerLabel;
+        return is_a($this->innerLabel, TenantConfigInnerLabelVO::class) ? $this->innerLabel?->value() : $this->innerLabel;
     }
     public function unsetInnerLabel(): static
     {

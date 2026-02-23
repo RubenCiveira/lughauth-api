@@ -25,7 +25,7 @@ trait RelyingPartyEnabledAttributeHolder
     }
     public function isEnabled(): ?bool
     {
-        return is_a($this->enabled, RelyingPartyEnabledVO::class) ? $this->enabled->value() : $this->enabled;
+        return is_a($this->enabled, RelyingPartyEnabledVO::class) ? $this->enabled?->value() : $this->enabled;
     }
     public function unsetEnabled(): static
     {

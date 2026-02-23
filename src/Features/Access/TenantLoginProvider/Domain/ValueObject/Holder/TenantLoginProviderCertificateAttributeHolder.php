@@ -25,7 +25,7 @@ trait TenantLoginProviderCertificateAttributeHolder
     }
     public function getCertificate(): ?string
     {
-        return is_a($this->certificate, TenantLoginProviderCertificateVO::class) ? $this->certificate->value() : $this->certificate;
+        return is_a($this->certificate, TenantLoginProviderCertificateVO::class) ? $this->certificate?->value() : $this->certificate;
     }
     public function unsetCertificate(): static
     {

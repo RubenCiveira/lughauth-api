@@ -69,20 +69,20 @@ class UserPlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/users', [$this, 'setRoutesForUserAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
-        $bus->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $bus->registerListener(UserCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(UserUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(UserRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(UserListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(UserDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $bus->registerListener(UserAcceptAllowDecision::class, IsAuthenticatedAcceptAllow::class);
-        $bus->registerListener(UserRejectAllowDecision::class, IsAuthenticatedRejectAllow::class);
-        $bus->registerListener(UserDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $bus->registerListener(UserEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $bus->registerListener(UserUnlockAllowDecision::class, IsAuthenticatedUnlockAllow::class);
+        $listener->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
+        $listener->registerListener(UserCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(UserUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(UserRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(UserListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(UserDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(UserAcceptAllowDecision::class, IsAuthenticatedAcceptAllow::class);
+        $listener->registerListener(UserRejectAllowDecision::class, IsAuthenticatedRejectAllow::class);
+        $listener->registerListener(UserDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(UserEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $listener->registerListener(UserUnlockAllowDecision::class, IsAuthenticatedUnlockAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

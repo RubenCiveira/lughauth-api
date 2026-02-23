@@ -20,7 +20,7 @@ trait ApiKeyClientScopesAccessor
     }
     public function isScopesChanged(?self $original = null): bool
     {
-        return $this->_scopes->value() !== ($original ? $original->_scopes->value() : null);
+        return $this->_scopes?->value() !== ($original ? $original->_scopes?->value() : null);
     }
     public function withScopes(ApiKeyClientScopesVO|string|null $scopes): self
     {

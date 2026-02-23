@@ -70,7 +70,8 @@ class UserUpdateController
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
             $value = $this->mapUser($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -87,7 +88,8 @@ class UserUpdateController
         $this->logDebug("Read entity for User");
         $span = $this->startSpan("Read entity for User");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new UserUpdateParams();
             $value->uid(UserUidVO::tryFrom($body['uid'] ?? null, $errorsList));
@@ -96,7 +98,7 @@ class UserUpdateController
             }
             $value->name(UserNameVO::tryFrom($body['name'] ?? null, $errorsList));
             $readPassword = $body['password'] ?? '******';
-            if ($readPassword && '******' !== $readPassword) {
+            if (null !== $readPassword && '******' !== $readPassword) {
                 $value->password(UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList));
             }
             $value->email(UserEmailVO::tryFrom($body['email'] ?? null, $errorsList));

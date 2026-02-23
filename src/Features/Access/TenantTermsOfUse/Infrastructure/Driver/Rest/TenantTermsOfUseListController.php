@@ -57,10 +57,12 @@ class TenantTermsOfUseListController
             );
             $result = $this->listUsecase->list($filter, $cursor);
             $value = ['items' => array_map(fn (TenantTermsOfUseAttributes $item): TenantTermsOfUseApiDTO => $this->mapTenantTermsOfUse($item), $result->values())];
-            if ($nextLink = $this->nextLink($result->cursor(), $params)) {
+            $nextLink = $this->nextLink($result->cursor(), $params);
+            if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
             }
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {

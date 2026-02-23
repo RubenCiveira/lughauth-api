@@ -76,12 +76,12 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $user = $this->getUser()?->uid();
-        if ($user) {
+        $user = $this->getUser()->uid();
+        if (null !== $user) {
             $data['user'] = ['$ref' => $user];
         }
-        $conditions = $this->getConditions()?->uid();
-        if ($conditions) {
+        $conditions = $this->getConditions()->uid();
+        if (null !== $conditions) {
             $data['conditions'] = ['$ref' => $conditions];
         }
         $data['acceptDate'] = $this->getAcceptDate();

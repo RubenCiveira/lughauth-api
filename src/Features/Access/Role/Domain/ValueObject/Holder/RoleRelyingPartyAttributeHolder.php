@@ -26,7 +26,7 @@ trait RoleRelyingPartyAttributeHolder
     }
     public function getRelyingParty(): ?RelyingPartyRef
     {
-        return is_a($this->relyingParty, RoleRelyingPartyVO::class) ? $this->relyingParty->value() : $this->relyingParty;
+        return is_a($this->relyingParty, RoleRelyingPartyVO::class) ? $this->relyingParty?->value() : $this->relyingParty;
     }
     public function unsetRelyingParty(): static
     {

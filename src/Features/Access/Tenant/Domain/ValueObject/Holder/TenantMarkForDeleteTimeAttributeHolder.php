@@ -25,7 +25,7 @@ trait TenantMarkForDeleteTimeAttributeHolder
     }
     public function getMarkForDeleteTime(): ?\DateTimeImmutable
     {
-        return is_a($this->markForDeleteTime, TenantMarkForDeleteTimeVO::class) ? $this->markForDeleteTime->value() : $this->markForDeleteTime;
+        return is_a($this->markForDeleteTime, TenantMarkForDeleteTimeVO::class) ? $this->markForDeleteTime?->value() : $this->markForDeleteTime;
     }
     public function unsetMarkForDeleteTime(): static
     {

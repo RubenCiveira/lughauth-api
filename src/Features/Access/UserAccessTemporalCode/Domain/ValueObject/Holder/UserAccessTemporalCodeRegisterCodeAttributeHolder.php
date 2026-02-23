@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeRegisterCodeAttributeHolder
     }
     public function getRegisterCode(): ?string
     {
-        return is_a($this->registerCode, UserAccessTemporalCodeRegisterCodeVO::class) ? $this->registerCode->value() : $this->registerCode;
+        return is_a($this->registerCode, UserAccessTemporalCodeRegisterCodeVO::class) ? $this->registerCode?->value() : $this->registerCode;
     }
     public function unsetRegisterCode(): static
     {

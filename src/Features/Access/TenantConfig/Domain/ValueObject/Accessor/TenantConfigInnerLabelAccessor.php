@@ -20,7 +20,7 @@ trait TenantConfigInnerLabelAccessor
     }
     public function isInnerLabelChanged(?self $original = null): bool
     {
-        return $this->_innerLabel->value() !== ($original ? $original->_innerLabel->value() : null);
+        return $this->_innerLabel?->value() !== ($original ? $original->_innerLabel?->value() : null);
     }
     public function withInnerLabel(TenantConfigInnerLabelVO|string|null $innerLabel): self
     {

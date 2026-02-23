@@ -20,7 +20,7 @@ trait RelyingPartyVersionAccessor
     }
     public function isVersionChanged(?self $original = null): bool
     {
-        return $this->_version->value() !== ($original ? $original->_version->value() : null);
+        return $this->_version?->value() !== ($original ? $original->_version?->value() : null);
     }
     public function withVersion(RelyingPartyVersionVO|int|null $version): self
     {

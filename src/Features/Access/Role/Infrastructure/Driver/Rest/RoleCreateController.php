@@ -52,7 +52,8 @@ class RoleCreateController
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
             $value = $this->mapRole($result);
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
               ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -69,7 +70,8 @@ class RoleCreateController
         $this->logDebug("Read entity for Role");
         $span = $this->startSpan("Read entity for Role");
         try {
-            $body = $request->getParsedBody();
+            $parsed = $request->getParsedBody() ?? [];
+            $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new RoleCreateParams();
             $value->uid(RoleUidVO::tryFrom($body['uid'] ?? null, $errorsList));

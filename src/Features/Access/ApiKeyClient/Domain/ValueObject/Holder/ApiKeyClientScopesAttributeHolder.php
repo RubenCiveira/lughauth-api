@@ -25,7 +25,7 @@ trait ApiKeyClientScopesAttributeHolder
     }
     public function getScopes(): ?string
     {
-        return is_a($this->scopes, ApiKeyClientScopesVO::class) ? $this->scopes->value() : $this->scopes;
+        return is_a($this->scopes, ApiKeyClientScopesVO::class) ? $this->scopes?->value() : $this->scopes;
     }
     public function unsetScopes(): static
     {

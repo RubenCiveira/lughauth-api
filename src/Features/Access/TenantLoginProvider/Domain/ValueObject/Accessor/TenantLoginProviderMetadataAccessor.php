@@ -20,7 +20,7 @@ trait TenantLoginProviderMetadataAccessor
     }
     public function isMetadataChanged(?self $original = null): bool
     {
-        return $this->_metadata->value() !== ($original ? $original->_metadata->value() : null);
+        return $this->_metadata?->value() !== ($original ? $original->_metadata?->value() : null);
     }
     public function withMetadata(TenantLoginProviderMetadataVO|string|null $metadata): self
     {

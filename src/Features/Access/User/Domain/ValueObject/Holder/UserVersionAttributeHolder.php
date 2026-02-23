@@ -25,7 +25,7 @@ trait UserVersionAttributeHolder
     }
     public function getVersion(): ?int
     {
-        return is_a($this->version, UserVersionVO::class) ? $this->version->value() : $this->version;
+        return is_a($this->version, UserVersionVO::class) ? $this->version?->value() : $this->version;
     }
     public function unsetVersion(): static
     {

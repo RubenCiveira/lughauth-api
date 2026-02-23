@@ -25,7 +25,7 @@ trait UserAccessTemporalCodeRegisterCodeExpirationAttributeHolder
     }
     public function getRegisterCodeExpiration(): ?\DateTimeImmutable
     {
-        return is_a($this->registerCodeExpiration, UserAccessTemporalCodeRegisterCodeExpirationVO::class) ? $this->registerCodeExpiration->value() : $this->registerCodeExpiration;
+        return is_a($this->registerCodeExpiration, UserAccessTemporalCodeRegisterCodeExpirationVO::class) ? $this->registerCodeExpiration?->value() : $this->registerCodeExpiration;
     }
     public function unsetRegisterCodeExpiration(): static
     {

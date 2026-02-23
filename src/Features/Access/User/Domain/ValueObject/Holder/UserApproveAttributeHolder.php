@@ -26,7 +26,7 @@ trait UserApproveAttributeHolder
     }
     public function getApprove(): ?UserApproveOptions
     {
-        return is_a($this->approve, UserApproveVO::class) ? $this->approve->value() : $this->approve;
+        return is_a($this->approve, UserApproveVO::class) ? $this->approve?->value() : $this->approve;
     }
     public function unsetApprove(): static
     {

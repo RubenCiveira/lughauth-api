@@ -63,22 +63,22 @@ class TrustedClientPlugin extends MicroPlugin
         $collector->group('/api/me/acl/access/trusted-clients', [$this, 'setRoutesForTrustedClientAcl']);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $bus->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $bus->registerListener(TrustedClientUpdateAllowDecision::class, UpdateTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $bus->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $bus->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientDeleteAllowDecision::class, DeleteTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $bus->registerListener(TrustedClientEnableAllowDecision::class, EnableTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $bus->registerListener(TrustedClientDisableAllowDecision::class, DisableTrustedClientOnlyForRootAllow::class);
-        $bus->registerListener(TrustedClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
+        $listener->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
+        $listener->registerListener(TrustedClientUpdateAllowDecision::class, UpdateTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientDeleteAllowDecision::class, DeleteTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
+        $listener->registerListener(TrustedClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
+        $listener->registerListener(TrustedClientEnableAllowDecision::class, EnableTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TrustedClientDisableAllowDecision::class, DisableTrustedClientOnlyForRootAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
