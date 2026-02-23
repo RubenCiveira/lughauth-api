@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Ena
 
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseUidAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTenantAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseRelyingPartyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTextAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseAttachedAttributeHolder;
@@ -18,6 +19,7 @@ class TenantTermsOfUseEnableResult
 {
     use TenantTermsOfUseUidAttributeHolder;
     use TenantTermsOfUseTenantAttributeHolder;
+    use TenantTermsOfUseRelyingPartyAttributeHolder;
     use TenantTermsOfUseTextAttributeHolder;
     use TenantTermsOfUseEnabledAttributeHolder;
     use TenantTermsOfUseAttachedAttributeHolder;
@@ -27,6 +29,7 @@ class TenantTermsOfUseEnableResult
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
+      'relyingParty' => 'unsetRelyingParty',
       'text' => 'unsetText',
       'enabled' => 'unsetEnabled',
       'attached' => 'unsetAttached',
@@ -39,6 +42,7 @@ class TenantTermsOfUseEnableResult
         if ($att) {
             $this->uid($att->getUidOrDefault(null));
             $this->tenant($att->getTenantOrDefault(null));
+            $this->relyingParty($att->getRelyingPartyOrDefault(null));
             $this->text($att->getTextOrDefault(null));
             $this->enabled($att->getEnabledOrDefault(null));
             $this->attached($att->getAttachedOrDefault(null));
@@ -54,6 +58,9 @@ class TenantTermsOfUseEnableResult
         }
         if ($this->tenantAssigned) {
             $att->tenant($this->tenant);
+        }
+        if ($this->relyingPartyAssigned) {
+            $att->relyingParty($this->relyingParty);
         }
         if ($this->textAssigned) {
             $att->text($this->text);
@@ -82,6 +89,7 @@ class TenantTermsOfUseEnableResult
     {
         $this->withDefaultUid();
         $this->withDefaultTenant();
+        $this->withDefaultRelyingParty();
         $this->withDefaultText();
         $this->withDefaultEnabled();
         $this->withDefaultAttached();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
@@ -33,6 +34,17 @@ final class TrustedClientEnableResultUnitTest extends TestCase
         $value->unsetCode();
         $this->assertEquals('other', $value->getCodeOrDefault(TrustedClientCodeVO::from($codeOtherValue))->value());
         $this->assertNotEquals('one', $value->getCodeOrDefault(TrustedClientCodeVO::from($codeOtherValue))->value());
+        $allowAllScopesOneValue = true;
+        $allowAllScopesOtherValue = false;
+        $copy = $value->allowAllScopes($allowAllScopesOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals(true, $value->isAllowAllScopes());
+        $this->assertNotEquals(false, $value->isAllowAllScopes());
+        $this->assertEquals(true, $value->getAllowAllScopesOrDefault(TrustedClientAllowAllScopesVO::from($allowAllScopesOtherValue))->value());
+        $this->assertNotEquals(false, $value->getAllowAllScopesOrDefault(TrustedClientAllowAllScopesVO::from($allowAllScopesOtherValue))->value());
+        $value->unsetAllowAllScopes();
+        $this->assertEquals(false, $value->getAllowAllScopesOrDefault(TrustedClientAllowAllScopesVO::from($allowAllScopesOtherValue))->value());
+        $this->assertNotEquals(true, $value->getAllowAllScopesOrDefault(TrustedClientAllowAllScopesVO::from($allowAllScopesOtherValue))->value());
         $publicAllowOneValue = true;
         $publicAllowOtherValue = false;
         $copy = $value->publicAllow($publicAllowOneValue);

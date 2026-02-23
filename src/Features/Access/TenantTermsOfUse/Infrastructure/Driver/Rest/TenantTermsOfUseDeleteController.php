@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\Te
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Batch\TenantTermsOfUseTaskDelete;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 
 class TenantTermsOfUseDeleteController
 {
@@ -78,6 +79,8 @@ class TenantTermsOfUseDeleteController
                 search: $params['search'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
+                relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
+                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
             );
             $res = $this->runner->run(TenantTermsOfUseTaskDelete::class, ['filter' => $filter]);
             $encoded = json_encode($res);

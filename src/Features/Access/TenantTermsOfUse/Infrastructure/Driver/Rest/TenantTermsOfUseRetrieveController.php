@@ -95,9 +95,11 @@ class TenantTermsOfUseRetrieveController
         $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
         try {
             $tenant = $value->getTenant();
+            $relyingParty = $value->getRelyingParty();
             $dto = new TenantTermsOfUseApiDTO();
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
             if ($value->getAttached()) {

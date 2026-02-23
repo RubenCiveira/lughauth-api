@@ -8,6 +8,8 @@ namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseUidVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseTenantAccessor;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseRelyingPartyVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseRelyingPartyAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Accessor\TenantTermsOfUseTextAccessor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
@@ -25,12 +27,14 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event\TenantTermsOfUse
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event\TenantTermsOfUseEnableEvent;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Event\TenantTermsOfUseDisableEvent;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStorageInterface;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
 class TenantTermsOfUse extends TenantTermsOfUseRef
 {
     use TenantTermsOfUseTenantAccessor;
+    use TenantTermsOfUseRelyingPartyAccessor;
     use TenantTermsOfUseTextAccessor;
     use TenantTermsOfUseEnabledAccessor;
     use TenantTermsOfUseAttachedAccessor;
@@ -43,12 +47,14 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         TenantTermsOfUseTenantVO|TenantRef $tenant,
         TenantTermsOfUseTextVO|string $text,
         TenantTermsOfUseEnabledVO|bool $enabled,
+        TenantTermsOfUseRelyingPartyVO|RelyingPartyRef|null $relyingParty = null,
         TenantTermsOfUseAttachedVO|string|null $attached = null,
         TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $activationDate = null,
         TenantTermsOfUseVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
         $this->_tenant = TenantTermsOfUseTenantVO::from($tenant);
+        $this->_relyingParty = null === $relyingParty ? TenantTermsOfUseRelyingPartyVO::empty() : TenantTermsOfUseRelyingPartyVO::from($relyingParty);
         $this->_text = TenantTermsOfUseTextVO::from($text);
         $this->_enabled = TenantTermsOfUseEnabledVO::from($enabled);
         $this->_attached = null === $attached ? TenantTermsOfUseAttachedVO::empty() : TenantTermsOfUseAttachedVO::from($attached);
@@ -59,6 +65,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
     {
         $value = clone $this;
         $value->_tenant = $values->getTenantOrDefault($this->_tenant);
+        $value->_relyingParty = $values->getRelyingPartyOrDefault($this->_relyingParty);
         $value->_text = $values->getTextOrDefault($this->_text);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
         $value->_attached = $values->getAttachedOrDefault($this->_attached);
@@ -119,6 +126,10 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         if (null !== $tenant) {
             $data['tenant'] = ['$ref' => $tenant];
         }
+        $relyingParty = $this->getRelyingParty()->uid();
+        if (null !== $relyingParty) {
+            $data['relyingParty'] = ['$ref' => $relyingParty];
+        }
         $data['enabled'] = $this->isEnabled();
         $data['activationDate'] = $this->getActivationDate();
         $data['version'] = $this->getVersion();
@@ -129,6 +140,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         return (new TenantTermsOfUseAttributes())
           ->uid($this->uid())
           ->tenant($this->_tenant)
+          ->relyingParty($this->_relyingParty)
           ->text($this->_text)
           ->enabled($this->_enabled)
           ->attached($this->_attached)

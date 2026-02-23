@@ -8,6 +8,8 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Domain;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientCodeAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowAllScopesAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientPublicAllowAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
@@ -29,6 +31,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\Event\TrustedClientDisabl
 class TrustedClient extends TrustedClientRef
 {
     use TrustedClientCodeAccessor;
+    use TrustedClientAllowAllScopesAccessor;
     use TrustedClientPublicAllowAccessor;
     use TrustedClientSecretOauthAccessor;
     use TrustedClientEnabledAccessor;
@@ -42,11 +45,13 @@ class TrustedClient extends TrustedClientRef
         TrustedClientPublicAllowVO|bool $publicAllow,
         TrustedClientEnabledVO|bool $enabled,
         TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects,
+        TrustedClientAllowAllScopesVO|bool|null $allowAllScopes = null,
         TrustedClientSecretOauthVO|string|null $secretOauth = null,
         TrustedClientVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
         $this->_code = TrustedClientCodeVO::from($code);
+        $this->_allowAllScopes = null === $allowAllScopes ? TrustedClientAllowAllScopesVO::empty() : TrustedClientAllowAllScopesVO::from($allowAllScopes);
         $this->_publicAllow = TrustedClientPublicAllowVO::from($publicAllow);
         $this->_secretOauth = null === $secretOauth ? TrustedClientSecretOauthVO::empty() : TrustedClientSecretOauthVO::from($secretOauth);
         $this->_enabled = TrustedClientEnabledVO::from($enabled);
@@ -57,6 +62,7 @@ class TrustedClient extends TrustedClientRef
     {
         $value = clone $this;
         $value->_code = $values->getCodeOrDefault($this->_code);
+        $value->_allowAllScopes = $values->getAllowAllScopesOrDefault($this->_allowAllScopes);
         $value->_publicAllow = $values->getPublicAllowOrDefault($this->_publicAllow);
         $value->_secretOauth = $values->getSecretOauthOrDefault($this->_secretOauth);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
@@ -109,6 +115,7 @@ class TrustedClient extends TrustedClientRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['code'] = $this->getCode();
+        $data['allowAllScopes'] = $this->isAllowAllScopes();
         $data['publicAllow'] = $this->isPublicAllow();
         $data['enabled'] = $this->isEnabled();
         $allowedRedirects = $this->getAllowedRedirects();
@@ -130,6 +137,7 @@ class TrustedClient extends TrustedClientRef
         return (new TrustedClientAttributes())
           ->uid($this->uid())
           ->code($this->_code)
+          ->allowAllScopes($this->_allowAllScopes)
           ->publicAllow($this->_publicAllow)
           ->secretOauth($this->_secretOauth)
           ->enabled($this->_enabled)

@@ -5,36 +5,36 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRelyingPartyVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseRelyingPartyVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 
-final class UserIdentityRelyingPartyVOUnitTest extends TestCase
+final class TenantTermsOfUseRelyingPartyVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
         $value = new RelyingPartyRef('one');
-        $ref = UserIdentityRelyingPartyVO::from($value);
+        $ref = TenantTermsOfUseRelyingPartyVO::from($value);
         $this->assertEquals(new RelyingPartyRef('one'), $ref->value());
-        $other = UserIdentityRelyingPartyVO::tryFrom($ref, new ConstraintFailList());
+        $other = TenantTermsOfUseRelyingPartyVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
-        $more = UserIdentityRelyingPartyVO::from($ref);
+        $more = TenantTermsOfUseRelyingPartyVO::from($ref);
         $this->assertSame($more, $ref);
     }
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = UserIdentityRelyingPartyVO::tryFrom('1', $errors);
+        $other = TenantTermsOfUseRelyingPartyVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
     public function test_empty(): void
     {
-        $ref = UserIdentityRelyingPartyVO::empty();
+        $ref = TenantTermsOfUseRelyingPartyVO::empty();
         $this->assertNull($ref->value());
     }
     public function test_try_from_empty(): void
     {
-        $ref = UserIdentityRelyingPartyVO::tryFrom(null, new ConstraintFailList());
+        $ref = TenantTermsOfUseRelyingPartyVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
 }

@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 
 class TenantTermsOfUseFilter
 {
@@ -14,6 +15,8 @@ class TenantTermsOfUseFilter
         private ?string $search = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
+        private ?RelyingPartyRef $relyingParty = null,
+        private ?array $relyingPartys = null,
         private ?string $tenantTenantAccesible = null,
     ) {
     }
@@ -55,6 +58,26 @@ class TenantTermsOfUseFilter
     {
         $copy = clone $this;
         $copy->tenants = $tenants;
+        return $copy;
+    }
+    public function relyingParty(): ?RelyingPartyRef
+    {
+        return $this->relyingParty;
+    }
+    public function withRelyingParty($relyingParty): self
+    {
+        $copy = clone $this;
+        $copy->relyingParty = $relyingParty;
+        return $copy;
+    }
+    public function relyingPartys(): ?array
+    {
+        return $this->relyingPartys;
+    }
+    public function withRelyingPartys($relyingPartys): self
+    {
+        $copy = clone $this;
+        $copy->relyingPartys = $relyingPartys;
         return $copy;
     }
     public function tenantTenantAccesible(): ?string

@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientUidAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientCodeAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowAllScopesAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientEnabledAttributeHolder;
@@ -18,6 +19,7 @@ class TrustedClientCreateParams
 {
     use TrustedClientUidAttributeHolder;
     use TrustedClientCodeAttributeHolder;
+    use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
@@ -27,6 +29,7 @@ class TrustedClientCreateParams
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
+      'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
       'secretOauth' => 'unsetSecretOauth',
       'enabled' => 'unsetEnabled',
@@ -39,6 +42,7 @@ class TrustedClientCreateParams
         if ($att) {
             $this->uid($att->getUidOrDefault(null));
             $this->code($att->getCodeOrDefault(null));
+            $this->allowAllScopes($att->getAllowAllScopesOrDefault(null));
             $this->publicAllow($att->getPublicAllowOrDefault(null));
             $this->secretOauth($att->getSecretOauthOrDefault(null));
             $this->enabled($att->getEnabledOrDefault(null));
@@ -54,6 +58,9 @@ class TrustedClientCreateParams
         }
         if ($this->codeAssigned) {
             $att->code($this->code);
+        }
+        if ($this->allowAllScopesAssigned) {
+            $att->allowAllScopes($this->allowAllScopes);
         }
         if ($this->publicAllowAssigned) {
             $att->publicAllow($this->publicAllow);
@@ -82,6 +89,7 @@ class TrustedClientCreateParams
     {
         $this->withDefaultUid();
         $this->withDefaultCode();
+        $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
         $this->withDefaultSecretOauth();
         $this->withDefaultEnabled();

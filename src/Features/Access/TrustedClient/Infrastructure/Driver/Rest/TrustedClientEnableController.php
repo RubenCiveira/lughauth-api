@@ -126,6 +126,7 @@ class TrustedClientEnableController
             $dto = new TrustedClientApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
+            $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
             $dto->secretOauth = '******';
             $dto->enabled = $value->isEnabled();

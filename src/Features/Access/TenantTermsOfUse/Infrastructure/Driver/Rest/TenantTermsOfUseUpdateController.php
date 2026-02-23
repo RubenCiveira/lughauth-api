@@ -18,6 +18,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\Te
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseUidVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseRelyingPartyVO;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
 use Civi\Lughauth\Shared\Context;
@@ -94,6 +96,9 @@ class TenantTermsOfUseUpdateController
             if (in_array('tenant', array_keys($body))) {
                 $value->tenant(TenantTermsOfUseTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
+            if (in_array('relyingParty', array_keys($body))) {
+                $value->relyingParty(TenantTermsOfUseRelyingPartyVO::tryFrom(isset($body['relyingParty']['$ref']) ? new RelyingPartyRef($body['relyingParty']['$ref']) : null, $errorsList));
+            }
             $value->text(TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList));
             $attached = $body['attached'] ?? null;
             $preffixAttached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/-/temp-attached?temp=';
@@ -119,9 +124,11 @@ class TenantTermsOfUseUpdateController
         $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
         try {
             $tenant = $value->getTenant();
+            $relyingParty = $value->getRelyingParty();
             $dto = new TenantTermsOfUseApiDTO();
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
             if ($value->getAttached()) {

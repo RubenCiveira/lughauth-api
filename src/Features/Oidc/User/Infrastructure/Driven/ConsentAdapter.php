@@ -40,10 +40,7 @@ class ConsentAdapter implements ConsentGateway
     {
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUser($theTenant, $username);
-        if (!$audiences) {
-            $terms = $this->users->loadTenantTerms($theTenant);
-            return $this->isPendingTerms($theUser, $terms) ? $terms->getText() : null;
-        }
+        $this->users->loadTenantTerms($theTenant, $audiences);
         foreach ($audiences as $audience) {
             $trusted = $this->clients->findOneByCode($audience);
             $party = $this->parties->findOneByCode($audience);
@@ -51,7 +48,7 @@ class ConsentAdapter implements ConsentGateway
                 continue;
             }
             $terms = $this->loadTermsForAudience($theTenant, $trusted, $party);
-            if ($this->isPendingTerms($theUser, $terms)) {
+            if (null !== $terms && $this->isPendingTerms($theUser, $terms)) {
                 return $terms->getText();
             }
         }
@@ -63,14 +60,7 @@ class ConsentAdapter implements ConsentGateway
     {
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUser($theTenant, $username);
-        if (!$audiences) {
-            $terms = $this->users->loadTenantTerms($theTenant);
-            if (!$this->isPendingTerms($theUser, $terms)) {
-                return;
-            }
-            $this->storeAccepted($theUser, $terms);
-            return;
-        }
+        $this->users->loadTenantTerms($theTenant, $audiences);
         foreach ($audiences as $audience) {
             $trusted = $this->clients->findOneByCode($audience);
             $party = $this->parties->findOneByCode($audience);
@@ -78,7 +68,7 @@ class ConsentAdapter implements ConsentGateway
                 continue;
             }
             $terms = $this->loadTermsForAudience($theTenant, $trusted, $party);
-            if ($this->isPendingTerms($theUser, $terms)) {
+            if (null !== $terms && $this->isPendingTerms($theUser, $terms)) {
                 $this->storeAccepted($theUser, $terms);
                 return;
             }
@@ -99,7 +89,7 @@ class ConsentAdapter implements ConsentGateway
         ?TrustedClient $trusted,
         ?RelyingParty $party
     ): ?TenantTermsOfUse {
-        return $this->users->loadTenantTerms($tenant);
+        return $this->user->loadTenantTerms
     }
 
     private function storeAccepted(User $user, TenantTermsOfUse $terms): void

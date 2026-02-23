@@ -28,6 +28,16 @@ class TenantTermsOfUseApiDTO
     )]
     public ?array $tenant = null;
     #[OA\Property(
+        property: "relyingParty",
+        title: "relying party",
+        description:"La applicación a tener en cuenta",
+        type: "object",
+        properties: [
+          new OA\Property(property: "\$ref", type: "string")
+    ]
+    )]
+    public ?array $relyingParty = null;
+    #[OA\Property(
         property: "text",
         title: "text",
         description:"El text de tenant terms of use",

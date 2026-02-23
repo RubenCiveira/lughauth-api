@@ -9,6 +9,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientCodeAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowAllScopesAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
@@ -25,6 +27,7 @@ class TrustedClientAttributes
 {
     use TrustedClientUidAttributeHolder;
     use TrustedClientCodeAttributeHolder;
+    use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
@@ -34,6 +37,7 @@ class TrustedClientAttributes
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'code' => 'unsetCode',
+      'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
       'secretOauth' => 'unsetSecretOauth',
       'enabled' => 'unsetEnabled',
@@ -46,6 +50,7 @@ class TrustedClientAttributes
         $errors = new ConstraintFailList();
         $uid = TrustedClientUidVO::tryFrom($this->uid, $errors);
         $code = TrustedClientCodeVO::tryFrom($this->code, $errors);
+        $allowAllScopes = TrustedClientAllowAllScopesVO::tryFrom($this->allowAllScopes, $errors);
         $publicAllow = TrustedClientPublicAllowVO::tryFrom($this->publicAllow, $errors);
         $secretOauth = TrustedClientSecretOauthVO::tryFrom($this->secretOauth, $errors);
         $enabled = TrustedClientEnabledVO::tryFrom($this->enabled, $errors);
@@ -62,6 +67,7 @@ class TrustedClientAttributes
         return new TrustedClient(
             uid: $uid,
             code: $code,
+            allowAllScopes: $allowAllScopes,
             publicAllow: $publicAllow,
             secretOauth: $secretOauth,
             enabled: $enabled,
@@ -75,6 +81,7 @@ class TrustedClientAttributes
         $errorsList = new ConstraintFailList();
         $this->withAssertedUidRules($value, $errorsList);
         $this->withAssertedCodeRules($value, $errorsList);
+        $this->withAssertedAllowAllScopesRules($value, $errorsList);
         $this->withAssertedPublicAllowRules($value, $errorsList);
         $this->withAssertedSecretOauthRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
@@ -95,6 +102,7 @@ class TrustedClientAttributes
     {
         $this->withDefaultUid();
         $this->withDefaultCode();
+        $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
         $this->withDefaultSecretOauth();
         $this->withDefaultEnabled();

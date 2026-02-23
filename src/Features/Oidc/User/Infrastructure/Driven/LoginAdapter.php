@@ -5,6 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
+namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
+
 use Override;
 use DateInterval;
 use DateTimeImmutable;
@@ -242,8 +244,8 @@ class LoginAdapter implements LoginGateway
                         relyingParty: $from
                     ), $main, $roles[$audience]);
                     $this->clientRolesFromIdentity(new ClientIdentityFilter(
-                         user: $user,
-                         relyingParty: $from
+                        user: $user,
+                        relyingParty: $from
                     ), $main, $roles[$audience]);
                 }
             }
@@ -277,7 +279,7 @@ class LoginAdapter implements LoginGateway
             if (null !== $hisRoles) {
                 $roles = explode(",", $hisRoles);
                 foreach ($roles as $role) {
-                    $roleName = str_replace(':', '-',  strtolower($role) );
+                    $roleName = str_replace(':', '-', strtolower($role));
                     if (!in_array($roleName, $roles, true)) {
                         $roles[] = $roleName;
                     }

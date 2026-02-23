@@ -90,6 +90,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
             $handler->registerResourceAction("tenant-terms-of-use", "disable", "WRITE");
 
             $handler->registerResourceAttribute("tenant-terms-of-use", "tenant", "MANAGE");
+            $handler->registerResourceAttribute("tenant-terms-of-use", "relyingParty", "MANAGE");
             $handler->registerResourceAttribute("tenant-terms-of-use", "text", "MANAGE");
             $handler->registerResourceAttribute("tenant-terms-of-use", "enabled", "MANAGE");
             $handler->registerResourceAttribute("tenant-terms-of-use", "attached", "MANAGE");

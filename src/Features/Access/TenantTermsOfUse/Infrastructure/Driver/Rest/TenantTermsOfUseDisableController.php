@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\T
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Batch\TenantTermsOfUseTaskDisable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableResult;
 
@@ -84,6 +85,8 @@ class TenantTermsOfUseDisableController
                 search: $params['search'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
+                relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
+                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
             );
             $res = $this->runner->run(TenantTermsOfUseTaskDisable::class, ['filter' => $filter]);
             $encoded = json_encode($res);
@@ -127,9 +130,11 @@ class TenantTermsOfUseDisableController
         $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
         try {
             $tenant = $value->getTenant();
+            $relyingParty = $value->getRelyingParty();
             $dto = new TenantTermsOfUseApiDTO();
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
+            $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
             if ($value->getAttached()) {

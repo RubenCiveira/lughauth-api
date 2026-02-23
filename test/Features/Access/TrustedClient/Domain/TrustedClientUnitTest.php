@@ -19,6 +19,7 @@ final class TrustedClientUnitTest extends TestCase
         $one = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -39,6 +40,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
+        $this->assertEquals($one->isAllowAllScopes(), $other->isAllowAllScopes());
+        $this->assertTrue($one->isAllowAllScopesChanged());
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
@@ -54,6 +57,7 @@ final class TrustedClientUnitTest extends TestCase
         $base = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -67,6 +71,7 @@ final class TrustedClientUnitTest extends TestCase
         $other = new TrustedClient(
             uid: 'other',
             code: 'other',
+            allowAllScopes: false,
             publicAllow: false,
             secretOauth: 'cyphered://ocyphered',
             enabled: false,
@@ -85,6 +90,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged($base));
+        $this->assertEquals($one->isAllowAllScopes(), $other->isAllowAllScopes());
+        $this->assertTrue($one->isAllowAllScopesChanged($base));
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
@@ -100,6 +107,7 @@ final class TrustedClientUnitTest extends TestCase
         $one = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -117,6 +125,7 @@ final class TrustedClientUnitTest extends TestCase
         // @Assert
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['code']);
+        $this->assertEquals(true, $json['allowAllScopes']);
         $this->assertEquals(true, $json['publicAllow']);
         $this->assertEquals(true, $json['enabled']);
         $this->assertEquals('one', $json['allowedRedirects'][0]['uid']);
@@ -131,6 +140,7 @@ final class TrustedClientUnitTest extends TestCase
         $one = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -149,6 +159,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
+        $this->assertEquals($one->isAllowAllScopes(), $other->isAllowAllScopes());
+        $this->assertTrue($one->isAllowAllScopesChanged());
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
@@ -165,6 +177,7 @@ final class TrustedClientUnitTest extends TestCase
         $base = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -178,6 +191,7 @@ final class TrustedClientUnitTest extends TestCase
         $other = new TrustedClient(
             uid: 'other',
             code: 'other',
+            allowAllScopes: false,
             publicAllow: false,
             secretOauth: 'cyphered://ocyphered',
             enabled: false,
@@ -196,6 +210,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged($base));
+        $this->assertEquals($one->isAllowAllScopes(), $other->isAllowAllScopes());
+        $this->assertTrue($one->isAllowAllScopesChanged($base));
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
@@ -213,6 +229,7 @@ final class TrustedClientUnitTest extends TestCase
         $one = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -231,6 +248,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getCode(), $other->getCode());
         $this->assertTrue($one->isCodeChanged());
+        $this->assertEquals($one->isAllowAllScopes(), $other->isAllowAllScopes());
+        $this->assertTrue($one->isAllowAllScopesChanged());
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
@@ -246,6 +265,7 @@ final class TrustedClientUnitTest extends TestCase
         $source = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,
@@ -274,6 +294,7 @@ final class TrustedClientUnitTest extends TestCase
         $source = new TrustedClient(
             uid: 'one',
             code: 'one',
+            allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
             enabled: true,

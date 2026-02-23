@@ -25,6 +25,13 @@ class TrustedClientApiDTO
     )]
     public ?string $code;
     #[OA\Property(
+        property: "allowAllScopes",
+        title: "allow all scopes",
+        description:"El allow all scopes de trusted client",
+        type: "string"
+    )]
+    public ?bool $allowAllScopes;
+    #[OA\Property(
         property: "publicAllow",
         title: "public allow",
         description:"If true, users can use these client to access with public code flow",

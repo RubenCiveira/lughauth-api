@@ -5,35 +5,35 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\UserIdentity\Domain\ValueObject\UserIdentityRolesVersionVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 
-final class UserIdentityRolesVersionVOUnitTest extends TestCase
+final class TrustedClientAllowAllScopesVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = 1;
-        $ref = UserIdentityRolesVersionVO::from($value);
-        $this->assertEquals(1, $ref->value());
-        $other = UserIdentityRolesVersionVO::tryFrom($ref, new ConstraintFailList());
+        $value = true;
+        $ref = TrustedClientAllowAllScopesVO::from($value);
+        $this->assertEquals(true, $ref->value());
+        $other = TrustedClientAllowAllScopesVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
-        $more = UserIdentityRolesVersionVO::from($ref);
+        $more = TrustedClientAllowAllScopesVO::from($ref);
         $this->assertSame($more, $ref);
     }
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = UserIdentityRolesVersionVO::tryFrom('1', $errors);
+        $other = TrustedClientAllowAllScopesVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
     public function test_empty(): void
     {
-        $ref = UserIdentityRolesVersionVO::empty();
+        $ref = TrustedClientAllowAllScopesVO::empty();
         $this->assertNull($ref->value());
     }
     public function test_try_from_empty(): void
     {
-        $ref = UserIdentityRolesVersionVO::tryFrom(null, new ConstraintFailList());
+        $ref = TrustedClientAllowAllScopesVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
 }

@@ -9,6 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
@@ -30,7 +31,8 @@ class TenantTermsOfUseVisibilityService
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantTermsOfUseReadGateway $readGateway,
         private readonly TenantTermsOfUseWriteGateway $writeGateway,
-        private readonly TenantVisibilityService $tenantVisibilityService
+        private readonly TenantVisibilityService $tenantVisibilityService,
+        private readonly RelyingPartyVisibilityService $relyingPartyVisibilityService
     ) {
     }
 
@@ -243,6 +245,9 @@ class TenantTermsOfUseVisibilityService
         try {
             if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
                 throw new NotFoundException("Unknown Tenant " . $attributes->getTenant());
+            }
+            if ($attributes->getRelyingParty() && !$this->relyingPartyVisibilityService->checkVisibility($attributes->getRelyingParty())) {
+                throw new NotFoundException("Unknown RelyingParty " . $attributes->getRelyingParty());
             }
             return $attributes;
         } catch (Throwable $ex) {

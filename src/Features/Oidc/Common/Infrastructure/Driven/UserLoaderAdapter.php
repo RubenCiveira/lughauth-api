@@ -48,7 +48,7 @@ class UserLoaderAdapter
         return $code;
     }
 
-    public function loadTenantTerms(Tenant $tenant): ?TenantTermsOfUse
+    public function loadTenantTerms(Tenant $tenant, array $relyingParties): ?TenantTermsOfUse
     {
         /** @var ?TenantTermsOfUse  */
         $last = null;

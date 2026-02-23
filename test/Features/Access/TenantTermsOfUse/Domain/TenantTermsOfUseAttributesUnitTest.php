@@ -4,7 +4,9 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseRelyingPartyVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
@@ -29,6 +31,17 @@ final class TenantTermsOfUseAttributesUnitTest extends TestCase
         $value->unsetTenant();
         $this->assertEquals(new TenantRef('other'), $value->getTenantOrDefault(TenantTermsOfUseTenantVO::from($tenantOtherValue))->value());
         $this->assertNotEquals(new TenantRef('one'), $value->getTenantOrDefault(TenantTermsOfUseTenantVO::from($tenantOtherValue))->value());
+        $relyingPartyOneValue = new RelyingPartyRef('one');
+        $relyingPartyOtherValue = new RelyingPartyRef('other');
+        $copy = $value->relyingParty($relyingPartyOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingParty());
+        $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingParty());
+        $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrDefault(TenantTermsOfUseRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrDefault(TenantTermsOfUseRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $value->unsetRelyingParty();
+        $this->assertEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrDefault(TenantTermsOfUseRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertNotEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrDefault(TenantTermsOfUseRelyingPartyVO::from($relyingPartyOtherValue))->value());
         $textOneValue = 'one';
         $textOtherValue = 'other';
         $copy = $value->text($textOneValue);

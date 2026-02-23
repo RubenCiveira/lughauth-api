@@ -94,6 +94,7 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAction("trusted-client", "disable", "WRITE");
 
             $handler->registerResourceAttribute("trusted-client", "code", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "allowAllScopes", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "publicAllow", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "secretOauth", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "enabled", "MANAGE");

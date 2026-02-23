@@ -144,9 +144,10 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute insert sql query for Trusted client");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "public_allow", "secret_oauth", "enabled", "version") VALUES ( :uid, :code, :publicAllow, :secretOauth, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "enabled", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :enabled, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'allowAllScopes', value: $entity->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $entity->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $entity->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
@@ -178,9 +179,10 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute update sql query for Trusted client");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
+                     new SqlParam(name: 'allowAllScopes', value: $update->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $update->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
@@ -486,6 +488,7 @@ class TrustedClientPdoConnector
             return new TrustedClient(
                 uid: $row['uid'] ?? null,
                 code: $row['code'] ?? null,
+                allowAllScopes: isset($row['allow_all_scopes']) ? !! $row['allow_all_scopes'] : null,
                 publicAllow: isset($row['public_allow']) ? !! $row['public_allow'] : null,
                 secretOauth: isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty(),
                 enabled: isset($row['enabled']) ? !! $row['enabled'] : null,

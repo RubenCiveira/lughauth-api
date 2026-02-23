@@ -9,6 +9,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\Ten
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseUidVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTenantAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseRelyingPartyAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseRelyingPartyVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTextAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseEnabledAttributeHolder;
@@ -25,6 +27,7 @@ class TenantTermsOfUseAttributes
 {
     use TenantTermsOfUseUidAttributeHolder;
     use TenantTermsOfUseTenantAttributeHolder;
+    use TenantTermsOfUseRelyingPartyAttributeHolder;
     use TenantTermsOfUseTextAttributeHolder;
     use TenantTermsOfUseEnabledAttributeHolder;
     use TenantTermsOfUseAttachedAttributeHolder;
@@ -34,6 +37,7 @@ class TenantTermsOfUseAttributes
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'tenant' => 'unsetTenant',
+      'relyingParty' => 'unsetRelyingParty',
       'text' => 'unsetText',
       'enabled' => 'unsetEnabled',
       'attached' => 'unsetAttached',
@@ -46,6 +50,7 @@ class TenantTermsOfUseAttributes
         $errors = new ConstraintFailList();
         $uid = TenantTermsOfUseUidVO::tryFrom($this->uid, $errors);
         $tenant = TenantTermsOfUseTenantVO::tryFrom($this->tenant, $errors);
+        $relyingParty = TenantTermsOfUseRelyingPartyVO::tryFrom($this->relyingParty, $errors);
         $text = TenantTermsOfUseTextVO::tryFrom($this->text, $errors);
         $enabled = TenantTermsOfUseEnabledVO::tryFrom($this->enabled, $errors);
         $attached = TenantTermsOfUseAttachedVO::tryFrom($this->attached, $errors);
@@ -61,6 +66,7 @@ class TenantTermsOfUseAttributes
         return new TenantTermsOfUse(
             uid: $uid,
             tenant: $tenant,
+            relyingParty: $relyingParty,
             text: $text,
             enabled: $enabled,
             attached: $attached,
@@ -74,6 +80,7 @@ class TenantTermsOfUseAttributes
         $errorsList = new ConstraintFailList();
         $this->withAssertedUidRules($value, $errorsList);
         $this->withAssertedTenantRules($value, $errorsList);
+        $this->withAssertedRelyingPartyRules($value, $errorsList);
         $this->withAssertedTextRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedAttachedRules($value, $errorsList);
@@ -94,6 +101,7 @@ class TenantTermsOfUseAttributes
     {
         $this->withDefaultUid();
         $this->withDefaultTenant();
+        $this->withDefaultRelyingParty();
         $this->withDefaultText();
         $this->withDefaultEnabled();
         $this->withDefaultAttached();

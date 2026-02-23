@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 
@@ -15,6 +16,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $one = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -31,6 +33,8 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged());
         $this->assertEquals($one->getText(), $other->getText());
         $this->assertTrue($one->isTextChanged());
         $this->assertEquals($one->getAttached(), $other->getAttached());
@@ -46,6 +50,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $base = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -55,6 +60,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $other = new TenantTermsOfUse(
             uid: 'other',
             tenant: new TenantRef('other'),
+            relyingParty: new RelyingPartyRef('other'),
             text: 'other',
             enabled: false,
             attached: 'store://obin',
@@ -69,6 +75,8 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged($base));
         $this->assertEquals($one->getText(), $other->getText());
         $this->assertTrue($one->isTextChanged($base));
         $this->assertEquals($one->getAttached(), $other->getAttached());
@@ -84,6 +92,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $one = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -97,6 +106,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         // @Assert
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals('one', $json['relyingParty']['$ref']);
         $this->assertEquals(true, $json['enabled']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['activationDate']);
         $this->assertEquals(1, $json['version']);
@@ -107,6 +117,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $one = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -121,6 +132,8 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged());
         $this->assertEquals($one->getText(), $other->getText());
         $this->assertTrue($one->isTextChanged());
         $this->assertEquals($one->getAttached(), $other->getAttached());
@@ -137,6 +150,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $base = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -146,6 +160,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $other = new TenantTermsOfUse(
             uid: 'other',
             tenant: new TenantRef('other'),
+            relyingParty: new RelyingPartyRef('other'),
             text: 'other',
             enabled: false,
             attached: 'store://obin',
@@ -160,6 +175,8 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged($base));
         $this->assertEquals($one->getText(), $other->getText());
         $this->assertTrue($one->isTextChanged($base));
         $this->assertEquals($one->getAttached(), $other->getAttached());
@@ -177,6 +194,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $one = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -191,6 +209,8 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTenant(), $other->getTenant());
         $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged());
         $this->assertEquals($one->getText(), $other->getText());
         $this->assertTrue($one->isTextChanged());
         $this->assertEquals($one->getAttached(), $other->getAttached());
@@ -206,6 +226,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $source = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',
@@ -230,6 +251,7 @@ final class TenantTermsOfUseUnitTest extends TestCase
         $source = new TenantTermsOfUse(
             uid: 'one',
             tenant: new TenantRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
             text: 'one',
             enabled: true,
             attached: 'store://bin',

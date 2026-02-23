@@ -15,6 +15,7 @@ use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateUsecase;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
@@ -85,6 +86,7 @@ class TrustedClientCreateController
             $value = new TrustedClientCreateParams();
             $value->uid(TrustedClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
             $value->code(TrustedClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
+            $value->allowAllScopes(TrustedClientAllowAllScopesVO::tryFrom($body['allowAllScopes'] ?? null, $errorsList));
             $value->publicAllow(TrustedClientPublicAllowVO::tryFrom($body['publicAllow'] ?? null, $errorsList));
             $readSecretOauth = $body['secretOauth'] ?? '******';
             if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
@@ -134,6 +136,7 @@ class TrustedClientCreateController
             $dto = new TrustedClientApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
+            $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
             $dto->secretOauth = '******';
             $dto->enabled = $value->isEnabled();
