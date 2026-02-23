@@ -7,7 +7,9 @@ namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
 interface ConsentGateway
 {
-    public function getPendingConsent(string $tenant, string $username): ?string;
+    /** @param string[] $audiences */
+    public function getPendingConsent(string $tenant, string $username, array $audiences): ?string;
 
-    public function storeAcceptedConsent(string $tenant, string $username): void;
+    /** @param string[] $audiences */
+    public function storeAcceptedConsent(string $tenant, string $username, array $audiences): void;
 }

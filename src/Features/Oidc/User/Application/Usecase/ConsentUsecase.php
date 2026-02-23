@@ -13,13 +13,15 @@ class ConsentUsecase
     {
     }
 
-    public function getPendingConsent(string $tenant, string $username): ?string
+    /** @param string[] $audiences */
+    public function getPendingConsent(string $tenant, string $username, array $audiences): ?string
     {
-        return $this->gateway->getPendingConsent($tenant, $username);
+        return $this->gateway->getPendingConsent($tenant, $username, $audiences);
     }
 
-    public function storeAcceptedConsent(string $tenant, string $username): void
+    /** @param string[] $audiences */
+    public function storeAcceptedConsent(string $tenant, string $username, array $audiences): void
     {
-        $this->gateway->storeAcceptedConsent($tenant, $username);
+        $this->gateway->storeAcceptedConsent($tenant, $username, $audiences);
     }
 }

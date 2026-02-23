@@ -8,10 +8,18 @@ namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 use Override;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
+use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ConsentGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 
@@ -20,27 +28,85 @@ class ConsentAdapter implements ConsentGateway
     public function __construct(
         private readonly UserLoaderAdapter $users,
         private readonly TenantTermsOfUseReadGateway $terms,
+        private readonly UserAcceptedTermnsOfUseReadGateway $readerUserTerms,
         private readonly UserAcceptedTermnsOfUseWriteGateway $writerUserTerms,
+        private readonly TrustedClientReadGateway $clients,
+        private readonly RelyingPartyReadGateway $parties,
     ) {
     }
 
     #[Override]
-    public function getPendingConsent(string $tenant, string $username): ?string
-    {
-        $theTenant = $this->users->checkTenant($tenant, $username);
-        $terms = $this->users->loadTenantTerms($theTenant);
-        return $terms ? $terms->getText() : null;
-    }
-
-    #[Override]
-    public function storeAcceptedConsent(string $tenant, string $username): void
+    public function getPendingConsent(string $tenant, string $username, array $audiences): ?string
     {
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUser($theTenant, $username);
-        $terms = $this->users->loadTenantTerms($theTenant);
+        if (!$audiences) {
+            $terms = $this->users->loadTenantTerms($theTenant);
+            return $this->isPendingTerms($theUser, $terms) ? $terms->getText() : null;
+        }
+        foreach ($audiences as $audience) {
+            $trusted = $this->clients->findOneByCode($audience);
+            $party = $this->parties->findOneByCode($audience);
+            if (!$trusted && !$party) {
+                continue;
+            }
+            $terms = $this->loadTermsForAudience($theTenant, $trusted, $party);
+            if ($this->isPendingTerms($theUser, $terms)) {
+                return $terms->getText();
+            }
+        }
+        return null;
+    }
+
+    #[Override]
+    public function storeAcceptedConsent(string $tenant, string $username, array $audiences): void
+    {
+        $theTenant = $this->users->checkTenant($tenant, $username);
+        $theUser = $this->users->checkUser($theTenant, $username);
+        if (!$audiences) {
+            $terms = $this->users->loadTenantTerms($theTenant);
+            if (!$this->isPendingTerms($theUser, $terms)) {
+                return;
+            }
+            $this->storeAccepted($theUser, $terms);
+            return;
+        }
+        foreach ($audiences as $audience) {
+            $trusted = $this->clients->findOneByCode($audience);
+            $party = $this->parties->findOneByCode($audience);
+            if (!$trusted && !$party) {
+                continue;
+            }
+            $terms = $this->loadTermsForAudience($theTenant, $trusted, $party);
+            if ($this->isPendingTerms($theUser, $terms)) {
+                $this->storeAccepted($theUser, $terms);
+                return;
+            }
+        }
+    }
+
+    private function isPendingTerms(User $user, ?TenantTermsOfUse $terms): bool
+    {
+        if (!$terms) {
+            return false;
+        }
+        $accepted = $this->readerUserTerms->findOneByUserAndConditions($user, $terms);
+        return !$accepted;
+    }
+
+    private function loadTermsForAudience(
+        Tenant $tenant,
+        ?TrustedClient $trusted,
+        ?RelyingParty $party
+    ): ?TenantTermsOfUse {
+        return $this->users->loadTenantTerms($tenant);
+    }
+
+    private function storeAccepted(User $user, TenantTermsOfUse $terms): void
+    {
         $acepted = new UserAcceptedTermnsOfUseAttributes();
         $acepted->uid(Random::comb());
-        $acepted->user($theUser);
+        $acepted->user($user);
         $acepted->conditions($terms);
         $acepted->acceptDate(new DateTimeImmutable());
         $this->writerUserTerms->create(UserAcceptedTermnsOfUse::create($acepted));

@@ -55,7 +55,11 @@ class ConsentForm implements StepForm
             "consent.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
-        $pending = html_entity_decode($this->publicConsent->getPendingConsent($tenant, $challenges->username));
+        $pending = html_entity_decode($this->publicConsent->getPendingConsent(
+            $tenant,
+            $challenges->username,
+            $input->authRequest->audiences ?? []
+        ));
 
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
 
@@ -97,7 +101,11 @@ class ConsentForm implements StepForm
     {
         $accept = isset($input->body['accept']);
         if ($accept) {
-            $this->publicConsent->storeAcceptedConsent($input->context->tenant, $input->challenges->username ?? '');
+            $this->publicConsent->storeAcceptedConsent(
+                $input->context->tenant,
+                $input->challenges->username ?? '',
+                $input->authRequest->audiences ?? []
+            );
             $csid = (string) ($input->body['csid'] ?? '');
             return $this->authenticator->preAuthenticate(
                 $input->authRequest,
