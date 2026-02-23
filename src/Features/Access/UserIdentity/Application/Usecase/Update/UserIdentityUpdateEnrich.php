@@ -19,7 +19,8 @@ class UserIdentityUpdateEnrich
     public function getResult(): UserIdentityAttributes
     {
         return $this->result;
-    }  public function with(UserIdentityAttributes $result)
+    }
+    public function with(UserIdentityAttributes $result): void
     {
         $this->result = $result;
     }

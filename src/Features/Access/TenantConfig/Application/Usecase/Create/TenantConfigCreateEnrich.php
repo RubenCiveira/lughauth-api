@@ -15,7 +15,8 @@ class TenantConfigCreateEnrich
     public function getResult(): TenantConfigAttributes
     {
         return $this->result;
-    }  public function with(TenantConfigAttributes $result)
+    }
+    public function with(TenantConfigAttributes $result): void
     {
         $this->result = $result;
     }

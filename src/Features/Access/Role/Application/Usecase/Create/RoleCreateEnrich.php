@@ -15,7 +15,8 @@ class RoleCreateEnrich
     public function getResult(): RoleAttributes
     {
         return $this->result;
-    }  public function with(RoleAttributes $result)
+    }
+    public function with(RoleAttributes $result): void
     {
         $this->result = $result;
     }

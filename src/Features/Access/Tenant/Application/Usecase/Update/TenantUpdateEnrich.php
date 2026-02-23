@@ -19,7 +19,8 @@ class TenantUpdateEnrich
     public function getResult(): TenantAttributes
     {
         return $this->result;
-    }  public function with(TenantAttributes $result)
+    }
+    public function with(TenantAttributes $result): void
     {
         $this->result = $result;
     }

@@ -15,7 +15,8 @@ class TenantTermsOfUseCreateEnrich
     public function getResult(): TenantTermsOfUseAttributes
     {
         return $this->result;
-    }  public function with(TenantTermsOfUseAttributes $result)
+    }
+    public function with(TenantTermsOfUseAttributes $result): void
     {
         $this->result = $result;
     }

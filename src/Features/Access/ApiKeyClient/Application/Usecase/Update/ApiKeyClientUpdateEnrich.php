@@ -19,7 +19,8 @@ class ApiKeyClientUpdateEnrich
     public function getResult(): ApiKeyClientAttributes
     {
         return $this->result;
-    }  public function with(ApiKeyClientAttributes $result)
+    }
+    public function with(ApiKeyClientAttributes $result): void
     {
         $this->result = $result;
     }

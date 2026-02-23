@@ -19,7 +19,8 @@ class RelyingPartyUpdateEnrich
     public function getResult(): RelyingPartyAttributes
     {
         return $this->result;
-    }  public function with(RelyingPartyAttributes $result)
+    }
+    public function with(RelyingPartyAttributes $result): void
     {
         $this->result = $result;
     }

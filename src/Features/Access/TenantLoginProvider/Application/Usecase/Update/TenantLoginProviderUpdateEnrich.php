@@ -19,7 +19,8 @@ class TenantLoginProviderUpdateEnrich
     public function getResult(): TenantLoginProviderAttributes
     {
         return $this->result;
-    }  public function with(TenantLoginProviderAttributes $result)
+    }
+    public function with(TenantLoginProviderAttributes $result): void
     {
         $this->result = $result;
     }

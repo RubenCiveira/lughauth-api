@@ -15,7 +15,8 @@ class TrustedClientCreateEnrich
     public function getResult(): TrustedClientAttributes
     {
         return $this->result;
-    }  public function with(TrustedClientAttributes $result)
+    }
+    public function with(TrustedClientAttributes $result): void
     {
         $this->result = $result;
     }
