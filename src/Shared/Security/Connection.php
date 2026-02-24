@@ -19,6 +19,7 @@ class Connection
      * Creates a Connection instance based on the current HTTP request environment,
      * resolving headers and optionally respecting proxy headers depending on the configuration.
      *
+     * @param int $level Indicates the security level used to connect (need to be refactor as an enumerated).
      * @param string $app The application identifier making the request.
      * @param AppConfig|null $config Optional configuration instance to check for proxy handling.
      * @return Connection The constructed Connection instance.
@@ -65,7 +66,8 @@ class Connection
      * Constructs a Connection instance.
      */
     public function __construct(
-        public readonly ?int $level,
+        /** @var int Indicates the security level used to connect (need to be refactor as an enumerated). */
+        public readonly int $level,
         /** @var bool Indicates whether the connection is remote (vs local). */
         public readonly bool $remote,
         /** @var DateTime The timestamp when the connection was created. */
