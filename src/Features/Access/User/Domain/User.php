@@ -243,9 +243,9 @@ class User extends UserRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $tenant = $this->getTenant()->uid();
+        $tenant = $this->getTenant();
         if (null !== $tenant) {
-            $data['tenant'] = ['$ref' => $tenant];
+            $data['tenant'] = ['$ref' => $tenant->uid() ];
         }
         $data['name'] = $this->getName();
         $data['email'] = $this->getEmail();

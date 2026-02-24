@@ -120,10 +120,10 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $this->logDebug("Count for User access temporal code on adapter ");
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
+            $original = ($ref instanceof UserAccessTemporalCode) ? $ref : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof UserAccessTemporalCode) ? $reference : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

@@ -138,10 +138,10 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
                     $entity->commitAttachedWith($this->store);
                 }
             }
+            $original = ($ref instanceof TenantTermsOfUse) ? $ref : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TenantTermsOfUse) ? $reference : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

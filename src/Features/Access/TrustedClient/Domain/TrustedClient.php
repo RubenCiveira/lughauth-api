@@ -119,7 +119,7 @@ class TrustedClient extends TrustedClientRef
         $data['publicAllow'] = $this->isPublicAllow();
         $data['enabled'] = $this->isEnabled();
         $allowedRedirects = $this->getAllowedRedirects();
-        if ($allowedRedirects) {
+        if (null !== $allowedRedirects) {
             $data['allowedRedirects'] = [];
             foreach ($allowedRedirects as $row) {
                 $jsonRow = [];

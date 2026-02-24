@@ -120,10 +120,10 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         $this->logDebug("Count for Role on adapter ");
         $span = $this->startSpan("Count for Role on adapter");
         try {
+            $original = ($ref instanceof Role) ? $ref : $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof Role) ? $reference : $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

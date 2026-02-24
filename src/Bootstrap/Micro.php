@@ -506,7 +506,7 @@ class Micro
 
     protected function storeDir(string $path): string
     {
-        $base = dirname(__DIR__, 3) . '/var';
+        $base = dirname(__DIR__, 2) . '/var';
         $path = ltrim($path, '/');
         return $path === '' ? $base : $base . '/' . $path;
     }

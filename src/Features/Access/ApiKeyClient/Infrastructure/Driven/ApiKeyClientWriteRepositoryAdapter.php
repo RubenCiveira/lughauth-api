@@ -119,10 +119,10 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
+            $original = ($ref instanceof ApiKeyClient) ? $ref : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof ApiKeyClient) ? $reference : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

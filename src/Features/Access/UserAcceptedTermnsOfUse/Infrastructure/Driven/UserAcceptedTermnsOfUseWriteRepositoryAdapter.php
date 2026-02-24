@@ -121,10 +121,10 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         $this->logDebug("Count for User accepted termns of use on adapter ");
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
+            $original = ($ref instanceof UserAcceptedTermnsOfUse) ? $ref : $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof UserAcceptedTermnsOfUse) ? $reference : $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

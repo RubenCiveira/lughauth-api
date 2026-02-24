@@ -83,17 +83,17 @@ class ClientIdentity extends ClientIdentityRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $user = $this->getUser()->uid();
+        $user = $this->getUser();
         if (null !== $user) {
-            $data['user'] = ['$ref' => $user];
+            $data['user'] = ['$ref' => $user->uid() ];
         }
-        $relyingParty = $this->getRelyingParty()->uid();
+        $relyingParty = $this->getRelyingParty();
         if (null !== $relyingParty) {
-            $data['relyingParty'] = ['$ref' => $relyingParty];
+            $data['relyingParty'] = ['$ref' => $relyingParty->uid() ];
         }
-        $trustedClient = $this->getTrustedClient()->uid();
+        $trustedClient = $this->getTrustedClient();
         if (null !== $trustedClient) {
-            $data['trustedClient'] = ['$ref' => $trustedClient];
+            $data['trustedClient'] = ['$ref' => $trustedClient->uid() ];
         }
         $data['version'] = $this->getVersion();
         return $data;

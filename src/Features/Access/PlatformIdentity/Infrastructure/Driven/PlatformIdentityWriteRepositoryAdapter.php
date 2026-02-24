@@ -119,10 +119,10 @@ class PlatformIdentityWriteRepositoryAdapter implements PlatformIdentityWriteGat
         $this->logDebug("Count for Platform identity on adapter ");
         $span = $this->startSpan("Count for Platform identity on adapter");
         try {
+            $original = ($ref instanceof PlatformIdentity) ? $ref : $this->conn->retrieve(new PlatformIdentityFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof PlatformIdentity) ? $reference : $this->conn->retrieve(new PlatformIdentityFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('platform-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

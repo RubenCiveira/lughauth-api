@@ -120,10 +120,10 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         $this->logDebug("Count for Tenant config on adapter ");
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
+            $original = ($ref instanceof TenantConfig) ? $ref : $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TenantConfig) ? $reference : $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

@@ -145,9 +145,9 @@ class TenantLoginProvider extends TenantLoginProviderRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $tenant = $this->getTenant()->uid();
+        $tenant = $this->getTenant();
         if (null !== $tenant) {
-            $data['tenant'] = ['$ref' => $tenant];
+            $data['tenant'] = ['$ref' => $tenant->uid() ];
         }
         $data['name'] = $this->getName();
         $data['source'] = $this->getSource();

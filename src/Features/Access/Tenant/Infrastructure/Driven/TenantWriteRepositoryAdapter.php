@@ -119,10 +119,10 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         $this->logDebug("Count for Tenant on adapter ");
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
+            $original = ($ref instanceof Tenant) ? $ref : $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof Tenant) ? $reference : $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

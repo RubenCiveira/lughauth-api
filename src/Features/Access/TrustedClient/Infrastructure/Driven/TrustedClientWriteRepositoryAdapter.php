@@ -119,10 +119,10 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         $this->logDebug("Count for Trusted client on adapter ");
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
+            $original = ($ref instanceof TrustedClient) ? $ref : $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof TrustedClient) ? $reference : $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

@@ -119,10 +119,10 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         $this->logDebug("Count for Client identity on adapter ");
         $span = $this->startSpan("Count for Client identity on adapter");
         try {
+            $original = ($ref instanceof ClientIdentity) ? $ref : $this->conn->retrieve(new ClientIdentityFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof ClientIdentity) ? $reference : $this->conn->retrieve(new ClientIdentityFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('client-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

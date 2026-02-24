@@ -119,10 +119,10 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         $this->logDebug("Count for Relying party on adapter ");
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
+            $original = ($ref instanceof RelyingParty) ? $ref : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
+            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $original = ($reference instanceof RelyingParty) ? $reference : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {

@@ -197,9 +197,9 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $user = $this->getUser()->uid();
+        $user = $this->getUser();
         if (null !== $user) {
-            $data['user'] = ['$ref' => $user];
+            $data['user'] = ['$ref' => $user->uid() ];
         }
         $data['tempSecondFactorSeedExpiration'] = $this->getTempSecondFactorSeedExpiration();
         $data['failedLoginAttempts'] = $this->getFailedLoginAttempts();
