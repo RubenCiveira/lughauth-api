@@ -17,7 +17,8 @@ class TenantLoginProviderUploadMetadataEnrich
     public function getResult(): BinaryContent
     {
         return $this->result;
-    }  public function with(BinaryContent $result)
+    }
+    public function with(BinaryContent $result): void
     {
         $this->result = $result;
     }

@@ -39,8 +39,8 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\Te
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\UploadAttached\IsAuthenticatedUploadAttachedAllow;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\UploadAttached\TenantTermsOfUseUploadAttachedAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseWriteRepositoryAdapter;
