@@ -9,11 +9,12 @@ use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
@@ -33,7 +34,7 @@ class LoginForm implements StepForm
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $locale = '';
         $tenant = $input->context->tenant;
@@ -126,27 +127,31 @@ class LoginForm implements StepForm
                 'es'
             )
         );
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $password = $this->securer->decrypt((string) ($input->body['password'] ?? ''));
         $username = (string) ($input->body['username'] ?? '');
         $csid = (string) ($input->body['csid'] ?? '');
         $challenges = $input->challenges->withUsername($username);
-
-        return $this->authenticator->authenticate(
-            $input->authRequest,
-            $challenges,
-            $input->context->tenant,
-            $username,
-            $password,
-            $input->context->issuer,
-            $csid,
-            $input->context->state,
-            $input->context->nonce
-        );
+        try {
+            $auth = $this->authenticator->authenticate(
+                $input->authRequest,
+                $challenges,
+                $input->context->tenant,
+                $username,
+                $password,
+                $input->context->issuer,
+                $csid,
+                $input->context->state,
+                $input->context->nonce
+            );
+            return StepResult::proceed($auth, $challenges);
+        } catch (LoginException $ex) {
+            throw new LoginException($ex->auth, $ex->getMessage(), $ex->getCode(), $ex, $challenges);
+        }
     }
 }

@@ -8,12 +8,12 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
@@ -30,14 +30,14 @@ class NewPassForm implements StepForm
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $body = $input->body ?? [];
         $oldpass = $this->securer->decrypt($body["old_pass"]);
         $newpass = $this->securer->decrypt($body["new_pass"]);
         $csid = (string) ($body['csid'] ?? '');
         if ($this->changePassword->forceUpdatePassword($input->context->tenant, $input->challenges->username ?? '', $oldpass, $newpass)) {
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $input->challenges,
                 $input->context->tenant,
@@ -46,13 +46,14 @@ class NewPassForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $input->challenges);
         }
 
         throw new LoginException(auth: AuthenticationResult::newPasswordRequired('unable_to_change'));
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $locale = '';
 
@@ -107,6 +108,6 @@ class NewPassForm implements StepForm
                 HTML,
             $locale
         ));
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 }

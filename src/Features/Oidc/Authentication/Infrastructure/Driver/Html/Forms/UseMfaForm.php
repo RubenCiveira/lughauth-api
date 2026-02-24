@@ -8,13 +8,13 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicMfa;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
@@ -30,7 +30,7 @@ class UseMfaForm implements StepForm
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $locale = '';
 
@@ -78,17 +78,17 @@ class UseMfaForm implements StepForm
                 HTML,
             $locale
         ));
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $csid = (string) ($input->body['csid'] ?? '');
         $challenges = $input->challenges;
 
         if ($challenges->withMfa) {
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $challenges,
                 $input->context->tenant,
@@ -97,12 +97,13 @@ class UseMfaForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $challenges);
         }
 
         $otp = $input->body['mfa_code'] ?? '';
         if ($this->publicMfa->verifyOtp($input->context->tenant, $challenges->username ?? '', $otp)) {
             $updated = $challenges->withMfa(true);
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,
@@ -111,6 +112,7 @@ class UseMfaForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $updated);
         }
 
         throw new LoginException(auth: AuthenticationResult::mfaRequired('wrong_auth_code'));

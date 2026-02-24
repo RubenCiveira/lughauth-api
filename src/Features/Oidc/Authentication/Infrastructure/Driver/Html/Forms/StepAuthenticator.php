@@ -6,9 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 
 interface StepAuthenticator
 {
-    public function authenticate(StepInput $input): PublicLoginAuthResponse;
+    public function authenticate(StepInput $input): StepResult;
 }

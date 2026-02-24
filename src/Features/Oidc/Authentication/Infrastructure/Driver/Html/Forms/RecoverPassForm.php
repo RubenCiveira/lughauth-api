@@ -10,12 +10,12 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
@@ -34,7 +34,7 @@ class RecoverPassForm implements StepForm
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $body = $input->body ?? [];
         if (isset($body['user'])) {
@@ -56,7 +56,7 @@ class RecoverPassForm implements StepForm
         $user = $this->changePassword->validateChangeRequest($input->context->tenant, $code, $newpass);
         if ($user) {
             $updated = $input->challenges->withUsername($user);
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,
@@ -65,26 +65,30 @@ class RecoverPassForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $updated);
         }
 
         throw new LoginException(auth: AuthenticationResult::waitNewpass('', 'Unable to change to password: please retry'));
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $base = rtrim($input->context->baseUrl, '/') . '/oauth';
         $locale = '';
         $params = $input->request->getQueryParams();
         if (($params['recover_send'] ?? 'false') === 'true') {
-            return $this->paintConfirm($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+            $response = $this->paintConfirm($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+            return StepResult::render($response, $input->challenges);
         }
 
         if ($error) {
-            return $this->paintWait($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+            $response = $this->paintWait($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+            return StepResult::render($response, $input->challenges);
         }
 
-        return $this->paintAsk($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+        $response = $this->paintAsk($error, $locale, $base, $input->context->tenant, $input->challenges, $input->body ?? [], $input->request, $response);
+        return StepResult::render($response, $input->challenges);
     }
 
     private function paintAsk(?AuthenticationResult $pe, string $locale, string $base, string $tenant, ChallengesState $challenges, ?array $body, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface

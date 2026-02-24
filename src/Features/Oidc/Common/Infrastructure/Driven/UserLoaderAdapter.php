@@ -8,11 +8,12 @@ namespace Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
@@ -33,6 +34,7 @@ class UserLoaderAdapter
         private readonly UserReadGateway $users,
         private readonly UserWriteGateway $usersWriter,
         private readonly TenantTermsOfUseReadGateway $terms,
+        private readonly RelyingPartyReadGateway $parties
     ) {
     }
 
@@ -48,26 +50,44 @@ class UserLoaderAdapter
         return $code;
     }
 
-    public function loadTenantTerms(Tenant $tenant, array $relyingParties): ?TenantTermsOfUse
+    /**
+     * return TenantTermsOfUse[]
+     */
+    public function loadTenantTerms(Tenant $tenant, array $relyingParties): array
     {
-        /** @var ?TenantTermsOfUse  */
-        $last = null;
+        $last = [];
         $now = new DateTimeImmutable();
+        $partiesIds = [];
+        $pfilter = new RelyingPartyFilter();
+        $allParties = $this->parties->list($pfilter);
+        foreach ($allParties as $party) {
+            if ( in_array($party->getCode(), $relyingParties)) {
+                $partiesIds[] = $party->uid();
+            }
+        }
         $query = new TenantTermsOfUseFilter(tenant: $tenant);
         $all = $this->terms->list($query);
         foreach ($all as $term) {
+            $party = $term->getRelyingParty();
+            if (null === $party) {
+                continue;
+            }
+            if( !in_array($party->uid(), $partiesIds) ) {
+                continue;
+            }
+            $partyId = $party->uid();
             $on = $term->getActivationDate();
             if (!$on || !$term->isEnabled() || $on > $now) {
                 // No date.
                 continue;
             }
-            if ($last != null && $last->getActivationDate() > $on) {
+            if (isset($last[$partyId]) && $last[$partyId]->getActivationDate() > $on) {
                 // Date before prev selected
                 continue;
             }
-            $last = $term;
+            $last[$partyId] = $term;
         }
-        return $last;
+        return array_values($last);
     }
 
     public function updateCode(UserAccessTemporalCode $user): UserAccessTemporalCode

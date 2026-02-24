@@ -5,11 +5,16 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
+use Civi\Lughauth\Features\Oidc\User\Domain\Consent;
+
 interface ConsentGateway
 {
-    /** @param string[] $audiences */
-    public function getPendingConsent(string $tenant, string $username, array $audiences): ?string;
+    /**
+     * @param string[] $audiences
+     * @return Consent[]
+     */
+    public function getPendingConsent(string $tenant, string $username, array $audiences): array;
 
     /** @param string[] $audiences */
-    public function storeAcceptedConsent(string $tenant, string $username, array $audiences): void;
+    public function storeAcceptedConsent(string $tenant, string $username, array $audiences, Consent $consent): void;
 }

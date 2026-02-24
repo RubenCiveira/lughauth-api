@@ -5,11 +5,11 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms;
 
-use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 
 interface StepRenderer
 {
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface;
+    public function render(StepInput $input, \Psr\Http\Message\ResponseInterface $response, ?AuthenticationResult $error): StepResult;
 }

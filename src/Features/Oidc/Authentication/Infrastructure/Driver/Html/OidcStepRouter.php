@@ -108,11 +108,9 @@ final class OidcStepRouter
                 request: $input->request
             );
 
-            $auth = $form->authenticate($input);
-            return StepResult::proceed($auth);
+            return $form->authenticate($input);
         }
 
-        $response = $form->render($input, $response, $error);
-        return StepResult::render($response);
+        return $form->render($input, $response, $error);
     }
 }

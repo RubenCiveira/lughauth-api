@@ -5,8 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
-namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
-
 use Override;
 use DateInterval;
 use DateTimeImmutable;
@@ -116,7 +114,7 @@ class LoginAdapter implements LoginGateway
         if ($mfa = $this->checkMfa($theTenant, $theUser)) {
             return $mfa;
         }
-        if ($terms = $this->checkTerms($theTenant, $theUser)) {
+        if ($terms = $this->checkTerms($theTenant, $theUser, $client->audiences)) {
             return $terms;
         }
         if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
@@ -153,11 +151,14 @@ class LoginAdapter implements LoginGateway
         return $user->isTemporalPassword() ? AuthenticationResult::newPasswordRequired() : null;
     }
 
-    private function checkTerms(Tenant $tenant, User $user): ?AuthenticationResult
+    private function checkTerms(Tenant $tenant, User $user, array $audiences): ?AuthenticationResult
     {
-        if ($terms = $this->users->loadTenantTerms($tenant)) {
-            $accepted = $this->userTerms->findOneByUserAndConditions($user, $terms);
-            return $accepted ? null : AuthenticationResult::consentRequired($terms->getText());
+        $terms = $this->users->loadTenantTerms($tenant, $audiences);
+        foreach ($terms as $term) {
+            $accepted = $this->userTerms->findOneByUserAndConditions($user, $term);
+            if( !$accepted ) {
+                return AuthenticationResult::consentRequired($term->getText());
+            }
         }
         return null;
     }

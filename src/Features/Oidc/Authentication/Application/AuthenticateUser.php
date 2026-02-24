@@ -95,7 +95,7 @@ class AuthenticateUser
         string $nonce
     ): PublicLoginAuthResponse {
         if (!$validation->valid) {
-            throw new LoginException($validation, $validation->error);
+            throw new LoginException($validation, $validation->error, 401, null, $challenges);
         }
         $session = Uuid::uuid4()->toString();
         $authData = [

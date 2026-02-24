@@ -17,16 +17,17 @@ final class StepResult
         public readonly string $type,
         public readonly ?ResponseInterface $response,
         public readonly ?PublicLoginAuthResponse $authResponse,
+        public readonly ChallengesState $challenges,
     ) {
     }
 
-    public static function render(ResponseInterface $response): self
+    public static function render(ResponseInterface $response, ChallengesState $challenges): self
     {
-        return new self(self::TYPE_RENDER, $response, null);
+        return new self(self::TYPE_RENDER, $response, null, $challenges);
     }
 
-    public static function proceed(PublicLoginAuthResponse $authResponse): self
+    public static function proceed(PublicLoginAuthResponse $authResponse, ChallengesState $challenges): self
     {
-        return new self(self::TYPE_PROCEED, null, $authResponse);
+        return new self(self::TYPE_PROCEED, null, $authResponse, $challenges);
     }
 }

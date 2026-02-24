@@ -8,13 +8,13 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\PublicMfa;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
@@ -30,7 +30,7 @@ class NewMfaForm implements StepForm
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $locale = '';
         $tenant = $input->context->tenant;
@@ -95,11 +95,11 @@ class NewMfaForm implements StepForm
                 HTML,
             $locale
         ));
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $csid = (string) ($input->body['csid'] ?? '');
         $seed = isset($input->body['seed']) ? $this->securer->decrypt((string) $input->body['seed']) : '';
@@ -107,7 +107,7 @@ class NewMfaForm implements StepForm
 
         if ($seed && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
             $updated = $input->challenges->withMfa(true);
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,
@@ -116,6 +116,7 @@ class NewMfaForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $updated);
         }
 
         throw new LoginException(auth: AuthenticationResult::newMfaRequired('wrong_auth_code'));

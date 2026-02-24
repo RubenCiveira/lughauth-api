@@ -8,14 +8,15 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
+use Civi\Lughauth\Features\Oidc\User\Domain\Consent;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 class ConsentForm implements StepForm
@@ -30,7 +31,7 @@ class ConsentForm implements StepForm
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $locale = '';
         $tenant = $input->context->tenant;
@@ -55,11 +56,14 @@ class ConsentForm implements StepForm
             "consent.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
-        $pending = html_entity_decode($this->publicConsent->getPendingConsent(
+        $pendings = $this->publicConsent->getPendingConsent(
             $tenant,
             $challenges->username,
-            $input->authRequest->audiences ?? []
-        ));
+            $input->authRequest->audiences
+        );
+
+        $pending = $pendings[0];
+        $pendingText = html_entity_decode( $pending->text );
 
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
 
@@ -77,12 +81,13 @@ class ConsentForm implements StepForm
                         <input type="hidden" name="step" value="{$step}" />
                         <label>{$code}
                             <textarea type="text" name="conditions" id="conditions" readonly>
-                                {$pending}
+                                {$pendingText}
                             </textarea>
                         </label>
                         <label>Acept: 
                             <input type="checkbox" name="accept" value="accept" />
                         </label>
+                        <input type="hidden" name="consent" value="{$pending->id}" />
                         <input class="primary-button" type="submit" value="{$send}" />
                     </form>
                     <form method="POST">
@@ -93,21 +98,23 @@ class ConsentForm implements StepForm
                 $locale
             )
         );
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $accept = isset($input->body['accept']);
-        if ($accept) {
+        $consentId = isset($input->body['consent']);
+        if ($accept && $consentId ) {
             $this->publicConsent->storeAcceptedConsent(
                 $input->context->tenant,
                 $input->challenges->username ?? '',
-                $input->authRequest->audiences ?? []
+                $input->authRequest->audiences,
+                new Consent(id: $input->body['consent'], text: $input->body['conditions'])
             );
             $csid = (string) ($input->body['csid'] ?? '');
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $input->challenges,
                 $input->context->tenant,
@@ -116,6 +123,7 @@ class ConsentForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $input->challenges);
         }
 
         throw new LoginException(auth: AuthenticationResult::consentRequired(), message: 'must_accept_condition');

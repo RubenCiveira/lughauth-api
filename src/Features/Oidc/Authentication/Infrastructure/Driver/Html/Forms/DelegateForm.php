@@ -8,11 +8,11 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
@@ -28,7 +28,7 @@ class DelegateForm implements StepForm
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $route = '/oauth/openid/-/delegated/verify';
         $body = $input->body ?? [];
@@ -42,7 +42,7 @@ class DelegateForm implements StepForm
         if ($result && $result->valid) {
             $csid = (string) ($body['csid'] ?? '');
             $updated = $input->challenges->withUsername($result->id);
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
                 $input->context->tenant,
@@ -51,13 +51,14 @@ class DelegateForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $updated);
         }
 
         throw new UnauthorizedException('-');
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $body = $input->request->getParsedBody();
         $params = $input->request->getQueryParams();
@@ -82,12 +83,13 @@ class DelegateForm implements StepForm
                 'es'
             );
             $response->getBody()->write($html);
-            return $response;
+            return StepResult::render($response, $input->challenges);
         }
 
         $target = $this->delegated->getTargetEndpoint($route, $input->context->tenant, $body['delegated-provider'], $input->request->getQueryParams());
         if ($target->method == 'GET') {
-            return $response->withStatus(302)->withHeader('Location', $target->url);
+            $response = $response->withStatus(302)->withHeader('Location', $target->url);
+            return StepResult::render($response, $input->challenges);
         }
 
         $response->getBody()->write(
@@ -98,7 +100,7 @@ class DelegateForm implements StepForm
                 $input->context->locale
             )
         );
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 
 }

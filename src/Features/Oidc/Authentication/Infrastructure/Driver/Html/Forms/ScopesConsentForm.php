@@ -11,13 +11,13 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Scopes\Application\Usecase\ScopesConsentUsecase;
 use Civi\Lughauth\Features\Oidc\Scopes\Domain\ScopePermission;
-use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 class ScopesConsentForm implements StepForm
@@ -32,7 +32,7 @@ class ScopesConsentForm implements StepForm
     }
 
     #[Override]
-    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): ResponseInterface
+    public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
         $locale = '';
         $tenant = $input->context->tenant;
@@ -93,11 +93,11 @@ class ScopesConsentForm implements StepForm
                 $locale
             )
         );
-        return $response;
+        return StepResult::render($response, $input->challenges);
     }
 
     #[Override]
-    public function authenticate(StepInput $input): PublicLoginAuthResponse
+    public function authenticate(StepInput $input): StepResult
     {
         $tenant = $input->context->tenant;
         $username = $input->challenges->username ?? '';
@@ -106,7 +106,7 @@ class ScopesConsentForm implements StepForm
 
         $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope);
         if (!$pending) {
-            return $this->authenticator->preAuthenticate(
+            $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $input->challenges,
                 $tenant,
@@ -115,6 +115,7 @@ class ScopesConsentForm implements StepForm
                 $input->context->state,
                 $input->context->nonce
             );
+            return StepResult::proceed($auth, $input->challenges);
         }
 
         [$required, $optional] = $this->splitScopes($pending);
@@ -140,7 +141,7 @@ class ScopesConsentForm implements StepForm
             audiences: $input->authRequest->audiences
         );
 
-        return $this->authenticator->preAuthenticate(
+        $auth = $this->authenticator->preAuthenticate(
             $authRequest,
             $input->challenges,
             $tenant,
@@ -149,6 +150,7 @@ class ScopesConsentForm implements StepForm
             $input->context->state,
             $input->context->nonce
         );
+        return StepResult::proceed($auth, $input->challenges);
     }
 
     /**

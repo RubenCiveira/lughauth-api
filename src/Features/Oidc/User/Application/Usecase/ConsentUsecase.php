@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Application\Usecase;
 
+use Civi\Lughauth\Features\Oidc\User\Domain\Consent;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ConsentGateway;
 
 class ConsentUsecase
@@ -14,14 +15,14 @@ class ConsentUsecase
     }
 
     /** @param string[] $audiences */
-    public function getPendingConsent(string $tenant, string $username, array $audiences): ?string
+    public function getPendingConsent(string $tenant, string $username, array $audiences): array
     {
         return $this->gateway->getPendingConsent($tenant, $username, $audiences);
     }
 
     /** @param string[] $audiences */
-    public function storeAcceptedConsent(string $tenant, string $username, array $audiences): void
+    public function storeAcceptedConsent(string $tenant, string $username, array $audiences, Consent $consent): void
     {
-        $this->gateway->storeAcceptedConsent($tenant, $username, $audiences);
+        $this->gateway->storeAcceptedConsent($tenant, $username, $audiences, $consent);
     }
 }

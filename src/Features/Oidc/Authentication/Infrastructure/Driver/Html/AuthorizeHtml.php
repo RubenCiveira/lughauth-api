@@ -57,7 +57,7 @@ class AuthorizeHtml
             return $this->redirectError($tenant, $flow->redirect, 'No session', $response);
         } else {
             $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
-            return $this->renderStep(null, null, $input, $response, null);
+            return $this->renderStep(null, null, $input, $response, null, $input->challenges);
         }
     }
 
@@ -117,18 +117,16 @@ class AuthorizeHtml
                 return $this->responseBuilder->buildSuccessRedirect($flow, $result->authResponse, $client, $clientRequest, $response);
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
-                return $this->cookies->clearSession($result->response, $tenant);
+                $response = $this->cookies->clearSession($result->response, $tenant);
+                $cookie = $this->cookies->storePreSession($flow, $result->challenges);
+                return $cookie->attach($response);
             }
 
             throw new UnauthorizedException();
         } catch (LoginException $ex) {
-            $response = $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null);
-            $cookie = $this->cookies->storePreSession($flow, $state);
-            return $cookie->attach($response);
+            return $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null, $ex->challenges ?? $state);
         } catch (UnauthorizedException $ex) {
-            $response = $this->renderStep($ex->getMessage(), null, $input, $response, null);
-            $cookie = $this->cookies->storePreSession($flow, $state);
-            return $cookie->attach($response);
+            return $this->renderStep($ex->getMessage(), null, $input, $response, null, $state);
         }
     }
 
@@ -164,15 +162,26 @@ class AuthorizeHtml
         return $this->cookies->clearSession($response, $tenant);
     }
 
-    private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride): ResponseInterface
+    private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride, ?ChallengesState $challengesOverride): ResponseInterface
     {
         $error = !$error && $message ? new AuthenticationResult(valid: false, errorMessage: $message) : $error;
         $step = $error ? null : ($stepOverride ?? ($input->request->getQueryParams()['step'] ?? null));
+        if ($challengesOverride) {
+            $input = new StepInput(
+                context: $input->context,
+                authRequest: $input->authRequest,
+                challenges: $challengesOverride,
+                body: $input->body,
+                request: $input->request
+            );
+        }
         $result = $this->executeStep($input, $response, $error, $step, null);
         if ($result->type !== StepResult::TYPE_RENDER || !$result->response) {
             throw new UnauthorizedException();
         }
-        return $this->cookies->clearSession($result->response, $input->context->tenant);
+        $response = $this->cookies->clearSession($result->response, $input->context->tenant);
+        $cookie = $this->cookies->storePreSession($input->context, $result->challenges);
+        return $cookie->attach($response);
     }
 
     private function executeStep(

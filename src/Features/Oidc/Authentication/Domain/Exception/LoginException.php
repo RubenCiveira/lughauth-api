@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception;
 
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 
 class LoginException extends UnauthorizedException
 {
@@ -14,7 +15,8 @@ class LoginException extends UnauthorizedException
         public readonly AuthenticationResult $auth,
         $message = '',
         $code = 401,
-        \Exception|null $previous = null
+        \Exception|null $previous = null,
+        public readonly ?ChallengesState $challenges = null
     ) {
         parent::__construct($message, $code, $previous);
     }
