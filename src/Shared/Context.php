@@ -37,7 +37,7 @@ class Context
     public function getConnection(): Connection
     {
         if ($this->connection == null) {
-            $this->connection = Connection::remoteHttp();
+            $this->connection = Connection::remoteHttp(0);
         }
         return $this->connection;
     }

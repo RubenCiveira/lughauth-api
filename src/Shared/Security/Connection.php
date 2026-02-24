@@ -23,7 +23,7 @@ class Connection
      * @param AppConfig|null $config Optional configuration instance to check for proxy handling.
      * @return Connection The constructed Connection instance.
      */
-    public static function remoteHttp(string $app = '', ?AppConfig $config = null): Connection
+    public static function remoteHttp(int $level, string $app = '', ?AppConfig $config = null): Connection
     {
         $acceptLanguage = $_SERVER['HTTP_ACCEPT_LANGUAGE'] ?? '';
         $languages = explode(',', $acceptLanguage);
@@ -50,6 +50,7 @@ class Connection
             $clientIp = '127.0.0.1';
         }
         return new Connection(
+            level: $level,
             remote: true,
             startTime: new \DateTime(),
             application: $app,
@@ -64,6 +65,7 @@ class Connection
      * Constructs a Connection instance.
      */
     public function __construct(
+        public readonly ?int $level,
         /** @var bool Indicates whether the connection is remote (vs local). */
         public readonly bool $remote,
         /** @var DateTime The timestamp when the connection was created. */
@@ -77,7 +79,7 @@ class Connection
         /** @var string The hostname or server target. */
         public readonly string $target,
         /** @var string|null The locale inferred from the request headers, if available. */
-        public readonly ?string $locale
+        public readonly ?string $locale,
     ) {
     }
 

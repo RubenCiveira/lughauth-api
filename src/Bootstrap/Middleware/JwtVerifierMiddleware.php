@@ -23,6 +23,7 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 
 /**
  * Validates incoming JWTs and sets the security context.
@@ -51,7 +52,9 @@ class JwtVerifierMiddleware
         /** @var RequestFactoryInterface Factory for JWKS HTTP requests. */
         private readonly RequestFactoryInterface $requestFactory,
         /** @var ClientInterface HTTP client for JWKS retrieval. */
-        private readonly ClientInterface $client
+        private readonly ClientInterface $client,
+        /** @var MagicLinkService Magic link handler for temporary auth. */
+        private readonly MagicLinkService $magicLinkService
     ) {
         $this->jwksUrl = $config->get('security.jwt.verify.publickey.location', '-');
         $this->requiredIssuer = $config->get('security.jwt.verify.issuer');
@@ -68,14 +71,17 @@ class JwtVerifierMiddleware
             $auth = $request->getHeader('Authorization');
             if ($auth && str_starts_with($auth[0], 'Bearer ')) {
                 $this->verifyAuth(substr($auth[0], 7), Identity::AUTH_SCOPE_BOTH);
-            } elseif (isset($_COOKIE['Authorization']) && 'GET' == $request->getMethod()) {
-                $this->verifyAuth($_COOKIE['Authorization'], Identity::AUTH_SCOPE_READ);
-            } elseif (isset($_GET['Authorization']) && 'GET' == $request->getMethod()) {
-                $authParam = $_GET['Authorization'];
-                if (is_string($authParam)) {
-                    $this->verifyAuth($authParam, Identity::AUTH_SCOPE_READ);
-                } elseif (isset($authParam[0]) && is_string($authParam[0])) {
-                    $this->verifyAuth($authParam[0], Identity::AUTH_SCOPE_READ);
+            } else {
+                $magic = $this->magicLinkService->consume($request);
+                if ($magic !== null) {
+                    if ($magic['token'] !== null) {
+                        $this->verifyAuth(substr($magic['token'], 7), Identity::AUTH_SCOPE_BOTH);
+                    } elseif ($magic['identity'] instanceof Identity) {
+                        $connection = $magic['connection'] instanceof Connection
+                            ? $magic['connection']
+                            : Connection::remoteHttp(0, '', $this->config);
+                        $this->context->setSecurityContext($connection, $magic['identity']);
+                    }
                 }
             }
         }
@@ -131,9 +137,9 @@ class JwtVerifierMiddleware
                             roles: $this->extractRoles($payload),
                             groups: $payload->groups ?? null,
                             tenant: $payload->tenant ?? 'main',
-                            claims: $claims ?? null
+                            claims: $claims
                         );
-                        $connection = Connection::remoteHttp($payload->azp, $this->config);
+                        $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
                         $this->cache->set($cache_key, json_encode([$connection, $identity, null]));
                         $this->context->setSecurityContext($connection, $identity);
                     }
@@ -170,6 +176,7 @@ class JwtVerifierMiddleware
             claims: $ac['claims']
         );
         $connection = new Connection(
+            level: 0,
             remote: $cc['remote'],
             startTime: new DateTime($cc['startTime']['date']),
             application: $cc['application'],
