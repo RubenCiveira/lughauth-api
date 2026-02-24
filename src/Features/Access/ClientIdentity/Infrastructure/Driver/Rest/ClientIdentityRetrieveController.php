@@ -46,7 +46,7 @@ class ClientIdentityRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapClientIdentity($result);
+            $value = $this->mapClientIdentity($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -59,7 +59,7 @@ class ClientIdentityRetrieveController
         }
     }
 
-    private function mapClientIdentity(ClientIdentityRetrieveResult $value): ClientIdentityApiDTO
+    private function mapClientIdentity(ServerRequestInterface $request, ClientIdentityRetrieveResult $value): ClientIdentityApiDTO
     {
         $this->logDebug("Map entity to output dto for Client identity");
         $span = $this->startSpan("Map entity to output dto for Client identity");

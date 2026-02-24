@@ -59,7 +59,7 @@ class ClientIdentityListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (ClientIdentityAttributes $item): ClientIdentityApiDTO => $this->mapClientIdentity($item), $result->values())];
+            $value = ['items' => array_map(fn (ClientIdentityAttributes $item): ClientIdentityApiDTO => $this->mapClientIdentity($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -99,7 +99,7 @@ class ClientIdentityListController
         }
     }
 
-    private function mapClientIdentity(ClientIdentityAttributes $value): ClientIdentityApiDTO
+    private function mapClientIdentity(ServerRequestInterface $request, ClientIdentityAttributes $value): ClientIdentityApiDTO
     {
         $this->logDebug("Map entity to output dto for Client identity");
         $span = $this->startSpan("Map entity to output dto for Client identity");

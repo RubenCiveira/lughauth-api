@@ -59,7 +59,7 @@ class PlatformIdentityListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (PlatformIdentityAttributes $item): PlatformIdentityApiDTO => $this->mapPlatformIdentity($item), $result->values())];
+            $value = ['items' => array_map(fn (PlatformIdentityAttributes $item): PlatformIdentityApiDTO => $this->mapPlatformIdentity($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -99,7 +99,7 @@ class PlatformIdentityListController
         }
     }
 
-    private function mapPlatformIdentity(PlatformIdentityAttributes $value): PlatformIdentityApiDTO
+    private function mapPlatformIdentity(ServerRequestInterface $request, PlatformIdentityAttributes $value): PlatformIdentityApiDTO
     {
         $this->logDebug("Map entity to output dto for Platform identity");
         $span = $this->startSpan("Map entity to output dto for Platform identity");

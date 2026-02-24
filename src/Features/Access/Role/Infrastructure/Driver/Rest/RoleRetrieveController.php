@@ -46,7 +46,7 @@ class RoleRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapRole($result);
+            $value = $this->mapRole($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -59,7 +59,7 @@ class RoleRetrieveController
         }
     }
 
-    private function mapRole(RoleRetrieveResult $value): RoleApiDTO
+    private function mapRole(ServerRequestInterface $request, RoleRetrieveResult $value): RoleApiDTO
     {
         $this->logDebug("Map entity to output dto for Role");
         $span = $this->startSpan("Map entity to output dto for Role");

@@ -17,6 +17,7 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\TenantLoginProviderListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 
 class TenantLoginProviderListController
 {
@@ -26,6 +27,7 @@ class TenantLoginProviderListController
     public function __construct(
         private readonly TenantLoginProviderListUsecase $listUsecase,
         private readonly Context $context,
+        private readonly MagicLinkService $links,
     ) {
     }
     #[OA\Get(
@@ -58,7 +60,7 @@ class TenantLoginProviderListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (TenantLoginProviderAttributes $item): TenantLoginProviderApiDTO => $this->mapTenantLoginProvider($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantLoginProviderAttributes $item): TenantLoginProviderApiDTO => $this->mapTenantLoginProvider($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -126,7 +128,7 @@ class TenantLoginProviderListController
         }
     }
 
-    private function mapTenantLoginProvider(TenantLoginProviderAttributes $value): TenantLoginProviderApiDTO
+    private function mapTenantLoginProvider(ServerRequestInterface $request, TenantLoginProviderAttributes $value): TenantLoginProviderApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant login provider");
         $span = $this->startSpan("Map entity to output dto for Tenant login provider");
@@ -142,8 +144,9 @@ class TenantLoginProviderListController
             $dto->publicKey = $value->getPublicKey();
             $dto->privateKey = $value->getPrivateKey();
             $dto->certificate = $value->getCertificate();
-            if ($value->getMetadata()) {
-                $dto->metadata = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+            if (null !== $value->getMetadata()) {
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+                $dto->metadata = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();

@@ -60,7 +60,7 @@ class TenantConfigCreateController
             $value = $this->readTenantConfig($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapTenantConfig($result);
+            $value = $this->mapTenantConfig($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -109,7 +109,7 @@ class TenantConfigCreateController
             $span->end();
         }
     }
-    private function mapTenantConfig(TenantConfigCreateResult $value): TenantConfigApiDTO
+    private function mapTenantConfig(ServerRequestInterface $request, TenantConfigCreateResult $value): TenantConfigApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant config");
         $span = $this->startSpan("Map entity to output dto for Tenant config");

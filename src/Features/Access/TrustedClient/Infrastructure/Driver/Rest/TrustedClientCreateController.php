@@ -61,7 +61,7 @@ class TrustedClientCreateController
             $value = $this->readTrustedClient($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapTrustedClient($result);
+            $value = $this->mapTrustedClient($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -128,7 +128,7 @@ class TrustedClientCreateController
             $span->end();
         }
     }
-    private function mapTrustedClient(TrustedClientCreateResult $value): TrustedClientApiDTO
+    private function mapTrustedClient(ServerRequestInterface $request, TrustedClientCreateResult $value): TrustedClientApiDTO
     {
         $this->logDebug("Map entity to output dto for Trusted client");
         $span = $this->startSpan("Map entity to output dto for Trusted client");

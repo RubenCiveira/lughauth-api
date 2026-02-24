@@ -56,7 +56,7 @@ class TenantListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (TenantAttributes $item): TenantApiDTO => $this->mapTenant($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantAttributes $item): TenantApiDTO => $this->mapTenant($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -136,7 +136,7 @@ class TenantListController
         }
     }
 
-    private function mapTenant(TenantAttributes $value): TenantApiDTO
+    private function mapTenant(ServerRequestInterface $request, TenantAttributes $value): TenantApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant");
         $span = $this->startSpan("Map entity to output dto for Tenant");

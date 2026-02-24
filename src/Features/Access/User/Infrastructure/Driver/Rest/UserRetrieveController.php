@@ -49,7 +49,7 @@ class UserRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapUser($result);
+            $value = $this->mapUser($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -62,7 +62,7 @@ class UserRetrieveController
         }
     }
 
-    private function mapUser(UserRetrieveResult $value): UserApiDTO
+    private function mapUser(ServerRequestInterface $request, UserRetrieveResult $value): UserApiDTO
     {
         $this->logDebug("Map entity to output dto for User");
         $span = $this->startSpan("Map entity to output dto for User");

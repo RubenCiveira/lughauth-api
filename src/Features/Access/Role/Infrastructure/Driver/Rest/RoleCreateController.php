@@ -51,7 +51,7 @@ class RoleCreateController
             $value = $this->readRole($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapRole($result);
+            $value = $this->mapRole($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -91,7 +91,7 @@ class RoleCreateController
             $span->end();
         }
     }
-    private function mapRole(RoleCreateResult $value): RoleApiDTO
+    private function mapRole(ServerRequestInterface $request, RoleCreateResult $value): RoleApiDTO
     {
         $this->logDebug("Map entity to output dto for Role");
         $span = $this->startSpan("Map entity to output dto for Role");

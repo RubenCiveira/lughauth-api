@@ -52,7 +52,7 @@ class ApiKeyClientListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (ApiKeyClientAttributes $item): ApiKeyClientApiDTO => $this->mapApiKeyClient($item), $result->values())];
+            $value = ['items' => array_map(fn (ApiKeyClientAttributes $item): ApiKeyClientApiDTO => $this->mapApiKeyClient($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -92,7 +92,7 @@ class ApiKeyClientListController
         }
     }
 
-    private function mapApiKeyClient(ApiKeyClientAttributes $value): ApiKeyClientApiDTO
+    private function mapApiKeyClient(ServerRequestInterface $request, ApiKeyClientAttributes $value): ApiKeyClientApiDTO
     {
         $this->logDebug("Map entity to output dto for Api key client");
         $span = $this->startSpan("Map entity to output dto for Api key client");

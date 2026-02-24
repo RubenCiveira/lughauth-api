@@ -22,6 +22,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\Batch\T
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableResult;
 
 class TenantTermsOfUseDisableController
@@ -34,6 +35,7 @@ class TenantTermsOfUseDisableController
         private readonly SqlTemplate $sql,
         private readonly TenantTermsOfUseDisableUsecase $disableUsecase,
         private readonly Context $context,
+        private readonly MagicLinkService $links,
     ) {
     }
     #[OA\Patch(
@@ -61,7 +63,7 @@ class TenantTermsOfUseDisableController
             $uid = $args['uid'];
             $result = $this->disableUsecase->disable($uid);
             $this->sql->commit();
-            $value = $this->mapTenantTermsOfUse($result);
+            $value = $this->mapTenantTermsOfUse($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -124,7 +126,7 @@ class TenantTermsOfUseDisableController
         }
     }
 
-    private function mapTenantTermsOfUse(TenantTermsOfUseDisableResult $value): TenantTermsOfUseApiDTO
+    private function mapTenantTermsOfUse(ServerRequestInterface $request, TenantTermsOfUseDisableResult $value): TenantTermsOfUseApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant terms of use");
         $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
@@ -137,8 +139,9 @@ class TenantTermsOfUseDisableController
             $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
-            if ($value->getAttached()) {
-                $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+            if (null !== $value->getAttached()) {
+                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+                $dto->attached = $this->links->create($url, $request);
             }
             $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();

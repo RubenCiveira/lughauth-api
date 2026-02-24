@@ -56,7 +56,7 @@ class RoleListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (RoleAttributes $item): RoleApiDTO => $this->mapRole($item), $result->values())];
+            $value = ['items' => array_map(fn (RoleAttributes $item): RoleApiDTO => $this->mapRole($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -124,7 +124,7 @@ class RoleListController
         }
     }
 
-    private function mapRole(RoleAttributes $value): RoleApiDTO
+    private function mapRole(ServerRequestInterface $request, RoleAttributes $value): RoleApiDTO
     {
         $this->logDebug("Map entity to output dto for Role");
         $span = $this->startSpan("Map entity to output dto for Role");

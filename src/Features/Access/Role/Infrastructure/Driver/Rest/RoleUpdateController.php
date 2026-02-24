@@ -62,7 +62,7 @@ class RoleUpdateController
             $value = $this->readRole($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapRole($result);
+            $value = $this->mapRole($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -102,7 +102,7 @@ class RoleUpdateController
             $span->end();
         }
     }
-    private function mapRole(RoleUpdateResult $value): RoleApiDTO
+    private function mapRole(ServerRequestInterface $request, RoleUpdateResult $value): RoleApiDTO
     {
         $this->logDebug("Map entity to output dto for Role");
         $span = $this->startSpan("Map entity to output dto for Role");

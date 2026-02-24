@@ -62,7 +62,7 @@ class ApiKeyClientUpdateController
             $value = $this->readApiKeyClient($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapApiKeyClient($result);
+            $value = $this->mapApiKeyClient($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -101,7 +101,7 @@ class ApiKeyClientUpdateController
             $span->end();
         }
     }
-    private function mapApiKeyClient(ApiKeyClientUpdateResult $value): ApiKeyClientApiDTO
+    private function mapApiKeyClient(ServerRequestInterface $request, ApiKeyClientUpdateResult $value): ApiKeyClientApiDTO
     {
         $this->logDebug("Map entity to output dto for Api key client");
         $span = $this->startSpan("Map entity to output dto for Api key client");

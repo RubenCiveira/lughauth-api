@@ -46,7 +46,7 @@ class TenantConfigRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapTenantConfig($result);
+            $value = $this->mapTenantConfig($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -59,7 +59,7 @@ class TenantConfigRetrieveController
         }
     }
 
-    private function mapTenantConfig(TenantConfigRetrieveResult $value): TenantConfigApiDTO
+    private function mapTenantConfig(ServerRequestInterface $request, TenantConfigRetrieveResult $value): TenantConfigApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant config");
         $span = $this->startSpan("Map entity to output dto for Tenant config");

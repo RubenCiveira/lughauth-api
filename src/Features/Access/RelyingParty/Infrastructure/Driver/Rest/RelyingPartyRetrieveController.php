@@ -46,7 +46,7 @@ class RelyingPartyRetrieveController
             }
             $uid = $args['uid'];
             $result = $this->retrieveUsecase->retrieve($uid);
-            $value = $this->mapRelyingParty($result);
+            $value = $this->mapRelyingParty($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -59,7 +59,7 @@ class RelyingPartyRetrieveController
         }
     }
 
-    private function mapRelyingParty(RelyingPartyRetrieveResult $value): RelyingPartyApiDTO
+    private function mapRelyingParty(ServerRequestInterface $request, RelyingPartyRetrieveResult $value): RelyingPartyApiDTO
     {
         $this->logDebug("Map entity to output dto for Relying party");
         $span = $this->startSpan("Map entity to output dto for Relying party");

@@ -60,7 +60,7 @@ class UserEnableController
             $uid = $args['uid'];
             $result = $this->enableUsecase->enable($uid);
             $this->sql->commit();
-            $value = $this->mapUser($result);
+            $value = $this->mapUser($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -122,7 +122,7 @@ class UserEnableController
         }
     }
 
-    private function mapUser(UserEnableResult $value): UserApiDTO
+    private function mapUser(ServerRequestInterface $request, UserEnableResult $value): UserApiDTO
     {
         $this->logDebug("Map entity to output dto for User");
         $span = $this->startSpan("Map entity to output dto for User");

@@ -59,7 +59,7 @@ class UserListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (UserAttributes $item): UserApiDTO => $this->mapUser($item), $result->values())];
+            $value = ['items' => array_map(fn (UserAttributes $item): UserApiDTO => $this->mapUser($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -127,7 +127,7 @@ class UserListController
         }
     }
 
-    private function mapUser(UserAttributes $value): UserApiDTO
+    private function mapUser(ServerRequestInterface $request, UserAttributes $value): UserApiDTO
     {
         $this->logDebug("Map entity to output dto for User");
         $span = $this->startSpan("Map entity to output dto for User");

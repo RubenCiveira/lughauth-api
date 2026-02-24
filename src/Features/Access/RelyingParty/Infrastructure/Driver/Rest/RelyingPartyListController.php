@@ -54,7 +54,7 @@ class RelyingPartyListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (RelyingPartyAttributes $item): RelyingPartyApiDTO => $this->mapRelyingParty($item), $result->values())];
+            $value = ['items' => array_map(fn (RelyingPartyAttributes $item): RelyingPartyApiDTO => $this->mapRelyingParty($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -122,7 +122,7 @@ class RelyingPartyListController
         }
     }
 
-    private function mapRelyingParty(RelyingPartyAttributes $value): RelyingPartyApiDTO
+    private function mapRelyingParty(ServerRequestInterface $request, RelyingPartyAttributes $value): RelyingPartyApiDTO
     {
         $this->logDebug("Map entity to output dto for Relying party");
         $span = $this->startSpan("Map entity to output dto for Relying party");

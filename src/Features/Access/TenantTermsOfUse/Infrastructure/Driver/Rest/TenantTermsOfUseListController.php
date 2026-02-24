@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\Tena
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 
 class TenantTermsOfUseListController
 {
@@ -28,6 +29,7 @@ class TenantTermsOfUseListController
     public function __construct(
         private readonly TenantTermsOfUseListUsecase $listUsecase,
         private readonly Context $context,
+        private readonly MagicLinkService $links,
     ) {
     }
     #[OA\Get(
@@ -59,7 +61,7 @@ class TenantTermsOfUseListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (TenantTermsOfUseAttributes $item): TenantTermsOfUseApiDTO => $this->mapTenantTermsOfUse($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantTermsOfUseAttributes $item): TenantTermsOfUseApiDTO => $this->mapTenantTermsOfUse($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -99,7 +101,7 @@ class TenantTermsOfUseListController
         }
     }
 
-    private function mapTenantTermsOfUse(TenantTermsOfUseAttributes $value): TenantTermsOfUseApiDTO
+    private function mapTenantTermsOfUse(ServerRequestInterface $request, TenantTermsOfUseAttributes $value): TenantTermsOfUseApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant terms of use");
         $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
@@ -112,8 +114,9 @@ class TenantTermsOfUseListController
             $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
-            if ($value->getAttached()) {
-                $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+            if (null !== $value->getAttached()) {
+                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+                $dto->attached = $this->links->create($url, $request);
             }
             $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();

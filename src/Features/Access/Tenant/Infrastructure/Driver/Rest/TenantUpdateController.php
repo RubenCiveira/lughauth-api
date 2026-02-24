@@ -63,7 +63,7 @@ class TenantUpdateController
             $value = $this->readTenant($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapTenant($result);
+            $value = $this->mapTenant($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -102,7 +102,7 @@ class TenantUpdateController
             $span->end();
         }
     }
-    private function mapTenant(TenantUpdateResult $value): TenantApiDTO
+    private function mapTenant(ServerRequestInterface $request, TenantUpdateResult $value): TenantApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant");
         $span = $this->startSpan("Map entity to output dto for Tenant");

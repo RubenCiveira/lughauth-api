@@ -55,7 +55,7 @@ class TrustedClientListController
                 order: isset($params['order']) ? $this->extractOrder(explode(',', $params['order'])) : null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (TrustedClientAttributes $item): TrustedClientApiDTO => $this->mapTrustedClient($item), $result->values())];
+            $value = ['items' => array_map(fn (TrustedClientAttributes $item): TrustedClientApiDTO => $this->mapTrustedClient($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -123,7 +123,7 @@ class TrustedClientListController
         }
     }
 
-    private function mapTrustedClient(TrustedClientAttributes $value): TrustedClientApiDTO
+    private function mapTrustedClient(ServerRequestInterface $request, TrustedClientAttributes $value): TrustedClientApiDTO
     {
         $this->logDebug("Map entity to output dto for Trusted client");
         $span = $this->startSpan("Map entity to output dto for Trusted client");

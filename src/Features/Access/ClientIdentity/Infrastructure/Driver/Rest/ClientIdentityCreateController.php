@@ -55,7 +55,7 @@ class ClientIdentityCreateController
             $value = $this->readClientIdentity($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapClientIdentity($result);
+            $value = $this->mapClientIdentity($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -101,7 +101,7 @@ class ClientIdentityCreateController
             $span->end();
         }
     }
-    private function mapClientIdentity(ClientIdentityCreateResult $value): ClientIdentityApiDTO
+    private function mapClientIdentity(ServerRequestInterface $request, ClientIdentityCreateResult $value): ClientIdentityApiDTO
     {
         $this->logDebug("Map entity to output dto for Client identity");
         $span = $this->startSpan("Map entity to output dto for Client identity");

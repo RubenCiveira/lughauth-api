@@ -53,7 +53,7 @@ class TenantConfigListController
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
-            $value = ['items' => array_map(fn (TenantConfigAttributes $item): TenantConfigApiDTO => $this->mapTenantConfig($item), $result->values())];
+            $value = ['items' => array_map(fn (TenantConfigAttributes $item): TenantConfigApiDTO => $this->mapTenantConfig($request, $item), $result->values())];
             $nextLink = $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
@@ -93,7 +93,7 @@ class TenantConfigListController
         }
     }
 
-    private function mapTenantConfig(TenantConfigAttributes $value): TenantConfigApiDTO
+    private function mapTenantConfig(ServerRequestInterface $request, TenantConfigAttributes $value): TenantConfigApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant config");
         $span = $this->startSpan("Map entity to output dto for Tenant config");

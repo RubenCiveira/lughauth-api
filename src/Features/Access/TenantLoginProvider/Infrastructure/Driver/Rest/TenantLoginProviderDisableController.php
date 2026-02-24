@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLogin
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Batch\TenantLoginProviderTaskDisable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableResult;
 
 class TenantLoginProviderDisableController
@@ -32,6 +33,7 @@ class TenantLoginProviderDisableController
         private readonly SqlTemplate $sql,
         private readonly TenantLoginProviderDisableUsecase $disableUsecase,
         private readonly Context $context,
+        private readonly MagicLinkService $links,
     ) {
     }
     #[OA\Patch(
@@ -59,7 +61,7 @@ class TenantLoginProviderDisableController
             $uid = $args['uid'];
             $result = $this->disableUsecase->disable($uid);
             $this->sql->commit();
-            $value = $this->mapTenantLoginProvider($result);
+            $value = $this->mapTenantLoginProvider($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -121,7 +123,7 @@ class TenantLoginProviderDisableController
         }
     }
 
-    private function mapTenantLoginProvider(TenantLoginProviderDisableResult $value): TenantLoginProviderApiDTO
+    private function mapTenantLoginProvider(ServerRequestInterface $request, TenantLoginProviderDisableResult $value): TenantLoginProviderApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant login provider");
         $span = $this->startSpan("Map entity to output dto for Tenant login provider");
@@ -137,8 +139,9 @@ class TenantLoginProviderDisableController
             $dto->publicKey = $value->getPublicKey();
             $dto->privateKey = $value->getPrivateKey();
             $dto->certificate = $value->getCertificate();
-            if ($value->getMetadata()) {
-                $dto->metadata = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+            if (null !== $value->getMetadata()) {
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+                $dto->metadata = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();

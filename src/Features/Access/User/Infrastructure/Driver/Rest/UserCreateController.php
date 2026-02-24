@@ -58,7 +58,7 @@ class UserCreateController
             $value = $this->readUser($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapUser($result);
+            $value = $this->mapUser($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -105,7 +105,7 @@ class UserCreateController
             $span->end();
         }
     }
-    private function mapUser(UserCreateResult $value): UserApiDTO
+    private function mapUser(ServerRequestInterface $request, UserCreateResult $value): UserApiDTO
     {
         $this->logDebug("Map entity to output dto for User");
         $span = $this->startSpan("Map entity to output dto for User");

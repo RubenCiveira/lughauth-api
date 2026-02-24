@@ -23,6 +23,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseActivationDateVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -38,6 +39,7 @@ class TenantTermsOfUseUpdateController
         private readonly SqlTemplate $sql,
         private readonly TenantTermsOfUseUpdateUsecase $updateUsecase,
         private readonly Context $context,
+        private readonly MagicLinkService $links,
     ) {
     }
     #[OA\Put(
@@ -69,7 +71,7 @@ class TenantTermsOfUseUpdateController
             $value = $this->readTenantTermsOfUse($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapTenantTermsOfUse($result);
+            $value = $this->mapTenantTermsOfUse($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -118,7 +120,7 @@ class TenantTermsOfUseUpdateController
             $span->end();
         }
     }
-    private function mapTenantTermsOfUse(TenantTermsOfUseUpdateResult $value): TenantTermsOfUseApiDTO
+    private function mapTenantTermsOfUse(ServerRequestInterface $request, TenantTermsOfUseUpdateResult $value): TenantTermsOfUseApiDTO
     {
         $this->logDebug("Map entity to output dto for Tenant terms of use");
         $span = $this->startSpan("Map entity to output dto for Tenant terms of use");
@@ -131,8 +133,9 @@ class TenantTermsOfUseUpdateController
             $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
-            if ($value->getAttached()) {
-                $dto->attached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+            if (null !== $value->getAttached()) {
+                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+                $dto->attached = $this->links->create($url, $request);
             }
             $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();

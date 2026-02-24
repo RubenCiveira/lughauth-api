@@ -9,6 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Value\StreamResource;
 use Civi\Lughauth\Shared\Value\UploadBinaryContent;
@@ -23,6 +24,7 @@ class TenantLoginProviderTempMetadataUploadController
 
     public function __construct(
         private readonly Context $context,
+        private readonly MagicLinkService $links,
         private readonly TenantLoginProviderUploadMetadataUsecase $uploadUsecase,
     ) {
     }
@@ -32,7 +34,7 @@ class TenantLoginProviderTempMetadataUploadController
         $span = $this->startSpan("Upload temp file for Tenant login provider");
         try {
             $result = $this->uploadUsecase->temporalStore(UploadBinaryContent::fromUpload($request, 'file'));
-            $response->getBody()->write($this->urlForTemporalMetadata($result));
+            $response->getBody()->write($this->urlForTemporalMetadata($request, $result));
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'text/plain');
         } catch (Throwable $ex) {
@@ -68,8 +70,9 @@ class TenantLoginProviderTempMetadataUploadController
             $span->end();
         }
     }
-    private function urlForTemporalMetadata(string $key): string
+    private function urlForTemporalMetadata(ServerRequestInterface $request, string $key): string
     {
-        return $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-metadata?temp=' . base64_encode($key);
+        $url = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-metadata?temp=' . base64_encode($key);
+        return $this->links->create($url, $request);
     }
 }

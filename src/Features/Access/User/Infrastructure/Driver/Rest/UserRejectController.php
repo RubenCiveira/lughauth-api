@@ -60,7 +60,7 @@ class UserRejectController
             $uid = $args['uid'];
             $result = $this->rejectUsecase->reject($uid);
             $this->sql->commit();
-            $value = $this->mapUser($result);
+            $value = $this->mapUser($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -122,7 +122,7 @@ class UserRejectController
         }
     }
 
-    private function mapUser(UserRejectResult $value): UserApiDTO
+    private function mapUser(ServerRequestInterface $request, UserRejectResult $value): UserApiDTO
     {
         $this->logDebug("Map entity to output dto for User");
         $span = $this->startSpan("Map entity to output dto for User");

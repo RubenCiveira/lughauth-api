@@ -61,7 +61,7 @@ class RelyingPartyUpdateController
             $value = $this->readRelyingParty($request);
             $result = $this->updateUsecase->update($uid, $value);
             $this->sql->commit();
-            $value = $this->mapRelyingParty($result);
+            $value = $this->mapRelyingParty($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
@@ -99,7 +99,7 @@ class RelyingPartyUpdateController
             $span->end();
         }
     }
-    private function mapRelyingParty(RelyingPartyUpdateResult $value): RelyingPartyApiDTO
+    private function mapRelyingParty(ServerRequestInterface $request, RelyingPartyUpdateResult $value): RelyingPartyApiDTO
     {
         $this->logDebug("Map entity to output dto for Relying party");
         $span = $this->startSpan("Map entity to output dto for Relying party");

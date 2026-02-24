@@ -62,7 +62,7 @@ class PlatformIdentityCreateController
             $value = $this->readPlatformIdentity($request);
             $result = $this->createUsecase->create($value);
             $this->sql->commit();
-            $value = $this->mapPlatformIdentity($result);
+            $value = $this->mapPlatformIdentity($request, $result);
             $encoded = json_encode($value);
             $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(201)
@@ -131,7 +131,7 @@ class PlatformIdentityCreateController
             $span->end();
         }
     }
-    private function mapPlatformIdentity(PlatformIdentityCreateResult $value): PlatformIdentityApiDTO
+    private function mapPlatformIdentity(ServerRequestInterface $request, PlatformIdentityCreateResult $value): PlatformIdentityApiDTO
     {
         $this->logDebug("Map entity to output dto for Platform identity");
         $span = $this->startSpan("Map entity to output dto for Platform identity");
