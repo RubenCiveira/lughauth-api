@@ -61,7 +61,7 @@ class UserLoaderAdapter
         $pfilter = new RelyingPartyFilter();
         $allParties = $this->parties->list($pfilter);
         foreach ($allParties as $party) {
-            if ( in_array($party->getCode(), $relyingParties)) {
+            if (in_array($party->getCode(), $relyingParties)) {
                 $partiesIds[] = $party->uid();
             }
         }
@@ -72,7 +72,7 @@ class UserLoaderAdapter
             if (null === $party) {
                 continue;
             }
-            if( !in_array($party->uid(), $partiesIds) ) {
+            if (!in_array($party->uid(), $partiesIds)) {
                 continue;
             }
             $partyId = $party->uid();

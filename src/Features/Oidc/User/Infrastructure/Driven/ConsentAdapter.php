@@ -34,10 +34,10 @@ class ConsentAdapter implements ConsentGateway
         $theUser = $this->users->checkUser($theTenant, $username);
         $terms = $this->users->loadTenantTerms($theTenant, $audiences);
         $pending = [];
-        foreach($terms as $term) {
-          if( $this->isPendingTerms($theUser, $term) ) {
-            $pending[] = new Consent($term->uid(), $term->getText());
-          }
+        foreach ($terms as $term) {
+            if ($this->isPendingTerms($theUser, $term)) {
+                $pending[] = new Consent($term->uid(), $term->getText());
+            }
         }
         return $pending;
     }
@@ -48,11 +48,11 @@ class ConsentAdapter implements ConsentGateway
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUser($theTenant, $username);
         $terms = $this->users->loadTenantTerms($theTenant, $audiences);
-        foreach($terms as $term) {
-          if( $term->uid() === $consent->id ) {
-            // && $term->getText() === $consent->text
-            $this->storeAccepted($theUser, $term);
-          }
+        foreach ($terms as $term) {
+            if ($term->uid() === $consent->id) {
+                // && $term->getText() === $consent->text
+                $this->storeAccepted($theUser, $term);
+            }
         }
     }
 

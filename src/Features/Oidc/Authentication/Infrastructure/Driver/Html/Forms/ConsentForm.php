@@ -63,7 +63,7 @@ class ConsentForm implements StepForm
         );
 
         $pending = $pendings[0];
-        $pendingText = html_entity_decode( $pending->text );
+        $pendingText = html_entity_decode($pending->text);
 
         $error = $error ? '<p class="error">' . $error . '</p>' : '';
 
@@ -106,7 +106,7 @@ class ConsentForm implements StepForm
     {
         $accept = isset($input->body['accept']);
         $consentId = isset($input->body['consent']);
-        if ($accept && $consentId ) {
+        if ($accept && $consentId) {
             $this->publicConsent->storeAcceptedConsent(
                 $input->context->tenant,
                 $input->challenges->username ?? '',

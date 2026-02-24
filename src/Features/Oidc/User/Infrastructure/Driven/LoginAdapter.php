@@ -156,7 +156,7 @@ class LoginAdapter implements LoginGateway
         $terms = $this->users->loadTenantTerms($tenant, $audiences);
         foreach ($terms as $term) {
             $accepted = $this->userTerms->findOneByUserAndConditions($user, $term);
-            if( !$accepted ) {
+            if (!$accepted) {
                 return AuthenticationResult::consentRequired($term->getText());
             }
         }
