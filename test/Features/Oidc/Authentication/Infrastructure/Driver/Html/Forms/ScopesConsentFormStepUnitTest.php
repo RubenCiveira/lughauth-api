@@ -9,6 +9,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
@@ -81,7 +82,10 @@ final class ScopesConsentFormStepUnitTest extends FormsTestCase
 
         $result = $form->authenticate($input);
 
-        $this->assertSame($authResponse, $result);
+        $this->assertInstanceOf(StepResult::class, $result);
+        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
+        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($input->challenges, $result->challenges);
     }
 
     public function testAuthenticateRejectsWhenNoScopesApproved(): void

@@ -226,7 +226,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         $connection = new class () extends Connection {
             public function __construct()
             {
-                parent::__construct(true, new DateTime(), 'app', '/', '127.0.0.1', 'host', 'en');
+                parent::__construct(0, true, new DateTime(), 'app', '/', '127.0.0.1', 'host', 'en');
             }
 
             public function inRange(string $cidr): bool
@@ -260,7 +260,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         $connection = new class () extends Connection {
             public function __construct()
             {
-                parent::__construct(true, new DateTime(), 'app', '/', '10.0.0.1', 'host', 'en');
+                parent::__construct(0, true, new DateTime(), 'app', '/', '10.0.0.1', 'host', 'en');
             }
 
             public function inRange(string $cidr): bool
@@ -408,7 +408,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn($identity ?? new Identity(false));
-        $context->method('getConnection')->willReturn($connection ?? new Connection(true, new DateTime(), 'app', '/', '127.0.0.1', 'host', 'en'));
+        $context->method('getConnection')->willReturn($connection ?? new Connection(0, true, new DateTime(), 'app', '/', '127.0.0.1', 'host', 'en'));
 
         $config = $this->createMock(AppConfig::class);
         $cache = $cache ?? new InMemoryCache();

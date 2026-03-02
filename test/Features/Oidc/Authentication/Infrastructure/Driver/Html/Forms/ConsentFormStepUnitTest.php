@@ -10,7 +10,9 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
+use Civi\Lughauth\Features\Oidc\User\Domain\Consent;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
@@ -21,7 +23,10 @@ final class ConsentFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateStoresConsentAndProceeds(): void
     {
-        $input = $this->buildInput(['accept' => 'accept'], new ChallengesState(username: 'user-1'));
+        $input = $this->buildInput(
+            ['accept' => 'accept', 'consent' => 'consent-1', 'conditions' => 'terms'],
+            new ChallengesState(username: 'user-1')
+        );
         $authResponse = $this->createMock(PublicLoginAuthResponse::class);
 
         $authenticator = $this->createMock(AuthenticateUser::class);
@@ -32,7 +37,7 @@ final class ConsentFormStepUnitTest extends FormsTestCase
         $consent = $this->createMock(ConsentUsecase::class);
         $consent->expects($this->once())
             ->method('storeAcceptedConsent')
-            ->with('tenant1', 'user-1');
+            ->with('tenant1', 'user-1', ['client-123'], $this->isInstanceOf(Consent::class));
 
         $form = new ConsentForm(
             $this->createMock(MessageProvider::class),
@@ -44,6 +49,9 @@ final class ConsentFormStepUnitTest extends FormsTestCase
 
         $result = $form->authenticate($input);
 
-        $this->assertSame($authResponse, $result);
+        $this->assertInstanceOf(StepResult::class, $result);
+        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
+        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($input->challenges, $result->challenges);
     }
 }

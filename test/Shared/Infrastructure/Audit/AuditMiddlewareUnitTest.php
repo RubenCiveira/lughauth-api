@@ -28,7 +28,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $auditContext->addChange(new AuditChange('action-1', 'User', '1', 'update', ['name' => 'A']));
 
         $identity = new Identity(false, name: 'user', token: 'token', tenant: 'tenant-1');
-        $connection = new Connection(true, new DateTime(), 'app', '/path', '127.0.0.1', 'host', 'en');
+        $connection = new Connection(0, true, new DateTime(), 'app', '/path', '127.0.0.1', 'host', 'en');
 
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn($identity);
@@ -58,7 +58,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(true));
-        $context->method('getConnection')->willReturn(new Connection(true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
+        $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $config = $this->createMock(AppConfig::class);
         $config->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
@@ -90,7 +90,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(true));
-        $context->method('getConnection')->willReturn(new Connection(true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
+        $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
 
@@ -124,7 +124,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
         $context->method('getIdentity')->willReturn(new Identity(true));
-        $context->method('getConnection')->willReturn(new Connection(true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
+        $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
 

@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/FormsTestCase.php';
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
@@ -51,6 +52,12 @@ final class RecoverPassFormStepUnitTest extends FormsTestCase
 
         $result = $form->authenticate($input);
 
-        $this->assertSame($authResponse, $result);
+        $this->assertInstanceOf(StepResult::class, $result);
+        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
+        $this->assertInstanceOf(PublicLoginAuthResponse::class, $result->authResponse);
+        $this->assertInstanceOf(ChallengesState::class, $result->challenges);
+        $this->assertSame('user-1', $result->challenges->username);
+        $this->assertSame($input->challenges->withMfa, $result->challenges->withMfa);
+        $this->assertSame($input->challenges->session, $result->challenges->session);
     }
 }

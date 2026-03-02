@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/FormsTestCase.php';
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
@@ -39,6 +40,9 @@ final class UseMfaFormStepUnitTest extends FormsTestCase
 
         $result = $form->authenticate($input);
 
-        $this->assertSame($authResponse, $result);
+        $this->assertInstanceOf(StepResult::class, $result);
+        $this->assertSame(StepResult::TYPE_PROCEED, $result->type);
+        $this->assertSame($authResponse, $result->authResponse);
+        $this->assertSame($input->challenges, $result->challenges);
     }
 }

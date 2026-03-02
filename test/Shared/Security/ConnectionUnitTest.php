@@ -35,7 +35,7 @@ final class ConnectionUnitTest extends TestCase
         /*
          * Act: build a Connection from the HTTP environment.
          */
-        $connection = Connection::remoteHttp($app);
+        $connection = Connection::remoteHttp(0, $app);
 
         /*
          * Assert: verify the connection details match the environment.
@@ -64,7 +64,7 @@ final class ConnectionUnitTest extends TestCase
         /*
          * Act: build a Connection from the proxied HTTP environment.
          */
-        $connection = Connection::remoteHttp('proxiedApp', $config);
+        $connection = Connection::remoteHttp(0, 'proxiedApp', $config);
 
         /*
          * Assert: verify the client IP uses the first forwarded address.
@@ -89,7 +89,7 @@ final class ConnectionUnitTest extends TestCase
         /*
          * Act: build a Connection from the proxied HTTP environment.
          */
-        $connection = Connection::remoteHttp('realIpApp', $config);
+        $connection = Connection::remoteHttp(0, 'realIpApp', $config);
 
         /*
          * Assert: verify the client IP uses X-Real-IP.
@@ -110,7 +110,7 @@ final class ConnectionUnitTest extends TestCase
         /*
          * Act: build a Connection from the HTTP environment.
          */
-        $connection = Connection::remoteHttp('ipv6App');
+        $connection = Connection::remoteHttp(0, 'ipv6App');
 
         /*
          * Assert: verify the loopback address is normalized.
@@ -126,7 +126,7 @@ final class ConnectionUnitTest extends TestCase
         /*
          * Arrange: create a connection within the target CIDR range.
          */
-        $connection = new Connection(true, new \DateTime(), 'app', '/', '192.168.1.15', 'target', 'en');
+        $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.1.15', 'target', 'en');
 
         /*
          * Act: check if the source IP is inside the CIDR block.
@@ -147,7 +147,7 @@ final class ConnectionUnitTest extends TestCase
         /*
          * Arrange: create a connection outside the target CIDR range.
          */
-        $connection = new Connection(true, new \DateTime(), 'app', '/', '192.168.2.15', 'target', 'en');
+        $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.2.15', 'target', 'en');
 
         /*
          * Act: check if the source IP is inside the CIDR block.

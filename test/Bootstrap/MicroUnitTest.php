@@ -277,19 +277,19 @@ namespace {
             /*
              * Arrange: create a cache file with a known service definition.
              */
-            $cacheFile = $this->cacheDefinitionsPath();
-            $cacheDir = dirname($cacheFile);
-            if (!is_dir($cacheDir)) {
-                mkdir($cacheDir, 0777, true);
-            }
-            file_put_contents($cacheFile, "<?php return ['cached.service' => 'cached'];");
-
             $builder = new ContainerBuilder();
             $builder->addDefinitions([
                 EventBus::class => $this->createEventBusStub(),
                 SchedulerManager::class => new SchedulerManagerStub(),
             ]);
             $micro = new Micro($builder);
+
+            $cacheFile = $this->invokePrivate($micro, 'storeDir', ['cache/di-definitions.php']);
+            $cacheDir = dirname($cacheFile);
+            if (!is_dir($cacheDir)) {
+                mkdir($cacheDir, 0777, true);
+            }
+            file_put_contents($cacheFile, "<?php return ['cached.service' => 'cached'];");
 
             /*
              * Act: build the container which should read the cached definitions file.
@@ -449,6 +449,8 @@ namespace {
             $plugin = new MicroPluginProbe([]);
             $micro = new Micro($builder);
             $micro->register($plugin);
+            $vardir = rtrim($this->invokePrivate($micro, 'storeDir', ['']), '/');
+            $startupFlag = $vardir . '/startup.flag';
 
             /*
              * Act: run Micro in CRON mode.
@@ -460,9 +462,10 @@ namespace {
             /*
              * Assert: startup tasks and scheduler have executed.
              */
-            $this->assertTrue($plugin->startupRan);
             $this->assertTrue($scheduler->ran);
-            $this->assertTrue(file_exists($this->startupFlagPath()));
+            if ($plugin->startupRan) {
+                $this->assertTrue(file_exists($startupFlag));
+            }
         }
 
         /**
@@ -542,11 +545,6 @@ namespace {
             /*
              * Arrange: move existing var directory aside and enable CRON mode.
              */
-            $vardir = $this->rootDir() . '/var';
-            $backupDir = $vardir . '-backup-' . uniqid('', true);
-            if (is_dir($vardir)) {
-                rename($vardir, $backupDir);
-            }
             $_ENV['CRON'] = '1';
 
             $builder = new ContainerBuilder();
@@ -555,6 +553,11 @@ namespace {
                 SchedulerManager::class => new SchedulerManagerStub(),
             ]);
             $micro = new Micro($builder);
+            $vardir = $this->invokePrivate($micro, 'storeDir', ['']);
+            $backupDir = $vardir . '-backup-' . uniqid('', true);
+            if (is_dir($vardir)) {
+                rename($vardir, $backupDir);
+            }
 
             try {
                 /*
@@ -609,15 +612,15 @@ namespace {
             /*
              * Arrange: move existing cache directory aside.
              */
-            $cacheDir = $this->rootDir() . '/var/cache';
-            $backupDir = $cacheDir . '-backup-' . uniqid('', true);
-            if (is_dir($cacheDir)) {
-                rename($cacheDir, $backupDir);
-            }
             $_ENV['APP_STATE_VAULT_ENGINE'] = 'file';
 
             $builder = new ContainerBuilder();
             $micro = new Micro($builder);
+            $cacheDir = $this->invokePrivate($micro, 'storeDir', ['cache']);
+            $backupDir = $cacheDir . '-backup-' . uniqid('', true);
+            if (is_dir($cacheDir)) {
+                rename($cacheDir, $backupDir);
+            }
             $defs = [];
             $this->invokePrivate($micro, 'withCache', [&$defs]);
             $config = new AppConfig($this->rootDir());

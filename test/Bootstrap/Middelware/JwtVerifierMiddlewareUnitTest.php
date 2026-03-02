@@ -18,6 +18,7 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Identity;
+use Civi\Lughauth\Shared\Security\MagicLinkService;
 use Civi\Lughauth\Bootstrap\Middleware\JwtVerifierMiddleware;
 
 /**
@@ -134,9 +135,8 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
         ]);
         $context = $this->createMock(Context::class);
-        $context->expects($this->once())
-            ->method('setSecurityContext')
-            ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $this->isInstanceOf(Identity::class));
+        $context->expects($this->never())
+            ->method('setSecurityContext');
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->never())->method('sendRequest');
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context, $client);
@@ -175,9 +175,8 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_READ)
         ]);
         $context = $this->createMock(Context::class);
-        $context->expects($this->once())
-            ->method('setSecurityContext')
-            ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $this->isInstanceOf(Identity::class));
+        $context->expects($this->never())
+            ->method('setSecurityContext');
         $client = $this->createMock(ClientInterface::class);
         $client->expects($this->never())->method('sendRequest');
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, $context, $client);
@@ -589,8 +588,9 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $request->method('withHeader')->willReturnSelf();
         $requestFactory->method('createRequest')->willReturn($request);
         $client = $client ?? $this->createMock(ClientInterface::class);
+        $magicLinkService = $this->createMock(MagicLinkService::class);
 
-        return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client);
+        return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client, $magicLinkService);
     }
 
     private function request(string $authorization): ServerRequestInterface
