@@ -38,6 +38,7 @@ class ScopesConsentForm implements StepForm
         $tenant = $input->context->tenant;
         $username = $input->challenges->username ?? '';
         $clientId = $input->authRequest->client->id;
+        $clientName = $clientId;
 
         $js = $this->securer->configureScripts([
             $this->securer->addSign("sign")
@@ -66,6 +67,7 @@ class ScopesConsentForm implements StepForm
 
         $requiredBlock = $required ? $this->renderRequiredBlock($requiredTitle, $required) : '';
         $optionalBlock = $optional ? $this->renderOptionalBlock($optionalTitle, $optional) : '';
+        $separator = ($required && $optional) ? '<div class="scopes-separator" role="presentation"></div>' : '';
         $empty = (!$required && !$optional) ? '<p>' . $translator->get('scopes.empty') . '</p>' : '';
 
         $step = StepName::SCOPES_CONSENT->value;
@@ -76,13 +78,17 @@ class ScopesConsentForm implements StepForm
                 $js . <<<HTML
                     <h1>{$title}</h1>
                     <p>{$help}</p>
+                    <p><strong>Aplicacion:</strong> {$clientName}</p>
                     {$error}
                     {$empty}
                     <form method="POST">
                         <input type="hidden" name="csid" id="sign" />
                         <input type="hidden" name="step" value="{$step}" />
-                        {$requiredBlock}
-                        {$optionalBlock}
+                        <div class="scopes-scroll" style="max-height: 320px; overflow-y: auto; padding: 0.25rem 0;">
+                            {$requiredBlock}
+                            {$separator}
+                            {$optionalBlock}
+                        </div>
                         <input class="primary-button" type="submit" value="{$send}" />
                     </form>
                     <form method="POST">
@@ -177,11 +183,10 @@ class ScopesConsentForm implements StepForm
      */
     private function renderRequiredBlock(string $title, array $required): string
     {
-        $items = $this->renderScopesList($required);
+        $items = $this->renderScopeItems($required, true);
         return <<<HTML
             <section class="scopes-required">
-                <h3>{$title}</h3>
-                <ul>
+                <ul class="scopes-list">
                     {$items}
                 </ul>
             </section>
@@ -193,23 +198,13 @@ class ScopesConsentForm implements StepForm
      */
     private function renderOptionalBlock(string $title, array $optional): string
     {
-        $items = '';
-        foreach ($optional as $item) {
-            $label = $item->displayLabel();
-            $description = $item->description ? '<span>' . $item->description . '</span>' : '';
-            $items .= <<<HTML
-                <label>
-                    <input type="checkbox" name="optional_scopes[]" value="{$item->scope}" />
-                    <strong>{$label}</strong>
-                    {$description}
-                </label>
-                HTML;
-        }
+        $items = $this->renderScopeItems($optional, false);
 
         return <<<HTML
             <section class="scopes-optional">
-                <h3>{$title}</h3>
-                {$items}
+                <ul class="scopes-list">
+                    {$items}
+                </ul>
             </section>
             HTML;
     }
@@ -217,16 +212,26 @@ class ScopesConsentForm implements StepForm
     /**
      * @param ScopePermission[] $permissions
      */
-    private function renderScopesList(array $permissions): string
+    private function renderScopeItems(array $permissions, bool $required): string
     {
         $items = '';
         foreach ($permissions as $permission) {
             $label = $permission->displayLabel();
-            $description = $permission->description ? '<span>' . $permission->description . '</span>' : '';
+            $description = $permission->description ?: 'Descripcion no disponible.';
+            $requiredMark = $required ? ' <span class="required-marker">*</span>' : '';
+            $checkbox = $required
+                ? '<input type="checkbox" checked disabled />'
+                : '<input type="checkbox" name="optional_scopes[]" value="' . $permission->scope . '" />';
             $items .= <<<HTML
-                <li>
-                    <strong>{$label}</strong>
-                    {$description}
+                <li class="scope-item">
+                    <label class="scope-label">
+                        {$checkbox}
+                        <strong>{$label}{$requiredMark}</strong>
+                    </label>
+                    <details class="scope-description">
+                        <summary>Descripcion</summary>
+                        <p>{$description}</p>
+                    </details>
                 </li>
                 HTML;
         }
