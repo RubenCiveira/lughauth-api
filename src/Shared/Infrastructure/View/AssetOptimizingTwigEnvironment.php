@@ -40,6 +40,7 @@ class AssetOptimizingTwigEnvironment extends Environment
             return $url;
         }));
 
+        /** @psalm-suppress UnusedClosureParam */
         $this->addFunction(new TwigFunction('asset', function (string $routeName, array $params = []) use ($basePath) {
             $url = "{$basePath}/assets/{$routeName}";
             return $url;

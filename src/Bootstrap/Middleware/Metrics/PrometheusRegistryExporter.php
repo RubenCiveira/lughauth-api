@@ -15,7 +15,7 @@ use Prometheus\MetricFamilySamples;
  */
 final class PrometheusRegistryExporter
 {
-    /** @var array<string, array{buf:string, n:int}> Buffered file writes by path. */
+    /** @var array<string, array{buf:string, n:int, h?:resource}> Buffered file writes by path. */
     private array $files = [];
     /** @var int Flush threshold for buffered lines. */
     private int $flushAt;
@@ -77,7 +77,7 @@ final class PrometheusRegistryExporter
      */
     public function ingestBatch(array $payload, ?int $snapshotMs = null): void
     {
-        $tsMs    = $snapshotMs ?? (int) floor(microtime(true) * 1000);
+        $tsMs    = $snapshotMs ?? (int) floor(microtime(true) * 1000.0);
         $incRe   = $this->compile($this->options['include'] ?? []);
         $excRe   = $this->compile($this->options['exclude'] ?? []);
         $allow   = array_flip($this->options['label_allow'] ?? []);
@@ -100,7 +100,11 @@ final class PrometheusRegistryExporter
                     $this->fs->upsertLabels($metric, $sha, $labels, $ts);
 
                     $path = $this->fs->dayFile($metric, $sha, 'raw', $ts, false);
-                    $line = json_encode(['ts' => $ts, 'v' => (float)$value], JSON_PRESERVE_ZERO_FRACTION)."\n";
+                    $line = json_encode(['ts' => $ts, 'v' => (float)$value], JSON_PRESERVE_ZERO_FRACTION);
+                    if ($line === false) {
+                        $line = '{}';
+                    }
+                    $line .= "\n";
                     $this->files[$path]['buf'] = ($this->files[$path]['buf'] ?? '').$line;
                     $this->files[$path]['n']   = ($this->files[$path]['n']   ?? 0) + 1;
 
@@ -116,28 +120,28 @@ final class PrometheusRegistryExporter
                 $this->flushOne($p);
             }
             // cerrar handles
-            foreach ($this->files as $slot) {
-                if (isset($slot['h']) && is_resource($slot['h'])) {
-                    @fclose($slot['h']);
-                }
-            }
-
+            $this->closeHandles();
         } catch (\Throwable $e) {
-            foreach ($this->files as $slot) {
-                if (isset($slot['h']) && is_resource($slot['h'])) {
-                    @fclose($slot['h']);
-                }
-            }
+            $this->closeHandles();
             throw $e;
         }
     }
 
     // filtros regex
+    /** @param array<int, scalar|\Stringable> $patterns */
     private function compile(array $patterns): array
     {
         $out = [];
         foreach ($patterns as $p) {
-            $out[] = (@preg_match($p, '') !== false) ? $p : '~' . str_replace('~', '\~', $p) . '~';
+            if (is_string($p)) {
+                $pattern = $p;
+            } elseif (is_scalar($p) || $p instanceof \Stringable) {
+                $pattern = (string) $p;
+            } else {
+                continue;
+            }
+            /** @var non-empty-string $pattern */
+            $out[] = (@preg_match($pattern, '') !== false) ? $pattern : '~' . str_replace('~', '\~', $pattern) . '~';
         }
         return $out;
     }
@@ -187,6 +191,15 @@ final class PrometheusRegistryExporter
         }
     }
 
+    private function closeHandles(): void
+    {
+        foreach ($this->files as $slot) {
+            if (isset($slot['h'])) {
+                @fclose($slot['h']);
+            }
+        }
+    }
+
     private function extract(array $metrics): array
     {
         usort($metrics, function (MetricFamilySamples $a, MetricFamilySamples $b): int {
@@ -231,13 +244,24 @@ final class PrometheusRegistryExporter
     private function escapeAllLabels(MetricFamilySamples $metric, array $labelNames, Sample $sample): array
     {
         $escapedLabels = [];
-        $labels = array_combine(array_merge($labelNames, $sample->getLabelNames()), $sample->getLabelValues());
+        $labelKeys = array_merge($labelNames, $sample->getLabelNames());
+        $labelValues = $sample->getLabelValues();
+        if (count($labelKeys) !== count($labelValues)) {
+            throw new \ValueError('Unable to combine labels for metric named ' . $metric->getName());
+        }
+        $labels = $this->combineLabels($labelKeys, $labelValues);
         if ($labels === false) {
             throw new RuntimeException('Unable to combine labels for metric named ' . $metric->getName());
         }
         foreach ($labels as $labelName => $labelValue) {
-            $escapedLabels[$labelName]  = $this->escapeLabelValue((string)$labelValue);
+            $escapedLabels[$labelName]  = $this->escapeLabelValue($labelValue);
         }
         return $escapedLabels;
+    }
+
+    /** @return array<string, string>|false */
+    private function combineLabels(array $keys, array $values): array|false
+    {
+        return array_combine($keys, $values);
     }
 }

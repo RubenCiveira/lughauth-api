@@ -206,23 +206,33 @@ class JwtVerifierMiddleware
 
     private function getJwks(): string
     {
+        if ($this->jwksUrl === null || $this->jwksUrl === '') {
+            throw new \RuntimeException('JWKS URL is not configured');
+        }
         $cache_key = 'jwks.verify.publickey';
         if ($this->cache->has($cache_key)) {
-            return $this->cache->get($cache_key);
+            $cached = $this->cache->get($cache_key);
+            if (is_string($cached)) {
+                return $cached;
+            }
         } else {
             $response = $this->client->sendRequest($this->requestFactory->createRequest('GET', $this->jwksUrl));
-            $item = '' . $response->getBody();
+            $item = (string) $response->getBody();
             $this->cache->set($cache_key, $item, new \DateInterval('PT1H'));
             return $item;
         }
+        $response = $this->client->sendRequest($this->requestFactory->createRequest('GET', $this->jwksUrl));
+        $item = (string) $response->getBody();
+        $this->cache->set($cache_key, $item, new \DateInterval('PT1H'));
+        return $item;
     }
 
     private function verifyToken(object $payload): void
     {
-        if ($this->requiredIssuer && $payload->iss != $this->requiredIssuer) {
+        if ($this->requiredIssuer !== null && $this->requiredIssuer !== '' && $payload->iss != $this->requiredIssuer) {
             throw new UnauthorizedException(message: 'The issuer is not valid.');
         }
-        if ($this->requiredAudiences) {
+        if ($this->requiredAudiences !== null && $this->requiredAudiences !== '') {
             // Tiene que tener todas las audiencias.
             $reqs = [];
             foreach (explode(',', $this->requiredAudiences) as $au) {
@@ -240,9 +250,15 @@ class JwtVerifierMiddleware
 
     private function extractRoles(object $payload): array
     {
+        if ($this->rolesPath === null || $this->rolesPath === '') {
+            return [];
+        }
         $path = explode('/', $this->rolesPath);
         $in = (array)$payload;
         foreach ($path as $part) {
+            if ($part === '') {
+                continue;
+            }
             if (isset($in[$part])) {
                 $in = (array)$in[$part];
             } else {

@@ -80,7 +80,6 @@ class TraceCollector implements ManagementInterface
                                 $span['spanId'],
                                 TraceFlags::SAMPLED,
                             );
-                            $parentContext = null;
                             if (!empty($span['parentSpanId'])) {
                                 $parentContext = SpanContext::create(
                                     $span['traceId'],

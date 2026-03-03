@@ -186,9 +186,6 @@ final class PromQLInterpreter
         $metric    = $sel['metric'];
         /** @var LabelMatcher[] $matchers */
         $matchers  = $sel['matchers'] ?? [];
-        // Si trae [range] en un selector “puro”, lo tratamos como range con resample
-        $rangeSec  = (int)($sel['rangeSec'] ?? 0);
-
         // Para dibujar series continuas, usamos resample stepSec
         return $this->q->range($metric, $startMs, $endMs, $stepSec, $partition, ...$matchers);
     }
@@ -199,12 +196,12 @@ final class PromQLInterpreter
         $arg  = $fn['arg']; // es un selector parseado
         $metric    = $arg['metric'];
         $matchers  = $arg['matchers'] ?? [];
-        $rangeSec  = (int)($arg['rangeSec'] ?? 0);
+        $_rangeSec  = (int)($arg['rangeSec'] ?? 0);
 
         // Para funciones *_over_time y rate es REQUERIDO un [range]
-        if ($rangeSec <= 0 && in_array($name, ['rate','avg_over_time','sum_over_time','count_over_time'], true)) {
+        if ($_rangeSec <= 0 && in_array($name, ['rate','avg_over_time','sum_over_time','count_over_time'], true)) {
             // fallback: 5m por defecto
-            $rangeSec = 300;
+            $_rangeSec = 300;
         }
 
         return match ($name) {
@@ -260,9 +257,8 @@ final class PromQLInterpreter
             ksort($b['points']);
             $pts = [];
             foreach ($b['points'] as $t => $vals) {
-                $vals = array_values($vals);
                 $val = match ($op) {
-                    'avg' => array_sum($vals) / max(1, count($vals)),
+                    'avg' => array_sum($vals) / (float) max(1, count($vals)),
                     'max' => max($vals),
                     'min' => min($vals),
                     default => array_sum($vals),

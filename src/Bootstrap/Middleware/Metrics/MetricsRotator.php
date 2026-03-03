@@ -35,7 +35,11 @@ final class MetricsRotator
      */
     public function rotateAll(): void
     {
-        foreach (glob($this->root.'/*', GLOB_ONLYDIR) ?: [] as $metricDir) {
+        $metricDirs = glob($this->root.'/*', GLOB_ONLYDIR);
+        if ($metricDirs === false) {
+            $metricDirs = [];
+        }
+        foreach ($metricDirs as $metricDir) {
             $this->rotateMetric(basename($metricDir));
         }
     }
@@ -74,7 +78,11 @@ final class MetricsRotator
     private function processMetric(string $metricDir): void
     {
         // Recorre todas las series
-        foreach (glob($metricDir.'/series/*/*', GLOB_ONLYDIR) ?: [] as $seriesDir) {
+        $seriesDirs = glob($metricDir.'/series/*/*', GLOB_ONLYDIR);
+        if ($seriesDirs === false) {
+            $seriesDirs = [];
+        }
+        foreach ($seriesDirs as $seriesDir) {
             $this->processSeries($seriesDir);
         }
     }
@@ -88,21 +96,33 @@ final class MetricsRotator
             }
 
             // YYYY
-            foreach (glob($partDir.'/*', GLOB_ONLYDIR) ?: [] as $yDir) {
+            $yearDirs = glob($partDir.'/*', GLOB_ONLYDIR);
+            if ($yearDirs === false) {
+                $yearDirs = [];
+            }
+            foreach ($yearDirs as $yDir) {
                 $y = basename($yDir);
                 if (!ctype_digit($y) || strlen($y) !== 4) {
                     continue;
                 }
 
                 // MM
-                foreach (glob($yDir.'/*', GLOB_ONLYDIR) ?: [] as $mDir) {
+                $monthDirs = glob($yDir.'/*', GLOB_ONLYDIR);
+                if ($monthDirs === false) {
+                    $monthDirs = [];
+                }
+                foreach ($monthDirs as $mDir) {
                     $m = basename($mDir);
                     if (!ctype_digit($m) || (int)$m < 1 || (int)$m > 12) {
                         continue;
                     }
 
                     // DD.jsonl(.gz)
-                    foreach (glob($mDir.'/*.jsonl*') ?: [] as $dayFile) {
+                    $dayFiles = glob($mDir.'/*.jsonl*');
+                    if ($dayFiles === false) {
+                        $dayFiles = [];
+                    }
+                    foreach ($dayFiles as $dayFile) {
                         $this->maybeGzip($dayFile, $partition);
                         $this->maybeDelete($dayFile, $partition);
                     }
@@ -125,7 +145,7 @@ final class MetricsRotator
 
         // No comprimir “hoy”
         $info = $this->extractYmdFromPath($path);
-        if (!$info) {
+        if ($info === null) {
             return;
         }
         [$y, $m, $d] = $info;
@@ -169,7 +189,7 @@ final class MetricsRotator
             return;
         }
         $ymd = $this->extractYmdFromPath($path);
-        if (null === $ymd) {
+        if ($ymd === null) {
             return;
         }
         [$y, $m, $d] = $ymd;

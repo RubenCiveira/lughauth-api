@@ -97,7 +97,7 @@ class SqlTemplate
     /**
      * Executes a query and returns all rows as an array.
      */
-    public function query(string $query, array $params, ?Closure $clousure = null): array
+    public function query(string $query, ?array $params, ?Closure $clousure = null): array
     {
         $stmt = $this->prepare($query, $params);
         if (false !== $stmt) {
@@ -115,7 +115,7 @@ class SqlTemplate
     /**
      * Executes a query for update and returns all rows as an array.
      */
-    public function queryForUpdate(string $query, array $params, ?Closure $clousure = null): array
+    public function queryForUpdate(string $query, ?array $params, ?Closure $clousure = null): array
     {
         $stmt = $this->prepare($query, $params);
         if (false !== $stmt) {
@@ -188,46 +188,50 @@ class SqlTemplate
         }
     }
 
-    private function prepare(string $query, array $params): PDOStatement | false
+    private function prepare(string $query, ?array $params): PDOStatement | false
     {
         $driver = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
         if ('mysql' == $driver) {
             $query = str_replace('"', "`", $query);
         }
-        foreach ($params as $key => $param) {
-            $value = is_a($param, SqlParam::class) ? $param->value : $param;
-            $name = is_a($param, SqlParam::class) ? $param->name : $key;
-            if (is_array($value)) {
-                // $pattern = '/\s+(IN|in)\s*\(\s*:' . preg_quote($name, '/') . '\s*\)/i';
-                // $query = preg_replace($pattern, $this->paramExpand($name, $value), $query);
-                $pattern = '/(?<field>`?\w+`?|"\w+"|\w+)\s+(?<op>NOT\s+IN|IN)\s*\(\s*:' . preg_quote($name, '/') . '\s*\)/i';
-                $replaced = preg_replace_callback($pattern, function ($matches) use ($name, $value) {
-                    $field = $matches['field'];
-                    $op = strtoupper(trim($matches['op']));
-                    return $this->paramExpand($field, $name, $value, $op === 'NOT IN');
-                }, $query);
-                if (is_string($replaced)) {
-                    $query = $replaced;
+        if (null !== $params) {
+            foreach ($params as $key => $param) {
+                $value = is_a($param, SqlParam::class) ? $param->value : $param;
+                $name = is_a($param, SqlParam::class) ? $param->name : $key;
+                if (is_array($value)) {
+                    // $pattern = '/\s+(IN|in)\s*\(\s*:' . preg_quote($name, '/') . '\s*\)/i';
+                    // $query = preg_replace($pattern, $this->paramExpand($name, $value), $query);
+                    $pattern = '/(?<field>`?\w+`?|"\w+"|\w+)\s+(?<op>NOT\s+IN|IN)\s*\(\s*:' . preg_quote($name, '/') . '\s*\)/i';
+                    $replaced = preg_replace_callback($pattern, function ($matches) use ($name, $value) {
+                        $field = $matches['field'];
+                        $op = strtoupper(trim($matches['op']));
+                        return $this->paramExpand($field, $name, $value, $op === 'NOT IN');
+                    }, $query);
+                    if (is_string($replaced)) {
+                        $query = $replaced;
+                    }
                 }
             }
         }
         $stmt = $this->pdo->prepare($query);
-        foreach ($params as $key => $param) {
-            $value = is_a($param, SqlParam::class) ? $param->value : $param;
-            $name = is_a($param, SqlParam::class) ? $param->name : $key;
-            if (is_array($value)) {
-                for ($i = 0; $i < count($value); $i++) {
-                    if (is_a($param, SqlParam::class)) {
-                        $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i]), $this->podType($param->type));
-                    } else {
-                        $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i]));
+        if (null !== $params) {
+            foreach ($params as $key => $param) {
+                $value = is_a($param, SqlParam::class) ? $param->value : $param;
+                $name = is_a($param, SqlParam::class) ? $param->name : $key;
+                if (is_array($value)) {
+                    for ($i = 0; $i < count($value); $i++) {
+                        if (is_a($param, SqlParam::class)) {
+                            $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i]), $this->podType($param->type));
+                        } else {
+                            $stmt->bindValue($name . '_' . ($i + 1), $this->podValue($value[$i]));
+                        }
                     }
-                }
-            } else {
-                if (is_a($param, SqlParam::class)) {
-                    $stmt->bindValue($name, $this->podValue($value), $this->podType($param->type));
                 } else {
-                    $stmt->bindValue($name, $this->podValue($value));
+                    if (is_a($param, SqlParam::class)) {
+                        $stmt->bindValue($name, $this->podValue($value), $this->podType($param->type));
+                    } else {
+                        $stmt->bindValue($name, $this->podValue($value));
+                    }
                 }
             }
         }

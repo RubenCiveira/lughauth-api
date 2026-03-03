@@ -52,15 +52,26 @@ trait TracerAwareTrait
      * If no tracer is available, it logs the operation to the error log instead.
      *
      * @param string $operationName The name of the operation being traced.
-     * @param array<string, mixed> $attributes Optional attributes to attach to the span.
+     * @param array<array-key, mixed> $attributes Optional attributes to attach to the span.
      * @return SpanHolder A holder for the active span, or a dummy holder if no tracer is set.
      */
     public function startSpan(string $operationName, array $attributes = []): SpanHolder
     {
         if ($this->tracer !== null) {
-            $spanBuilder = $this->tracer->spanBuilder($operationName);
+            $name = $operationName !== '' ? $operationName : 'operation';
+            $spanBuilder = $this->tracer->spanBuilder($name);
             foreach ($attributes as $key => $value) {
-                $spanBuilder->setAttribute($key, $value);
+                if (!is_string($key)) {
+                    $key = (string) $key;
+                }
+                if (is_scalar($value)) {
+                    $spanBuilder->setAttribute($key, $value);
+                } elseif ($value instanceof \Stringable) {
+                    $spanBuilder->setAttribute($key, (string) $value);
+                } else {
+                    $encoded = json_encode($value);
+                    $spanBuilder->setAttribute($key, $encoded === false ? '' : $encoded);
+                }
             }
             $span = $spanBuilder->startSpan();
             $scope = $span->activate();

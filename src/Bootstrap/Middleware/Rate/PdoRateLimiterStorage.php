@@ -38,7 +38,8 @@ class PdoRateLimiterStorage implements StorageInterface
     #[Override]
     public function save(LimiterStateInterface $limiterState): void
     {
-        $on = (new \DateTimeImmutable())->add(\DateInterval::createFromDateString($limiterState->getExpirationTime() . ' seconds'));
+        $interval = \DateInterval::createFromDateString((string) ($limiterState->getExpirationTime() ?? 0) . ' seconds');
+        $on = $interval !== false ? (new \DateTimeImmutable())->add($interval) : new \DateTimeImmutable();
         if ($this->driver === 'pgsql') {
             $stmt = $this->pdo->prepare('INSERT INTO '.$this->table_name.' (limiter_key, serialized, expires_at)
 VALUES (:limiter_key, :serialized, :expires_at)

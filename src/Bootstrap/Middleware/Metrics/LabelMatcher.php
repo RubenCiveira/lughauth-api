@@ -31,13 +31,13 @@ final class LabelMatcher
     public function matches(array $labels): bool
     {
         $has = array_key_exists($this->key, $labels);
-        $lv  = $has ? (string)$labels[$this->key] : null;
+        $lv  = $has ? $labels[$this->key] : null;
 
         return match ($this->op) {
             '='  => $has && $lv === $this->val,
             '!=' => !$has || $lv !== $this->val,
-            '=~' => $has && $this->regexMatch($lv, $this->val),
-            '!~' => !$has || !$this->regexMatch($lv, $this->val),
+            '=~' => $has && $lv !== null && $this->regexMatch($lv, $this->val),
+            '!~' => !$has || ($lv !== null && !$this->regexMatch($lv, $this->val)),
             default => false,
         };
     }

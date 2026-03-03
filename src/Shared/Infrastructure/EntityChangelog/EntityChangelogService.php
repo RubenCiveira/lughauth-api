@@ -173,7 +173,11 @@ class EntityChangelogService
             if (!$field) {
                 continue;
             }
-            $paramBase = 'f_' . preg_replace('/\W+/', '_', $field);
+            $paramBase = preg_replace('/\W+/', '_', $field);
+            if ($paramBase === null) {
+                continue;
+            }
+            $paramBase = 'f_' . $paramBase;
 
             $jsonExpr = $this->jsonTextExpr($field, $paramBase, $params);
             $driverHasJson = $jsonExpr !== null;
@@ -371,6 +375,9 @@ class EntityChangelogService
         // JSON-encode para meter comillas correctas y escapes de caracteres especiales
         $f = json_encode($field, JSON_UNESCAPED_UNICODE);   // => "\"campo\""
         $v = json_encode($value, JSON_UNESCAPED_UNICODE);   // => "\"valor\""
+        if ($f === false || $v === false) {
+            return '%';
+        }
 
         $pattern = $f . ':' . $v;
 

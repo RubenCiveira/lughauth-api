@@ -52,6 +52,8 @@ class TelemetrySpanMiddleware
             }
         }
         $active = !str_starts_with($path, $this->config->managementEndpoint);
+        $rootSpan = null;
+        $scope = null;
         if ($active) {
             $context = Context::getCurrent(); // contexto por defecto
             $traceparent = $request->getHeader(('traceparent'));
@@ -72,7 +74,7 @@ class TelemetrySpanMiddleware
         try {
             return $handler->handle($request);
         } finally {
-            if ($active) {
+            if ($active && $rootSpan !== null && $scope !== null) {
                 $rootSpan->end();
                 $scope->detach();
             }

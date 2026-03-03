@@ -29,8 +29,8 @@ final class FixedIntervalWindowPolicy implements TimeWindowPolicy
     #[Override]
     public function mustTrace(): bool
     {
-        $lockFile = $this->lockFile ?? sys_get_temp_dir() . '/trace-window.lock';
-        $interval = max(1, (int)($this->intervalSeconds ?? 900)); // 15m por defecto
+        $lockFile = $this->lockFile;
+        $interval = max(1, $this->intervalSeconds); // 15m por defecto
         $now      = time();
 
         // Asegura dir
@@ -56,7 +56,10 @@ final class FixedIntervalWindowPolicy implements TimeWindowPolicy
             if (($stat['size'] ?? 0) > 0) {
                 rewind($h);
                 // lee hasta 64 bytes por si hubiera \n u otros
-                $raw = stream_get_contents($h, 64) ?: '';
+                $raw = stream_get_contents($h, 64);
+                if ($raw === false) {
+                    $raw = '';
+                }
                 $raw = trim($raw);
                 if (ctype_digit($raw)) {
                     $lastTs = (int)$raw;

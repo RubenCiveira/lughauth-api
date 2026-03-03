@@ -121,7 +121,7 @@ class StartupProcessor
                 try {
                     if ($process instanceof StartupProcess) {
                         $process->onStartup($container);
-                    } elseif ($process instanceof Closure) {
+                    } else {
                         $process($container);
                     }
                 } catch (Throwable $th) {

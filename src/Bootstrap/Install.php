@@ -21,7 +21,7 @@ use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
 )]
 class Install
 {
-    public static function bootstrap()
+    public static function bootstrap(): void
     {
         echo "==========\n";
         echo "- Checking open ssl\n";
@@ -45,25 +45,25 @@ class Install
         }
         echo "==== Borrar cache\n";
         $cacheDir = realpath(__DIR__ . '/../../var/cache/');
-        if ($cacheDir && is_dir($cacheDir)) {
+        if (is_string($cacheDir) && is_dir($cacheDir)) {
             exec("rm -rf " . escapeshellarg($cacheDir));
             echo " - Cache directory cleared: $cacheDir\n";
         }
         $compiledDir = realpath(__DIR__ . '/../../var/compiled/');
-        if ($compiledDir && is_dir($compiledDir)) {
+        if (is_string($compiledDir) && is_dir($compiledDir)) {
             exec("rm -rf " . escapeshellarg($compiledDir));
             echo " - Cache directory cleared: $compiledDir\n";
         }
         $flag = realpath(__DIR__ . '/../../var/startup.flag');
-        if ($flag) {
+        if (is_string($flag)) {
             unlink($flag);
         }
         $lock = realpath(__DIR__ . '/../../var/startup.lock');
-        if ($lock) {
+        if (is_string($lock)) {
             unlink($lock);
         }
         $assets = realpath(__DIR__ . '/../../public/.assets');
-        if ($assets && is_dir($assets)) {
+        if (is_string($assets) && is_dir($assets)) {
             exec("rm -rf " . escapeshellarg($assets));
             echo " - Cache directory cleared: $assets\n";
         }
@@ -72,7 +72,7 @@ class Install
         echo "==== Borrar flags\n";
     }
 
-    private static function openApi()
+    private static function openApi(): void
     {
         // Ruta de directorio que contiene las anotaciones
         $scanPaths = [__DIR__ . '/../'];
@@ -80,6 +80,9 @@ class Install
         // Generar el objeto OpenApi
         $gen = new Generator();
         $openapi = $gen->generate($scanPaths);
+        if ($openapi === null) {
+            throw new \RuntimeException('OpenAPI generation failed');
+        }
 
         // Exportar a YAML
         $yaml = Yaml::dump(json_decode($openapi->toJson(), true), 20, 2);
@@ -92,11 +95,11 @@ class Install
         file_put_contents($output, $yaml);
     }
 
-    private static function info()
+    private static function info(): void
     {
     }
 
-    private static function compileDi()
+    private static function compileDi(): void
     {
         $srcDir = __DIR__ . '/..';
         $outputFile = __DIR__ . '/../../var/cache/di-definitions.php';
@@ -115,14 +118,18 @@ class Install
             }
 
             $contents = file_get_contents($file->getPathname());
+            if ($contents === false) {
+                continue;
+            }
 
             if (!preg_match('/^namespace\s+(.+?);/m', $contents, $nsMatch)) {
                 continue;
             }
             $namespace = trim($nsMatch[1]);
 
-            if (!in_array(realpath($file->getPathname()), $included)) {
-                $included[] = realpath($file->getPathname());
+            $filePath = realpath($file->getPathname());
+            if ($filePath !== false && !in_array($filePath, $included, true)) {
+                $included[] = $filePath;
             }
             /*
             preg_match_all('/^use\s+([^;]+);/m', $contents, $useMatches);
@@ -156,8 +163,8 @@ class Install
         ksort($definitions);
 
         $code = "<?php\n";
-        foreach ($included as $inc) {
-            // $code .= "require_once \"".$inc."\";\n";
+        foreach ($included as $_inc) {
+            // $code .= "require_once \"".$_inc."\";\n";
         }
         $code .= "use function DI\\autowire;\n\n";
         $code .= "return [\n";

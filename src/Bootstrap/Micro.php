@@ -8,20 +8,22 @@ namespace Civi\Lughauth\Bootstrap;
 use PDO;
 use Exception;
 use DateInterval;
+use DI\Container;
 use DI\ContainerBuilder;
-use Slim\App;
-use Slim\Factory\AppFactory;
-use Slim\Middleware\ErrorMiddleware;
 use Psr\Container\ContainerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use Slim\Psr7\Response;
 use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Psr\SimpleCache\CacheInterface;
 use Psr\Http\Client\ClientInterface;
+use Slim\App;
+use Slim\Psr7\Response;
+use Slim\Factory\AppFactory;
+use Slim\Middleware\ErrorMiddleware;
 use GuzzleHttp\Client;
 use Monolog\Logger;
 use Monolog\Formatter\JsonFormatter;
@@ -31,10 +33,20 @@ use Prometheus\CollectorRegistry;
 use Prometheus\Storage\PDO as StoragePDO;
 use Prometheus\Storage\Redis as StorageRedis;
 use OpenTelemetry\API\Trace\TracerInterface;
-use OpenTelemetry\SDK\Trace\TracerProvider;
 use OpenTelemetry\Contrib\Otlp\SpanExporter;
 use OpenTelemetry\SDK\Common\Export\Http\PsrTransportFactory;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
+use OpenTelemetry\SDK\Common\Attribute\Attributes;
+use OpenTelemetry\SDK\Resource\ResourceInfo;
+use OpenTelemetry\SDK\Trace\TracerProviderBuilder;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\RedisAdapter;
+use Symfony\Component\Cache\Psr16Cache;
+use Symfony\Component\Lock\LockFactory;
+use Symfony\Component\Lock\Store\FlockStore;
+use Symfony\Component\Lock\Store\RedisStore;
+use Symfony\Component\RateLimiter\Storage\CacheStorage;
+use Symfony\Component\RateLimiter\Storage\StorageInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
@@ -66,18 +78,6 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Bootstrap\Plugin\ErrorsPlugin;
 use Civi\Lughauth\Bootstrap\Plugin\ManagementPlugin;
 use Civi\Lughauth\Bootstrap\Telemetry\InjectResourceAttrsProcessor;
-use DI\Container;
-use OpenTelemetry\SDK\Common\Attribute\Attributes;
-use OpenTelemetry\SDK\Resource\ResourceInfo;
-use OpenTelemetry\SDK\Trace\TracerProviderBuilder;
-use Symfony\Component\Cache\Adapter\FilesystemAdapter;
-use Symfony\Component\Cache\Adapter\RedisAdapter;
-use Symfony\Component\Cache\Psr16Cache;
-use Symfony\Component\Lock\LockFactory;
-use Symfony\Component\Lock\Store\FlockStore;
-use Symfony\Component\Lock\Store\RedisStore;
-use Symfony\Component\RateLimiter\Storage\CacheStorage;
-use Symfony\Component\RateLimiter\Storage\StorageInterface;
 
 /**
  * Core microservice application container and bootstrap orchestrator.
@@ -107,23 +107,23 @@ use Symfony\Component\RateLimiter\Storage\StorageInterface;
  */
 class Micro
 {
-    /** @var App The Slim application instance, available after build. */
-    public readonly App $app;
+    /** @var App|null The Slim application instance, available after build. */
+    public ?App $app = null;
 
-    /** @var EventBus The application event bus. */
-    public readonly EventBus $bus;
+    /** @var EventBus|null The application event bus. */
+    public ?EventBus $bus = null;
 
-    /** @var AppConfig The application configuration loaded from environment. */
-    public readonly AppConfig $config;
+    /** @var AppConfig|null The application configuration loaded from environment. */
+    public ?AppConfig $config = null;
 
-    /** @var MicroConfig The feature flags controlling optional subsystems. */
-    public readonly MicroConfig $definition;
+    /** @var MicroConfig|null The feature flags controlling optional subsystems. */
+    public ?MicroConfig $definition = null;
 
-    /** @var ContainerInterface The built dependency injection container. */
-    public readonly ContainerInterface $container;
+    /** @var ContainerInterface|null The built dependency injection container. */
+    public ?ContainerInterface $container = null;
 
-    /** @var ErrorMiddleware The Slim error handling middleware. */
-    public readonly ErrorMiddleware $errorHandler;
+    /** @var ErrorMiddleware|null The Slim error handling middleware. */
+    public ?ErrorMiddleware $errorHandler = null;
 
     /** @var array<mixed> Registered management interface definitions. */
     private array $interfaces = [];
@@ -191,7 +191,7 @@ class Micro
         $this->container = $container;
 
         // Opcional: definir base path si tu app no está en "/"
-        $scriptName = $_SERVER['SCRIPT_NAME']; // Devuelve algo como "/midashboard/index.php"
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? ''; // Devuelve algo como "/midashboard/index.php"
         $basePath = str_replace('/index.php', '', $scriptName); // "/midashboard"
         $this->app->setBasePath($basePath);
 
@@ -260,15 +260,17 @@ class Micro
             mkdir($vardir, 0777, true);
         }
         $this->build();
+        if ($this->app === null || $this->container === null) {
+            throw new \RuntimeException('Micro application not built');
+        }
         $this->registerManagers($this->app, $this->container);
         $lockFile = fopen($vardir.'startup.lock', 'c');
         $startUpFile = $vardir.'startup.flag';
-        if (flock($lockFile, LOCK_EX | LOCK_NB)) {
+        if ($lockFile !== false && flock($lockFile, LOCK_EX | LOCK_NB)) {
             if (!file_exists($startUpFile)) {
-                $logger = null;
-                if ($this->container->has(LoggerInterface::class)) {
-                    $logger = $this->container->get(LoggerInterface::class);
-                }
+                $logger = $this->container->has(LoggerInterface::class)
+                    ? $this->container->get(LoggerInterface::class)
+                    : new NullLogger();
                 $processor = new StartupProcessor($logger);
                 foreach ($this->plugins as $startup) {
                     $startup->registerStartup($processor);
@@ -280,15 +282,16 @@ class Micro
             }
             flock($lockFile, LOCK_UN);
         }
-        fclose($lockFile);
+        if ($lockFile !== false) {
+            fclose($lockFile);
+        }
 
         register_shutdown_function([$this, 'ensureBackgroundSupervisor']);
 
         if (isset($_ENV['CRON'])) {
-            $logger = null;
-            if ($this->container->has(LoggerInterface::class)) {
-                $logger = $this->container->get(LoggerInterface::class);
-            }
+            $logger = $this->container->has(LoggerInterface::class)
+                ? $this->container->get(LoggerInterface::class)
+                : new NullLogger();
             $logger->info('Start scheduler manager');
             $manager = $this->container->get(SchedulerManager::class);
             $locker = $this->container->get(LockFactory::class);
@@ -320,13 +323,13 @@ class Micro
         $this->plugins[] = $base;
     }
 
-    private function ensureBackgroundSupervisor()
+    private function ensureBackgroundSupervisor(): void
     {
-        if (!empty($_ENV['DISABLE_SUPERVISOR'])) {
+        if (isset($_ENV['DISABLE_SUPERVISOR']) && $_ENV['DISABLE_SUPERVISOR'] !== '') {
             return;
         }
         $scheme = 'http';
-        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off') {
             $scheme = 'https';
         }
         $scriptName = $this->resolveScriptName();
@@ -345,9 +348,9 @@ class Micro
         return $scriptName;
     }
 
-    private function withTelementry(&$def)
+    private function withTelementry(array &$def): void
     {
-        $def[SpanExporterInterface::class] = function (AppConfig $config) {
+        $def[SpanExporterInterface::class] = function (AppConfig $config): SpanExporterInterface {
             $name = $config->name;
             $endpoint = $config->get("app.telemetry.collector.url");
             if ($endpoint) {
@@ -371,11 +374,10 @@ class Micro
                 'service.name'        => 'phylax-logs',
                 'service.namespace'   => 'backoffice',
                 'service.version'     => '1.4.2',
-                'service.instance.id' => php_uname('n') . '-' . getmypid(),
+                'service.instance.id' => php_uname('n') . '-' . (string) getmypid(),
                 'deployment.environment' => 'prod',
             ]));
             $processor = new InjectResourceAttrsProcessor($exporter, $context);
-            $provider = new TracerProvider($processor);
             $provider = (new TracerProviderBuilder())
                 ->setResource($resource)
                 ->addSpanProcessor($processor)
@@ -384,9 +386,9 @@ class Micro
         };
     }
 
-    private function withRate(&$def)
+    private function withRate(array &$def): void
     {
-        $def[StorageInterface::class] = function (ContainerInterface $container, AppConfig $conf) {
+        $def[StorageInterface::class] = function (ContainerInterface $container, AppConfig $conf): StorageInterface {
             if ("redis" === $conf->get("app.state.vault.engine")) {
                 return new CacheStorage(new RedisAdapter(new \Redis()));
             } else {
@@ -395,17 +397,17 @@ class Micro
         };
     }
 
-    private function withMetrics(&$def)
+    private function withMetrics(array &$def): void
     {
-        $def[MetricsFS::class] = function () {
+        $def[MetricsFS::class] = function (): MetricsFS {
             $base = $this->storeDir('history-metrics');
             return new MetricsFS($base);
         };
-        $def[TimeWindowPolicy::class] = function () {
+        $def[TimeWindowPolicy::class] = function (): TimeWindowPolicy {
             $base = $this->storeDir('history-metrics/lock');
             return new FixedIntervalWindowPolicy($base);
         };
-        $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf) {
+        $def[CollectorRegistry::class] = function (ContainerInterface $container, AppConfig $conf): CollectorRegistry {
             if ("redis" === $conf->get("app.state.vault.engine")) {
                 $storage = new StorageRedis();
             } else {
@@ -415,28 +417,28 @@ class Micro
         };
     }
 
-    private function withAudit(&$def)
+    private function withAudit(array &$def): void
     {
         $def[AuditContext::class] = \DI\autowire(AuditContext::class);
-        $def[AuditMiddleware::class] = function (Container $container, Context $appContext, AppConfig $conf) {
+        $def[AuditMiddleware::class] = function (Container $container, Context $appContext, AppConfig $conf): AuditMiddleware {
             $pdo = $container->get('DIRECT_PDO');
             $context = $container->get(AuditContext::class);
             return new AuditMiddleware($pdo, $context, $appContext, $conf);
         };
-        $def[AuditQueryService::class] = function (Container $container) {
+        $def[AuditQueryService::class] = function (Container $container): AuditQueryService {
             $pdo = $container->get('DIRECT_PDO');
             return new AuditQueryService($pdo);
         };
     }
 
-    private function withContainer(&$def, $builder)
+    private function withContainer(array &$def, ContainerBuilder $builder): void
     {
         $def[ContainerBuilder::class] = $builder;
     }
 
-    private function withCache(&$def)
+    private function withCache(array &$def): void
     {
-        $def[CacheInterface::class] = function (AppConfig $conf) {
+        $def[CacheInterface::class] = function (AppConfig $conf): CacheInterface {
             if ("redis" === $conf->get("app.state.vault.engine")) {
                 $interval = new DateInterval($conf->get('app.cache.lifetime', 'PT2H'));
                 $now = new \DateTimeImmutable();
@@ -453,22 +455,23 @@ class Micro
         };
     }
 
-    private function withDatabase(&$def)
+    private function withDatabase(array &$def): void
     {
-        if ($this->definition->withAudit) {
-            $def['DIRECT_PDO'] = function (AppConfig $config) {
+        $definition = $this->definition ?? new MicroConfig();
+        if ($definition->withAudit) {
+            $def['DIRECT_PDO'] = function (AppConfig $config): PDO {
                 return new PDO($config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
                 ]);
             };
-            $def[PDO::class] = function (Container $container, AppConfig $config) {
+            $def[PDO::class] = function (Container $container, AppConfig $config): PDO {
                 $context = $container->get(AuditContext::class);
                 return new AuditablePdoWrapper($context, $config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
                 ]);
             };
         } else {
-            $def[PDO::class] = function (AppConfig $config) {
+            $def[PDO::class] = function (AppConfig $config): PDO {
                 return new PDO($config->get('database.url'), $config->get('database.username'), $config->get('database.password'), [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
                 ]);
@@ -476,9 +479,9 @@ class Micro
         }
     }
 
-    private function withLock(&$def)
+    private function withLock(array &$def): void
     {
-        $def[LockFactory::class] = function (AppConfig $conf) {
+        $def[LockFactory::class] = function (AppConfig $conf): LockFactory {
             if ("redis" === $conf->get("app.state.vault.engine")) {
                 $store = new RedisStore(new \Redis());
             } else {
@@ -488,9 +491,9 @@ class Micro
         };
     }
 
-    private function withLogging(&$def)
+    private function withLogging(array &$def): void
     {
-        $def[LoggerInterface::class] = function (AppConfig $config, TraceContextProcessor $tracer) {
+        $def[LoggerInterface::class] = function (AppConfig $config, TraceContextProcessor $tracer): LoggerInterface {
             $name = $config->name;
             $base = $this->storeDir('log');
             if (!is_dir($base)) {
@@ -511,25 +514,25 @@ class Micro
         return $path === '' ? $base : $base . '/' . $path;
     }
 
-    private function withEventBus(&$def)
+    private function withEventBus(array &$def): void
     {
-        $def[EventDispatcherInterface::class] = function (EventBus $bus) {
+        $def[EventDispatcherInterface::class] = function (EventBus $bus): EventDispatcherInterface {
             return $bus->dispacher;
         };
-        $def[EventListenersRegistrarInterface::class] = function (EventBus $bus) {
+        $def[EventListenersRegistrarInterface::class] = function (EventBus $bus): EventListenersRegistrarInterface {
             return $bus;
         };
     }
 
-    private function withHttpClient(&$def)
+    private function withHttpClient(array &$def): void
     {
-        $def[RequestFactoryInterface::class] = function () {
+        $def[RequestFactoryInterface::class] = function (): RequestFactoryInterface {
             return new RequestFactory();
         };
-        $def[StreamFactoryInterface::class] = function () {
+        $def[StreamFactoryInterface::class] = function (): StreamFactoryInterface {
             return new StreamFactory();
         };
-        $def[ClientInterface::class]  = function () {
+        $def[ClientInterface::class]  = function (): ClientInterface {
             return new Client([
                 'max_duration' => 10, // Establece un tiempo máximo para la solicitud
                 'timeout' => 10.0,    // Timeout para la espera de respuesta del servidor
@@ -538,63 +541,75 @@ class Micro
         };
     }
 
-    private function registerManagers(App $app, ContainerInterface $container)
+    private function registerManagers(App $app, ContainerInterface $container): void
     {
         $appConfig = $container->get(AppConfig::class);
         $base = $appConfig->managementEndpoint;
         $interfaces = $this->interfaces;
-        $app->get("{$base}", function ($request, ResponseInterface $response) use ($interfaces) {
+        $app->get("{$base}", function (ServerRequestInterface $request, ResponseInterface $response) use ($interfaces): ResponseInterface {
             $value = [];
             foreach ($interfaces as $interface) {
-                if ($interface->get()) {
+                if ($interface->get() !== null) {
                     $value[] = [
                         'url' => './' . $interface->name(),
                         'method' => 'GET'
                     ];
                 }
-                if ($interface->set()) {
+                if ($interface->set() !== null) {
                     $value[] = [
                         'url' => './' . $interface->name(),
                         'method' => 'POST'
                     ];
                 }
             }
-            $response->getBody()->write(json_encode($value));
+            $payload = json_encode($value);
+            if ($payload === false) {
+                $payload = '[]';
+            }
+            $response->getBody()->write($payload);
             return $response->withHeader('Content-Type', 'application/json');
         });
         foreach ($this->interfaces as $interface) {
             $name = $interface->name();
             $get = $interface->get();
-            if ($get) {
-                $app->get("{$base}/{$name}", function ($request, ResponseInterface $response) use ($get) {
+            if ($get !== null) {
+                $app->get("{$base}/{$name}", function (ServerRequestInterface $request, ResponseInterface $response) use ($get): ResponseInterface {
                     $value = $get($request, $response);
-                    $contentType = $response->getHeader('Content-Type');
+                    $contentType = $response->getHeaderLine('Content-Type');
                     if ($value instanceof ResponseInterface) {
                         return $value;
                     } elseif (is_string($value)) {
                         $response->getBody()->write($value);
-                        if (!$contentType) {
+                        if ($contentType === '') {
                             $contentType = str_starts_with($value, '<html') ? 'text/html' : 'text/plain';
                         }
                     } else {
-                        if (!$contentType) {
+                        if ($contentType === '') {
                             $contentType = 'application/json';
                         }
-                        $response->getBody()->write(json_encode($value));
+                        $payload = json_encode($value);
+                        if ($payload === false) {
+                            $payload = '[]';
+                        }
+                        $response->getBody()->write($payload);
                     }
                     return $response->withHeader('Content-Type', $contentType);
                 });
             }
             $set = $interface->set();
-            if ($set) {
-                $app->post("{$base}/{$name}", function (ServerRequestInterface $request, ResponseInterface $response) use ($set) {
+            if ($set !== null) {
+                $app->post("{$base}/{$name}", function (ServerRequestInterface $request, ResponseInterface $response) use ($set): ResponseInterface {
                     $data = $request->getParsedBody();
                     $value = $set($request, $data);
                     if (is_string($value)) {
                         $response->getBody()->write($value);
                         return $response->withHeader('Content-Type', 'text/plain');
                     } else {
-                        $response->getBody()->write(json_encode($value));
+                        $payload = json_encode($value);
+                        if ($payload === false) {
+                            $payload = '[]';
+                        }
+                        $response->getBody()->write($payload);
                         return $response->withHeader('Content-Type', 'application/json');
                     }
                 });

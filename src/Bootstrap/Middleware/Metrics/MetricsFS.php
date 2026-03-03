@@ -143,7 +143,11 @@ final class MetricsFS
     {
         $pattern = $this->metricDir($metric) . '/series/*/*/labels.json';
         $out = [];
-        foreach (glob($pattern) ?: [] as $file) {
+        $files = glob($pattern);
+        if ($files === false) {
+            $files = [];
+        }
+        foreach ($files as $file) {
             $sha = basename(dirname($file));
             $row = json_decode((string)@file_get_contents($file), true);
             if (!is_array($row) || !isset($row['labels'])) {

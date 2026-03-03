@@ -65,10 +65,10 @@ class OidcPlugin extends MicroPlugin
     }
 
     #[Override]
-    public function registerRoutes(RouteCollectorProxy $app): void
+    public function registerRoutes(RouteCollectorProxy $collector): void
     {
-        $app->get('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
-        $app->group('/oauth/openid/{tenant}', function (RouteCollectorProxy $group) {
+        $collector->get('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
+        $collector->group('/oauth/openid/{tenant}', function (RouteCollectorProxy $group) {
             $group->get('/jwks', [JwksController::class, 'get']);
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);

@@ -54,40 +54,42 @@ class HistogramManagement implements ManagementInterface
             if (!$queries) {
                 throw new InvalidArgumentException('Missing query param "q"');
             }
-            $partition = $qp['partition']        ?? 'raw';
+            $partition = $this->toStringOrDefault($qp['partition'] ?? null, 'raw');
             // $fill      = $qp['fill']             ?? 'nan';       // nan|zero|ffill|bfill
             // $interp    = $qp['interpolation']    ?? 'none';      // none|linear
             // $down      = $qp['downsample']       ?? 'avg';       // avg|sum|min|max
             $alignTo   = $this->toIntOrNull($qp['align_to'] ?? null);
-            $limitSer  = (int)($qp['limit_series'] ?? 200);
-            $maxPoints = (int)($qp['max_points']  ?? 50_000);
+            $limitSer  = $this->toIntOrDefault($qp['limit_series'] ?? null, 200);
+            $maxPoints = $this->toIntOrDefault($qp['max_points'] ?? null, 50_000);
             $aliases   = isset($qp['alias']) ? (is_array($qp['alias']) ? $qp['alias'] : [$qp['alias']]) : [];
             $format    = $qp['format'] ?? 'json';
 
-            $nowMs   = (int) floor(microtime(true) * 1000);
-            $endMs   = $this->parseTime($qp['end']   ?? 'now', $nowMs);
-            $startMs = $this->parseTime($qp['start'] ?? 'now-1h', $nowMs);
+            $nowMs   = (int) floor(microtime(true) * 1000.0);
+            $endMs   = $this->parseTime($this->toStringOrDefault($qp['end'] ?? null, 'now'), $nowMs);
+            $startMs = $this->parseTime($this->toStringOrDefault($qp['start'] ?? null, 'now-1h'), $nowMs);
             if ($startMs >= $endMs) {
                 throw new InvalidArgumentException('"start" must be < "end"');
             }
 
-            $stepMs = $this->parseStepToMs((string)($qp['step'] ?? '60s'));
+            $stepMs = $this->parseStepToMs($this->toStringOrDefault($qp['step'] ?? null, '60s'));
             if ($stepMs <= 0) {
                 throw new InvalidArgumentException('"step" must be > 0');
             }
 
             // Alinea a rejilla
+            $fStep = (float) $stepMs;
             if ($alignTo !== null) {
-                $startMs = (int) (floor(($startMs - $alignTo) / $stepMs) * $stepMs + $alignTo);
-                $endMs   = (int) (ceil(($endMs - $alignTo) / $stepMs) * $stepMs + $alignTo);
+                $fAlign  = (float) $alignTo;
+                $startMs = (int) (floor(((float) $startMs - $fAlign) / $fStep) * $fStep + $fAlign);
+                $endMs   = (int) (ceil(((float) $endMs - $fAlign) / $fStep) * $fStep + $fAlign);
             } else {
-                $startMs = (int) (floor($startMs / $stepMs) * $stepMs);
-                $endMs   = (int) (ceil($endMs   / $stepMs) * $stepMs);
+                $startMs = (int) (floor((float) $startMs / $fStep) * $fStep);
+                $endMs   = (int) (ceil((float) $endMs   / $fStep) * $fStep);
             }
 
-            $pointsPerSeries = 1 + (int) floor(($endMs - $startMs) / $stepMs);
+            $pointsPerSeries = 1 + (int) floor((float) ($endMs - $startMs) / $fStep);
             if ($pointsPerSeries > $maxPoints) {
-                return throw new InvalidArgumentException(sprintf(
+                throw new InvalidArgumentException(sprintf(
                     'Too many points/series: %d > max_points=%d. Increase step.',
                     $pointsPerSeries,
                     $maxPoints
@@ -102,13 +104,13 @@ class HistogramManagement implements ManagementInterface
                     $q,
                     $startMs,
                     $endMs,
-                    $stepMs / 1000,
+                    (int) ($stepMs / 1000),
                     $partition
                 );
                 $alias = $aliases[$i] ?? null;
                 foreach ($series as &$s) {
                     $s['query'] = $q;
-                    if ($alias) {
+                    if ($alias !== null && $alias !== '') {
                         $s['alias'] = $alias;
                     }
                 }
@@ -135,41 +137,6 @@ class HistogramManagement implements ManagementInterface
                 ],
             ];
             return $format === 'csv' ? $this->toCsv($payload) : $payload;
-
-            //  'app_http_status_codes{status="200",path=~"/api/.*"}';
-
-            $now = (int)(microtime(true) * 1000);
-            $start = $now - 3600 * 10000; // 1h
-            $step = 60; // 60s
-
-            $engine = new PromQLInterpreter($this->querier);
-
-            return $engine->evaluate(
-                $query,
-                $start,
-                $now,
-                $step
-            );
-            // return $ts;
-
-            // $params = $request->getQueryParams();
-            // $search = $params['search'] ?? null;
-            // $traceId = $params['trace-id'] ?? null;
-            // $spanId = $params['span-id'] ?? null;
-            // $level = $params['level'] ?? null;
-            // $service_name = $params['service-name'] ?? null;
-            // $service_namespace = $params['service-namespace'] ?? null;
-            // $service_version = $params['service-version'] ?? null;
-            // $service_instance = $params['service-instance'] ?? null;
-            // $environment = $params['deployment-environment'] ?? null;
-            // $levelName = $params['level-name'] ?? null;
-            // $to = isset($params['to']) ? strtotime($params['to']) : null;
-            // $from = isset($params['from']) ? strtotime($params['from']) : null;
-
-            // $offset        = max(0, (int)($params['offset'] ?? 0));
-            // $limit         = max(1, min(500, (int)($params['limit'] ?? 100)));
-            // $results = [];
-            // return $results;
         };
     }
 
@@ -217,11 +184,32 @@ class HistogramManagement implements ManagementInterface
         return $out;
     }
 
-    private function toIntOrNull($v): ?int
+    private function toIntOrNull(mixed $v): ?int
     {
         if ($v === null || $v === '') {
             return null;
-        } return is_numeric($v) ? (int)$v : null;
+        }
+        if (is_array($v)) {
+            return null;
+        }
+        return is_numeric($v) ? (int)$v : null;
+    }
+
+    private function toIntOrDefault(mixed $v, int $default): int
+    {
+        $value = $this->toIntOrNull($v);
+        return $value ?? $default;
+    }
+
+    private function toStringOrDefault(mixed $value, string $default): string
+    {
+        if (is_string($value)) {
+            return $value;
+        }
+        if (is_int($value) || is_float($value) || is_bool($value)) {
+            return (string) $value;
+        }
+        return $default;
     }
 
     private function parseTime(string $v, int $nowMs): int
@@ -281,6 +269,9 @@ class HistogramManagement implements ManagementInterface
         $rows = ["query,labels,timestamp,value"];
         foreach ($payload['series'] as $s) {
             $labels = json_encode($s['labels'] ?? [], JSON_UNESCAPED_SLASHES);
+            if ($labels === false) {
+                $labels = '{}';
+            }
             foreach ($s['points'] as [$t,$v]) {
                 $rows[] = sprintf(
                     '"%s","%s",%d,%s',

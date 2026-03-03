@@ -85,7 +85,7 @@ class SchedulerManager
                 if ($lock->acquire()) {
                     try {
                         $manager->logWarning('The lock is adquired, we can execute.');
-                        foreach ($runnableTasks as [$cron, $type, $method, $taskKey]) {
+                        foreach ($runnableTasks as [, $type, $method, $taskKey]) {
                             if ($container->has($type)) {
                                 $instance = $container->get($type);
                                 if (!method_exists($instance, $method)) {

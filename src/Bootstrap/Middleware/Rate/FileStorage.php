@@ -40,10 +40,13 @@ class FileStorage implements StorageInterface
      */
     public function __construct(?string $filePath = __DIR__ . '/../../../../')
     {
-        $this->path = $filePath . '/var/buckets.json';
+        $basePath = $filePath ?? __DIR__ . '/../../../../';
+        $this->path = $basePath . '/var/buckets.json';
         if (file_exists($this->path)) {
             $json = file_get_contents($this->path);
-            $this->buckets = json_decode($json, true) ?? [];
+            if ($json !== false) {
+                $this->buckets = json_decode($json, true) ?? [];
+            }
         }
     }
 
@@ -110,7 +113,7 @@ class FileStorage implements StorageInterface
     private function getExpireAt(LimiterStateInterface $limiterState): ?float
     {
         if (null !== $expireSeconds = $limiterState->getExpirationTime()) {
-            return microtime(true) + $expireSeconds;
+            return microtime(true) + (float) $expireSeconds;
         }
 
         return $this->buckets[$limiterState->getId()][0] ?? null;
@@ -125,6 +128,10 @@ class FileStorage implements StorageInterface
         if (!is_dir(dirname($this->path))) {
             mkdir(dirname($this->path), 0755, true);
         }
-        file_put_contents($this->path, json_encode($this->buckets, JSON_PRETTY_PRINT));
+        $payload = json_encode($this->buckets, JSON_PRETTY_PRINT);
+        if ($payload === false) {
+            $payload = '{}';
+        }
+        file_put_contents($this->path, $payload);
     }
 }

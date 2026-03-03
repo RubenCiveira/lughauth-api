@@ -27,12 +27,12 @@ class MultiTenantPlugin extends AggregatedMicroPlugin
         ]);
     }
     #[Override]
-    public function registerEvents(EventListenersRegistrarInterface $bus): void
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        parent::registerEvents($bus);
-        $bus->registerListener(AuthenticationResult::class, NotifyLogin::class);
-        $bus->registerListener(UserCreateEvent::class, NotifyCreate::class);
-        $bus->registerListener(UserAccessTemporalCodeGeneratePasswordRecoverEvent::class, NotifyRecover::class);
+        parent::registerEvents($listener);
+        $listener->registerListener(AuthenticationResult::class, NotifyLogin::class);
+        $listener->registerListener(UserCreateEvent::class, NotifyCreate::class);
+        $listener->registerListener(UserAccessTemporalCodeGeneratePasswordRecoverEvent::class, NotifyRecover::class);
     }
 
     #[Override]

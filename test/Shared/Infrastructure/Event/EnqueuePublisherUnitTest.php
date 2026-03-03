@@ -190,7 +190,7 @@ final class FakeSqlTemplate extends SqlTemplate
         return $this->executeResult;
     }
 
-    public function query($query, array $params, ?Closure $clousure = null): array
+    public function query($query, ?array $params, ?Closure $clousure = null): array
     {
         return $this->values;
     }

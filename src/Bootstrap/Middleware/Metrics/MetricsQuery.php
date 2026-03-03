@@ -142,7 +142,7 @@ final class MetricsQuery
             }
             // suma punto a punto
             foreach ($ts['points'] as [$t, $v]) {
-                $buckets[$k]['points'][$t] = ($buckets[$k]['points'][$t] ?? 0) + (float)$v;
+                $buckets[$k]['points'][$t] = ($buckets[$k]['points'][$t] ?? 0.0) + (float)$v;
             }
         }
         // ordenar por ts y normalizar formato
@@ -151,7 +151,7 @@ final class MetricsQuery
             ksort($b['points']);
             $pts = [];
             foreach ($b['points'] as $t => $v) {
-                $pts[] = [(int)$t, (float)$v];
+                $pts[] = [(int)$t, $v];
             }
             $out[] = ['labels' => $b['labels'], 'points' => $pts];
         }
@@ -174,20 +174,21 @@ final class MetricsQuery
     private function resampleAvg(array $pts, int $startMs, int $endMs, int $stepSec): array
     {
         $stepMs = $stepSec * 1000;
-        $b = (int) (floor($startMs / $stepMs) * $stepMs);
-        $e = (int) (ceil($endMs   / $stepMs) * $stepMs);
+        $fStep = (float) $stepMs;
+        $b = (int) (floor((float) $startMs / $fStep) * $fStep);
+        $e = (int) (ceil((float) $endMs   / $fStep) * $fStep);
 
         $sum = [];
         $cnt = [];
         foreach ($pts as [$t,$v]) {
-            $bucket = (int)(floor($t / $stepMs) * $stepMs);
-            $sum[$bucket] = ($sum[$bucket] ?? 0) + (float)$v;
+            $bucket = (int)(floor((float) $t / $fStep) * $fStep);
+            $sum[$bucket] = ($sum[$bucket] ?? 0.0) + (float)$v;
             $cnt[$bucket] = ($cnt[$bucket] ?? 0) + 1;
         }
         $out = [];
         for ($t = $b; $t <= $e; $t += $stepMs) {
             if (isset($cnt[$t]) && $cnt[$t] > 0) {
-                $out[] = [$t, $sum[$t] / $cnt[$t]];
+                $out[] = [$t, $sum[$t] / (float) $cnt[$t]];
             } else {
                 $out[] = [$t, NAN];
             } // sin dato
@@ -215,7 +216,7 @@ final class MetricsQuery
                 $dv = (float)$v - (float)$prevV;
                 $dt = max(1, (int)(($t - $prevT) / 1000)); // s
                 if ($dv >= 0) { // contador normal
-                    $pairs[] = [$t, $dv / $dt];
+                    $pairs[] = [$t, $dv / (float) $dt];
                 } else {
                     // reset: ignora este salto
                 }
@@ -234,19 +235,11 @@ final class MetricsQuery
             return $grid;
         }
 
-        $isFinite = static fn ($x) => is_finite($x) && !is_nan($x);
-
-        // Índice del próximo válido a la derecha
-        $nextIdx = array_fill(0, $n, -1);
-        $last = -1;
-        for ($i = $n - 1; $i >= 0; $i--) {
-            $last = $isFinite($grid[$i][1]) ? $i : $last;
-            $nextIdx[$i] = $last;
-        }
+        $isFinite = static fn (float|int $x): bool => is_finite($x) && !is_nan($x);
 
         $prev = -1;
         for ($i = 0; $i < $n; $i++) {
-            [$t,$v] = $grid[$i];
+            [, $v] = $grid[$i];
 
             if ($isFinite($v)) {
                 $prev = $i;

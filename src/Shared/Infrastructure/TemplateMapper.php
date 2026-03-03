@@ -51,20 +51,24 @@ class TemplateMapper
             }
 
             $templateDir = realpath(__DIR__ . '/../../../templates');
+            if ($templateDir === false) {
+                $response->getBody()->write('Templates directory not found');
+                return $response->withStatus(500);
+            }
 
             // Construimos la ruta solicitada
             $requestedPath = $templateDir . '/' . ltrim($path, '/');
 
             // Seguridad: evitar path traversal ("../")
             $requestedReal = realpath($requestedPath);
-            if ($requestedReal === false || strncmp($requestedReal, $templateDir, strlen($templateDir)) !== 0) {
+            if (!is_string($requestedReal) || strncmp($requestedReal, $templateDir, strlen($templateDir)) !== 0) {
                 $requestedReal = null;
             }
 
             $fallbackTpl  = $templateDir . '/index.tpl';
             $fallbackHtml = $templateDir . '/index.html';
 
-            if ($requestedReal && is_file($requestedReal)) {
+            if ($requestedReal !== null && is_file($requestedReal)) {
                 // ---------------------------------------------
                 // 1) Si existe el fichero solicitado
                 // ---------------------------------------------
@@ -107,16 +111,25 @@ class TemplateMapper
      */
     private static function asStatic(string $requestedReal, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
-        $mimeType = mime_content_type($requestedReal) ?: 'application/octet-stream';
+        $mimeType = mime_content_type($requestedReal);
+        if ($mimeType === false) {
+            $mimeType = 'application/octet-stream';
+        }
         if (str_ends_with($requestedReal, '.html')) {
             $mimeType = 'text/html; charset=utf-8';
         }
 
-        $lastModifiedTime = filemtime($requestedReal) ?: time();
+        $lastModifiedTime = filemtime($requestedReal);
+        if ($lastModifiedTime === false) {
+            $lastModifiedTime = time();
+        }
         $lastModified = gmdate('D, d M Y H:i:s', $lastModifiedTime) . ' GMT';
 
         // ETag sencillo basado en tamaño + mtime
-        $fileSize = filesize($requestedReal) ?: 0;
+        $fileSize = filesize($requestedReal);
+        if ($fileSize === false) {
+            $fileSize = 0;
+        }
         $etag = sprintf('W/"%x-%x"', $fileSize, $lastModifiedTime);
 
         // Comprobamos If-None-Match para devolver 304 si procede
@@ -140,7 +153,15 @@ class TemplateMapper
                 return $response->withStatus(500);
             }
             $gzipped = gzencode($contents, 6);
+            if ($gzipped === false) {
+                $response->getBody()->write('Error compressing file');
+                return $response->withStatus(500);
+            }
             $stream = fopen('php://temp', 'rb+');
+            if ($stream === false) {
+                $response->getBody()->write('Error preparing response');
+                return $response->withStatus(500);
+            }
             fwrite($stream, $gzipped);
             rewind($stream);
 
@@ -155,7 +176,12 @@ class TemplateMapper
                 ->withHeader('ETag', $etag);
         }
         // Sin gzip: servimos el fichero tal cual como stream
-        $stream = new Stream(fopen($requestedReal, 'rb'));
+        $fileStream = fopen($requestedReal, 'rb');
+        if ($fileStream === false) {
+            $response->getBody()->write('Error reading file');
+            return $response->withStatus(500);
+        }
+        $stream = new Stream($fileStream);
         return $response
             ->withBody($stream)
             ->withHeader('Content-Type', $mimeType)
@@ -181,6 +207,10 @@ class TemplateMapper
     private static function asTemplate(string $requestedReal, string $templateDir, App $app, ResponseInterface $response): ResponseInterface
     {
         $container = $app->getContainer();
+        if ($container === null) {
+            $response->getBody()->write('Template container not available');
+            return $response->withStatus(500);
+        }
         /** @var \Twig\Environment $twig */
         $twig = $container->get('view'); // ajusta según tu config
 

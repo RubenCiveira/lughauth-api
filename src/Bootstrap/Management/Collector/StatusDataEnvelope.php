@@ -13,9 +13,9 @@ use OpenTelemetry\SDK\Trace\StatusDataInterface;
  */
 class StatusDataEnvelope implements StatusDataInterface
 {
-    public const CODE_UNSET = 'UNSET';
-    public const CODE_OK = 'OK';
-    public const CODE_ERROR = 'ERROR';
+    public const string CODE_UNSET = 'UNSET';
+    public const string CODE_OK = 'OK';
+    public const string CODE_ERROR = 'ERROR';
 
     private function __construct(
         /** @var string Status code value. */
