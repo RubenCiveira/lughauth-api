@@ -15,7 +15,7 @@ class ApiKeyClientUpdateCheck
     public function __construct(public readonly ApiKeyClientUpdateParams $input, public readonly ApiKeyClient $current)
     {
     }
-    public function reject(RuntimeException|ConstraintFail $fail)
+    public function reject(RuntimeException|ConstraintFail $fail): void
     {
         if ($fail instanceof ConstraintFail) {
             throw ConstraintException::ofFail($fail);

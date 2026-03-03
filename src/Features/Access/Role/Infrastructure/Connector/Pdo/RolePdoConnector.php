@@ -160,7 +160,7 @@ class RolePdoConnector
             $span->end();
         }
     }
-    public function update(Role $update): ?Role
+    public function update(Role $update): Role
     {
         $this->logDebug("Execute update sql query for Role");
         $span = $this->startSpan("Execute update sql query for Role");

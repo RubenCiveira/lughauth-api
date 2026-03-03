@@ -47,7 +47,7 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
             $last = end($values);
             return new UserSlide(function (UserSlide $slide, ?UserCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -70,7 +70,7 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?UserFilter $filter): bool
+    public function existsForUpdate(UserFilter $filter): bool
     {
         $this->logDebug("Exists for update of User on adapter ");
         $span = $this->startSpan("Exists for update of User on adapter");
@@ -105,7 +105,7 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
         try {
             $created = $this->conn->create($entity, $verify);
             $this->dispatch($entity);
-            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('user', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -120,11 +120,9 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
         $this->logDebug("Count for User on adapter ");
         $span = $this->startSpan("Count for User on adapter");
         try {
-            $original = ($ref instanceof User) ? $ref : $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
-            $this->changelog->recordChange('user', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('user', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -141,7 +139,7 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('user', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('user', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

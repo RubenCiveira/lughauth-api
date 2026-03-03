@@ -160,7 +160,7 @@ class RelyingPartyPdoConnector
             $span->end();
         }
     }
-    public function update(RelyingParty $update): ?RelyingParty
+    public function update(RelyingParty $update): RelyingParty
     {
         $this->logDebug("Execute update sql query for Relying party");
         $span = $this->startSpan("Execute update sql query for Relying party");

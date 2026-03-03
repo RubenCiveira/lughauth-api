@@ -57,7 +57,7 @@ class TenantConfigCreateUsecase
             $entity = TenantConfig::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn ($created) =>
+                fn (TenantConfig $created) =>
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

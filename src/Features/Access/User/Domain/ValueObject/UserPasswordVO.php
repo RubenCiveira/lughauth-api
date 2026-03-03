@@ -82,9 +82,9 @@ class UserPasswordVO
     ) {
         $this->validateCyphered($this->password);
     }
-    private function validateCyphered(?string $key): void
+    private function validateCyphered(string $key): void
     {
-        if (null !== $key && strpos($key, 'cyphered://') !== 0) {
+        if (strpos($key, 'cyphered://') !== 0) {
             throw new \InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
@@ -94,10 +94,10 @@ class UserPasswordVO
     }
     public function cypheredValueWith(AesCypherService $cypher): string
     {
-        return null !== $this->password ? substr($this->password, 11) : "";
+        return substr($this->password, 11);
     }
-    public function plainValueWith(AesCypherService $cypher): string
+    public function plainValueWith(AesCypherService $cypher): ?string
     {
-        return null !== $this->password ? $cypher->decryptForAll(substr($this->password, 11)) : "";
+        return $cypher->decryptForAll(substr($this->password, 11));
     }
 }

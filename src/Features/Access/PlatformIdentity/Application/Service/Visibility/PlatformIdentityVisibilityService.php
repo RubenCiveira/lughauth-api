@@ -248,17 +248,21 @@ class PlatformIdentityVisibilityService
         $this->logDebug("Check visibility of parent references for Platform identity");
         $span = $this->startSpan("Check visibility of parent references for  Platform identity");
         try {
-            if ($attributes->getUser() && !$this->userVisibilityService->checkVisibility($attributes->getUser())) {
-                throw new NotFoundException("Unknown User " . $attributes->getUser());
+            $user = $attributes->getUser();
+            if (null !== $user && !$this->userVisibilityService->checkVisibility($user)) {
+                throw new NotFoundException("Unknown User " . $user);
             }
-            if ($attributes->getRelyingParty() && !$this->relyingPartyVisibilityService->checkVisibility($attributes->getRelyingParty())) {
-                throw new NotFoundException("Unknown RelyingParty " . $attributes->getRelyingParty());
+            $relyingParty = $attributes->getRelyingParty();
+            if (null !== $relyingParty && !$this->relyingPartyVisibilityService->checkVisibility($relyingParty)) {
+                throw new NotFoundException("Unknown RelyingParty " . $relyingParty);
             }
-            if ($attributes->getTrustedClient() && !$this->trustedClientVisibilityService->checkVisibility($attributes->getTrustedClient())) {
-                throw new NotFoundException("Unknown TrustedClient " . $attributes->getTrustedClient());
+            $trustedClient = $attributes->getTrustedClient();
+            if (null !== $trustedClient && !$this->trustedClientVisibilityService->checkVisibility($trustedClient)) {
+                throw new NotFoundException("Unknown TrustedClient " . $trustedClient);
             }
-            if ($attributes->getRoles() && !$this->checkVisibilityForRoles($attributes->getRoles())) {
-                throw new NotFoundException("Unknown Roles " . $attributes->getRoles()->uid());
+            $roles = $attributes->getRoles();
+            if (null !== roles && !$this->checkVisibilityForRoles($roles)) {
+                throw new NotFoundException("Unknown Roles " . ($roles->uid() ?? 'no-id'));
             }
             return $attributes;
         } catch (Throwable $ex) {

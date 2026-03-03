@@ -41,7 +41,7 @@ class TenantConfigFilter
     {
         return $this->tenant;
     }
-    public function withTenant($tenant): self
+    public function withTenant(?TenantRef $tenant): self
     {
         $copy = clone $this;
         $copy->tenant = $tenant;
@@ -51,7 +51,7 @@ class TenantConfigFilter
     {
         return $this->tenants;
     }
-    public function withTenants($tenants): self
+    public function withTenants(array $tenants): self
     {
         $copy = clone $this;
         $copy->tenants = $tenants;
@@ -61,7 +61,7 @@ class TenantConfigFilter
     {
         return $this->tenantTenantAccesible;
     }
-    public function withTenantTenantAccesible($tenantTenantAccesible): self
+    public function withTenantTenantAccesible(string $tenantTenantAccesible): self
     {
         $copy = clone $this;
         $copy->tenantTenantAccesible = $tenantTenantAccesible;

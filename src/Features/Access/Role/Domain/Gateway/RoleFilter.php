@@ -56,7 +56,7 @@ class RoleFilter
     {
         return $this->name;
     }
-    public function withName($name): self
+    public function withName(string $name): self
     {
         $copy = clone $this;
         $copy->name = $name;
@@ -66,7 +66,7 @@ class RoleFilter
     {
         return $this->relyingParty;
     }
-    public function withRelyingParty($relyingParty): self
+    public function withRelyingParty(RelyingPartyRef $relyingParty): self
     {
         $copy = clone $this;
         $copy->relyingParty = $relyingParty;
@@ -76,7 +76,7 @@ class RoleFilter
     {
         return $this->relyingPartys;
     }
-    public function withRelyingPartys($relyingPartys): self
+    public function withRelyingPartys(array $relyingPartys): self
     {
         $copy = clone $this;
         $copy->relyingPartys = $relyingPartys;

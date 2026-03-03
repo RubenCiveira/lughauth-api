@@ -69,7 +69,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?ApiKeyClientFilter $filter): bool
+    public function existsForUpdate(ApiKeyClientFilter $filter): bool
     {
         $this->logDebug("Exists for update of Api key client on adapter ");
         $span = $this->startSpan("Exists for update of Api key client on adapter");
@@ -103,8 +103,9 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('api-key-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,11 +120,10 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         $this->logDebug("Count for Api key client on adapter ");
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
-            $original = ($ref instanceof ApiKeyClient) ? $ref : $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('api-key-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('api-key-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -140,7 +140,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('api-key-client', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('api-key-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

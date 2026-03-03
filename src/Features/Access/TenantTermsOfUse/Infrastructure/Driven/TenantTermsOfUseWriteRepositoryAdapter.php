@@ -74,7 +74,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         }
     }
     #[Override]
-    public function existsForUpdate(?TenantTermsOfUseFilter $filter): bool
+    public function existsForUpdate(TenantTermsOfUseFilter $filter): bool
     {
         $this->logDebug("Exists for update of Tenant terms of use on adapter ");
         $span = $this->startSpan("Exists for update of Tenant terms of use on adapter");
@@ -111,8 +111,9 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
                 $entity->commitAttachedWith($this->store);
             }
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -138,11 +139,10 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
                     $entity->commitAttachedWith($this->store);
                 }
             }
-            $original = ($ref instanceof TenantTermsOfUse) ? $ref : $this->conn->retrieve(new TenantTermsOfUseFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('tenant-terms-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -163,7 +163,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
                 $this->store->deleteFile(new FileStoreKey($currAttached));
             }
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('tenant-terms-of-use', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('tenant-terms-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -164,7 +164,7 @@ class ClientIdentityPdoConnector
             $span->end();
         }
     }
-    public function update(ClientIdentity $update): ?ClientIdentity
+    public function update(ClientIdentity $update): ClientIdentity
     {
         $this->logDebug("Execute update sql query for Client identity");
         $span = $this->startSpan("Execute update sql query for Client identity");

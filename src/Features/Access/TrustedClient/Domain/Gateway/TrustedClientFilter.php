@@ -37,7 +37,7 @@ class TrustedClientFilter
     {
         return $this->code;
     }
-    public function withCode($code): self
+    public function withCode(?string $code): self
     {
         $copy = clone $this;
         $copy->code = $code;

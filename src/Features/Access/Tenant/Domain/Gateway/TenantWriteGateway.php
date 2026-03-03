@@ -17,7 +17,7 @@ interface TenantWriteGateway
     public function resolveForUpdate(TenantRef $ref): ?Tenant;
     public function listForUpdate(?TenantFilter $filter = null, ?TenantCursor $cursor = null): TenantSlide;
     public function retrieveForUpdate(TenantFilter $filter): ?Tenant;
-    public function existsForUpdate(?TenantFilter $filter): bool;
+    public function existsForUpdate(TenantFilter $filter): bool;
     public function countForUpdate(?TenantFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?Tenant;
     public function findOneForUpdateByName(string $name): ?Tenant;

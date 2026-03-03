@@ -19,7 +19,7 @@ interface UserAcceptedTermnsOfUseWriteGateway
     public function resolveForUpdate(UserAcceptedTermnsOfUseRef $ref): ?UserAcceptedTermnsOfUse;
     public function listForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null, ?UserAcceptedTermnsOfUseCursor $cursor = null): UserAcceptedTermnsOfUseSlide;
     public function retrieveForUpdate(UserAcceptedTermnsOfUseFilter $filter): ?UserAcceptedTermnsOfUse;
-    public function existsForUpdate(?UserAcceptedTermnsOfUseFilter $filter): bool;
+    public function existsForUpdate(UserAcceptedTermnsOfUseFilter $filter): bool;
     public function countForUpdate(?UserAcceptedTermnsOfUseFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?UserAcceptedTermnsOfUse;
     public function findOneForUpdateByUserAndConditions(UserRef $user, TenantTermsOfUseRef $conditions): ?UserAcceptedTermnsOfUse;

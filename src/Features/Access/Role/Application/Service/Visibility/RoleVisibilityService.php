@@ -241,8 +241,9 @@ class RoleVisibilityService
         $this->logDebug("Check visibility of parent references for Role");
         $span = $this->startSpan("Check visibility of parent references for  Role");
         try {
-            if ($attributes->getRelyingParty() && !$this->relyingPartyVisibilityService->checkVisibility($attributes->getRelyingParty())) {
-                throw new NotFoundException("Unknown RelyingParty " . $attributes->getRelyingParty());
+            $relyingParty = $attributes->getRelyingParty();
+            if (null !== $relyingParty && !$this->relyingPartyVisibilityService->checkVisibility($relyingParty)) {
+                throw new NotFoundException("Unknown RelyingParty " . $relyingParty);
             }
             return $attributes;
         } catch (Throwable $ex) {

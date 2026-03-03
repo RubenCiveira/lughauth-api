@@ -19,7 +19,7 @@ interface TenantLoginProviderWriteGateway
     public function resolveForUpdate(TenantLoginProviderRef $ref): ?TenantLoginProvider;
     public function listForUpdate(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide;
     public function retrieveForUpdate(TenantLoginProviderFilter $filter): ?TenantLoginProvider;
-    public function existsForUpdate(?TenantLoginProviderFilter $filter): bool;
+    public function existsForUpdate(TenantLoginProviderFilter $filter): bool;
     public function countForUpdate(?TenantLoginProviderFilter $filter = null): int;
     public function temporalStoreMetadata(BinaryContent $binary): string;
     public function readTemporalMetadata(string $key): BinaryContent;

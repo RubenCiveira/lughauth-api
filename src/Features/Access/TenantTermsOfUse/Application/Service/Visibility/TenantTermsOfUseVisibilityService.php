@@ -243,11 +243,13 @@ class TenantTermsOfUseVisibilityService
         $this->logDebug("Check visibility of parent references for Tenant terms of use");
         $span = $this->startSpan("Check visibility of parent references for  Tenant terms of use");
         try {
-            if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
-                throw new NotFoundException("Unknown Tenant " . $attributes->getTenant());
+            $tenant = $attributes->getTenant();
+            if (null !== $tenant && !$this->tenantVisibilityService->checkVisibility($tenant)) {
+                throw new NotFoundException("Unknown Tenant " . $tenant);
             }
-            if ($attributes->getRelyingParty() && !$this->relyingPartyVisibilityService->checkVisibility($attributes->getRelyingParty())) {
-                throw new NotFoundException("Unknown RelyingParty " . $attributes->getRelyingParty());
+            $relyingParty = $attributes->getRelyingParty();
+            if (null !== $relyingParty && !$this->relyingPartyVisibilityService->checkVisibility($relyingParty)) {
+                throw new NotFoundException("Unknown RelyingParty " . $relyingParty);
             }
             return $attributes;
         } catch (Throwable $ex) {

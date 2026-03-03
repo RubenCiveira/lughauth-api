@@ -69,7 +69,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?TrustedClientFilter $filter): bool
+    public function existsForUpdate(TrustedClientFilter $filter): bool
     {
         $this->logDebug("Exists for update of Trusted client on adapter ");
         $span = $this->startSpan("Exists for update of Trusted client on adapter");
@@ -103,8 +103,9 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('trusted-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,11 +120,10 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         $this->logDebug("Count for Trusted client on adapter ");
         $span = $this->startSpan("Count for Trusted client on adapter");
         try {
-            $original = ($ref instanceof TrustedClient) ? $ref : $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('trusted-client', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('trusted-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -140,7 +140,7 @@ class TrustedClientWriteRepositoryAdapter implements TrustedClientWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('trusted-client', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('trusted-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

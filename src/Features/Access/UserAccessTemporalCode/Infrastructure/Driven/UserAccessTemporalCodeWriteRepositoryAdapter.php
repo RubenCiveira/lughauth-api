@@ -70,7 +70,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         }
     }
     #[Override]
-    public function existsForUpdate(?UserAccessTemporalCodeFilter $filter): bool
+    public function existsForUpdate(UserAccessTemporalCodeFilter $filter): bool
     {
         $this->logDebug("Exists for update of User access temporal code on adapter ");
         $span = $this->startSpan("Exists for update of User access temporal code on adapter");
@@ -104,8 +104,9 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('user-access-temporal-code', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -120,11 +121,10 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $this->logDebug("Count for User access temporal code on adapter ");
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
-            $original = ($ref instanceof UserAccessTemporalCode) ? $ref : $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('user-access-temporal-code', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('user-access-temporal-code', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -141,7 +141,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('user-access-temporal-code', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('user-access-temporal-code', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

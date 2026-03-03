@@ -23,7 +23,6 @@ class TrustedClientTaskDelete implements TaskDescriptorInterface
     #[Override]
     public function process(TaskContext $context, mixed $item): mixed
     {
-        /** @var $item TenantAttributes */
         $this->usecase->delete($item->getUid());
         return $item;
     }
@@ -35,7 +34,7 @@ class TrustedClientTaskDelete implements TaskDescriptorInterface
     }
 
     #[Override]
-    public function finish(TaskContext $state)
+    public function finish(TaskContext $state): void
     {
     }
 

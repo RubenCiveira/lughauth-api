@@ -69,7 +69,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?TenantFilter $filter): bool
+    public function existsForUpdate(TenantFilter $filter): bool
     {
         $this->logDebug("Exists for update of Tenant on adapter ");
         $span = $this->startSpan("Exists for update of Tenant on adapter");
@@ -103,8 +103,9 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('tenant', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,11 +120,10 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         $this->logDebug("Count for Tenant on adapter ");
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
-            $original = ($ref instanceof Tenant) ? $ref : $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('tenant', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -140,7 +140,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('tenant', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('tenant', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

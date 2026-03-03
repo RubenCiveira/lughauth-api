@@ -70,7 +70,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?TenantConfigFilter $filter): bool
+    public function existsForUpdate(TenantConfigFilter $filter): bool
     {
         $this->logDebug("Exists for update of Tenant config on adapter ");
         $span = $this->startSpan("Exists for update of Tenant config on adapter");
@@ -104,8 +104,9 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('tenant-config', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -120,11 +121,10 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         $this->logDebug("Count for Tenant config on adapter ");
         $span = $this->startSpan("Count for Tenant config on adapter");
         try {
-            $original = ($ref instanceof TenantConfig) ? $ref : $this->conn->retrieve(new TenantConfigFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant-config', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('tenant-config', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -141,7 +141,7 @@ class TenantConfigWriteRepositoryAdapter implements TenantConfigWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('tenant-config', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('tenant-config', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

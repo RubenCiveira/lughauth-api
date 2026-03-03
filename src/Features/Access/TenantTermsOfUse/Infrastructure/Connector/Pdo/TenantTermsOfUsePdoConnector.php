@@ -166,7 +166,7 @@ class TenantTermsOfUsePdoConnector
             $span->end();
         }
     }
-    public function update(TenantTermsOfUse $update): ?TenantTermsOfUse
+    public function update(TenantTermsOfUse $update): TenantTermsOfUse
     {
         $this->logDebug("Execute update sql query for Tenant terms of use");
         $span = $this->startSpan("Execute update sql query for Tenant terms of use");

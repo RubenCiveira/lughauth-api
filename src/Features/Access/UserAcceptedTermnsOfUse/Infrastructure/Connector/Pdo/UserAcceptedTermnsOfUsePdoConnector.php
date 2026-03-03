@@ -162,7 +162,7 @@ class UserAcceptedTermnsOfUsePdoConnector
             $span->end();
         }
     }
-    public function update(UserAcceptedTermnsOfUse $update): ?UserAcceptedTermnsOfUse
+    public function update(UserAcceptedTermnsOfUse $update): UserAcceptedTermnsOfUse
     {
         $this->logDebug("Execute update sql query for User accepted termns of use");
         $span = $this->startSpan("Execute update sql query for User accepted termns of use");

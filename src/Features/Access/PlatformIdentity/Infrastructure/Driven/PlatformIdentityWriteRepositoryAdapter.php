@@ -69,7 +69,7 @@ class PlatformIdentityWriteRepositoryAdapter implements PlatformIdentityWriteGat
         }
     }
     #[Override]
-    public function existsForUpdate(?PlatformIdentityFilter $filter): bool
+    public function existsForUpdate(PlatformIdentityFilter $filter): bool
     {
         $this->logDebug("Exists for update of Platform identity on adapter ");
         $span = $this->startSpan("Exists for update of Platform identity on adapter");
@@ -103,8 +103,9 @@ class PlatformIdentityWriteRepositoryAdapter implements PlatformIdentityWriteGat
         $span = $this->startSpan("Count for Platform identity on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('platform-identity', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('platform-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,11 +120,10 @@ class PlatformIdentityWriteRepositoryAdapter implements PlatformIdentityWriteGat
         $this->logDebug("Count for Platform identity on adapter ");
         $span = $this->startSpan("Count for Platform identity on adapter");
         try {
-            $original = ($ref instanceof PlatformIdentity) ? $ref : $this->conn->retrieve(new PlatformIdentityFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('platform-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('platform-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -140,7 +140,7 @@ class PlatformIdentityWriteRepositoryAdapter implements PlatformIdentityWriteGat
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('platform-identity', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('platform-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

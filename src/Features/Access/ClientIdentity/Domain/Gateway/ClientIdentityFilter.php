@@ -48,7 +48,7 @@ class ClientIdentityFilter
     {
         return $this->forAllAudiences;
     }
-    public function withForAllAudiences($forAllAudiences): self
+    public function withForAllAudiences(bool $forAllAudiences): self
     {
         $copy = clone $this;
         $copy->forAllAudiences = $forAllAudiences;
@@ -58,7 +58,7 @@ class ClientIdentityFilter
     {
         return $this->user;
     }
-    public function withUser($user): self
+    public function withUser(UserRef $user): self
     {
         $copy = clone $this;
         $copy->user = $user;
@@ -68,7 +68,7 @@ class ClientIdentityFilter
     {
         return $this->users;
     }
-    public function withUsers($users): self
+    public function withUsers(array $users): self
     {
         $copy = clone $this;
         $copy->users = $users;
@@ -78,7 +78,7 @@ class ClientIdentityFilter
     {
         return $this->relyingParty;
     }
-    public function withRelyingParty($relyingParty): self
+    public function withRelyingParty(RelyingPartyRef $relyingParty): self
     {
         $copy = clone $this;
         $copy->relyingParty = $relyingParty;
@@ -88,7 +88,7 @@ class ClientIdentityFilter
     {
         return $this->relyingPartys;
     }
-    public function withRelyingPartys($relyingPartys): self
+    public function withRelyingPartys(array $relyingPartys): self
     {
         $copy = clone $this;
         $copy->relyingPartys = $relyingPartys;
@@ -98,7 +98,7 @@ class ClientIdentityFilter
     {
         return $this->trustedClient;
     }
-    public function withTrustedClient($trustedClient): self
+    public function withTrustedClient(TrustedClientRef $trustedClient): self
     {
         $copy = clone $this;
         $copy->trustedClient = $trustedClient;
@@ -108,7 +108,7 @@ class ClientIdentityFilter
     {
         return $this->trustedClients;
     }
-    public function withTrustedClients($trustedClients): self
+    public function withTrustedClients(array $trustedClients): self
     {
         $copy = clone $this;
         $copy->trustedClients = $trustedClients;
@@ -118,7 +118,7 @@ class ClientIdentityFilter
     {
         return $this->userTenantTenantAccesible;
     }
-    public function withUserTenantTenantAccesible($userTenantTenantAccesible): self
+    public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {
         $copy = clone $this;
         $copy->userTenantTenantAccesible = $userTenantTenantAccesible;

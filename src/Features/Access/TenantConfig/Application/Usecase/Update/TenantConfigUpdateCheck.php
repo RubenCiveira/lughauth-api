@@ -15,7 +15,7 @@ class TenantConfigUpdateCheck
     public function __construct(public readonly TenantConfigUpdateParams $input, public readonly TenantConfig $current)
     {
     }
-    public function reject(RuntimeException|ConstraintFail $fail)
+    public function reject(RuntimeException|ConstraintFail $fail): void
     {
         if ($fail instanceof ConstraintFail) {
             throw ConstraintException::ofFail($fail);

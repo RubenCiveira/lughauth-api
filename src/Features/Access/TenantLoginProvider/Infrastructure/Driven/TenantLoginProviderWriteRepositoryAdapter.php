@@ -75,7 +75,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         }
     }
     #[Override]
-    public function existsForUpdate(?TenantLoginProviderFilter $filter): bool
+    public function existsForUpdate(TenantLoginProviderFilter $filter): bool
     {
         $this->logDebug("Exists for update of Tenant login provider on adapter ");
         $span = $this->startSpan("Exists for update of Tenant login provider on adapter");
@@ -112,8 +112,9 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 $entity->commitMetadataWith($this->store);
             }
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -139,11 +140,10 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                     $entity->commitMetadataWith($this->store);
                 }
             }
-            $original = ($ref instanceof TenantLoginProvider) ? $ref : $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('tenant-login-provider', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -164,7 +164,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 $this->store->deleteFile(new FileStoreKey($currMetadata));
             }
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('tenant-login-provider', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

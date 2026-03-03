@@ -23,7 +23,6 @@ class TenantTermsOfUseTaskDisable implements TaskDescriptorInterface
     #[Override]
     public function process(TaskContext $context, mixed $item): mixed
     {
-        /** @var $item TenantAttributes */
         return $this->usecase->disable($item->getUid());
     }
 

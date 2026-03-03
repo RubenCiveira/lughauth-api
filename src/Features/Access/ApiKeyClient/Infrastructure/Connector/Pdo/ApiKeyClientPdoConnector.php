@@ -161,7 +161,7 @@ class ApiKeyClientPdoConnector
             $span->end();
         }
     }
-    public function update(ApiKeyClient $update): ?ApiKeyClient
+    public function update(ApiKeyClient $update): ApiKeyClient
     {
         $this->logDebug("Execute update sql query for Api key client");
         $span = $this->startSpan("Execute update sql query for Api key client");

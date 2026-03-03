@@ -15,7 +15,7 @@ class TenantTermsOfUseUpdateCheck
     public function __construct(public readonly TenantTermsOfUseUpdateParams $input, public readonly TenantTermsOfUse $current)
     {
     }
-    public function reject(RuntimeException|ConstraintFail $fail)
+    public function reject(RuntimeException|ConstraintFail $fail): void
     {
         if ($fail instanceof ConstraintFail) {
             throw ConstraintException::ofFail($fail);

@@ -58,7 +58,7 @@ class UserFilter
     {
         return $this->nameOrEmail;
     }
-    public function withNameOrEmail($nameOrEmail): self
+    public function withNameOrEmail(string $nameOrEmail): self
     {
         $copy = clone $this;
         $copy->nameOrEmail = $nameOrEmail;
@@ -68,7 +68,7 @@ class UserFilter
     {
         return $this->name;
     }
-    public function withName($name): self
+    public function withName(string $name): self
     {
         $copy = clone $this;
         $copy->name = $name;
@@ -78,7 +78,7 @@ class UserFilter
     {
         return $this->tenant;
     }
-    public function withTenant($tenant): self
+    public function withTenant(TenantRef $tenant): self
     {
         $copy = clone $this;
         $copy->tenant = $tenant;
@@ -88,7 +88,7 @@ class UserFilter
     {
         return $this->tenants;
     }
-    public function withTenants($tenants): self
+    public function withTenants(array $tenants): self
     {
         $copy = clone $this;
         $copy->tenants = $tenants;
@@ -98,7 +98,7 @@ class UserFilter
     {
         return $this->tenantTenantAccesible;
     }
-    public function withTenantTenantAccesible($tenantTenantAccesible): self
+    public function withTenantTenantAccesible(string $tenantTenantAccesible): self
     {
         $copy = clone $this;
         $copy->tenantTenantAccesible = $tenantTenantAccesible;

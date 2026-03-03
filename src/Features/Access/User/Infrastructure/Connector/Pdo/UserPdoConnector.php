@@ -175,7 +175,7 @@ class UserPdoConnector
             $span->end();
         }
     }
-    public function update(User $update): ?User
+    public function update(User $update): User
     {
         $this->logDebug("Execute update sql query for User");
         $span = $this->startSpan("Execute update sql query for User");

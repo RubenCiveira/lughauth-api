@@ -173,7 +173,7 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    public function update(TrustedClient $update): ?TrustedClient
+    public function update(TrustedClient $update): TrustedClient
     {
         $this->logDebug("Execute update sql query for Trusted client");
         $span = $this->startSpan("Execute update sql query for Trusted client");

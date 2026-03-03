@@ -39,7 +39,7 @@ class TenantFilter
     {
         return $this->name;
     }
-    public function withName($name): self
+    public function withName(?string $name): self
     {
         $copy = clone $this;
         $copy->name = $name;
@@ -49,7 +49,7 @@ class TenantFilter
     {
         return $this->domain;
     }
-    public function withDomain($domain): self
+    public function withDomain(?string $domain): self
     {
         $copy = clone $this;
         $copy->domain = $domain;
@@ -59,7 +59,7 @@ class TenantFilter
     {
         return $this->tenantAccesible;
     }
-    public function withTenantAccesible($tenantAccesible): self
+    public function withTenantAccesible(string $tenantAccesible): self
     {
         $copy = clone $this;
         $copy->tenantAccesible = $tenantAccesible;

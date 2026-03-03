@@ -18,7 +18,7 @@ interface UserAccessTemporalCodeWriteGateway
     public function resolveForUpdate(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode;
     public function listForUpdate(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide;
     public function retrieveForUpdate(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode;
-    public function existsForUpdate(?UserAccessTemporalCodeFilter $filter): bool;
+    public function existsForUpdate(UserAccessTemporalCodeFilter $filter): bool;
     public function countForUpdate(?UserAccessTemporalCodeFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?UserAccessTemporalCode;
     public function findOneForUpdateByUser(UserRef $user): ?UserAccessTemporalCode;

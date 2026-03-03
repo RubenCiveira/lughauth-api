@@ -27,7 +27,8 @@ class TenantAccesible
         try {
             $userContext = $this->context->getIdentity();
             if (!$userContext->hasAnyRole('platform:*')) {
-                if (!$userContext->anonymous && $tenantTenantAccesible = $userContext->tenant) {
+                $tenantTenantAccesible = $userContext->tenant;
+                if (!$userContext->anonymous && null !== $tenantTenantAccesible) {
                     $event->tenantTermsOfUseFilter = $event->tenantTermsOfUseFilter->withTenantTenantAccesible($tenantTenantAccesible);
                 } else {
                     throw new UnauthorizedException('The claim tenant is required');

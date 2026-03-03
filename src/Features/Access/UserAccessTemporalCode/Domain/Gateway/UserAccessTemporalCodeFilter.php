@@ -43,7 +43,7 @@ class UserAccessTemporalCodeFilter
     {
         return $this->user;
     }
-    public function withUser($user): self
+    public function withUser(?UserRef $user): self
     {
         $copy = clone $this;
         $copy->user = $user;
@@ -53,7 +53,7 @@ class UserAccessTemporalCodeFilter
     {
         return $this->registerCode;
     }
-    public function withRegisterCode($registerCode): self
+    public function withRegisterCode(?string $registerCode): self
     {
         $copy = clone $this;
         $copy->registerCode = $registerCode;
@@ -63,7 +63,7 @@ class UserAccessTemporalCodeFilter
     {
         return $this->recoveryCode;
     }
-    public function withRecoveryCode($recoveryCode): self
+    public function withRecoveryCode(?string $recoveryCode): self
     {
         $copy = clone $this;
         $copy->recoveryCode = $recoveryCode;
@@ -73,7 +73,7 @@ class UserAccessTemporalCodeFilter
     {
         return $this->users;
     }
-    public function withUsers($users): self
+    public function withUsers(array $users): self
     {
         $copy = clone $this;
         $copy->users = $users;
@@ -83,7 +83,7 @@ class UserAccessTemporalCodeFilter
     {
         return $this->userTenantTenantAccesible;
     }
-    public function withUserTenantTenantAccesible($userTenantTenantAccesible): self
+    public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {
         $copy = clone $this;
         $copy->userTenantTenantAccesible = $userTenantTenantAccesible;

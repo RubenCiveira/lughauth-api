@@ -59,7 +59,7 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->user;
     }
-    public function withUser($user): self
+    public function withUser(UserRef $user): self
     {
         $copy = clone $this;
         $copy->user = $user;
@@ -69,7 +69,7 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->users;
     }
-    public function withUsers($users): self
+    public function withUsers(array $users): self
     {
         $copy = clone $this;
         $copy->users = $users;
@@ -79,7 +79,7 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->conditions;
     }
-    public function withConditions($conditions): self
+    public function withConditions(TenantTermsOfUseRef $conditions): self
     {
         $copy = clone $this;
         $copy->conditions = $conditions;
@@ -89,7 +89,7 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->conditionss;
     }
-    public function withConditionss($conditionss): self
+    public function withConditionss(array $conditionss): self
     {
         $copy = clone $this;
         $copy->conditionss = $conditionss;
@@ -99,7 +99,7 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->userTenantTenantAccesible;
     }
-    public function withUserTenantTenantAccesible($userTenantTenantAccesible): self
+    public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {
         $copy = clone $this;
         $copy->userTenantTenantAccesible = $userTenantTenantAccesible;

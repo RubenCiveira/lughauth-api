@@ -57,7 +57,7 @@ class ClientIdentityCreateUsecase
             $entity = ClientIdentity::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn ($created) =>
+                fn (ClientIdentity $created) =>
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

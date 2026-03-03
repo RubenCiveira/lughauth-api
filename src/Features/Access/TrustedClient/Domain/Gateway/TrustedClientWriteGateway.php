@@ -17,7 +17,7 @@ interface TrustedClientWriteGateway
     public function resolveForUpdate(TrustedClientRef $ref): ?TrustedClient;
     public function listForUpdate(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide;
     public function retrieveForUpdate(TrustedClientFilter $filter): ?TrustedClient;
-    public function existsForUpdate(?TrustedClientFilter $filter): bool;
+    public function existsForUpdate(TrustedClientFilter $filter): bool;
     public function countForUpdate(?TrustedClientFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?TrustedClient;
     public function findOneForUpdateByCode(string $code): ?TrustedClient;

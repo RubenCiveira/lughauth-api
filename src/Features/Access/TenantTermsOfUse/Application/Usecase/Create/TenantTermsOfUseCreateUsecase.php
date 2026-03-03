@@ -57,7 +57,7 @@ class TenantTermsOfUseCreateUsecase
             $entity = TenantTermsOfUse::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn ($created) =>
+                fn (TenantTermsOfUse $created) =>
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

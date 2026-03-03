@@ -38,7 +38,7 @@ class RelyingPartyFilter
     {
         return $this->code;
     }
-    public function withCode($code): self
+    public function withCode(?string $code): self
     {
         $copy = clone $this;
         $copy->code = $code;
@@ -48,7 +48,7 @@ class RelyingPartyFilter
     {
         return $this->apiKey;
     }
-    public function withApiKey($apiKey): self
+    public function withApiKey(?string $apiKey): self
     {
         $copy = clone $this;
         $copy->apiKey = $apiKey;

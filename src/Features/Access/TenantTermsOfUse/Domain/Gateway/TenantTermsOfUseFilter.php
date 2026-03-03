@@ -44,7 +44,7 @@ class TenantTermsOfUseFilter
     {
         return $this->tenant;
     }
-    public function withTenant($tenant): self
+    public function withTenant(TenantRef $tenant): self
     {
         $copy = clone $this;
         $copy->tenant = $tenant;
@@ -54,7 +54,7 @@ class TenantTermsOfUseFilter
     {
         return $this->tenants;
     }
-    public function withTenants($tenants): self
+    public function withTenants(array $tenants): self
     {
         $copy = clone $this;
         $copy->tenants = $tenants;
@@ -64,7 +64,7 @@ class TenantTermsOfUseFilter
     {
         return $this->relyingParty;
     }
-    public function withRelyingParty($relyingParty): self
+    public function withRelyingParty(RelyingPartyRef $relyingParty): self
     {
         $copy = clone $this;
         $copy->relyingParty = $relyingParty;
@@ -74,7 +74,7 @@ class TenantTermsOfUseFilter
     {
         return $this->relyingPartys;
     }
-    public function withRelyingPartys($relyingPartys): self
+    public function withRelyingPartys(array $relyingPartys): self
     {
         $copy = clone $this;
         $copy->relyingPartys = $relyingPartys;
@@ -84,7 +84,7 @@ class TenantTermsOfUseFilter
     {
         return $this->tenantTenantAccesible;
     }
-    public function withTenantTenantAccesible($tenantTenantAccesible): self
+    public function withTenantTenantAccesible(string $tenantTenantAccesible): self
     {
         $copy = clone $this;
         $copy->tenantTenantAccesible = $tenantTenantAccesible;

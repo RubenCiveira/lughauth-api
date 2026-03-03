@@ -17,7 +17,7 @@ interface ApiKeyClientWriteGateway
     public function resolveForUpdate(ApiKeyClientRef $ref): ?ApiKeyClient;
     public function listForUpdate(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide;
     public function retrieveForUpdate(ApiKeyClientFilter $filter): ?ApiKeyClient;
-    public function existsForUpdate(?ApiKeyClientFilter $filter): bool;
+    public function existsForUpdate(ApiKeyClientFilter $filter): bool;
     public function countForUpdate(?ApiKeyClientFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?ApiKeyClient;
     public function findOneForUpdateByCode(string $code): ?ApiKeyClient;

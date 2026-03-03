@@ -240,8 +240,9 @@ class TrustedClientVisibilityService
         $this->logDebug("Check visibility of parent references for Trusted client");
         $span = $this->startSpan("Check visibility of parent references for  Trusted client");
         try {
-            if ($attributes->getAllowedRedirects() && !$this->checkVisibilityForAllowedRedirects($attributes->getAllowedRedirects())) {
-                throw new NotFoundException("Unknown AllowedRedirects " . $attributes->getAllowedRedirects()->uid());
+            $allowedRedirects = $attributes->getAllowedRedirects();
+            if (null !== allowedRedirects && !$this->checkVisibilityForAllowedRedirects($allowedRedirects)) {
+                throw new NotFoundException("Unknown AllowedRedirects " . ($allowedRedirects->uid() ?? 'no-id'));
             }
             return $attributes;
         } catch (Throwable $ex) {

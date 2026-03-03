@@ -163,7 +163,7 @@ class TenantPdoConnector
             $span->end();
         }
     }
-    public function update(Tenant $update): ?Tenant
+    public function update(Tenant $update): Tenant
     {
         $this->logDebug("Execute update sql query for Tenant");
         $span = $this->startSpan("Execute update sql query for Tenant");

@@ -18,7 +18,7 @@ interface TenantTermsOfUseWriteGateway
     public function resolveForUpdate(TenantTermsOfUseRef $ref): ?TenantTermsOfUse;
     public function listForUpdate(?TenantTermsOfUseFilter $filter = null, ?TenantTermsOfUseCursor $cursor = null): TenantTermsOfUseSlide;
     public function retrieveForUpdate(TenantTermsOfUseFilter $filter): ?TenantTermsOfUse;
-    public function existsForUpdate(?TenantTermsOfUseFilter $filter): bool;
+    public function existsForUpdate(TenantTermsOfUseFilter $filter): bool;
     public function countForUpdate(?TenantTermsOfUseFilter $filter = null): int;
     public function temporalStoreAttached(BinaryContent $binary): string;
     public function readTemporalAttached(string $key): BinaryContent;

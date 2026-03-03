@@ -172,7 +172,7 @@ class PlatformIdentityPdoConnector
             $span->end();
         }
     }
-    public function update(PlatformIdentity $update): ?PlatformIdentity
+    public function update(PlatformIdentity $update): PlatformIdentity
     {
         $this->logDebug("Execute update sql query for Platform identity");
         $span = $this->startSpan("Execute update sql query for Platform identity");

@@ -67,7 +67,7 @@ class TenantConfigListUsecase
         try {
             $allow = $this->allowList();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to list');
             }
             $slide = $this->visibility->listVisibles($filter, $cursor);
             return new TenantConfigAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($item)), $slide->values()));

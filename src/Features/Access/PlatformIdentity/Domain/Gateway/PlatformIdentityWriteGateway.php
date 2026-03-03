@@ -17,7 +17,7 @@ interface PlatformIdentityWriteGateway
     public function resolveForUpdate(PlatformIdentityRef $ref): ?PlatformIdentity;
     public function listForUpdate(?PlatformIdentityFilter $filter = null, ?PlatformIdentityCursor $cursor = null): PlatformIdentitySlide;
     public function retrieveForUpdate(PlatformIdentityFilter $filter): ?PlatformIdentity;
-    public function existsForUpdate(?PlatformIdentityFilter $filter): bool;
+    public function existsForUpdate(PlatformIdentityFilter $filter): bool;
     public function countForUpdate(?PlatformIdentityFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?PlatformIdentity;
 }

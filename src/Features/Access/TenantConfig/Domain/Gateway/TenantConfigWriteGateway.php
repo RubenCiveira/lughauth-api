@@ -18,7 +18,7 @@ interface TenantConfigWriteGateway
     public function resolveForUpdate(TenantConfigRef $ref): ?TenantConfig;
     public function listForUpdate(?TenantConfigFilter $filter = null, ?TenantConfigCursor $cursor = null): TenantConfigSlide;
     public function retrieveForUpdate(TenantConfigFilter $filter): ?TenantConfig;
-    public function existsForUpdate(?TenantConfigFilter $filter): bool;
+    public function existsForUpdate(TenantConfigFilter $filter): bool;
     public function countForUpdate(?TenantConfigFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?TenantConfig;
     public function findOneForUpdateByTenant(TenantRef $tenant): ?TenantConfig;

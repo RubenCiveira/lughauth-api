@@ -170,7 +170,7 @@ class UserAccessTemporalCodePdoConnector
             $span->end();
         }
     }
-    public function update(UserAccessTemporalCode $update): ?UserAccessTemporalCode
+    public function update(UserAccessTemporalCode $update): UserAccessTemporalCode
     {
         $this->logDebug("Execute update sql query for User access temporal code");
         $span = $this->startSpan("Execute update sql query for User access temporal code");

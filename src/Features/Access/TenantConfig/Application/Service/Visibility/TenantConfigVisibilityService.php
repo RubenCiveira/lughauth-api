@@ -241,8 +241,9 @@ class TenantConfigVisibilityService
         $this->logDebug("Check visibility of parent references for Tenant config");
         $span = $this->startSpan("Check visibility of parent references for  Tenant config");
         try {
-            if ($attributes->getTenant() && !$this->tenantVisibilityService->checkVisibility($attributes->getTenant())) {
-                throw new NotFoundException("Unknown Tenant " . $attributes->getTenant());
+            $tenant = $attributes->getTenant();
+            if (null !== $tenant && !$this->tenantVisibilityService->checkVisibility($tenant)) {
+                throw new NotFoundException("Unknown Tenant " . $tenant);
             }
             return $attributes;
         } catch (Throwable $ex) {

@@ -70,7 +70,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?RoleFilter $filter): bool
+    public function existsForUpdate(RoleFilter $filter): bool
     {
         $this->logDebug("Exists for update of Role on adapter ");
         $span = $this->startSpan("Exists for update of Role on adapter");
@@ -104,8 +104,9 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('role', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -120,11 +121,10 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         $this->logDebug("Count for Role on adapter ");
         $span = $this->startSpan("Count for Role on adapter");
         try {
-            $original = ($ref instanceof Role) ? $ref : $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('role', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('role', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -141,7 +141,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('role', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('role', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

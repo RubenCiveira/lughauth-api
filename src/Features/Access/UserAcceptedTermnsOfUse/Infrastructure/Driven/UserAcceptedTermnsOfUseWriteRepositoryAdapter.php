@@ -71,7 +71,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         }
     }
     #[Override]
-    public function existsForUpdate(?UserAcceptedTermnsOfUseFilter $filter): bool
+    public function existsForUpdate(UserAcceptedTermnsOfUseFilter $filter): bool
     {
         $this->logDebug("Exists for update of User accepted termns of use on adapter ");
         $span = $this->startSpan("Exists for update of User accepted termns of use on adapter");
@@ -105,8 +105,9 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -121,11 +122,10 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         $this->logDebug("Count for User accepted termns of use on adapter ");
         $span = $this->startSpan("Count for User accepted termns of use on adapter");
         try {
-            $original = ($ref instanceof UserAcceptedTermnsOfUse) ? $ref : $this->conn->retrieve(new UserAcceptedTermnsOfUseFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('user-accepted-termns-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -142,7 +142,7 @@ class UserAcceptedTermnsOfUseWriteRepositoryAdapter implements UserAcceptedTermn
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('user-accepted-termns-of-use', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('user-accepted-termns-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

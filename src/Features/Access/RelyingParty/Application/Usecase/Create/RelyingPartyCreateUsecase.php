@@ -57,7 +57,7 @@ class RelyingPartyCreateUsecase
             $entity = RelyingParty::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn ($created) =>
+                fn (RelyingParty $created) =>
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

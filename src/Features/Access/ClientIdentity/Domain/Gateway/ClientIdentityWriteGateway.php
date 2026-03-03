@@ -17,7 +17,7 @@ interface ClientIdentityWriteGateway
     public function resolveForUpdate(ClientIdentityRef $ref): ?ClientIdentity;
     public function listForUpdate(?ClientIdentityFilter $filter = null, ?ClientIdentityCursor $cursor = null): ClientIdentitySlide;
     public function retrieveForUpdate(ClientIdentityFilter $filter): ?ClientIdentity;
-    public function existsForUpdate(?ClientIdentityFilter $filter): bool;
+    public function existsForUpdate(ClientIdentityFilter $filter): bool;
     public function countForUpdate(?ClientIdentityFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?ClientIdentity;
 }

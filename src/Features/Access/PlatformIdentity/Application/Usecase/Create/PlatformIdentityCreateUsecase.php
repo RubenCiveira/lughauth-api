@@ -57,7 +57,7 @@ class PlatformIdentityCreateUsecase
             $entity = PlatformIdentity::create($input);
             $result = $this->writer->create(
                 $entity,
-                fn ($created) =>
+                fn (PlatformIdentity $created) =>
                             $this->visibility->checkVisibility($created)
             );
             $output = $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($result));

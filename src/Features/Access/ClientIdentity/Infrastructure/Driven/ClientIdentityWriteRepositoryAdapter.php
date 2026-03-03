@@ -69,7 +69,7 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?ClientIdentityFilter $filter): bool
+    public function existsForUpdate(ClientIdentityFilter $filter): bool
     {
         $this->logDebug("Exists for update of Client identity on adapter ");
         $span = $this->startSpan("Exists for update of Client identity on adapter");
@@ -103,8 +103,9 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         $span = $this->startSpan("Count for Client identity on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('client-identity', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('client-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,11 +120,10 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         $this->logDebug("Count for Client identity on adapter ");
         $span = $this->startSpan("Count for Client identity on adapter");
         try {
-            $original = ($ref instanceof ClientIdentity) ? $ref : $this->conn->retrieve(new ClientIdentityFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('client-identity', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('client-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -140,7 +140,7 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('client-identity', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('client-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);

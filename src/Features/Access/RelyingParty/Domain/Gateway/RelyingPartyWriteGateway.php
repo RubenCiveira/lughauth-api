@@ -17,7 +17,7 @@ interface RelyingPartyWriteGateway
     public function resolveForUpdate(RelyingPartyRef $ref): ?RelyingParty;
     public function listForUpdate(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide;
     public function retrieveForUpdate(RelyingPartyFilter $filter): ?RelyingParty;
-    public function existsForUpdate(?RelyingPartyFilter $filter): bool;
+    public function existsForUpdate(RelyingPartyFilter $filter): bool;
     public function countForUpdate(?RelyingPartyFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?RelyingParty;
     public function findOneForUpdateByCode(string $code): ?RelyingParty;

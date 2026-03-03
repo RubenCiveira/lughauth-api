@@ -170,7 +170,7 @@ class TenantLoginProviderPdoConnector
             $span->end();
         }
     }
-    public function update(TenantLoginProvider $update): ?TenantLoginProvider
+    public function update(TenantLoginProvider $update): TenantLoginProvider
     {
         $this->logDebug("Execute update sql query for Tenant login provider");
         $span = $this->startSpan("Execute update sql query for Tenant login provider");

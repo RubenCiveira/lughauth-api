@@ -38,7 +38,7 @@ class ApiKeyClientFilter
     {
         return $this->code;
     }
-    public function withCode($code): self
+    public function withCode(?string $code): self
     {
         $copy = clone $this;
         $copy->code = $code;
@@ -48,7 +48,7 @@ class ApiKeyClientFilter
     {
         return $this->key;
     }
-    public function withKey($key): self
+    public function withKey(?string $key): self
     {
         $copy = clone $this;
         $copy->key = $key;

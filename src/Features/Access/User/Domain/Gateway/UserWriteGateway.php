@@ -18,7 +18,7 @@ interface UserWriteGateway
     public function resolveForUpdate(UserRef $ref): ?User;
     public function listForUpdate(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide;
     public function retrieveForUpdate(UserFilter $filter): ?User;
-    public function existsForUpdate(?UserFilter $filter): bool;
+    public function existsForUpdate(UserFilter $filter): bool;
     public function countForUpdate(?UserFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?User;
     public function findOneForUpdateByTenantAndName(TenantRef $tenant, string $name): ?User;

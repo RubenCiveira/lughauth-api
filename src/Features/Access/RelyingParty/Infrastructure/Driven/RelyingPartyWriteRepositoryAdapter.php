@@ -69,7 +69,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         }
     }
     #[Override]
-    public function existsForUpdate(?RelyingPartyFilter $filter): bool
+    public function existsForUpdate(RelyingPartyFilter $filter): bool
     {
         $this->logDebug("Exists for update of Relying party on adapter ");
         $span = $this->startSpan("Exists for update of Relying party on adapter");
@@ -103,8 +103,9 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
+            \assert($created !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), []);
+            $this->changelog->recordChange('relying-party', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -119,11 +120,10 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         $this->logDebug("Count for Relying party on adapter ");
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
-            $original = ($ref instanceof RelyingParty) ? $ref : $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
-            \assert($original !== null);
             $updated = $this->conn->update($entity);
+            \assert($updated !== null);
             $this->dispatch($entity);
-            $this->changelog->recordChange('relying-party', $entity->uid(), $entity->asPublicJson(), $original->asPublicJson());
+            $this->changelog->recordChange('relying-party', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -140,7 +140,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         try {
             $result = $this->conn->delete($entity);
             $this->dispatch($entity);
-            $this->changelog->recordDeletion('relying-party', $entity->uid(), $entity->asPublicJson());
+            $this->changelog->recordDeletion('relying-party', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $result;
         } catch (Throwable $ex) {
             $span->recordException($ex);
