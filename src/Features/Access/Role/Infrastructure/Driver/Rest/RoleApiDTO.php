@@ -16,14 +16,14 @@ class RoleApiDTO
         description:"A uid string to identify the entity",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "name",
         title: "name",
         description:"The user name to identify on the login screen",
         type: "string"
     )]
-    public ?string $name;
+    public ?string $name = null;
     #[OA\Property(
         property: "relyingParty",
         title: "relying party",
@@ -40,5 +40,5 @@ class RoleApiDTO
         description:"Campo con el número de version de role para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

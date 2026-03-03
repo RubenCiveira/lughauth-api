@@ -171,19 +171,19 @@ class RelyingPartyPdoConnector
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'apiKey', value: $update->getApiKey(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_relying_party" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -300,35 +300,27 @@ class RelyingPartyPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_relying_party"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_relying_party"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_relying_party"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
-                if ($filterCode) {
+                if (null !== $filterCode) {
                     $query .= ' and "access_relying_party"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
                 $filterApiKey = $filter->apiKey();
-                if ($filterApiKey) {
+                if (null !== $filterApiKey) {
                     $query .= ' and "access_relying_party"."api_key" = :apiKey';
                     $params[] = new SqlParam(name: 'apiKey', value: $filterApiKey, type: SqlParam::STR);
-                }
-                if ($filterApiKey = $filter->apiKey()) {
-                    $query .= ' and "access_relying_party"."api_key" = :apiKey ';
-                    $params[] = new SqlParam(name: 'apiKey', value: $filterApiKey, type: SqlParam::STR);
-                }
-                if ($filterCode = $filter->code()) {
-                    $query .= ' and "access_relying_party"."code" = :code ';
-                    $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
             }
             if ($sort) {
@@ -337,12 +329,12 @@ class RelyingPartyPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortOrder = $sort->order();
-                if ($sortOrder) {
+                if (null !== $sortOrder) {
+                    $equals = '';
                     foreach ($sortOrder as $ord) {
-                        $equals = '';
                         if ($ord === 'codeAsc') {
                             $sortSinceCode = $sort->sinceCode();
-                            if ($sortSinceCode) {
+                            if (null !== $sortSinceCode) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "relying-party"."code" > :sinceCode';
                                 $equals .= ' and "relying-party"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
@@ -351,7 +343,7 @@ class RelyingPartyPdoConnector
                         }
                         if ($ord === 'codeDesc') {
                             $sortSinceCode = $sort->sinceCode();
-                            if ($sortSinceCode) {
+                            if (null !== $sortSinceCode) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "relying-party"."code" < :sinceCode';
                                 $equals .= ' and "relying-party"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
@@ -361,7 +353,7 @@ class RelyingPartyPdoConnector
                     }
                 } else {
                     $sortSinceUid = $sort->sinceUid();
-                    if ($sortSinceUid) {
+                    if (null !== $sortSinceUid) {
                         $query .= ' and  "access_relying_party"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
@@ -381,17 +373,31 @@ class RelyingPartyPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): RelyingParty
+    private function mapper(array $row): RelyingParty
     {
         $this->logDebug("Mapping from sql to entity for Relying party");
         $span = $this->startSpan("Mapping from sql to entity for Relying party");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $code = $row['code'] ?? null;
+            if (null === $code) {
+                throw ConstraintException::ofError('not-null', ['code'], [null]);
+            }
+            $apiKey = $row['api_key'] ?? null;
+            if (null === $apiKey) {
+                throw ConstraintException::ofError('not-null', ['apiKey'], [null]);
+            }
+            $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
+            $version = $row['version'] ?? null;
             return new RelyingParty(
-                uid: $row['uid'] ?? null,
-                code: $row['code'] ?? null,
-                apiKey: $row['api_key'] ?? null,
-                enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                code: $code,
+                apiKey: $apiKey,
+                enabled: $enabled,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

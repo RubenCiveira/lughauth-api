@@ -105,14 +105,17 @@ class TrustedClientListController
             if (isset($params['limit'])) {
                 $link['limit'] = 'limit=' . $params['limit'];
             }
-            if ($value && $value->sinceUid()) {
-                $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
+            $sinceUid = $value->sinceUid();
+            if (null !== $sinceUid) {
+                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
             }
-            if (strpos('CODE-ASC', $params['order'] ?? '') !== false && $value->sinceCode()) {
-                $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
+            $sinceCode = $value->sinceCode();
+            if (null !== $sinceCode &&  false !== strpos($params['order'] ?? '', 'CODE-ASC')) {
+                $link['since-code'] = 'since-code=' . urlencode($sinceCode);
             }
-            if (strpos('CODE-DESC', $params['order'] ?? '') !== false && $value->sinceCode()) {
-                $link['since-code'] = 'since-code=' . urlencode($value->sinceCode());
+            $sinceCode = $value->sinceCode();
+            if (null !== $sinceCode &&  false !== strpos($params['order'] ?? '', 'CODE-DESC')) {
+                $link['since-code'] = 'since-code=' . urlencode($sinceCode);
             }
             return implode('&', $link);
         } catch (Throwable $ex) {

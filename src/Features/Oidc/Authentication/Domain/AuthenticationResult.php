@@ -7,16 +7,16 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 
 class AuthenticationResult
 {
-    public const ERR_MFA_REQUIRED = 'MFA_REQUIRED';
-    public const ERR_NEW_MFA_REQUIRED = 'NEW_MFA_REQUIRED';
-    public const ERR_CONSENT_REQUIRED = 'CONSENT_REQUIRED';
-    public const ERR_SCOPES_CONSENT_REQUIRED = 'SCOPES_CONSENT_REQUIRED';
-    public const ERR_NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED';
-    public const ERR_WAITING_PASSCHANGE_CODE = 'WAITING_PASSCHANGE_CODE';
-    public const ERR_WAITING_USER_VERIFY = 'WAITING_USER_VERIFY';
-    public const ERR_UNKNOW_USER = 'UNKNOW_USER';
-    public const ERR_WRONG_CREDENTIAL = 'WRONG_CREDENTIAL';
-    public const ERR_NOT_ALLOWED_ACCESS = 'NOT_ALLOWED_ACCESS';
+    public const string ERR_MFA_REQUIRED = 'MFA_REQUIRED';
+    public const string ERR_NEW_MFA_REQUIRED = 'NEW_MFA_REQUIRED';
+    public const string ERR_CONSENT_REQUIRED = 'CONSENT_REQUIRED';
+    public const string ERR_SCOPES_CONSENT_REQUIRED = 'SCOPES_CONSENT_REQUIRED';
+    public const string ERR_NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED';
+    public const string ERR_WAITING_PASSCHANGE_CODE = 'WAITING_PASSCHANGE_CODE';
+    public const string ERR_WAITING_USER_VERIFY = 'WAITING_USER_VERIFY';
+    public const string ERR_UNKNOW_USER = 'UNKNOW_USER';
+    public const string ERR_WRONG_CREDENTIAL = 'WRONG_CREDENTIAL';
+    public const string ERR_NOT_ALLOWED_ACCESS = 'NOT_ALLOWED_ACCESS';
 
     public static function waitNewpass($url, ?string $detail = null): AuthenticationResult
     {

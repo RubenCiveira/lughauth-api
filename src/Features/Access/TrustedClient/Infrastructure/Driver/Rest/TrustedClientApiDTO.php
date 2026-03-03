@@ -16,48 +16,48 @@ class TrustedClientApiDTO
         description:"El identificador de la aplicacion",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "code",
         title: "code",
         description:"El código identificativo de la aplicación",
         type: "string"
     )]
-    public ?string $code;
+    public ?string $code = null;
     #[OA\Property(
         property: "allowAllScopes",
         title: "allow all scopes",
         description:"El allow all scopes de trusted client",
         type: "string"
     )]
-    public ?bool $allowAllScopes;
+    public ?bool $allowAllScopes = null;
     #[OA\Property(
         property: "publicAllow",
         title: "public allow",
         description:"If true, users can use these client to access with public code flow",
         type: "string"
     )]
-    public ?bool $publicAllow;
+    public ?bool $publicAllow = null;
     #[OA\Property(
         property: "secretOauth",
         title: "secret oauth",
         description:"If the user is not delegated, the phrasse to identify",
         type: "string"
     )]
-    public ?string $secretOauth;
+    public ?string $secretOauth = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"The indicator to allow the account be used without deleting it",
         type: "string"
     )]
-    public ?bool $enabled;
-    public ?array $allowedRedirects;
+    public ?bool $enabled = null;
+    public ?array $allowedRedirects = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de trusted client para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

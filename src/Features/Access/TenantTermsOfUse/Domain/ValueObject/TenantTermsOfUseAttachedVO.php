@@ -10,7 +10,7 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class TenantTermsOfUseAttachedVO
 {
-    private const EXTERNALS = ['http://', 'https://'];
+    private const array EXTERNALS = ['http://', 'https://'];
 
     public static function fromTemporal(string $key): TenantTermsOfUseAttachedVO
     {

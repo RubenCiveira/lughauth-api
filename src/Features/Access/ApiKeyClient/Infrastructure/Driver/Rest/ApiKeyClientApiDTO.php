@@ -16,40 +16,40 @@ class ApiKeyClientApiDTO
         description:"El identificador de la aplicacion",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "code",
         title: "code",
         description:"El código identificativo de la aplicación",
         type: "string"
     )]
-    public ?string $code;
+    public ?string $code = null;
     #[OA\Property(
         property: "key",
         title: "key",
         description:"The key for the api",
         type: "string"
     )]
-    public ?string $key;
+    public ?string $key = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"The indicator to allow the account be used without deleting it",
         type: "string"
     )]
-    public ?bool $enabled;
+    public ?bool $enabled = null;
     #[OA\Property(
         property: "scopes",
         title: "scopes",
         description:"A coma separated scopes for the api key",
         type: "string"
     )]
-    public ?string $scopes;
+    public ?string $scopes = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de api key client para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

@@ -177,19 +177,19 @@ class TenantPdoConnector
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'markForDelete', value: $update->isMarkForDelete(), type: SqlParam::BOOL),
                      new SqlParam(name: 'markForDeleteTime', value: $update->getMarkForDeleteTime(), type: SqlParam::STR),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_tenant" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -306,33 +306,30 @@ class TenantPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_tenant"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_tenant"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_tenant"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterName = $filter->name();
-                if ($filterName) {
+                if (null !== $filterName) {
                     $query .= ' and "access_tenant"."name" = :name';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
                 $filterDomain = $filter->domain();
-                if ($filterDomain) {
+                if (null !== $filterDomain) {
                     $query .= ' and "access_tenant"."domain" = :domain';
                     $params[] = new SqlParam(name: 'domain', value: $filterDomain, type: SqlParam::STR);
                 }
-                if ($filterName = $filter->name()) {
-                    $query .= ' and "access_tenant"."name" = :name ';
-                    $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
-                }
-                if ($filterTenantAccesible = $filter->tenantAccesible()) {
+                $filterTenantAccesible = $filter->tenantAccesible();
+                if (null !== $filterTenantAccesible) {
                     $query .= ' and "access_tenant"."uid" = :tenantAccesible ';
                     $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
                 }
@@ -343,12 +340,12 @@ class TenantPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortOrder = $sort->order();
-                if ($sortOrder) {
+                if (null !== $sortOrder) {
+                    $equals = '';
                     foreach ($sortOrder as $ord) {
-                        $equals = '';
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
-                            if ($sortSinceName) {
+                            if (null !== $sortSinceName) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."name" > :sinceName';
                                 $equals .= ' and "tenant"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
@@ -357,7 +354,7 @@ class TenantPdoConnector
                         }
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
-                            if ($sortSinceName) {
+                            if (null !== $sortSinceName) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."name" < :sinceName';
                                 $equals .= ' and "tenant"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
@@ -366,7 +363,7 @@ class TenantPdoConnector
                         }
                         if ($ord === 'domainAsc') {
                             $sortSinceDomain = $sort->sinceDomain();
-                            if ($sortSinceDomain) {
+                            if (null !== $sortSinceDomain) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."domain" > :sinceDomain';
                                 $equals .= ' and "tenant"."domain" = :sinceDomain';
                                 $params[] = new SqlParam(name: 'sinceDomain', value: $sortSinceDomain, type: SqlParam::STR);
@@ -375,7 +372,7 @@ class TenantPdoConnector
                         }
                         if ($ord === 'domainDesc') {
                             $sortSinceDomain = $sort->sinceDomain();
-                            if ($sortSinceDomain) {
+                            if (null !== $sortSinceDomain) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."domain" < :sinceDomain';
                                 $equals .= ' and "tenant"."domain" = :sinceDomain';
                                 $params[] = new SqlParam(name: 'sinceDomain', value: $sortSinceDomain, type: SqlParam::STR);
@@ -385,7 +382,7 @@ class TenantPdoConnector
                     }
                 } else {
                     $sortSinceUid = $sort->sinceUid();
-                    if ($sortSinceUid) {
+                    if (null !== $sortSinceUid) {
                         $query .= ' and  "access_tenant"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
@@ -405,20 +402,43 @@ class TenantPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): Tenant
+    private function mapper(array $row): Tenant
     {
         $this->logDebug("Mapping from sql to entity for Tenant");
         $span = $this->startSpan("Mapping from sql to entity for Tenant");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $name = $row['name'] ?? null;
+            if (null === $name) {
+                throw ConstraintException::ofError('not-null', ['name'], [null]);
+            }
+            $root = isset($row['root']) ? !! $row['root'] : null;
+            $domain = $row['domain'] ?? null;
+            if (null === $domain) {
+                throw ConstraintException::ofError('not-null', ['domain'], [null]);
+            }
+            $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
+            if (null === $enabled) {
+                throw ConstraintException::ofError('not-null', ['enabled'], [null]);
+            }
+            $markForDelete = isset($row['mark_for_delete']) ? !! $row['mark_for_delete'] : null;
+            if (null === $markForDelete) {
+                throw ConstraintException::ofError('not-null', ['markForDelete'], [null]);
+            }
+            $markForDeleteTime = $row['mark_for_delete_time'] ? new \DateTimeImmutable($row['mark_for_delete_time']) : null;
+            $version = $row['version'] ?? null;
             return new Tenant(
-                uid: $row['uid'] ?? null,
-                name: $row['name'] ?? null,
-                root: isset($row['root']) ? !! $row['root'] : null,
-                domain: $row['domain'] ?? null,
-                enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
-                markForDelete: isset($row['mark_for_delete']) ? !! $row['mark_for_delete'] : null,
-                markForDeleteTime: $row['mark_for_delete_time'] ? new \DateTimeImmutable($row['mark_for_delete_time']) : null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                name: $name,
+                root: $root,
+                domain: $domain,
+                enabled: $enabled,
+                markForDelete: $markForDelete,
+                markForDeleteTime: $markForDeleteTime,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

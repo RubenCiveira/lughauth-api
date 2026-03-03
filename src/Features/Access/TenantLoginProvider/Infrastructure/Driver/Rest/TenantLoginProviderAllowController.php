@@ -65,7 +65,8 @@ class TenantLoginProviderAllowController
                 'noVisibles' => $this->retrieveUsecase->hiddenFields()
               ]
             ];
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {
@@ -110,7 +111,8 @@ class TenantLoginProviderAllowController
                 'noVisibles' => $this->retrieveUsecase->hiddenFields($ref)
               ]
             ];
-            $response->getBody()->write(json_encode($value));
+            $encoded = json_encode($value);
+            $response->getBody()->write($encoded === false ? '' : $encoded);
             return $response->withStatus(200)
                   ->withHeader('Content-Type', 'application/json');
         } catch (Throwable $ex) {

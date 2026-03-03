@@ -9,8 +9,8 @@ use Civi\Lughauth\Features\Access\User\Domain\User;
 
 class UserCursor
 {
-    public const NAME_ASC = 'name';
-    public const NAME_DESC = '-name';
+    public const string NAME_ASC = 'name';
+    public const string NAME_DESC = '-name';
 
     public function __construct(
         private int $limit,

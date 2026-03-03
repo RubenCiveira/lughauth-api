@@ -87,8 +87,9 @@ class ClientIdentityListController
             if (isset($params['limit'])) {
                 $link['limit'] = 'limit=' . $params['limit'];
             }
-            if ($value && $value->sinceUid()) {
-                $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
+            $sinceUid = $value->sinceUid();
+            if (null !== $sinceUid) {
+                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
             }
             return implode('&', $link);
         } catch (Throwable $ex) {

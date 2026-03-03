@@ -142,7 +142,7 @@ class UserPdoConnector
             try {
                 $this->db->execute('INSERT INTO "access_user" ( "uid", "tenant", "name", "password", "email", "wellcome_at", "enabled", "approve", "temporal_password", "use_second_factors", "second_factor_seed", "blocked_until", "provider", "version") VALUES ( :uid, :tenant, :name, :password, :email, :wellcomeAt, :enabled, :approve, :temporalPassword, :useSecondFactors, :secondFactorSeed, :blockedUntil, :provider, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'password', value: $entity->getCypheredPassword($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'email', value: $entity->getEmail(), type: SqlParam::STR),
@@ -183,7 +183,7 @@ class UserPdoConnector
             try {
                 $result = $this->db->execute('UPDATE "access_user" SET "tenant" = :tenant , "name" = :name , "password" = :password , "email" = :email , "wellcome_at" = :wellcomeAt , "enabled" = :enabled , "approve" = :approve , "temporal_password" = :temporalPassword , "use_second_factors" = :useSecondFactors , "second_factor_seed" = :secondFactorSeed , "blocked_until" = :blockedUntil , "provider" = :provider , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'password', value: $update->getCypheredPassword($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'email', value: $update->getEmail(), type: SqlParam::STR),
@@ -195,19 +195,19 @@ class UserPdoConnector
                      new SqlParam(name: 'secondFactorSeed', value: $update->getCypheredSecondFactorSeed($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'blockedUntil', value: $update->getBlockedUntil(), type: SqlParam::STR),
                      new SqlParam(name: 'provider', value: $update->getProvider(), type: SqlParam::STR),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_user" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -297,9 +297,9 @@ class UserPdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_user" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
-            $values = ['tenant' => $entity->getTenant()?->uid(), 'name' => $entity->getName(), 'uid' => $entity->uid()];
+            $values = ['tenant' => $entity->getTenant()->uid(), 'name' => $entity->getName(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "tenant", "name" from "access_user" where "tenant" = :tenant and "name" = :name and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['tenant', 'name'], [$entity->getTenant()?->uid(), $entity->getName()]);
+                throw ConstraintException::ofError('not-unique', ['tenant', 'name'], [$entity->getTenant()->uid(), $entity->getName()]);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -320,42 +320,47 @@ class UserPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_user"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_user"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_user"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenantAndName = $filter->tenantAndName();
-                if ($filterTenantAndName) {
+                if (null !== $filterTenantAndName) {
                     $query .= ' and ( "access_user"."tenant" = :tenantNameTenant and "access_user"."name" = :tenantNameName)';
                     $params[] = new SqlParam(name: 'tenantNameTenant', value: $filterTenantAndName['tenant']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'tenantNameName', value: $filterTenantAndName['name'], type: SqlParam::STR);
                 }
-                if ($filterNameOrEmail = $filter->nameOrEmail()) {
+                $filterNameOrEmail = $filter->nameOrEmail();
+                if (null !== $filterNameOrEmail) {
                     $query .= ' and ("email" = :emailNameOrEmail or "name" = :nameNameOrEmail)';
                     $params[] = new SqlParam(name: 'emailNameOrEmail', value: $filterNameOrEmail, type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'nameNameOrEmail', value: $filterNameOrEmail, type: SqlParam::STR);
                 }
-                if ($filterName = $filter->name()) {
+                $filterName = $filter->name();
+                if (null !== $filterName) {
                     $query .= ' and "access_user"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
-                if ($filterTenant = $filter->tenant()) {
+                $filterTenant = $filter->tenant();
+                if (null !== $filterTenant) {
                     $query .= ' and "access_user"."tenant" = :tenant ';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
-                if ($filterTenants = $filter->tenants()) {
+                $filterTenants = $filter->tenants();
+                if (null !== $filterTenants) {
                     $query .= ' and "access_user"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
+                $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
+                if (null !== $filterTenantTenantAccesible) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_user"."tenant"';
                     $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
@@ -367,12 +372,12 @@ class UserPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortOrder = $sort->order();
-                if ($sortOrder) {
+                if (null !== $sortOrder) {
+                    $equals = '';
                     foreach ($sortOrder as $ord) {
-                        $equals = '';
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
-                            if ($sortSinceName) {
+                            if (null !== $sortSinceName) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "user"."name" > :sinceName';
                                 $equals .= ' and "user"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
@@ -381,7 +386,7 @@ class UserPdoConnector
                         }
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
-                            if ($sortSinceName) {
+                            if (null !== $sortSinceName) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "user"."name" < :sinceName';
                                 $equals .= ' and "user"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
@@ -391,7 +396,7 @@ class UserPdoConnector
                     }
                 } else {
                     $sortSinceUid = $sort->sinceUid();
-                    if ($sortSinceUid) {
+                    if (null !== $sortSinceUid) {
                         $query .= ' and  "access_user"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
@@ -411,26 +416,54 @@ class UserPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): User
+    private function mapper(array $row): User
     {
         $this->logDebug("Mapping from sql to entity for User");
         $span = $this->startSpan("Mapping from sql to entity for User");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $rawTenant = $row['tenant'] ?? null;
+            if (null === $rawTenant) {
+                throw ConstraintException::ofError('not-null', ['tenant'], [null]);
+            }
+            $tenant = new TenantRef(uid: $rawTenant);
+            $name = $row['name'] ?? null;
+            if (null === $name) {
+                throw ConstraintException::ofError('not-null', ['name'], [null]);
+            }
+            $rawPassword = $row['password'] ?? null;
+            if (null === $rawPassword) {
+                throw ConstraintException::ofError('not-null', ['password'], [null]);
+            }
+            $password = UserPasswordVO::fromCypheredText($this->cypher, $rawPassword);
+            $email = $row['email'] ?? null;
+            $wellcomeAt = $row['wellcome_at'] ? new \DateTimeImmutable($row['wellcome_at']) : null;
+            $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
+            $approve = isset($row['approve']) && $row['approve'] ? UserApproveVO::fromString($row['approve']) : UserApproveVO::empty();
+            $temporalPassword = isset($row['temporal_password']) ? !! $row['temporal_password'] : null;
+            $useSecondFactors = isset($row['use_second_factors']) ? !! $row['use_second_factors'] : null;
+            $secondFactorSeed = isset($row['second_factor_seed']) && $row['second_factor_seed'] ? UserSecondFactorSeedVO::fromCypheredText($this->cypher, $row['second_factor_seed']) : UserSecondFactorSeedVO::empty();
+            $blockedUntil = $row['blocked_until'] ? new \DateTimeImmutable($row['blocked_until']) : null;
+            $provider = $row['provider'] ?? null;
+            $version = $row['version'] ?? null;
             return new User(
-                uid: $row['uid'] ?? null,
-                tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
-                name: $row['name'] ?? null,
-                password: UserPasswordVO::fromCypheredText($this->cypher, $row['password'] ?? ''),
-                email: $row['email'] ?? null,
-                wellcomeAt: $row['wellcome_at'] ? new \DateTimeImmutable($row['wellcome_at']) : null,
-                enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
-                approve: isset($row['approve']) && $row['approve'] ? UserApproveVO::fromString($row['approve']) : UserApproveVO::empty(),
-                temporalPassword: isset($row['temporal_password']) ? !! $row['temporal_password'] : null,
-                useSecondFactors: isset($row['use_second_factors']) ? !! $row['use_second_factors'] : null,
-                secondFactorSeed: isset($row['second_factor_seed']) && $row['second_factor_seed'] ? UserSecondFactorSeedVO::fromCypheredText($this->cypher, $row['second_factor_seed']) : UserSecondFactorSeedVO::empty(),
-                blockedUntil: $row['blocked_until'] ? new \DateTimeImmutable($row['blocked_until']) : null,
-                provider: $row['provider'] ?? null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                tenant: $tenant,
+                name: $name,
+                password: $password,
+                email: $email,
+                wellcomeAt: $wellcomeAt,
+                enabled: $enabled,
+                approve: $approve,
+                temporalPassword: $temporalPassword,
+                useSecondFactors: $useSecondFactors,
+                secondFactorSeed: $secondFactorSeed,
+                blockedUntil: $blockedUntil,
+                provider: $provider,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

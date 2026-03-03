@@ -16,54 +16,54 @@ class TenantApiDTO
         description:"A number to identify the db record",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "name",
         title: "name",
         description:"The name to identify the account.",
         type: "string"
     )]
-    public ?string $name;
+    public ?string $name = null;
     #[OA\Property(
         property: "root",
         title: "root",
         description:"El root de tenant",
         type: "string"
     )]
-    public ?bool $root;
+    public ?bool $root = null;
     #[OA\Property(
         property: "domain",
         title: "domain",
         description:"A domain suffix to identify the account",
         type: "string"
     )]
-    public ?string $domain;
+    public ?string $domain = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"The indicator to allow the account be used without deleting it",
         type: "string"
     )]
-    public ?bool $enabled;
+    public ?bool $enabled = null;
     #[OA\Property(
         property: "markForDelete",
         title: "mark for delete",
         description:"a tenant mark for deleted will be",
         type: "string"
     )]
-    public ?bool $markForDelete;
+    public ?bool $markForDelete = null;
     #[OA\Property(
         property: "markForDeleteTime",
         title: "mark for delete time",
         description:"A tenant mark for deleted will be deleted soon",
         type: "string"
     )]
-    public ?string $markForDeleteTime;
+    public ?string $markForDeleteTime = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de tenant para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

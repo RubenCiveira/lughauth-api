@@ -186,20 +186,20 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'publicAllow', value: $update->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_trusted_client" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
                 $update = $this->saveChilds($update);
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -313,25 +313,21 @@ class TrustedClientPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_trusted_client"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_trusted_client"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_trusted_client"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
-                if ($filterCode) {
+                if (null !== $filterCode) {
                     $query .= ' and "access_trusted_client"."code" = :code';
-                    $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
-                }
-                if ($filterCode = $filter->code()) {
-                    $query .= ' and "access_trusted_client"."code" = :code ';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
             }
@@ -341,12 +337,12 @@ class TrustedClientPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortOrder = $sort->order();
-                if ($sortOrder) {
+                if (null !== $sortOrder) {
+                    $equals = '';
                     foreach ($sortOrder as $ord) {
-                        $equals = '';
                         if ($ord === 'codeAsc') {
                             $sortSinceCode = $sort->sinceCode();
-                            if ($sortSinceCode) {
+                            if (null !== $sortSinceCode) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "trusted-client"."code" > :sinceCode';
                                 $equals .= ' and "trusted-client"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
@@ -355,7 +351,7 @@ class TrustedClientPdoConnector
                         }
                         if ($ord === 'codeDesc') {
                             $sortSinceCode = $sort->sinceCode();
-                            if ($sortSinceCode) {
+                            if (null !== $sortSinceCode) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "trusted-client"."code" < :sinceCode';
                                 $equals .= ' and "trusted-client"."code" = :sinceCode';
                                 $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
@@ -365,7 +361,7 @@ class TrustedClientPdoConnector
                     }
                 } else {
                     $sortSinceUid = $sort->sinceUid();
-                    if ($sortSinceUid) {
+                    if (null !== $sortSinceUid) {
                         $query .= ' and  "access_trusted_client"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
@@ -480,20 +476,40 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): TrustedClient
+    private function mapper(array $row): TrustedClient
     {
         $this->logDebug("Mapping from sql to entity for Trusted client");
         $span = $this->startSpan("Mapping from sql to entity for Trusted client");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $code = $row['code'] ?? null;
+            if (null === $code) {
+                throw ConstraintException::ofError('not-null', ['code'], [null]);
+            }
+            $allowAllScopes = isset($row['allow_all_scopes']) ? !! $row['allow_all_scopes'] : null;
+            $publicAllow = isset($row['public_allow']) ? !! $row['public_allow'] : null;
+            if (null === $publicAllow) {
+                throw ConstraintException::ofError('not-null', ['publicAllow'], [null]);
+            }
+            $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
+            $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
+            if (null === $enabled) {
+                throw ConstraintException::ofError('not-null', ['enabled'], [null]);
+            }
+            $allowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? []));
+            $version = $row['version'] ?? null;
             return new TrustedClient(
-                uid: $row['uid'] ?? null,
-                code: $row['code'] ?? null,
-                allowAllScopes: isset($row['allow_all_scopes']) ? !! $row['allow_all_scopes'] : null,
-                publicAllow: isset($row['public_allow']) ? !! $row['public_allow'] : null,
-                secretOauth: isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty(),
-                enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
-                allowedRedirects: TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? [])),
-                version: $row['version'] ?? null,
+                uid: $uid,
+                code: $code,
+                allowAllScopes: $allowAllScopes,
+                publicAllow: $publicAllow,
+                secretOauth: $secretOauth,
+                enabled: $enabled,
+                allowedRedirects: $allowedRedirects,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

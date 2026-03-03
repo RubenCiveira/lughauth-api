@@ -170,19 +170,19 @@ class RolePdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'relyingParty', value: $update->getRelyingParty()?->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_role" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -295,33 +295,36 @@ class RolePdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_role"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_role"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_role"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterRelyingPartyAndName = $filter->relyingPartyAndName();
-                if ($filterRelyingPartyAndName) {
+                if (null !== $filterRelyingPartyAndName) {
                     $query .= ' and ( "access_role"."relying_party" = :relyingPartyNameRelyingParty and "access_role"."name" = :relyingPartyNameName)';
                     $params[] = new SqlParam(name: 'relyingPartyNameRelyingParty', value: $filterRelyingPartyAndName['relyingParty']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'relyingPartyNameName', value: $filterRelyingPartyAndName['name'], type: SqlParam::STR);
                 }
-                if ($filterName = $filter->name()) {
+                $filterName = $filter->name();
+                if (null !== $filterName) {
                     $query .= ' and "access_role"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
-                if ($filterRelyingParty = $filter->relyingParty()) {
+                $filterRelyingParty = $filter->relyingParty();
+                if (null !== $filterRelyingParty) {
                     $query .= ' and "access_role"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
-                if ($filterRelyingPartys = $filter->relyingPartys()) {
+                $filterRelyingPartys = $filter->relyingPartys();
+                if (null !== $filterRelyingPartys) {
                     $query .= ' and "access_role"."relying_party" in (:relyingPartys)  ';
                     $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
                 }
@@ -332,12 +335,12 @@ class RolePdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortOrder = $sort->order();
-                if ($sortOrder) {
+                if (null !== $sortOrder) {
+                    $equals = '';
                     foreach ($sortOrder as $ord) {
-                        $equals = '';
                         if ($ord === 'nameAsc') {
                             $sortSinceName = $sort->sinceName();
-                            if ($sortSinceName) {
+                            if (null !== $sortSinceName) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "role"."name" > :sinceName';
                                 $equals .= ' and "role"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
@@ -346,7 +349,7 @@ class RolePdoConnector
                         }
                         if ($ord === 'nameDesc') {
                             $sortSinceName = $sort->sinceName();
-                            if ($sortSinceName) {
+                            if (null !== $sortSinceName) {
                                 $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "role"."name" < :sinceName';
                                 $equals .= ' and "role"."name" = :sinceName';
                                 $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
@@ -356,7 +359,7 @@ class RolePdoConnector
                     }
                 } else {
                     $sortSinceUid = $sort->sinceUid();
-                    if ($sortSinceUid) {
+                    if (null !== $sortSinceUid) {
                         $query .= ' and  "access_role"."uid" < :sinceUid';
                         $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                     }
@@ -376,16 +379,26 @@ class RolePdoConnector
             $span->end();
         }
     }
-    private function mapper($row): Role
+    private function mapper(array $row): Role
     {
         $this->logDebug("Mapping from sql to entity for Role");
         $span = $this->startSpan("Mapping from sql to entity for Role");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $name = $row['name'] ?? null;
+            if (null === $name) {
+                throw ConstraintException::ofError('not-null', ['name'], [null]);
+            }
+            $relyingParty = isset($row['relying_party']) ? new RelyingPartyRef(uid: $row['relying_party']) : null;
+            $version = $row['version'] ?? null;
             return new Role(
-                uid: $row['uid'] ?? null,
-                name: $row['name'] ?? null,
-                relyingParty: isset($row['relying_party']) ? new RelyingPartyRef(uid: $row['relying_party']) : null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                name: $name,
+                relyingParty: $relyingParty,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

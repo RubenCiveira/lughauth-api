@@ -112,20 +112,25 @@ class TenantListController
             if (isset($params['limit'])) {
                 $link['limit'] = 'limit=' . $params['limit'];
             }
-            if ($value && $value->sinceUid()) {
-                $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
+            $sinceUid = $value->sinceUid();
+            if (null !== $sinceUid) {
+                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
             }
-            if (strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
-                $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
+            $sinceName = $value->sinceName();
+            if (null !== $sinceName &&  false !== strpos($params['order'] ?? '', 'NAME-ASC')) {
+                $link['since-name'] = 'since-name=' . urlencode($sinceName);
             }
-            if (strpos('NAME-DESC', $params['order'] ?? '') !== false && $value->sinceName()) {
-                $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
+            $sinceName = $value->sinceName();
+            if (null !== $sinceName &&  false !== strpos($params['order'] ?? '', 'NAME-DESC')) {
+                $link['since-name'] = 'since-name=' . urlencode($sinceName);
             }
-            if (strpos('DOMAIN-ASC', $params['order'] ?? '') !== false && $value->sinceDomain()) {
-                $link['since-domain'] = 'since-domain=' . urlencode($value->sinceDomain());
+            $sinceDomain = $value->sinceDomain();
+            if (null !== $sinceDomain &&  false !== strpos($params['order'] ?? '', 'DOMAIN-ASC')) {
+                $link['since-domain'] = 'since-domain=' . urlencode($sinceDomain);
             }
-            if (strpos('DOMAIN-DESC', $params['order'] ?? '') !== false && $value->sinceDomain()) {
-                $link['since-domain'] = 'since-domain=' . urlencode($value->sinceDomain());
+            $sinceDomain = $value->sinceDomain();
+            if (null !== $sinceDomain &&  false !== strpos($params['order'] ?? '', 'DOMAIN-DESC')) {
+                $link['since-domain'] = 'since-domain=' . urlencode($sinceDomain);
             }
             return implode('&', $link);
         } catch (Throwable $ex) {

@@ -139,7 +139,7 @@ class ClientIdentityPdoConnector
             try {
                 $this->db->execute('INSERT INTO "access_client_identity" ( "uid", "user", "relying_party", "trusted_client", "roles", "version") VALUES ( :uid, :user, :relyingParty, :trustedClient, :roles, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'user', value: $entity->getUser()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'relyingParty', value: $entity->getRelyingParty()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'trustedClient', value: $entity->getTrustedClient()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'roles', value: $entity->getRoles(), type: SqlParam::TEXT),
@@ -172,23 +172,23 @@ class ClientIdentityPdoConnector
             try {
                 $result = $this->db->execute('UPDATE "access_client_identity" SET "user" = :user , "relying_party" = :relyingParty , "trusted_client" = :trustedClient , "roles" = :roles , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'user', value: $update->getUser()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'relyingParty', value: $update->getRelyingParty()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'trustedClient', value: $update->getTrustedClient()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'roles', value: $update->getRoles(), type: SqlParam::TEXT),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_client_identity" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -297,46 +297,54 @@ class ClientIdentityPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_client_identity"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_client_identity"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_client_identity"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                if ($filter->forAllAudiences()) {
+                $filterForAllAudiences = $filter->forAllAudiences();
+                if (null !== $filterForAllAudiences) {
                     $query .= ' and ("relying_party" is null and "trusted_client" is null)';
                 }
-                if ($filterUser = $filter->user()) {
+                $filterUser = $filter->user();
+                if (null !== $filterUser) {
                     $query .= ' and "access_client_identity"."user" = :user ';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }
-                if ($filterUsers = $filter->users()) {
+                $filterUsers = $filter->users();
+                if (null !== $filterUsers) {
                     $query .= ' and "access_client_identity"."user" in (:users)  ';
                     $params[] = new SqlParam(name: 'users', value: $filterUsers, type: SqlParam::STR);
                 }
-                if ($filterRelyingParty = $filter->relyingParty()) {
+                $filterRelyingParty = $filter->relyingParty();
+                if (null !== $filterRelyingParty) {
                     $query .= ' and "access_client_identity"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
-                if ($filterRelyingPartys = $filter->relyingPartys()) {
+                $filterRelyingPartys = $filter->relyingPartys();
+                if (null !== $filterRelyingPartys) {
                     $query .= ' and "access_client_identity"."relying_party" in (:relyingPartys)  ';
                     $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
                 }
-                if ($filterTrustedClient = $filter->trustedClient()) {
+                $filterTrustedClient = $filter->trustedClient();
+                if (null !== $filterTrustedClient) {
                     $query .= ' and "access_client_identity"."trusted_client" = :trustedClient ';
                     $params[] = new SqlParam(name: 'trustedClient', value: $filterTrustedClient->uid(), type: SqlParam::STR);
                 }
-                if ($filterTrustedClients = $filter->trustedClients()) {
+                $filterTrustedClients = $filter->trustedClients();
+                if (null !== $filterTrustedClients) {
                     $query .= ' and "access_client_identity"."trusted_client" in (:trustedClients)  ';
                     $params[] = new SqlParam(name: 'trustedClients', value: $filterTrustedClients, type: SqlParam::STR);
                 }
-                if ($filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible()) {
+                $filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible();
+                if (null !== $filterUserTenantTenantAccesible) {
                     $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_client_identity"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
                     $query .= ' and "userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
                     $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
@@ -348,7 +356,7 @@ class ClientIdentityPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortSinceUid = $sort->sinceUid();
-                if ($sortSinceUid) {
+                if (null !== $sortSinceUid) {
                     $query .= ' and  "uid" < :sinceUid';
                     $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                 }
@@ -367,18 +375,31 @@ class ClientIdentityPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): ClientIdentity
+    private function mapper(array $row): ClientIdentity
     {
         $this->logDebug("Mapping from sql to entity for Client identity");
         $span = $this->startSpan("Mapping from sql to entity for Client identity");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $rawUser = $row['user'] ?? null;
+            if (null === $rawUser) {
+                throw ConstraintException::ofError('not-null', ['user'], [null]);
+            }
+            $user = new UserRef(uid: $rawUser);
+            $relyingParty = isset($row['relying_party']) ? new RelyingPartyRef(uid: $row['relying_party']) : null;
+            $trustedClient = isset($row['trusted_client']) ? new TrustedClientRef(uid: $row['trusted_client']) : null;
+            $roles = $row['roles'] ?? null;
+            $version = $row['version'] ?? null;
             return new ClientIdentity(
-                uid: $row['uid'] ?? null,
-                user: isset($row['user']) ? new UserRef(uid: $row['user']) : null,
-                relyingParty: isset($row['relying_party']) ? new RelyingPartyRef(uid: $row['relying_party']) : null,
-                trustedClient: isset($row['trusted_client']) ? new TrustedClientRef(uid: $row['trusted_client']) : null,
-                roles: $row['roles'] ?? null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                user: $user,
+                relyingParty: $relyingParty,
+                trustedClient: $trustedClient,
+                roles: $roles,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

@@ -17,12 +17,12 @@ class TenantConfigApiListDTO
         type: "array",
         items: new OA\Items(ref: "#/components/schemas/TenantConfigApiDTO")
     )]
-    public array $items;
+    public ?array $items = null;
     #[OA\Property(
         property: "next",
         title: "Link to retrieve next page",
         description:"A link to retrieve next page",
         type: "string"
     )]
-    public string $next;
+    public ?string $next = null;
 }

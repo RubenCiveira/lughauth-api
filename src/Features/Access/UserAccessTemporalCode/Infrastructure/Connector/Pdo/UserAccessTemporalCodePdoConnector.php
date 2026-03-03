@@ -140,7 +140,7 @@ class UserAccessTemporalCodePdoConnector
             try {
                 $this->db->execute('INSERT INTO "access_user_access_temporal_code" ( "uid", "user", "temp_second_factor_seed", "temp_second_factor_seed_expiration", "failed_login_attempts", "register_code", "register_code_url", "register_code_expiration", "recovery_code", "recovery_code_expiration", "version") VALUES ( :uid, :user, :tempSecondFactorSeed, :tempSecondFactorSeedExpiration, :failedLoginAttempts, :registerCode, :registerCodeUrl, :registerCodeExpiration, :recoveryCode, :recoveryCodeExpiration, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'user', value: $entity->getUser()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tempSecondFactorSeed', value: $entity->getCypheredTempSecondFactorSeed($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'tempSecondFactorSeedExpiration', value: $entity->getTempSecondFactorSeedExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'failedLoginAttempts', value: $entity->getFailedLoginAttempts(), type: SqlParam::INT),
@@ -178,7 +178,7 @@ class UserAccessTemporalCodePdoConnector
             try {
                 $result = $this->db->execute('UPDATE "access_user_access_temporal_code" SET "user" = :user , "temp_second_factor_seed" = :tempSecondFactorSeed , "temp_second_factor_seed_expiration" = :tempSecondFactorSeedExpiration , "failed_login_attempts" = :failedLoginAttempts , "register_code" = :registerCode , "register_code_url" = :registerCodeUrl , "register_code_expiration" = :registerCodeExpiration , "recovery_code" = :recoveryCode , "recovery_code_expiration" = :recoveryCodeExpiration , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'user', value: $update->getUser()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tempSecondFactorSeed', value: $update->getCypheredTempSecondFactorSeed($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'tempSecondFactorSeedExpiration', value: $update->getTempSecondFactorSeedExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'failedLoginAttempts', value: $update->getFailedLoginAttempts(), type: SqlParam::INT),
@@ -187,19 +187,19 @@ class UserAccessTemporalCodePdoConnector
                      new SqlParam(name: 'registerCodeExpiration', value: $update->getRegisterCodeExpiration(), type: SqlParam::STR),
                      new SqlParam(name: 'recoveryCode', value: $update->getRecoveryCode(), type: SqlParam::STR),
                      new SqlParam(name: 'recoveryCodeExpiration', value: $update->getRecoveryCodeExpiration(), type: SqlParam::STR),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_user_access_temporal_code" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -289,9 +289,9 @@ class UserAccessTemporalCodePdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_user_access_temporal_code" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
-            $values = ['user' => $entity->getUser()?->uid(), 'uid' => $entity->uid()];
+            $values = ['user' => $entity->getUser()->uid(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "user" from "access_user_access_temporal_code" where "user" = :user and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['user'], [$entity->getUser()?->uid()]);
+                throw ConstraintException::ofError('not-unique', ['user'], [$entity->getUser()->uid()]);
             }
             $values = ['registerCode' => $entity->getRegisterCode(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "register_code" from "access_user_access_temporal_code" where "register_code" = :registerCode and "uid" != :uid', $values)) {
@@ -320,42 +320,40 @@ class UserAccessTemporalCodePdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_user_access_temporal_code"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_user_access_temporal_code"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_user_access_temporal_code"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterUser = $filter->user();
-                if ($filterUser) {
+                if (null !== $filterUser) {
                     $query .= ' and "access_user_access_temporal_code"."user" = :user';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }
                 $filterRegisterCode = $filter->registerCode();
-                if ($filterRegisterCode) {
+                if (null !== $filterRegisterCode) {
                     $query .= ' and "access_user_access_temporal_code"."register_code" = :registerCode';
                     $params[] = new SqlParam(name: 'registerCode', value: $filterRegisterCode, type: SqlParam::STR);
                 }
                 $filterRecoveryCode = $filter->recoveryCode();
-                if ($filterRecoveryCode) {
+                if (null !== $filterRecoveryCode) {
                     $query .= ' and "access_user_access_temporal_code"."recovery_code" = :recoveryCode';
                     $params[] = new SqlParam(name: 'recoveryCode', value: $filterRecoveryCode, type: SqlParam::STR);
                 }
-                if ($filterUser = $filter->user()) {
-                    $query .= ' and "access_user_access_temporal_code"."user" = :user ';
-                    $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
-                }
-                if ($filterUsers = $filter->users()) {
+                $filterUsers = $filter->users();
+                if (null !== $filterUsers) {
                     $query .= ' and "access_user_access_temporal_code"."user" in (:users)  ';
                     $params[] = new SqlParam(name: 'users', value: $filterUsers, type: SqlParam::STR);
                 }
-                if ($filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible()) {
+                $filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible();
+                if (null !== $filterUserTenantTenantAccesible) {
                     $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_user_access_temporal_code"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
                     $query .= ' and "userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
                     $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
@@ -367,7 +365,7 @@ class UserAccessTemporalCodePdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortSinceUid = $sort->sinceUid();
-                if ($sortSinceUid) {
+                if (null !== $sortSinceUid) {
                     $query .= ' and  "uid" < :sinceUid';
                     $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                 }
@@ -386,23 +384,41 @@ class UserAccessTemporalCodePdoConnector
             $span->end();
         }
     }
-    private function mapper($row): UserAccessTemporalCode
+    private function mapper(array $row): UserAccessTemporalCode
     {
         $this->logDebug("Mapping from sql to entity for User access temporal code");
         $span = $this->startSpan("Mapping from sql to entity for User access temporal code");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $rawUser = $row['user'] ?? null;
+            if (null === $rawUser) {
+                throw ConstraintException::ofError('not-null', ['user'], [null]);
+            }
+            $user = new UserRef(uid: $rawUser);
+            $tempSecondFactorSeed = isset($row['temp_second_factor_seed']) && $row['temp_second_factor_seed'] ? UserAccessTemporalCodeTempSecondFactorSeedVO::fromCypheredText($this->cypher, $row['temp_second_factor_seed']) : UserAccessTemporalCodeTempSecondFactorSeedVO::empty();
+            $tempSecondFactorSeedExpiration = $row['temp_second_factor_seed_expiration'] ? new \DateTimeImmutable($row['temp_second_factor_seed_expiration']) : null;
+            $failedLoginAttempts = $row['failed_login_attempts'] ?? null;
+            $registerCode = $row['register_code'] ?? null;
+            $registerCodeUrl = $row['register_code_url'] ?? null;
+            $registerCodeExpiration = $row['register_code_expiration'] ? new \DateTimeImmutable($row['register_code_expiration']) : null;
+            $recoveryCode = $row['recovery_code'] ?? null;
+            $recoveryCodeExpiration = $row['recovery_code_expiration'] ? new \DateTimeImmutable($row['recovery_code_expiration']) : null;
+            $version = $row['version'] ?? null;
             return new UserAccessTemporalCode(
-                uid: $row['uid'] ?? null,
-                user: isset($row['user']) ? new UserRef(uid: $row['user']) : null,
-                tempSecondFactorSeed: isset($row['temp_second_factor_seed']) && $row['temp_second_factor_seed'] ? UserAccessTemporalCodeTempSecondFactorSeedVO::fromCypheredText($this->cypher, $row['temp_second_factor_seed']) : UserAccessTemporalCodeTempSecondFactorSeedVO::empty(),
-                tempSecondFactorSeedExpiration: $row['temp_second_factor_seed_expiration'] ? new \DateTimeImmutable($row['temp_second_factor_seed_expiration']) : null,
-                failedLoginAttempts: $row['failed_login_attempts'] ?? null,
-                registerCode: $row['register_code'] ?? null,
-                registerCodeUrl: $row['register_code_url'] ?? null,
-                registerCodeExpiration: $row['register_code_expiration'] ? new \DateTimeImmutable($row['register_code_expiration']) : null,
-                recoveryCode: $row['recovery_code'] ?? null,
-                recoveryCodeExpiration: $row['recovery_code_expiration'] ? new \DateTimeImmutable($row['recovery_code_expiration']) : null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                user: $user,
+                tempSecondFactorSeed: $tempSecondFactorSeed,
+                tempSecondFactorSeedExpiration: $tempSecondFactorSeedExpiration,
+                failedLoginAttempts: $failedLoginAttempts,
+                registerCode: $registerCode,
+                registerCodeUrl: $registerCodeUrl,
+                registerCodeExpiration: $registerCodeExpiration,
+                recoveryCode: $recoveryCode,
+                recoveryCodeExpiration: $recoveryCodeExpiration,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

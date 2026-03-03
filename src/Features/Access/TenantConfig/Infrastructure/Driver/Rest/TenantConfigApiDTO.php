@@ -16,7 +16,7 @@ class TenantConfigApiDTO
         description:"A number to identify the db record",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "tenant",
         title: "tenant",
@@ -33,75 +33,75 @@ class TenantConfigApiDTO
         description:"Tenant could use these field to label the application for the users",
         type: "string"
     )]
-    public ?string $innerLabel;
+    public ?string $innerLabel = null;
     #[OA\Property(
         property: "forceMfa",
         title: "force mfa",
         description:"El force mfa de tenant config",
         type: "string"
     )]
-    public ?bool $forceMfa;
+    public ?bool $forceMfa = null;
     #[OA\Property(
         property: "allowRegister",
         title: "allow register",
         description:"El allow register de tenant config",
         type: "string"
     )]
-    public ?bool $allowRegister;
+    public ?bool $allowRegister = null;
     #[OA\Property(
         property: "enableRegisterUsers",
         title: "enable register users",
         description:"El enable register users de tenant config",
         type: "string"
     )]
-    public ?bool $enableRegisterUsers;
+    public ?bool $enableRegisterUsers = null;
     #[OA\Property(
         property: "wellcomeEmail",
         title: "wellcome email",
         description:"Email send to the enabled user",
         type: "string"
     )]
-    public ?string $wellcomeEmail;
+    public ?string $wellcomeEmail = null;
     #[OA\Property(
         property: "registerdEmail",
         title: "registerd email",
         description:"El registerd email de tenant config",
         type: "string"
     )]
-    public ?string $registerdEmail;
+    public ?string $registerdEmail = null;
     #[OA\Property(
         property: "disabledUserEmail",
         title: "disabled user email",
         description:"Email send when a user is disabled",
         type: "string"
     )]
-    public ?string $disabledUserEmail;
+    public ?string $disabledUserEmail = null;
     #[OA\Property(
         property: "enabledUserEmail",
         title: "enabled user email",
         description:"Email send when a user is enabled",
         type: "string"
     )]
-    public ?string $enabledUserEmail;
+    public ?string $enabledUserEmail = null;
     #[OA\Property(
         property: "allowRecoverPass",
         title: "allow recover pass",
         description:"El allow recover pass de tenant config",
         type: "string"
     )]
-    public ?bool $allowRecoverPass;
+    public ?bool $allowRecoverPass = null;
     #[OA\Property(
         property: "recoverPassEmail",
         title: "recover pass email",
         description:"Email send to the user to recover the password",
         type: "string"
     )]
-    public ?string $recoverPassEmail;
+    public ?string $recoverPassEmail = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de tenant config para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

@@ -16,7 +16,7 @@ class PlatformIdentityApiDTO
         description:"El identificador de la aplicacion",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "user",
         title: "user",
@@ -47,12 +47,12 @@ class PlatformIdentityApiDTO
     ]
     )]
     public ?array $trustedClient = null;
-    public ?array $roles;
+    public ?array $roles = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de platform identity para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

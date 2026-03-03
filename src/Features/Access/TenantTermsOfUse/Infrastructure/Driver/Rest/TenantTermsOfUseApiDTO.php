@@ -16,7 +16,7 @@ class TenantTermsOfUseApiDTO
         description:"A number to identify the db record",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "tenant",
         title: "tenant",
@@ -43,33 +43,33 @@ class TenantTermsOfUseApiDTO
         description:"El text de tenant terms of use",
         type: "string"
     )]
-    public ?string $text;
+    public ?string $text = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"The indicator to allow the account be used without deleting it",
         type: "string"
     )]
-    public ?bool $enabled;
+    public ?bool $enabled = null;
     #[OA\Property(
         property: "attached",
         title: "attached",
         description:"El attached de tenant terms of use",
         type: "string"
     )]
-    public ?string $attached;
+    public ?string $attached = null;
     #[OA\Property(
         property: "activationDate",
         title: "activation date",
         description:"El activation date de tenant terms of use",
         type: "string"
     )]
-    public ?string $activationDate;
+    public ?string $activationDate = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de tenant terms of use para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

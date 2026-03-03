@@ -16,7 +16,7 @@ class ClientIdentityApiDTO
         description:"El identificador de la aplicacion",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "user",
         title: "user",
@@ -53,12 +53,12 @@ class ClientIdentityApiDTO
         description:"El roles de client identity",
         type: "string"
     )]
-    public ?string $roles;
+    public ?string $roles = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de client identity para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

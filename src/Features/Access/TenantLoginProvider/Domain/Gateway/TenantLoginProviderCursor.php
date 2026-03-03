@@ -9,8 +9,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 
 class TenantLoginProviderCursor
 {
-    public const NAME_ASC = 'name';
-    public const NAME_DESC = '-name';
+    public const string NAME_ASC = 'name';
+    public const string NAME_DESC = '-name';
 
     public function __construct(
         private int $limit,

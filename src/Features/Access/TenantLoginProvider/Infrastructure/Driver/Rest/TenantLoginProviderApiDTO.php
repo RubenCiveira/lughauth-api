@@ -17,7 +17,7 @@ class TenantLoginProviderApiDTO
         description:"A uid string to identify the entity",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "tenant",
         title: "tenant",
@@ -34,7 +34,7 @@ class TenantLoginProviderApiDTO
         description:"A name that identifies this login provider within the tenant.",
         type: "string"
     )]
-    public ?string $name;
+    public ?string $name = null;
     #[OA\Property(
         property: "source",
         title: "source",
@@ -42,61 +42,61 @@ class TenantLoginProviderApiDTO
         type: "string",
         enum: ["GOOGLE","GITHUB","SAML"]
     )]
-    public ?TenantLoginProviderSourceOptions $source;
+    public ?TenantLoginProviderSourceOptions $source = null;
     #[OA\Property(
         property: "disabled",
         title: "disabled",
         description:"Indicates if this provider is currently disabled.",
         type: "string"
     )]
-    public ?bool $disabled;
+    public ?bool $disabled = null;
     #[OA\Property(
         property: "directAccess",
         title: "direct access",
         description:"If true, the system will default to this login method without requiring selection.",
         type: "string"
     )]
-    public ?bool $directAccess;
+    public ?bool $directAccess = null;
     #[OA\Property(
         property: "publicKey",
         title: "public key",
         description:"A public key shared with users to interact with the identity provider.",
         type: "string"
     )]
-    public ?string $publicKey;
+    public ?string $publicKey = null;
     #[OA\Property(
         property: "privateKey",
         title: "private key",
         description:"Private key used internally to validate codes returned by the identity provider.",
         type: "string"
     )]
-    public ?string $privateKey;
+    public ?string $privateKey = null;
     #[OA\Property(
         property: "certificate",
         title: "certificate",
         description:"The provider certificate used for signature verification, if required.",
         type: "string"
     )]
-    public ?string $certificate;
+    public ?string $certificate = null;
     #[OA\Property(
         property: "metadata",
         title: "metadata",
         description:"A metadata file required by some providers for configuration (e.g., SAML descriptor).",
         type: "string"
     )]
-    public ?string $metadata;
+    public ?string $metadata = null;
     #[OA\Property(
         property: "usersEnabledByDefault",
         title: "users enabled by default",
         description:"Defines whether the users created with this provider are enabled by default.",
         type: "string"
     )]
-    public ?bool $usersEnabledByDefault;
+    public ?bool $usersEnabledByDefault = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de tenant login provider para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

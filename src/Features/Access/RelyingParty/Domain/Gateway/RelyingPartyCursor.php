@@ -9,8 +9,8 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 
 class RelyingPartyCursor
 {
-    public const CODE_ASC = 'code';
-    public const CODE_DESC = '-code';
+    public const string CODE_ASC = 'code';
+    public const string CODE_DESC = '-code';
 
     public function __construct(
         private int $limit,

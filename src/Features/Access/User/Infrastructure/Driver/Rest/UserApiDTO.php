@@ -17,7 +17,7 @@ class UserApiDTO
         description:"A number to identify the db record",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "tenant",
         title: "tenant",
@@ -34,35 +34,35 @@ class UserApiDTO
         description:"The user name to identify on the login screen",
         type: "string"
     )]
-    public ?string $name;
+    public ?string $name = null;
     #[OA\Property(
         property: "password",
         title: "password",
         description:"If the user is not delegated, the phrasse to identify",
         type: "string"
     )]
-    public ?string $password;
+    public ?string $password = null;
     #[OA\Property(
         property: "email",
         title: "email",
         description:"An optional email used to send notifications to the user",
         type: "string"
     )]
-    public ?string $email;
+    public ?string $email = null;
     #[OA\Property(
         property: "wellcomeAt",
         title: "wellcome at",
         description:"The date when a wellcome email is send",
         type: "string"
     )]
-    public ?string $wellcomeAt;
+    public ?string $wellcomeAt = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.",
         type: "string"
     )]
-    public ?bool $enabled;
+    public ?bool $enabled = null;
     #[OA\Property(
         property: "approve",
         title: "approve",
@@ -70,47 +70,47 @@ class UserApiDTO
         type: "string",
         enum: ["UNVERIFIED","PENDING","ACCEPTED","REJECTED"]
     )]
-    public ?UserApproveOptions $approve;
+    public ?UserApproveOptions $approve = null;
     #[OA\Property(
         property: "temporalPassword",
         title: "temporal password",
         description:"El temporal password de user",
         type: "string"
     )]
-    public ?bool $temporalPassword;
+    public ?bool $temporalPassword = null;
     #[OA\Property(
         property: "useSecondFactors",
         title: "use second factors",
         description:"If is true, the user has a otp to force mfa on login",
         type: "string"
     )]
-    public ?bool $useSecondFactors;
+    public ?bool $useSecondFactors = null;
     #[OA\Property(
         property: "secondFactorSeed",
         title: "second factor seed",
         description:"the seed used to the otp login",
         type: "string"
     )]
-    public ?string $secondFactorSeed;
+    public ?string $secondFactorSeed = null;
     #[OA\Property(
         property: "blockedUntil",
         title: "blocked until",
         description:"A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.",
         type: "string"
     )]
-    public ?string $blockedUntil;
+    public ?string $blockedUntil = null;
     #[OA\Property(
         property: "provider",
         title: "provider",
         description:"Si se identificó con un proveedor, se marca con cual (aunque el provvedor cambie luego)",
         type: "string"
     )]
-    public ?string $provider;
+    public ?string $provider = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de user para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

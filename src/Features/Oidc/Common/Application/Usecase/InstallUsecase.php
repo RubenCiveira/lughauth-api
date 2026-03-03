@@ -90,7 +90,7 @@ class InstallUsecase
         $trust = new TrustedClientAttributes();
         $trust->uid(Random::comb());
         $trust->code('phylax-ui');
-        // $trust->allowAllScopes(true);
+        $trust->allowAllScopes(true);
         $trust->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->cypher, '123456'));
         $trust->publicAllow(true);
         $trust->allowedRedirects([$localhost]);

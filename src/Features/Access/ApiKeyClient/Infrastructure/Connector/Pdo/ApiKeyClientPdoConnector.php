@@ -173,19 +173,19 @@ class ApiKeyClientPdoConnector
                      new SqlParam(name: 'key', value: $update->getKey(), type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'scopes', value: $update->getScopes(), type: SqlParam::STR),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_api_key_client" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -302,30 +302,26 @@ class ApiKeyClientPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_api_key_client"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_api_key_client"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_api_key_client"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
-                if ($filterCode) {
+                if (null !== $filterCode) {
                     $query .= ' and "access_api_key_client"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
                 $filterKey = $filter->key();
-                if ($filterKey) {
+                if (null !== $filterKey) {
                     $query .= ' and "access_api_key_client"."key" = :key';
-                    $params[] = new SqlParam(name: 'key', value: $filterKey, type: SqlParam::STR);
-                }
-                if ($filterKey = $filter->key()) {
-                    $query .= ' and "access_api_key_client"."key" = :key ';
                     $params[] = new SqlParam(name: 'key', value: $filterKey, type: SqlParam::STR);
                 }
             }
@@ -335,7 +331,7 @@ class ApiKeyClientPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortSinceUid = $sort->sinceUid();
-                if ($sortSinceUid) {
+                if (null !== $sortSinceUid) {
                     $query .= ' and  "uid" < :sinceUid';
                     $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                 }
@@ -354,18 +350,33 @@ class ApiKeyClientPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): ApiKeyClient
+    private function mapper(array $row): ApiKeyClient
     {
         $this->logDebug("Mapping from sql to entity for Api key client");
         $span = $this->startSpan("Mapping from sql to entity for Api key client");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $code = $row['code'] ?? null;
+            if (null === $code) {
+                throw ConstraintException::ofError('not-null', ['code'], [null]);
+            }
+            $key = $row['key'] ?? null;
+            $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
+            if (null === $enabled) {
+                throw ConstraintException::ofError('not-null', ['enabled'], [null]);
+            }
+            $scopes = $row['scopes'] ?? null;
+            $version = $row['version'] ?? null;
             return new ApiKeyClient(
-                uid: $row['uid'] ?? null,
-                code: $row['code'] ?? null,
-                key: $row['key'] ?? null,
-                enabled: isset($row['enabled']) ? !! $row['enabled'] : null,
-                scopes: $row['scopes'] ?? null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                code: $code,
+                key: $key,
+                enabled: $enabled,
+                scopes: $scopes,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

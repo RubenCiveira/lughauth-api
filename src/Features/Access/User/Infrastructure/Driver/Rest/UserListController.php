@@ -109,14 +109,17 @@ class UserListController
             if (isset($params['limit'])) {
                 $link['limit'] = 'limit=' . $params['limit'];
             }
-            if ($value && $value->sinceUid()) {
-                $link['since-uid'] = 'since-uid=' . urlencode($value->sinceUid());
+            $sinceUid = $value->sinceUid();
+            if (null !== $sinceUid) {
+                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
             }
-            if (strpos('NAME-ASC', $params['order'] ?? '') !== false && $value->sinceName()) {
-                $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
+            $sinceName = $value->sinceName();
+            if (null !== $sinceName &&  false !== strpos($params['order'] ?? '', 'NAME-ASC')) {
+                $link['since-name'] = 'since-name=' . urlencode($sinceName);
             }
-            if (strpos('NAME-DESC', $params['order'] ?? '') !== false && $value->sinceName()) {
-                $link['since-name'] = 'since-name=' . urlencode($value->sinceName());
+            $sinceName = $value->sinceName();
+            if (null !== $sinceName &&  false !== strpos($params['order'] ?? '', 'NAME-DESC')) {
+                $link['since-name'] = 'since-name=' . urlencode($sinceName);
             }
             return implode('&', $link);
         } catch (Throwable $ex) {

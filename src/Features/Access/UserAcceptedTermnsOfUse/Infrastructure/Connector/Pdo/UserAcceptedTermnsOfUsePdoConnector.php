@@ -138,8 +138,8 @@ class UserAcceptedTermnsOfUsePdoConnector
             try {
                 $this->db->execute('INSERT INTO "access_user_accepted_termns_of_use" ( "uid", "user", "conditions", "accept_date", "version") VALUES ( :uid, :user, :conditions, :acceptDate, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'user', value: $entity->getUser()?->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'conditions', value: $entity->getConditions()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'conditions', value: $entity->getConditions()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'acceptDate', value: $entity->getAcceptDate(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -170,22 +170,22 @@ class UserAcceptedTermnsOfUsePdoConnector
             try {
                 $result = $this->db->execute('UPDATE "access_user_accepted_termns_of_use" SET "user" = :user , "conditions" = :conditions , "accept_date" = :acceptDate , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'user', value: $update->getUser()?->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'conditions', value: $update->getConditions()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'conditions', value: $update->getConditions()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'acceptDate', value: $update->getAcceptDate(), type: SqlParam::STR),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_user_accepted_termns_of_use" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -275,9 +275,9 @@ class UserAcceptedTermnsOfUsePdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_user_accepted_termns_of_use" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
-            $values = ['user' => $entity->getUser()?->uid(), 'conditions' => $entity->getConditions()?->uid(), 'uid' => $entity->uid()];
+            $values = ['user' => $entity->getUser()->uid(), 'conditions' => $entity->getConditions()->uid(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "user", "conditions" from "access_user_accepted_termns_of_use" where "user" = :user and "conditions" = :conditions and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['user', 'conditions'], [$entity->getUser()?->uid(), $entity->getConditions()?->uid()]);
+                throw ConstraintException::ofError('not-unique', ['user', 'conditions'], [$entity->getUser()->uid(), $entity->getConditions()->uid()]);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -298,41 +298,46 @@ class UserAcceptedTermnsOfUsePdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_user_accepted_termns_of_use"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_user_accepted_termns_of_use"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_user_accepted_termns_of_use"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterUserAndConditions = $filter->userAndConditions();
-                if ($filterUserAndConditions) {
+                if (null !== $filterUserAndConditions) {
                     $query .= ' and ( "access_user_accepted_termns_of_use"."user" = :userConditionsUser and "access_user_accepted_termns_of_use"."conditions" = :userConditionsConditions)';
                     $params[] = new SqlParam(name: 'userConditionsUser', value: $filterUserAndConditions['user']->uid(), type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'userConditionsConditions', value: $filterUserAndConditions['conditions']->uid(), type: SqlParam::STR);
                 }
-                if ($filterUser = $filter->user()) {
+                $filterUser = $filter->user();
+                if (null !== $filterUser) {
                     $query .= ' and "access_user_accepted_termns_of_use"."user" = :user ';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }
-                if ($filterUsers = $filter->users()) {
+                $filterUsers = $filter->users();
+                if (null !== $filterUsers) {
                     $query .= ' and "access_user_accepted_termns_of_use"."user" in (:users)  ';
                     $params[] = new SqlParam(name: 'users', value: $filterUsers, type: SqlParam::STR);
                 }
-                if ($filterConditions = $filter->conditions()) {
+                $filterConditions = $filter->conditions();
+                if (null !== $filterConditions) {
                     $query .= ' and "access_user_accepted_termns_of_use"."conditions" = :conditions ';
                     $params[] = new SqlParam(name: 'conditions', value: $filterConditions->uid(), type: SqlParam::STR);
                 }
-                if ($filterConditionss = $filter->conditionss()) {
+                $filterConditionss = $filter->conditionss();
+                if (null !== $filterConditionss) {
                     $query .= ' and "access_user_accepted_termns_of_use"."conditions" in (:conditionss)  ';
                     $params[] = new SqlParam(name: 'conditionss', value: $filterConditionss, type: SqlParam::STR);
                 }
-                if ($filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible()) {
+                $filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible();
+                if (null !== $filterUserTenantTenantAccesible) {
                     $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_user_accepted_termns_of_use"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
                     $query .= ' and "userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
                     $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
@@ -344,7 +349,7 @@ class UserAcceptedTermnsOfUsePdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortSinceUid = $sort->sinceUid();
-                if ($sortSinceUid) {
+                if (null !== $sortSinceUid) {
                     $query .= ' and  "uid" < :sinceUid';
                     $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                 }
@@ -363,17 +368,33 @@ class UserAcceptedTermnsOfUsePdoConnector
             $span->end();
         }
     }
-    private function mapper($row): UserAcceptedTermnsOfUse
+    private function mapper(array $row): UserAcceptedTermnsOfUse
     {
         $this->logDebug("Mapping from sql to entity for User accepted termns of use");
         $span = $this->startSpan("Mapping from sql to entity for User accepted termns of use");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $rawUser = $row['user'] ?? null;
+            if (null === $rawUser) {
+                throw ConstraintException::ofError('not-null', ['user'], [null]);
+            }
+            $user = new UserRef(uid: $rawUser);
+            $rawConditions = $row['conditions'] ?? null;
+            if (null === $rawConditions) {
+                throw ConstraintException::ofError('not-null', ['conditions'], [null]);
+            }
+            $conditions = new TenantTermsOfUseRef(uid: $rawConditions);
+            $acceptDate = $row['accept_date'] ? new \DateTimeImmutable($row['accept_date']) : null;
+            $version = $row['version'] ?? null;
             return new UserAcceptedTermnsOfUse(
-                uid: $row['uid'] ?? null,
-                user: isset($row['user']) ? new UserRef(uid: $row['user']) : null,
-                conditions: isset($row['conditions']) ? new TenantTermsOfUseRef(uid: $row['conditions']) : null,
-                acceptDate: $row['accept_date'] ? new \DateTimeImmutable($row['accept_date']) : null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                user: $user,
+                conditions: $conditions,
+                acceptDate: $acceptDate,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

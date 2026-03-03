@@ -137,7 +137,7 @@ class TenantConfigPdoConnector
             try {
                 $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "allow_register", "enable_register_users", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :allowRegister, :enableRegisterUsers, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $entity->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $entity->isForceMfa(), type: SqlParam::BOOL),
                      new SqlParam(name: 'allowRegister', value: $entity->isAllowRegister(), type: SqlParam::BOOL),
@@ -177,7 +177,7 @@ class TenantConfigPdoConnector
             try {
                 $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $update->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $update->isForceMfa(), type: SqlParam::BOOL),
                      new SqlParam(name: 'allowRegister', value: $update->isAllowRegister(), type: SqlParam::BOOL),
@@ -188,19 +188,19 @@ class TenantConfigPdoConnector
                      new SqlParam(name: 'enabledUserEmail', value: $update->getEnabledUserEmail(), type: SqlParam::TEXT),
                      new SqlParam(name: 'allowRecoverPass', value: $update->isAllowRecoverPass(), type: SqlParam::BOOL),
                      new SqlParam(name: 'recoverPassEmail', value: $update->getRecoverPassEmail(), type: SqlParam::TEXT),
-                     new SqlParam(name: 'version', value: $update->getVersion() + 1, type: SqlParam::INT),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
                 if (!$result && $this->db->exists('select "uid" from "access_tenant_config" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                    throw new OptimistLockException($update->uid(), "version: " . $update->getVersion());
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
                 } elseif (!$result) {
-                    throw new NotFoundException($update->uid());
+                    throw new NotFoundException($update->uid() ?? 'no-id');
                 }
             } catch (NotUniqueException $ex) {
                 $this->checkDuplicates($update, false);
                 throw $ex;
             }
-            return $update->withVersion($update->getVersion() + 1);
+            return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -290,9 +290,9 @@ class TenantConfigPdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_tenant_config" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
-            $values = ['tenant' => $entity->getTenant()?->uid(), 'uid' => $entity->uid()];
+            $values = ['tenant' => $entity->getTenant()->uid(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "tenant" from "access_tenant_config" where "tenant" = :tenant and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['tenant'], [$entity->getTenant()?->uid()]);
+                throw ConstraintException::ofError('not-unique', ['tenant'], [$entity->getTenant()->uid()]);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -313,32 +313,30 @@ class TenantConfigPdoConnector
             $limit = '';
             if ($filter) {
                 $filterUids = $filter->uids();
-                if ($filterUids && count($filterUids) > 1) {
+                if (null !== $filterUids && count($filterUids) > 1) {
                     $query .= ' and "access_tenant_config"."uid" in (:uids)';
                     $params[] = new SqlParam(name:'uids', value: $filterUids, type: SqlParam::STR);
-                } elseif ($filterUids) {
+                } elseif (null !== $filterUids) {
                     $query .= ' and "access_tenant_config"."uid" = :uid';
                     $params[] = new SqlParam(name:'uid', value: $filterUids[0], type: SqlParam::STR);
                 }
                 $filterSearch = $filter->search();
-                if ($filterSearch) {
+                if (null !== $filterSearch) {
                     $query .= ' and ( "access_tenant_config"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
                 $filterTenant = $filter->tenant();
-                if ($filterTenant) {
+                if (null !== $filterTenant) {
                     $query .= ' and "access_tenant_config"."tenant" = :tenant';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }
-                if ($filterTenant = $filter->tenant()) {
-                    $query .= ' and "access_tenant_config"."tenant" = :tenant ';
-                    $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
-                }
-                if ($filterTenants = $filter->tenants()) {
+                $filterTenants = $filter->tenants();
+                if (null !== $filterTenants) {
                     $query .= ' and "access_tenant_config"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                if ($filterTenantTenantAccesible = $filter->tenantTenantAccesible()) {
+                $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
+                if (null !== $filterTenantTenantAccesible) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_config"."tenant"';
                     $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
                     $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
@@ -350,7 +348,7 @@ class TenantConfigPdoConnector
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
                 $sortSinceUid = $sort->sinceUid();
-                if ($sortSinceUid) {
+                if (null !== $sortSinceUid) {
                     $query .= ' and  "uid" < :sinceUid';
                     $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
                 }
@@ -369,25 +367,48 @@ class TenantConfigPdoConnector
             $span->end();
         }
     }
-    private function mapper($row): TenantConfig
+    private function mapper(array $row): TenantConfig
     {
         $this->logDebug("Mapping from sql to entity for Tenant config");
         $span = $this->startSpan("Mapping from sql to entity for Tenant config");
         try {
+            $uid = $row['uid'] ?? null;
+            if (null === $uid) {
+                throw ConstraintException::ofError('not-null', ['uid'], [null]);
+            }
+            $rawTenant = $row['tenant'] ?? null;
+            if (null === $rawTenant) {
+                throw ConstraintException::ofError('not-null', ['tenant'], [null]);
+            }
+            $tenant = new TenantRef(uid: $rawTenant);
+            $innerLabel = $row['inner_label'] ?? null;
+            $forceMfa = isset($row['force_mfa']) ? !! $row['force_mfa'] : null;
+            if (null === $forceMfa) {
+                throw ConstraintException::ofError('not-null', ['forceMfa'], [null]);
+            }
+            $allowRegister = isset($row['allow_register']) ? !! $row['allow_register'] : null;
+            $enableRegisterUsers = isset($row['enable_register_users']) ? !! $row['enable_register_users'] : null;
+            $wellcomeEmail = $row['wellcome_email'] ?? null;
+            $registerdEmail = $row['registerd_email'] ?? null;
+            $disabledUserEmail = $row['disabled_user_email'] ?? null;
+            $enabledUserEmail = $row['enabled_user_email'] ?? null;
+            $allowRecoverPass = isset($row['allow_recover_pass']) ? !! $row['allow_recover_pass'] : null;
+            $recoverPassEmail = $row['recover_pass_email'] ?? null;
+            $version = $row['version'] ?? null;
             return new TenantConfig(
-                uid: $row['uid'] ?? null,
-                tenant: isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null,
-                innerLabel: $row['inner_label'] ?? null,
-                forceMfa: isset($row['force_mfa']) ? !! $row['force_mfa'] : null,
-                allowRegister: isset($row['allow_register']) ? !! $row['allow_register'] : null,
-                enableRegisterUsers: isset($row['enable_register_users']) ? !! $row['enable_register_users'] : null,
-                wellcomeEmail: $row['wellcome_email'] ?? null,
-                registerdEmail: $row['registerd_email'] ?? null,
-                disabledUserEmail: $row['disabled_user_email'] ?? null,
-                enabledUserEmail: $row['enabled_user_email'] ?? null,
-                allowRecoverPass: isset($row['allow_recover_pass']) ? !! $row['allow_recover_pass'] : null,
-                recoverPassEmail: $row['recover_pass_email'] ?? null,
-                version: $row['version'] ?? null,
+                uid: $uid,
+                tenant: $tenant,
+                innerLabel: $innerLabel,
+                forceMfa: $forceMfa,
+                allowRegister: $allowRegister,
+                enableRegisterUsers: $enableRegisterUsers,
+                wellcomeEmail: $wellcomeEmail,
+                registerdEmail: $registerdEmail,
+                disabledUserEmail: $disabledUserEmail,
+                enabledUserEmail: $enabledUserEmail,
+                allowRecoverPass: $allowRecoverPass,
+                recoverPassEmail: $recoverPassEmail,
+                version: $version,
             );
         } catch (Throwable $ex) {
             $span->recordException($ex);

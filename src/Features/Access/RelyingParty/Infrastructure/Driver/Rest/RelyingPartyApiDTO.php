@@ -16,33 +16,33 @@ class RelyingPartyApiDTO
         description:"El identificador de la aplicacion",
         type: "string"
     )]
-    public ?string $uid;
+    public ?string $uid = null;
     #[OA\Property(
         property: "code",
         title: "code",
         description:"El código identificativo de la aplicación",
         type: "string"
     )]
-    public ?string $code;
+    public ?string $code = null;
     #[OA\Property(
         property: "apiKey",
         title: "api key",
         description:"A identification for the aplication",
         type: "string"
     )]
-    public ?string $apiKey;
+    public ?string $apiKey = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"Una marca que permite quitar el acceso a una cuenta sin borrarla",
         type: "string"
     )]
-    public ?bool $enabled;
+    public ?bool $enabled = null;
     #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de relying party para controlar bloqueos optimistas",
         type: "string"
     )]
-    public ?int $version;
+    public ?int $version = null;
 }

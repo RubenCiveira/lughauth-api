@@ -9,10 +9,10 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 
 class TenantCursor
 {
-    public const NAME_ASC = 'name';
-    public const NAME_DESC = '-name';
-    public const DOMAIN_ASC = 'domain';
-    public const DOMAIN_DESC = '-domain';
+    public const string NAME_ASC = 'name';
+    public const string NAME_DESC = '-name';
+    public const string DOMAIN_ASC = 'domain';
+    public const string DOMAIN_DESC = '-domain';
 
     public function __construct(
         private int $limit,
