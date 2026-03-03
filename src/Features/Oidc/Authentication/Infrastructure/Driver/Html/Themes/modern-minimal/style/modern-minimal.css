@@ -297,3 +297,118 @@ input[type="submit"].inline:hover {
   background: rgba(0, 0, 0, 0.12);
   margin: 12px 0;
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #0b0f1a 0%, #1a2233 100%);
+    color: #e6edf6;
+  }
+
+  .login-card,
+  .container {
+    background: rgba(12, 18, 26, 0.95);
+    color: #e6edf6;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  input,
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  select,
+  textarea {
+    background: rgba(10, 16, 26, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #e6edf6;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(230, 237, 246, 0.6);
+  }
+
+  button,
+  input[type="submit"] {
+    background: linear-gradient(135deg, #1f4d8c, #16335c);
+    color: #f5f8fd;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  button:hover,
+  input[type="submit"]:hover {
+    filter: brightness(1.08);
+  }
+
+  button:active,
+  input[type="submit"]:active {
+    transform: translateY(1px);
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid rgba(159, 194, 255, 0.4);
+    border-color: rgba(159, 194, 255, 0.5);
+  }
+
+  a,
+  input[type="submit"].inline {
+    color: #9fc2ff;
+  }
+
+  a:hover,
+  input[type="submit"].inline:hover {
+    color: #c7dcff;
+  }
+
+  a:active,
+  input[type="submit"].inline:active {
+    color: #7aa8ff;
+  }
+
+  .scope-description summary:hover {
+    color: #c7dcff;
+  }
+
+  .scope-description summary:active {
+    color: #9fc2ff;
+  }
+
+  .header h1 {
+    color: #e6edf6;
+  }
+
+  .header p {
+    color: rgba(230, 237, 246, 0.7);
+  }
+
+  form h2 {
+    color: #e6edf6;
+  }
+
+  label {
+    color: rgba(230, 237, 246, 0.85);
+  }
+
+  .scopes-scroll {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .scope-item {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .scopes-separator {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .loading {
+    border-color: rgba(255, 255, 255, 0.15);
+    border-top-color: #667eea;
+  }
+
+  .error {
+    color: #ff8b9a;
+  }
+}

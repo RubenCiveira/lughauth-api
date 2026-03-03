@@ -408,3 +408,140 @@ input[type="submit"].inline:hover {
     max-width: 40px;
   }
 }
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: linear-gradient(135deg, #0b0f1a 0%, #1a2233 100%);
+    color: #e6edf6;
+  }
+
+  .login-card,
+  .container,
+  .form-card {
+    background: rgba(12, 18, 26, 0.95);
+    color: #e6edf6;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+  }
+
+  .shape {
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .card-header h1 {
+    -webkit-text-fill-color: #e6edf6;
+    background: none;
+    color: #e6edf6;
+  }
+
+  .card-header p {
+    color: rgba(230, 237, 246, 0.7);
+  }
+
+  form h2 {
+    color: #e6edf6;
+  }
+
+  label {
+    color: rgba(230, 237, 246, 0.85);
+  }
+
+  input,
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  select,
+  textarea {
+    background: rgba(10, 16, 26, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #e6edf6;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(230, 237, 246, 0.6);
+  }
+
+  input[type="text"]:focus,
+  input[type="password"]:focus,
+  input[type="email"]:focus {
+    outline: 2px solid rgba(159, 194, 255, 0.4);
+    border-color: rgba(159, 194, 255, 0.5);
+    background: rgba(14, 20, 30, 0.95);
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+    transform: translateY(-2px);
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid rgba(159, 194, 255, 0.4);
+    border-color: rgba(159, 194, 255, 0.5);
+  }
+
+  button,
+  input[type="submit"] {
+    background: linear-gradient(135deg, #1f4d8c, #16335c);
+    color: #f5f8fd;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  button:hover,
+  input[type="submit"]:hover {
+    filter: brightness(1.08);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+
+  button:active,
+  input[type="submit"]:active {
+    transform: translateY(-1px);
+  }
+
+  a,
+  input[type="submit"].inline {
+    color: #9fc2ff;
+    box-shadow: none;
+  }
+
+  a:hover,
+  input[type="submit"].inline:hover {
+    color: #c7dcff;
+    transform: none;
+  }
+
+  a:active,
+  input[type="submit"].inline:active {
+    color: #7aa8ff;
+  }
+
+  .scopes-scroll {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .scope-item {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .scopes-separator {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .scope-description summary:hover {
+    color: #c7dcff;
+  }
+
+  .scope-description summary:active {
+    color: #9fc2ff;
+  }
+
+  .loading {
+    border-color: rgba(255, 255, 255, 0.15);
+    border-top-color: #667eea;
+  }
+
+  .error {
+    color: #ff8b9a;
+  }
+}

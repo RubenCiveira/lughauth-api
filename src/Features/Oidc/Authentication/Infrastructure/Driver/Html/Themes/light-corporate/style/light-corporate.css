@@ -340,6 +340,18 @@ input[type="submit"].inline:hover {
   }
 }
 
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  .container,
+  .right-panel {
+    background: rgba(12, 18, 26, 0.96);
+  }
+
+  .form-container {
+    background: rgba(12, 18, 26, 0.96);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+}
+
 .scopes-scroll {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 10px;
@@ -399,4 +411,156 @@ input[type="submit"].inline:hover {
   height: 1px;
   background: rgba(0, 0, 0, 0.12);
   margin: 12px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background: #0f141a;
+    color: #e6edf6;
+  }
+
+  .container,
+  .right-panel {
+    background: rgba(12, 18, 26, 0.95);
+    color: #e6edf6;
+  }
+
+  .form-container {
+    background: rgba(12, 18, 26, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 28px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+  }
+
+  .form-header h2 {
+    color: #e6edf6;
+  }
+
+  .form-header p {
+    color: rgba(230, 237, 246, 0.75);
+  }
+
+  label,
+  .form-group label {
+    color: rgba(230, 237, 246, 0.85);
+  }
+
+  .image-content h1 {
+    color: #e6edf6;
+  }
+
+  .image-content p {
+    color: rgba(230, 237, 246, 0.7);
+  }
+
+  input,
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  select,
+  textarea {
+    background: rgba(10, 16, 26, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #e6edf6;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(230, 237, 246, 0.6);
+  }
+
+  .left-panel {
+    background: linear-gradient(135deg, #0f1f3d 0%, #17345f 100%);
+  }
+
+  .left-panel::before {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  input,
+  select,
+  textarea {
+    background: rgba(10, 16, 26, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #e6edf6;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(230, 237, 246, 0.6);
+  }
+
+  button,
+  input[type="submit"] {
+    background: linear-gradient(135deg, #1c4a7a, #143252);
+    color: #f5f8fd;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  button:hover,
+  input[type="submit"]:hover {
+    filter: brightness(1.08);
+  }
+
+  button:active,
+  input[type="submit"]:active {
+    transform: translateY(1px);
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 2px solid rgba(159, 194, 255, 0.4);
+    border-color: rgba(159, 194, 255, 0.5);
+  }
+
+  a,
+  input[type="submit"].inline {
+    color: #9fc2ff;
+  }
+
+  a:hover,
+  input[type="submit"].inline:hover {
+    color: #c7dcff;
+  }
+
+  a:active,
+  input[type="submit"].inline:active {
+    color: #7aa8ff;
+  }
+
+  .scope-description summary:hover {
+    color: #c7dcff;
+  }
+
+  .scope-description summary:active {
+    color: #9fc2ff;
+  }
+
+  form h2 {
+    color: #e6edf6;
+  }
+
+  .scopes-scroll {
+    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .scope-item {
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .scopes-separator {
+    background: rgba(255, 255, 255, 0.16);
+  }
+
+  .loading {
+    border-color: rgba(255, 255, 255, 0.15);
+    border-top-color: #9fc2ff;
+  }
+
+  .error {
+    color: #ff8b9a;
+  }
 }
