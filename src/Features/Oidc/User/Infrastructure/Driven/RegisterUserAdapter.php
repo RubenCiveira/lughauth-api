@@ -53,7 +53,7 @@ class RegisterUserAdapter implements RegisterUserGateway
         $theTenant = $this->users->checkTenant($tenant, '-');
         $terms = $this->users->loadTenantTerms($theTenant, []);
         $first = $terms[0] ?? null;
-        return $first ? $first->getText() : '';
+        return $first !== null ? $first->getText() : '';
     }
 
     /**
@@ -77,7 +77,7 @@ class RegisterUserAdapter implements RegisterUserGateway
                     password: $password,
                     tenant: $theTenant
                 ));
-                if ($terms) {
+                if ($terms !== null) {
                     $acepted = new UserAcceptedTermnsOfUseAttributes();
                     $acepted->uid(Random::comb());
                     $acepted->user($theUser);

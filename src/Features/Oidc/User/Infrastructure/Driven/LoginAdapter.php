@@ -225,18 +225,23 @@ class LoginAdapter implements LoginGateway
     }
 
     /**
-     * @return array<string, list<string>>
+     * @return array<array-key, list<string>>
      */
     private function loadRoles(AuthenticationRequest $client, Tenant $tenant, User $user): array
     {
         $main = $tenant->getName() === 'main';
+        /** @var array<array-key, list<string>> $roles */
         $roles = [];
         // Tengo roles para cualquier audiencia
+        /** @var list<string> $forAll */
         $forAll = [];
         $this->clientRolesFromIdentity(new ClientIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
         $this->platformRolesFromIdentity(new PlatformIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
+                if (!is_string($audience) ) {
+                    continue;
+                }
                 $roles[$audience] = $forAll;
                 if ($from = $this->clients->findOneByCode($audience)) {
                     $this->platformRolesFromIdentity(new PlatformIdentityFilter(
@@ -259,6 +264,10 @@ class LoginAdapter implements LoginGateway
         return $roles;
     }
 
+    /**
+     * @param list<string> $roles
+     * @psalm-param-out list<string> $roles
+     */
     private function platformRolesFromIdentity(PlatformIdentityFilter $identityFilter, bool $main, array &$roles): void
     {
         if ($tc = $this->platformIdentities->retrieve($identityFilter)) {
@@ -284,6 +293,10 @@ class LoginAdapter implements LoginGateway
         }
     }
 
+    /**
+     * @param list<string> $roles
+     * @psalm-param-out list<string> $roles
+     */
     private function clientRolesFromIdentity(ClientIdentityFilter $identityFilter, bool $main, array &$roles): void
     {
         if ($tc = $this->clientIdentities->retrieve($identityFilter)) {

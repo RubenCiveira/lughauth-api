@@ -14,6 +14,7 @@ use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use League\OAuth2\Client\Provider\Google;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
+use League\OAuth2\Client\Token\AccessToken;
 
 class GoogleOAuthProvider implements DelegatedLoginProvider
 {
@@ -68,13 +69,19 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
                 return null;
             }
             $token = $provider->getAccessToken('authorization_code', ['code' => $code]);
+            if (!$token instanceof AccessToken) {
+                return null;
+            }
             /** @var \League\OAuth2\Client\Provider\GoogleUser $user */
             $user = $provider->getResourceOwner($token);
             $data = $user->toArray();
+            $sub = (string) ($data['sub'] ?? '');
+            $name = (string) ($data['name'] ?? '');
+            $email = (string) ($data['email'] ?? '');
             return new DelegatedUserData(
-                $data['sub'],
-                $data['name'],
-                $data['email']
+                $sub,
+                $name,
+                $email
             );
         } catch (IdentityProviderException $ex) {
             return null;
