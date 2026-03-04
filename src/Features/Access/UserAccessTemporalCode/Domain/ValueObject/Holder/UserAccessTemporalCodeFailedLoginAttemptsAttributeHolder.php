@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder
     }
     public function getFailedLoginAttempts(): ?int
     {
-        return is_a($this->failedLoginAttempts, UserAccessTemporalCodeFailedLoginAttemptsVO::class) ? $this->failedLoginAttempts?->value() : $this->failedLoginAttempts;
+        return $this->failedLoginAttempts instanceof UserAccessTemporalCodeFailedLoginAttemptsVO ? $this->failedLoginAttempts->value() : $this->failedLoginAttempts;
+    }
+    public function isFailedLoginAttemptsAssigned(): bool
+    {
+        return $this->failedLoginAttemptsAssigned;
+    }
+    public function writeFailedLoginAttemptsTo(mixed $att): void
+    {
+        if ($this->failedLoginAttemptsAssigned) {
+            $att->failedLoginAttempts($this->failedLoginAttempts);
+        }
+    }
+    public function readFailedLoginAttemptsFrom(mixed $att): void
+    {
+        if ($att->isFailedLoginAttemptsAssigned()) {
+            $failedLoginAttempts = $att->getFailedLoginAttempts();
+            $this->failedLoginAttempts($failedLoginAttempts);
+        }
     }
     public function unsetFailedLoginAttempts(): static
     {
-        $this->failedLoginAttempts = null;
         $this->failedLoginAttemptsAssigned = false;
         return $this;
     }

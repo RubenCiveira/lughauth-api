@@ -34,7 +34,7 @@ class UserAccessTemporalCodeRecoveryCodeExpirationVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAccessTemporalCodeRecoveryCodeExpirationVO
     {
-        if (is_a($value, UserAccessTemporalCodeRecoveryCodeExpirationVO::class)) {
+        if ($value instanceof UserAccessTemporalCodeRecoveryCodeExpirationVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

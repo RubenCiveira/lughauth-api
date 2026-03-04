@@ -13,11 +13,16 @@ trait UserNameAttributeHolder
     protected UserNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?UserNameVO $name): ?UserNameVO
+    public function getNameOrDefault(UserNameVO $name): UserNameVO
     {
-        return $this->nameAssigned ? ($this->name !== null ? UserNameVO::from($this->name) : null) : $name;
+        if ($this->nameAssigned) {
+            \assert(null !== $this->name);
+            return UserNameVO::from($this->name);
+        } else {
+            return $name;
+        }
     }
-    public function name(UserNameVO|string|null $name): static
+    public function name(UserNameVO|string $name): static
     {
         $this->name = $name;
         $this->nameAssigned = true;
@@ -25,11 +30,29 @@ trait UserNameAttributeHolder
     }
     public function getName(): ?string
     {
-        return is_a($this->name, UserNameVO::class) ? $this->name->value() : $this->name;
+        return $this->name instanceof UserNameVO ? $this->name->value() : $this->name;
+    }
+    public function isNameAssigned(): bool
+    {
+        return $this->nameAssigned;
+    }
+    public function writeNameTo(mixed $att): void
+    {
+        if ($this->nameAssigned) {
+            \assert(null !== $this->name);
+            $att->name($this->name);
+        }
+    }
+    public function readNameFrom(mixed $att): void
+    {
+        if ($att->isNameAssigned()) {
+            $name = $att->getName();
+            \assert(null != $name);
+            $this->name($name);
+        }
     }
     public function unsetName(): static
     {
-        $this->name = null;
         $this->nameAssigned = false;
         return $this;
     }

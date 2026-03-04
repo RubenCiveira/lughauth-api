@@ -13,11 +13,16 @@ trait TenantDomainAttributeHolder
     protected TenantDomainVO|string|null $domain = null;
     protected bool $domainAssigned = false;
 
-    public function getDomainOrDefault(?TenantDomainVO $domain): ?TenantDomainVO
+    public function getDomainOrDefault(TenantDomainVO $domain): TenantDomainVO
     {
-        return $this->domainAssigned ? ($this->domain !== null ? TenantDomainVO::from($this->domain) : null) : $domain;
+        if ($this->domainAssigned) {
+            \assert(null !== $this->domain);
+            return TenantDomainVO::from($this->domain);
+        } else {
+            return $domain;
+        }
     }
-    public function domain(TenantDomainVO|string|null $domain): static
+    public function domain(TenantDomainVO|string $domain): static
     {
         $this->domain = $domain;
         $this->domainAssigned = true;
@@ -25,11 +30,29 @@ trait TenantDomainAttributeHolder
     }
     public function getDomain(): ?string
     {
-        return is_a($this->domain, TenantDomainVO::class) ? $this->domain->value() : $this->domain;
+        return $this->domain instanceof TenantDomainVO ? $this->domain->value() : $this->domain;
+    }
+    public function isDomainAssigned(): bool
+    {
+        return $this->domainAssigned;
+    }
+    public function writeDomainTo(mixed $att): void
+    {
+        if ($this->domainAssigned) {
+            \assert(null !== $this->domain);
+            $att->domain($this->domain);
+        }
+    }
+    public function readDomainFrom(mixed $att): void
+    {
+        if ($att->isDomainAssigned()) {
+            $domain = $att->getDomain();
+            \assert(null != $domain);
+            $this->domain($domain);
+        }
     }
     public function unsetDomain(): static
     {
-        $this->domain = null;
         $this->domainAssigned = false;
         return $this;
     }

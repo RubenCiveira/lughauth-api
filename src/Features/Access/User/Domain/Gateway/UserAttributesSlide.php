@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\User\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 
-class UserAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, UserAttributes>
+ */
+class UserAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?UserCursor $cursor,
@@ -23,7 +28,8 @@ class UserAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): UserAttributes
+    #[Override]
+    public function current(): ?UserAttributes
     {
         return parent::current();
     }

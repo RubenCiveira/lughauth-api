@@ -13,11 +13,16 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
     protected TenantLoginProviderUsersEnabledByDefaultVO|bool|null $usersEnabledByDefault = null;
     protected bool $usersEnabledByDefaultAssigned = false;
 
-    public function getUsersEnabledByDefaultOrDefault(?TenantLoginProviderUsersEnabledByDefaultVO $usersEnabledByDefault): ?TenantLoginProviderUsersEnabledByDefaultVO
+    public function getUsersEnabledByDefaultOrDefault(TenantLoginProviderUsersEnabledByDefaultVO $usersEnabledByDefault): TenantLoginProviderUsersEnabledByDefaultVO
     {
-        return $this->usersEnabledByDefaultAssigned ? ($this->usersEnabledByDefault !== null ? TenantLoginProviderUsersEnabledByDefaultVO::from($this->usersEnabledByDefault) : null) : $usersEnabledByDefault;
+        if ($this->usersEnabledByDefaultAssigned) {
+            \assert(null !== $this->usersEnabledByDefault);
+            return TenantLoginProviderUsersEnabledByDefaultVO::from($this->usersEnabledByDefault);
+        } else {
+            return $usersEnabledByDefault;
+        }
     }
-    public function usersEnabledByDefault(TenantLoginProviderUsersEnabledByDefaultVO|bool|null $usersEnabledByDefault): static
+    public function usersEnabledByDefault(TenantLoginProviderUsersEnabledByDefaultVO|bool $usersEnabledByDefault): static
     {
         $this->usersEnabledByDefault = $usersEnabledByDefault;
         $this->usersEnabledByDefaultAssigned = true;
@@ -25,11 +30,29 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
     }
     public function isUsersEnabledByDefault(): ?bool
     {
-        return is_a($this->usersEnabledByDefault, TenantLoginProviderUsersEnabledByDefaultVO::class) ? $this->usersEnabledByDefault->value() : $this->usersEnabledByDefault;
+        return $this->usersEnabledByDefault instanceof TenantLoginProviderUsersEnabledByDefaultVO ? $this->usersEnabledByDefault->value() : $this->usersEnabledByDefault;
+    }
+    public function isUsersEnabledByDefaultAssigned(): bool
+    {
+        return $this->usersEnabledByDefaultAssigned;
+    }
+    public function writeUsersEnabledByDefaultTo(mixed $att): void
+    {
+        if ($this->usersEnabledByDefaultAssigned) {
+            \assert(null !== $this->usersEnabledByDefault);
+            $att->usersEnabledByDefault($this->usersEnabledByDefault);
+        }
+    }
+    public function readUsersEnabledByDefaultFrom(mixed $att): void
+    {
+        if ($att->isUsersEnabledByDefaultAssigned()) {
+            $usersEnabledByDefault = $att->getUsersEnabledByDefault();
+            \assert(null != $usersEnabledByDefault);
+            $this->usersEnabledByDefault($usersEnabledByDefault);
+        }
     }
     public function unsetUsersEnabledByDefault(): static
     {
-        $this->usersEnabledByDefault = null;
         $this->usersEnabledByDefaultAssigned = false;
         return $this;
     }

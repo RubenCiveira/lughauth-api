@@ -31,31 +31,21 @@ class RelyingPartyDisableResult
     public function __construct(RelyingPartyAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->code($att->getCodeOrDefault(null));
-            $this->apiKey($att->getApiKeyOrDefault(null));
-            $this->enabled($att->getEnabledOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readCodeFrom($att);
+            $this->readApiKeyFrom($att);
+            $this->readEnabledFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): RelyingPartyAttributes
     {
         $att = new RelyingPartyAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->codeAssigned) {
-            $att->code($this->code);
-        }
-        if ($this->apiKeyAssigned) {
-            $att->apiKey($this->apiKey);
-        }
-        if ($this->enabledAssigned) {
-            $att->enabled($this->enabled);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeCodeTo($att);
+        $this->writeApiKeyTo($att);
+        $this->writeEnabledTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

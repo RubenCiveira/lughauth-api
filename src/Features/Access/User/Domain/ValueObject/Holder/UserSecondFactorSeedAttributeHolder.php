@@ -25,11 +25,27 @@ trait UserSecondFactorSeedAttributeHolder
     }
     public function getSecondFactorSeed(): ?string
     {
-        return is_a($this->secondFactorSeed, UserSecondFactorSeedVO::class) ? $this->secondFactorSeed?->value() : $this->secondFactorSeed;
+        return $this->secondFactorSeed instanceof UserSecondFactorSeedVO ? $this->secondFactorSeed->value() : $this->secondFactorSeed;
+    }
+    public function isSecondFactorSeedAssigned(): bool
+    {
+        return $this->secondFactorSeedAssigned;
+    }
+    public function writeSecondFactorSeedTo(mixed $att): void
+    {
+        if ($this->secondFactorSeedAssigned) {
+            $att->secondFactorSeed($this->secondFactorSeed);
+        }
+    }
+    public function readSecondFactorSeedFrom(mixed $att): void
+    {
+        if ($att->isSecondFactorSeedAssigned()) {
+            $secondFactorSeed = $att->getSecondFactorSeed();
+            $this->secondFactorSeed($secondFactorSeed);
+        }
     }
     public function unsetSecondFactorSeed(): static
     {
-        $this->secondFactorSeed = null;
         $this->secondFactorSeedAssigned = false;
         return $this;
     }

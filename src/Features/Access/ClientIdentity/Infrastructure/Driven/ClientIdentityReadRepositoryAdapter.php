@@ -46,7 +46,7 @@ class ClientIdentityReadRepositoryAdapter implements ClientIdentityReadGateway
             $last = end($values);
             return new ClientIdentitySlide(function (ClientIdentityFilter $slide, ?ClientIdentityCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new ClientIdentityCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new ClientIdentityCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

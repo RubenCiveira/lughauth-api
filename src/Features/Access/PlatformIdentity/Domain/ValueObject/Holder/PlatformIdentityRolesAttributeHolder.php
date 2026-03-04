@@ -14,7 +14,7 @@ trait PlatformIdentityRolesAttributeHolder
     protected PlatformIdentityRolesVO|PlatformIdentityRolesListRef| array |null $roles = null;
     protected bool $rolesAssigned = false;
 
-    public function getRolesOrDefault(?PlatformIdentityRolesVO $roles): ?PlatformIdentityRolesVO
+    public function getRolesOrDefault(PlatformIdentityRolesVO $roles): PlatformIdentityRolesVO
     {
         if ($this->rolesAssigned && $roles) {
             return PlatformIdentityRolesVO::from($this->roles)->getWithDefaults($roles);
@@ -32,11 +32,29 @@ trait PlatformIdentityRolesAttributeHolder
     }
     public function getRoles(): ?PlatformIdentityRolesListRef
     {
-        return is_a($this->roles, PlatformIdentityRolesVO::class) ? $this->roles->value() : $this->roles;
+        return $this->roles instanceof PlatformIdentityRolesVO ? $this->roles->value() : $this->roles;
+    }
+    public function isRolesAssigned(): bool
+    {
+        return $this->rolesAssigned;
+    }
+    public function writeRolesTo(mixed $att): void
+    {
+        if ($this->rolesAssigned) {
+            \assert(null !== $this->roles);
+            $att->roles($this->roles);
+        }
+    }
+    public function readRolesFrom(mixed $att): void
+    {
+        if ($att->isRolesAssigned()) {
+            $roles = $att->getRoles();
+            \assert(null != $roles);
+            $this->roles($roles);
+        }
     }
     public function unsetRoles(): static
     {
-        $this->roles = null;
         $this->rolesAssigned = false;
         return $this;
     }

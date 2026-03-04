@@ -25,11 +25,27 @@ trait TrustedClientAllowAllScopesAttributeHolder
     }
     public function isAllowAllScopes(): ?bool
     {
-        return is_a($this->allowAllScopes, TrustedClientAllowAllScopesVO::class) ? $this->allowAllScopes?->value() : $this->allowAllScopes;
+        return $this->allowAllScopes instanceof TrustedClientAllowAllScopesVO ? $this->allowAllScopes->value() : $this->allowAllScopes;
+    }
+    public function isAllowAllScopesAssigned(): bool
+    {
+        return $this->allowAllScopesAssigned;
+    }
+    public function writeAllowAllScopesTo(mixed $att): void
+    {
+        if ($this->allowAllScopesAssigned) {
+            $att->allowAllScopes($this->allowAllScopes);
+        }
+    }
+    public function readAllowAllScopesFrom(mixed $att): void
+    {
+        if ($att->isAllowAllScopesAssigned()) {
+            $allowAllScopes = $att->getAllowAllScopes();
+            $this->allowAllScopes($allowAllScopes);
+        }
     }
     public function unsetAllowAllScopes(): static
     {
-        $this->allowAllScopes = null;
         $this->allowAllScopesAssigned = false;
         return $this;
     }

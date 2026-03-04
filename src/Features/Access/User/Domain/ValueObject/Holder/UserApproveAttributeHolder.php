@@ -26,11 +26,27 @@ trait UserApproveAttributeHolder
     }
     public function getApprove(): ?UserApproveOptions
     {
-        return is_a($this->approve, UserApproveVO::class) ? $this->approve?->value() : $this->approve;
+        return $this->approve instanceof UserApproveVO ? $this->approve->value() : $this->approve;
+    }
+    public function isApproveAssigned(): bool
+    {
+        return $this->approveAssigned;
+    }
+    public function writeApproveTo(mixed $att): void
+    {
+        if ($this->approveAssigned) {
+            $att->approve($this->approve);
+        }
+    }
+    public function readApproveFrom(mixed $att): void
+    {
+        if ($att->isApproveAssigned()) {
+            $approve = $att->getApprove();
+            $this->approve($approve);
+        }
     }
     public function unsetApprove(): static
     {
-        $this->approve = null;
         $this->approveAssigned = false;
         return $this;
     }

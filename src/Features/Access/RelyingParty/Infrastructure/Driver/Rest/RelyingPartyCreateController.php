@@ -73,9 +73,18 @@ class RelyingPartyCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new RelyingPartyCreateParams();
-            $value->uid(RelyingPartyUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $value->code(RelyingPartyCodeVO::tryFrom($body['code'] ?? null, $errorsList));
-            $value->apiKey(RelyingPartyApiKeyVO::tryFrom($body['apiKey'] ?? null, $errorsList));
+            $valueUid = RelyingPartyUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
+            $valueCode = RelyingPartyCodeVO::tryFrom($body['code'] ?? null, $errorsList);
+            if (null !== $valueCode) {
+                $value->code($valueCode);
+            }
+            $valueApiKey = RelyingPartyApiKeyVO::tryFrom($body['apiKey'] ?? null, $errorsList);
+            if (null !== $valueApiKey) {
+                $value->apiKey($valueApiKey);
+            }
             $value->version(RelyingPartyVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();

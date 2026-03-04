@@ -52,7 +52,7 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
             $last = end($values);
             return new TenantLoginProviderSlide(function (TenantLoginProviderFilter $slide, ?TenantLoginProviderCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

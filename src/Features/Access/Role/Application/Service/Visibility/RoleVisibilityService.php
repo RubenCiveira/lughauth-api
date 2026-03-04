@@ -243,7 +243,7 @@ class RoleVisibilityService
         try {
             $relyingParty = $attributes->getRelyingParty();
             if (null !== $relyingParty && !$this->relyingPartyVisibilityService->checkVisibility($relyingParty)) {
-                throw new NotFoundException("Unknown RelyingParty " . $relyingParty);
+                throw new NotFoundException("Unknown RelyingParty " . ($relyingParty->uid() ?? 'no-id'));
             }
             return $attributes;
         } catch (Throwable $ex) {

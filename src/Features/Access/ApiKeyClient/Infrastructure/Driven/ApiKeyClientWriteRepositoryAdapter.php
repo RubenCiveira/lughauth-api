@@ -46,7 +46,7 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
             $last = end($values);
             return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ?ApiKeyClientCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -103,7 +103,6 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('api-key-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -121,7 +120,6 @@ class ApiKeyClientWriteRepositoryAdapter implements ApiKeyClientWriteGateway
         $span = $this->startSpan("Count for Api key client on adapter");
         try {
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('api-key-client', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

@@ -28,7 +28,7 @@ class TenantConfigForceMfaVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigForceMfaVO
     {
-        if (is_a($value, TenantConfigForceMfaVO::class)) {
+        if ($value instanceof TenantConfigForceMfaVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_bool($value)) {

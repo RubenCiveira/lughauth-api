@@ -32,7 +32,7 @@ class TenantConfigWellcomeEmailVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigWellcomeEmailVO
     {
-        if (is_a($value, TenantConfigWellcomeEmailVO::class)) {
+        if ($value instanceof TenantConfigWellcomeEmailVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

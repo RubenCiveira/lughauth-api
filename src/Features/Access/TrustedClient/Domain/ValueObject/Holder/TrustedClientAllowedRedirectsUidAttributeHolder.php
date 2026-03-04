@@ -13,9 +13,14 @@ trait TrustedClientAllowedRedirectsUidAttributeHolder
     protected TrustedClientAllowedRedirectsUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?TrustedClientAllowedRedirectsUidVO $uid): ?TrustedClientAllowedRedirectsUidVO
+    public function getUidOrDefault(TrustedClientAllowedRedirectsUidVO $uid): TrustedClientAllowedRedirectsUidVO
     {
-        return $this->uidAssigned ? ($this->uid !== null ? TrustedClientAllowedRedirectsUidVO::from($this->uid) : null) : $uid;
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            return TrustedClientAllowedRedirectsUidVO::from($this->uid);
+        } else {
+            return $uid;
+        }
     }
     public function uid(TrustedClientAllowedRedirectsUidVO|string|null $uid): static
     {
@@ -25,11 +30,29 @@ trait TrustedClientAllowedRedirectsUidAttributeHolder
     }
     public function getUid(): ?string
     {
-        return is_a($this->uid, TrustedClientAllowedRedirectsUidVO::class) ? $this->uid?->value() : $this->uid;
+        return $this->uid instanceof TrustedClientAllowedRedirectsUidVO ? $this->uid->value() : $this->uid;
+    }
+    public function isUidAssigned(): bool
+    {
+        return $this->uidAssigned;
+    }
+    public function writeUidTo(mixed $att): void
+    {
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            $att->uid($this->uid);
+        }
+    }
+    public function readUidFrom(mixed $att): void
+    {
+        if ($att->isUidAssigned()) {
+            $uid = $att->getUid();
+            \assert(null != $uid);
+            $this->uid($uid);
+        }
     }
     public function unsetUid(): static
     {
-        $this->uid = null;
         $this->uidAssigned = false;
         return $this;
     }

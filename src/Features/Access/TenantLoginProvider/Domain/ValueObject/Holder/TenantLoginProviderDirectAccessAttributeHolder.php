@@ -25,11 +25,27 @@ trait TenantLoginProviderDirectAccessAttributeHolder
     }
     public function isDirectAccess(): ?bool
     {
-        return is_a($this->directAccess, TenantLoginProviderDirectAccessVO::class) ? $this->directAccess?->value() : $this->directAccess;
+        return $this->directAccess instanceof TenantLoginProviderDirectAccessVO ? $this->directAccess->value() : $this->directAccess;
+    }
+    public function isDirectAccessAssigned(): bool
+    {
+        return $this->directAccessAssigned;
+    }
+    public function writeDirectAccessTo(mixed $att): void
+    {
+        if ($this->directAccessAssigned) {
+            $att->directAccess($this->directAccess);
+        }
+    }
+    public function readDirectAccessFrom(mixed $att): void
+    {
+        if ($att->isDirectAccessAssigned()) {
+            $directAccess = $att->getDirectAccess();
+            $this->directAccess($directAccess);
+        }
     }
     public function unsetDirectAccess(): static
     {
-        $this->directAccess = null;
         $this->directAccessAssigned = false;
         return $this;
     }

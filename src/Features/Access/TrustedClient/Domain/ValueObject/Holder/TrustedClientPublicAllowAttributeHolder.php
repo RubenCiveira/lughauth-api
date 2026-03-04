@@ -13,11 +13,16 @@ trait TrustedClientPublicAllowAttributeHolder
     protected TrustedClientPublicAllowVO|bool|null $publicAllow = null;
     protected bool $publicAllowAssigned = false;
 
-    public function getPublicAllowOrDefault(?TrustedClientPublicAllowVO $publicAllow): ?TrustedClientPublicAllowVO
+    public function getPublicAllowOrDefault(TrustedClientPublicAllowVO $publicAllow): TrustedClientPublicAllowVO
     {
-        return $this->publicAllowAssigned ? ($this->publicAllow !== null ? TrustedClientPublicAllowVO::from($this->publicAllow) : null) : $publicAllow;
+        if ($this->publicAllowAssigned) {
+            \assert(null !== $this->publicAllow);
+            return TrustedClientPublicAllowVO::from($this->publicAllow);
+        } else {
+            return $publicAllow;
+        }
     }
-    public function publicAllow(TrustedClientPublicAllowVO|bool|null $publicAllow): static
+    public function publicAllow(TrustedClientPublicAllowVO|bool $publicAllow): static
     {
         $this->publicAllow = $publicAllow;
         $this->publicAllowAssigned = true;
@@ -25,11 +30,29 @@ trait TrustedClientPublicAllowAttributeHolder
     }
     public function isPublicAllow(): ?bool
     {
-        return is_a($this->publicAllow, TrustedClientPublicAllowVO::class) ? $this->publicAllow->value() : $this->publicAllow;
+        return $this->publicAllow instanceof TrustedClientPublicAllowVO ? $this->publicAllow->value() : $this->publicAllow;
+    }
+    public function isPublicAllowAssigned(): bool
+    {
+        return $this->publicAllowAssigned;
+    }
+    public function writePublicAllowTo(mixed $att): void
+    {
+        if ($this->publicAllowAssigned) {
+            \assert(null !== $this->publicAllow);
+            $att->publicAllow($this->publicAllow);
+        }
+    }
+    public function readPublicAllowFrom(mixed $att): void
+    {
+        if ($att->isPublicAllowAssigned()) {
+            $publicAllow = $att->getPublicAllow();
+            \assert(null != $publicAllow);
+            $this->publicAllow($publicAllow);
+        }
     }
     public function unsetPublicAllow(): static
     {
-        $this->publicAllow = null;
         $this->publicAllowAssigned = false;
         return $this;
     }

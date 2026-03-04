@@ -28,7 +28,7 @@ class TenantMarkForDeleteVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantMarkForDeleteVO
     {
-        if (is_a($value, TenantMarkForDeleteVO::class)) {
+        if ($value instanceof TenantMarkForDeleteVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_bool($value)) {

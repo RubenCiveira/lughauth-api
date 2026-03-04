@@ -46,7 +46,7 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
             $last = end($values);
             return new RelyingPartySlide(function (RelyingPartySlide $slide, ?RelyingPartyCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new RelyingPartyCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RelyingPartyCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -103,7 +103,6 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('relying-party', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -121,7 +120,6 @@ class RelyingPartyWriteRepositoryAdapter implements RelyingPartyWriteGateway
         $span = $this->startSpan("Count for Relying party on adapter");
         try {
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('relying-party', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

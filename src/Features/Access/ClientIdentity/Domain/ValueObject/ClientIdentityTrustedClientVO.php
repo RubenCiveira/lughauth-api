@@ -33,7 +33,7 @@ class ClientIdentityTrustedClientVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?ClientIdentityTrustedClientVO
     {
-        if (is_a($value, ClientIdentityTrustedClientVO::class)) {
+        if ($value instanceof ClientIdentityTrustedClientVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

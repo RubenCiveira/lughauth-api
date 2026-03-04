@@ -32,7 +32,7 @@ class TrustedClientAllowAllScopesVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientAllowAllScopesVO
     {
-        if (is_a($value, TrustedClientAllowAllScopesVO::class)) {
+        if ($value instanceof TrustedClientAllowAllScopesVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

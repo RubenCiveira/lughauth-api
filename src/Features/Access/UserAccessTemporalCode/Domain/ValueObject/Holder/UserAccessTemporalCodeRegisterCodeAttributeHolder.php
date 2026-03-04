@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeRegisterCodeAttributeHolder
     }
     public function getRegisterCode(): ?string
     {
-        return is_a($this->registerCode, UserAccessTemporalCodeRegisterCodeVO::class) ? $this->registerCode?->value() : $this->registerCode;
+        return $this->registerCode instanceof UserAccessTemporalCodeRegisterCodeVO ? $this->registerCode->value() : $this->registerCode;
+    }
+    public function isRegisterCodeAssigned(): bool
+    {
+        return $this->registerCodeAssigned;
+    }
+    public function writeRegisterCodeTo(mixed $att): void
+    {
+        if ($this->registerCodeAssigned) {
+            $att->registerCode($this->registerCode);
+        }
+    }
+    public function readRegisterCodeFrom(mixed $att): void
+    {
+        if ($att->isRegisterCodeAssigned()) {
+            $registerCode = $att->getRegisterCode();
+            $this->registerCode($registerCode);
+        }
     }
     public function unsetRegisterCode(): static
     {
-        $this->registerCode = null;
         $this->registerCodeAssigned = false;
         return $this;
     }

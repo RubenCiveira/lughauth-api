@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
 
-class TenantTermsOfUseAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, TenantTermsOfUseAttributes>
+ */
+class TenantTermsOfUseAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?TenantTermsOfUseCursor $cursor,
@@ -23,7 +28,8 @@ class TenantTermsOfUseAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): TenantTermsOfUseAttributes
+    #[Override]
+    public function current(): ?TenantTermsOfUseAttributes
     {
         return parent::current();
     }

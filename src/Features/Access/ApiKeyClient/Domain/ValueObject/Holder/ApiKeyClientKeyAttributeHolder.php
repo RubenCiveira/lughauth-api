@@ -25,11 +25,27 @@ trait ApiKeyClientKeyAttributeHolder
     }
     public function getKey(): ?string
     {
-        return is_a($this->key, ApiKeyClientKeyVO::class) ? $this->key?->value() : $this->key;
+        return $this->key instanceof ApiKeyClientKeyVO ? $this->key->value() : $this->key;
+    }
+    public function isKeyAssigned(): bool
+    {
+        return $this->keyAssigned;
+    }
+    public function writeKeyTo(mixed $att): void
+    {
+        if ($this->keyAssigned) {
+            $att->key($this->key);
+        }
+    }
+    public function readKeyFrom(mixed $att): void
+    {
+        if ($att->isKeyAssigned()) {
+            $key = $att->getKey();
+            $this->key($key);
+        }
     }
     public function unsetKey(): static
     {
-        $this->key = null;
         $this->keyAssigned = false;
         return $this;
     }

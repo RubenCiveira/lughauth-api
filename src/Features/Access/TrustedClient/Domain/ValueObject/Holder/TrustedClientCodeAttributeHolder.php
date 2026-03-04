@@ -13,11 +13,16 @@ trait TrustedClientCodeAttributeHolder
     protected TrustedClientCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(?TrustedClientCodeVO $code): ?TrustedClientCodeVO
+    public function getCodeOrDefault(TrustedClientCodeVO $code): TrustedClientCodeVO
     {
-        return $this->codeAssigned ? ($this->code !== null ? TrustedClientCodeVO::from($this->code) : null) : $code;
+        if ($this->codeAssigned) {
+            \assert(null !== $this->code);
+            return TrustedClientCodeVO::from($this->code);
+        } else {
+            return $code;
+        }
     }
-    public function code(TrustedClientCodeVO|string|null $code): static
+    public function code(TrustedClientCodeVO|string $code): static
     {
         $this->code = $code;
         $this->codeAssigned = true;
@@ -25,11 +30,29 @@ trait TrustedClientCodeAttributeHolder
     }
     public function getCode(): ?string
     {
-        return is_a($this->code, TrustedClientCodeVO::class) ? $this->code->value() : $this->code;
+        return $this->code instanceof TrustedClientCodeVO ? $this->code->value() : $this->code;
+    }
+    public function isCodeAssigned(): bool
+    {
+        return $this->codeAssigned;
+    }
+    public function writeCodeTo(mixed $att): void
+    {
+        if ($this->codeAssigned) {
+            \assert(null !== $this->code);
+            $att->code($this->code);
+        }
+    }
+    public function readCodeFrom(mixed $att): void
+    {
+        if ($att->isCodeAssigned()) {
+            $code = $att->getCode();
+            \assert(null != $code);
+            $this->code($code);
+        }
     }
     public function unsetCode(): static
     {
-        $this->code = null;
         $this->codeAssigned = false;
         return $this;
     }

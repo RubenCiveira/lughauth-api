@@ -25,11 +25,27 @@ trait TenantLoginProviderCertificateAttributeHolder
     }
     public function getCertificate(): ?string
     {
-        return is_a($this->certificate, TenantLoginProviderCertificateVO::class) ? $this->certificate?->value() : $this->certificate;
+        return $this->certificate instanceof TenantLoginProviderCertificateVO ? $this->certificate->value() : $this->certificate;
+    }
+    public function isCertificateAssigned(): bool
+    {
+        return $this->certificateAssigned;
+    }
+    public function writeCertificateTo(mixed $att): void
+    {
+        if ($this->certificateAssigned) {
+            $att->certificate($this->certificate);
+        }
+    }
+    public function readCertificateFrom(mixed $att): void
+    {
+        if ($att->isCertificateAssigned()) {
+            $certificate = $att->getCertificate();
+            $this->certificate($certificate);
+        }
     }
     public function unsetCertificate(): static
     {
-        $this->certificate = null;
         $this->certificateAssigned = false;
         return $this;
     }

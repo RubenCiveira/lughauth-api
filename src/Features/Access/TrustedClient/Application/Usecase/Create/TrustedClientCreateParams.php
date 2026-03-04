@@ -40,43 +40,27 @@ class TrustedClientCreateParams
     public function __construct(TrustedClientAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->code($att->getCodeOrDefault(null));
-            $this->allowAllScopes($att->getAllowAllScopesOrDefault(null));
-            $this->publicAllow($att->getPublicAllowOrDefault(null));
-            $this->secretOauth($att->getSecretOauthOrDefault(null));
-            $this->enabled($att->getEnabledOrDefault(null));
-            $this->allowedRedirects($att->getAllowedRedirectsOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readCodeFrom($att);
+            $this->readAllowAllScopesFrom($att);
+            $this->readPublicAllowFrom($att);
+            $this->readSecretOauthFrom($att);
+            $this->readEnabledFrom($att);
+            $this->readAllowedRedirectsFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): TrustedClientAttributes
     {
         $att = new TrustedClientAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->codeAssigned) {
-            $att->code($this->code);
-        }
-        if ($this->allowAllScopesAssigned) {
-            $att->allowAllScopes($this->allowAllScopes);
-        }
-        if ($this->publicAllowAssigned) {
-            $att->publicAllow($this->publicAllow);
-        }
-        if ($this->secretOauthAssigned) {
-            $att->secretOauth($this->secretOauth);
-        }
-        if ($this->enabledAssigned) {
-            $att->enabled($this->enabled);
-        }
-        if ($this->allowedRedirectsAssigned) {
-            $att->allowedRedirects($this->allowedRedirects);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeCodeTo($att);
+        $this->writeAllowAllScopesTo($att);
+        $this->writePublicAllowTo($att);
+        $this->writeSecretOauthTo($att);
+        $this->writeEnabledTo($att);
+        $this->writeAllowedRedirectsTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

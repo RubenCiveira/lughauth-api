@@ -29,7 +29,7 @@ class PlatformIdentityUidVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityUidVO
     {
-        if (is_a($value, PlatformIdentityUidVO::class)) {
+        if ($value instanceof PlatformIdentityUidVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {

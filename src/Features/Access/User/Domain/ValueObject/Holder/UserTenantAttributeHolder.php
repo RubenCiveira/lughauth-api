@@ -14,11 +14,16 @@ trait UserTenantAttributeHolder
     protected UserTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?UserTenantVO $tenant): ?UserTenantVO
+    public function getTenantOrDefault(UserTenantVO $tenant): UserTenantVO
     {
-        return $this->tenantAssigned ? ($this->tenant !== null ? UserTenantVO::from($this->tenant) : null) : $tenant;
+        if ($this->tenantAssigned) {
+            \assert(null !== $this->tenant);
+            return UserTenantVO::from($this->tenant);
+        } else {
+            return $tenant;
+        }
     }
-    public function tenant(UserTenantVO|TenantRef|null $tenant): static
+    public function tenant(UserTenantVO|TenantRef $tenant): static
     {
         $this->tenant = $tenant;
         $this->tenantAssigned = true;
@@ -26,11 +31,29 @@ trait UserTenantAttributeHolder
     }
     public function getTenant(): ?TenantRef
     {
-        return is_a($this->tenant, UserTenantVO::class) ? $this->tenant->value() : $this->tenant;
+        return $this->tenant instanceof UserTenantVO ? $this->tenant->value() : $this->tenant;
+    }
+    public function isTenantAssigned(): bool
+    {
+        return $this->tenantAssigned;
+    }
+    public function writeTenantTo(mixed $att): void
+    {
+        if ($this->tenantAssigned) {
+            \assert(null !== $this->tenant);
+            $att->tenant($this->tenant);
+        }
+    }
+    public function readTenantFrom(mixed $att): void
+    {
+        if ($att->isTenantAssigned()) {
+            $tenant = $att->getTenant();
+            \assert(null != $tenant);
+            $this->tenant($tenant);
+        }
     }
     public function unsetTenant(): static
     {
-        $this->tenant = null;
         $this->tenantAssigned = false;
         return $this;
     }

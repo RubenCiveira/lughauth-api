@@ -13,11 +13,16 @@ trait TrustedClientEnabledAttributeHolder
     protected TrustedClientEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?TrustedClientEnabledVO $enabled): ?TrustedClientEnabledVO
+    public function getEnabledOrDefault(TrustedClientEnabledVO $enabled): TrustedClientEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? TrustedClientEnabledVO::from($this->enabled) : null) : $enabled;
+        if ($this->enabledAssigned) {
+            \assert(null !== $this->enabled);
+            return TrustedClientEnabledVO::from($this->enabled);
+        } else {
+            return $enabled;
+        }
     }
-    public function enabled(TrustedClientEnabledVO|bool|null $enabled): static
+    public function enabled(TrustedClientEnabledVO|bool $enabled): static
     {
         $this->enabled = $enabled;
         $this->enabledAssigned = true;
@@ -25,11 +30,29 @@ trait TrustedClientEnabledAttributeHolder
     }
     public function isEnabled(): ?bool
     {
-        return is_a($this->enabled, TrustedClientEnabledVO::class) ? $this->enabled->value() : $this->enabled;
+        return $this->enabled instanceof TrustedClientEnabledVO ? $this->enabled->value() : $this->enabled;
+    }
+    public function isEnabledAssigned(): bool
+    {
+        return $this->enabledAssigned;
+    }
+    public function writeEnabledTo(mixed $att): void
+    {
+        if ($this->enabledAssigned) {
+            \assert(null !== $this->enabled);
+            $att->enabled($this->enabled);
+        }
+    }
+    public function readEnabledFrom(mixed $att): void
+    {
+        if ($att->isEnabledAssigned()) {
+            $enabled = $att->getEnabled();
+            \assert(null != $enabled);
+            $this->enabled($enabled);
+        }
     }
     public function unsetEnabled(): static
     {
-        $this->enabled = null;
         $this->enabledAssigned = false;
         return $this;
     }

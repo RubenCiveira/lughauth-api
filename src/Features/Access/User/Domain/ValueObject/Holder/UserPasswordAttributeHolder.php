@@ -13,11 +13,16 @@ trait UserPasswordAttributeHolder
     protected UserPasswordVO|string|null $password = null;
     protected bool $passwordAssigned = false;
 
-    public function getPasswordOrDefault(?UserPasswordVO $password): ?UserPasswordVO
+    public function getPasswordOrDefault(UserPasswordVO $password): UserPasswordVO
     {
-        return $this->passwordAssigned ? ($this->password !== null ? UserPasswordVO::from($this->password) : null) : $password;
+        if ($this->passwordAssigned) {
+            \assert(null !== $this->password);
+            return UserPasswordVO::from($this->password);
+        } else {
+            return $password;
+        }
     }
-    public function password(UserPasswordVO|string|null $password): static
+    public function password(UserPasswordVO|string $password): static
     {
         $this->password = $password;
         $this->passwordAssigned = true;
@@ -25,11 +30,29 @@ trait UserPasswordAttributeHolder
     }
     public function getPassword(): ?string
     {
-        return is_a($this->password, UserPasswordVO::class) ? $this->password->value() : $this->password;
+        return $this->password instanceof UserPasswordVO ? $this->password->value() : $this->password;
+    }
+    public function isPasswordAssigned(): bool
+    {
+        return $this->passwordAssigned;
+    }
+    public function writePasswordTo(mixed $att): void
+    {
+        if ($this->passwordAssigned) {
+            \assert(null !== $this->password);
+            $att->password($this->password);
+        }
+    }
+    public function readPasswordFrom(mixed $att): void
+    {
+        if ($att->isPasswordAssigned()) {
+            $password = $att->getPassword();
+            \assert(null != $password);
+            $this->password($password);
+        }
     }
     public function unsetPassword(): static
     {
-        $this->password = null;
         $this->passwordAssigned = false;
         return $this;
     }

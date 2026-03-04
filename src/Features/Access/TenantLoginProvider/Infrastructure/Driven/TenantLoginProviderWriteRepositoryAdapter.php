@@ -52,7 +52,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             $last = end($values);
             return new TenantLoginProviderSlide(function (TenantLoginProviderSlide $slide, ?TenantLoginProviderCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -112,7 +112,6 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 $entity->commitMetadataWith($this->store);
             }
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -141,7 +140,6 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 }
             }
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

@@ -146,8 +146,11 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function generateMfaTemporalCode(AesCypherService $cypher, string|null $tempSecondFactorSeed, \DateTimeImmutable|null $tempSecondFactorSeedExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($cypher, $tempSecondFactorSeed);
-        $value->_tempSecondFactorSeedExpiration = UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($tempSecondFactorSeedExpiration);
+        if (null === $tempSecondFactorSeed) {
+            $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::empty();
+        } else {
+            $value->_tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::fromPlainText($cypher, $tempSecondFactorSeed);
+        }    $value->_tempSecondFactorSeedExpiration = UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($tempSecondFactorSeedExpiration);
         $value->recordedEvents[] = new UserAccessTemporalCodeGenerateMfaTemporalCodeEvent($value, original: $this);
         return $value;
     }
@@ -197,10 +200,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $user = $this->getUser();
-        if (null !== $user) {
-            $data['user'] = ['$ref' => $user->uid() ];
-        }
+        $data['user'] = [ '$ref' => $this->getUser()->uid() ];
         $data['tempSecondFactorSeedExpiration'] = $this->getTempSecondFactorSeedExpiration();
         $data['failedLoginAttempts'] = $this->getFailedLoginAttempts();
         $data['registerCode'] = $this->getRegisterCode();

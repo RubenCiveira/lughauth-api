@@ -29,7 +29,7 @@ class RelyingPartyApiKeyVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?RelyingPartyApiKeyVO
     {
-        if (is_a($value, RelyingPartyApiKeyVO::class)) {
+        if ($value instanceof RelyingPartyApiKeyVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {

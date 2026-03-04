@@ -26,11 +26,27 @@ trait PlatformIdentityTrustedClientAttributeHolder
     }
     public function getTrustedClient(): ?TrustedClientRef
     {
-        return is_a($this->trustedClient, PlatformIdentityTrustedClientVO::class) ? $this->trustedClient?->value() : $this->trustedClient;
+        return $this->trustedClient instanceof PlatformIdentityTrustedClientVO ? $this->trustedClient->value() : $this->trustedClient;
+    }
+    public function isTrustedClientAssigned(): bool
+    {
+        return $this->trustedClientAssigned;
+    }
+    public function writeTrustedClientTo(mixed $att): void
+    {
+        if ($this->trustedClientAssigned) {
+            $att->trustedClient($this->trustedClient);
+        }
+    }
+    public function readTrustedClientFrom(mixed $att): void
+    {
+        if ($att->isTrustedClientAssigned()) {
+            $trustedClient = $att->getTrustedClient();
+            $this->trustedClient($trustedClient);
+        }
     }
     public function unsetTrustedClient(): static
     {
-        $this->trustedClient = null;
         $this->trustedClientAssigned = false;
         return $this;
     }

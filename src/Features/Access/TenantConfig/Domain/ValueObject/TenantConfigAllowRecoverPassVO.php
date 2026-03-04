@@ -32,7 +32,7 @@ class TenantConfigAllowRecoverPassVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigAllowRecoverPassVO
     {
-        if (is_a($value, TenantConfigAllowRecoverPassVO::class)) {
+        if ($value instanceof TenantConfigAllowRecoverPassVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

@@ -51,7 +51,7 @@ class TenantTermsOfUseReadRepositoryAdapter implements TenantTermsOfUseReadGatew
             $last = end($values);
             return new TenantTermsOfUseSlide(function (TenantTermsOfUseFilter $slide, ?TenantTermsOfUseCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantTermsOfUseCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantTermsOfUseCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

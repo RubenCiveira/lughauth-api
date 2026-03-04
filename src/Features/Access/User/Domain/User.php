@@ -226,8 +226,11 @@ class User extends UserRef
     public function setMfaSeed(AesCypherService $cypher, string|null $secondFactorSeed): User
     {
         $value = clone $this;
-        $value->_secondFactorSeed = UserSecondFactorSeedVO::fromPlainText($cypher, $secondFactorSeed);
-        $value->_useSecondFactors = UserUseSecondFactorsVO::from(true);
+        if (null === $secondFactorSeed) {
+            $value->_secondFactorSeed = UserSecondFactorSeedVO::empty();
+        } else {
+            $value->_secondFactorSeed = UserSecondFactorSeedVO::fromPlainText($cypher, $secondFactorSeed);
+        }    $value->_useSecondFactors = UserUseSecondFactorsVO::from(true);
         $value->recordedEvents[] = new UserSetMfaSeedEvent($value, original: $this);
         return $value;
     }
@@ -243,10 +246,7 @@ class User extends UserRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $tenant = $this->getTenant();
-        if (null !== $tenant) {
-            $data['tenant'] = ['$ref' => $tenant->uid() ];
-        }
+        $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
         $data['name'] = $this->getName();
         $data['email'] = $this->getEmail();
         $data['wellcomeAt'] = $this->getWellcomeAt();

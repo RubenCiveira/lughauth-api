@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ClientIdentity\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\ClientIdentity\Domain\ClientIdentityAttributes;
 
-class ClientIdentityAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, ClientIdentityAttributes>
+ */
+class ClientIdentityAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?ClientIdentityCursor $cursor,
@@ -23,7 +28,8 @@ class ClientIdentityAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): ClientIdentityAttributes
+    #[Override]
+    public function current(): ?ClientIdentityAttributes
     {
         return parent::current();
     }

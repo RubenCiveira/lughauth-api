@@ -29,7 +29,7 @@ class ApiKeyClientUidVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?ApiKeyClientUidVO
     {
-        if (is_a($value, ApiKeyClientUidVO::class)) {
+        if ($value instanceof ApiKeyClientUidVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {

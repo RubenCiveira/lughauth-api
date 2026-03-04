@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeRecoveryCodeAttributeHolder
     }
     public function getRecoveryCode(): ?string
     {
-        return is_a($this->recoveryCode, UserAccessTemporalCodeRecoveryCodeVO::class) ? $this->recoveryCode?->value() : $this->recoveryCode;
+        return $this->recoveryCode instanceof UserAccessTemporalCodeRecoveryCodeVO ? $this->recoveryCode->value() : $this->recoveryCode;
+    }
+    public function isRecoveryCodeAssigned(): bool
+    {
+        return $this->recoveryCodeAssigned;
+    }
+    public function writeRecoveryCodeTo(mixed $att): void
+    {
+        if ($this->recoveryCodeAssigned) {
+            $att->recoveryCode($this->recoveryCode);
+        }
+    }
+    public function readRecoveryCodeFrom(mixed $att): void
+    {
+        if ($att->isRecoveryCodeAssigned()) {
+            $recoveryCode = $att->getRecoveryCode();
+            $this->recoveryCode($recoveryCode);
+        }
     }
     public function unsetRecoveryCode(): static
     {
-        $this->recoveryCode = null;
         $this->recoveryCodeAssigned = false;
         return $this;
     }

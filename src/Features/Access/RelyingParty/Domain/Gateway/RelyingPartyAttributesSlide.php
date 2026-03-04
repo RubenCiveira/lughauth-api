@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
 
-class RelyingPartyAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, RelyingPartyAttributes>
+ */
+class RelyingPartyAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?RelyingPartyCursor $cursor,
@@ -23,7 +28,8 @@ class RelyingPartyAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): RelyingPartyAttributes
+    #[Override]
+    public function current(): ?RelyingPartyAttributes
     {
         return parent::current();
     }

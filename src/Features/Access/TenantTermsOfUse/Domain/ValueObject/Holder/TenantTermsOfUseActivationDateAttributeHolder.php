@@ -25,11 +25,27 @@ trait TenantTermsOfUseActivationDateAttributeHolder
     }
     public function getActivationDate(): ?\DateTimeImmutable
     {
-        return is_a($this->activationDate, TenantTermsOfUseActivationDateVO::class) ? $this->activationDate?->value() : $this->activationDate;
+        return $this->activationDate instanceof TenantTermsOfUseActivationDateVO ? $this->activationDate->value() : $this->activationDate;
+    }
+    public function isActivationDateAssigned(): bool
+    {
+        return $this->activationDateAssigned;
+    }
+    public function writeActivationDateTo(mixed $att): void
+    {
+        if ($this->activationDateAssigned) {
+            $att->activationDate($this->activationDate);
+        }
+    }
+    public function readActivationDateFrom(mixed $att): void
+    {
+        if ($att->isActivationDateAssigned()) {
+            $activationDate = $att->getActivationDate();
+            $this->activationDate($activationDate);
+        }
     }
     public function unsetActivationDate(): static
     {
-        $this->activationDate = null;
         $this->activationDateAssigned = false;
         return $this;
     }

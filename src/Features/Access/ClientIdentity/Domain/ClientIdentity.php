@@ -83,10 +83,7 @@ class ClientIdentity extends ClientIdentityRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $user = $this->getUser();
-        if (null !== $user) {
-            $data['user'] = ['$ref' => $user->uid() ];
-        }
+        $data['user'] = [ '$ref' => $this->getUser()->uid() ];
         $relyingParty = $this->getRelyingParty();
         if (null !== $relyingParty) {
             $data['relyingParty'] = ['$ref' => $relyingParty->uid() ];

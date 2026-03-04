@@ -25,11 +25,27 @@ trait TenantConfigEnabledUserEmailAttributeHolder
     }
     public function getEnabledUserEmail(): ?string
     {
-        return is_a($this->enabledUserEmail, TenantConfigEnabledUserEmailVO::class) ? $this->enabledUserEmail?->value() : $this->enabledUserEmail;
+        return $this->enabledUserEmail instanceof TenantConfigEnabledUserEmailVO ? $this->enabledUserEmail->value() : $this->enabledUserEmail;
+    }
+    public function isEnabledUserEmailAssigned(): bool
+    {
+        return $this->enabledUserEmailAssigned;
+    }
+    public function writeEnabledUserEmailTo(mixed $att): void
+    {
+        if ($this->enabledUserEmailAssigned) {
+            $att->enabledUserEmail($this->enabledUserEmail);
+        }
+    }
+    public function readEnabledUserEmailFrom(mixed $att): void
+    {
+        if ($att->isEnabledUserEmailAssigned()) {
+            $enabledUserEmail = $att->getEnabledUserEmail();
+            $this->enabledUserEmail($enabledUserEmail);
+        }
     }
     public function unsetEnabledUserEmail(): static
     {
-        $this->enabledUserEmail = null;
         $this->enabledUserEmailAssigned = false;
         return $this;
     }

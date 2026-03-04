@@ -47,7 +47,7 @@ class TenantConfigReadRepositoryAdapter implements TenantConfigReadGateway
             $last = end($values);
             return new TenantConfigSlide(function (TenantConfigFilter $slide, ?TenantConfigCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantConfigCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantConfigCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

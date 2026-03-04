@@ -46,7 +46,7 @@ class PlatformIdentityReadRepositoryAdapter implements PlatformIdentityReadGatew
             $last = end($values);
             return new PlatformIdentitySlide(function (PlatformIdentityFilter $slide, ?PlatformIdentityCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new PlatformIdentityCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new PlatformIdentityCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

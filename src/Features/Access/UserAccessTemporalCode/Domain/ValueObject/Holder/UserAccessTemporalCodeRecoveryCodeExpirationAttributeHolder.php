@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder
     }
     public function getRecoveryCodeExpiration(): ?\DateTimeImmutable
     {
-        return is_a($this->recoveryCodeExpiration, UserAccessTemporalCodeRecoveryCodeExpirationVO::class) ? $this->recoveryCodeExpiration?->value() : $this->recoveryCodeExpiration;
+        return $this->recoveryCodeExpiration instanceof UserAccessTemporalCodeRecoveryCodeExpirationVO ? $this->recoveryCodeExpiration->value() : $this->recoveryCodeExpiration;
+    }
+    public function isRecoveryCodeExpirationAssigned(): bool
+    {
+        return $this->recoveryCodeExpirationAssigned;
+    }
+    public function writeRecoveryCodeExpirationTo(mixed $att): void
+    {
+        if ($this->recoveryCodeExpirationAssigned) {
+            $att->recoveryCodeExpiration($this->recoveryCodeExpiration);
+        }
+    }
+    public function readRecoveryCodeExpirationFrom(mixed $att): void
+    {
+        if ($att->isRecoveryCodeExpirationAssigned()) {
+            $recoveryCodeExpiration = $att->getRecoveryCodeExpiration();
+            $this->recoveryCodeExpiration($recoveryCodeExpiration);
+        }
     }
     public function unsetRecoveryCodeExpiration(): static
     {
-        $this->recoveryCodeExpiration = null;
         $this->recoveryCodeExpirationAssigned = false;
         return $this;
     }

@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 
-class TenantConfigAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, TenantConfigAttributes>
+ */
+class TenantConfigAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?TenantConfigCursor $cursor,
@@ -23,7 +28,8 @@ class TenantConfigAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): TenantConfigAttributes
+    #[Override]
+    public function current(): ?TenantConfigAttributes
     {
         return parent::current();
     }

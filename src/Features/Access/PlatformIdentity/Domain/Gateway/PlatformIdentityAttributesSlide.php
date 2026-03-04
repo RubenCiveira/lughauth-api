@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\PlatformIdentityAttributes;
 
-class PlatformIdentityAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, PlatformIdentityAttributes>
+ */
+class PlatformIdentityAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?PlatformIdentityCursor $cursor,
@@ -23,7 +28,8 @@ class PlatformIdentityAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): PlatformIdentityAttributes
+    #[Override]
+    public function current(): ?PlatformIdentityAttributes
     {
         return parent::current();
     }

@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
 
-class UserAcceptedTermnsOfUseAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, UserAcceptedTermnsOfUseAttributes>
+ */
+class UserAcceptedTermnsOfUseAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?UserAcceptedTermnsOfUseCursor $cursor,
@@ -23,7 +28,8 @@ class UserAcceptedTermnsOfUseAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): UserAcceptedTermnsOfUseAttributes
+    #[Override]
+    public function current(): ?UserAcceptedTermnsOfUseAttributes
     {
         return parent::current();
     }

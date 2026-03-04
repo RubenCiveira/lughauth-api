@@ -46,7 +46,7 @@ class TrustedClientReadRepositoryAdapter implements TrustedClientReadGateway
             $last = end($values);
             return new TrustedClientSlide(function (TrustedClientFilter $slide, ?TrustedClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TrustedClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TrustedClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

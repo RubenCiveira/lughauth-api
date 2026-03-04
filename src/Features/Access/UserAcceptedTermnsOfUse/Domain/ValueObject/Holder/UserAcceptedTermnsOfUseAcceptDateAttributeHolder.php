@@ -25,11 +25,27 @@ trait UserAcceptedTermnsOfUseAcceptDateAttributeHolder
     }
     public function getAcceptDate(): ?\DateTimeImmutable
     {
-        return is_a($this->acceptDate, UserAcceptedTermnsOfUseAcceptDateVO::class) ? $this->acceptDate?->value() : $this->acceptDate;
+        return $this->acceptDate instanceof UserAcceptedTermnsOfUseAcceptDateVO ? $this->acceptDate->value() : $this->acceptDate;
+    }
+    public function isAcceptDateAssigned(): bool
+    {
+        return $this->acceptDateAssigned;
+    }
+    public function writeAcceptDateTo(mixed $att): void
+    {
+        if ($this->acceptDateAssigned) {
+            $att->acceptDate($this->acceptDate);
+        }
+    }
+    public function readAcceptDateFrom(mixed $att): void
+    {
+        if ($att->isAcceptDateAssigned()) {
+            $acceptDate = $att->getAcceptDate();
+            $this->acceptDate($acceptDate);
+        }
     }
     public function unsetAcceptDate(): static
     {
-        $this->acceptDate = null;
         $this->acceptDateAssigned = false;
         return $this;
     }

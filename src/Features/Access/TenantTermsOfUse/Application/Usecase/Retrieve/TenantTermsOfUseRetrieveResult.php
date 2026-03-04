@@ -40,43 +40,27 @@ class TenantTermsOfUseRetrieveResult
     public function __construct(TenantTermsOfUseAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->tenant($att->getTenantOrDefault(null));
-            $this->relyingParty($att->getRelyingPartyOrDefault(null));
-            $this->text($att->getTextOrDefault(null));
-            $this->enabled($att->getEnabledOrDefault(null));
-            $this->attached($att->getAttachedOrDefault(null));
-            $this->activationDate($att->getActivationDateOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readTenantFrom($att);
+            $this->readRelyingPartyFrom($att);
+            $this->readTextFrom($att);
+            $this->readEnabledFrom($att);
+            $this->readAttachedFrom($att);
+            $this->readActivationDateFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): TenantTermsOfUseAttributes
     {
         $att = new TenantTermsOfUseAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->tenantAssigned) {
-            $att->tenant($this->tenant);
-        }
-        if ($this->relyingPartyAssigned) {
-            $att->relyingParty($this->relyingParty);
-        }
-        if ($this->textAssigned) {
-            $att->text($this->text);
-        }
-        if ($this->enabledAssigned) {
-            $att->enabled($this->enabled);
-        }
-        if ($this->attachedAssigned) {
-            $att->attached($this->attached);
-        }
-        if ($this->activationDateAssigned) {
-            $att->activationDate($this->activationDate);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeTenantTo($att);
+        $this->writeRelyingPartyTo($att);
+        $this->writeTextTo($att);
+        $this->writeEnabledTo($att);
+        $this->writeAttachedTo($att);
+        $this->writeActivationDateTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

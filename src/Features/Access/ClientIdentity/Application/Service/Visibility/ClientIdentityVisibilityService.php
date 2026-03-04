@@ -247,15 +247,15 @@ class ClientIdentityVisibilityService
         try {
             $user = $attributes->getUser();
             if (null !== $user && !$this->userVisibilityService->checkVisibility($user)) {
-                throw new NotFoundException("Unknown User " . $user);
+                throw new NotFoundException("Unknown User " . ($user->uid() ?? 'no-id'));
             }
             $relyingParty = $attributes->getRelyingParty();
             if (null !== $relyingParty && !$this->relyingPartyVisibilityService->checkVisibility($relyingParty)) {
-                throw new NotFoundException("Unknown RelyingParty " . $relyingParty);
+                throw new NotFoundException("Unknown RelyingParty " . ($relyingParty->uid() ?? 'no-id'));
             }
             $trustedClient = $attributes->getTrustedClient();
             if (null !== $trustedClient && !$this->trustedClientVisibilityService->checkVisibility($trustedClient)) {
-                throw new NotFoundException("Unknown TrustedClient " . $trustedClient);
+                throw new NotFoundException("Unknown TrustedClient " . ($trustedClient->uid() ?? 'no-id'));
             }
             return $attributes;
         } catch (Throwable $ex) {

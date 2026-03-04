@@ -46,7 +46,7 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
             $last = end($values);
             return new ClientIdentitySlide(function (ClientIdentitySlide $slide, ?ClientIdentityCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new ClientIdentityCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new ClientIdentityCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -103,7 +103,6 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         $span = $this->startSpan("Count for Client identity on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('client-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -121,7 +120,6 @@ class ClientIdentityWriteRepositoryAdapter implements ClientIdentityWriteGateway
         $span = $this->startSpan("Count for Client identity on adapter");
         try {
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('client-identity', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

@@ -14,11 +14,16 @@ trait UserAcceptedTermnsOfUseUserAttributeHolder
     protected UserAcceptedTermnsOfUseUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(?UserAcceptedTermnsOfUseUserVO $user): ?UserAcceptedTermnsOfUseUserVO
+    public function getUserOrDefault(UserAcceptedTermnsOfUseUserVO $user): UserAcceptedTermnsOfUseUserVO
     {
-        return $this->userAssigned ? ($this->user !== null ? UserAcceptedTermnsOfUseUserVO::from($this->user) : null) : $user;
+        if ($this->userAssigned) {
+            \assert(null !== $this->user);
+            return UserAcceptedTermnsOfUseUserVO::from($this->user);
+        } else {
+            return $user;
+        }
     }
-    public function user(UserAcceptedTermnsOfUseUserVO|UserRef|null $user): static
+    public function user(UserAcceptedTermnsOfUseUserVO|UserRef $user): static
     {
         $this->user = $user;
         $this->userAssigned = true;
@@ -26,11 +31,29 @@ trait UserAcceptedTermnsOfUseUserAttributeHolder
     }
     public function getUser(): ?UserRef
     {
-        return is_a($this->user, UserAcceptedTermnsOfUseUserVO::class) ? $this->user->value() : $this->user;
+        return $this->user instanceof UserAcceptedTermnsOfUseUserVO ? $this->user->value() : $this->user;
+    }
+    public function isUserAssigned(): bool
+    {
+        return $this->userAssigned;
+    }
+    public function writeUserTo(mixed $att): void
+    {
+        if ($this->userAssigned) {
+            \assert(null !== $this->user);
+            $att->user($this->user);
+        }
+    }
+    public function readUserFrom(mixed $att): void
+    {
+        if ($att->isUserAssigned()) {
+            $user = $att->getUser();
+            \assert(null != $user);
+            $this->user($user);
+        }
     }
     public function unsetUser(): static
     {
-        $this->user = null;
         $this->userAssigned = false;
         return $this;
     }

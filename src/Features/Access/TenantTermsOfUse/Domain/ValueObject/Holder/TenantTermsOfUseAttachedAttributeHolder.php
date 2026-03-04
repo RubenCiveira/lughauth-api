@@ -25,11 +25,27 @@ trait TenantTermsOfUseAttachedAttributeHolder
     }
     public function getAttached(): ?string
     {
-        return is_a($this->attached, TenantTermsOfUseAttachedVO::class) ? $this->attached?->value() : $this->attached;
+        return $this->attached instanceof TenantTermsOfUseAttachedVO ? $this->attached->value() : $this->attached;
+    }
+    public function isAttachedAssigned(): bool
+    {
+        return $this->attachedAssigned;
+    }
+    public function writeAttachedTo(mixed $att): void
+    {
+        if ($this->attachedAssigned) {
+            $att->attached($this->attached);
+        }
+    }
+    public function readAttachedFrom(mixed $att): void
+    {
+        if ($att->isAttachedAssigned()) {
+            $attached = $att->getAttached();
+            $this->attached($attached);
+        }
     }
     public function unsetAttached(): static
     {
-        $this->attached = null;
         $this->attachedAssigned = false;
         return $this;
     }

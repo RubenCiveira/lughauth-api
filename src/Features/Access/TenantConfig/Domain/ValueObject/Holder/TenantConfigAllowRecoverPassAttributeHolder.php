@@ -25,11 +25,27 @@ trait TenantConfigAllowRecoverPassAttributeHolder
     }
     public function isAllowRecoverPass(): ?bool
     {
-        return is_a($this->allowRecoverPass, TenantConfigAllowRecoverPassVO::class) ? $this->allowRecoverPass?->value() : $this->allowRecoverPass;
+        return $this->allowRecoverPass instanceof TenantConfigAllowRecoverPassVO ? $this->allowRecoverPass->value() : $this->allowRecoverPass;
+    }
+    public function isAllowRecoverPassAssigned(): bool
+    {
+        return $this->allowRecoverPassAssigned;
+    }
+    public function writeAllowRecoverPassTo(mixed $att): void
+    {
+        if ($this->allowRecoverPassAssigned) {
+            $att->allowRecoverPass($this->allowRecoverPass);
+        }
+    }
+    public function readAllowRecoverPassFrom(mixed $att): void
+    {
+        if ($att->isAllowRecoverPassAssigned()) {
+            $allowRecoverPass = $att->getAllowRecoverPass();
+            $this->allowRecoverPass($allowRecoverPass);
+        }
     }
     public function unsetAllowRecoverPass(): static
     {
-        $this->allowRecoverPass = null;
         $this->allowRecoverPassAssigned = false;
         return $this;
     }

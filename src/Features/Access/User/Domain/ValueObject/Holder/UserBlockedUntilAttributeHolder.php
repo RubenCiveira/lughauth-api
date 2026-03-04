@@ -25,11 +25,27 @@ trait UserBlockedUntilAttributeHolder
     }
     public function getBlockedUntil(): ?\DateTimeImmutable
     {
-        return is_a($this->blockedUntil, UserBlockedUntilVO::class) ? $this->blockedUntil?->value() : $this->blockedUntil;
+        return $this->blockedUntil instanceof UserBlockedUntilVO ? $this->blockedUntil->value() : $this->blockedUntil;
+    }
+    public function isBlockedUntilAssigned(): bool
+    {
+        return $this->blockedUntilAssigned;
+    }
+    public function writeBlockedUntilTo(mixed $att): void
+    {
+        if ($this->blockedUntilAssigned) {
+            $att->blockedUntil($this->blockedUntil);
+        }
+    }
+    public function readBlockedUntilFrom(mixed $att): void
+    {
+        if ($att->isBlockedUntilAssigned()) {
+            $blockedUntil = $att->getBlockedUntil();
+            $this->blockedUntil($blockedUntil);
+        }
     }
     public function unsetBlockedUntil(): static
     {
-        $this->blockedUntil = null;
         $this->blockedUntilAssigned = false;
         return $this;
     }

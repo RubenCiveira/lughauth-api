@@ -29,7 +29,7 @@ class TrustedClientAllowedRedirectsUrlVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientAllowedRedirectsUrlVO
     {
-        if (is_a($value, TrustedClientAllowedRedirectsUrlVO::class)) {
+        if ($value instanceof TrustedClientAllowedRedirectsUrlVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {

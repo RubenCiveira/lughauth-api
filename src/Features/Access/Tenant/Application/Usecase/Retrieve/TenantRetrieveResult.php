@@ -40,43 +40,27 @@ class TenantRetrieveResult
     public function __construct(TenantAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->name($att->getNameOrDefault(null));
-            $this->root($att->getRootOrDefault(null));
-            $this->domain($att->getDomainOrDefault(null));
-            $this->enabled($att->getEnabledOrDefault(null));
-            $this->markForDelete($att->getMarkForDeleteOrDefault(null));
-            $this->markForDeleteTime($att->getMarkForDeleteTimeOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readNameFrom($att);
+            $this->readRootFrom($att);
+            $this->readDomainFrom($att);
+            $this->readEnabledFrom($att);
+            $this->readMarkForDeleteFrom($att);
+            $this->readMarkForDeleteTimeFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): TenantAttributes
     {
         $att = new TenantAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->nameAssigned) {
-            $att->name($this->name);
-        }
-        if ($this->rootAssigned) {
-            $att->root($this->root);
-        }
-        if ($this->domainAssigned) {
-            $att->domain($this->domain);
-        }
-        if ($this->enabledAssigned) {
-            $att->enabled($this->enabled);
-        }
-        if ($this->markForDeleteAssigned) {
-            $att->markForDelete($this->markForDelete);
-        }
-        if ($this->markForDeleteTimeAssigned) {
-            $att->markForDeleteTime($this->markForDeleteTime);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeNameTo($att);
+        $this->writeRootTo($att);
+        $this->writeDomainTo($att);
+        $this->writeEnabledTo($att);
+        $this->writeMarkForDeleteTo($att);
+        $this->writeMarkForDeleteTimeTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

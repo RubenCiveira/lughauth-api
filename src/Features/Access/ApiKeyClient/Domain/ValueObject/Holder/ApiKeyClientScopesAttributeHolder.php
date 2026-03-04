@@ -25,11 +25,27 @@ trait ApiKeyClientScopesAttributeHolder
     }
     public function getScopes(): ?string
     {
-        return is_a($this->scopes, ApiKeyClientScopesVO::class) ? $this->scopes?->value() : $this->scopes;
+        return $this->scopes instanceof ApiKeyClientScopesVO ? $this->scopes->value() : $this->scopes;
+    }
+    public function isScopesAssigned(): bool
+    {
+        return $this->scopesAssigned;
+    }
+    public function writeScopesTo(mixed $att): void
+    {
+        if ($this->scopesAssigned) {
+            $att->scopes($this->scopes);
+        }
+    }
+    public function readScopesFrom(mixed $att): void
+    {
+        if ($att->isScopesAssigned()) {
+            $scopes = $att->getScopes();
+            $this->scopes($scopes);
+        }
     }
     public function unsetScopes(): static
     {
-        $this->scopes = null;
         $this->scopesAssigned = false;
         return $this;
     }

@@ -14,11 +14,16 @@ trait UserAcceptedTermnsOfUseConditionsAttributeHolder
     protected UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef|null $conditions = null;
     protected bool $conditionsAssigned = false;
 
-    public function getConditionsOrDefault(?UserAcceptedTermnsOfUseConditionsVO $conditions): ?UserAcceptedTermnsOfUseConditionsVO
+    public function getConditionsOrDefault(UserAcceptedTermnsOfUseConditionsVO $conditions): UserAcceptedTermnsOfUseConditionsVO
     {
-        return $this->conditionsAssigned ? ($this->conditions !== null ? UserAcceptedTermnsOfUseConditionsVO::from($this->conditions) : null) : $conditions;
+        if ($this->conditionsAssigned) {
+            \assert(null !== $this->conditions);
+            return UserAcceptedTermnsOfUseConditionsVO::from($this->conditions);
+        } else {
+            return $conditions;
+        }
     }
-    public function conditions(UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef|null $conditions): static
+    public function conditions(UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef $conditions): static
     {
         $this->conditions = $conditions;
         $this->conditionsAssigned = true;
@@ -26,11 +31,29 @@ trait UserAcceptedTermnsOfUseConditionsAttributeHolder
     }
     public function getConditions(): ?TenantTermsOfUseRef
     {
-        return is_a($this->conditions, UserAcceptedTermnsOfUseConditionsVO::class) ? $this->conditions->value() : $this->conditions;
+        return $this->conditions instanceof UserAcceptedTermnsOfUseConditionsVO ? $this->conditions->value() : $this->conditions;
+    }
+    public function isConditionsAssigned(): bool
+    {
+        return $this->conditionsAssigned;
+    }
+    public function writeConditionsTo(mixed $att): void
+    {
+        if ($this->conditionsAssigned) {
+            \assert(null !== $this->conditions);
+            $att->conditions($this->conditions);
+        }
+    }
+    public function readConditionsFrom(mixed $att): void
+    {
+        if ($att->isConditionsAssigned()) {
+            $conditions = $att->getConditions();
+            \assert(null != $conditions);
+            $this->conditions($conditions);
+        }
     }
     public function unsetConditions(): static
     {
-        $this->conditions = null;
         $this->conditionsAssigned = false;
         return $this;
     }

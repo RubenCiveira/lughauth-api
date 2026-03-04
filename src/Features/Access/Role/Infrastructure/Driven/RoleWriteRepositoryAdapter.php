@@ -47,7 +47,7 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
             $last = end($values);
             return new RoleSlide(function (RoleSlide $slide, ?RoleCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new RoleCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RoleCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -104,7 +104,6 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('role', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -122,7 +121,6 @@ class RoleWriteRepositoryAdapter implements RoleWriteGateway
         $span = $this->startSpan("Count for Role on adapter");
         try {
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('role', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 
-class ApiKeyClientAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, ApiKeyClientAttributes>
+ */
+class ApiKeyClientAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?ApiKeyClientCursor $cursor,
@@ -23,7 +28,8 @@ class ApiKeyClientAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): ApiKeyClientAttributes
+    #[Override]
+    public function current(): ?ApiKeyClientAttributes
     {
         return parent::current();
     }

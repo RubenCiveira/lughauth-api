@@ -14,11 +14,16 @@ trait PlatformIdentityRolesRoleAttributeHolder
     protected PlatformIdentityRolesRoleVO|RoleRef|null $role = null;
     protected bool $roleAssigned = false;
 
-    public function getRoleOrDefault(?PlatformIdentityRolesRoleVO $role): ?PlatformIdentityRolesRoleVO
+    public function getRoleOrDefault(PlatformIdentityRolesRoleVO $role): PlatformIdentityRolesRoleVO
     {
-        return $this->roleAssigned ? ($this->role !== null ? PlatformIdentityRolesRoleVO::from($this->role) : null) : $role;
+        if ($this->roleAssigned) {
+            \assert(null !== $this->role);
+            return PlatformIdentityRolesRoleVO::from($this->role);
+        } else {
+            return $role;
+        }
     }
-    public function role(PlatformIdentityRolesRoleVO|RoleRef|null $role): static
+    public function role(PlatformIdentityRolesRoleVO|RoleRef $role): static
     {
         $this->role = $role;
         $this->roleAssigned = true;
@@ -26,11 +31,29 @@ trait PlatformIdentityRolesRoleAttributeHolder
     }
     public function getRole(): ?RoleRef
     {
-        return is_a($this->role, PlatformIdentityRolesRoleVO::class) ? $this->role?->value() : $this->role;
+        return $this->role instanceof PlatformIdentityRolesRoleVO ? $this->role->value() : $this->role;
+    }
+    public function isRoleAssigned(): bool
+    {
+        return $this->roleAssigned;
+    }
+    public function writeRoleTo(mixed $att): void
+    {
+        if ($this->roleAssigned) {
+            \assert(null !== $this->role);
+            $att->role($this->role);
+        }
+    }
+    public function readRoleFrom(mixed $att): void
+    {
+        if ($att->isRoleAssigned()) {
+            $role = $att->getRole();
+            \assert(null != $role);
+            $this->role($role);
+        }
     }
     public function unsetRole(): static
     {
-        $this->role = null;
         $this->roleAssigned = false;
         return $this;
     }

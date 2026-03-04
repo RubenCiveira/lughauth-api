@@ -25,11 +25,27 @@ trait UserEmailAttributeHolder
     }
     public function getEmail(): ?string
     {
-        return is_a($this->email, UserEmailVO::class) ? $this->email?->value() : $this->email;
+        return $this->email instanceof UserEmailVO ? $this->email->value() : $this->email;
+    }
+    public function isEmailAssigned(): bool
+    {
+        return $this->emailAssigned;
+    }
+    public function writeEmailTo(mixed $att): void
+    {
+        if ($this->emailAssigned) {
+            $att->email($this->email);
+        }
+    }
+    public function readEmailFrom(mixed $att): void
+    {
+        if ($att->isEmailAssigned()) {
+            $email = $att->getEmail();
+            $this->email($email);
+        }
     }
     public function unsetEmail(): static
     {
-        $this->email = null;
         $this->emailAssigned = false;
         return $this;
     }

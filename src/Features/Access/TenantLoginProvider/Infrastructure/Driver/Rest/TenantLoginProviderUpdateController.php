@@ -96,12 +96,24 @@ class TenantLoginProviderUpdateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantLoginProviderUpdateParams();
-            $value->uid(TenantLoginProviderUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            if (in_array('tenant', array_keys($body))) {
-                $value->tenant(TenantLoginProviderTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
+            $valueUid = TenantLoginProviderUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
             }
-            $value->name(TenantLoginProviderNameVO::tryFrom($body['name'] ?? null, $errorsList));
-            $value->source(TenantLoginProviderSourceVO::tryFrom(isset($body['source']) ? strtoupper($body['source']) : null, $errorsList));
+            if (in_array('tenant', array_keys($body))) {
+                $valueTenant = TenantLoginProviderTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList);
+                if (null !== $valueTenant) {
+                    $value->tenant($valueTenant);
+                }
+            }
+            $valueName = TenantLoginProviderNameVO::tryFrom($body['name'] ?? null, $errorsList);
+            if (null !== $valueName) {
+                $value->name($valueName);
+            }
+            $valueSource = TenantLoginProviderSourceVO::tryFrom(isset($body['source']) ? strtoupper($body['source']) : null, $errorsList);
+            if (null !== $valueSource) {
+                $value->source($valueSource);
+            }
             $value->directAccess(TenantLoginProviderDirectAccessVO::tryFrom($body['directAccess'] ?? null, $errorsList));
             $value->publicKey(TenantLoginProviderPublicKeyVO::tryFrom($body['publicKey'] ?? null, $errorsList));
             $value->privateKey(TenantLoginProviderPrivateKeyVO::tryFrom($body['privateKey'] ?? null, $errorsList));
@@ -111,7 +123,10 @@ class TenantLoginProviderUpdateController
             if ($metadata && strpos($metadata, $preffixMetadata) === 0) {
                 $value->metadata(TenantLoginProviderMetadataVO::tryFromTemporal(base64_decode(substr($metadata, strlen($preffixMetadata))), $errorsList));
             }
-            $value->usersEnabledByDefault(TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($body['usersEnabledByDefault'] ?? null, $errorsList));
+            $valueUsersEnabledByDefault = TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($body['usersEnabledByDefault'] ?? null, $errorsList);
+            if (null !== $valueUsersEnabledByDefault) {
+                $value->usersEnabledByDefault($valueUsersEnabledByDefault);
+            }
             $value->version(TenantLoginProviderVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();

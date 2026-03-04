@@ -14,11 +14,16 @@ trait TenantLoginProviderSourceAttributeHolder
     protected TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions|null $source = null;
     protected bool $sourceAssigned = false;
 
-    public function getSourceOrDefault(?TenantLoginProviderSourceVO $source): ?TenantLoginProviderSourceVO
+    public function getSourceOrDefault(TenantLoginProviderSourceVO $source): TenantLoginProviderSourceVO
     {
-        return $this->sourceAssigned ? ($this->source !== null ? TenantLoginProviderSourceVO::from($this->source) : null) : $source;
+        if ($this->sourceAssigned) {
+            \assert(null !== $this->source);
+            return TenantLoginProviderSourceVO::from($this->source);
+        } else {
+            return $source;
+        }
     }
-    public function source(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions|null $source): static
+    public function source(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $source): static
     {
         $this->source = $source;
         $this->sourceAssigned = true;
@@ -26,11 +31,29 @@ trait TenantLoginProviderSourceAttributeHolder
     }
     public function getSource(): ?TenantLoginProviderSourceOptions
     {
-        return is_a($this->source, TenantLoginProviderSourceVO::class) ? $this->source->value() : $this->source;
+        return $this->source instanceof TenantLoginProviderSourceVO ? $this->source->value() : $this->source;
+    }
+    public function isSourceAssigned(): bool
+    {
+        return $this->sourceAssigned;
+    }
+    public function writeSourceTo(mixed $att): void
+    {
+        if ($this->sourceAssigned) {
+            \assert(null !== $this->source);
+            $att->source($this->source);
+        }
+    }
+    public function readSourceFrom(mixed $att): void
+    {
+        if ($att->isSourceAssigned()) {
+            $source = $att->getSource();
+            \assert(null != $source);
+            $this->source($source);
+        }
     }
     public function unsetSource(): static
     {
-        $this->source = null;
         $this->sourceAssigned = false;
         return $this;
     }

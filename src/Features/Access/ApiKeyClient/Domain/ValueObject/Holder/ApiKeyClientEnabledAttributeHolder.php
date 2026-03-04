@@ -13,11 +13,16 @@ trait ApiKeyClientEnabledAttributeHolder
     protected ApiKeyClientEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?ApiKeyClientEnabledVO $enabled): ?ApiKeyClientEnabledVO
+    public function getEnabledOrDefault(ApiKeyClientEnabledVO $enabled): ApiKeyClientEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? ApiKeyClientEnabledVO::from($this->enabled) : null) : $enabled;
+        if ($this->enabledAssigned) {
+            \assert(null !== $this->enabled);
+            return ApiKeyClientEnabledVO::from($this->enabled);
+        } else {
+            return $enabled;
+        }
     }
-    public function enabled(ApiKeyClientEnabledVO|bool|null $enabled): static
+    public function enabled(ApiKeyClientEnabledVO|bool $enabled): static
     {
         $this->enabled = $enabled;
         $this->enabledAssigned = true;
@@ -25,11 +30,29 @@ trait ApiKeyClientEnabledAttributeHolder
     }
     public function isEnabled(): ?bool
     {
-        return is_a($this->enabled, ApiKeyClientEnabledVO::class) ? $this->enabled->value() : $this->enabled;
+        return $this->enabled instanceof ApiKeyClientEnabledVO ? $this->enabled->value() : $this->enabled;
+    }
+    public function isEnabledAssigned(): bool
+    {
+        return $this->enabledAssigned;
+    }
+    public function writeEnabledTo(mixed $att): void
+    {
+        if ($this->enabledAssigned) {
+            \assert(null !== $this->enabled);
+            $att->enabled($this->enabled);
+        }
+    }
+    public function readEnabledFrom(mixed $att): void
+    {
+        if ($att->isEnabledAssigned()) {
+            $enabled = $att->getEnabled();
+            \assert(null != $enabled);
+            $this->enabled($enabled);
+        }
     }
     public function unsetEnabled(): static
     {
-        $this->enabled = null;
         $this->enabledAssigned = false;
         return $this;
     }

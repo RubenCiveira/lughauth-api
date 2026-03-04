@@ -48,7 +48,7 @@ class UserAcceptedTermnsOfUseReadRepositoryAdapter implements UserAcceptedTermns
             $last = end($values);
             return new UserAcceptedTermnsOfUseSlide(function (UserAcceptedTermnsOfUseFilter $slide, ?UserAcceptedTermnsOfUseCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserAcceptedTermnsOfUseCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAcceptedTermnsOfUseCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

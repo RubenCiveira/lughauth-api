@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeRegisterCodeUrlAttributeHolder
     }
     public function getRegisterCodeUrl(): ?string
     {
-        return is_a($this->registerCodeUrl, UserAccessTemporalCodeRegisterCodeUrlVO::class) ? $this->registerCodeUrl?->value() : $this->registerCodeUrl;
+        return $this->registerCodeUrl instanceof UserAccessTemporalCodeRegisterCodeUrlVO ? $this->registerCodeUrl->value() : $this->registerCodeUrl;
+    }
+    public function isRegisterCodeUrlAssigned(): bool
+    {
+        return $this->registerCodeUrlAssigned;
+    }
+    public function writeRegisterCodeUrlTo(mixed $att): void
+    {
+        if ($this->registerCodeUrlAssigned) {
+            $att->registerCodeUrl($this->registerCodeUrl);
+        }
+    }
+    public function readRegisterCodeUrlFrom(mixed $att): void
+    {
+        if ($att->isRegisterCodeUrlAssigned()) {
+            $registerCodeUrl = $att->getRegisterCodeUrl();
+            $this->registerCodeUrl($registerCodeUrl);
+        }
     }
     public function unsetRegisterCodeUrl(): static
     {
-        $this->registerCodeUrl = null;
         $this->registerCodeUrlAssigned = false;
         return $this;
     }

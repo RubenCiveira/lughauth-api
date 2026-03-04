@@ -25,11 +25,27 @@ trait UserWellcomeAtAttributeHolder
     }
     public function getWellcomeAt(): ?\DateTimeImmutable
     {
-        return is_a($this->wellcomeAt, UserWellcomeAtVO::class) ? $this->wellcomeAt?->value() : $this->wellcomeAt;
+        return $this->wellcomeAt instanceof UserWellcomeAtVO ? $this->wellcomeAt->value() : $this->wellcomeAt;
+    }
+    public function isWellcomeAtAssigned(): bool
+    {
+        return $this->wellcomeAtAssigned;
+    }
+    public function writeWellcomeAtTo(mixed $att): void
+    {
+        if ($this->wellcomeAtAssigned) {
+            $att->wellcomeAt($this->wellcomeAt);
+        }
+    }
+    public function readWellcomeAtFrom(mixed $att): void
+    {
+        if ($att->isWellcomeAtAssigned()) {
+            $wellcomeAt = $att->getWellcomeAt();
+            $this->wellcomeAt($wellcomeAt);
+        }
     }
     public function unsetWellcomeAt(): static
     {
-        $this->wellcomeAt = null;
         $this->wellcomeAtAssigned = false;
         return $this;
     }

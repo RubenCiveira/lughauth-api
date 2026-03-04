@@ -46,7 +46,7 @@ class ApiKeyClientReadRepositoryAdapter implements ApiKeyClientReadGateway
             $last = end($values);
             return new ApiKeyClientSlide(function (ApiKeyClientFilter $slide, ?ApiKeyClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

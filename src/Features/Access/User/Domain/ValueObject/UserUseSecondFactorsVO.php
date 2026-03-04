@@ -32,7 +32,7 @@ class UserUseSecondFactorsVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserUseSecondFactorsVO
     {
-        if (is_a($value, UserUseSecondFactorsVO::class)) {
+        if ($value instanceof UserUseSecondFactorsVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

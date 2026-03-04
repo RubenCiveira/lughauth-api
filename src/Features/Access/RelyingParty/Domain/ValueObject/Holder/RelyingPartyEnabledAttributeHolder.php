@@ -25,11 +25,27 @@ trait RelyingPartyEnabledAttributeHolder
     }
     public function isEnabled(): ?bool
     {
-        return is_a($this->enabled, RelyingPartyEnabledVO::class) ? $this->enabled?->value() : $this->enabled;
+        return $this->enabled instanceof RelyingPartyEnabledVO ? $this->enabled->value() : $this->enabled;
+    }
+    public function isEnabledAssigned(): bool
+    {
+        return $this->enabledAssigned;
+    }
+    public function writeEnabledTo(mixed $att): void
+    {
+        if ($this->enabledAssigned) {
+            $att->enabled($this->enabled);
+        }
+    }
+    public function readEnabledFrom(mixed $att): void
+    {
+        if ($att->isEnabledAssigned()) {
+            $enabled = $att->getEnabled();
+            $this->enabled($enabled);
+        }
     }
     public function unsetEnabled(): static
     {
-        $this->enabled = null;
         $this->enabledAssigned = false;
         return $this;
     }

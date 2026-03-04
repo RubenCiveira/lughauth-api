@@ -86,10 +86,19 @@ class TenantUpdateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantUpdateParams();
-            $value->uid(TenantUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $value->name(TenantNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $valueUid = TenantUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
+            $valueName = TenantNameVO::tryFrom($body['name'] ?? null, $errorsList);
+            if (null !== $valueName) {
+                $value->name($valueName);
+            }
             $value->root(TenantRootVO::tryFrom($body['root'] ?? null, $errorsList));
-            $value->domain(TenantDomainVO::tryFrom($body['domain'] ?? null, $errorsList));
+            $valueDomain = TenantDomainVO::tryFrom($body['domain'] ?? null, $errorsList);
+            if (null !== $valueDomain) {
+                $value->domain($valueDomain);
+            }
             $value->version(TenantVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();

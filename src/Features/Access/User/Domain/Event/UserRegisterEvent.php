@@ -33,6 +33,6 @@ class UserRegisterEvent extends UserCreateEvent
     #[Override]
     public function original(): array
     {
-        return $this->original->asPublicJson();
+        return [];
     }
 }

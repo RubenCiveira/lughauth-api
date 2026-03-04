@@ -51,7 +51,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
             $last = end($values);
             return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, ?TenantTermsOfUseCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantTermsOfUseCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantTermsOfUseCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -111,7 +111,6 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
                 $entity->commitAttachedWith($this->store);
             }
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -140,7 +139,6 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
                 }
             }
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

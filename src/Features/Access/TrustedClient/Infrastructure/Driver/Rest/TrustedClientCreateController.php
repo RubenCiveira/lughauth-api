@@ -84,10 +84,19 @@ class TrustedClientCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TrustedClientCreateParams();
-            $value->uid(TrustedClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $value->code(TrustedClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
+            $valueUid = TrustedClientUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
+            $valueCode = TrustedClientCodeVO::tryFrom($body['code'] ?? null, $errorsList);
+            if (null !== $valueCode) {
+                $value->code($valueCode);
+            }
             $value->allowAllScopes(TrustedClientAllowAllScopesVO::tryFrom($body['allowAllScopes'] ?? null, $errorsList));
-            $value->publicAllow(TrustedClientPublicAllowVO::tryFrom($body['publicAllow'] ?? null, $errorsList));
+            $valuePublicAllow = TrustedClientPublicAllowVO::tryFrom($body['publicAllow'] ?? null, $errorsList);
+            if (null !== $valuePublicAllow) {
+                $value->publicAllow($valuePublicAllow);
+            }
             $readSecretOauth = $body['secretOauth'] ?? '******';
             if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
                 $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
@@ -115,7 +124,10 @@ class TrustedClientCreateController
                     $errorsList->add(new ConstraintFail('not-array', ['allowedRedirects'], $allowedRedirects, ['array']));
                 }
             }
-            $value->allowedRedirects(TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList)));
+            $valueAllowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList));
+            if (null !== $valueAllowedRedirects) {
+                $value->allowedRedirects($valueAllowedRedirects);
+            }
             $value->version(TrustedClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();

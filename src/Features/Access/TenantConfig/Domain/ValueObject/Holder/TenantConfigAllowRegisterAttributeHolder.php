@@ -25,11 +25,27 @@ trait TenantConfigAllowRegisterAttributeHolder
     }
     public function isAllowRegister(): ?bool
     {
-        return is_a($this->allowRegister, TenantConfigAllowRegisterVO::class) ? $this->allowRegister?->value() : $this->allowRegister;
+        return $this->allowRegister instanceof TenantConfigAllowRegisterVO ? $this->allowRegister->value() : $this->allowRegister;
+    }
+    public function isAllowRegisterAssigned(): bool
+    {
+        return $this->allowRegisterAssigned;
+    }
+    public function writeAllowRegisterTo(mixed $att): void
+    {
+        if ($this->allowRegisterAssigned) {
+            $att->allowRegister($this->allowRegister);
+        }
+    }
+    public function readAllowRegisterFrom(mixed $att): void
+    {
+        if ($att->isAllowRegisterAssigned()) {
+            $allowRegister = $att->getAllowRegister();
+            $this->allowRegister($allowRegister);
+        }
     }
     public function unsetAllowRegister(): static
     {
-        $this->allowRegister = null;
         $this->allowRegisterAssigned = false;
         return $this;
     }

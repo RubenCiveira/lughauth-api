@@ -245,11 +245,11 @@ class TenantTermsOfUseVisibilityService
         try {
             $tenant = $attributes->getTenant();
             if (null !== $tenant && !$this->tenantVisibilityService->checkVisibility($tenant)) {
-                throw new NotFoundException("Unknown Tenant " . $tenant);
+                throw new NotFoundException("Unknown Tenant " . ($tenant->uid() ?? 'no-id'));
             }
             $relyingParty = $attributes->getRelyingParty();
             if (null !== $relyingParty && !$this->relyingPartyVisibilityService->checkVisibility($relyingParty)) {
-                throw new NotFoundException("Unknown RelyingParty " . $relyingParty);
+                throw new NotFoundException("Unknown RelyingParty " . ($relyingParty->uid() ?? 'no-id'));
             }
             return $attributes;
         } catch (Throwable $ex) {

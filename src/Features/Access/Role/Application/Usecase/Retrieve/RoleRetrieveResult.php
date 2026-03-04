@@ -28,27 +28,19 @@ class RoleRetrieveResult
     public function __construct(RoleAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->name($att->getNameOrDefault(null));
-            $this->relyingParty($att->getRelyingPartyOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readNameFrom($att);
+            $this->readRelyingPartyFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): RoleAttributes
     {
         $att = new RoleAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->nameAssigned) {
-            $att->name($this->name);
-        }
-        if ($this->relyingPartyAssigned) {
-            $att->relyingParty($this->relyingParty);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeNameTo($att);
+        $this->writeRelyingPartyTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

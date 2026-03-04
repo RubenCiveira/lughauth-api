@@ -47,7 +47,7 @@ class UserWriteRepositoryAdapter implements UserWriteGateway
             $last = end($values);
             return new UserSlide(function (UserSlide $slide, ?UserCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid : null), $values);
+            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

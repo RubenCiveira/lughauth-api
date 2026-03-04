@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\User\Domain\ValueObject;
 
+use InvalidArgumentException;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
@@ -50,7 +51,7 @@ class UserPasswordVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserPasswordVO
     {
-        if (is_a($value, UserPasswordVO::class)) {
+        if ($value instanceof UserPasswordVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {
@@ -85,7 +86,7 @@ class UserPasswordVO
     private function validateCyphered(string $key): void
     {
         if (strpos($key, 'cyphered://') !== 0) {
-            throw new \InvalidArgumentException($key . ' is not a valid cypered text');
+            throw new InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
     public function value(): string
@@ -96,8 +97,17 @@ class UserPasswordVO
     {
         return substr($this->password, 11);
     }
-    public function plainValueWith(AesCypherService $cypher): ?string
+    public function plainValueWith(AesCypherService $cypher): string
     {
-        return $cypher->decryptForAll(substr($this->password, 11));
+        return $this->decrypt($cypher, $this->password);
+    }
+    public function decrypt(AesCypherService $cypher, string $str): string
+    {
+        $desc = $cypher->decryptForAll(substr($str, 11));
+        if (null == $desc) {
+            throw new InvalidArgumentException('Wrong cypher');
+        } else {
+            return $desc;
+        }
     }
 }

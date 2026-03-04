@@ -47,7 +47,7 @@ class UserAccessTemporalCodeReadRepositoryAdapter implements UserAccessTemporalC
             $last = end($values);
             return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeFilter $slide, ?UserAccessTemporalCodeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

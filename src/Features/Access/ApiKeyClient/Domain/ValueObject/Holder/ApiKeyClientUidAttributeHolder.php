@@ -13,9 +13,14 @@ trait ApiKeyClientUidAttributeHolder
     protected ApiKeyClientUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?ApiKeyClientUidVO $uid): ?ApiKeyClientUidVO
+    public function getUidOrDefault(ApiKeyClientUidVO $uid): ApiKeyClientUidVO
     {
-        return $this->uidAssigned ? ($this->uid !== null ? ApiKeyClientUidVO::from($this->uid) : null) : $uid;
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            return ApiKeyClientUidVO::from($this->uid);
+        } else {
+            return $uid;
+        }
     }
     public function uid(ApiKeyClientUidVO|string|null $uid): static
     {
@@ -25,11 +30,29 @@ trait ApiKeyClientUidAttributeHolder
     }
     public function getUid(): ?string
     {
-        return is_a($this->uid, ApiKeyClientUidVO::class) ? $this->uid->value() : $this->uid;
+        return $this->uid instanceof ApiKeyClientUidVO ? $this->uid->value() : $this->uid;
+    }
+    public function isUidAssigned(): bool
+    {
+        return $this->uidAssigned;
+    }
+    public function writeUidTo(mixed $att): void
+    {
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            $att->uid($this->uid);
+        }
+    }
+    public function readUidFrom(mixed $att): void
+    {
+        if ($att->isUidAssigned()) {
+            $uid = $att->getUid();
+            \assert(null != $uid);
+            $this->uid($uid);
+        }
     }
     public function unsetUid(): static
     {
-        $this->uid = null;
         $this->uidAssigned = false;
         return $this;
     }

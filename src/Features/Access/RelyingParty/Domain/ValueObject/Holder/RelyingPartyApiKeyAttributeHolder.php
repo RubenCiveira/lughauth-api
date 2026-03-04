@@ -13,11 +13,16 @@ trait RelyingPartyApiKeyAttributeHolder
     protected RelyingPartyApiKeyVO|string|null $apiKey = null;
     protected bool $apiKeyAssigned = false;
 
-    public function getApiKeyOrDefault(?RelyingPartyApiKeyVO $apiKey): ?RelyingPartyApiKeyVO
+    public function getApiKeyOrDefault(RelyingPartyApiKeyVO $apiKey): RelyingPartyApiKeyVO
     {
-        return $this->apiKeyAssigned ? ($this->apiKey !== null ? RelyingPartyApiKeyVO::from($this->apiKey) : null) : $apiKey;
+        if ($this->apiKeyAssigned) {
+            \assert(null !== $this->apiKey);
+            return RelyingPartyApiKeyVO::from($this->apiKey);
+        } else {
+            return $apiKey;
+        }
     }
-    public function apiKey(RelyingPartyApiKeyVO|string|null $apiKey): static
+    public function apiKey(RelyingPartyApiKeyVO|string $apiKey): static
     {
         $this->apiKey = $apiKey;
         $this->apiKeyAssigned = true;
@@ -25,11 +30,29 @@ trait RelyingPartyApiKeyAttributeHolder
     }
     public function getApiKey(): ?string
     {
-        return is_a($this->apiKey, RelyingPartyApiKeyVO::class) ? $this->apiKey->value() : $this->apiKey;
+        return $this->apiKey instanceof RelyingPartyApiKeyVO ? $this->apiKey->value() : $this->apiKey;
+    }
+    public function isApiKeyAssigned(): bool
+    {
+        return $this->apiKeyAssigned;
+    }
+    public function writeApiKeyTo(mixed $att): void
+    {
+        if ($this->apiKeyAssigned) {
+            \assert(null !== $this->apiKey);
+            $att->apiKey($this->apiKey);
+        }
+    }
+    public function readApiKeyFrom(mixed $att): void
+    {
+        if ($att->isApiKeyAssigned()) {
+            $apiKey = $att->getApiKey();
+            \assert(null != $apiKey);
+            $this->apiKey($apiKey);
+        }
     }
     public function unsetApiKey(): static
     {
-        $this->apiKey = null;
         $this->apiKeyAssigned = false;
         return $this;
     }

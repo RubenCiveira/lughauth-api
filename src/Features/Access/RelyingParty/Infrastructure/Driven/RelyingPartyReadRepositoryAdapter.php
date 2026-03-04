@@ -46,7 +46,7 @@ class RelyingPartyReadRepositoryAdapter implements RelyingPartyReadGateway
             $last = end($values);
             return new RelyingPartySlide(function (RelyingPartyFilter $slide, ?RelyingPartyCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new RelyingPartyCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RelyingPartyCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -85,9 +85,15 @@ class PlatformIdentityCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new PlatformIdentityCreateParams();
-            $value->uid(PlatformIdentityUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $valueUid = PlatformIdentityUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
             if (in_array('user', array_keys($body))) {
-                $value->user(PlatformIdentityUserVO::tryFrom(isset($body['user']['$ref']) ? new UserRef($body['user']['$ref']) : null, $errorsList));
+                $valueUser = PlatformIdentityUserVO::tryFrom(isset($body['user']['$ref']) ? new UserRef($body['user']['$ref']) : null, $errorsList);
+                if (null !== $valueUser) {
+                    $value->user($valueUser);
+                }
             }
             if (in_array('relyingParty', array_keys($body))) {
                 $value->relyingParty(PlatformIdentityRelyingPartyVO::tryFrom(isset($body['relyingParty']['$ref']) ? new RelyingPartyRef($body['relyingParty']['$ref']) : null, $errorsList));
@@ -118,7 +124,10 @@ class PlatformIdentityCreateController
                     $errorsList->add(new ConstraintFail('not-array', ['roles'], $roles, ['array']));
                 }
             }
-            $value->roles(PlatformIdentityRolesVO::from(PlatformIdentityRolesListRef::fromArray($rolesList)));
+            $valueRoles = PlatformIdentityRolesVO::from(PlatformIdentityRolesListRef::fromArray($rolesList));
+            if (null !== $valueRoles) {
+                $value->roles($valueRoles);
+            }
             $value->version(PlatformIdentityVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();

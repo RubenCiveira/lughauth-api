@@ -83,14 +83,23 @@ class TenantTermsOfUseCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantTermsOfUseCreateParams();
-            $value->uid(TenantTermsOfUseUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $valueUid = TenantTermsOfUseUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
             if (in_array('tenant', array_keys($body))) {
-                $value->tenant(TenantTermsOfUseTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
+                $valueTenant = TenantTermsOfUseTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList);
+                if (null !== $valueTenant) {
+                    $value->tenant($valueTenant);
+                }
             }
             if (in_array('relyingParty', array_keys($body))) {
                 $value->relyingParty(TenantTermsOfUseRelyingPartyVO::tryFrom(isset($body['relyingParty']['$ref']) ? new RelyingPartyRef($body['relyingParty']['$ref']) : null, $errorsList));
             }
-            $value->text(TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList));
+            $valueText = TenantTermsOfUseTextVO::tryFrom($body['text'] ?? null, $errorsList);
+            if (null !== $valueText) {
+                $value->text($valueText);
+            }
             $attached = $body['attached'] ?? null;
             $preffixAttached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/-/temp-attached?temp=';
             if ($attached && strpos($attached, $preffixAttached) === 0) {

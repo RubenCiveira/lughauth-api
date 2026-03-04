@@ -43,7 +43,7 @@ class UserApproveVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserApproveVO
     {
-        if (is_a($value, UserApproveVO::class)) {
+        if ($value instanceof UserApproveVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

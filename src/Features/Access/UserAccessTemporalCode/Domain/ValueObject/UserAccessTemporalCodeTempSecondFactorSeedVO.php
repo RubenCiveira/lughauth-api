@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject;
 
+use InvalidArgumentException;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
@@ -54,7 +55,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAccessTemporalCodeTempSecondFactorSeedVO
     {
-        if (is_a($value, UserAccessTemporalCodeTempSecondFactorSeedVO::class)) {
+        if ($value instanceof UserAccessTemporalCodeTempSecondFactorSeedVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
@@ -90,8 +91,8 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
     }
     private function validateCyphered(?string $key): void
     {
-        if (null !== $key && strpos($key, 'cyphered://') !== 0) {
-            throw new \InvalidArgumentException($key . ' is not a valid cypered text');
+        if (null !== $key &&  strpos($key, 'cyphered://') !== 0) {
+            throw new InvalidArgumentException($key . ' is not a valid cypered text');
         }
     }
     public function value(): ?string
@@ -100,10 +101,19 @@ class UserAccessTemporalCodeTempSecondFactorSeedVO
     }
     public function cypheredValueWith(AesCypherService $cypher): ?string
     {
-        return null !== $this->tempSecondFactorSeed ? substr($this->tempSecondFactorSeed, 11) : null;
+        return null === $this->tempSecondFactorSeed ? null : substr($this->tempSecondFactorSeed, 11);
     }
     public function plainValueWith(AesCypherService $cypher): ?string
     {
-        return null !== $this->tempSecondFactorSeed ? $cypher->decryptForAll(substr($this->tempSecondFactorSeed, 11)) : null;
+        return null === $this->tempSecondFactorSeed ? null : $this->decrypt($cypher, $this->tempSecondFactorSeed);
+    }
+    public function decrypt(AesCypherService $cypher, string $str): string
+    {
+        $desc = $cypher->decryptForAll(substr($str, 11));
+        if (null == $desc) {
+            throw new InvalidArgumentException('Wrong cypher');
+        } else {
+            return $desc;
+        }
     }
 }

@@ -32,7 +32,7 @@ class RelyingPartyEnabledVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?RelyingPartyEnabledVO
     {
-        if (is_a($value, RelyingPartyEnabledVO::class)) {
+        if ($value instanceof RelyingPartyEnabledVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

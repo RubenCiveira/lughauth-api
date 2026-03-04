@@ -28,7 +28,7 @@ class TenantLoginProviderUsersEnabledByDefaultVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderUsersEnabledByDefaultVO
     {
-        if (is_a($value, TenantLoginProviderUsersEnabledByDefaultVO::class)) {
+        if ($value instanceof TenantLoginProviderUsersEnabledByDefaultVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_bool($value)) {

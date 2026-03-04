@@ -13,11 +13,16 @@ trait TenantMarkForDeleteAttributeHolder
     protected TenantMarkForDeleteVO|bool|null $markForDelete = null;
     protected bool $markForDeleteAssigned = false;
 
-    public function getMarkForDeleteOrDefault(?TenantMarkForDeleteVO $markForDelete): ?TenantMarkForDeleteVO
+    public function getMarkForDeleteOrDefault(TenantMarkForDeleteVO $markForDelete): TenantMarkForDeleteVO
     {
-        return $this->markForDeleteAssigned ? ($this->markForDelete !== null ? TenantMarkForDeleteVO::from($this->markForDelete) : null) : $markForDelete;
+        if ($this->markForDeleteAssigned) {
+            \assert(null !== $this->markForDelete);
+            return TenantMarkForDeleteVO::from($this->markForDelete);
+        } else {
+            return $markForDelete;
+        }
     }
-    public function markForDelete(TenantMarkForDeleteVO|bool|null $markForDelete): static
+    public function markForDelete(TenantMarkForDeleteVO|bool $markForDelete): static
     {
         $this->markForDelete = $markForDelete;
         $this->markForDeleteAssigned = true;
@@ -25,11 +30,29 @@ trait TenantMarkForDeleteAttributeHolder
     }
     public function isMarkForDelete(): ?bool
     {
-        return is_a($this->markForDelete, TenantMarkForDeleteVO::class) ? $this->markForDelete->value() : $this->markForDelete;
+        return $this->markForDelete instanceof TenantMarkForDeleteVO ? $this->markForDelete->value() : $this->markForDelete;
+    }
+    public function isMarkForDeleteAssigned(): bool
+    {
+        return $this->markForDeleteAssigned;
+    }
+    public function writeMarkForDeleteTo(mixed $att): void
+    {
+        if ($this->markForDeleteAssigned) {
+            \assert(null !== $this->markForDelete);
+            $att->markForDelete($this->markForDelete);
+        }
+    }
+    public function readMarkForDeleteFrom(mixed $att): void
+    {
+        if ($att->isMarkForDeleteAssigned()) {
+            $markForDelete = $att->getMarkForDelete();
+            \assert(null != $markForDelete);
+            $this->markForDelete($markForDelete);
+        }
     }
     public function unsetMarkForDelete(): static
     {
-        $this->markForDelete = null;
         $this->markForDeleteAssigned = false;
         return $this;
     }

@@ -13,11 +13,16 @@ trait TenantLoginProviderNameAttributeHolder
     protected TenantLoginProviderNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?TenantLoginProviderNameVO $name): ?TenantLoginProviderNameVO
+    public function getNameOrDefault(TenantLoginProviderNameVO $name): TenantLoginProviderNameVO
     {
-        return $this->nameAssigned ? ($this->name !== null ? TenantLoginProviderNameVO::from($this->name) : null) : $name;
+        if ($this->nameAssigned) {
+            \assert(null !== $this->name);
+            return TenantLoginProviderNameVO::from($this->name);
+        } else {
+            return $name;
+        }
     }
-    public function name(TenantLoginProviderNameVO|string|null $name): static
+    public function name(TenantLoginProviderNameVO|string $name): static
     {
         $this->name = $name;
         $this->nameAssigned = true;
@@ -25,11 +30,29 @@ trait TenantLoginProviderNameAttributeHolder
     }
     public function getName(): ?string
     {
-        return is_a($this->name, TenantLoginProviderNameVO::class) ? $this->name->value() : $this->name;
+        return $this->name instanceof TenantLoginProviderNameVO ? $this->name->value() : $this->name;
+    }
+    public function isNameAssigned(): bool
+    {
+        return $this->nameAssigned;
+    }
+    public function writeNameTo(mixed $att): void
+    {
+        if ($this->nameAssigned) {
+            \assert(null !== $this->name);
+            $att->name($this->name);
+        }
+    }
+    public function readNameFrom(mixed $att): void
+    {
+        if ($att->isNameAssigned()) {
+            $name = $att->getName();
+            \assert(null != $name);
+            $this->name($name);
+        }
     }
     public function unsetName(): static
     {
-        $this->name = null;
         $this->nameAssigned = false;
         return $this;
     }

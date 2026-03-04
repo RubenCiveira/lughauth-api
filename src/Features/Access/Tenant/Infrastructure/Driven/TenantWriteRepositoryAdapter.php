@@ -46,7 +46,7 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
             $last = end($values);
             return new TenantSlide(function (TenantSlide $slide, ?TenantCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new TenantCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -103,7 +103,6 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -121,7 +120,6 @@ class TenantWriteRepositoryAdapter implements TenantWriteGateway
         $span = $this->startSpan("Count for Tenant on adapter");
         try {
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

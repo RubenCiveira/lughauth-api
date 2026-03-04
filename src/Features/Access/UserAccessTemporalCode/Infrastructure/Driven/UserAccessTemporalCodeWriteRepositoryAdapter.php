@@ -47,7 +47,7 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
             $last = end($values);
             return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, ?UserAccessTemporalCodeCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -104,7 +104,6 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $created = $this->conn->create($entity, $verify);
-            \assert($created !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $created;
@@ -122,7 +121,6 @@ class UserAccessTemporalCodeWriteRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("Count for User access temporal code on adapter");
         try {
             $updated = $this->conn->update($entity);
-            \assert($updated !== null);
             $this->dispatch($entity);
             $this->changelog->recordChange('user-access-temporal-code', $entity->uid() ?? 'no-id', $entity->asPublicJson());
             return $updated;

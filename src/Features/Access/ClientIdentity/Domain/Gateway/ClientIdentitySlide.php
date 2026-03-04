@@ -5,8 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\ClientIdentity\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\ClientIdentity\Domain\ClientIdentity;
 
+/**
+ * @template-extends ArrayIterator<int, ClientIdentity>
+ */
 class ClientIdentitySlide extends \ArrayIterator
 {
     private readonly ?ClientIdentity $last;
@@ -18,9 +23,11 @@ class ClientIdentitySlide extends \ArrayIterator
     ) {
         parent::__construct($values);
         $this->last = $values ? end($values) : null;
+        $cursor = $this->cursor;
+        $last = $this->last;
         $this->nextCursor = new ClientIdentityCursor(
-            limit: $this->cursor->limit(),
-            sinceUid: $this->last ? $this->last->uid() : null,
+            limit: null === $cursor ? 1000 : $cursor->limit(),
+            sinceUid: null == $last ? null : $last->uid(),
         );
     }
     public function cursor(): ?ClientIdentityCursor
@@ -35,7 +42,8 @@ class ClientIdentitySlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): ClientIdentity
+    #[Override]
+    public function current(): ?ClientIdentity
     {
         return parent::current();
     }
@@ -50,11 +58,12 @@ class ClientIdentitySlide extends \ArrayIterator
         $last = $this->last;
         $next = $this->next;
         $cursor = $this->cursor;
-        if (count($collected) == $cursor->limit()) {
-            while (
-                count($collected) < count($this->values) && $next
-            ) {
-                $nextSlide = ($this->next)($this, $cursor->next($last, $cursor->limit()));
+        if (null !== $cursor && count($collected) == $cursor->limit()) {
+            while (count($collected) < count($this->values) && $next !== null) {
+                if ($last === null) {
+                    break;
+                }
+                $nextSlide = $next($this, $cursor->next($last, $cursor->limit()));
                 if (count($nextSlide)) {
                     $nextFiltered = array_filter($nextSlide->values, $fn);
                     $collected = array_merge($collected, $nextFiltered);

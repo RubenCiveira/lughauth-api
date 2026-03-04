@@ -32,7 +32,7 @@ class TenantVersionVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantVersionVO
     {
-        if (is_a($value, TenantVersionVO::class)) {
+        if ($value instanceof TenantVersionVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

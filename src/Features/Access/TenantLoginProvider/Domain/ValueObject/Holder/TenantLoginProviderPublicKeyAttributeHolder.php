@@ -25,11 +25,27 @@ trait TenantLoginProviderPublicKeyAttributeHolder
     }
     public function getPublicKey(): ?string
     {
-        return is_a($this->publicKey, TenantLoginProviderPublicKeyVO::class) ? $this->publicKey?->value() : $this->publicKey;
+        return $this->publicKey instanceof TenantLoginProviderPublicKeyVO ? $this->publicKey->value() : $this->publicKey;
+    }
+    public function isPublicKeyAssigned(): bool
+    {
+        return $this->publicKeyAssigned;
+    }
+    public function writePublicKeyTo(mixed $att): void
+    {
+        if ($this->publicKeyAssigned) {
+            $att->publicKey($this->publicKey);
+        }
+    }
+    public function readPublicKeyFrom(mixed $att): void
+    {
+        if ($att->isPublicKeyAssigned()) {
+            $publicKey = $att->getPublicKey();
+            $this->publicKey($publicKey);
+        }
     }
     public function unsetPublicKey(): static
     {
-        $this->publicKey = null;
         $this->publicKeyAssigned = false;
         return $this;
     }

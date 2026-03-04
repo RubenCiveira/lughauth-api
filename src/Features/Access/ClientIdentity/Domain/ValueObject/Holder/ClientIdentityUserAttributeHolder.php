@@ -14,11 +14,16 @@ trait ClientIdentityUserAttributeHolder
     protected ClientIdentityUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(?ClientIdentityUserVO $user): ?ClientIdentityUserVO
+    public function getUserOrDefault(ClientIdentityUserVO $user): ClientIdentityUserVO
     {
-        return $this->userAssigned ? ($this->user !== null ? ClientIdentityUserVO::from($this->user) : null) : $user;
+        if ($this->userAssigned) {
+            \assert(null !== $this->user);
+            return ClientIdentityUserVO::from($this->user);
+        } else {
+            return $user;
+        }
     }
-    public function user(ClientIdentityUserVO|UserRef|null $user): static
+    public function user(ClientIdentityUserVO|UserRef $user): static
     {
         $this->user = $user;
         $this->userAssigned = true;
@@ -26,11 +31,29 @@ trait ClientIdentityUserAttributeHolder
     }
     public function getUser(): ?UserRef
     {
-        return is_a($this->user, ClientIdentityUserVO::class) ? $this->user->value() : $this->user;
+        return $this->user instanceof ClientIdentityUserVO ? $this->user->value() : $this->user;
+    }
+    public function isUserAssigned(): bool
+    {
+        return $this->userAssigned;
+    }
+    public function writeUserTo(mixed $att): void
+    {
+        if ($this->userAssigned) {
+            \assert(null !== $this->user);
+            $att->user($this->user);
+        }
+    }
+    public function readUserFrom(mixed $att): void
+    {
+        if ($att->isUserAssigned()) {
+            $user = $att->getUser();
+            \assert(null != $user);
+            $this->user($user);
+        }
     }
     public function unsetUser(): static
     {
-        $this->user = null;
         $this->userAssigned = false;
         return $this;
     }

@@ -123,10 +123,7 @@ class TenantConfig extends TenantConfigRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $tenant = $this->getTenant();
-        if (null !== $tenant) {
-            $data['tenant'] = ['$ref' => $tenant->uid() ];
-        }
+        $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
         $data['innerLabel'] = $this->getInnerLabel();
         $data['forceMfa'] = $this->isForceMfa();
         $data['allowRegister'] = $this->isAllowRegister();

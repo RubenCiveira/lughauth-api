@@ -13,9 +13,14 @@ trait TenantLoginProviderUidAttributeHolder
     protected TenantLoginProviderUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?TenantLoginProviderUidVO $uid): ?TenantLoginProviderUidVO
+    public function getUidOrDefault(TenantLoginProviderUidVO $uid): TenantLoginProviderUidVO
     {
-        return $this->uidAssigned ? ($this->uid !== null ? TenantLoginProviderUidVO::from($this->uid) : null) : $uid;
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            return TenantLoginProviderUidVO::from($this->uid);
+        } else {
+            return $uid;
+        }
     }
     public function uid(TenantLoginProviderUidVO|string|null $uid): static
     {
@@ -25,11 +30,29 @@ trait TenantLoginProviderUidAttributeHolder
     }
     public function getUid(): ?string
     {
-        return is_a($this->uid, TenantLoginProviderUidVO::class) ? $this->uid->value() : $this->uid;
+        return $this->uid instanceof TenantLoginProviderUidVO ? $this->uid->value() : $this->uid;
+    }
+    public function isUidAssigned(): bool
+    {
+        return $this->uidAssigned;
+    }
+    public function writeUidTo(mixed $att): void
+    {
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            $att->uid($this->uid);
+        }
+    }
+    public function readUidFrom(mixed $att): void
+    {
+        if ($att->isUidAssigned()) {
+            $uid = $att->getUid();
+            \assert(null != $uid);
+            $this->uid($uid);
+        }
     }
     public function unsetUid(): static
     {
-        $this->uid = null;
         $this->uidAssigned = false;
         return $this;
     }

@@ -32,7 +32,7 @@ class RoleVersionVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?RoleVersionVO
     {
-        if (is_a($value, RoleVersionVO::class)) {
+        if ($value instanceof RoleVersionVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

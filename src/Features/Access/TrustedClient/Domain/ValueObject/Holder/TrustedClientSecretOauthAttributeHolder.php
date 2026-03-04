@@ -25,11 +25,27 @@ trait TrustedClientSecretOauthAttributeHolder
     }
     public function getSecretOauth(): ?string
     {
-        return is_a($this->secretOauth, TrustedClientSecretOauthVO::class) ? $this->secretOauth?->value() : $this->secretOauth;
+        return $this->secretOauth instanceof TrustedClientSecretOauthVO ? $this->secretOauth->value() : $this->secretOauth;
+    }
+    public function isSecretOauthAssigned(): bool
+    {
+        return $this->secretOauthAssigned;
+    }
+    public function writeSecretOauthTo(mixed $att): void
+    {
+        if ($this->secretOauthAssigned) {
+            $att->secretOauth($this->secretOauth);
+        }
+    }
+    public function readSecretOauthFrom(mixed $att): void
+    {
+        if ($att->isSecretOauthAssigned()) {
+            $secretOauth = $att->getSecretOauth();
+            $this->secretOauth($secretOauth);
+        }
     }
     public function unsetSecretOauth(): static
     {
-        $this->secretOauth = null;
         $this->secretOauthAssigned = false;
         return $this;
     }

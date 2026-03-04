@@ -74,8 +74,14 @@ class RoleCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new RoleCreateParams();
-            $value->uid(RoleUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $value->name(RoleNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            $valueUid = RoleUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
+            $valueName = RoleNameVO::tryFrom($body['name'] ?? null, $errorsList);
+            if (null !== $valueName) {
+                $value->name($valueName);
+            }
             if (in_array('relyingParty', array_keys($body))) {
                 $value->relyingParty(RoleRelyingPartyVO::tryFrom(isset($body['relyingParty']['$ref']) ? new RelyingPartyRef($body['relyingParty']['$ref']) : null, $errorsList));
             }

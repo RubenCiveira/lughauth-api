@@ -13,11 +13,16 @@ trait RoleNameAttributeHolder
     protected RoleNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(?RoleNameVO $name): ?RoleNameVO
+    public function getNameOrDefault(RoleNameVO $name): RoleNameVO
     {
-        return $this->nameAssigned ? ($this->name !== null ? RoleNameVO::from($this->name) : null) : $name;
+        if ($this->nameAssigned) {
+            \assert(null !== $this->name);
+            return RoleNameVO::from($this->name);
+        } else {
+            return $name;
+        }
     }
-    public function name(RoleNameVO|string|null $name): static
+    public function name(RoleNameVO|string $name): static
     {
         $this->name = $name;
         $this->nameAssigned = true;
@@ -25,11 +30,29 @@ trait RoleNameAttributeHolder
     }
     public function getName(): ?string
     {
-        return is_a($this->name, RoleNameVO::class) ? $this->name->value() : $this->name;
+        return $this->name instanceof RoleNameVO ? $this->name->value() : $this->name;
+    }
+    public function isNameAssigned(): bool
+    {
+        return $this->nameAssigned;
+    }
+    public function writeNameTo(mixed $att): void
+    {
+        if ($this->nameAssigned) {
+            \assert(null !== $this->name);
+            $att->name($this->name);
+        }
+    }
+    public function readNameFrom(mixed $att): void
+    {
+        if ($att->isNameAssigned()) {
+            $name = $att->getName();
+            \assert(null != $name);
+            $this->name($name);
+        }
     }
     public function unsetName(): static
     {
-        $this->name = null;
         $this->nameAssigned = false;
         return $this;
     }

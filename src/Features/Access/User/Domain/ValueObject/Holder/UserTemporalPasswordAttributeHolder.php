@@ -25,11 +25,27 @@ trait UserTemporalPasswordAttributeHolder
     }
     public function isTemporalPassword(): ?bool
     {
-        return is_a($this->temporalPassword, UserTemporalPasswordVO::class) ? $this->temporalPassword?->value() : $this->temporalPassword;
+        return $this->temporalPassword instanceof UserTemporalPasswordVO ? $this->temporalPassword->value() : $this->temporalPassword;
+    }
+    public function isTemporalPasswordAssigned(): bool
+    {
+        return $this->temporalPasswordAssigned;
+    }
+    public function writeTemporalPasswordTo(mixed $att): void
+    {
+        if ($this->temporalPasswordAssigned) {
+            $att->temporalPassword($this->temporalPassword);
+        }
+    }
+    public function readTemporalPasswordFrom(mixed $att): void
+    {
+        if ($att->isTemporalPasswordAssigned()) {
+            $temporalPassword = $att->getTemporalPassword();
+            $this->temporalPassword($temporalPassword);
+        }
     }
     public function unsetTemporalPassword(): static
     {
-        $this->temporalPassword = null;
         $this->temporalPasswordAssigned = false;
         return $this;
     }

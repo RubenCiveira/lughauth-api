@@ -122,10 +122,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $tenant = $this->getTenant();
-        if (null !== $tenant) {
-            $data['tenant'] = ['$ref' => $tenant->uid() ];
-        }
+        $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
         $relyingParty = $this->getRelyingParty();
         if (null !== $relyingParty) {
             $data['relyingParty'] = ['$ref' => $relyingParty->uid() ];

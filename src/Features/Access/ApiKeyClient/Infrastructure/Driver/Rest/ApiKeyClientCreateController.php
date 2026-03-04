@@ -74,8 +74,14 @@ class ApiKeyClientCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new ApiKeyClientCreateParams();
-            $value->uid(ApiKeyClientUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            $value->code(ApiKeyClientCodeVO::tryFrom($body['code'] ?? null, $errorsList));
+            $valueUid = ApiKeyClientUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
+            $valueCode = ApiKeyClientCodeVO::tryFrom($body['code'] ?? null, $errorsList);
+            if (null !== $valueCode) {
+                $value->code($valueCode);
+            }
             $value->key(ApiKeyClientKeyVO::tryFrom($body['key'] ?? null, $errorsList));
             $value->scopes(ApiKeyClientScopesVO::tryFrom($body['scopes'] ?? null, $errorsList));
             $value->version(ApiKeyClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));

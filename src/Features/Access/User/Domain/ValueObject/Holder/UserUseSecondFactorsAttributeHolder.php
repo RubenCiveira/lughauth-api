@@ -25,11 +25,27 @@ trait UserUseSecondFactorsAttributeHolder
     }
     public function isUseSecondFactors(): ?bool
     {
-        return is_a($this->useSecondFactors, UserUseSecondFactorsVO::class) ? $this->useSecondFactors?->value() : $this->useSecondFactors;
+        return $this->useSecondFactors instanceof UserUseSecondFactorsVO ? $this->useSecondFactors->value() : $this->useSecondFactors;
+    }
+    public function isUseSecondFactorsAssigned(): bool
+    {
+        return $this->useSecondFactorsAssigned;
+    }
+    public function writeUseSecondFactorsTo(mixed $att): void
+    {
+        if ($this->useSecondFactorsAssigned) {
+            $att->useSecondFactors($this->useSecondFactors);
+        }
+    }
+    public function readUseSecondFactorsFrom(mixed $att): void
+    {
+        if ($att->isUseSecondFactorsAssigned()) {
+            $useSecondFactors = $att->getUseSecondFactors();
+            $this->useSecondFactors($useSecondFactors);
+        }
     }
     public function unsetUseSecondFactors(): static
     {
-        $this->useSecondFactors = null;
         $this->useSecondFactorsAssigned = false;
         return $this;
     }

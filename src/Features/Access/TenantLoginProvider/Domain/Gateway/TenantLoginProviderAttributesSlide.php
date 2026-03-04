@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
 
-class TenantLoginProviderAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, TenantLoginProviderAttributes>
+ */
+class TenantLoginProviderAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?TenantLoginProviderCursor $cursor,
@@ -23,7 +28,8 @@ class TenantLoginProviderAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): TenantLoginProviderAttributes
+    #[Override]
+    public function current(): ?TenantLoginProviderAttributes
     {
         return parent::current();
     }

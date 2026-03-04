@@ -89,9 +89,15 @@ class ClientIdentityUpdateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new ClientIdentityUpdateParams();
-            $value->uid(ClientIdentityUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $valueUid = ClientIdentityUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
             if (in_array('user', array_keys($body))) {
-                $value->user(ClientIdentityUserVO::tryFrom(isset($body['user']['$ref']) ? new UserRef($body['user']['$ref']) : null, $errorsList));
+                $valueUser = ClientIdentityUserVO::tryFrom(isset($body['user']['$ref']) ? new UserRef($body['user']['$ref']) : null, $errorsList);
+                if (null !== $valueUser) {
+                    $value->user($valueUser);
+                }
             }
             if (in_array('relyingParty', array_keys($body))) {
                 $value->relyingParty(ClientIdentityRelyingPartyVO::tryFrom(isset($body['relyingParty']['$ref']) ? new RelyingPartyRef($body['relyingParty']['$ref']) : null, $errorsList));

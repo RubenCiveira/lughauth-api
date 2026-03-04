@@ -25,11 +25,27 @@ trait TenantConfigRecoverPassEmailAttributeHolder
     }
     public function getRecoverPassEmail(): ?string
     {
-        return is_a($this->recoverPassEmail, TenantConfigRecoverPassEmailVO::class) ? $this->recoverPassEmail?->value() : $this->recoverPassEmail;
+        return $this->recoverPassEmail instanceof TenantConfigRecoverPassEmailVO ? $this->recoverPassEmail->value() : $this->recoverPassEmail;
+    }
+    public function isRecoverPassEmailAssigned(): bool
+    {
+        return $this->recoverPassEmailAssigned;
+    }
+    public function writeRecoverPassEmailTo(mixed $att): void
+    {
+        if ($this->recoverPassEmailAssigned) {
+            $att->recoverPassEmail($this->recoverPassEmail);
+        }
+    }
+    public function readRecoverPassEmailFrom(mixed $att): void
+    {
+        if ($att->isRecoverPassEmailAssigned()) {
+            $recoverPassEmail = $att->getRecoverPassEmail();
+            $this->recoverPassEmail($recoverPassEmail);
+        }
     }
     public function unsetRecoverPassEmail(): static
     {
-        $this->recoverPassEmail = null;
         $this->recoverPassEmailAssigned = false;
         return $this;
     }

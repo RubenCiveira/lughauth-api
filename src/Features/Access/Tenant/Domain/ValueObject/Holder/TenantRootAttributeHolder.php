@@ -25,11 +25,27 @@ trait TenantRootAttributeHolder
     }
     public function isRoot(): ?bool
     {
-        return is_a($this->root, TenantRootVO::class) ? $this->root?->value() : $this->root;
+        return $this->root instanceof TenantRootVO ? $this->root->value() : $this->root;
+    }
+    public function isRootAssigned(): bool
+    {
+        return $this->rootAssigned;
+    }
+    public function writeRootTo(mixed $att): void
+    {
+        if ($this->rootAssigned) {
+            $att->root($this->root);
+        }
+    }
+    public function readRootFrom(mixed $att): void
+    {
+        if ($att->isRootAssigned()) {
+            $root = $att->getRoot();
+            $this->root($root);
+        }
     }
     public function unsetRoot(): static
     {
-        $this->root = null;
         $this->rootAssigned = false;
         return $this;
     }

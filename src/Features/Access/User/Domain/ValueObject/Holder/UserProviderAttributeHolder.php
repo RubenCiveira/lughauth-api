@@ -25,11 +25,27 @@ trait UserProviderAttributeHolder
     }
     public function getProvider(): ?string
     {
-        return is_a($this->provider, UserProviderVO::class) ? $this->provider?->value() : $this->provider;
+        return $this->provider instanceof UserProviderVO ? $this->provider->value() : $this->provider;
+    }
+    public function isProviderAssigned(): bool
+    {
+        return $this->providerAssigned;
+    }
+    public function writeProviderTo(mixed $att): void
+    {
+        if ($this->providerAssigned) {
+            $att->provider($this->provider);
+        }
+    }
+    public function readProviderFrom(mixed $att): void
+    {
+        if ($att->isProviderAssigned()) {
+            $provider = $att->getProvider();
+            $this->provider($provider);
+        }
     }
     public function unsetProvider(): static
     {
-        $this->provider = null;
         $this->providerAssigned = false;
         return $this;
     }

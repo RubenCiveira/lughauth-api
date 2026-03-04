@@ -47,7 +47,7 @@ class UserReadRepositoryAdapter implements UserReadGateway
             $last = end($values);
             return new UserSlide(function (UserFilter $slide, ?UserCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

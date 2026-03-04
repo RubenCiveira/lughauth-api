@@ -25,11 +25,27 @@ trait ClientIdentityRolesAttributeHolder
     }
     public function getRoles(): ?string
     {
-        return is_a($this->roles, ClientIdentityRolesVO::class) ? $this->roles?->value() : $this->roles;
+        return $this->roles instanceof ClientIdentityRolesVO ? $this->roles->value() : $this->roles;
+    }
+    public function isRolesAssigned(): bool
+    {
+        return $this->rolesAssigned;
+    }
+    public function writeRolesTo(mixed $att): void
+    {
+        if ($this->rolesAssigned) {
+            $att->roles($this->roles);
+        }
+    }
+    public function readRolesFrom(mixed $att): void
+    {
+        if ($att->isRolesAssigned()) {
+            $roles = $att->getRoles();
+            $this->roles($roles);
+        }
     }
     public function unsetRoles(): static
     {
-        $this->roles = null;
         $this->rolesAssigned = false;
         return $this;
     }

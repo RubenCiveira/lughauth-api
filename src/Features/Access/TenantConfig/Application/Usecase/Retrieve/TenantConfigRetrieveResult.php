@@ -55,63 +55,37 @@ class TenantConfigRetrieveResult
     public function __construct(TenantConfigAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->tenant($att->getTenantOrDefault(null));
-            $this->innerLabel($att->getInnerLabelOrDefault(null));
-            $this->forceMfa($att->getForceMfaOrDefault(null));
-            $this->allowRegister($att->getAllowRegisterOrDefault(null));
-            $this->enableRegisterUsers($att->getEnableRegisterUsersOrDefault(null));
-            $this->wellcomeEmail($att->getWellcomeEmailOrDefault(null));
-            $this->registerdEmail($att->getRegisterdEmailOrDefault(null));
-            $this->disabledUserEmail($att->getDisabledUserEmailOrDefault(null));
-            $this->enabledUserEmail($att->getEnabledUserEmailOrDefault(null));
-            $this->allowRecoverPass($att->getAllowRecoverPassOrDefault(null));
-            $this->recoverPassEmail($att->getRecoverPassEmailOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readTenantFrom($att);
+            $this->readInnerLabelFrom($att);
+            $this->readForceMfaFrom($att);
+            $this->readAllowRegisterFrom($att);
+            $this->readEnableRegisterUsersFrom($att);
+            $this->readWellcomeEmailFrom($att);
+            $this->readRegisterdEmailFrom($att);
+            $this->readDisabledUserEmailFrom($att);
+            $this->readEnabledUserEmailFrom($att);
+            $this->readAllowRecoverPassFrom($att);
+            $this->readRecoverPassEmailFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): TenantConfigAttributes
     {
         $att = new TenantConfigAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->tenantAssigned) {
-            $att->tenant($this->tenant);
-        }
-        if ($this->innerLabelAssigned) {
-            $att->innerLabel($this->innerLabel);
-        }
-        if ($this->forceMfaAssigned) {
-            $att->forceMfa($this->forceMfa);
-        }
-        if ($this->allowRegisterAssigned) {
-            $att->allowRegister($this->allowRegister);
-        }
-        if ($this->enableRegisterUsersAssigned) {
-            $att->enableRegisterUsers($this->enableRegisterUsers);
-        }
-        if ($this->wellcomeEmailAssigned) {
-            $att->wellcomeEmail($this->wellcomeEmail);
-        }
-        if ($this->registerdEmailAssigned) {
-            $att->registerdEmail($this->registerdEmail);
-        }
-        if ($this->disabledUserEmailAssigned) {
-            $att->disabledUserEmail($this->disabledUserEmail);
-        }
-        if ($this->enabledUserEmailAssigned) {
-            $att->enabledUserEmail($this->enabledUserEmail);
-        }
-        if ($this->allowRecoverPassAssigned) {
-            $att->allowRecoverPass($this->allowRecoverPass);
-        }
-        if ($this->recoverPassEmailAssigned) {
-            $att->recoverPassEmail($this->recoverPassEmail);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeTenantTo($att);
+        $this->writeInnerLabelTo($att);
+        $this->writeForceMfaTo($att);
+        $this->writeAllowRegisterTo($att);
+        $this->writeEnableRegisterUsersTo($att);
+        $this->writeWellcomeEmailTo($att);
+        $this->writeRegisterdEmailTo($att);
+        $this->writeDisabledUserEmailTo($att);
+        $this->writeEnabledUserEmailTo($att);
+        $this->writeAllowRecoverPassTo($att);
+        $this->writeRecoverPassEmailTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

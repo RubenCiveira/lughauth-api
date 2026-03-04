@@ -25,11 +25,27 @@ trait TenantConfigEnableRegisterUsersAttributeHolder
     }
     public function isEnableRegisterUsers(): ?bool
     {
-        return is_a($this->enableRegisterUsers, TenantConfigEnableRegisterUsersVO::class) ? $this->enableRegisterUsers?->value() : $this->enableRegisterUsers;
+        return $this->enableRegisterUsers instanceof TenantConfigEnableRegisterUsersVO ? $this->enableRegisterUsers->value() : $this->enableRegisterUsers;
+    }
+    public function isEnableRegisterUsersAssigned(): bool
+    {
+        return $this->enableRegisterUsersAssigned;
+    }
+    public function writeEnableRegisterUsersTo(mixed $att): void
+    {
+        if ($this->enableRegisterUsersAssigned) {
+            $att->enableRegisterUsers($this->enableRegisterUsers);
+        }
+    }
+    public function readEnableRegisterUsersFrom(mixed $att): void
+    {
+        if ($att->isEnableRegisterUsersAssigned()) {
+            $enableRegisterUsers = $att->getEnableRegisterUsers();
+            $this->enableRegisterUsers($enableRegisterUsers);
+        }
     }
     public function unsetEnableRegisterUsers(): static
     {
-        $this->enableRegisterUsers = null;
         $this->enableRegisterUsersAssigned = false;
         return $this;
     }

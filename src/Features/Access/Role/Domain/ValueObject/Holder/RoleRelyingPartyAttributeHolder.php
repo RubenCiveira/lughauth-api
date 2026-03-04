@@ -26,11 +26,27 @@ trait RoleRelyingPartyAttributeHolder
     }
     public function getRelyingParty(): ?RelyingPartyRef
     {
-        return is_a($this->relyingParty, RoleRelyingPartyVO::class) ? $this->relyingParty?->value() : $this->relyingParty;
+        return $this->relyingParty instanceof RoleRelyingPartyVO ? $this->relyingParty->value() : $this->relyingParty;
+    }
+    public function isRelyingPartyAssigned(): bool
+    {
+        return $this->relyingPartyAssigned;
+    }
+    public function writeRelyingPartyTo(mixed $att): void
+    {
+        if ($this->relyingPartyAssigned) {
+            $att->relyingParty($this->relyingParty);
+        }
+    }
+    public function readRelyingPartyFrom(mixed $att): void
+    {
+        if ($att->isRelyingPartyAssigned()) {
+            $relyingParty = $att->getRelyingParty();
+            $this->relyingParty($relyingParty);
+        }
     }
     public function unsetRelyingParty(): static
     {
-        $this->relyingParty = null;
         $this->relyingPartyAssigned = false;
         return $this;
     }

@@ -5,8 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Tenant\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 
+/**
+ * @template-extends ArrayIterator<int, Tenant>
+ */
 class TenantSlide extends \ArrayIterator
 {
     private readonly ?Tenant $last;
@@ -18,11 +23,13 @@ class TenantSlide extends \ArrayIterator
     ) {
         parent::__construct($values);
         $this->last = $values ? end($values) : null;
+        $cursor = $this->cursor;
+        $last = $this->last;
         $this->nextCursor = new TenantCursor(
-            limit: $this->cursor->limit(),
-            sinceUid: $this->last ? $this->last->uid() : null,
-            sinceName: $this->last ? $this->last->getName() : null,
-            sinceDomain: $this->last ? $this->last->getDomain() : null,
+            limit: null === $cursor ? 1000 : $cursor->limit(),
+            sinceUid: null == $last ? null : $last->uid(),
+            sinceName: null === $last ? null : $last->getName(),
+            sinceDomain: null === $last ? null : $last->getDomain(),
         );
     }
     public function cursor(): ?TenantCursor
@@ -37,7 +44,8 @@ class TenantSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): Tenant
+    #[Override]
+    public function current(): ?Tenant
     {
         return parent::current();
     }
@@ -52,11 +60,12 @@ class TenantSlide extends \ArrayIterator
         $last = $this->last;
         $next = $this->next;
         $cursor = $this->cursor;
-        if (count($collected) == $cursor->limit()) {
-            while (
-                count($collected) < count($this->values) && $next
-            ) {
-                $nextSlide = ($this->next)($this, $cursor->next($last, $cursor->limit()));
+        if (null !== $cursor && count($collected) == $cursor->limit()) {
+            while (count($collected) < count($this->values) && $next !== null) {
+                if ($last === null) {
+                    break;
+                }
+                $nextSlide = $next($this, $cursor->next($last, $cursor->limit()));
                 if (count($nextSlide)) {
                     $nextFiltered = array_filter($nextSlide->values, $fn);
                     $collected = array_merge($collected, $nextFiltered);

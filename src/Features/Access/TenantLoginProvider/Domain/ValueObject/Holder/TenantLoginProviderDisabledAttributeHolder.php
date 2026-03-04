@@ -25,11 +25,27 @@ trait TenantLoginProviderDisabledAttributeHolder
     }
     public function isDisabled(): ?bool
     {
-        return is_a($this->disabled, TenantLoginProviderDisabledVO::class) ? $this->disabled?->value() : $this->disabled;
+        return $this->disabled instanceof TenantLoginProviderDisabledVO ? $this->disabled->value() : $this->disabled;
+    }
+    public function isDisabledAssigned(): bool
+    {
+        return $this->disabledAssigned;
+    }
+    public function writeDisabledTo(mixed $att): void
+    {
+        if ($this->disabledAssigned) {
+            $att->disabled($this->disabled);
+        }
+    }
+    public function readDisabledFrom(mixed $att): void
+    {
+        if ($att->isDisabledAssigned()) {
+            $disabled = $att->getDisabled();
+            $this->disabled($disabled);
+        }
     }
     public function unsetDisabled(): static
     {
-        $this->disabled = null;
         $this->disabledAssigned = false;
         return $this;
     }

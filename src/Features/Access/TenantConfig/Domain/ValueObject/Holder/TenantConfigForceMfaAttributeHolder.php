@@ -13,11 +13,16 @@ trait TenantConfigForceMfaAttributeHolder
     protected TenantConfigForceMfaVO|bool|null $forceMfa = null;
     protected bool $forceMfaAssigned = false;
 
-    public function getForceMfaOrDefault(?TenantConfigForceMfaVO $forceMfa): ?TenantConfigForceMfaVO
+    public function getForceMfaOrDefault(TenantConfigForceMfaVO $forceMfa): TenantConfigForceMfaVO
     {
-        return $this->forceMfaAssigned ? ($this->forceMfa !== null ? TenantConfigForceMfaVO::from($this->forceMfa) : null) : $forceMfa;
+        if ($this->forceMfaAssigned) {
+            \assert(null !== $this->forceMfa);
+            return TenantConfigForceMfaVO::from($this->forceMfa);
+        } else {
+            return $forceMfa;
+        }
     }
-    public function forceMfa(TenantConfigForceMfaVO|bool|null $forceMfa): static
+    public function forceMfa(TenantConfigForceMfaVO|bool $forceMfa): static
     {
         $this->forceMfa = $forceMfa;
         $this->forceMfaAssigned = true;
@@ -25,11 +30,29 @@ trait TenantConfigForceMfaAttributeHolder
     }
     public function isForceMfa(): ?bool
     {
-        return is_a($this->forceMfa, TenantConfigForceMfaVO::class) ? $this->forceMfa->value() : $this->forceMfa;
+        return $this->forceMfa instanceof TenantConfigForceMfaVO ? $this->forceMfa->value() : $this->forceMfa;
+    }
+    public function isForceMfaAssigned(): bool
+    {
+        return $this->forceMfaAssigned;
+    }
+    public function writeForceMfaTo(mixed $att): void
+    {
+        if ($this->forceMfaAssigned) {
+            \assert(null !== $this->forceMfa);
+            $att->forceMfa($this->forceMfa);
+        }
+    }
+    public function readForceMfaFrom(mixed $att): void
+    {
+        if ($att->isForceMfaAssigned()) {
+            $forceMfa = $att->getForceMfa();
+            \assert(null != $forceMfa);
+            $this->forceMfa($forceMfa);
+        }
     }
     public function unsetForceMfa(): static
     {
-        $this->forceMfa = null;
         $this->forceMfaAssigned = false;
         return $this;
     }

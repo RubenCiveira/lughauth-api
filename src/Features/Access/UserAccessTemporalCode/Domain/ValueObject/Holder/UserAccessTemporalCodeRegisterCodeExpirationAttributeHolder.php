@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeRegisterCodeExpirationAttributeHolder
     }
     public function getRegisterCodeExpiration(): ?\DateTimeImmutable
     {
-        return is_a($this->registerCodeExpiration, UserAccessTemporalCodeRegisterCodeExpirationVO::class) ? $this->registerCodeExpiration?->value() : $this->registerCodeExpiration;
+        return $this->registerCodeExpiration instanceof UserAccessTemporalCodeRegisterCodeExpirationVO ? $this->registerCodeExpiration->value() : $this->registerCodeExpiration;
+    }
+    public function isRegisterCodeExpirationAssigned(): bool
+    {
+        return $this->registerCodeExpirationAssigned;
+    }
+    public function writeRegisterCodeExpirationTo(mixed $att): void
+    {
+        if ($this->registerCodeExpirationAssigned) {
+            $att->registerCodeExpiration($this->registerCodeExpiration);
+        }
+    }
+    public function readRegisterCodeExpirationFrom(mixed $att): void
+    {
+        if ($att->isRegisterCodeExpirationAssigned()) {
+            $registerCodeExpiration = $att->getRegisterCodeExpiration();
+            $this->registerCodeExpiration($registerCodeExpiration);
+        }
     }
     public function unsetRegisterCodeExpiration(): static
     {
-        $this->registerCodeExpiration = null;
         $this->registerCodeExpirationAssigned = false;
         return $this;
     }

@@ -33,7 +33,7 @@ class TenantConfigInnerLabelVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigInnerLabelVO
     {
-        if (is_a($value, TenantConfigInnerLabelVO::class)) {
+        if ($value instanceof TenantConfigInnerLabelVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {

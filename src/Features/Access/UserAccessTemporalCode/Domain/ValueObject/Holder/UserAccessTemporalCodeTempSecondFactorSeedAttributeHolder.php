@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeTempSecondFactorSeedAttributeHolder
     }
     public function getTempSecondFactorSeed(): ?string
     {
-        return is_a($this->tempSecondFactorSeed, UserAccessTemporalCodeTempSecondFactorSeedVO::class) ? $this->tempSecondFactorSeed?->value() : $this->tempSecondFactorSeed;
+        return $this->tempSecondFactorSeed instanceof UserAccessTemporalCodeTempSecondFactorSeedVO ? $this->tempSecondFactorSeed->value() : $this->tempSecondFactorSeed;
+    }
+    public function isTempSecondFactorSeedAssigned(): bool
+    {
+        return $this->tempSecondFactorSeedAssigned;
+    }
+    public function writeTempSecondFactorSeedTo(mixed $att): void
+    {
+        if ($this->tempSecondFactorSeedAssigned) {
+            $att->tempSecondFactorSeed($this->tempSecondFactorSeed);
+        }
+    }
+    public function readTempSecondFactorSeedFrom(mixed $att): void
+    {
+        if ($att->isTempSecondFactorSeedAssigned()) {
+            $tempSecondFactorSeed = $att->getTempSecondFactorSeed();
+            $this->tempSecondFactorSeed($tempSecondFactorSeed);
+        }
     }
     public function unsetTempSecondFactorSeed(): static
     {
-        $this->tempSecondFactorSeed = null;
         $this->tempSecondFactorSeedAssigned = false;
         return $this;
     }

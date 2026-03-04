@@ -13,9 +13,14 @@ trait UserUidAttributeHolder
     protected UserUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(?UserUidVO $uid): ?UserUidVO
+    public function getUidOrDefault(UserUidVO $uid): UserUidVO
     {
-        return $this->uidAssigned ? ($this->uid !== null ? UserUidVO::from($this->uid) : null) : $uid;
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            return UserUidVO::from($this->uid);
+        } else {
+            return $uid;
+        }
     }
     public function uid(UserUidVO|string|null $uid): static
     {
@@ -25,11 +30,29 @@ trait UserUidAttributeHolder
     }
     public function getUid(): ?string
     {
-        return is_a($this->uid, UserUidVO::class) ? $this->uid->value() : $this->uid;
+        return $this->uid instanceof UserUidVO ? $this->uid->value() : $this->uid;
+    }
+    public function isUidAssigned(): bool
+    {
+        return $this->uidAssigned;
+    }
+    public function writeUidTo(mixed $att): void
+    {
+        if ($this->uidAssigned) {
+            \assert(null !== $this->uid);
+            $att->uid($this->uid);
+        }
+    }
+    public function readUidFrom(mixed $att): void
+    {
+        if ($att->isUidAssigned()) {
+            $uid = $att->getUid();
+            \assert(null != $uid);
+            $this->uid($uid);
+        }
     }
     public function unsetUid(): static
     {
-        $this->uid = null;
         $this->uidAssigned = false;
         return $this;
     }

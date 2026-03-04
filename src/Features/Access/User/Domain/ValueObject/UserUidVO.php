@@ -29,7 +29,7 @@ class UserUidVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserUidVO
     {
-        if (is_a($value, UserUidVO::class)) {
+        if ($value instanceof UserUidVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {

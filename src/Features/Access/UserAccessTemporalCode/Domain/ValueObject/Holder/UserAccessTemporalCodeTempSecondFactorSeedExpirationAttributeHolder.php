@@ -25,11 +25,27 @@ trait UserAccessTemporalCodeTempSecondFactorSeedExpirationAttributeHolder
     }
     public function getTempSecondFactorSeedExpiration(): ?\DateTimeImmutable
     {
-        return is_a($this->tempSecondFactorSeedExpiration, UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::class) ? $this->tempSecondFactorSeedExpiration?->value() : $this->tempSecondFactorSeedExpiration;
+        return $this->tempSecondFactorSeedExpiration instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO ? $this->tempSecondFactorSeedExpiration->value() : $this->tempSecondFactorSeedExpiration;
+    }
+    public function isTempSecondFactorSeedExpirationAssigned(): bool
+    {
+        return $this->tempSecondFactorSeedExpirationAssigned;
+    }
+    public function writeTempSecondFactorSeedExpirationTo(mixed $att): void
+    {
+        if ($this->tempSecondFactorSeedExpirationAssigned) {
+            $att->tempSecondFactorSeedExpiration($this->tempSecondFactorSeedExpiration);
+        }
+    }
+    public function readTempSecondFactorSeedExpirationFrom(mixed $att): void
+    {
+        if ($att->isTempSecondFactorSeedExpirationAssigned()) {
+            $tempSecondFactorSeedExpiration = $att->getTempSecondFactorSeedExpiration();
+            $this->tempSecondFactorSeedExpiration($tempSecondFactorSeedExpiration);
+        }
     }
     public function unsetTempSecondFactorSeedExpiration(): static
     {
-        $this->tempSecondFactorSeedExpiration = null;
         $this->tempSecondFactorSeedExpirationAssigned = false;
         return $this;
     }

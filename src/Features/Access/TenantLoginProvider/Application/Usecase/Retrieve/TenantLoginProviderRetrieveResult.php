@@ -52,59 +52,35 @@ class TenantLoginProviderRetrieveResult
     public function __construct(TenantLoginProviderAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->tenant($att->getTenantOrDefault(null));
-            $this->name($att->getNameOrDefault(null));
-            $this->source($att->getSourceOrDefault(null));
-            $this->disabled($att->getDisabledOrDefault(null));
-            $this->directAccess($att->getDirectAccessOrDefault(null));
-            $this->publicKey($att->getPublicKeyOrDefault(null));
-            $this->privateKey($att->getPrivateKeyOrDefault(null));
-            $this->certificate($att->getCertificateOrDefault(null));
-            $this->metadata($att->getMetadataOrDefault(null));
-            $this->usersEnabledByDefault($att->getUsersEnabledByDefaultOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readTenantFrom($att);
+            $this->readNameFrom($att);
+            $this->readSourceFrom($att);
+            $this->readDisabledFrom($att);
+            $this->readDirectAccessFrom($att);
+            $this->readPublicKeyFrom($att);
+            $this->readPrivateKeyFrom($att);
+            $this->readCertificateFrom($att);
+            $this->readMetadataFrom($att);
+            $this->readUsersEnabledByDefaultFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): TenantLoginProviderAttributes
     {
         $att = new TenantLoginProviderAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->tenantAssigned) {
-            $att->tenant($this->tenant);
-        }
-        if ($this->nameAssigned) {
-            $att->name($this->name);
-        }
-        if ($this->sourceAssigned) {
-            $att->source($this->source);
-        }
-        if ($this->disabledAssigned) {
-            $att->disabled($this->disabled);
-        }
-        if ($this->directAccessAssigned) {
-            $att->directAccess($this->directAccess);
-        }
-        if ($this->publicKeyAssigned) {
-            $att->publicKey($this->publicKey);
-        }
-        if ($this->privateKeyAssigned) {
-            $att->privateKey($this->privateKey);
-        }
-        if ($this->certificateAssigned) {
-            $att->certificate($this->certificate);
-        }
-        if ($this->metadataAssigned) {
-            $att->metadata($this->metadata);
-        }
-        if ($this->usersEnabledByDefaultAssigned) {
-            $att->usersEnabledByDefault($this->usersEnabledByDefault);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeTenantTo($att);
+        $this->writeNameTo($att);
+        $this->writeSourceTo($att);
+        $this->writeDisabledTo($att);
+        $this->writeDirectAccessTo($att);
+        $this->writePublicKeyTo($att);
+        $this->writePrivateKeyTo($att);
+        $this->writeCertificateTo($att);
+        $this->writeMetadataTo($att);
+        $this->writeUsersEnabledByDefaultTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

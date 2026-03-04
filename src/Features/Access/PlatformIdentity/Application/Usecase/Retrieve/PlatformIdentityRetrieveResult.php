@@ -34,35 +34,23 @@ class PlatformIdentityRetrieveResult
     public function __construct(PlatformIdentityAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->user($att->getUserOrDefault(null));
-            $this->relyingParty($att->getRelyingPartyOrDefault(null));
-            $this->trustedClient($att->getTrustedClientOrDefault(null));
-            $this->roles($att->getRolesOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readUserFrom($att);
+            $this->readRelyingPartyFrom($att);
+            $this->readTrustedClientFrom($att);
+            $this->readRolesFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): PlatformIdentityAttributes
     {
         $att = new PlatformIdentityAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->userAssigned) {
-            $att->user($this->user);
-        }
-        if ($this->relyingPartyAssigned) {
-            $att->relyingParty($this->relyingParty);
-        }
-        if ($this->trustedClientAssigned) {
-            $att->trustedClient($this->trustedClient);
-        }
-        if ($this->rolesAssigned) {
-            $att->roles($this->roles);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeUserTo($att);
+        $this->writeRelyingPartyTo($att);
+        $this->writeTrustedClientTo($att);
+        $this->writeRolesTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

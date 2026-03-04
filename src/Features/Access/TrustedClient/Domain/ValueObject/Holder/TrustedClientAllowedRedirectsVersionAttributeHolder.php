@@ -25,11 +25,27 @@ trait TrustedClientAllowedRedirectsVersionAttributeHolder
     }
     public function getVersion(): ?int
     {
-        return is_a($this->version, TrustedClientAllowedRedirectsVersionVO::class) ? $this->version?->value() : $this->version;
+        return $this->version instanceof TrustedClientAllowedRedirectsVersionVO ? $this->version->value() : $this->version;
+    }
+    public function isVersionAssigned(): bool
+    {
+        return $this->versionAssigned;
+    }
+    public function writeVersionTo(mixed $att): void
+    {
+        if ($this->versionAssigned) {
+            $att->version($this->version);
+        }
+    }
+    public function readVersionFrom(mixed $att): void
+    {
+        if ($att->isVersionAssigned()) {
+            $version = $att->getVersion();
+            $this->version($version);
+        }
     }
     public function unsetVersion(): static
     {
-        $this->version = null;
         $this->versionAssigned = false;
         return $this;
     }

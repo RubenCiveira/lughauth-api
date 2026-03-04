@@ -25,11 +25,27 @@ trait TenantConfigInnerLabelAttributeHolder
     }
     public function getInnerLabel(): ?string
     {
-        return is_a($this->innerLabel, TenantConfigInnerLabelVO::class) ? $this->innerLabel?->value() : $this->innerLabel;
+        return $this->innerLabel instanceof TenantConfigInnerLabelVO ? $this->innerLabel->value() : $this->innerLabel;
+    }
+    public function isInnerLabelAssigned(): bool
+    {
+        return $this->innerLabelAssigned;
+    }
+    public function writeInnerLabelTo(mixed $att): void
+    {
+        if ($this->innerLabelAssigned) {
+            $att->innerLabel($this->innerLabel);
+        }
+    }
+    public function readInnerLabelFrom(mixed $att): void
+    {
+        if ($att->isInnerLabelAssigned()) {
+            $innerLabel = $att->getInnerLabel();
+            $this->innerLabel($innerLabel);
+        }
     }
     public function unsetInnerLabel(): static
     {
-        $this->innerLabel = null;
         $this->innerLabelAssigned = false;
         return $this;
     }

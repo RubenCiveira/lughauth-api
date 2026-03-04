@@ -14,7 +14,7 @@ trait TrustedClientAllowedRedirectsAttributeHolder
     protected TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects = null;
     protected bool $allowedRedirectsAssigned = false;
 
-    public function getAllowedRedirectsOrDefault(?TrustedClientAllowedRedirectsVO $allowedRedirects): ?TrustedClientAllowedRedirectsVO
+    public function getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO $allowedRedirects): TrustedClientAllowedRedirectsVO
     {
         if ($this->allowedRedirectsAssigned && $allowedRedirects) {
             return TrustedClientAllowedRedirectsVO::from($this->allowedRedirects)->getWithDefaults($allowedRedirects);
@@ -32,11 +32,29 @@ trait TrustedClientAllowedRedirectsAttributeHolder
     }
     public function getAllowedRedirects(): ?TrustedClientAllowedRedirectsListRef
     {
-        return is_a($this->allowedRedirects, TrustedClientAllowedRedirectsVO::class) ? $this->allowedRedirects->value() : $this->allowedRedirects;
+        return $this->allowedRedirects instanceof TrustedClientAllowedRedirectsVO ? $this->allowedRedirects->value() : $this->allowedRedirects;
+    }
+    public function isAllowedRedirectsAssigned(): bool
+    {
+        return $this->allowedRedirectsAssigned;
+    }
+    public function writeAllowedRedirectsTo(mixed $att): void
+    {
+        if ($this->allowedRedirectsAssigned) {
+            \assert(null !== $this->allowedRedirects);
+            $att->allowedRedirects($this->allowedRedirects);
+        }
+    }
+    public function readAllowedRedirectsFrom(mixed $att): void
+    {
+        if ($att->isAllowedRedirectsAssigned()) {
+            $allowedRedirects = $att->getAllowedRedirects();
+            \assert(null != $allowedRedirects);
+            $this->allowedRedirects($allowedRedirects);
+        }
     }
     public function unsetAllowedRedirects(): static
     {
-        $this->allowedRedirects = null;
         $this->allowedRedirectsAssigned = false;
         return $this;
     }

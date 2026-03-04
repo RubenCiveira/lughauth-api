@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 
-class TrustedClientAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, TrustedClientAttributes>
+ */
+class TrustedClientAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?TrustedClientCursor $cursor,
@@ -23,7 +28,8 @@ class TrustedClientAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): TrustedClientAttributes
+    #[Override]
+    public function current(): ?TrustedClientAttributes
     {
         return parent::current();
     }

@@ -83,12 +83,21 @@ class TenantConfigCreateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new TenantConfigCreateParams();
-            $value->uid(TenantConfigUidVO::tryFrom($body['uid'] ?? null, $errorsList));
+            $valueUid = TenantConfigUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
+            }
             if (in_array('tenant', array_keys($body))) {
-                $value->tenant(TenantConfigTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
+                $valueTenant = TenantConfigTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList);
+                if (null !== $valueTenant) {
+                    $value->tenant($valueTenant);
+                }
             }
             $value->innerLabel(TenantConfigInnerLabelVO::tryFrom($body['innerLabel'] ?? null, $errorsList));
-            $value->forceMfa(TenantConfigForceMfaVO::tryFrom($body['forceMfa'] ?? null, $errorsList));
+            $valueForceMfa = TenantConfigForceMfaVO::tryFrom($body['forceMfa'] ?? null, $errorsList);
+            if (null !== $valueForceMfa) {
+                $value->forceMfa($valueForceMfa);
+            }
             $value->allowRegister(TenantConfigAllowRegisterVO::tryFrom($body['allowRegister'] ?? null, $errorsList));
             $value->enableRegisterUsers(TenantConfigEnableRegisterUsersVO::tryFrom($body['enableRegisterUsers'] ?? null, $errorsList));
             $value->wellcomeEmail(TenantConfigWellcomeEmailVO::tryFrom($body['wellcomeEmail'] ?? null, $errorsList));

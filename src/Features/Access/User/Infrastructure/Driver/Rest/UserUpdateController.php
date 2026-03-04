@@ -92,14 +92,26 @@ class UserUpdateController
             $body = is_array($parsed) ? $parsed : get_object_vars($parsed);
             $errorsList = new ConstraintFailList();
             $value = new UserUpdateParams();
-            $value->uid(UserUidVO::tryFrom($body['uid'] ?? null, $errorsList));
-            if (in_array('tenant', array_keys($body))) {
-                $value->tenant(UserTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
+            $valueUid = UserUidVO::tryFrom($body['uid'] ?? null, $errorsList);
+            if (null !== $valueUid) {
+                $value->uid($valueUid);
             }
-            $value->name(UserNameVO::tryFrom($body['name'] ?? null, $errorsList));
+            if (in_array('tenant', array_keys($body))) {
+                $valueTenant = UserTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList);
+                if (null !== $valueTenant) {
+                    $value->tenant($valueTenant);
+                }
+            }
+            $valueName = UserNameVO::tryFrom($body['name'] ?? null, $errorsList);
+            if (null !== $valueName) {
+                $value->name($valueName);
+            }
             $readPassword = $body['password'] ?? '******';
             if (null !== $readPassword && '******' !== $readPassword) {
-                $value->password(UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList));
+                $valuePassword = UserPasswordVO::tryFromPlainText($this->cypherService, $readPassword, $errorsList);
+                if (null !== $valuePassword) {
+                    $value->password($valuePassword);
+                }
             }
             $value->email(UserEmailVO::tryFrom($body['email'] ?? null, $errorsList));
             $value->temporalPassword(UserTemporalPasswordVO::tryFrom($body['temporalPassword'] ?? null, $errorsList));

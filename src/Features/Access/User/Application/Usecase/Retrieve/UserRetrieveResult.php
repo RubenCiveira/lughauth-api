@@ -58,67 +58,39 @@ class UserRetrieveResult
     public function __construct(UserAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->tenant($att->getTenantOrDefault(null));
-            $this->name($att->getNameOrDefault(null));
-            $this->password($att->getPasswordOrDefault(null));
-            $this->email($att->getEmailOrDefault(null));
-            $this->wellcomeAt($att->getWellcomeAtOrDefault(null));
-            $this->enabled($att->getEnabledOrDefault(null));
-            $this->approve($att->getApproveOrDefault(null));
-            $this->temporalPassword($att->getTemporalPasswordOrDefault(null));
-            $this->useSecondFactors($att->getUseSecondFactorsOrDefault(null));
-            $this->secondFactorSeed($att->getSecondFactorSeedOrDefault(null));
-            $this->blockedUntil($att->getBlockedUntilOrDefault(null));
-            $this->provider($att->getProviderOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readTenantFrom($att);
+            $this->readNameFrom($att);
+            $this->readPasswordFrom($att);
+            $this->readEmailFrom($att);
+            $this->readWellcomeAtFrom($att);
+            $this->readEnabledFrom($att);
+            $this->readApproveFrom($att);
+            $this->readTemporalPasswordFrom($att);
+            $this->readUseSecondFactorsFrom($att);
+            $this->readSecondFactorSeedFrom($att);
+            $this->readBlockedUntilFrom($att);
+            $this->readProviderFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): UserAttributes
     {
         $att = new UserAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->tenantAssigned) {
-            $att->tenant($this->tenant);
-        }
-        if ($this->nameAssigned) {
-            $att->name($this->name);
-        }
-        if ($this->passwordAssigned) {
-            $att->password($this->password);
-        }
-        if ($this->emailAssigned) {
-            $att->email($this->email);
-        }
-        if ($this->wellcomeAtAssigned) {
-            $att->wellcomeAt($this->wellcomeAt);
-        }
-        if ($this->enabledAssigned) {
-            $att->enabled($this->enabled);
-        }
-        if ($this->approveAssigned) {
-            $att->approve($this->approve);
-        }
-        if ($this->temporalPasswordAssigned) {
-            $att->temporalPassword($this->temporalPassword);
-        }
-        if ($this->useSecondFactorsAssigned) {
-            $att->useSecondFactors($this->useSecondFactors);
-        }
-        if ($this->secondFactorSeedAssigned) {
-            $att->secondFactorSeed($this->secondFactorSeed);
-        }
-        if ($this->blockedUntilAssigned) {
-            $att->blockedUntil($this->blockedUntil);
-        }
-        if ($this->providerAssigned) {
-            $att->provider($this->provider);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeTenantTo($att);
+        $this->writeNameTo($att);
+        $this->writePasswordTo($att);
+        $this->writeEmailTo($att);
+        $this->writeWellcomeAtTo($att);
+        $this->writeEnabledTo($att);
+        $this->writeApproveTo($att);
+        $this->writeTemporalPasswordTo($att);
+        $this->writeUseSecondFactorsTo($att);
+        $this->writeSecondFactorSeedTo($att);
+        $this->writeBlockedUntilTo($att);
+        $this->writeProviderTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

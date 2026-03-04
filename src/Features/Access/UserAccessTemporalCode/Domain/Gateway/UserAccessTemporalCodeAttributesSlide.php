@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeAttributes;
 
-class UserAccessTemporalCodeAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, UserAccessTemporalCodeAttributes>
+ */
+class UserAccessTemporalCodeAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?UserAccessTemporalCodeCursor $cursor,
@@ -23,7 +28,8 @@ class UserAccessTemporalCodeAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): UserAccessTemporalCodeAttributes
+    #[Override]
+    public function current(): ?UserAccessTemporalCodeAttributes
     {
         return parent::current();
     }

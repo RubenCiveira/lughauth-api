@@ -13,11 +13,16 @@ trait TrustedClientAllowedRedirectsUrlAttributeHolder
     protected TrustedClientAllowedRedirectsUrlVO|string|null $url = null;
     protected bool $urlAssigned = false;
 
-    public function getUrlOrDefault(?TrustedClientAllowedRedirectsUrlVO $url): ?TrustedClientAllowedRedirectsUrlVO
+    public function getUrlOrDefault(TrustedClientAllowedRedirectsUrlVO $url): TrustedClientAllowedRedirectsUrlVO
     {
-        return $this->urlAssigned ? ($this->url !== null ? TrustedClientAllowedRedirectsUrlVO::from($this->url) : null) : $url;
+        if ($this->urlAssigned) {
+            \assert(null !== $this->url);
+            return TrustedClientAllowedRedirectsUrlVO::from($this->url);
+        } else {
+            return $url;
+        }
     }
-    public function url(TrustedClientAllowedRedirectsUrlVO|string|null $url): static
+    public function url(TrustedClientAllowedRedirectsUrlVO|string $url): static
     {
         $this->url = $url;
         $this->urlAssigned = true;
@@ -25,11 +30,29 @@ trait TrustedClientAllowedRedirectsUrlAttributeHolder
     }
     public function getUrl(): ?string
     {
-        return is_a($this->url, TrustedClientAllowedRedirectsUrlVO::class) ? $this->url?->value() : $this->url;
+        return $this->url instanceof TrustedClientAllowedRedirectsUrlVO ? $this->url->value() : $this->url;
+    }
+    public function isUrlAssigned(): bool
+    {
+        return $this->urlAssigned;
+    }
+    public function writeUrlTo(mixed $att): void
+    {
+        if ($this->urlAssigned) {
+            \assert(null !== $this->url);
+            $att->url($this->url);
+        }
+    }
+    public function readUrlFrom(mixed $att): void
+    {
+        if ($att->isUrlAssigned()) {
+            $url = $att->getUrl();
+            \assert(null != $url);
+            $this->url($url);
+        }
     }
     public function unsetUrl(): static
     {
-        $this->url = null;
         $this->urlAssigned = false;
         return $this;
     }

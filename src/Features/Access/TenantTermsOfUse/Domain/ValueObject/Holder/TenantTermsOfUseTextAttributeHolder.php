@@ -13,11 +13,16 @@ trait TenantTermsOfUseTextAttributeHolder
     protected TenantTermsOfUseTextVO|string|null $text = null;
     protected bool $textAssigned = false;
 
-    public function getTextOrDefault(?TenantTermsOfUseTextVO $text): ?TenantTermsOfUseTextVO
+    public function getTextOrDefault(TenantTermsOfUseTextVO $text): TenantTermsOfUseTextVO
     {
-        return $this->textAssigned ? ($this->text !== null ? TenantTermsOfUseTextVO::from($this->text) : null) : $text;
+        if ($this->textAssigned) {
+            \assert(null !== $this->text);
+            return TenantTermsOfUseTextVO::from($this->text);
+        } else {
+            return $text;
+        }
     }
-    public function text(TenantTermsOfUseTextVO|string|null $text): static
+    public function text(TenantTermsOfUseTextVO|string $text): static
     {
         $this->text = $text;
         $this->textAssigned = true;
@@ -25,11 +30,29 @@ trait TenantTermsOfUseTextAttributeHolder
     }
     public function getText(): ?string
     {
-        return is_a($this->text, TenantTermsOfUseTextVO::class) ? $this->text->value() : $this->text;
+        return $this->text instanceof TenantTermsOfUseTextVO ? $this->text->value() : $this->text;
+    }
+    public function isTextAssigned(): bool
+    {
+        return $this->textAssigned;
+    }
+    public function writeTextTo(mixed $att): void
+    {
+        if ($this->textAssigned) {
+            \assert(null !== $this->text);
+            $att->text($this->text);
+        }
+    }
+    public function readTextFrom(mixed $att): void
+    {
+        if ($att->isTextAssigned()) {
+            $text = $att->getText();
+            \assert(null != $text);
+            $this->text($text);
+        }
     }
     public function unsetText(): static
     {
-        $this->text = null;
         $this->textAssigned = false;
         return $this;
     }

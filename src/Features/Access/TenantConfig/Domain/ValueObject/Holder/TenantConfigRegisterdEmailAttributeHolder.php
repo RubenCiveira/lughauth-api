@@ -25,11 +25,27 @@ trait TenantConfigRegisterdEmailAttributeHolder
     }
     public function getRegisterdEmail(): ?string
     {
-        return is_a($this->registerdEmail, TenantConfigRegisterdEmailVO::class) ? $this->registerdEmail?->value() : $this->registerdEmail;
+        return $this->registerdEmail instanceof TenantConfigRegisterdEmailVO ? $this->registerdEmail->value() : $this->registerdEmail;
+    }
+    public function isRegisterdEmailAssigned(): bool
+    {
+        return $this->registerdEmailAssigned;
+    }
+    public function writeRegisterdEmailTo(mixed $att): void
+    {
+        if ($this->registerdEmailAssigned) {
+            $att->registerdEmail($this->registerdEmail);
+        }
+    }
+    public function readRegisterdEmailFrom(mixed $att): void
+    {
+        if ($att->isRegisterdEmailAssigned()) {
+            $registerdEmail = $att->getRegisterdEmail();
+            $this->registerdEmail($registerdEmail);
+        }
     }
     public function unsetRegisterdEmail(): static
     {
-        $this->registerdEmail = null;
         $this->registerdEmailAssigned = false;
         return $this;
     }

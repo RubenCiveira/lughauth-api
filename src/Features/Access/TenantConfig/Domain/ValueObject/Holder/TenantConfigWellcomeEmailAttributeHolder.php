@@ -25,11 +25,27 @@ trait TenantConfigWellcomeEmailAttributeHolder
     }
     public function getWellcomeEmail(): ?string
     {
-        return is_a($this->wellcomeEmail, TenantConfigWellcomeEmailVO::class) ? $this->wellcomeEmail?->value() : $this->wellcomeEmail;
+        return $this->wellcomeEmail instanceof TenantConfigWellcomeEmailVO ? $this->wellcomeEmail->value() : $this->wellcomeEmail;
+    }
+    public function isWellcomeEmailAssigned(): bool
+    {
+        return $this->wellcomeEmailAssigned;
+    }
+    public function writeWellcomeEmailTo(mixed $att): void
+    {
+        if ($this->wellcomeEmailAssigned) {
+            $att->wellcomeEmail($this->wellcomeEmail);
+        }
+    }
+    public function readWellcomeEmailFrom(mixed $att): void
+    {
+        if ($att->isWellcomeEmailAssigned()) {
+            $wellcomeEmail = $att->getWellcomeEmail();
+            $this->wellcomeEmail($wellcomeEmail);
+        }
     }
     public function unsetWellcomeEmail(): static
     {
-        $this->wellcomeEmail = null;
         $this->wellcomeEmailAssigned = false;
         return $this;
     }

@@ -34,35 +34,23 @@ class ApiKeyClientUpdateParams
     public function __construct(ApiKeyClientAttributes|null $att = null)
     {
         if ($att) {
-            $this->uid($att->getUidOrDefault(null));
-            $this->code($att->getCodeOrDefault(null));
-            $this->key($att->getKeyOrDefault(null));
-            $this->enabled($att->getEnabledOrDefault(null));
-            $this->scopes($att->getScopesOrDefault(null));
-            $this->version($att->getVersionOrDefault(null));
+            $this->readUidFrom($att);
+            $this->readCodeFrom($att);
+            $this->readKeyFrom($att);
+            $this->readEnabledFrom($att);
+            $this->readScopesFrom($att);
+            $this->readVersionFrom($att);
         }
     }
     public function toAttributes(): ApiKeyClientAttributes
     {
         $att = new ApiKeyClientAttributes();
-        if ($this->uidAssigned) {
-            $att->uid($this->uid);
-        }
-        if ($this->codeAssigned) {
-            $att->code($this->code);
-        }
-        if ($this->keyAssigned) {
-            $att->key($this->key);
-        }
-        if ($this->enabledAssigned) {
-            $att->enabled($this->enabled);
-        }
-        if ($this->scopesAssigned) {
-            $att->scopes($this->scopes);
-        }
-        if ($this->versionAssigned) {
-            $att->version($this->version);
-        }
+        $this->writeUidTo($att);
+        $this->writeCodeTo($att);
+        $this->writeKeyTo($att);
+        $this->writeEnabledTo($att);
+        $this->writeScopesTo($att);
+        $this->writeVersionTo($att);
         return $att;
     }
     public function unset(string $field): void

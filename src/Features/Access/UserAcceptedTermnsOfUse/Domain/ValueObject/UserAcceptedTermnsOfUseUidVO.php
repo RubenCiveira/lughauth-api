@@ -29,7 +29,7 @@ class UserAcceptedTermnsOfUseUidVO
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseUidVO
     {
-        if (is_a($value, UserAcceptedTermnsOfUseUidVO::class)) {
+        if ($value instanceof UserAcceptedTermnsOfUseUidVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (is_string($value)) {

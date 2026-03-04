@@ -47,7 +47,7 @@ class RoleReadRepositoryAdapter implements RoleReadGateway
             $last = end($values);
             return new RoleSlide(function (RoleFilter $slide, ?RoleCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new RoleCursor($cursor?->limit() ?? 100, $last->uid ?? null), $values);
+            }, new RoleCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

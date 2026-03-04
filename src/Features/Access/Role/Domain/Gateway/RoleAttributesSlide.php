@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\Role\Domain\Gateway;
 
+use Override;
+use ArrayIterator;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 
-class RoleAttributesSlide extends \ArrayIterator
+/**
+ * @template-extends ArrayIterator<int, RoleAttributes>
+ */
+class RoleAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?RoleCursor $cursor,
@@ -23,7 +28,8 @@ class RoleAttributesSlide extends \ArrayIterator
     {
         return $this->values;
     }
-    public function current(): RoleAttributes
+    #[Override]
+    public function current(): ?RoleAttributes
     {
         return parent::current();
     }
