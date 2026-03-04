@@ -239,7 +239,7 @@ class LoginAdapter implements LoginGateway
         $this->platformRolesFromIdentity(new PlatformIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
-                if (!is_string($audience) ) {
+                if (!is_string($audience)) {
                     continue;
                 }
                 $roles[$audience] = $forAll;

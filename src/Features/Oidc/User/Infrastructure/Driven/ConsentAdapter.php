@@ -50,7 +50,6 @@ class ConsentAdapter implements ConsentGateway
         $terms = $this->users->loadTenantTerms($theTenant, $audiences);
         foreach ($terms as $term) {
             if ($term->uid() === $consent->id) {
-                // && $term->getText() === $consent->text
                 $this->storeAccepted($theUser, $term);
             }
         }
