@@ -140,7 +140,7 @@ class TenantTermsOfUseDisableController
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
             if (null !== $value->getAttached()) {
-                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . ($value->getUid() ?? '-'). '/attached';
                 $dto->attached = $this->links->create($url, $request);
             }
             $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);

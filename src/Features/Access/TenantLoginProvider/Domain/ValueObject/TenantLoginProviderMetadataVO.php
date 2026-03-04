@@ -20,21 +20,21 @@ class TenantLoginProviderMetadataVO
     {
         return self::from(self::hasSomePreffix($key, self::EXTERNALS) ? $key : 'store://' . $key);
     }
-    public static function tryFromTemporal(string $key, ConstraintFailList $list): TenantLoginProviderMetadataVO
+    public static function tryFromTemporal(string $key, ConstraintFailList $list): ?TenantLoginProviderMetadataVO
     {
         return self::tryFrom('temp-store://' . $key, $list);
     }
-    public static function tryFromStored(string $key, ConstraintFailList $list): TenantLoginProviderMetadataVO
+    public static function tryFromStored(string $key, ConstraintFailList $list): ?TenantLoginProviderMetadataVO
     {
         return self::tryFrom(self::hasSomePreffix($key, self::EXTERNALS) ? $key : 'store://' . $key, $list);
     }
     private static function isTemporal(?string $key): bool
     {
-        return !!$key && strpos($key, 'temp-store://') === 0;
+        return null !== $key && strpos($key, 'temp-store://') === 0;
     }
     private static function isStored(?string $key): bool
     {
-        return !!$key && strpos($key, 'store://') === 0;
+        return null !== $key && strpos($key, 'store://') === 0;
     }
     private static function hasSomePreffix(string $key, array $prefixs): bool
     {
@@ -85,21 +85,24 @@ class TenantLoginProviderMetadataVO
     private function __construct(
         private readonly ?string $metadata
     ) {
-        if ($this->metadata) {
+        if (null !== $this->metadata) {
             $this->validateKey($this->metadata);
         }
     }
     public function value(): ?string
     {
-        if (self::isTemporal($this->metadata)) {
-            return substr($this->metadata, 13);
-        } elseif (self::isStored($this->metadata)) {
-            return substr($this->metadata, 8);
+        $value = $this->metadata;
+        if (null === $value) {
+            return null;
+        } elseif (self::isTemporal($value)) {
+            return substr($value, 13);
+        } elseif (self::isStored($value)) {
+            return substr($value, 8);
         } else {
-            return $this->metadata;
+            return $value;
         }
     }
-    private function validateKey(string $key)
+    private function validateKey(string $key): void
     {
         if (!self::hasSomePreffix($key, array_merge(['temp-store://', 'store://'], self::EXTERNALS))) {
             throw new \InvalidArgumentException($key . ' is not a valid upload key');

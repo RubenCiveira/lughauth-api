@@ -102,7 +102,7 @@ class TenantTermsOfUseCreateController
             }
             $attached = $body['attached'] ?? null;
             $preffixAttached = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/-/temp-attached?temp=';
-            if ($attached && strpos($attached, $preffixAttached) === 0) {
+            if (null !== $attached && strpos($attached, $preffixAttached) === 0) {
                 $value->attached(TenantTermsOfUseAttachedVO::tryFromTemporal(base64_decode(substr($attached, strlen($preffixAttached))), $errorsList));
             }
             $value->activationDate(TenantTermsOfUseActivationDateVO::tryFrom($body['activationDate'] ?? null, $errorsList));
@@ -132,7 +132,7 @@ class TenantTermsOfUseCreateController
             $dto->text = $value->getText();
             $dto->enabled = $value->isEnabled();
             if (null !== $value->getAttached()) {
-                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . $value->getUid() . '/attached';
+                $url = $this->context->getBaseUrl() . '/api/access/tenants-terms-of-use/' . ($value->getUid() ?? '-'). '/attached';
                 $dto->attached = $this->links->create($url, $request);
             }
             $dto->activationDate = $value->getActivationDate()?->format(DateTime::ATOM);

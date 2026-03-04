@@ -389,26 +389,31 @@ class PlatformIdentityPdoConnector
         $this->logDebug("Execute save childs sql query for Platform identity");
         $span = $this->startSpan("Execute save childs sql query for Platform identity");
         try {
-            $roles = $parent->getRoles();
-            if ($roles) {
-                $uids = [];
-                $saved = [];
-                foreach ($roles as $child) {
-                    if (!$this->existsRoles($parent->uid(), $child->uid())) {
-                        $insertedChild = $this->insertRoles($parent->uid(), $child);
-                        $saved[] = $insertedChild;
-                        $uids[] = $insertedChild->uid();
-                    } else {
-                        $updatedChild = $this->updateRoles($parent->uid(), $child);
-                        $saved[] = $updatedChild;
-                        $uids[] = $updatedChild->uid();
+            $parentId = $parent->uid();
+            if (null !== $parentId) {
+                $roles = $parent->getRoles();
+                if ($roles) {
+                    $uids = [];
+                    $saved = [];
+                    foreach ($roles as $child) {
+                        if (null !== $child) {
+                            if (!$this->existsRoles($parentId, $child->uid() ?? 'no-id')) {
+                                $insertedChild = $this->insertRoles($parentId, $child);
+                                $saved[] = $insertedChild;
+                                $uids[] = $insertedChild->uid();
+                            } else {
+                                $updatedChild = $this->updateRoles($parentId, $child);
+                                $saved[] = $updatedChild;
+                                $uids[] = $updatedChild->uid();
+                            }
+                        }
                     }
+                    $this->db->execute('DELETE FROM "access_platform_identity_role" WHERE "platform_identity" = :parent and  "uid" NOT IN (:uids)', [
+                      new SqlParam(name: 'parent', value: $parent->uid(), type: SqlParam::STR),
+                      new SqlParam(name: 'uids', value: $uids, type: SqlParam::STR),
+                    ]);
+                    $parent = $parent->withRoles(PlatformIdentityRolesListRef::fromArray($saved));
                 }
-                $this->db->execute('DELETE FROM "access_platform_identity_role" WHERE "platform_identity" = :parent and  "uid" NOT IN (:uids)', [
-                  new SqlParam(name: 'parent', value: $parent->uid(), type: SqlParam::STR),
-                  new SqlParam(name: 'uids', value: $uids, type: SqlParam::STR),
-                ]);
-                $parent = $parent->withRoles(PlatformIdentityRolesListRef::fromArray($saved));
             }
             return $parent;
         } catch (Throwable $ex) {
@@ -427,7 +432,7 @@ class PlatformIdentityPdoConnector
             if (!$this->db->execute('insert into "access_platform_identity_role" ("uid", "platform_identity", "role", "version") VALUES(:uid, :platformIdentity, :role, :version) ', [
                 new SqlParam(name: 'uid', value: $uid, type: SqlParam::STR),
                 new SqlParam(name: 'platformIdentity', value: $entity, type: SqlParam::STR),
-                new SqlParam(name: 'role', value: $child->getRole()->uid(), type: SqlParam::STR),
+                new SqlParam(name: 'role', value: $child->getRole()?->uid(), type: SqlParam::STR),
                 new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
             ])) {
                 throw new OptimistLockException("Insert child PlatformIdentityRolesItem for PlatformIdentity", $uid);
@@ -449,13 +454,13 @@ class PlatformIdentityPdoConnector
             if (!$this->db->execute('update "access_platform_identity_role" set "role" = :role, "version" = :nextVersion where "uid" = :uid and "platform_identity" = :platformIdentity and "version" = :version ', [
                 new SqlParam(name: 'uid', value: $uid, type: SqlParam::STR),
                 new SqlParam(name: 'platformIdentity', value: $entity, type: SqlParam::STR),
-                new SqlParam(name: 'role', value: $child->getRole()->uid(), type: SqlParam::STR),
+                new SqlParam(name: 'role', value: $child->getRole()?->uid(), type: SqlParam::STR),
                 new SqlParam(name: 'nextVersion', value: ($child->getVersion() ?? 0) + 1, type: SqlParam::INT),
                 new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
             ])) {
-                throw new OptimistLockException("Update child PlatformIdentityRolesItem for PlatformIdentity", $uid);
+                throw new OptimistLockException("Update child PlatformIdentityRolesItem for PlatformIdentity", $uid ?? 'no-id');
             }
-            return $child->withVersion($child->getVersion() + 1);
+            return $child->withVersion(($child->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -463,7 +468,7 @@ class PlatformIdentityPdoConnector
             $span->end();
         }
     }
-    private function existsRoles($entity, $reference): bool
+    private function existsRoles(string $entity, string $reference): bool
     {
         $this->logDebug("Execute exsits Roles childs sql query for Platform identity");
         $span = $this->startSpan("Execute exists Roles childs sql query for Platform identity");
@@ -514,7 +519,7 @@ class PlatformIdentityPdoConnector
     }
     private function queryWithChilds(bool $forUpdate, string $query, ?array $params = []): array
     {
-        $values = $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+        $values = $forUpdate ? $this->db->queryForUpdate($query, $params ?? [], fn (array $row): array => $row) : $this->db->query($query, $params ?? [], fn (array $row): array => $row);
         $mapped = [];
         $ids = [];
         foreach ($values as $value) {
@@ -539,7 +544,7 @@ class PlatformIdentityPdoConnector
     }
     private function findOneWithChilds(bool $forUpdate, string $query, ?array $params = []): ?PlatformIdentity
     {
-        if ($value = $forUpdate ? $this->db->findOne($query, $params, fn ($row) => $row) : $this->db->findOne($query, $params, fn ($row) => $row)) {
+        if ($value = $forUpdate ? $this->db->findOne($query, $params ?? [], fn (array $row): array => $row) : $this->db->findOne($query, $params ?? [], fn (array $row): array => $row)) {
             $value['roles'] = [];
             $childsRoles = $forUpdate ? $this->db->queryForUpdate('select "uid", "platform_identity", "role", "version" from "access_platform_identity_role" where "platform_identity" = :parent', [
               new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)

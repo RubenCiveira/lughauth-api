@@ -86,12 +86,13 @@ class TenantTermsOfUseRetrieveUsecase
             $ref = new TenantTermsOfUseRef($uid);
             $allow = $this->allowRetrieve($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve attached of Tenant terms of use');
             }
             if (!$visible = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            if (!$url = $visible->getAttached()) {
+            $url = $visible->getAttached();
+            if (null === $url) {
                 throw new NotFoundException($uid);
             }
             return $this->reader->readAttached($url);

@@ -12,7 +12,7 @@ class PlatformIdentityRolesItem
 {
     use PlatformIdentityRolesRoleAccessor;
     use PlatformIdentityRolesVersionAccessor;
-    private readonly PlatformIdentityRolesUidVO $_uid;
+    private readonly ?PlatformIdentityRolesUidVO $_uid;
     public function __construct(
         PlatformIdentityRolesUidVO|null $uid,
         PlatformIdentityRolesRoleVO|null $role,
@@ -22,9 +22,9 @@ class PlatformIdentityRolesItem
         $this->_role = $role;
         $this->_version = $version;
     }
-    public function uid(): string
+    public function uid(): ?string
     {
-        return $this->_uid->value();
+        return $this->_uid?->value();
     }
     public function getOrDefault(PlatformIdentityRolesItem $base): PlatformIdentityRolesItem
     {

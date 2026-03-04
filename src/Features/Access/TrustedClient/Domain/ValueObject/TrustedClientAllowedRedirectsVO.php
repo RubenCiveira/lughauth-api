@@ -59,9 +59,11 @@ class TrustedClientAllowedRedirectsVO
     }
     public function find(string $uid): ?TrustedClientAllowedRedirectsItem
     {
-        foreach ($this->allowedRedirects as $item) {
-            if ($item->uid() == $uid) {
-                return $item;
+        if (null !== $this->allowedRedirects) {
+            foreach ($this->allowedRedirects as $item) {
+                if (null !== $item && $item->uid() == $uid) {
+                    return $item;
+                }
             }
         }
         return null;
@@ -70,15 +72,21 @@ class TrustedClientAllowedRedirectsVO
     {
         $values = [];
         $originals = $defs->value();
-        foreach ($this->allowedRedirects as $item) {
-            $prev = null;
-            foreach ($originals as $original) {
-                if ($item->uid() == $original->uid()) {
-                    $prev = $original;
-                    break;
+        if (null !== $this->allowedRedirects) {
+            foreach ($this->allowedRedirects as $item) {
+                $prev = null;
+                if (null !== $originals) {
+                    foreach ($originals as $original) {
+                        if (null !== $item && null !== $original && $item->uid() == $original->uid()) {
+                            $prev = $original;
+                            break;
+                        }
+                    }
+                }
+                if (null !== $item) {
+                    $values[] = null == $prev ? $item : $item->getOrDefault($prev);
                 }
             }
-            $values[] = $prev ? $item->getOrDefault($prev) : $item;
         }
         return TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($values));
     }

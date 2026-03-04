@@ -114,12 +114,15 @@ class PlatformIdentityListController
             $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
             $roles = [];
-            foreach ($value->getRoles() as $item) {
-                $roles[] = [
-                  'uid' => $item->uid(),
-                  'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
-                  'version' => $item->getVersion(),
-                 ];
+            $existentsRoles = $value->getRoles();
+            if (null !== $existentsRoles) {
+                foreach ($roles as $item) {
+                    $roles[] = [
+                    'uid' => $item->uid(),
+                    'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
+                    'version' => $item->getVersion(),
+                    ];
+                }
             }
             $dto->roles = $roles;
             $dto->version = $value->getVersion();

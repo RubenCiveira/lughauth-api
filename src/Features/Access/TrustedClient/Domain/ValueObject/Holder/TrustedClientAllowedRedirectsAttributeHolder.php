@@ -16,10 +16,9 @@ trait TrustedClientAllowedRedirectsAttributeHolder
 
     public function getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO $allowedRedirects): TrustedClientAllowedRedirectsVO
     {
-        if ($this->allowedRedirectsAssigned && $allowedRedirects) {
-            return TrustedClientAllowedRedirectsVO::from($this->allowedRedirects)->getWithDefaults($allowedRedirects);
-        } elseif ($this->allowedRedirectsAssigned) {
-            return TrustedClientAllowedRedirectsVO::from($this->allowedRedirects);
+        if ($this->allowedRedirectsAssigned) {
+            $current = TrustedClientAllowedRedirectsVO::from($this->allowedRedirects);
+            return $current->getWithDefaults($allowedRedirects) ?? $current;
         } else {
             return $allowedRedirects;
         }

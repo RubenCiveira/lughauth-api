@@ -16,10 +16,9 @@ trait PlatformIdentityRolesAttributeHolder
 
     public function getRolesOrDefault(PlatformIdentityRolesVO $roles): PlatformIdentityRolesVO
     {
-        if ($this->rolesAssigned && $roles) {
-            return PlatformIdentityRolesVO::from($this->roles)->getWithDefaults($roles);
-        } elseif ($this->rolesAssigned) {
-            return PlatformIdentityRolesVO::from($this->roles);
+        if ($this->rolesAssigned) {
+            $current = PlatformIdentityRolesVO::from($this->roles);
+            return $current->getWithDefaults($roles) ?? $current;
         } else {
             return $roles;
         }

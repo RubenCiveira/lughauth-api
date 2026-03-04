@@ -48,7 +48,7 @@ class TenantLoginProviderUploadMetadataUsecase
         try {
             $allow = $this->allowUpload();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to read tempora upload for Tenant login provider');
             }
             return $this->writer->readTemporalMetadata($query);
         } catch (Throwable $ex) {
@@ -65,7 +65,7 @@ class TenantLoginProviderUploadMetadataUsecase
         try {
             $allow = $this->allowUpload();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to upload store on Tenant login provider');
             }
             $this->dispatcher->dispatch(new TenantLoginProviderUploadMetadataCheck($binary));
             $input = $this->dispatcher->dispatch(new TenantLoginProviderUploadMetadataEnrich($binary, $binary));

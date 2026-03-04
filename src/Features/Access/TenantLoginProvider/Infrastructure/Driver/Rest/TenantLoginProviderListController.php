@@ -148,7 +148,7 @@ class TenantLoginProviderListController
             $dto->privateKey = $value->getPrivateKey();
             $dto->certificate = $value->getCertificate();
             if (null !== $value->getMetadata()) {
-                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();

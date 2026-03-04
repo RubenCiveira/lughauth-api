@@ -9,7 +9,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
-use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
@@ -241,8 +240,8 @@ class TrustedClientVisibilityService
         $span = $this->startSpan("Check visibility of parent references for  Trusted client");
         try {
             $allowedRedirects = $attributes->getAllowedRedirects();
-            if (null !== allowedRedirects && !$this->checkVisibilityForAllowedRedirects($allowedRedirects)) {
-                throw new NotFoundException("Unknown AllowedRedirects " . ($allowedRedirects->uid() ?? 'no-id'));
+            if (null !== $allowedRedirects) {
+                $this->checkVisibilityForAllowedRedirects($allowedRedirects);
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -272,6 +271,8 @@ class TrustedClientVisibilityService
         $span = $this->startSpan("Copy with fixed for  Trusted client");
         try {
             foreach ($items as $item) {
+                if (null !== $item) {
+                }
             }
             return $items;
         } catch (Throwable $ex) {

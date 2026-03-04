@@ -125,7 +125,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function markLoginFail(): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_failedLoginAttempts = UserAccessTemporalCodeFailedLoginAttemptsVO::from($this->getFailedLoginAttempts() + 1);
+        $value->_failedLoginAttempts = UserAccessTemporalCodeFailedLoginAttemptsVO::from(($this->getFailedLoginAttempts() ?? 0) + 1);
         $value->recordedEvents[] = new UserAccessTemporalCodeMarkLoginFailEvent($value, original: $this);
         return $value;
     }

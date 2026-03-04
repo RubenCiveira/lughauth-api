@@ -59,9 +59,11 @@ class PlatformIdentityRolesVO
     }
     public function find(string $uid): ?PlatformIdentityRolesItem
     {
-        foreach ($this->roles as $item) {
-            if ($item->uid() == $uid) {
-                return $item;
+        if (null !== $this->roles) {
+            foreach ($this->roles as $item) {
+                if (null !== $item && $item->uid() == $uid) {
+                    return $item;
+                }
             }
         }
         return null;
@@ -70,15 +72,21 @@ class PlatformIdentityRolesVO
     {
         $values = [];
         $originals = $defs->value();
-        foreach ($this->roles as $item) {
-            $prev = null;
-            foreach ($originals as $original) {
-                if ($item->uid() == $original->uid()) {
-                    $prev = $original;
-                    break;
+        if (null !== $this->roles) {
+            foreach ($this->roles as $item) {
+                $prev = null;
+                if (null !== $originals) {
+                    foreach ($originals as $original) {
+                        if (null !== $item && null !== $original && $item->uid() == $original->uid()) {
+                            $prev = $original;
+                            break;
+                        }
+                    }
+                }
+                if (null !== $item) {
+                    $values[] = null == $prev ? $item : $item->getOrDefault($prev);
                 }
             }
-            $values[] = $prev ? $item->getOrDefault($prev) : $item;
         }
         return PlatformIdentityRolesVO::from(PlatformIdentityRolesListRef::fromArray($values));
     }

@@ -261,8 +261,8 @@ class PlatformIdentityVisibilityService
                 throw new NotFoundException("Unknown TrustedClient " . ($trustedClient->uid() ?? 'no-id'));
             }
             $roles = $attributes->getRoles();
-            if (null !== roles && !$this->checkVisibilityForRoles($roles)) {
-                throw new NotFoundException("Unknown Roles " . ($roles->uid() ?? 'no-id'));
+            if (null !== $roles) {
+                $this->checkVisibilityForRoles($roles);
             }
             return $attributes;
         } catch (Throwable $ex) {
@@ -292,8 +292,11 @@ class PlatformIdentityVisibilityService
         $span = $this->startSpan("Copy with fixed for  Platform identity");
         try {
             foreach ($items as $item) {
-                if ($item->getRole() && !$this->roleVisibilityService->checkVisibility($item->getRole())) {
-                    throw new NotFoundException("Unknown Role " . $item->getRole()->uid());
+                if (null !== $item) {
+                    $role = $item->getRole();
+                    if (null !== $role && !$this->roleVisibilityService->checkVisibility($role)) {
+                        throw new NotFoundException("Unknown Role " . ($role->uid() ?? 'no-id'));
+                    }
                 }
             }
             return $items;

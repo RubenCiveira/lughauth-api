@@ -107,9 +107,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");
         try {
-            if ($entity->getAttached()) {
-                $entity->commitAttachedWith($this->store);
-            }
+            $entity->commitAttachedWith($this->store);
             $created = $this->conn->create($entity, $verify);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-terms-of-use', $entity->uid() ?? 'no-id', $entity->asPublicJson());
@@ -127,16 +125,14 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         $this->logDebug("Count for Tenant terms of use on adapter ");
         $span = $this->startSpan("Count for Tenant terms of use on adapter");
         try {
-            $original = $reference instanceof TenantTermsOfUse ? $reference : $this->retrieveForUpdate(new TenantTermsOfUseFilter(uids: [$reference->uid()]));
-            $prevAttached = $original->getAttached();
+            $original = $ref instanceof TenantTermsOfUse ? $ref : $this->retrieveForUpdate(new TenantTermsOfUseFilter(uids: [$ref->uid()]));
+            $prevAttached = $original?->getAttached();
             $currAttached = $entity->getAttached();
             if ($prevAttached != $currAttached) {
-                if ($prevAttached) {
+                if (null !== $prevAttached) {
                     $this->store->deleteFile(new FileStoreKey($prevAttached));
                 }
-                if ($currAttached) {
-                    $entity->commitAttachedWith($this->store);
-                }
+                $entity->commitAttachedWith($this->store);
             }
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
@@ -157,7 +153,7 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         try {
             $result = $this->conn->delete($entity);
             $currAttached = $entity->getAttached();
-            if ($currAttached) {
+            if (null !== $currAttached) {
                 $this->store->deleteFile(new FileStoreKey($currAttached));
             }
             $this->dispatch($entity);
@@ -204,13 +200,13 @@ class TenantTermsOfUseWriteRepositoryAdapter implements TenantTermsOfUseWriteGat
         }
     }
     #[Override]
-    public function commitAttached(string $key, ?string $previous = null): string
+    public function commitAttached(string $key, ?string $original = null): string
     {
         $this->logDebug("Commit Attached childs for Tenant terms of use on adapter ");
         $span = $this->startSpan("Commit Attached childs for Tenant terms of use on adapter");
         try {
-            if ($previous) {
-                $this->store->deleteFile(new FileStoreKey($previous));
+            if (null !== $original) {
+                $this->store->deleteFile(new FileStoreKey($original));
             }
             return $this->store->commitContent(new FileStoreKey($key))->key;
         } catch (Throwable $ex) {

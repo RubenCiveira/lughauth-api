@@ -132,13 +132,10 @@ class TrustedClientUpdateController
                         }
                     }
                 } else {
-                    $errorsList->add(new ConstraintFail('not-array', ['allowedRedirects'], $allowedRedirects, ['array']));
+                    $errorsList->add(new ConstraintFail('not-array', ['allowedRedirects'], $allowedRedirects ?? [], ['array']));
                 }
             }
-            $valueAllowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList));
-            if (null !== $valueAllowedRedirects) {
-                $value->allowedRedirects($valueAllowedRedirects);
-            }
+            $value->allowedRedirects(TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList)));
             $value->version(TrustedClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -164,12 +161,15 @@ class TrustedClientUpdateController
             $dto->secretOauth = '******';
             $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
-            foreach ($value->getAllowedRedirects() as $item) {
-                $allowedRedirects[] = [
-                  'uid' => $item->uid(),
-                  'url' => $item->getUrl(),
-                  'version' => $item->getVersion(),
-                 ];
+            $existentsAllowedRedirects = $value->getAllowedRedirects();
+            if (null !== $existentsAllowedRedirects) {
+                foreach ($allowedRedirects as $item) {
+                    $allowedRedirects[] = [
+                    'uid' => $item->uid(),
+                    'url' => $item->getUrl(),
+                    'version' => $item->getVersion(),
+                    ];
+                }
             }
             $dto->allowedRedirects = $allowedRedirects;
             $dto->version = $value->getVersion();

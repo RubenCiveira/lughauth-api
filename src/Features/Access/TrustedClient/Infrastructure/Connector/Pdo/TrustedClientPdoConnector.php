@@ -386,26 +386,31 @@ class TrustedClientPdoConnector
         $this->logDebug("Execute save childs sql query for Trusted client");
         $span = $this->startSpan("Execute save childs sql query for Trusted client");
         try {
-            $allowedRedirects = $parent->getAllowedRedirects();
-            if ($allowedRedirects) {
-                $uids = [];
-                $saved = [];
-                foreach ($allowedRedirects as $child) {
-                    if (!$this->existsAllowedRedirects($parent->uid(), $child->uid())) {
-                        $insertedChild = $this->insertAllowedRedirects($parent->uid(), $child);
-                        $saved[] = $insertedChild;
-                        $uids[] = $insertedChild->uid();
-                    } else {
-                        $updatedChild = $this->updateAllowedRedirects($parent->uid(), $child);
-                        $saved[] = $updatedChild;
-                        $uids[] = $updatedChild->uid();
+            $parentId = $parent->uid();
+            if (null !== $parentId) {
+                $allowedRedirects = $parent->getAllowedRedirects();
+                if ($allowedRedirects) {
+                    $uids = [];
+                    $saved = [];
+                    foreach ($allowedRedirects as $child) {
+                        if (null !== $child) {
+                            if (!$this->existsAllowedRedirects($parentId, $child->uid() ?? 'no-id')) {
+                                $insertedChild = $this->insertAllowedRedirects($parentId, $child);
+                                $saved[] = $insertedChild;
+                                $uids[] = $insertedChild->uid();
+                            } else {
+                                $updatedChild = $this->updateAllowedRedirects($parentId, $child);
+                                $saved[] = $updatedChild;
+                                $uids[] = $updatedChild->uid();
+                            }
+                        }
                     }
+                    $this->db->execute('DELETE FROM "access_trusted_client_allowed_redirect" WHERE "client" = :parent and  "uid" NOT IN (:uids)', [
+                      new SqlParam(name: 'parent', value: $parent->uid(), type: SqlParam::STR),
+                      new SqlParam(name: 'uids', value: $uids, type: SqlParam::STR),
+                    ]);
+                    $parent = $parent->withAllowedRedirects(TrustedClientAllowedRedirectsListRef::fromArray($saved));
                 }
-                $this->db->execute('DELETE FROM "access_trusted_client_allowed_redirect" WHERE "client" = :parent and  "uid" NOT IN (:uids)', [
-                  new SqlParam(name: 'parent', value: $parent->uid(), type: SqlParam::STR),
-                  new SqlParam(name: 'uids', value: $uids, type: SqlParam::STR),
-                ]);
-                $parent = $parent->withAllowedRedirects(TrustedClientAllowedRedirectsListRef::fromArray($saved));
             }
             return $parent;
         } catch (Throwable $ex) {
@@ -450,9 +455,9 @@ class TrustedClientPdoConnector
                 new SqlParam(name: 'nextVersion', value: ($child->getVersion() ?? 0) + 1, type: SqlParam::INT),
                 new SqlParam(name: 'version', value: $child->getVersion() ?? 0, type: SqlParam::INT),
             ])) {
-                throw new OptimistLockException("Update child TrustedClientAllowedRedirectsItem for TrustedClient", $uid);
+                throw new OptimistLockException("Update child TrustedClientAllowedRedirectsItem for TrustedClient", $uid ?? 'no-id');
             }
-            return $child->withVersion($child->getVersion() + 1);
+            return $child->withVersion(($child->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -460,7 +465,7 @@ class TrustedClientPdoConnector
             $span->end();
         }
     }
-    private function existsAllowedRedirects($entity, $reference): bool
+    private function existsAllowedRedirects(string $entity, string $reference): bool
     {
         $this->logDebug("Execute exsits AllowedRedirects childs sql query for Trusted client");
         $span = $this->startSpan("Execute exists AllowedRedirects childs sql query for Trusted client");
@@ -520,7 +525,7 @@ class TrustedClientPdoConnector
     }
     private function queryWithChilds(bool $forUpdate, string $query, ?array $params = []): array
     {
-        $values = $forUpdate ? $this->db->queryForUpdate($query, $params, fn ($row) => $row) : $this->db->query($query, $params, fn ($row) => $row);
+        $values = $forUpdate ? $this->db->queryForUpdate($query, $params ?? [], fn (array $row): array => $row) : $this->db->query($query, $params ?? [], fn (array $row): array => $row);
         $mapped = [];
         $ids = [];
         foreach ($values as $value) {
@@ -545,7 +550,7 @@ class TrustedClientPdoConnector
     }
     private function findOneWithChilds(bool $forUpdate, string $query, ?array $params = []): ?TrustedClient
     {
-        if ($value = $forUpdate ? $this->db->findOne($query, $params, fn ($row) => $row) : $this->db->findOne($query, $params, fn ($row) => $row)) {
+        if ($value = $forUpdate ? $this->db->findOne($query, $params ?? [], fn (array $row): array => $row) : $this->db->findOne($query, $params ?? [], fn (array $row): array => $row)) {
             $value['allowed_redirects'] = [];
             $childsAllowedRedirects = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version" from "access_trusted_client_allowed_redirect" where "client" = :parent', [
               new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)

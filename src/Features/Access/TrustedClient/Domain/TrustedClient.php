@@ -122,11 +122,13 @@ class TrustedClient extends TrustedClientRef
         if (null !== $allowedRedirects) {
             $data['allowedRedirects'] = [];
             foreach ($allowedRedirects as $row) {
-                $jsonRow = [];
-                $jsonRow['uid'] = $row->uid();
-                $jsonRow['url'] = $row->getUrl();
-                $jsonRow['version'] = $row->getVersion();
-                $data['allowedRedirects'][] = $jsonRow;
+                if (null !== $row) {
+                    $jsonRow = [];
+                    $jsonRow['uid'] = $row->uid();
+                    $jsonRow['url'] = $row->getUrl();
+                    $jsonRow['version'] = $row->getVersion();
+                    $data['allowedRedirects'][] = $jsonRow;
+                }
             }
         }
         $data['version'] = $this->getVersion();

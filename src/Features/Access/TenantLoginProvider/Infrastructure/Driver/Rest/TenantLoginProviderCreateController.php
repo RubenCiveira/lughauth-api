@@ -109,7 +109,7 @@ class TenantLoginProviderCreateController
             $value->certificate(TenantLoginProviderCertificateVO::tryFrom($body['certificate'] ?? null, $errorsList));
             $metadata = $body['metadata'] ?? null;
             $preffixMetadata = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-metadata?temp=';
-            if ($metadata && strpos($metadata, $preffixMetadata) === 0) {
+            if (null !== $metadata && strpos($metadata, $preffixMetadata) === 0) {
                 $value->metadata(TenantLoginProviderMetadataVO::tryFromTemporal(base64_decode(substr($metadata, strlen($preffixMetadata))), $errorsList));
             }
             $valueUsersEnabledByDefault = TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($body['usersEnabledByDefault'] ?? null, $errorsList);
@@ -145,7 +145,7 @@ class TenantLoginProviderCreateController
             $dto->privateKey = $value->getPrivateKey();
             $dto->certificate = $value->getCertificate();
             if (null !== $value->getMetadata()) {
-                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . $value->getUid() . '/metadata';
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();

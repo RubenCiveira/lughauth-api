@@ -122,10 +122,15 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $value->recordedEvents[] = new TenantLoginProviderDeleteEvent($value);
         return $value;
     }
-    public function commitMetadataWith(FileStorageInterface $store)
+    public function commitMetadataWith(FileStorageInterface $store): void
     {
-        $key = $store->commitContent(new FileStoreKey($this->getMetadata()));
-        $this->_metadata = TenantLoginProviderMetadataVO::fromStored($key->key);
+        $value = $this->getMetadata();
+        if (null === $value) {
+            $this->_metadata = TenantLoginProviderMetadataVO::empty();
+        } else {
+            $key = $store->commitContent(new FileStoreKey($value));
+            $this->_metadata = TenantLoginProviderMetadataVO::fromStored($key->key);
+        }
     }
     public function enable(): TenantLoginProvider
     {

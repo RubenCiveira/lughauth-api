@@ -108,9 +108,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         $this->logDebug("Count for Tenant login provider on adapter ");
         $span = $this->startSpan("Count for Tenant login provider on adapter");
         try {
-            if ($entity->getMetadata()) {
-                $entity->commitMetadataWith($this->store);
-            }
+            $entity->commitMetadataWith($this->store);
             $created = $this->conn->create($entity, $verify);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
@@ -128,16 +126,14 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         $this->logDebug("Count for Tenant login provider on adapter ");
         $span = $this->startSpan("Count for Tenant login provider on adapter");
         try {
-            $original = $reference instanceof TenantLoginProvider ? $reference : $this->retrieveForUpdate(new TenantLoginProviderFilter(uids: [$reference->uid()]));
-            $prevMetadata = $original->getMetadata();
+            $original = $ref instanceof TenantLoginProvider ? $ref : $this->retrieveForUpdate(new TenantLoginProviderFilter(uids: [$ref->uid()]));
+            $prevMetadata = $original?->getMetadata();
             $currMetadata = $entity->getMetadata();
             if ($prevMetadata != $currMetadata) {
-                if ($prevMetadata) {
+                if (null !== $prevMetadata) {
                     $this->store->deleteFile(new FileStoreKey($prevMetadata));
                 }
-                if ($currMetadata) {
-                    $entity->commitMetadataWith($this->store);
-                }
+                $entity->commitMetadataWith($this->store);
             }
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
@@ -158,7 +154,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         try {
             $result = $this->conn->delete($entity);
             $currMetadata = $entity->getMetadata();
-            if ($currMetadata) {
+            if (null !== $currMetadata) {
                 $this->store->deleteFile(new FileStoreKey($currMetadata));
             }
             $this->dispatch($entity);
@@ -205,13 +201,13 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         }
     }
     #[Override]
-    public function commitMetadata(string $key, ?string $previous = null): string
+    public function commitMetadata(string $key, ?string $original = null): string
     {
         $this->logDebug("Commit Metadata childs for Tenant login provider on adapter ");
         $span = $this->startSpan("Commit Metadata childs for Tenant login provider on adapter");
         try {
-            if ($previous) {
-                $this->store->deleteFile(new FileStoreKey($previous));
+            if (null !== $original) {
+                $this->store->deleteFile(new FileStoreKey($original));
             }
             return $this->store->commitContent(new FileStoreKey($key))->key;
         } catch (Throwable $ex) {

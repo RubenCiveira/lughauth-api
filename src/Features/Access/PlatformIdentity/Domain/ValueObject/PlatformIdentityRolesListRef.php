@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject;
 
+use Override;
+use Iterator;
 use InvalidArgumentException;
 
-class PlatformIdentityRolesListRef implements \Iterator
+/**
+ * @implements Iterator<int, PlatformIdentityRolesItem>
+ */
+class PlatformIdentityRolesListRef implements Iterator
 {
     public static function fromArray(array $items): self
     {
@@ -26,22 +31,28 @@ class PlatformIdentityRolesListRef implements \Iterator
         $this->roles = $roles;
     }
 
-    public function current(): PlatformIdentityRolesItem
+    #[Override]
+    public function current(): ?PlatformIdentityRolesItem
     {
-        return current($this->roles);
+        $current = current($this->roles);
+        return $current instanceof PlatformIdentityRolesItem ? $current : null;
     }
-    public function key(): int
+    #[Override]
+    public function key(): ?int
     {
         return key($this->roles);
     }
+    #[Override]
     public function next(): void
     {
         next($this->roles);
     }
+    #[Override]
     public function rewind(): void
     {
         reset($this->roles);
     }
+    #[Override]
     public function valid(): bool
     {
         return key($this->roles) !== null;

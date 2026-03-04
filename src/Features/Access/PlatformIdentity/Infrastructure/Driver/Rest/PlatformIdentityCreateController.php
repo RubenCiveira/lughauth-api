@@ -121,13 +121,10 @@ class PlatformIdentityCreateController
                         }
                     }
                 } else {
-                    $errorsList->add(new ConstraintFail('not-array', ['roles'], $roles, ['array']));
+                    $errorsList->add(new ConstraintFail('not-array', ['roles'], $roles ?? [], ['array']));
                 }
             }
-            $valueRoles = PlatformIdentityRolesVO::from(PlatformIdentityRolesListRef::fromArray($rolesList));
-            if (null !== $valueRoles) {
-                $value->roles($valueRoles);
-            }
+            $value->roles(PlatformIdentityRolesVO::from(PlatformIdentityRolesListRef::fromArray($rolesList)));
             $value->version(PlatformIdentityVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -154,12 +151,15 @@ class PlatformIdentityCreateController
             $dto->relyingParty = $relyingParty ? ['$ref' => $relyingParty->uid()] : null;
             $dto->trustedClient = $trustedClient ? ['$ref' => $trustedClient->uid()] : null;
             $roles = [];
-            foreach ($value->getRoles() as $item) {
-                $roles[] = [
-                  'uid' => $item->uid(),
-                  'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
-                  'version' => $item->getVersion(),
-                 ];
+            $existentsRoles = $value->getRoles();
+            if (null !== $existentsRoles) {
+                foreach ($roles as $item) {
+                    $roles[] = [
+                    'uid' => $item->uid(),
+                    'role' => $item->getRole() ? ['$ref' => $item->getRole()->uid() ] : null,
+                    'version' => $item->getVersion(),
+                    ];
+                }
             }
             $dto->roles = $roles;
             $dto->version = $value->getVersion();

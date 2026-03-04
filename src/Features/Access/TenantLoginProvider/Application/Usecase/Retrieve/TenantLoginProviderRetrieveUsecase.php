@@ -86,12 +86,13 @@ class TenantLoginProviderRetrieveUsecase
             $ref = new TenantLoginProviderRef($uid);
             $allow = $this->allowRetrieve($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve metadata of Tenant login provider');
             }
             if (!$visible = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            if (!$url = $visible->getMetadata()) {
+            $url = $visible->getMetadata();
+            if (null === $url) {
                 throw new NotFoundException($uid);
             }
             return $this->reader->readMetadata($url);

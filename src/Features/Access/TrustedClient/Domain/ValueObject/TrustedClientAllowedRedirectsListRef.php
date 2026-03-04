@@ -5,9 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
+use Override;
+use Iterator;
 use InvalidArgumentException;
 
-class TrustedClientAllowedRedirectsListRef implements \Iterator
+/**
+ * @implements Iterator<int, TrustedClientAllowedRedirectsItem>
+ */
+class TrustedClientAllowedRedirectsListRef implements Iterator
 {
     public static function fromArray(array $items): self
     {
@@ -26,22 +31,28 @@ class TrustedClientAllowedRedirectsListRef implements \Iterator
         $this->allowedRedirects = $allowedRedirects;
     }
 
-    public function current(): TrustedClientAllowedRedirectsItem
+    #[Override]
+    public function current(): ?TrustedClientAllowedRedirectsItem
     {
-        return current($this->allowedRedirects);
+        $current = current($this->allowedRedirects);
+        return $current instanceof TrustedClientAllowedRedirectsItem ? $current : null;
     }
-    public function key(): int
+    #[Override]
+    public function key(): ?int
     {
         return key($this->allowedRedirects);
     }
+    #[Override]
     public function next(): void
     {
         next($this->allowedRedirects);
     }
+    #[Override]
     public function rewind(): void
     {
         reset($this->allowedRedirects);
     }
+    #[Override]
     public function valid(): bool
     {
         return key($this->allowedRedirects) !== null;

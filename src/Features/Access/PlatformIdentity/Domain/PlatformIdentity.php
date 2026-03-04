@@ -97,14 +97,16 @@ class PlatformIdentity extends PlatformIdentityRef
         if (null !== $roles) {
             $data['roles'] = [];
             foreach ($roles as $row) {
-                $jsonRow = [];
-                $jsonRow['uid'] = $row->uid();
-                $role = $row->getRole()?->uid();
-                if ($role) {
-                    $jsonRow['role'] = ['$ref' => $role];
+                if (null !== $row) {
+                    $jsonRow = [];
+                    $jsonRow['uid'] = $row->uid();
+                    $role = $row->getRole()?->uid();
+                    if (null != $role) {
+                        $jsonRow['role'] = ['$ref' => $role];
+                    }
+                    $jsonRow['version'] = $row->getVersion();
+                    $data['roles'][] = $jsonRow;
                 }
-                $jsonRow['version'] = $row->getVersion();
-                $data['roles'][] = $jsonRow;
             }
         }
         $data['version'] = $this->getVersion();

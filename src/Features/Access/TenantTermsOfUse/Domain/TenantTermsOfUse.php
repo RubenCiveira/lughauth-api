@@ -99,10 +99,15 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         $value->recordedEvents[] = new TenantTermsOfUseDeleteEvent($value);
         return $value;
     }
-    public function commitAttachedWith(FileStorageInterface $store)
+    public function commitAttachedWith(FileStorageInterface $store): void
     {
-        $key = $store->commitContent(new FileStoreKey($this->getAttached()));
-        $this->_attached = TenantTermsOfUseAttachedVO::fromStored($key->key);
+        $value = $this->getAttached();
+        if (null === $value) {
+            $this->_attached = TenantTermsOfUseAttachedVO::empty();
+        } else {
+            $key = $store->commitContent(new FileStoreKey($value));
+            $this->_attached = TenantTermsOfUseAttachedVO::fromStored($key->key);
+        }
     }
     public function enable(): TenantTermsOfUse
     {

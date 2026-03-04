@@ -48,7 +48,7 @@ class TenantTermsOfUseUploadAttachedUsecase
         try {
             $allow = $this->allowUpload();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to read tempora upload for Tenant terms of use');
             }
             return $this->writer->readTemporalAttached($query);
         } catch (Throwable $ex) {
@@ -65,7 +65,7 @@ class TenantTermsOfUseUploadAttachedUsecase
         try {
             $allow = $this->allowUpload();
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason);
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to upload store on Tenant terms of use');
             }
             $this->dispatcher->dispatch(new TenantTermsOfUseUploadAttachedCheck($binary));
             $input = $this->dispatcher->dispatch(new TenantTermsOfUseUploadAttachedEnrich($binary, $binary));

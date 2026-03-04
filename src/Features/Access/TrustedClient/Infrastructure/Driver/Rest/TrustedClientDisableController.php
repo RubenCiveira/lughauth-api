@@ -131,12 +131,15 @@ class TrustedClientDisableController
             $dto->secretOauth = '******';
             $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
-            foreach ($value->getAllowedRedirects() as $item) {
-                $allowedRedirects[] = [
-                  'uid' => $item->uid(),
-                  'url' => $item->getUrl(),
-                  'version' => $item->getVersion(),
-                 ];
+            $existentsAllowedRedirects = $value->getAllowedRedirects();
+            if (null !== $existentsAllowedRedirects) {
+                foreach ($allowedRedirects as $item) {
+                    $allowedRedirects[] = [
+                    'uid' => $item->uid(),
+                    'url' => $item->getUrl(),
+                    'version' => $item->getVersion(),
+                    ];
+                }
             }
             $dto->allowedRedirects = $allowedRedirects;
             $dto->version = $value->getVersion();

@@ -12,7 +12,7 @@ class TrustedClientAllowedRedirectsItem
 {
     use TrustedClientAllowedRedirectsUrlAccessor;
     use TrustedClientAllowedRedirectsVersionAccessor;
-    private readonly TrustedClientAllowedRedirectsUidVO $_uid;
+    private readonly ?TrustedClientAllowedRedirectsUidVO $_uid;
     public function __construct(
         TrustedClientAllowedRedirectsUidVO|null $uid,
         TrustedClientAllowedRedirectsUrlVO|null $url,
@@ -22,9 +22,9 @@ class TrustedClientAllowedRedirectsItem
         $this->_url = $url;
         $this->_version = $version;
     }
-    public function uid(): string
+    public function uid(): ?string
     {
-        return $this->_uid->value();
+        return $this->_uid?->value();
     }
     public function getOrDefault(TrustedClientAllowedRedirectsItem $base): TrustedClientAllowedRedirectsItem
     {
