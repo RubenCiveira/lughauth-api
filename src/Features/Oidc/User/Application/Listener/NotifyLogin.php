@@ -20,7 +20,7 @@ class NotifyLogin
         $message = new Message(
             targetName: 'Ruben Civeira',
             targetAddress: 'rubenciveira@gmail.com',
-            subject: 'Hola ' . $auth->id,
+            subject: 'Hola ' . ($auth->id ?? ''),
             txtContent: 'Como estas',
             htmlContent: '<h1>Como estas</h1>'
         );

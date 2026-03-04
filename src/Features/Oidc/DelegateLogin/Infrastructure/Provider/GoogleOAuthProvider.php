@@ -63,7 +63,12 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
             'redirectUri' => $redirect,
         ]);
         try {
-            $token = $provider->getAccessToken('authorization_code', ['code' => $request['code']]);
+            $code = (string) ($request['code'] ?? '');
+            if ($code === '') {
+                return null;
+            }
+            $token = $provider->getAccessToken('authorization_code', ['code' => $code]);
+            /** @var \League\OAuth2\Client\Provider\GoogleUser $user */
             $user = $provider->getResourceOwner($token);
             $data = $user->toArray();
             return new DelegatedUserData(

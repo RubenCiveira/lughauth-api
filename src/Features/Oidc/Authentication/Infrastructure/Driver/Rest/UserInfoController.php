@@ -23,7 +23,8 @@ class UserInfoController
             'name' => $identity->name,
             // 'roles' => $identity->roles
         ];
-        $response->getBody()->write(json_encode($data));
+        $encoded = json_encode($data);
+        $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

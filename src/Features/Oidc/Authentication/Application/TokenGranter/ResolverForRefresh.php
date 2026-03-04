@@ -33,7 +33,7 @@ class ResolverForRefresh implements TokenGranterStrategy
         $token = $params['refresh_token'];
         $payload = $this->manager->verifyTokenPayload($tenant, $token);
         $key = $payload['keypass'] ?? null;
-        if (!$key) {
+        if ($key === null || $key === '') {
             return AuthenticationResult::wrongCredentials($tenant, '');
         }
         $challenges = (new ChallengesState())

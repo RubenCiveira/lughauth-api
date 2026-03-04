@@ -43,9 +43,10 @@ class ConsentForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("consent.title");
-        $error = $error?->errorMessage
-            ? $translator->get("consent.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
-            : false;
+        $errorMessage = $error?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("consent.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("consent.help");
         $code = $translator->get("consent.code");
@@ -58,14 +59,14 @@ class ConsentForm implements StepForm
         );
         $pendings = $this->publicConsent->getPendingConsent(
             $tenant,
-            $challenges->username,
+            $challenges->username ?? '',
             $input->authRequest->audiences
         );
 
         $pending = $pendings[0];
         $pendingText = html_entity_decode($pending->text);
 
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
 
         $step = StepName::CONSENT->value;
         $response->getBody()->write(
@@ -111,7 +112,7 @@ class ConsentForm implements StepForm
                 $input->context->tenant,
                 $input->challenges->username ?? '',
                 $input->authRequest->audiences,
-                new Consent(id: $input->body['consent'], text: $input->body['conditions'])
+                new Consent(id: (string) ($input->body['consent'] ?? ''), text: (string) ($input->body['conditions'] ?? ''))
             );
             $csid = (string) ($input->body['csid'] ?? '');
             $auth = $this->authenticator->preAuthenticate(

@@ -78,7 +78,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
      * @return void
      */
     #[Override]
-    public function updateSession(string $newState, string $oldState)
+    public function updateSession(string $newState, string $oldState): void
     {
         $stmt = $this->pdo->prepare('UPDATE _oauth_session set session = :old, expiration = :new where session = :old');
         $stmt->bindValue('old', $newState, PDO::PARAM_STR);
@@ -90,7 +90,7 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
      * @return void
      */
     #[Override]
-    public function deleteSession(String $state)
+    public function deleteSession(string $state): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM _oauth_session where session = :session');
         $stmt->bindValue('session', $state, PDO::PARAM_STR);

@@ -79,7 +79,7 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
     }
 
     #[Override]
-    public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad)
+    public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void
     {
         if (!$this->useTenant) {
             $tenant = "-";

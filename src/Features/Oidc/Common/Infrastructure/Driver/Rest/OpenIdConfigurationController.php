@@ -94,7 +94,8 @@ class OpenIdConfigurationController
             "mtls_endpoint_aliases" => $mtlsEndpointAliases,
             "authorization_response_iss_parameter_supported" => true
         ];
-        $response->getBody()->write(json_encode($data));
+        $encoded = json_encode($data);
+        $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withHeader('Content-Type', 'application/json');
     }
 }

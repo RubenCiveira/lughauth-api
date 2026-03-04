@@ -18,5 +18,5 @@ interface TokenStoreGateway
     */
     public function listKeys(string $tenant): array;
 
-    public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad);
+    public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void;
 }

@@ -28,12 +28,12 @@ class HtmlSecurer
         return $this->keys->verifyToken($token);
     }
 
-    public function addSignAndSend(string $name, string $form)
+    public function addSignAndSend(string $name, string $form): Snipped
     {
         return $this->addSignCode($name, true, $form);
     }
 
-    public function addSign(string $name)
+    public function addSign(string $name): Snipped
     {
         return $this->addSignCode($name, false, '');
     }
@@ -107,7 +107,7 @@ class HtmlSecurer
             . "</script>";
     }
 
-    private function addSignCode(string $name, bool $send, string $form): mixed
+    private function addSignCode(string $name, bool $send, string $form): Snipped
     {
         $secret = $this->keys->currentKey();
         return new Snipped(

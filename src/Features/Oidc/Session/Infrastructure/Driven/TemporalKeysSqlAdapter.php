@@ -33,6 +33,9 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     public function verifyToken(string $token): ?string
     {
         $current = $this->getCurrent();
+        if ($current === null) {
+            return null;
+        }
         return $this->verifyTokenContent($token, $current['current'], $current['old']);
     }
 
@@ -43,6 +46,9 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     public function encrypt(string $token): ?string
     {
         $current = $this->getCurrent();
+        if ($current === null) {
+            return null;
+        }
         return $this->cipher->encrypt($token, $current['current']);
     }
 
@@ -53,8 +59,11 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     public function verifyCypher(string $token): ?string
     {
         $current = $this->getCurrent();
+        if ($current === null) {
+            return null;
+        }
         $dec = $this->cipher->decrypt($token, $current['current']);
-        if (!$dec) {
+        if ($dec === null || $dec === '') {
             $dec = $this->cipher->decrypt($token, $current['current']) ?? '';
         }
         return $dec;
@@ -63,7 +72,8 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     #[\Override]
     public function currentKey(): string
     {
-        return (string) ($this->getCurrent())['current'];
+        $current = $this->getCurrent();
+        return $current !== null ? (string) $current['current'] : '';
     }
 
     private function clearTemp(): void
@@ -80,7 +90,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         $delCodes->execute();
     }
 
-    private function execute($sql, $old): void
+    private function execute(string $sql, string $old): void
     {
         $expires = (new \DateTimeImmutable())->add(new \DateInterval('PT1H'));
         $api = str_replace('\'', '"', Random::apiSecret());
@@ -134,7 +144,14 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
 
             if ($isVerified) {
                 // Obtener el payload del token
-                $payload = json_decode($jws->getPayload(), true);
+                $payloadRaw = $jws->getPayload();
+                if ($payloadRaw === null) {
+                    return null;
+                }
+                $payload = json_decode($payloadRaw, true);
+                if (!is_array($payload)) {
+                    return null;
+                }
                 // Retornar el valor del claim 'identity', si existe
                 return $payload['identity'] ?? null;
             } else {
@@ -157,7 +174,8 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     public function registerTemporalAuthCode(TemporalAuthCode $code): string
     {
         $uid = Random::uuid();
-        $encoded = json_encode($code);
+        $jsonEncoded = json_encode($code);
+        $encoded = $jsonEncoded !== false ? $jsonEncoded : '{}';
         $expires = (new \DateTimeImmutable())->add(new \DateInterval('PT3M'));
         $stmt = $this->pdo->prepare('INSERT INTO _oauth_temporal_codes (code, code_data, expiration) VALUES (:code, :code_data, :expiration)');
         $stmt->bindValue('code', $uid, PDO::PARAM_STR);

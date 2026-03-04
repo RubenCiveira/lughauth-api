@@ -51,22 +51,24 @@ class RegisterUserAdapter implements RegisterUserGateway
     public function getRegisterConsent(string $tenant): ?string
     {
         $theTenant = $this->users->checkTenant($tenant, '-');
-        $terms = $this->users->loadTenantTerms($theTenant);
-        return $terms ? $terms->getText() : '';
+        $terms = $this->users->loadTenantTerms($theTenant, []);
+        $first = $terms[0] ?? null;
+        return $first ? $first->getText() : '';
     }
 
     /**
      * @return void
      */
     #[Override]
-    public function requestForRegister(string $url, string $tenant, string $email, string $password)
+    public function requestForRegister(string $url, string $tenant, string $email, string $password): void
     {
         $theTenant = $this->users->checkTenant($tenant, '-');
         $conf = $this->configs->findOneByTenant($theTenant);
         try {
             if ($conf && $conf->isAllowRegister()) {
                 $theTenant = $this->users->checkTenant($tenant, '-');
-                $terms = $this->users->loadTenantTerms($theTenant);
+                $termsList = $this->users->loadTenantTerms($theTenant, []);
+                $terms = $termsList[0] ?? null;
                 $theUser = $this->repository->create(User::register(
                     uid:  $this->randomizer->comb(),
                     name: $email,
@@ -93,6 +95,9 @@ class RegisterUserAdapter implements RegisterUserGateway
                 throw $ex;
             } else {
                 $theUser = $this->repository->findOneForUpdateByTenantAndName($theTenant, $email);
+                if ($theUser === null) {
+                    return;
+                }
                 if ($theUser->getApprove() == UserApproveOptions::UNVERIFIED) {
                     $att = $theUser->toAttributes();
                     $att->password(UserPasswordVO::fromPlainText($this->cypher, $password));

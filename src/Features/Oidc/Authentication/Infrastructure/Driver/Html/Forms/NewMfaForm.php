@@ -46,9 +46,10 @@ class NewMfaForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("newmfa.title");
-        $error = $error?->errorMessage
-            ? $translator->get("newmfa.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
-            : false;
+        $errorMessage = $error?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("newmfa.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
         $help = $translator->get("newmfa.help");
         $code = $translator->get("newmfa.code");
         $send = $translator->get("newmfa.send");
@@ -58,10 +59,10 @@ class NewMfaForm implements StepForm
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("newmfa.back-label") . "\" />"]
         );
 
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $seed = $this->securer->encrypt($token->seed);
-        $message = $token->message ? "<h2>" . $token->message . "</h2>" : "";
-        $image = $token->image ? "<img src=\"" . $token->image . "\" />" : "";
+        $message = $token->message !== null && $token->message !== '' ? "<h2>" . $token->message . "</h2>" : "";
+        $image = $token->image !== null && $token->image !== '' ? "<img src=\"" . $token->image . "\" />" : "";
 
         $step = StepName::NEW_MFA->value;
         $backStep = StepName::LOGIN->value;
@@ -105,7 +106,7 @@ class NewMfaForm implements StepForm
         $seed = isset($input->body['seed']) ? $this->securer->decrypt((string) $input->body['seed']) : '';
         $code = $input->body['mfa_code'] ?? '';
 
-        if ($seed && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
+        if ($seed !== null && $seed !== '' && $this->publicMfa->verifyNewOpt($input->context->tenant, $input->challenges->username ?? '', $seed, $code)) {
             $updated = $input->challenges->withMfa(true);
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,

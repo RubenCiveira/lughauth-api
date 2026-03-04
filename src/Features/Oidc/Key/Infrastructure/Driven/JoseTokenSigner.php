@@ -57,7 +57,8 @@ class JoseTokenSigner implements TokenSigner
             }
         }
         // Payload del JWT
-        $payload = json_encode($data);
+        $encoded = json_encode($data);
+        $payload = $encoded !== false ? $encoded : '{}';
         // Construir y firmar el token
         $token = $jwsBuilder->create() // Crear el JWS
                     ->withPayload($payload) // Establecer el payload
@@ -106,10 +107,10 @@ class JoseTokenSigner implements TokenSigner
         if (!$jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0)) {
             return null;
         }
-        $payload = json_decode($jwt->getPayload(), true);
+        $payload = json_decode($jwt->getPayload() ?? '{}', true);
         $nbf = $payload['nbf'] ?? null;
         $exp = $payload['exp'] ?? null;
-        if (!$nbf || !$exp) {
+        if ($nbf === null || $exp === null) {
             return null;
         }
         $now = time();
@@ -161,7 +162,8 @@ class JoseTokenSigner implements TokenSigner
         }
         // Exportar claves
         openssl_pkey_export($privateKeyResource, $privateKey);
-        $publicKey = openssl_pkey_get_details($privateKeyResource)['key'];
+        $details = openssl_pkey_get_details($privateKeyResource);
+        $publicKey = $details !== false ? $details['key'] : '';
         return new KeyPair(
             kid: Uuid::uuid4()->toString(),
             alg: 'RS256',

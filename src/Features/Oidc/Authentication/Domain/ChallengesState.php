@@ -54,7 +54,7 @@ final class ChallengesState
                 withMfa: (bool) ($data['with_mfa'] ?? false),
                 session: (bool) ($data['session'] ?? false),
                 username: $data['username'] ?? null,
-                extra: is_array($data['extra'] ?? null) ? $data['extra'] : []
+                extra: is_array($extra = $data['extra'] ?? null) ? $extra : []
             );
         }
 

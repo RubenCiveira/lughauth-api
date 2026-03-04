@@ -31,7 +31,7 @@ class TokenController
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $params = $request->getParsedBody();
+        $params = (array) ($request->getParsedBody() ?? []);
         // Get client data
         $grant = $params['grant_type'] ?? '';
         $scopes = $params['scope'] ?? '';
@@ -46,13 +46,16 @@ class TokenController
             $scopes = $code->request->scope;
         } elseif ("refresh_token" == $grant) {
             $refreshPayload = $this->manager->verifyTokenPayload($tenant, $params['refresh_token'] ?? '');
-            if (!$refreshPayload) {
+            if ($refreshPayload === null) {
                 throw new UnauthorizedException("Invalid refresh token");
             }
             $originalScope = $refreshPayload['original_scope'] ?? '';
             $scopes = $params['scope'] ?? $originalScope;
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
+            if (!$client) {
+                throw new UnauthorizedException("Unknown client");
+            }
             $auth = $this->granter->authenticate(
                 $grant,
                 $tenant,
@@ -80,19 +83,19 @@ class TokenController
             );
             $identity = [];
         }
-        if (!$auth->valid) {
+        if ($auth === null || !$auth->valid) {
             throw new UnauthorizedException("No auth");
         }
         $issuer = $this->context->getBaseUrl().'/oauth/openid/'. $tenant;
         $detail = [
-            'aud' => $this->tokenAudiences($client->id, $auth->audiences),
+            'aud' => $this->tokenAudiences($client->id, $auth->audiences ?? []),
             'azp' => $client->id,
             'iss' => $issuer,
             'sub' => $auth->id,
             'tenant' => $auth->tenant,
-            'scope' => $auth->scope,
-            'roles' => $auth->roles,
-            'groups' => $auth->groups
+            'scope' => $auth->scope ?? '',
+            'roles' => $auth->roles ?? [],
+            'groups' => $auth->groups ?? []
         ];
         $scopesForClaims = $auth->scope ?? $scopes;
         if (str_contains($scopesForClaims, 'profile')) {
@@ -111,13 +114,14 @@ class TokenController
             'id_token' => $this->manager->sign($tenant, $identity, $expiration),
             'access_token' => $this->manager->sign($tenant, array_merge($detail, [
                 // https://www.iana.org/assignments/jwt/jwt.xhtml
-                'scope' => $auth->scope,
-                'roles' => $auth->roles,
-                'groups' => $auth->groups
+                'scope' => $auth->scope ?? '',
+                'roles' => $auth->roles ?? [],
+                'groups' => $auth->groups ?? []
             ]), $expiration),
         ];
-        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ], new DateInterval("PT10H"));
-        $response->getBody()->write(json_encode($data));
+        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ?? '' ], new DateInterval("PT10H"));
+        $encoded = json_encode($data);
+        $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withHeader('Content-Type', 'application/json');
     }
 

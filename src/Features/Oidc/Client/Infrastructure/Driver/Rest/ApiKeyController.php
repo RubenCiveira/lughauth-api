@@ -19,14 +19,16 @@ class ApiKeyController
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $body = $request->getParsedBody();
-        $apiKey = $body['api-key'] ?? null;
+        $apiKey = (string) ($body['api-key'] ?? '');
         $detail = $this->storage->apiKey($apiKey);
         if (!$detail) {
-            $response->getBody()->write(json_encode(['message' => 'Not found api']));
+            $encoded = json_encode(['message' => 'Not found api']);
+            $response->getBody()->write($encoded === false ? '{}' : $encoded);
             return $response->withStatus(404)->withHeader('Content-Type', 'application/json');
             ;
         } else {
-            $response->getBody()->write(json_encode($detail));
+            $encoded = json_encode($detail);
+            $response->getBody()->write($encoded === false ? '{}' : $encoded);
             return $response->withHeader('Content-Type', 'application/json');
             ;
         }

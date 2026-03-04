@@ -57,10 +57,11 @@ class ScopesConsentForm implements StepForm
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
 
-        $error = $error?->errorMessage
-            ? $translator->get('scopes.error-format', [$translator->get('error.' . strtolower($error?->errorMessage))])
-            : false;
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $errorMessage = $error?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get('scopes.error-format', [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
 
         $pending = $this->scopesConsent->pendingScopes($tenant, $username, $clientId, $input->authRequest->scope);
         [$required, $optional] = $this->splitScopes($pending);
@@ -217,7 +218,7 @@ class ScopesConsentForm implements StepForm
         $items = '';
         foreach ($permissions as $permission) {
             $label = $permission->displayLabel();
-            $description = $permission->description ?: 'Descripcion no disponible.';
+            $description = $permission->description !== null && $permission->description !== '' ? $permission->description : 'Descripcion no disponible.';
             $requiredMark = $required ? ' <span class="required-marker">*</span>' : '';
             $checkbox = $required
                 ? '<input type="checkbox" checked disabled />'

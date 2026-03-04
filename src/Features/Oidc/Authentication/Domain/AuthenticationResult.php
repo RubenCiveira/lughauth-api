@@ -18,11 +18,11 @@ class AuthenticationResult
     public const string ERR_WRONG_CREDENTIAL = 'WRONG_CREDENTIAL';
     public const string ERR_NOT_ALLOWED_ACCESS = 'NOT_ALLOWED_ACCESS';
 
-    public static function waitNewpass($url, ?string $detail = null): AuthenticationResult
+    public static function waitNewpass(string $url, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_PASSCHANGE_CODE, errorMessage: $detail);
     }
-    public static function waitNewuserVerify($url, ?string $detail = null): AuthenticationResult
+    public static function waitNewuserVerify(string $url, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_USER_VERIFY, errorMessage: $detail);
     }

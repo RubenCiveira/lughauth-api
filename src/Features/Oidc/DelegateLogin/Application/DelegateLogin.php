@@ -35,13 +35,14 @@ class DelegateLogin
         $tenant = $info['tenant'] ?? null;
         unset($info['tenant']);
         $info['step'] = StepName::DELEGATED_LOGIN->value;
-        $info['provider-data'] = base64_encode(json_encode($params));
+        $encodedParams = json_encode($params);
+        $info['provider-data'] = base64_encode($encodedParams === false ? '{}' : $encodedParams);
 
         $url = $this->context->getBaseUrl() . $directory . $tenant . $path;
 
         $queryString = http_build_query($info);
         // Comprobamos si la URL ya tiene parámetros
-        $separator = parse_url($url, PHP_URL_QUERY) ? '&' : '?';
+        $separator = str_contains($url, '?') ? '&' : '?';
         // Concatenamos
         $finalUrl = $url . $separator . $queryString;
         return $response->withHeader('Location', $finalUrl)->withStatus(302);
@@ -60,7 +61,8 @@ class DelegateLogin
         $provider =  $this->delegate->getProvider($tenant, $providerId);
         $data['tenant'] = $tenant;
         $data['provider'] = $providerId;
-        $state = base64_encode(json_encode($data));
+        $encodedData = json_encode($data);
+        $state = base64_encode($encodedData === false ? '{}' : $encodedData);
         return $provider->delegeatedUrl($this->context->getBaseUrl() . $route, $state);
     }
 }

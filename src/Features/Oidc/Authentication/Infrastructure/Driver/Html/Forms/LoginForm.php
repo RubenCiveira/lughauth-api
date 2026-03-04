@@ -47,9 +47,10 @@ class LoginForm implements StepForm
 
         $title = $translator->get("login.title");
         $help = $translator->get("login.help", ['tenant' => $tenant]);
-        $error = $error?->error
-            ? $translator->get("login.error-format", ['error' => $translator->get('error.' . strtolower($error?->error))])
-            : false;
+        $errorCode = $error?->error;
+        $error = $errorCode !== null && $errorCode !== ''
+            ? $translator->get("login.error-format", ['error' => $translator->get('error.' . strtolower($errorCode))])
+            : '';
 
         $username = $translator->get("login.username");
         $password = $translator->get("login.password");
@@ -98,8 +99,8 @@ class LoginForm implements StepForm
                 HTML;
         }
 
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
-        $delegatedLogins = $delegatedLogins ? "<div class=\"social-login-buttons\">{$delegatedLogins}</div>" : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
+        $delegatedLogins = $delegatedLogins !== '' ? "<div class=\"social-login-buttons\">{$delegatedLogins}</div>" : '';
 
         $response->getBody()->write(
             $this->decorator->getFullPage(
@@ -133,7 +134,7 @@ class LoginForm implements StepForm
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
-        $password = $this->securer->decrypt((string) ($input->body['password'] ?? ''));
+        $password = $this->securer->decrypt((string) ($input->body['password'] ?? '')) ?? '';
         $username = (string) ($input->body['username'] ?? '');
         $csid = (string) ($input->body['csid'] ?? '');
         $challenges = $input->challenges->withUsername($username);

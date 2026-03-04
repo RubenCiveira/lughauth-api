@@ -41,9 +41,10 @@ class UseMfaForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("mfa.title");
-        $error = $error?->errorMessage
-            ? $translator->get("mfa.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
-            : false;
+        $errorMessage = $error?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("mfa.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("mfa.help");
         $code = $translator->get("mfa.code");
@@ -54,7 +55,7 @@ class UseMfaForm implements StepForm
             "mfa.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $step = StepName::MFA->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,

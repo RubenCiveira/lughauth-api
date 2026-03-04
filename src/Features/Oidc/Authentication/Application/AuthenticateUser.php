@@ -95,7 +95,7 @@ class AuthenticateUser
         string $nonce
     ): PublicLoginAuthResponse {
         if (!$validation->valid) {
-            throw new LoginException($validation, $validation->error, 401, null, $challenges);
+            throw new LoginException($validation, $validation->error ?? '', 401, null, $challenges);
         }
         $session = Uuid::uuid4()->toString();
         $authData = [
@@ -123,7 +123,7 @@ class AuthenticateUser
         $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration);
 
         return new PublicLoginAuthResponse(
-            tenant: $validation->tenant,
+            tenant: $validation->tenant ?? '',
             authData: $authData,
             authExpiration: new DateInterval("PT10M"),
             idData: $idData,
@@ -146,7 +146,7 @@ class AuthenticateUser
     public static function generateHash(string $value): string
     {
         $hashedValue = hash('sha256', $value, true);
-        $halfHashedValue = substr($hashedValue, 0, strlen($hashedValue) / 2);
+        $halfHashedValue = substr($hashedValue, 0, intdiv(strlen($hashedValue), 2));
         return rtrim(strtr(base64_encode($halfHashedValue), '+/', '-_'), '=');
     }
 }

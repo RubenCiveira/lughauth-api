@@ -21,7 +21,7 @@ class ApiKeyStoreAdapter implements ApiKeyStoreGateway
     {
         $response = $this->apiKeys->findOneByKey($apiKey);
         if ($response) {
-            return new ApiKeyData($apiKey, explode(",", $response->getScopes()));
+            return new ApiKeyData($apiKey, explode(",", $response->getScopes() ?? ''));
         } else {
             return null;
         }

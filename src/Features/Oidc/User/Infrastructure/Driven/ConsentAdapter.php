@@ -36,7 +36,7 @@ class ConsentAdapter implements ConsentGateway
         $pending = [];
         foreach ($terms as $term) {
             if ($this->isPendingTerms($theUser, $term)) {
-                $pending[] = new Consent($term->uid(), $term->getText());
+                $pending[] = new Consent($term->uid() ?? '', $term->getText());
             }
         }
         return $pending;

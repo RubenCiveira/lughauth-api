@@ -61,6 +61,9 @@ class UserLoaderAdapter
         $pfilter = new RelyingPartyFilter();
         $allParties = $this->parties->list($pfilter);
         foreach ($allParties as $party) {
+            if ($party === null) {
+                continue;
+            }
             if (in_array($party->getCode(), $relyingParties)) {
                 $partiesIds[] = $party->uid();
             }
@@ -68,6 +71,9 @@ class UserLoaderAdapter
         $query = new TenantTermsOfUseFilter(tenant: $tenant);
         $all = $this->terms->list($query);
         foreach ($all as $term) {
+            if ($term === null) {
+                continue;
+            }
             $party = $term->getRelyingParty();
             if (null === $party) {
                 continue;
@@ -76,6 +82,9 @@ class UserLoaderAdapter
                 continue;
             }
             $partyId = $party->uid();
+            if ($partyId === null) {
+                continue;
+            }
             $on = $term->getActivationDate();
             if (!$on || !$term->isEnabled() || $on > $now) {
                 // No date.
@@ -117,7 +126,7 @@ class UserLoaderAdapter
     public function checkUserByRecoveryCode(Tenant $tenant, string $code): array
     {
         if ($recover = $this->codeWriter->findOneForUpdateByRecoveryCode($code)) {
-            if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid())) {
+            if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid() ?? '')) {
                 if ($tenant->uid() === $theUser->getTenant()->uid()) {
                     $username = $theUser->getName();
                     $this->checkLookupUser($tenant, $theUser, $username);
@@ -136,11 +145,11 @@ class UserLoaderAdapter
     public function checkUserByRegisterCode(Tenant $tenant, string $code): array
     {
         if ($recover = $this->codeWriter->findOneForUpdateByRegisterCode($code)) {
-            if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid())) {
+            if ($theUser = $this->usersWriter->findOneForUpdateByUid($recover->getUser()->uid() ?? '')) {
                 if ($tenant->uid() === $theUser->getTenant()->uid()) {
                     $username = $theUser->getName();
                     $user = $this->users->findOneByTenantAndName($tenant, $username);
-                    if ($user->getApprove() !== UserApproveOptions::UNVERIFIED) {
+                    if ($user && $user->getApprove() !== UserApproveOptions::UNVERIFIED) {
                         throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $username));
                     }
                     return [$theUser, $recover];

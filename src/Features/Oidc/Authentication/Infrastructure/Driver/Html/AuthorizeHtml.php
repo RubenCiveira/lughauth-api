@@ -63,13 +63,13 @@ class AuthorizeHtml
 
     public function refresh(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $body = $request->getParsedBody();
+        $body = (array) ($request->getParsedBody() ?? []);
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $authRequest = $this->buildAuthRequest($flow, $client);
         $csid = $this->securer->verifyToken($body['csid']);
-        if (!$csid) {
+        if ($csid === null) {
             throw new UnauthorizedException();
         }
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
@@ -91,23 +91,23 @@ class AuthorizeHtml
 
     public function formAuthorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $body = $request->getParsedBody();
+        $body = (array) ($request->getParsedBody() ?? []);
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $clientRequest = $this->buildAuthRequest($flow, $client);
         $state = new ChallengesState();
-        if ($flow->preSessionId) {
+        if ($flow->preSessionId !== null && $flow->preSessionId !== '') {
             $state = $this->cookies->loadPreSessionChallenges($tenant, $flow->preSessionId);
         }
         $step = $body['step'] ?? null;
-        $input = $this->buildStepInput($flow, $request, $clientRequest, $state, $body ?? []);
+        $input = $this->buildStepInput($flow, $request, $clientRequest, $state, $body);
         try {
             // Tengo que sacar la password de fuera
             $csid = null;
             if (isset($body['csid'])) {
                 $csid = $this->securer->verifyToken($body['csid']);
-                if (!$csid) {
+                if ($csid === null) {
                     throw new UnauthorizedException('missingin_csid');
                 }
             }
@@ -164,9 +164,11 @@ class AuthorizeHtml
 
     private function renderStep(?string $message, ?AuthenticationResult $error, StepInput $input, ResponseInterface $response, ?string $stepOverride, ?ChallengesState $challengesOverride): ResponseInterface
     {
-        $error = !$error && $message ? new AuthenticationResult(valid: false, errorMessage: $message) : $error;
+        $error = $error === null && $message !== null && $message !== ''
+            ? new AuthenticationResult(valid: false, errorMessage: $message)
+            : $error;
         $step = $error ? null : ($stepOverride ?? ($input->request->getQueryParams()['step'] ?? null));
-        if ($challengesOverride) {
+        if ($challengesOverride !== null) {
             $input = new StepInput(
                 context: $input->context,
                 authRequest: $input->authRequest,

@@ -41,7 +41,7 @@ class DelegateForm implements StepForm
         );
         if ($result && $result->valid) {
             $csid = (string) ($body['csid'] ?? '');
-            $updated = $input->challenges->withUsername($result->id);
+            $updated = $input->challenges->withUsername($result->id ?? '');
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
                 $updated,
@@ -86,7 +86,8 @@ class DelegateForm implements StepForm
             return StepResult::render($response, $input->challenges);
         }
 
-        $target = $this->delegated->getTargetEndpoint($route, $input->context->tenant, $body['delegated-provider'], $input->request->getQueryParams());
+        /** @var array<string, mixed> $body */
+        $target = $this->delegated->getTargetEndpoint($route, $input->context->tenant, (string) ($body['delegated-provider'] ?? ''), $input->request->getQueryParams());
         if ($target->method == 'GET') {
             $response = $response->withStatus(302)->withHeader('Location', $target->url);
             return StepResult::render($response, $input->challenges);

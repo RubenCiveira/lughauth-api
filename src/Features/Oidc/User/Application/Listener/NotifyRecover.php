@@ -20,9 +20,9 @@ class NotifyRecover
         $message = new Message(
             targetName: 'Ruben Civeira',
             targetAddress: 'rubenciveira@gmail.com',
-            subject: 'Recovery ' . $auth->payload->getRecoveryCode(),
+            subject: 'Recovery ' . ($auth->payload->getRecoveryCode() ?? ''),
             txtContent: 'Como estas',
-            htmlContent: '<h1>Como estas</h1><p>Tenemos que ir a <a href="'.$auth->url.'">activar</a> en la url '.$auth->url
+            htmlContent: '<h1>Como estas</h1><p>Tenemos que ir a <a href="'.($auth->url ?? '').'">activar</a> en la url '.($auth->url ?? '')
         );
         $this->sender->send($message);
     }

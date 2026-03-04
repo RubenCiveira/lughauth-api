@@ -87,9 +87,12 @@ class ClientStoreAdapter implements ClientStoreGateway
                 if (str_starts_with($this->context->getBaseUrl(), $redirectUrl)) {
                     $allowed = true;
                 } else {
-                    $redirects = $existent->getAllowedRedirects();
+                    $redirects = $existent->getAllowedRedirects() ?? [];
                     foreach ($redirects as $redirect) {
-                        $url = $redirect->getUrl();
+                        if ($redirect === null) {
+                            continue;
+                        }
+                        $url = $redirect->getUrl() ?? '';
                         $local = str_starts_with($url, 'http://localhost:') ||  str_starts_with($url, 'http://localhost/');
                         $every = str_ends_with($url, '*');
                         if ($redirectUrl == $redirect->getUrl()) {

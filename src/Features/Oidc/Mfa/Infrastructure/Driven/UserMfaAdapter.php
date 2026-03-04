@@ -64,7 +64,7 @@ class UserMfaAdapter implements UserMfaGateway
             throw new NotFoundException('tenant ' . $username);
         }
         $delegated = new TwoFactorAuth(new EndroidQrCodeProvider());
-        $secret = $theUser->getPlainSecondFactorSeed($this->cypher);
+        $secret = $theUser->getPlainSecondFactorSeed($this->cypher) ?? '';
         return $delegated->verifyCode($secret, $otp);
     }
     #[Override]

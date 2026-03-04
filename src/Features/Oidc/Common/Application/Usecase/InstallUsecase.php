@@ -132,23 +132,23 @@ class InstallUsecase
 
         $roleAdmin = new PlatformIdentityRolesItem(
             uid: PlatformIdentityRolesUidVO::from(Random::comb()),
-            role: PlatformIdentityRolesRoleVO::from(new RoleRef($admin->uid())),
+            role: PlatformIdentityRolesRoleVO::from(new RoleRef($admin->uid() ?? '')),
             version: PlatformIdentityRolesVersionVO::from(0)
         );
         $roleRoot = new PlatformIdentityRolesItem(
             uid: PlatformIdentityRolesUidVO::from(Random::comb()),
-            role: PlatformIdentityRolesRoleVO::from(new RoleRef($root->uid())),
+            role: PlatformIdentityRolesRoleVO::from(new RoleRef($root->uid() ?? '')),
             version: PlatformIdentityRolesVersionVO::from(0)
         );
         $iamAdmin = new PlatformIdentityRolesItem(
             uid: PlatformIdentityRolesUidVO::from(Random::comb()),
-            role: PlatformIdentityRolesRoleVO::from(new RoleRef($iam->uid())),
+            role: PlatformIdentityRolesRoleVO::from(new RoleRef($iam->uid() ?? '')),
             version: PlatformIdentityRolesVersionVO::from(0)
         );
 
         $identity = new PlatformIdentityAttributes();
         $identity->uid(Random::comb());
-        $identity->user(new UserRef($user->getUid()));
+        $identity->user(new UserRef($user->getUid() ?? ''));
         $identity->roles(new PlatformIdentityRolesListRef($roleAdmin, $roleRoot, $iamAdmin));
         $this->createPlatformIdentity->create(PlatformIdentity::create($identity));
 

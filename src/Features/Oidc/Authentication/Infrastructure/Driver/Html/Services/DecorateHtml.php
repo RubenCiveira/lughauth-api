@@ -28,7 +28,8 @@ class DecorateHtml
     {
         $usedTheme = 'corporate';
         $srcDir = __DIR__ . "/../Themes/{$usedTheme}/";
-        $targetDir = realpath('.') . "/.assets/oidc/{$usedTheme}";
+        $realPath = realpath('.');
+        $targetDir = ($realPath !== false ? $realPath : '.') . "/.assets/oidc/{$usedTheme}";
         $this->dumpTheme($srcDir, $targetDir);
         // Index vars.
         $theme = "{$this->assetsPath}.assets/oidc/{$usedTheme}";

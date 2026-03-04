@@ -13,8 +13,8 @@ class LoginException extends UnauthorizedException
 {
     public function __construct(
         public readonly AuthenticationResult $auth,
-        $message = '',
-        $code = 401,
+        string $message = '',
+        int $code = 401,
         \Exception|null $previous = null,
         public readonly ?ChallengesState $challenges = null
     ) {

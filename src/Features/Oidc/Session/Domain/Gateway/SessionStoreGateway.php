@@ -22,9 +22,9 @@ interface SessionStoreGateway
         AuthenticationResult $validationData,
         string $csid,
         \DateInterval $expiration
-    );
+    ): void;
 
-    public function updateSession(string $newState, string $oldState);
+    public function updateSession(string $newState, string $oldState): void;
 
-    public function deleteSession(string $state);
+    public function deleteSession(string $state): void;
 }

@@ -73,7 +73,7 @@ final class OidcStepRouter
         }
 
         $errorKey = $error?->error;
-        if ($errorKey && isset(self::ERROR_MAP[$errorKey])) {
+        if ($errorKey !== null && $errorKey !== '' && isset(self::ERROR_MAP[$errorKey])) {
             $mapped = self::ERROR_MAP[$errorKey];
             return $this->steps[$mapped] ?? null;
         }

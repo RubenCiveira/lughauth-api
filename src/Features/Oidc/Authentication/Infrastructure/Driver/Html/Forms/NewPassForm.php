@@ -33,8 +33,8 @@ class NewPassForm implements StepForm
     public function authenticate(StepInput $input): StepResult
     {
         $body = $input->body ?? [];
-        $oldpass = $this->securer->decrypt($body["old_pass"]);
-        $newpass = $this->securer->decrypt($body["new_pass"]);
+        $oldpass = $this->securer->decrypt($body["old_pass"]) ?? '';
+        $newpass = $this->securer->decrypt($body["new_pass"]) ?? '';
         $csid = (string) ($body['csid'] ?? '');
         if ($this->changePassword->forceUpdatePassword($input->context->tenant, $input->challenges->username ?? '', $oldpass, $newpass)) {
             $auth = $this->authenticator->preAuthenticate(
@@ -66,9 +66,10 @@ class NewPassForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("newpass.title");
-        $error = $error?->errorMessage
-            ? $translator->get("newpass.error-format", [$error = $translator->get('error.' . strtolower($error?->errorMessage))])
-            : false;
+        $errorMessage = $error?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("newpass.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("newpass.help");
         $old = $translator->get("newpass.current");
@@ -79,7 +80,7 @@ class NewPassForm implements StepForm
             "newpass.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $backLabel . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $step = StepName::NEW_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $input->request,

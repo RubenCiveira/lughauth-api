@@ -22,6 +22,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGa
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
@@ -138,7 +139,7 @@ class LoginAdapter implements LoginGateway
     /**
      * @return void
      */
-    private function checkPassword(Tenant $tenant, User $user, string $password)
+    private function checkPassword(Tenant $tenant, User $user, string $password): void
     {
         if ($user->getPlainPassword($this->cypher) !== $password) {
             $this->markLoginFail($user);
@@ -155,6 +156,9 @@ class LoginAdapter implements LoginGateway
     {
         $terms = $this->users->loadTenantTerms($tenant, $audiences);
         foreach ($terms as $term) {
+            if (!$term instanceof TenantTermsOfUse) {
+                continue;
+            }
             $accepted = $this->userTerms->findOneByUserAndConditions($user, $term);
             if (!$accepted) {
                 return AuthenticationResult::consentRequired($term->getText());
@@ -176,7 +180,7 @@ class LoginAdapter implements LoginGateway
 
     private function checkMfaConfigurationRequired(Tenant $tenant, User $user): ?AuthenticationResult
     {
-        if ($user->getSecondFactorSeed()) {
+        if ($user->getSecondFactorSeed() !== null && $user->getSecondFactorSeed() !== '') {
             return null;
         }
         if ($user->isUseSecondFactors()) {
@@ -188,7 +192,10 @@ class LoginAdapter implements LoginGateway
 
     private function checkMfa(Tenant $tenant, User $user): ?AuthenticationResult
     {
-        return ($user->getSecondFactorSeed() && $user->isUseSecondFactors()) ? AuthenticationResult::mfaRequired() : null;
+        $seed = $user->getSecondFactorSeed();
+        return ($seed !== null && $seed !== '' && $user->isUseSecondFactors())
+            ? AuthenticationResult::mfaRequired()
+            : null;
     }
 
     private function markLoginFail(User $user): void
@@ -218,9 +225,7 @@ class LoginAdapter implements LoginGateway
     }
 
     /**
-     * @return array[]
-     *
-     * @psalm-return array<list<mixed>>
+     * @return array<string, list<string>>
      */
     private function loadRoles(AuthenticationRequest $client, Tenant $tenant, User $user): array
     {
@@ -260,7 +265,13 @@ class LoginAdapter implements LoginGateway
             $hisRoles = $tc->getRoles();
             if (null !== $hisRoles) {
                 foreach ($hisRoles as $role) {
+                    if ($role === null) {
+                        continue;
+                    }
                     $ref = $role->getRole();
+                    if ($ref === null) {
+                        continue;
+                    }
                     $theRole = $this->roles->resolve($ref);
                     if ($theRole) {
                         $roleName = 'platform:' . strtolower($theRole->getName());

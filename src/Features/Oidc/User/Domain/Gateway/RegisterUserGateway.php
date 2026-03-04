@@ -11,7 +11,7 @@ interface RegisterUserGateway
 
     public function getRegisterConsent(string $tenant): ?string;
 
-    public function requestForRegister(string $url, string $tenant, string $email, string $password);
+    public function requestForRegister(string $url, string $tenant, string $email, string $password): void;
 
     public function verifyRegister(string $tenant, string $code): ?string;
 }

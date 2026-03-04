@@ -104,6 +104,9 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         );
         $all = $this->loginProviders->list($filter);
         foreach ($all as $a) {
+            if ($a === null) {
+                continue;
+            }
             if ($provider = $this->loadProvider($a)) {
                 $providers[] = $provider;
             }
@@ -135,9 +138,9 @@ class DelegateLoginAdapter implements DelegateLoginGateway
                 new GoogleOAuthProvider(
                     $this->conf,
                     $this->context,
-                    $provider->uid(),
-                    $provider->getPublicKey(),
-                    $provider->getPrivateKey()
+                    $provider->uid() ?? '',
+                    $provider->getPublicKey() ?? '',
+                    $provider->getPrivateKey() ?? ''
                 );
         } else {
             return null;

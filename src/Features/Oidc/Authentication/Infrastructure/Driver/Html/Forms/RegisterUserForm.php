@@ -40,7 +40,7 @@ class RegisterUserForm implements StepForm
         if (isset($body['user'])) {
             $user = $body['user'] ?? '';
             $accept = $body['accept'] ?? false;
-            $pass  = $this->securer->decrypt($body["pass"] ?? '');
+            $pass  = $this->securer->decrypt($body["pass"] ?? '') ?? '';
             if ($accept !== 'accept') {
                 throw new LoginException(AuthenticationResult::unknowUser($input->context->tenant, $user, 'conditions_requierd'));
             }
@@ -52,14 +52,14 @@ class RegisterUserForm implements StepForm
                 $input->context->nonce,
                 '&_use_code='
             );
-            $this->registerUser->requestForRegister($url, $input->context->tenant, $user, $pass);
+            $this->registerUser->requestForRegister($url, $input->context->tenant, (string) $user, $pass);
             throw new LoginException(AuthenticationResult::waitNewuserVerify($url));
         }
 
-        $code = $this->securer->decrypt($body["code"]);
+        $code = $this->securer->decrypt($body["code"]) ?? '';
         $csid = (string) ($body['csid'] ?? '');
         $user = $this->registerUser->verifyRegister($input->context->tenant, $code);
-        if ($user) {
+        if ($user !== null && $user !== '') {
             $updated = $input->challenges->withUsername($user);
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
@@ -106,9 +106,10 @@ class RegisterUserForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("registeruser.ask.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("registeruser.ask.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
-            : false;
+        $errorMessage = $pe?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("registeruser.ask.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("registeruser.ask.help");
         $send = $translator->get("registeruser.ask.send");
@@ -116,7 +117,8 @@ class RegisterUserForm implements StepForm
         $pass = $translator->get("registeruser.ask.password");
 
         $accept = '<input type="hidden" name="accept" value="accept" />';
-        if ($terms = $this->registerUser->getRegisterConsent($tenant)) {
+        $terms = $this->registerUser->getRegisterConsent($tenant);
+        if ($terms !== null && $terms !== '') {
             $accept = '<input type="checkbox" name="accept" value="accept" />' .
                             '<textarea type="text" readonly>' . $terms . '</textarea>';
         }
@@ -125,7 +127,7 @@ class RegisterUserForm implements StepForm
             "registeruser.ask.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("registeruser.ask.back-label") . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $step = StepName::REGISTER_USER->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
@@ -168,9 +170,10 @@ class RegisterUserForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("registeruser.code.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("registeruser.code.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
-            : false;
+        $errorMessage = $pe?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("registeruser.code.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("registeruser.code.help");
         $send = $translator->get("registeruser.code.send");
@@ -181,7 +184,7 @@ class RegisterUserForm implements StepForm
             "registeruser.code.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("registeruser.code.back-label") . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $defaultCode = $params['_use_code'] ?? '';
         $step = StepName::REGISTER_USER->value;
         $response->getBody()->write($this->decorator->getFullPage(
@@ -221,23 +224,24 @@ class RegisterUserForm implements StepForm
         ]);
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
-        $url = $pe->id;
+        $url = $pe?->id ?? '';
         $title = $translator->get("registeruser.info.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("registeruser.info.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
-            : false;
+        $errorMessage = $pe?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("registeruser.info.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("registeruser.info.help");
         $send = $translator->get(
             "registeruser.info.goto-text",
-            ['<a href="'.$url.'">' . $translator->get("registeruser.info.goto-label") . '</a>' ]
+            ['<a href="' . $url . '">' . $translator->get("registeruser.info.goto-label") . '</a>' ]
         );
 
         $backText = $translator->get(
             "registeruser.info.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("registeruser.info.back-label") . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',

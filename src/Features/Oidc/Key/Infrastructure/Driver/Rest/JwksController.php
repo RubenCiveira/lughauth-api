@@ -23,10 +23,11 @@ class JwksController
         $key = $tenant . '_public_txt_jwks';
         if (!$this->cacheInterface->has($key)) {
             $data = $this->tokenHandler->keysAsJwks($tenant);
-            $txt = json_encode($data);
+            $encoded = json_encode($data);
+            $txt = $encoded !== false ? $encoded : '{}';
             $this->cacheInterface->set($key, $txt, new DateInterval("PT1H"));
         } else {
-            $txt = $this->cacheInterface->get($key);
+            $txt = (string) $this->cacheInterface->get($key);
         }
         $etag = '"' . md5($txt) . '"';
         $response->getBody()->write($txt);

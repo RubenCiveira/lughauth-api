@@ -58,7 +58,7 @@ final class ScopesConsentUsecase
      */
     public function normalizeScopeList(array $scopes): array
     {
-        $list = array_map(static fn ($value): string => trim((string) $value), $scopes);
+        $list = array_map(static fn (string $value): string => trim($value), $scopes);
         $list = array_filter($list, static fn (string $value): bool => $value !== '');
         return array_values(array_unique($list));
     }

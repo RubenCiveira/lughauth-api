@@ -50,11 +50,14 @@ class RecoverPassForm implements StepForm
             throw new LoginException(AuthenticationResult::waitNewpass($url));
         }
 
-        $code = $this->securer->decrypt($body["code"]);
-        $newpass  = $this->securer->decrypt($body["new_pass"]);
+        $code = $this->securer->decrypt($body["code"] ?? '');
+        $newpass  = $this->securer->decrypt($body["new_pass"] ?? '');
         $csid = (string) ($body['csid'] ?? '');
+        if ($code === null || $newpass === null) {
+            throw new LoginException(auth: AuthenticationResult::waitNewpass('', 'Invalid recover request'));
+        }
         $user = $this->changePassword->validateChangeRequest($input->context->tenant, $code, $newpass);
-        if ($user) {
+        if ($user !== null && $user !== '') {
             $updated = $input->challenges->withUsername($user);
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
@@ -100,9 +103,10 @@ class RecoverPassForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("recoverpass.ask.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("recoverpass.ask.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
-            : false;
+        $errorMessage = $pe?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("recoverpass.ask.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("recoverpass.ask.help");
         $send = $translator->get("recoverpass.ask.send");
@@ -112,7 +116,7 @@ class RecoverPassForm implements StepForm
             "recoverpass.ask.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("recoverpass.ask.back-label") . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $step = StepName::RECOVER_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
@@ -151,9 +155,10 @@ class RecoverPassForm implements StepForm
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
         $title = $translator->get("recoverpass.code.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("recoverpass.code.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
-            : false;
+        $errorMessage = $pe?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("recoverpass.code.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("recoverpass.code.help");
         $send = $translator->get("recoverpass.code.send");
@@ -164,7 +169,7 @@ class RecoverPassForm implements StepForm
             "recoverpass.code.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("recoverpass.code.back-label") . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $defaultCode = $params['_use_code'] ?? '';
         $step = StepName::RECOVER_PASS->value;
         $response->getBody()->write($this->decorator->getFullPage(
@@ -208,23 +213,24 @@ class RecoverPassForm implements StepForm
         ]);
         $translator = $this->messages->messages('forms', $locale, __DIR__ . '/../../Translations');
 
-        $url = $pe->id;
+        $url = $pe?->id ?? '';
         $title = $translator->get("recoverpass.info.title");
-        $error = $pe?->errorMessage
-            ? $translator->get("recoverpass.info.error-format", [$error = $translator->get('error.' . strtolower($pe?->errorMessage))])
-            : false;
+        $errorMessage = $pe?->errorMessage;
+        $error = $errorMessage !== null && $errorMessage !== ''
+            ? $translator->get("recoverpass.info.error-format", [$translator->get('error.' . strtolower($errorMessage))])
+            : '';
 
         $help = $translator->get("recoverpass.info.help");
         $send = $translator->get(
             "recoverpass.info.goto-text",
-            ['<a href="'.$url.'">' . $translator->get("recoverpass.info.goto-label") . '</a>' ]
+            ['<a href="' . $url . '">' . $translator->get("recoverpass.info.goto-label") . '</a>' ]
         );
 
         $backText = $translator->get(
             "recoverpass.info.back-text",
             ["<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("recoverpass.info.back-label") . "\" />"]
         );
-        $error = $error ? '<p class="error">' . $error . '</p>' : '';
+        $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $response->getBody()->write($this->decorator->getFullPage(
             $request,
             'New pass',
