@@ -47,7 +47,7 @@ trait TenantDomainAttributeHolder
     {
         if ($att->isDomainAssigned()) {
             $domain = $att->getDomain();
-            \assert(null != $domain);
+            \assert(null !== $domain);
             $this->domain($domain);
         }
     }

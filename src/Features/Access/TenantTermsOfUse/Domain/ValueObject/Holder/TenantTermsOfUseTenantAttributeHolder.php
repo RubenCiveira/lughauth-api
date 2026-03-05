@@ -48,7 +48,7 @@ trait TenantTermsOfUseTenantAttributeHolder
     {
         if ($att->isTenantAssigned()) {
             $tenant = $att->getTenant();
-            \assert(null != $tenant);
+            \assert(null !== $tenant);
             $this->tenant($tenant);
         }
     }

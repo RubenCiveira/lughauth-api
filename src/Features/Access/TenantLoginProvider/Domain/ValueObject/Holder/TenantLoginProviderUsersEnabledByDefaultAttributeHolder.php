@@ -46,8 +46,8 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
     public function readUsersEnabledByDefaultFrom(mixed $att): void
     {
         if ($att->isUsersEnabledByDefaultAssigned()) {
-            $usersEnabledByDefault = $att->getUsersEnabledByDefault();
-            \assert(null != $usersEnabledByDefault);
+            $usersEnabledByDefault = $att->isUsersEnabledByDefault();
+            \assert(null !== $usersEnabledByDefault);
             $this->usersEnabledByDefault($usersEnabledByDefault);
         }
     }

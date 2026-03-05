@@ -47,7 +47,7 @@ trait TenantTermsOfUseTextAttributeHolder
     {
         if ($att->isTextAssigned()) {
             $text = $att->getText();
-            \assert(null != $text);
+            \assert(null !== $text);
             $this->text($text);
         }
     }

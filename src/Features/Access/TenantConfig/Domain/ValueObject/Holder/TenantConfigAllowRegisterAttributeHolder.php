@@ -40,7 +40,7 @@ trait TenantConfigAllowRegisterAttributeHolder
     public function readAllowRegisterFrom(mixed $att): void
     {
         if ($att->isAllowRegisterAssigned()) {
-            $allowRegister = $att->getAllowRegister();
+            $allowRegister = $att->isAllowRegister();
             $this->allowRegister($allowRegister);
         }
     }

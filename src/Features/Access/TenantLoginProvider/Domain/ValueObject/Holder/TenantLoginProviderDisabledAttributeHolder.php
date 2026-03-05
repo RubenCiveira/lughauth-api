@@ -40,7 +40,7 @@ trait TenantLoginProviderDisabledAttributeHolder
     public function readDisabledFrom(mixed $att): void
     {
         if ($att->isDisabledAssigned()) {
-            $disabled = $att->getDisabled();
+            $disabled = $att->isDisabled();
             $this->disabled($disabled);
         }
     }

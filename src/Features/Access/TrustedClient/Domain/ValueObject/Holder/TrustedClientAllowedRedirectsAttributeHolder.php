@@ -48,7 +48,7 @@ trait TrustedClientAllowedRedirectsAttributeHolder
     {
         if ($att->isAllowedRedirectsAssigned()) {
             $allowedRedirects = $att->getAllowedRedirects();
-            \assert(null != $allowedRedirects);
+            \assert(null !== $allowedRedirects);
             $this->allowedRedirects($allowedRedirects);
         }
     }

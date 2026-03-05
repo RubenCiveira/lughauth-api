@@ -46,8 +46,8 @@ trait TenantConfigForceMfaAttributeHolder
     public function readForceMfaFrom(mixed $att): void
     {
         if ($att->isForceMfaAssigned()) {
-            $forceMfa = $att->getForceMfa();
-            \assert(null != $forceMfa);
+            $forceMfa = $att->isForceMfa();
+            \assert(null !== $forceMfa);
             $this->forceMfa($forceMfa);
         }
     }

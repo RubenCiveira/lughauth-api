@@ -46,8 +46,8 @@ trait TenantEnabledAttributeHolder
     public function readEnabledFrom(mixed $att): void
     {
         if ($att->isEnabledAssigned()) {
-            $enabled = $att->getEnabled();
-            \assert(null != $enabled);
+            $enabled = $att->isEnabled();
+            \assert(null !== $enabled);
             $this->enabled($enabled);
         }
     }

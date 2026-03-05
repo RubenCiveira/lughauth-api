@@ -47,7 +47,7 @@ trait TenantLoginProviderNameAttributeHolder
     {
         if ($att->isNameAssigned()) {
             $name = $att->getName();
-            \assert(null != $name);
+            \assert(null !== $name);
             $this->name($name);
         }
     }

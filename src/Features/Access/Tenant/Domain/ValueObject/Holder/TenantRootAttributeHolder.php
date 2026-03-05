@@ -40,7 +40,7 @@ trait TenantRootAttributeHolder
     public function readRootFrom(mixed $att): void
     {
         if ($att->isRootAssigned()) {
-            $root = $att->getRoot();
+            $root = $att->isRoot();
             $this->root($root);
         }
     }

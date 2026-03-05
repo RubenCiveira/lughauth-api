@@ -46,8 +46,8 @@ trait TrustedClientPublicAllowAttributeHolder
     public function readPublicAllowFrom(mixed $att): void
     {
         if ($att->isPublicAllowAssigned()) {
-            $publicAllow = $att->getPublicAllow();
-            \assert(null != $publicAllow);
+            $publicAllow = $att->isPublicAllow();
+            \assert(null !== $publicAllow);
             $this->publicAllow($publicAllow);
         }
     }

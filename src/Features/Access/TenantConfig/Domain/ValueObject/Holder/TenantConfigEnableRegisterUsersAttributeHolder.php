@@ -40,7 +40,7 @@ trait TenantConfigEnableRegisterUsersAttributeHolder
     public function readEnableRegisterUsersFrom(mixed $att): void
     {
         if ($att->isEnableRegisterUsersAssigned()) {
-            $enableRegisterUsers = $att->getEnableRegisterUsers();
+            $enableRegisterUsers = $att->isEnableRegisterUsers();
             $this->enableRegisterUsers($enableRegisterUsers);
         }
     }

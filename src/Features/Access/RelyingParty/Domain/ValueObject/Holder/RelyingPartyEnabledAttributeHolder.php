@@ -40,7 +40,7 @@ trait RelyingPartyEnabledAttributeHolder
     public function readEnabledFrom(mixed $att): void
     {
         if ($att->isEnabledAssigned()) {
-            $enabled = $att->getEnabled();
+            $enabled = $att->isEnabled();
             $this->enabled($enabled);
         }
     }

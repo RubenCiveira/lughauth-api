@@ -47,7 +47,7 @@ trait TrustedClientCodeAttributeHolder
     {
         if ($att->isCodeAssigned()) {
             $code = $att->getCode();
-            \assert(null != $code);
+            \assert(null !== $code);
             $this->code($code);
         }
     }

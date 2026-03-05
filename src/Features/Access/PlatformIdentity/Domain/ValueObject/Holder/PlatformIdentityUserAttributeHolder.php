@@ -48,7 +48,7 @@ trait PlatformIdentityUserAttributeHolder
     {
         if ($att->isUserAssigned()) {
             $user = $att->getUser();
-            \assert(null != $user);
+            \assert(null !== $user);
             $this->user($user);
         }
     }

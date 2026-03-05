@@ -47,7 +47,7 @@ trait RelyingPartyApiKeyAttributeHolder
     {
         if ($att->isApiKeyAssigned()) {
             $apiKey = $att->getApiKey();
-            \assert(null != $apiKey);
+            \assert(null !== $apiKey);
             $this->apiKey($apiKey);
         }
     }

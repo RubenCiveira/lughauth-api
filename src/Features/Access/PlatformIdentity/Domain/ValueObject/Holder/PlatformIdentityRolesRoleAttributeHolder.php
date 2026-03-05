@@ -48,7 +48,7 @@ trait PlatformIdentityRolesRoleAttributeHolder
     {
         if ($att->isRoleAssigned()) {
             $role = $att->getRole();
-            \assert(null != $role);
+            \assert(null !== $role);
             $this->role($role);
         }
     }

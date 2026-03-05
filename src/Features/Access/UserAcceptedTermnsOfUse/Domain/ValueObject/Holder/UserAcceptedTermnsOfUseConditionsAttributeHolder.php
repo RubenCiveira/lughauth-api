@@ -48,7 +48,7 @@ trait UserAcceptedTermnsOfUseConditionsAttributeHolder
     {
         if ($att->isConditionsAssigned()) {
             $conditions = $att->getConditions();
-            \assert(null != $conditions);
+            \assert(null !== $conditions);
             $this->conditions($conditions);
         }
     }

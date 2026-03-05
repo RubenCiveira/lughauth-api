@@ -40,7 +40,7 @@ trait TenantConfigAllowRecoverPassAttributeHolder
     public function readAllowRecoverPassFrom(mixed $att): void
     {
         if ($att->isAllowRecoverPassAssigned()) {
-            $allowRecoverPass = $att->getAllowRecoverPass();
+            $allowRecoverPass = $att->isAllowRecoverPass();
             $this->allowRecoverPass($allowRecoverPass);
         }
     }

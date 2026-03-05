@@ -46,8 +46,8 @@ trait TenantMarkForDeleteAttributeHolder
     public function readMarkForDeleteFrom(mixed $att): void
     {
         if ($att->isMarkForDeleteAssigned()) {
-            $markForDelete = $att->getMarkForDelete();
-            \assert(null != $markForDelete);
+            $markForDelete = $att->isMarkForDelete();
+            \assert(null !== $markForDelete);
             $this->markForDelete($markForDelete);
         }
     }

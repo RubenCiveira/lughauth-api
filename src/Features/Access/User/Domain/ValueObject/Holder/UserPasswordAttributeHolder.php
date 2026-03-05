@@ -47,7 +47,7 @@ trait UserPasswordAttributeHolder
     {
         if ($att->isPasswordAssigned()) {
             $password = $att->getPassword();
-            \assert(null != $password);
+            \assert(null !== $password);
             $this->password($password);
         }
     }

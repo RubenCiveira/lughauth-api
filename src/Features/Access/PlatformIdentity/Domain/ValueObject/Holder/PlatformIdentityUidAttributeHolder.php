@@ -47,7 +47,7 @@ trait PlatformIdentityUidAttributeHolder
     {
         if ($att->isUidAssigned()) {
             $uid = $att->getUid();
-            \assert(null != $uid);
+            \assert(null !== $uid);
             $this->uid($uid);
         }
     }

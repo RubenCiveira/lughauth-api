@@ -40,7 +40,7 @@ trait TrustedClientAllowAllScopesAttributeHolder
     public function readAllowAllScopesFrom(mixed $att): void
     {
         if ($att->isAllowAllScopesAssigned()) {
-            $allowAllScopes = $att->getAllowAllScopes();
+            $allowAllScopes = $att->isAllowAllScopes();
             $this->allowAllScopes($allowAllScopes);
         }
     }

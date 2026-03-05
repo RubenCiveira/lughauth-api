@@ -40,7 +40,7 @@ trait TenantLoginProviderDirectAccessAttributeHolder
     public function readDirectAccessFrom(mixed $att): void
     {
         if ($att->isDirectAccessAssigned()) {
-            $directAccess = $att->getDirectAccess();
+            $directAccess = $att->isDirectAccess();
             $this->directAccess($directAccess);
         }
     }

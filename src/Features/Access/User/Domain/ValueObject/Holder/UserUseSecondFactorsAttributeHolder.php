@@ -40,7 +40,7 @@ trait UserUseSecondFactorsAttributeHolder
     public function readUseSecondFactorsFrom(mixed $att): void
     {
         if ($att->isUseSecondFactorsAssigned()) {
-            $useSecondFactors = $att->getUseSecondFactors();
+            $useSecondFactors = $att->isUseSecondFactors();
             $this->useSecondFactors($useSecondFactors);
         }
     }

@@ -40,7 +40,7 @@ trait UserTemporalPasswordAttributeHolder
     public function readTemporalPasswordFrom(mixed $att): void
     {
         if ($att->isTemporalPasswordAssigned()) {
-            $temporalPassword = $att->getTemporalPassword();
+            $temporalPassword = $att->isTemporalPassword();
             $this->temporalPassword($temporalPassword);
         }
     }

@@ -47,7 +47,7 @@ trait TrustedClientAllowedRedirectsUrlAttributeHolder
     {
         if ($att->isUrlAssigned()) {
             $url = $att->getUrl();
-            \assert(null != $url);
+            \assert(null !== $url);
             $this->url($url);
         }
     }

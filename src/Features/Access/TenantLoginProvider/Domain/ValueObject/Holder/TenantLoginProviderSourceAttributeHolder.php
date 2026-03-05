@@ -48,7 +48,7 @@ trait TenantLoginProviderSourceAttributeHolder
     {
         if ($att->isSourceAssigned()) {
             $source = $att->getSource();
-            \assert(null != $source);
+            \assert(null !== $source);
             $this->source($source);
         }
     }
