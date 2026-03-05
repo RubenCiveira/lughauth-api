@@ -31,4 +31,23 @@ final class FileStoreKeyUnitTest extends TestCase
          */
         $this->assertSame('abc-123', $value);
     }
+
+    /**
+     * Ensures that an error is 
+     */
+    public function testThrowsException()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        /**
+         * Arrange: prepare an empty key
+         */
+        $value = '  ';
+        /**
+         * Act: try to build the key
+         */
+        new FileStoreKey($value);
+        /**
+         * Assert: exception must be thrown
+         */
+    }
 }

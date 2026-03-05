@@ -295,7 +295,7 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
             version: 1,
         );
         $sourceFailedLoginAttempts = 1;
-        $targetFailedLoginAttempts = $source->getFailedLoginAttempts() + 1 ;
+        $targetFailedLoginAttempts = ($source->getFailedLoginAttempts() ?? 0) + 1 ;
         $source = $source->withFailedLoginAttempts($sourceFailedLoginAttempts);
 
         // @Act

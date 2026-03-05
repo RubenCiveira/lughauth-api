@@ -67,6 +67,20 @@ class ConstraintExceptionUnitTest extends TestCase
     }
 
     /**
+     * Ensures includeViolation throws when class does not exist.
+     */
+    public function testIncludeViolationThrowsWhenClassDoesNotExist()
+    {
+        $fail = new ConstraintFail('CODEX', ['f'], ['w'], ['e']);
+        $exception = ConstraintException::ofFail($fail);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('MissingClass is expected to exists');
+
+        $exception->includeViolation('MissingClass');
+    }
+
+    /**
      * Ensures the iterator yields all failure codes.
      */
     public function testIteratorWorksCorrectly()

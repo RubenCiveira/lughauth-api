@@ -28,4 +28,46 @@ final class PortugueseNifUnitTest extends TestCase
             $this->assertEquals([], $result->expectedValues);
         }
     }
+
+    public function testNonStringValueFailsValidation(): void
+    {
+        $rule = new PortugueseNif();
+        $invalidValues = [123456789, new \stdClass()];
+
+        foreach ($invalidValues as $value) {
+            $result = $rule->check($value);
+            $this->assertInstanceOf(RuleFail::class, $result);
+            $this->assertEquals('rule_portuguese_nif', $result->code);
+            $this->assertEquals($value, $result->value);
+            $this->assertEquals([], $result->expectedValues);
+        }
+    }
+
+    public function testNifStartingWithZeroOrSevenFails(): void
+    {
+        $rule = new PortugueseNif();
+        $invalid = ['012345678', '712345678'];
+
+        foreach ($invalid as $nif) {
+            $result = $rule->check($nif);
+            $this->assertInstanceOf(RuleFail::class, $result);
+            $this->assertEquals('rule_portuguese_nif', $result->code);
+            $this->assertEquals($nif, $result->value);
+            $this->assertEquals([], $result->expectedValues);
+        }
+    }
+
+    public function testInvalidControlDigitFails(): void
+    {
+        $rule = new PortugueseNif();
+        $invalid = ['501964842', '123456780', '245789012'];
+
+        foreach ($invalid as $nif) {
+            $result = $rule->check($nif);
+            $this->assertInstanceOf(RuleFail::class, $result);
+            $this->assertEquals('rule_portuguese_nif', $result->code);
+            $this->assertEquals($nif, $result->value);
+            $this->assertEquals([], $result->expectedValues);
+        }
+    }
 }
