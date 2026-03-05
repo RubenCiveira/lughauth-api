@@ -187,4 +187,18 @@ final class ConstraintFailListUnitTest extends TestCase
          */
         $this->assertInstanceOf(ConstraintException::class, $ex);
     }
+
+    /**
+     * Ensures includeViolation throws when class does not exist.
+     */
+    public function testIncludeViolationThrowsWhenClassDoesNotExist()
+    {
+        $exception = new ConstraintFailList();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('MissingClass is expected to exists');
+
+        $exception->includeViolation('MissingClass');
+    }
+
 }

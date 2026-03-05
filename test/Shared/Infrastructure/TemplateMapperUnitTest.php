@@ -7,17 +7,70 @@ namespace Civi\Lughauth\Shared\Infrastructure {
     final class TemplateMapperTestHook
     {
         public static bool $forceFileGetContentsFail = false;
+        public static bool $forceMimeContentTypeFail = false;
+        public static bool $forceFilemtimeFail = false;
+        public static bool $forceFilesizeFail = false;
+        public static bool $forceGzencodeFail = false;
+        public static bool $forceFopenFail = false;
+        public static bool $forceRealpathFail = false;
     }
 
-    if (!function_exists(__NAMESPACE__ . '\\file_get_contents')) {
-        function file_get_contents(string $filename): string|false
-        {
-            if (TemplateMapperTestHook::$forceFileGetContentsFail) {
-                return false;
-            }
-
-            return \file_get_contents($filename);
+    function file_get_contents(string $filename): string|false
+    {
+        if (TemplateMapperTestHook::$forceFileGetContentsFail) {
+            return false;
         }
+        return \file_get_contents($filename);
+    }
+
+    function mime_content_type(string $filename): string|false
+    {
+        if (TemplateMapperTestHook::$forceMimeContentTypeFail) {
+            return false;
+        }
+        return \mime_content_type($filename);
+    }
+
+    function filemtime(string $filename): int|false
+    {
+        if (TemplateMapperTestHook::$forceFilemtimeFail) {
+            return false;
+        }
+        return \filemtime($filename);
+    }
+
+    function filesize(string $filename): int|false
+    {
+        if (TemplateMapperTestHook::$forceFilesizeFail) {
+            return false;
+        }
+        return \filesize($filename);
+    }
+
+    function gzencode(string $data, int $level = -1, int $encoding = FORCE_GZIP): string|false
+    {
+        if (TemplateMapperTestHook::$forceGzencodeFail) {
+            return false;
+        }
+        return \gzencode($data, $level, $encoding);
+    }
+
+    function realpath(string $path): string|false
+    {
+        if (TemplateMapperTestHook::$forceRealpathFail) {
+            return false;
+        }
+        return \realpath($path);
+    }
+
+    function fopen(string $filename, string $mode, bool $useIncludePath = false, $context = null): mixed
+    {
+        if (TemplateMapperTestHook::$forceFopenFail) {
+            return false;
+        }
+        return $context !== null
+            ? \fopen($filename, $mode, $useIncludePath, $context)
+            : \fopen($filename, $mode, $useIncludePath);
     }
 }
 
@@ -34,6 +87,17 @@ namespace {
 
     final class TemplateMapperUnitTest extends TestCase
     {
+        protected function tearDown(): void
+        {
+            TemplateMapperTestHook::$forceFileGetContentsFail = false;
+            TemplateMapperTestHook::$forceMimeContentTypeFail = false;
+            TemplateMapperTestHook::$forceFilemtimeFail = false;
+            TemplateMapperTestHook::$forceFilesizeFail = false;
+            TemplateMapperTestHook::$forceGzencodeFail = false;
+            TemplateMapperTestHook::$forceFopenFail = false;
+            TemplateMapperTestHook::$forceRealpathFail = false;
+        }
+
         private function templatesDir(): string
         {
             $ref = new ReflectionClass(TemplateMapper::class);
@@ -211,6 +275,283 @@ namespace {
                 $this->assertStringContainsString('Error reading file', (string) $response->getBody());
             } finally {
                 TemplateMapperTestHook::$forceFileGetContentsFail = false;
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures mime_content_type failure falls back to application/octet-stream.
+         */
+        public function testStaticFallbackMimeTypeWhenDetectionFails(): void
+        {
+            /*
+             * Arrange: create a static file and force mime_content_type to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/data.bin';
+            file_put_contents($file, 'binary');
+
+            TemplateMapperTestHook::$forceMimeContentTypeFail = true;
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/data.bin');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the fallback MIME type is used.
+                 */
+                $this->assertSame(200, $response->getStatusCode());
+                $this->assertSame('application/octet-stream', $response->getHeaderLine('Content-Type'));
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures filemtime failure falls back to current time.
+         */
+        public function testStaticFallbackLastModifiedWhenFilemtimeFails(): void
+        {
+            /*
+             * Arrange: create a static file and force filemtime to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/data.txt';
+            file_put_contents($file, 'content');
+
+            TemplateMapperTestHook::$forceFilemtimeFail = true;
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/data.txt');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the response includes a Last-Modified header.
+                 */
+                $this->assertSame(200, $response->getStatusCode());
+                $this->assertNotEmpty($response->getHeaderLine('Last-Modified'));
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures filesize failure falls back to zero in ETag.
+         */
+        public function testStaticFallbackFilesizeInEtagWhenFilesizeFails(): void
+        {
+            /*
+             * Arrange: create a static file and force filesize to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/data.txt';
+            file_put_contents($file, 'content');
+
+            TemplateMapperTestHook::$forceFilesizeFail = true;
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/data.txt');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the ETag starts with W/"0- indicating zero filesize.
+                 */
+                $this->assertSame(200, $response->getStatusCode());
+                $etag = $response->getHeaderLine('ETag');
+                $this->assertStringStartsWith('W/"0-', $etag);
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures gzencode failure returns 500.
+         */
+        public function testReturns500WhenGzencodeFails(): void
+        {
+            /*
+             * Arrange: create a static file and force gzencode to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/compress.txt';
+            file_put_contents($file, 'data');
+
+            TemplateMapperTestHook::$forceGzencodeFail = true;
+            try {
+                $request = (new ServerRequestFactory())
+                    ->createServerRequest('GET', '/compress.txt')
+                    ->withHeader('Accept-Encoding', 'gzip');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the compression failure returns 500.
+                 */
+                $this->assertSame(500, $response->getStatusCode());
+                $this->assertStringContainsString('Error compressing file', (string) $response->getBody());
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures fopen failure during gzip response returns 500.
+         */
+        public function testReturns500WhenFopenFailsDuringGzip(): void
+        {
+            /*
+             * Arrange: create a static file and force fopen to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/fopen.txt';
+            file_put_contents($file, 'data');
+
+            TemplateMapperTestHook::$forceFopenFail = true;
+            try {
+                $request = (new ServerRequestFactory())
+                    ->createServerRequest('GET', '/fopen.txt')
+                    ->withHeader('Accept-Encoding', 'gzip');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the fopen failure returns 500.
+                 */
+                $this->assertSame(500, $response->getStatusCode());
+                $this->assertStringContainsString('Error preparing response', (string) $response->getBody());
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures fopen failure in non-gzip static path returns 500.
+         */
+        public function testReturns500WhenFopenFailsWithoutGzip(): void
+        {
+            /*
+             * Arrange: create a static file and force fopen to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/nofopen.txt';
+            file_put_contents($file, 'data');
+
+            TemplateMapperTestHook::$forceFopenFail = true;
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/nofopen.txt');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the fopen failure returns 500.
+                 */
+                $this->assertSame(500, $response->getStatusCode());
+                $this->assertStringContainsString('Error reading file', (string) $response->getBody());
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures template rendering without container returns 500.
+         */
+        public function testReturns500WhenContainerIsNull(): void
+        {
+            /*
+             * Arrange: create an app without a container and a template file.
+             */
+            $ref = new \ReflectionClass(AppFactory::class);
+            $prop = $ref->getProperty('container');
+            $prop->setAccessible(true);
+            $prop->setValue(null, null);
+
+            $app = AppFactory::create();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/nocontainer.tpl';
+            file_put_contents($file, 'tpl');
+
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/nocontainer.tpl');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the missing container returns 500.
+                 */
+                $this->assertSame(500, $response->getStatusCode());
+                $this->assertStringContainsString('Template container not available', (string) $response->getBody());
+            } finally {
+                @unlink($file);
+            }
+        }
+
+        /**
+         * Ensures realpath failure for templates directory returns 500.
+         */
+        public function testReturns500WhenTemplatesDirRealpathFails(): void
+        {
+            /*
+             * Arrange: build an app and force realpath to fail.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            TemplateMapperTestHook::$forceRealpathFail = true;
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/anything');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the missing templates directory returns 500.
+                 */
+                $this->assertSame(500, $response->getStatusCode());
+                $this->assertStringContainsString('Templates directory not found', (string) $response->getBody());
+            } finally {
+                TemplateMapperTestHook::$forceRealpathFail = false;
+            }
+        }
+
+        /**
+         * Ensures static files without gzip are served with correct headers.
+         */
+        public function testStaticFileServedWithoutGzip(): void
+        {
+            /*
+             * Arrange: create a non-HTML static file.
+             */
+            $app = $this->buildAppWithTwig();
+            TemplateMapper::register($app);
+
+            $templateDir = $this->templatesDir();
+            $file = $templateDir . '/style.css';
+            file_put_contents($file, 'body{color:red}');
+
+            try {
+                $request = (new ServerRequestFactory())->createServerRequest('GET', '/style.css');
+                $response = $app->handle($request);
+
+                /*
+                 * Assert: verify the file is served without Content-Encoding.
+                 */
+                $this->assertSame(200, $response->getStatusCode());
+                $this->assertSame('', $response->getHeaderLine('Content-Encoding'));
+                $this->assertStringContainsString('body{color:red}', (string) $response->getBody());
+                $this->assertNotEmpty($response->getHeaderLine('ETag'));
+                $this->assertNotEmpty($response->getHeaderLine('Cache-Control'));
+            } finally {
                 @unlink($file);
             }
         }

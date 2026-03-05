@@ -173,10 +173,8 @@ class EntityChangelogService
             if (!$field) {
                 continue;
             }
+            /** @var string $paramBase pattern '/\W+/' is always valid */
             $paramBase = preg_replace('/\W+/', '_', $field);
-            if ($paramBase === null) {
-                continue;
-            }
             $paramBase = 'f_' . $paramBase;
 
             $jsonExpr = $this->jsonTextExpr($field, $paramBase, $params);
@@ -373,11 +371,10 @@ class EntityChangelogService
     private function buildJsonLike(string $field, string $value): string
     {
         // JSON-encode para meter comillas correctas y escapes de caracteres especiales
+        /** @var string $f json_encode on a string never returns false */
         $f = json_encode($field, JSON_UNESCAPED_UNICODE);   // => "\"campo\""
+        /** @var string $v json_encode on a string never returns false */
         $v = json_encode($value, JSON_UNESCAPED_UNICODE);   // => "\"valor\""
-        if ($f === false || $v === false) {
-            return '%';
-        }
 
         $pattern = $f . ':' . $v;
 

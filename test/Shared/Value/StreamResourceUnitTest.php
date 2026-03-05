@@ -417,4 +417,218 @@ final class StreamResourceUnitTest extends TestCase
         $this->assertSame($meta['mode'], $mode);
         $this->assertNull($missing);
     }
+
+    /**
+     * Ensures getMetadata returns null when the resource is detached.
+     */
+    public function testGetMetadataReturnsNullWhenDetached(): void
+    {
+        /*
+         * Arrange: create a stream and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        $stream = new StreamResource($res);
+        $stream->detach();
+
+        /*
+         * Act: request metadata from the detached stream.
+         */
+        $meta = $stream->getMetadata();
+        $keyed = $stream->getMetadata('mode');
+
+        /*
+         * Assert: verify both calls return null.
+         */
+        $this->assertNull($meta);
+        $this->assertNull($keyed);
+    }
+
+    /**
+     * Ensures getContents throws when the resource is detached.
+     */
+    public function testGetContentsThrowsWhenDetached(): void
+    {
+        /*
+         * Arrange: create a stream with content and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        fwrite($res, 'content');
+        rewind($res);
+        $stream = new StreamResource($res);
+        $stream->detach();
+        $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to read contents from the detached stream.
+         */
+        $stream->getContents();
+
+        /*
+         * Assert: confirm the non-readable detached stream triggers an exception.
+         */
+    }
+
+    /**
+     * Ensures isReadable returns false when the resource is detached.
+     */
+    public function testIsReadableReturnsFalseWhenDetached(): void
+    {
+        /*
+         * Arrange: create a readable stream and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        $stream = new StreamResource($res);
+        $stream->detach();
+
+        /*
+         * Act: check readability on the detached stream.
+         */
+        $isReadable = $stream->isReadable();
+
+        /*
+         * Assert: verify the detached stream is not readable.
+         */
+        $this->assertFalse($isReadable);
+    }
+
+    /**
+     * Ensures isWritable returns false when the resource is detached.
+     */
+    public function testIsWritableReturnsFalseWhenDetached(): void
+    {
+        /*
+         * Arrange: create a writable stream and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        $stream = new StreamResource($res);
+        $stream->detach();
+
+        /*
+         * Act: check writability on the detached stream.
+         */
+        $isWritable = $stream->isWritable();
+
+        /*
+         * Assert: verify the detached stream is not writable.
+         */
+        $this->assertFalse($isWritable);
+    }
+
+    /**
+     * Ensures read throws when the resource is detached.
+     */
+    public function testReadThrowsWhenDetached(): void
+    {
+        /*
+         * Arrange: create a stream with content and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        fwrite($res, 'data');
+        rewind($res);
+        $stream = new StreamResource($res);
+        $stream->detach();
+        $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to read from the detached stream.
+         */
+        $stream->read(4);
+
+        /*
+         * Assert: confirm the non-readable detached stream triggers an exception.
+         */
+    }
+
+    /**
+     * Ensures write throws when the resource is detached.
+     */
+    public function testWriteThrowsWhenDetached(): void
+    {
+        /*
+         * Arrange: create a writable stream and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        $stream = new StreamResource($res);
+        $stream->detach();
+        $this->expectException(\RuntimeException::class);
+
+        /*
+         * Act: attempt to write to the detached stream.
+         */
+        $stream->write('hello');
+
+        /*
+         * Assert: confirm the non-writable detached stream triggers an exception.
+         */
+    }
+
+    /**
+     * Ensures tell returns zero when the resource is detached.
+     */
+    public function testTellReturnsZeroWhenDetached(): void
+    {
+        /*
+         * Arrange: create a stream and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        $stream = new StreamResource($res);
+        $stream->detach();
+
+        /*
+         * Act: query the position on the detached stream.
+         */
+        $position = $stream->tell();
+
+        /*
+         * Assert: verify the detached stream reports position zero.
+         */
+        $this->assertSame(0, $position);
+    }
+
+    /**
+     * Ensures eof returns true when the resource is detached.
+     */
+    public function testEofReturnsTrueWhenDetached(): void
+    {
+        /*
+         * Arrange: create a stream and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        $stream = new StreamResource($res);
+        $stream->detach();
+
+        /*
+         * Act: check EOF state on the detached stream.
+         */
+        $eof = $stream->eof();
+
+        /*
+         * Assert: verify the detached stream reports EOF.
+         */
+        $this->assertTrue($eof);
+    }
+
+    /**
+     * Ensures getSize returns null when the resource is detached.
+     */
+    public function testGetSizeReturnsNullWhenDetached(): void
+    {
+        /*
+         * Arrange: create a stream with content and detach the resource.
+         */
+        $res = fopen('php://temp', 'r+');
+        fwrite($res, '12345');
+        $stream = new StreamResource($res);
+        $stream->detach();
+
+        /*
+         * Act: query the size on the detached stream.
+         */
+        $size = $stream->getSize();
+
+        /*
+         * Assert: verify the detached stream reports null size.
+         */
+        $this->assertNull($size);
+    }
 }

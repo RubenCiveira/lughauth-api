@@ -4,10 +4,12 @@
 declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Observability {
-    if (!function_exists(__NAMESPACE__ . '\\error_log')) {
-        function error_log(string $message): void
-        {
-        }
+    /** @var list<string> Captured log messages for testing. */
+    $GLOBALS['__captured_error_log'] = [];
+
+    function error_log(string $message): void
+    {
+        $GLOBALS['__captured_error_log'][] = $message;
     }
 }
 
@@ -22,6 +24,11 @@ namespace {
      */
     final class LoggerAwareTraitUnitTest extends TestCase
     {
+        protected function setUp(): void
+        {
+            $GLOBALS['__captured_error_log'] = [];
+        }
+
         /**
          * Ensures missing logger falls back without errors.
          */
@@ -41,17 +48,79 @@ namespace {
             $container->expects($this->never())->method('get');
 
             /*
-             * Act: resolve the logger and write log entries.
+             * Act: resolve the logger and log a message.
              */
             $service->setLoggerFromContainer($container);
             $service->logInfo('fallback');
-            $service->logDebug('fallback');
-            $service->logError('fallback');
 
             /*
-             * Assert: confirm fallback logging path completed.
+             * Assert: confirm fallback logging path completed via error_log.
              */
-            $this->assertTrue(true);
+            $this->assertCount(1, $GLOBALS['__captured_error_log']);
+            $this->assertSame('INFO: fallback []', $GLOBALS['__captured_error_log'][0]);
+        }
+
+        /**
+         * Ensures all log levels use the fallback when no logger is set.
+         */
+        public function testAllLogLevelsFallbackToErrorLog(): void
+        {
+            /*
+             * Arrange: create a trait consumer without a logger.
+             */
+            $service = new class () {
+                use LoggerAwareTrait;
+            };
+
+            /*
+             * Act: invoke every log level with context.
+             */
+            $service->logEmergency('msg-emergency', ['k' => 'v']);
+            $service->logAlert('msg-alert', ['k' => 'v']);
+            $service->logCritical('msg-critical', ['k' => 'v']);
+            $service->logError('msg-error', ['k' => 'v']);
+            $service->logWarning('msg-warning', ['k' => 'v']);
+            $service->logNotice('msg-notice', ['k' => 'v']);
+            $service->logInfo('msg-info', ['k' => 'v']);
+            $service->logDebug('msg-debug', ['k' => 'v']);
+
+            /*
+             * Assert: verify each level produced the expected fallback output.
+             */
+            $expected = [
+                'EMERGENCY: msg-emergency {"k":"v"}',
+                'ALERT: msg-alert {"k":"v"}',
+                'CRITICAL: msg-critical {"k":"v"}',
+                'ERROR: msg-error {"k":"v"}',
+                'WARNING: msg-warning {"k":"v"}',
+                'NOTICE: msg-notice {"k":"v"}',
+                'INFO: msg-info {"k":"v"}',
+                'DEBUG: msg-debug {"k":"v"}',
+            ];
+            $this->assertSame($expected, $GLOBALS['__captured_error_log']);
+        }
+
+        /**
+         * Ensures fallback logs without context omit the context string.
+         */
+        public function testFallbackWithEmptyContext(): void
+        {
+            /*
+             * Arrange: create a trait consumer without a logger.
+             */
+            $service = new class () {
+                use LoggerAwareTrait;
+            };
+
+            /*
+             * Act: log a message without context.
+             */
+            $service->logInfo('no-context');
+
+            /*
+             * Assert: verify the fallback output includes empty context.
+             */
+            $this->assertSame('INFO: no-context []', $GLOBALS['__captured_error_log'][0]);
         }
 
         /**

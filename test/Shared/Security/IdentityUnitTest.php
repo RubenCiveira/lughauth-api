@@ -372,4 +372,46 @@ class IdentityUnitTest extends TestCase
          */
         $this->assertFalse($hasScope);
     }
+
+    /**
+     * Ensures wildcard role matches roles with the same prefix.
+     */
+    public function testHasRoleWildcardMatchesPrefix(): void
+    {
+        /*
+         * Arrange: build an identity with a prefixed role.
+         */
+        $identity = new Identity(false, roles: ['platform:admin', 'platform:support']);
+
+        /*
+         * Act: check for a wildcard role.
+         */
+        $hasRole = $identity->hasRole('platform:*');
+
+        /*
+         * Assert: verify the wildcard matches.
+         */
+        $this->assertTrue($hasRole);
+    }
+
+    /**
+     * Ensures wildcard role does not match unrelated prefixes.
+     */
+    public function testHasRoleWildcardDoesNotMatchDifferentPrefix(): void
+    {
+        /*
+         * Arrange: build an identity with roles that differ from the wildcard.
+         */
+        $identity = new Identity(false, roles: ['billing:read', 'billing:write']);
+
+        /*
+         * Act: check for a wildcard role with a different prefix.
+         */
+        $hasRole = $identity->hasRole('platform:*');
+
+        /*
+         * Assert: verify the wildcard does not match.
+         */
+        $this->assertFalse($hasRole);
+    }
 }

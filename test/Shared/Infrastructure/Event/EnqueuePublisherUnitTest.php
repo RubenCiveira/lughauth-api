@@ -103,12 +103,62 @@ final class EnqueuePublisherUnitTest extends TestCase
         $this->assertSame(1, $retryParam->value);
     }
 
-    private function createConfig(?string $dns): AppConfig
+    /**
+     * Ensures send exits early when queue connection is not configured.
+     */
+    public function testSendSkipsWhenQueueNotConfigured(): void
+    {
+        /* Arrange: configure a publisher with valid DNS but null topic. */
+        $config = $this->createConfig('amqp://test', null);
+        $template = new FakeSqlTemplate([
+            ['event_id' => 'e1', 'retries' => 0, 'event_type' => 'user.created'],
+        ]);
+
+        FakeAmqpConnectionFactory::$contextFactory = function () {
+            throw new Exception('Should not be reached');
+        };
+
+        $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
+
+        /* Act: send pending events with unconfigured queue. */
+        $publisher->sendEvents();
+
+        /* Assert: verify the event was marked as published (send returned early without error). */
+        $publishedParam = $this->findParamInSets($template->executeParams, 'published');
+        $this->assertNotNull($publishedParam);
+    }
+
+    /**
+     * Ensures send exits early when json_encode fails.
+     */
+    public function testSendSkipsWhenJsonEncodeFails(): void
+    {
+        /* Arrange: configure a publisher with data that fails json_encode. */
+        $config = $this->createConfig('amqp://test');
+        $template = new FakeSqlTemplate([
+            ['event_id' => 'e1', 'retries' => 0, 'event_type' => 'user.created', 'bad' => NAN],
+        ]);
+
+        FakeAmqpConnectionFactory::$contextFactory = function () {
+            throw new Exception('Should not be reached');
+        };
+
+        $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
+
+        /* Act: send pending events with non-encodable data. */
+        $publisher->sendEvents();
+
+        /* Assert: verify the event was marked as published (send returned early without error). */
+        $publishedParam = $this->findParamInSets($template->executeParams, 'published');
+        $this->assertNotNull($publishedParam);
+    }
+
+    private function createConfig(?string $dns, ?string $topic = 'events'): AppConfig
     {
         $config = $this->createMock(AppConfig::class);
         $config->method('get')->willReturnMap([
             ['event.queue.dns', null, $dns],
-            ['app.event.queue.topic', null, 'events'],
+            ['app.event.queue.topic', null, $topic],
             ['app.event.queue.retention.send', '1D', '1D'],
             ['app.event.queue.retention.stuck', '3D', '3D'],
         ]);

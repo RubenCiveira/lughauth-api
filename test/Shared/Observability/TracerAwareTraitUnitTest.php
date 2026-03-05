@@ -5,8 +5,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Observability {
     if (!function_exists(__NAMESPACE__ . '\\error_log')) {
+        /** @var list<string> Captured log messages for testing. */
+        $GLOBALS['__captured_error_log'] = [];
+
         function error_log(string $message): void
         {
+            $GLOBALS['__captured_error_log'][] = $message;
         }
     }
 }
@@ -26,6 +30,11 @@ namespace {
      */
     final class TracerAwareTraitUnitTest extends TestCase
     {
+        protected function setUp(): void
+        {
+            $GLOBALS['__captured_error_log'] = [];
+        }
+
         /**
          * Ensures missing tracer uses fallback span holder.
          */
@@ -147,6 +156,200 @@ namespace {
             /*
              * Assert: confirm the span builder was invoked via the tracer.
              */
+        }
+
+        /**
+         * Ensures numeric attribute keys are cast to string.
+         */
+        public function testStartSpanCastsNumericKeyToString(): void
+        {
+            /*
+             * Arrange: create a tracer that captures setAttribute calls.
+             */
+            $service = new class () {
+                use TracerAwareTrait;
+            };
+
+            $capturedKeys = [];
+            $span = $this->createMock(SpanInterface::class);
+            $scope = $this->createMock(ScopeInterface::class);
+            $span->method('activate')->willReturn($scope);
+
+            $builder = $this->createMock(SpanBuilderInterface::class);
+            $builder->method('setAttribute')->willReturnCallback(
+                function (string $key) use ($builder, &$capturedKeys) {
+                    $capturedKeys[] = $key;
+                    return $builder;
+                }
+            );
+            $builder->method('startSpan')->willReturn($span);
+
+            $tracer = $this->createMock(TracerInterface::class);
+            $tracer->method('spanBuilder')->willReturn($builder);
+
+            /*
+             * Act: start a span with a numeric key in attributes.
+             */
+            $service->setTracer($tracer);
+            $service->startSpan('op', [0 => 'value', 'name' => 'test']);
+
+            /*
+             * Assert: verify the numeric key was cast to string.
+             */
+            $this->assertSame(['0', 'name'], $capturedKeys);
+        }
+
+        /**
+         * Ensures Stringable attribute values are cast to string.
+         */
+        public function testStartSpanCastsStringableValueToString(): void
+        {
+            /*
+             * Arrange: create a tracer that captures setAttribute values.
+             */
+            $service = new class () {
+                use TracerAwareTrait;
+            };
+
+            $capturedValues = [];
+            $span = $this->createMock(SpanInterface::class);
+            $scope = $this->createMock(ScopeInterface::class);
+            $span->method('activate')->willReturn($scope);
+
+            $builder = $this->createMock(SpanBuilderInterface::class);
+            $builder->method('setAttribute')->willReturnCallback(
+                function (string $key, $value) use ($builder, &$capturedValues) {
+                    $capturedValues[$key] = $value;
+                    return $builder;
+                }
+            );
+            $builder->method('startSpan')->willReturn($span);
+
+            $tracer = $this->createMock(TracerInterface::class);
+            $tracer->method('spanBuilder')->willReturn($builder);
+
+            $stringable = new class () implements \Stringable {
+                public function __toString(): string
+                {
+                    return 'stringable-value';
+                }
+            };
+
+            /*
+             * Act: start a span with a Stringable attribute value.
+             */
+            $service->setTracer($tracer);
+            $service->startSpan('op', ['obj' => $stringable]);
+
+            /*
+             * Assert: verify the Stringable value was cast to string.
+             */
+            $this->assertSame('stringable-value', $capturedValues['obj']);
+        }
+
+        /**
+         * Ensures non-scalar non-Stringable values are JSON-encoded.
+         */
+        public function testStartSpanJsonEncodesNonScalarNonStringableValue(): void
+        {
+            /*
+             * Arrange: create a tracer that captures setAttribute values.
+             */
+            $service = new class () {
+                use TracerAwareTrait;
+            };
+
+            $capturedValues = [];
+            $span = $this->createMock(SpanInterface::class);
+            $scope = $this->createMock(ScopeInterface::class);
+            $span->method('activate')->willReturn($scope);
+
+            $builder = $this->createMock(SpanBuilderInterface::class);
+            $builder->method('setAttribute')->willReturnCallback(
+                function (string $key, $value) use ($builder, &$capturedValues) {
+                    $capturedValues[$key] = $value;
+                    return $builder;
+                }
+            );
+            $builder->method('startSpan')->willReturn($span);
+
+            $tracer = $this->createMock(TracerInterface::class);
+            $tracer->method('spanBuilder')->willReturn($builder);
+
+            /*
+             * Act: start a span with an array attribute value.
+             */
+            $service->setTracer($tracer);
+            $service->startSpan('op', ['data' => ['a' => 1, 'b' => 2]]);
+
+            /*
+             * Assert: verify the array value was JSON-encoded.
+             */
+            $this->assertSame('{"a":1,"b":2}', $capturedValues['data']);
+        }
+
+        /**
+         * Ensures empty operation name defaults to 'operation'.
+         */
+        public function testStartSpanEmptyNameDefaultsToOperation(): void
+        {
+            /*
+             * Arrange: create a tracer that captures the span name.
+             */
+            $service = new class () {
+                use TracerAwareTrait;
+            };
+
+            $capturedName = '';
+            $span = $this->createMock(SpanInterface::class);
+            $scope = $this->createMock(ScopeInterface::class);
+            $span->method('activate')->willReturn($scope);
+
+            $builder = $this->createMock(SpanBuilderInterface::class);
+            $builder->method('startSpan')->willReturn($span);
+
+            $tracer = $this->createMock(TracerInterface::class);
+            $tracer->method('spanBuilder')->willReturnCallback(
+                function (string $name) use ($builder, &$capturedName) {
+                    $capturedName = $name;
+                    return $builder;
+                }
+            );
+
+            /*
+             * Act: start a span with an empty operation name.
+             */
+            $service->setTracer($tracer);
+            $service->startSpan('');
+
+            /*
+             * Assert: verify the default name was used.
+             */
+            $this->assertSame('operation', $capturedName);
+        }
+
+        /**
+         * Ensures the fallback writes the trace to error_log with attributes.
+         */
+        public function testFallbackWritesTraceToErrorLog(): void
+        {
+            /*
+             * Arrange: create a trait consumer without a tracer.
+             */
+            $service = new class () {
+                use TracerAwareTrait;
+            };
+
+            /*
+             * Act: start a span without a tracer to trigger fallback.
+             */
+            $service->startSpan('my-op', ['key' => 'val']);
+
+            /*
+             * Assert: verify the fallback wrote to error_log.
+             */
+            $this->assertCount(1, $GLOBALS['__captured_error_log']);
+            $this->assertSame('[TRACE] my-op {"key":"val"}', $GLOBALS['__captured_error_log'][0]);
         }
     }
 }

@@ -116,10 +116,8 @@ class AuditablePdoStatement extends PDOStatement
             return true;
         }
 
+        /** @var string $actionId guaranteed non-null by hasAction() guard */
         $actionId = $this->context->getActionId();
-        if ($actionId === null) {
-            return true; // No action context available
-        }
 
         $this->context->addChange(new AuditChange(
             actionId: $actionId,

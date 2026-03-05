@@ -9,7 +9,6 @@ use Throwable;
 use Exception;
 use DateInterval;
 use DateTimeImmutable;
-use RuntimeException;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -57,10 +56,8 @@ class Runner
             endTime: null,
             steps: [ $step ],
         );
+        /** @var DateInterval $interval '2 days' is always valid */
         $interval = DateInterval::createFromDateString('2 days');
-        if (false === $interval) {
-            throw new RuntimeException('2 days interval is a constant, but DateInterval::createFromDateString dont know how to use');
-        }
         $this->store->save($progress, new DateTimeImmutable()->add($interval));
         $callback = function (TaskProgress $progress, TaskStepProgress $step, ContainerInterface $container, string $descriptorType, array $params): void {
             set_time_limit(0);

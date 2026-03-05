@@ -146,10 +146,8 @@ class StreamResource implements StreamInterface
         if (!$this->isSeekable()) {
             throw new RuntimeException('Stream no es seekable');
         }
-        $resource = $this->resource;
-        if (null !== $resource) {
-            fseek($resource, $offset, $whence);
-        }
+        /** @var resource $this->resource */
+        fseek($this->resource, $offset, $whence);
     }
 
     /**
@@ -191,13 +189,9 @@ class StreamResource implements StreamInterface
         if (!$this->isWritable()) {
             throw new RuntimeException('Stream no es writable');
         }
-        $resource = $this->resource;
-        if (null == $resource) {
-            return 0;
-        } else {
-            $writed = fwrite($resource, $string) ;
-            return $writed === false ? 0 : $writed;
-        }
+        /** @var resource $this->resource */
+        $written = fwrite($this->resource, $string);
+        return $written === false ? 0 : $written;
     }
 
     /**
@@ -230,13 +224,9 @@ class StreamResource implements StreamInterface
         if (!$this->isReadable()) {
             throw new \RuntimeException('Stream no es readable');
         }
-        $resource = $this->resource;
-        if (null == $resource) {
-            return '';
-        } else {
-            $read = fread($resource, $length);
-            return $read == false ? '' : $read;
-        }
+        /** @var resource $this->resource */
+        $read = fread($this->resource, $length);
+        return $read === false ? '' : $read;
     }
 
     /**
@@ -251,13 +241,9 @@ class StreamResource implements StreamInterface
         if (!$this->isReadable()) {
             throw new \RuntimeException('Stream no es readable');
         }
-        $resource = $this->resource;
-        if (null == $resource) {
-            return '';
-        } else {
-            $read = stream_get_contents($resource);
-            return false === $read ? '' : $read;
-        }
+        /** @var resource $this->resource */
+        $read = stream_get_contents($this->resource);
+        return false === $read ? '' : $read;
     }
 
     /**

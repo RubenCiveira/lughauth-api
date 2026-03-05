@@ -66,7 +66,8 @@ class UploadBinaryContent extends BinaryContent
         if (null === $mimeType) {
             throw new InvalidArgumentException('No temp path.');
         }
-        // TODO: sanitize name and mime.
+        $filename = self::sanitizeFilename($filename);
+        $mimeType = self::sanitizeMimeType($mimeType);
         return new UploadBinaryContent(
             name: $filename,
             mime: $mimeType,
@@ -95,6 +96,39 @@ class UploadBinaryContent extends BinaryContent
         ?string $publicUrl = null
     ) {
         parent::__construct($name, $mime, $lastChange, $stream, $publicUrl);
+    }
+
+    /**
+     * Strips path components and removes unsafe characters from a client-provided filename.
+     *
+     * @param string $filename The raw client filename.
+     * @return string The sanitized filename.
+     * @throws InvalidArgumentException If the filename is empty after sanitization.
+     */
+    private static function sanitizeFilename(string $filename): string
+    {
+        $filename = basename($filename);
+        $filename = str_replace("\0", '', $filename);
+        $filename = preg_replace('/[^\w.\-]/', '_', $filename) ?? $filename;
+        if ('' === $filename || '.' === $filename || '..' === $filename) {
+            throw new InvalidArgumentException('Invalid filename.');
+        }
+        return $filename;
+    }
+
+    /**
+     * Validates that a MIME type follows the type/subtype format.
+     *
+     * @param string $mimeType The raw client MIME type.
+     * @return string The validated MIME type.
+     * @throws InvalidArgumentException If the MIME type format is invalid.
+     */
+    private static function sanitizeMimeType(string $mimeType): string
+    {
+        if (1 !== preg_match('#^[\w\-]+/[\w\-+.]+$#', $mimeType)) {
+            throw new InvalidArgumentException('Invalid MIME type.');
+        }
+        return $mimeType;
     }
 
     /**

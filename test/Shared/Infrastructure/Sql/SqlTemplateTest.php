@@ -596,5 +596,173 @@ namespace {
              */
             $this->assertSame('SELECT * FROM items WHERE 0 = 1 AND 1 = 1', $preparedQuery);
         }
+
+        /**
+         * Ensures execute returns false when prepare returns false.
+         */
+        public function testExecuteReturnsFalseWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: execute a statement.
+             */
+            $result = $template->execute('UPDATE test SET a = 1', []);
+
+            /*
+             * Assert: verify false is returned.
+             */
+            $this->assertFalse($result);
+        }
+
+        /**
+         * Ensures query returns empty array when prepare returns false.
+         */
+        public function testQueryReturnsEmptyWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: query with a failing prepare.
+             */
+            $result = $template->query('SELECT * FROM test', null);
+
+            /*
+             * Assert: verify empty array is returned.
+             */
+            $this->assertSame([], $result);
+        }
+
+        /**
+         * Ensures queryForUpdate returns empty array when prepare returns false.
+         */
+        public function testQueryForUpdateReturnsEmptyWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: query for update with a failing prepare.
+             */
+            $result = $template->queryForUpdate('SELECT * FROM test FOR UPDATE', null);
+
+            /*
+             * Assert: verify empty array is returned.
+             */
+            $this->assertSame([], $result);
+        }
+
+        /**
+         * Ensures findOne returns null when prepare returns false.
+         */
+        public function testFindOneReturnsNullWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: find one with a failing prepare.
+             */
+            $result = $template->findOne('SELECT * FROM test WHERE id = 1', []);
+
+            /*
+             * Assert: verify null is returned.
+             */
+            $this->assertNull($result);
+        }
+
+        /**
+         * Ensures findOneForUpdate returns null when prepare returns false.
+         */
+        public function testFindOneForUpdateReturnsNullWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: find one for update with a failing prepare.
+             */
+            $result = $template->findOneForUpdate('SELECT * FROM test WHERE id = 1 FOR UPDATE', []);
+
+            /*
+             * Assert: verify null is returned.
+             */
+            $this->assertNull($result);
+        }
+
+        /**
+         * Ensures exists returns false when prepare returns false.
+         */
+        public function testExistsReturnsFalseWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: check existence with a failing prepare.
+             */
+            $result = $template->exists('SELECT 1 FROM test WHERE id = 1', []);
+
+            /*
+             * Assert: verify false is returned.
+             */
+            $this->assertFalse($result);
+        }
+
+        /**
+         * Ensures existsForUpdate returns false when prepare returns false.
+         */
+        public function testExistsForUpdateReturnsFalseWhenPrepareFails(): void
+        {
+            /*
+             * Arrange: build a template where PDO::prepare returns false.
+             */
+            $pdo = $this->createMock(PDO::class);
+            $pdo->method('getAttribute')->willReturn('sqlite');
+            $pdo->method('prepare')->willReturn(false);
+            $template = new SqlTemplate($pdo);
+
+            /*
+             * Act: check existence for update with a failing prepare.
+             */
+            $result = $template->existsForUpdate('SELECT 1 FROM test WHERE id = 1 FOR UPDATE', []);
+
+            /*
+             * Assert: verify false is returned.
+             */
+            $this->assertFalse($result);
+        }
     }
 }
