@@ -188,12 +188,15 @@ namespace {
         private array $envBackup = [];
         private array $serverBackup = [];
         private int $outputBufferLevel = 0;
+        private string $tempRoot = '';
 
         protected function setUp(): void
         {
             $this->outputBufferLevel = ob_get_level();
             $this->envBackup = $_ENV;
             $this->serverBackup = $_SERVER;
+            $this->tempRoot = sys_get_temp_dir() . '/micro-unit-test-' . uniqid('', true);
+            mkdir($this->tempRoot, 0777, true);
 
             $_SERVER['SCRIPT_NAME'] = '/index.php';
             $_SERVER['SERVER_NAME'] = 'localhost';
@@ -227,6 +230,9 @@ namespace {
             }
             if (!isset($_SERVER['SERVER_PORT'])) {
                 $_SERVER['SERVER_PORT'] = '80';
+            }
+            if ($this->tempRoot !== '' && is_dir($this->tempRoot)) {
+                $this->removeDirectory($this->tempRoot);
             }
         }
 
@@ -1067,7 +1073,7 @@ namespace {
 
         private function rootDir(): string
         {
-            return dirname(__DIR__, 3);
+            return $this->tempRoot;
         }
 
         private function startupFlagPath(): string
