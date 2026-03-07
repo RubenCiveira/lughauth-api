@@ -20,7 +20,7 @@ trait UserWellcomeAtAccessor
     }
     public function isWellcomeAtChanged(?self $original = null): bool
     {
-        return $this->_wellcomeAt?->value() !== ($original ? $original->_wellcomeAt?->value() : null);
+        return null !== $this->_wellcomeAt && !$this->_wellcomeAt->equals($original?->_wellcomeAt);
     }
     public function withWellcomeAt(UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt): self
     {

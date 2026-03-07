@@ -18,19 +18,7 @@ class UserWellcomeAtVO
     }
     public static function from(UserWellcomeAtVO|\DateTimeImmutable|null $value): UserWellcomeAtVO
     {
-        if ($value instanceof UserWellcomeAtVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserWellcomeAtVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserWellcomeAtVO
     {
@@ -68,6 +56,22 @@ class UserWellcomeAtVO
             return null; // Retorna null si el formato no coincide con ISO 8601
         }
     }
+    private static function fromUnsafe(mixed $value): UserWellcomeAtVO
+    {
+        if ($value instanceof UserWellcomeAtVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserWellcomeAtVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -78,5 +82,9 @@ class UserWellcomeAtVO
     public function value(): ?\DateTimeImmutable
     {
         return $this->wellcomeAt;
+    }
+    public function equals(?UserWellcomeAtVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

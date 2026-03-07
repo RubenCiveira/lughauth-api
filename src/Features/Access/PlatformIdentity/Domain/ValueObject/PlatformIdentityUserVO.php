@@ -13,6 +13,22 @@ class PlatformIdentityUserVO
 {
     public static function from(PlatformIdentityUserVO|UserRef $value): PlatformIdentityUserVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityUserVO
+    {
+        if ($value instanceof PlatformIdentityUserVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, UserRef::class)) {
+            return new PlatformIdentityUserVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['user'], [$value], ['UserRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): PlatformIdentityUserVO
+    {
         if ($value instanceof PlatformIdentityUserVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class PlatformIdentityUserVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityUserVO
-    {
-        if ($value instanceof PlatformIdentityUserVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, UserRef::class)) {
-            return new PlatformIdentityUserVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['user'], [$value], ['UserRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class PlatformIdentityUserVO
     public function value(): UserRef
     {
         return $this->user;
+    }
+    public function equals(?PlatformIdentityUserVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

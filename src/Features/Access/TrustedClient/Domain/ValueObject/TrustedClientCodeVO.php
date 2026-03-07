@@ -13,19 +13,7 @@ class TrustedClientCodeVO
 {
     public static function from(TrustedClientCodeVO|string $value): TrustedClientCodeVO
     {
-        if ($value instanceof TrustedClientCodeVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TrustedClientCodeVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientCodeVO
     {
@@ -53,6 +41,22 @@ class TrustedClientCodeVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): TrustedClientCodeVO
+    {
+        if ($value instanceof TrustedClientCodeVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TrustedClientCodeVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class TrustedClientCodeVO
     public function value(): string
     {
         return $this->code;
+    }
+    public function equals(?TrustedClientCodeVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -17,19 +17,7 @@ class RoleRelyingPartyVO
     }
     public static function from(RoleRelyingPartyVO|RelyingPartyRef|null $value): RoleRelyingPartyVO
     {
-        if ($value instanceof RoleRelyingPartyVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof RoleRelyingPartyVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?RoleRelyingPartyVO
     {
@@ -45,6 +33,22 @@ class RoleRelyingPartyVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): RoleRelyingPartyVO
+    {
+        if ($value instanceof RoleRelyingPartyVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof RoleRelyingPartyVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -55,5 +59,9 @@ class RoleRelyingPartyVO
     public function value(): ?RelyingPartyRef
     {
         return $this->relyingParty;
+    }
+    public function equals(?RoleRelyingPartyVO $other): bool
+    {
+        return $this->value()?->uid() == $other?->value()?->uid();
     }
 }

@@ -17,19 +17,7 @@ class PlatformIdentityTrustedClientVO
     }
     public static function from(PlatformIdentityTrustedClientVO|TrustedClientRef|null $value): PlatformIdentityTrustedClientVO
     {
-        if ($value instanceof PlatformIdentityTrustedClientVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof PlatformIdentityTrustedClientVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityTrustedClientVO
     {
@@ -45,6 +33,22 @@ class PlatformIdentityTrustedClientVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): PlatformIdentityTrustedClientVO
+    {
+        if ($value instanceof PlatformIdentityTrustedClientVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof PlatformIdentityTrustedClientVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -55,5 +59,9 @@ class PlatformIdentityTrustedClientVO
     public function value(): ?TrustedClientRef
     {
         return $this->trustedClient;
+    }
+    public function equals(?PlatformIdentityTrustedClientVO $other): bool
+    {
+        return $this->value()?->uid() == $other?->value()?->uid();
     }
 }

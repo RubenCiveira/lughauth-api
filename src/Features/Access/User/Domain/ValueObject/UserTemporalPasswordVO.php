@@ -16,19 +16,7 @@ class UserTemporalPasswordVO
     }
     public static function from(UserTemporalPasswordVO|bool|null $value): UserTemporalPasswordVO
     {
-        if ($value instanceof UserTemporalPasswordVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserTemporalPasswordVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserTemporalPasswordVO
     {
@@ -44,6 +32,22 @@ class UserTemporalPasswordVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): UserTemporalPasswordVO
+    {
+        if ($value instanceof UserTemporalPasswordVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserTemporalPasswordVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class UserTemporalPasswordVO
     public function value(): ?bool
     {
         return $this->temporalPassword;
+    }
+    public function equals(?UserTemporalPasswordVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

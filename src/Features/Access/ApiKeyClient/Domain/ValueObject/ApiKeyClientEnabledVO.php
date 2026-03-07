@@ -12,6 +12,22 @@ class ApiKeyClientEnabledVO
 {
     public static function from(ApiKeyClientEnabledVO|bool $value): ApiKeyClientEnabledVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?ApiKeyClientEnabledVO
+    {
+        if ($value instanceof ApiKeyClientEnabledVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_bool($value)) {
+            return new ApiKeyClientEnabledVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['enabled'], [$value], ['bool']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): ApiKeyClientEnabledVO
+    {
         if ($value instanceof ApiKeyClientEnabledVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class ApiKeyClientEnabledVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?ApiKeyClientEnabledVO
-    {
-        if ($value instanceof ApiKeyClientEnabledVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_bool($value)) {
-            return new ApiKeyClientEnabledVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['enabled'], [$value], ['bool']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class ApiKeyClientEnabledVO
     public function value(): bool
     {
         return $this->enabled;
+    }
+    public function equals(?ApiKeyClientEnabledVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

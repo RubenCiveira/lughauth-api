@@ -27,6 +27,25 @@ final class TenantLoginProviderNameVOUnitTest extends TestCase
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantLoginProviderNameVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantLoginProviderNameVO::from('one');
+        $same = TenantLoginProviderNameVO::from('one');
+        $other = TenantLoginProviderNameVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
     public function test_exception_on_wrong_value_1(): void
     {
         $this->expectException(ConstraintException::class);

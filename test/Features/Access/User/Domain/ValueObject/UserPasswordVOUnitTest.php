@@ -28,6 +28,25 @@ final class UserPasswordVOUnitTest extends TestCase
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(UserPasswordVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = UserPasswordVO::from('cyphered://cypher');
+        $same = UserPasswordVO::from('cyphered://cypher');
+        $other = UserPasswordVO::from('cyphered://ocyphered');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
     public function test_cypher_builders(): void
     {
         $aes = $this->createMock(AesCypherService::class);

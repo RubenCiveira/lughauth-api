@@ -16,19 +16,7 @@ class TenantConfigDisabledUserEmailVO
     }
     public static function from(TenantConfigDisabledUserEmailVO|string|null $value): TenantConfigDisabledUserEmailVO
     {
-        if ($value instanceof TenantConfigDisabledUserEmailVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantConfigDisabledUserEmailVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigDisabledUserEmailVO
     {
@@ -44,6 +32,22 @@ class TenantConfigDisabledUserEmailVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantConfigDisabledUserEmailVO
+    {
+        if ($value instanceof TenantConfigDisabledUserEmailVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantConfigDisabledUserEmailVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantConfigDisabledUserEmailVO
     public function value(): ?string
     {
         return $this->disabledUserEmail;
+    }
+    public function equals(?TenantConfigDisabledUserEmailVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -21,7 +21,7 @@ trait PlatformIdentityRolesRoleAccessor
     }
     public function isRoleChanged(?self $original = null): bool
     {
-        return $this->_role?->value() !== ($original ? $original->_role?->value() : null);
+        return null !== $this->_role && !$this->_role->equals($original?->_role);
     }
     public function withRole(PlatformIdentityRolesRoleVO|RoleRef $role): self
     {

@@ -13,19 +13,7 @@ class UserAcceptedTermnsOfUseUidVO
 {
     public static function from(UserAcceptedTermnsOfUseUidVO|string $value): UserAcceptedTermnsOfUseUidVO
     {
-        if ($value instanceof UserAcceptedTermnsOfUseUidVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserAcceptedTermnsOfUseUidVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseUidVO
     {
@@ -53,6 +41,22 @@ class UserAcceptedTermnsOfUseUidVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): UserAcceptedTermnsOfUseUidVO
+    {
+        if ($value instanceof UserAcceptedTermnsOfUseUidVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserAcceptedTermnsOfUseUidVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class UserAcceptedTermnsOfUseUidVO
     public function value(): string
     {
         return $this->uid;
+    }
+    public function equals(?UserAcceptedTermnsOfUseUidVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

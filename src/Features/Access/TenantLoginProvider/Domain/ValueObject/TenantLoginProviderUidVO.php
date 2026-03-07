@@ -13,19 +13,7 @@ class TenantLoginProviderUidVO
 {
     public static function from(TenantLoginProviderUidVO|string $value): TenantLoginProviderUidVO
     {
-        if ($value instanceof TenantLoginProviderUidVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantLoginProviderUidVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderUidVO
     {
@@ -53,6 +41,22 @@ class TenantLoginProviderUidVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderUidVO
+    {
+        if ($value instanceof TenantLoginProviderUidVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantLoginProviderUidVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class TenantLoginProviderUidVO
     public function value(): string
     {
         return $this->uid;
+    }
+    public function equals(?TenantLoginProviderUidVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

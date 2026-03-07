@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
@@ -26,5 +27,24 @@ final class TenantLoginProviderSourceVOUnitTest extends TestCase
         $other = TenantLoginProviderSourceVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantLoginProviderSourceVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GOOGLE);
+        $same = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GOOGLE);
+        $other = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GITHUB);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
 }

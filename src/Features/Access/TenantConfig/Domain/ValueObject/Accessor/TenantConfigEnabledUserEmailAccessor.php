@@ -20,7 +20,7 @@ trait TenantConfigEnabledUserEmailAccessor
     }
     public function isEnabledUserEmailChanged(?self $original = null): bool
     {
-        return $this->_enabledUserEmail?->value() !== ($original ? $original->_enabledUserEmail?->value() : null);
+        return null !== $this->_enabledUserEmail && !$this->_enabledUserEmail->equals($original?->_enabledUserEmail);
     }
     public function withEnabledUserEmail(TenantConfigEnabledUserEmailVO|string|null $enabledUserEmail): self
     {

@@ -20,7 +20,7 @@ trait TenantLoginProviderDirectAccessAccessor
     }
     public function isDirectAccessChanged(?self $original = null): bool
     {
-        return $this->_directAccess?->value() !== ($original ? $original->_directAccess?->value() : null);
+        return null !== $this->_directAccess && !$this->_directAccess->equals($original?->_directAccess);
     }
     public function withDirectAccess(TenantLoginProviderDirectAccessVO|bool|null $directAccess): self
     {

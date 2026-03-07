@@ -12,6 +12,22 @@ class TenantMarkForDeleteVO
 {
     public static function from(TenantMarkForDeleteVO|bool $value): TenantMarkForDeleteVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantMarkForDeleteVO
+    {
+        if ($value instanceof TenantMarkForDeleteVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_bool($value)) {
+            return new TenantMarkForDeleteVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['markForDelete'], [$value], ['bool']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantMarkForDeleteVO
+    {
         if ($value instanceof TenantMarkForDeleteVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class TenantMarkForDeleteVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantMarkForDeleteVO
-    {
-        if ($value instanceof TenantMarkForDeleteVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_bool($value)) {
-            return new TenantMarkForDeleteVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['markForDelete'], [$value], ['bool']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class TenantMarkForDeleteVO
     public function value(): bool
     {
         return $this->markForDelete;
+    }
+    public function equals(?TenantMarkForDeleteVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

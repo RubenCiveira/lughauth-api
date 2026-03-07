@@ -57,4 +57,8 @@ class TrustedClientAllowedRedirectsListRef implements Iterator
     {
         return key($this->allowedRedirects) !== null;
     }
+    public function equals(?TrustedClientAllowedRedirectsListRef $other): bool
+    {
+        return $this->allowedRedirects == $other?->allowedRedirects;
+    }
 }

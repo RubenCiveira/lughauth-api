@@ -16,19 +16,7 @@ class TenantLoginProviderDirectAccessVO
     }
     public static function from(TenantLoginProviderDirectAccessVO|bool|null $value): TenantLoginProviderDirectAccessVO
     {
-        if ($value instanceof TenantLoginProviderDirectAccessVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantLoginProviderDirectAccessVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderDirectAccessVO
     {
@@ -44,6 +32,22 @@ class TenantLoginProviderDirectAccessVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderDirectAccessVO
+    {
+        if ($value instanceof TenantLoginProviderDirectAccessVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantLoginProviderDirectAccessVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantLoginProviderDirectAccessVO
     public function value(): ?bool
     {
         return $this->directAccess;
+    }
+    public function equals(?TenantLoginProviderDirectAccessVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

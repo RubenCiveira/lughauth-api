@@ -20,7 +20,7 @@ trait ApiKeyClientCodeAccessor
     }
     public function isCodeChanged(?self $original = null): bool
     {
-        return $this->_code->value() !== ($original ? $original->_code->value() : null);
+        return !$this->_code->equals($original?->_code);
     }
     public function withCode(ApiKeyClientCodeVO|string $code): self
     {

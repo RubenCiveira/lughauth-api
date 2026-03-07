@@ -13,19 +13,7 @@ class TenantDomainVO
 {
     public static function from(TenantDomainVO|string $value): TenantDomainVO
     {
-        if ($value instanceof TenantDomainVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantDomainVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantDomainVO
     {
@@ -53,6 +41,22 @@ class TenantDomainVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): TenantDomainVO
+    {
+        if ($value instanceof TenantDomainVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantDomainVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class TenantDomainVO
     public function value(): string
     {
         return $this->domain;
+    }
+    public function equals(?TenantDomainVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -20,7 +20,7 @@ trait TenantConfigWellcomeEmailAccessor
     }
     public function isWellcomeEmailChanged(?self $original = null): bool
     {
-        return $this->_wellcomeEmail?->value() !== ($original ? $original->_wellcomeEmail?->value() : null);
+        return null !== $this->_wellcomeEmail && !$this->_wellcomeEmail->equals($original?->_wellcomeEmail);
     }
     public function withWellcomeEmail(TenantConfigWellcomeEmailVO|string|null $wellcomeEmail): self
     {

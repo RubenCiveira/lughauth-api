@@ -12,6 +12,22 @@ class TenantTermsOfUseEnabledVO
 {
     public static function from(TenantTermsOfUseEnabledVO|bool $value): TenantTermsOfUseEnabledVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseEnabledVO
+    {
+        if ($value instanceof TenantTermsOfUseEnabledVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_bool($value)) {
+            return new TenantTermsOfUseEnabledVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['enabled'], [$value], ['bool']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantTermsOfUseEnabledVO
+    {
         if ($value instanceof TenantTermsOfUseEnabledVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class TenantTermsOfUseEnabledVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseEnabledVO
-    {
-        if ($value instanceof TenantTermsOfUseEnabledVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_bool($value)) {
-            return new TenantTermsOfUseEnabledVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['enabled'], [$value], ['bool']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class TenantTermsOfUseEnabledVO
     public function value(): bool
     {
         return $this->enabled;
+    }
+    public function equals(?TenantTermsOfUseEnabledVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

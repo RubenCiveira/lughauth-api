@@ -20,7 +20,7 @@ trait RelyingPartyApiKeyAccessor
     }
     public function isApiKeyChanged(?self $original = null): bool
     {
-        return $this->_apiKey->value() !== ($original ? $original->_apiKey->value() : null);
+        return !$this->_apiKey->equals($original?->_apiKey);
     }
     public function withApiKey(RelyingPartyApiKeyVO|string $apiKey): self
     {

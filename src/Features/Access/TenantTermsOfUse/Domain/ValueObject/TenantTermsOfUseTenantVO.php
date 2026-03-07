@@ -13,6 +13,22 @@ class TenantTermsOfUseTenantVO
 {
     public static function from(TenantTermsOfUseTenantVO|TenantRef $value): TenantTermsOfUseTenantVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseTenantVO
+    {
+        if ($value instanceof TenantTermsOfUseTenantVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, TenantRef::class)) {
+            return new TenantTermsOfUseTenantVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['tenant'], [$value], ['TenantRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantTermsOfUseTenantVO
+    {
         if ($value instanceof TenantTermsOfUseTenantVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class TenantTermsOfUseTenantVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseTenantVO
-    {
-        if ($value instanceof TenantTermsOfUseTenantVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, TenantRef::class)) {
-            return new TenantTermsOfUseTenantVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['tenant'], [$value], ['TenantRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class TenantTermsOfUseTenantVO
     public function value(): TenantRef
     {
         return $this->tenant;
+    }
+    public function equals(?TenantTermsOfUseTenantVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

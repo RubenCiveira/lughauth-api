@@ -16,19 +16,7 @@ class TenantLoginProviderCertificateVO
     }
     public static function from(TenantLoginProviderCertificateVO|string|null $value): TenantLoginProviderCertificateVO
     {
-        if ($value instanceof TenantLoginProviderCertificateVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantLoginProviderCertificateVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderCertificateVO
     {
@@ -44,6 +32,22 @@ class TenantLoginProviderCertificateVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderCertificateVO
+    {
+        if ($value instanceof TenantLoginProviderCertificateVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantLoginProviderCertificateVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantLoginProviderCertificateVO
     public function value(): ?string
     {
         return $this->certificate;
+    }
+    public function equals(?TenantLoginProviderCertificateVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -21,7 +21,7 @@ trait TenantLoginProviderSourceAccessor
     }
     public function isSourceChanged(?self $original = null): bool
     {
-        return $this->_source->value() !== ($original ? $original->_source->value() : null);
+        return !$this->_source->equals($original?->_source);
     }
     public function withSource(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $source): self
     {

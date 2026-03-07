@@ -20,7 +20,7 @@ trait TenantEnabledAccessor
     }
     public function isEnabledChanged(?self $original = null): bool
     {
-        return $this->_enabled->value() !== ($original ? $original->_enabled->value() : null);
+        return !$this->_enabled->equals($original?->_enabled);
     }
     public function withEnabled(TenantEnabledVO|bool $enabled): self
     {

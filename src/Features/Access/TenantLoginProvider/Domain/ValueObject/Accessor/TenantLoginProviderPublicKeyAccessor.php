@@ -20,7 +20,7 @@ trait TenantLoginProviderPublicKeyAccessor
     }
     public function isPublicKeyChanged(?self $original = null): bool
     {
-        return $this->_publicKey?->value() !== ($original ? $original->_publicKey?->value() : null);
+        return null !== $this->_publicKey && !$this->_publicKey->equals($original?->_publicKey);
     }
     public function withPublicKey(TenantLoginProviderPublicKeyVO|string|null $publicKey): self
     {

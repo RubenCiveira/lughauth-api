@@ -20,7 +20,7 @@ trait TenantConfigForceMfaAccessor
     }
     public function isForceMfaChanged(?self $original = null): bool
     {
-        return $this->_forceMfa->value() !== ($original ? $original->_forceMfa->value() : null);
+        return !$this->_forceMfa->equals($original?->_forceMfa);
     }
     public function withForceMfa(TenantConfigForceMfaVO|bool $forceMfa): self
     {

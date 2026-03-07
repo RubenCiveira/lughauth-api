@@ -18,19 +18,7 @@ class UserEmailVO
     }
     public static function from(UserEmailVO|string|null $value): UserEmailVO
     {
-        if ($value instanceof UserEmailVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserEmailVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserEmailVO
     {
@@ -61,6 +49,22 @@ class UserEmailVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): UserEmailVO
+    {
+        if ($value instanceof UserEmailVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserEmailVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -71,5 +75,9 @@ class UserEmailVO
     public function value(): ?string
     {
         return $this->email;
+    }
+    public function equals(?UserEmailVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

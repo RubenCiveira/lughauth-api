@@ -16,19 +16,7 @@ class ApiKeyClientVersionVO
     }
     public static function from(ApiKeyClientVersionVO|int|null $value): ApiKeyClientVersionVO
     {
-        if ($value instanceof ApiKeyClientVersionVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof ApiKeyClientVersionVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?ApiKeyClientVersionVO
     {
@@ -44,6 +32,22 @@ class ApiKeyClientVersionVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): ApiKeyClientVersionVO
+    {
+        if ($value instanceof ApiKeyClientVersionVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof ApiKeyClientVersionVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class ApiKeyClientVersionVO
     public function value(): ?int
     {
         return $this->version;
+    }
+    public function equals(?ApiKeyClientVersionVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

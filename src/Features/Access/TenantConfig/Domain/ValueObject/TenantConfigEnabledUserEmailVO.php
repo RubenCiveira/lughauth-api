@@ -16,19 +16,7 @@ class TenantConfigEnabledUserEmailVO
     }
     public static function from(TenantConfigEnabledUserEmailVO|string|null $value): TenantConfigEnabledUserEmailVO
     {
-        if ($value instanceof TenantConfigEnabledUserEmailVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantConfigEnabledUserEmailVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigEnabledUserEmailVO
     {
@@ -44,6 +32,22 @@ class TenantConfigEnabledUserEmailVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantConfigEnabledUserEmailVO
+    {
+        if ($value instanceof TenantConfigEnabledUserEmailVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantConfigEnabledUserEmailVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantConfigEnabledUserEmailVO
     public function value(): ?string
     {
         return $this->enabledUserEmail;
+    }
+    public function equals(?TenantConfigEnabledUserEmailVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

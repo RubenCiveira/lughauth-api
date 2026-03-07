@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 
@@ -25,5 +26,24 @@ final class TrustedClientPublicAllowVOUnitTest extends TestCase
         $other = TrustedClientPublicAllowVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TrustedClientPublicAllowVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TrustedClientPublicAllowVO::from(true);
+        $same = TrustedClientPublicAllowVO::from(true);
+        $other = TrustedClientPublicAllowVO::from(false);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
 }

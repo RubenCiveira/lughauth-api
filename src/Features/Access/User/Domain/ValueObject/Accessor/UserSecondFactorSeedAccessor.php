@@ -29,7 +29,7 @@ trait UserSecondFactorSeedAccessor
     }
     public function isSecondFactorSeedChanged(?self $original = null): bool
     {
-        return $this->_secondFactorSeed?->value() !== ($original ? $original->_secondFactorSeed?->value() : null);
+        return null !== $this->_secondFactorSeed && !$this->_secondFactorSeed->equals($original?->_secondFactorSeed);
     }
     public function withSecondFactorSeed(UserSecondFactorSeedVO|string|null $secondFactorSeed): self
     {

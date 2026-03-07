@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
@@ -53,6 +54,37 @@ final class TrustedClientAllowedRedirectsVOUnitTest extends TestCase
         $other = TrustedClientAllowedRedirectsVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TrustedClientAllowedRedirectsVO::class, 'fromUnsafe');
+        $method->invoke(null, "bad");
+    }
+    public function test_equals(): void
+    {
+        $one = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('one'),
+            TrustedClientAllowedRedirectsUrlVO::from('one'),
+            TrustedClientAllowedRedirectsVersionVO::from(1)
+        )));
+        $same = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('one'),
+            TrustedClientAllowedRedirectsUrlVO::from('one'),
+            TrustedClientAllowedRedirectsVersionVO::from(1)
+        )));
+        $other = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('other'),
+            TrustedClientAllowedRedirectsUrlVO::from('other'),
+            TrustedClientAllowedRedirectsVersionVO::from(2)
+        )));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
     public function test_build_empty(): void
     {

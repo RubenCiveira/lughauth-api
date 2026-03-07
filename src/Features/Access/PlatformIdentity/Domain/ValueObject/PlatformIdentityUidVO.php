@@ -13,19 +13,7 @@ class PlatformIdentityUidVO
 {
     public static function from(PlatformIdentityUidVO|string $value): PlatformIdentityUidVO
     {
-        if ($value instanceof PlatformIdentityUidVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof PlatformIdentityUidVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityUidVO
     {
@@ -53,6 +41,22 @@ class PlatformIdentityUidVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): PlatformIdentityUidVO
+    {
+        if ($value instanceof PlatformIdentityUidVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof PlatformIdentityUidVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class PlatformIdentityUidVO
     public function value(): string
     {
         return $this->uid;
+    }
+    public function equals(?PlatformIdentityUidVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

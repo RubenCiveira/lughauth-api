@@ -13,6 +13,22 @@ class PlatformIdentityRolesRoleVO
 {
     public static function from(PlatformIdentityRolesRoleVO|RoleRef $value): PlatformIdentityRolesRoleVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityRolesRoleVO
+    {
+        if ($value instanceof PlatformIdentityRolesRoleVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, RoleRef::class)) {
+            return new PlatformIdentityRolesRoleVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['role'], [$value], ['RoleRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): PlatformIdentityRolesRoleVO
+    {
         if ($value instanceof PlatformIdentityRolesRoleVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class PlatformIdentityRolesRoleVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityRolesRoleVO
-    {
-        if ($value instanceof PlatformIdentityRolesRoleVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, RoleRef::class)) {
-            return new PlatformIdentityRolesRoleVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['role'], [$value], ['RoleRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class PlatformIdentityRolesRoleVO
     public function value(): RoleRef
     {
         return $this->role;
+    }
+    public function equals(?PlatformIdentityRolesRoleVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

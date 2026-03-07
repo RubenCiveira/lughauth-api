@@ -16,19 +16,7 @@ class UserAcceptedTermnsOfUseVersionVO
     }
     public static function from(UserAcceptedTermnsOfUseVersionVO|int|null $value): UserAcceptedTermnsOfUseVersionVO
     {
-        if ($value instanceof UserAcceptedTermnsOfUseVersionVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserAcceptedTermnsOfUseVersionVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseVersionVO
     {
@@ -44,6 +32,22 @@ class UserAcceptedTermnsOfUseVersionVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): UserAcceptedTermnsOfUseVersionVO
+    {
+        if ($value instanceof UserAcceptedTermnsOfUseVersionVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserAcceptedTermnsOfUseVersionVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class UserAcceptedTermnsOfUseVersionVO
     public function value(): ?int
     {
         return $this->version;
+    }
+    public function equals(?UserAcceptedTermnsOfUseVersionVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

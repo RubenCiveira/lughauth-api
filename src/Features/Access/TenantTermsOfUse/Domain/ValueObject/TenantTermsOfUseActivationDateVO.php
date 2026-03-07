@@ -18,19 +18,7 @@ class TenantTermsOfUseActivationDateVO
     }
     public static function from(TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $value): TenantTermsOfUseActivationDateVO
     {
-        if ($value instanceof TenantTermsOfUseActivationDateVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantTermsOfUseActivationDateVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseActivationDateVO
     {
@@ -68,6 +56,22 @@ class TenantTermsOfUseActivationDateVO
             return null; // Retorna null si el formato no coincide con ISO 8601
         }
     }
+    private static function fromUnsafe(mixed $value): TenantTermsOfUseActivationDateVO
+    {
+        if ($value instanceof TenantTermsOfUseActivationDateVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantTermsOfUseActivationDateVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -78,5 +82,9 @@ class TenantTermsOfUseActivationDateVO
     public function value(): ?\DateTimeImmutable
     {
         return $this->activationDate;
+    }
+    public function equals(?TenantTermsOfUseActivationDateVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeRegisterCodeUrlAccessor
     }
     public function isRegisterCodeUrlChanged(?self $original = null): bool
     {
-        return $this->_registerCodeUrl?->value() !== ($original ? $original->_registerCodeUrl?->value() : null);
+        return null !== $this->_registerCodeUrl && !$this->_registerCodeUrl->equals($original?->_registerCodeUrl);
     }
     public function withRegisterCodeUrl(UserAccessTemporalCodeRegisterCodeUrlVO|string|null $registerCodeUrl): self
     {

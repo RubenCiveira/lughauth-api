@@ -20,7 +20,7 @@ trait TenantLoginProviderUsersEnabledByDefaultAccessor
     }
     public function isUsersEnabledByDefaultChanged(?self $original = null): bool
     {
-        return $this->_usersEnabledByDefault->value() !== ($original ? $original->_usersEnabledByDefault->value() : null);
+        return !$this->_usersEnabledByDefault->equals($original?->_usersEnabledByDefault);
     }
     public function withUsersEnabledByDefault(TenantLoginProviderUsersEnabledByDefaultVO|bool $usersEnabledByDefault): self
     {

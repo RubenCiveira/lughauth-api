@@ -18,19 +18,7 @@ class UserAcceptedTermnsOfUseAcceptDateVO
     }
     public static function from(UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null $value): UserAcceptedTermnsOfUseAcceptDateVO
     {
-        if ($value instanceof UserAcceptedTermnsOfUseAcceptDateVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserAcceptedTermnsOfUseAcceptDateVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseAcceptDateVO
     {
@@ -68,6 +56,22 @@ class UserAcceptedTermnsOfUseAcceptDateVO
             return null; // Retorna null si el formato no coincide con ISO 8601
         }
     }
+    private static function fromUnsafe(mixed $value): UserAcceptedTermnsOfUseAcceptDateVO
+    {
+        if ($value instanceof UserAcceptedTermnsOfUseAcceptDateVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserAcceptedTermnsOfUseAcceptDateVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -78,5 +82,9 @@ class UserAcceptedTermnsOfUseAcceptDateVO
     public function value(): ?\DateTimeImmutable
     {
         return $this->acceptDate;
+    }
+    public function equals(?UserAcceptedTermnsOfUseAcceptDateVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

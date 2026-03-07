@@ -20,7 +20,7 @@ trait TrustedClientAllowAllScopesAccessor
     }
     public function isAllowAllScopesChanged(?self $original = null): bool
     {
-        return $this->_allowAllScopes?->value() !== ($original ? $original->_allowAllScopes?->value() : null);
+        return null !== $this->_allowAllScopes && !$this->_allowAllScopes->equals($original?->_allowAllScopes);
     }
     public function withAllowAllScopes(TrustedClientAllowAllScopesVO|bool|null $allowAllScopes): self
     {

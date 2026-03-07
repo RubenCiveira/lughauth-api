@@ -17,19 +17,7 @@ class UserAccessTemporalCodeRegisterCodeVO
     }
     public static function from(UserAccessTemporalCodeRegisterCodeVO|string|null $value): UserAccessTemporalCodeRegisterCodeVO
     {
-        if ($value instanceof UserAccessTemporalCodeRegisterCodeVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserAccessTemporalCodeRegisterCodeVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAccessTemporalCodeRegisterCodeVO
     {
@@ -59,6 +47,22 @@ class UserAccessTemporalCodeRegisterCodeVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): UserAccessTemporalCodeRegisterCodeVO
+    {
+        if ($value instanceof UserAccessTemporalCodeRegisterCodeVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserAccessTemporalCodeRegisterCodeVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -69,5 +73,9 @@ class UserAccessTemporalCodeRegisterCodeVO
     public function value(): ?string
     {
         return $this->registerCode;
+    }
+    public function equals(?UserAccessTemporalCodeRegisterCodeVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

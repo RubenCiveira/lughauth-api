@@ -20,7 +20,7 @@ trait UserAcceptedTermnsOfUseAcceptDateAccessor
     }
     public function isAcceptDateChanged(?self $original = null): bool
     {
-        return $this->_acceptDate?->value() !== ($original ? $original->_acceptDate?->value() : null);
+        return null !== $this->_acceptDate && !$this->_acceptDate->equals($original?->_acceptDate);
     }
     public function withAcceptDate(UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null $acceptDate): self
     {

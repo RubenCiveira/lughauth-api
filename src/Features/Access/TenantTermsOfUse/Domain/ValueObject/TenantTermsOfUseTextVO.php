@@ -12,6 +12,22 @@ class TenantTermsOfUseTextVO
 {
     public static function from(TenantTermsOfUseTextVO|string $value): TenantTermsOfUseTextVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseTextVO
+    {
+        if ($value instanceof TenantTermsOfUseTextVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_string($value)) {
+            return new TenantTermsOfUseTextVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['text'], [$value], ['string']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantTermsOfUseTextVO
+    {
         if ($value instanceof TenantTermsOfUseTextVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class TenantTermsOfUseTextVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseTextVO
-    {
-        if ($value instanceof TenantTermsOfUseTextVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_string($value)) {
-            return new TenantTermsOfUseTextVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['text'], [$value], ['string']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class TenantTermsOfUseTextVO
     public function value(): string
     {
         return $this->text;
+    }
+    public function equals(?TenantTermsOfUseTextVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

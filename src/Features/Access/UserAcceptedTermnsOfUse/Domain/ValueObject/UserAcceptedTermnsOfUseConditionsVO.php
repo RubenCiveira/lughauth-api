@@ -13,6 +13,22 @@ class UserAcceptedTermnsOfUseConditionsVO
 {
     public static function from(UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef $value): UserAcceptedTermnsOfUseConditionsVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseConditionsVO
+    {
+        if ($value instanceof UserAcceptedTermnsOfUseConditionsVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, TenantTermsOfUseRef::class)) {
+            return new UserAcceptedTermnsOfUseConditionsVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['conditions'], [$value], ['TenantTermsOfUseRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): UserAcceptedTermnsOfUseConditionsVO
+    {
         if ($value instanceof UserAcceptedTermnsOfUseConditionsVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class UserAcceptedTermnsOfUseConditionsVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseConditionsVO
-    {
-        if ($value instanceof UserAcceptedTermnsOfUseConditionsVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, TenantTermsOfUseRef::class)) {
-            return new UserAcceptedTermnsOfUseConditionsVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['conditions'], [$value], ['TenantTermsOfUseRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class UserAcceptedTermnsOfUseConditionsVO
     public function value(): TenantTermsOfUseRef
     {
         return $this->conditions;
+    }
+    public function equals(?UserAcceptedTermnsOfUseConditionsVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

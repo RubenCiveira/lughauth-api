@@ -27,6 +27,25 @@ final class UserAccessTemporalCodeRegisterCodeUrlVOUnitTest extends TestCase
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(UserAccessTemporalCodeRegisterCodeUrlVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = UserAccessTemporalCodeRegisterCodeUrlVO::from('one');
+        $same = UserAccessTemporalCodeRegisterCodeUrlVO::from('one');
+        $other = UserAccessTemporalCodeRegisterCodeUrlVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
     public function test_empty(): void
     {
         $ref = UserAccessTemporalCodeRegisterCodeUrlVO::empty();

@@ -18,19 +18,7 @@ class UserBlockedUntilVO
     }
     public static function from(UserBlockedUntilVO|\DateTimeImmutable|null $value): UserBlockedUntilVO
     {
-        if ($value instanceof UserBlockedUntilVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserBlockedUntilVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserBlockedUntilVO
     {
@@ -68,6 +56,22 @@ class UserBlockedUntilVO
             return null; // Retorna null si el formato no coincide con ISO 8601
         }
     }
+    private static function fromUnsafe(mixed $value): UserBlockedUntilVO
+    {
+        if ($value instanceof UserBlockedUntilVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserBlockedUntilVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -78,5 +82,9 @@ class UserBlockedUntilVO
     public function value(): ?\DateTimeImmutable
     {
         return $this->blockedUntil;
+    }
+    public function equals(?UserBlockedUntilVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

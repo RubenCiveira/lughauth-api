@@ -21,7 +21,7 @@ trait TrustedClientAllowedRedirectsAccessor
     }
     public function isAllowedRedirectsChanged(?self $original = null): bool
     {
-        return $this->_allowedRedirects->value() !== ($original ? $original->_allowedRedirects->value() : null);
+        return !$this->_allowedRedirects->equals($original?->_allowedRedirects);
     }
     public function withAllowedRedirects(TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects): self
     {

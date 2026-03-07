@@ -18,19 +18,7 @@ class TenantMarkForDeleteTimeVO
     }
     public static function from(TenantMarkForDeleteTimeVO|\DateTimeImmutable|null $value): TenantMarkForDeleteTimeVO
     {
-        if ($value instanceof TenantMarkForDeleteTimeVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantMarkForDeleteTimeVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantMarkForDeleteTimeVO
     {
@@ -68,6 +56,22 @@ class TenantMarkForDeleteTimeVO
             return null; // Retorna null si el formato no coincide con ISO 8601
         }
     }
+    private static function fromUnsafe(mixed $value): TenantMarkForDeleteTimeVO
+    {
+        if ($value instanceof TenantMarkForDeleteTimeVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantMarkForDeleteTimeVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -78,5 +82,9 @@ class TenantMarkForDeleteTimeVO
     public function value(): ?\DateTimeImmutable
     {
         return $this->markForDeleteTime;
+    }
+    public function equals(?TenantMarkForDeleteTimeVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

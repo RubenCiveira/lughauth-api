@@ -13,19 +13,7 @@ class RoleUidVO
 {
     public static function from(RoleUidVO|string $value): RoleUidVO
     {
-        if ($value instanceof RoleUidVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof RoleUidVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?RoleUidVO
     {
@@ -53,6 +41,22 @@ class RoleUidVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): RoleUidVO
+    {
+        if ($value instanceof RoleUidVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof RoleUidVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class RoleUidVO
     public function value(): string
     {
         return $this->uid;
+    }
+    public function equals(?RoleUidVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

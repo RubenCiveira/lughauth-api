@@ -29,7 +29,7 @@ trait UserAccessTemporalCodeTempSecondFactorSeedAccessor
     }
     public function isTempSecondFactorSeedChanged(?self $original = null): bool
     {
-        return $this->_tempSecondFactorSeed?->value() !== ($original ? $original->_tempSecondFactorSeed?->value() : null);
+        return null !== $this->_tempSecondFactorSeed && !$this->_tempSecondFactorSeed->equals($original?->_tempSecondFactorSeed);
     }
     public function withTempSecondFactorSeed(UserAccessTemporalCodeTempSecondFactorSeedVO|string|null $tempSecondFactorSeed): self
     {

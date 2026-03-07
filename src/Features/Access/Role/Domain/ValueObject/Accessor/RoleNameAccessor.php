@@ -20,7 +20,7 @@ trait RoleNameAccessor
     }
     public function isNameChanged(?self $original = null): bool
     {
-        return $this->_name->value() !== ($original ? $original->_name->value() : null);
+        return !$this->_name->equals($original?->_name);
     }
     public function withName(RoleNameVO|string $name): self
     {

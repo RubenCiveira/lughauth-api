@@ -20,7 +20,7 @@ trait TrustedClientPublicAllowAccessor
     }
     public function isPublicAllowChanged(?self $original = null): bool
     {
-        return $this->_publicAllow->value() !== ($original ? $original->_publicAllow->value() : null);
+        return !$this->_publicAllow->equals($original?->_publicAllow);
     }
     public function withPublicAllow(TrustedClientPublicAllowVO|bool $publicAllow): self
     {

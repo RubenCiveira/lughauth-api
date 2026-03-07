@@ -17,19 +17,7 @@ class TenantLoginProviderPrivateKeyVO
     }
     public static function from(TenantLoginProviderPrivateKeyVO|string|null $value): TenantLoginProviderPrivateKeyVO
     {
-        if ($value instanceof TenantLoginProviderPrivateKeyVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantLoginProviderPrivateKeyVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderPrivateKeyVO
     {
@@ -59,6 +47,22 @@ class TenantLoginProviderPrivateKeyVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderPrivateKeyVO
+    {
+        if ($value instanceof TenantLoginProviderPrivateKeyVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantLoginProviderPrivateKeyVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -69,5 +73,9 @@ class TenantLoginProviderPrivateKeyVO
     public function value(): ?string
     {
         return $this->privateKey;
+    }
+    public function equals(?TenantLoginProviderPrivateKeyVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -20,7 +20,7 @@ trait TenantDomainAccessor
     }
     public function isDomainChanged(?self $original = null): bool
     {
-        return $this->_domain->value() !== ($original ? $original->_domain->value() : null);
+        return !$this->_domain->equals($original?->_domain);
     }
     public function withDomain(TenantDomainVO|string $domain): self
     {

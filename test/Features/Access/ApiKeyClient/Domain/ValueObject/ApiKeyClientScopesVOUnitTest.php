@@ -27,6 +27,25 @@ final class ApiKeyClientScopesVOUnitTest extends TestCase
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(ApiKeyClientScopesVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = ApiKeyClientScopesVO::from('one');
+        $same = ApiKeyClientScopesVO::from('one');
+        $other = ApiKeyClientScopesVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
     public function test_empty(): void
     {
         $ref = ApiKeyClientScopesVO::empty();

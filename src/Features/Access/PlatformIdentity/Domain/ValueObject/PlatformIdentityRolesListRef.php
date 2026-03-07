@@ -57,4 +57,8 @@ class PlatformIdentityRolesListRef implements Iterator
     {
         return key($this->roles) !== null;
     }
+    public function equals(?PlatformIdentityRolesListRef $other): bool
+    {
+        return $this->roles == $other?->roles;
+    }
 }

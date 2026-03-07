@@ -16,19 +16,7 @@ class TenantRootVO
     }
     public static function from(TenantRootVO|bool|null $value): TenantRootVO
     {
-        if ($value instanceof TenantRootVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantRootVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantRootVO
     {
@@ -44,6 +32,22 @@ class TenantRootVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantRootVO
+    {
+        if ($value instanceof TenantRootVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantRootVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantRootVO
     public function value(): ?bool
     {
         return $this->root;
+    }
+    public function equals(?TenantRootVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

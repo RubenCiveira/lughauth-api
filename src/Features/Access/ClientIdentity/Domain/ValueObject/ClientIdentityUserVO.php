@@ -13,6 +13,22 @@ class ClientIdentityUserVO
 {
     public static function from(ClientIdentityUserVO|UserRef $value): ClientIdentityUserVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?ClientIdentityUserVO
+    {
+        if ($value instanceof ClientIdentityUserVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, UserRef::class)) {
+            return new ClientIdentityUserVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['user'], [$value], ['UserRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): ClientIdentityUserVO
+    {
         if ($value instanceof ClientIdentityUserVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class ClientIdentityUserVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?ClientIdentityUserVO
-    {
-        if ($value instanceof ClientIdentityUserVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, UserRef::class)) {
-            return new ClientIdentityUserVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['user'], [$value], ['UserRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class ClientIdentityUserVO
     public function value(): UserRef
     {
         return $this->user;
+    }
+    public function equals(?ClientIdentityUserVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

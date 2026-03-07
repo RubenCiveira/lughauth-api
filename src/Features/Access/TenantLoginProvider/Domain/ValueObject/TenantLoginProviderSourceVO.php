@@ -23,19 +23,7 @@ class TenantLoginProviderSourceVO
     }
     public static function from(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $value): TenantLoginProviderSourceVO
     {
-        if ($value instanceof TenantLoginProviderSourceVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantLoginProviderSourceVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderSourceVO
     {
@@ -69,6 +57,22 @@ class TenantLoginProviderSourceVO
         }
         return null;
     }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderSourceVO
+    {
+        if ($value instanceof TenantLoginProviderSourceVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantLoginProviderSourceVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -79,5 +83,9 @@ class TenantLoginProviderSourceVO
     public function value(): TenantLoginProviderSourceOptions
     {
         return $this->source;
+    }
+    public function equals(?TenantLoginProviderSourceVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

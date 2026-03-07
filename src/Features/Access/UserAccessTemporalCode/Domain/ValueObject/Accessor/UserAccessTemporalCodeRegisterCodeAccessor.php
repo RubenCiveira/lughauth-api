@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeRegisterCodeAccessor
     }
     public function isRegisterCodeChanged(?self $original = null): bool
     {
-        return $this->_registerCode?->value() !== ($original ? $original->_registerCode?->value() : null);
+        return null !== $this->_registerCode && !$this->_registerCode->equals($original?->_registerCode);
     }
     public function withRegisterCode(UserAccessTemporalCodeRegisterCodeVO|string|null $registerCode): self
     {

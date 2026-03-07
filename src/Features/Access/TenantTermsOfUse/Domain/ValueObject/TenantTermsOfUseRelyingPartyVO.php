@@ -17,19 +17,7 @@ class TenantTermsOfUseRelyingPartyVO
     }
     public static function from(TenantTermsOfUseRelyingPartyVO|RelyingPartyRef|null $value): TenantTermsOfUseRelyingPartyVO
     {
-        if ($value instanceof TenantTermsOfUseRelyingPartyVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantTermsOfUseRelyingPartyVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseRelyingPartyVO
     {
@@ -45,6 +33,22 @@ class TenantTermsOfUseRelyingPartyVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantTermsOfUseRelyingPartyVO
+    {
+        if ($value instanceof TenantTermsOfUseRelyingPartyVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantTermsOfUseRelyingPartyVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -55,5 +59,9 @@ class TenantTermsOfUseRelyingPartyVO
     public function value(): ?RelyingPartyRef
     {
         return $this->relyingParty;
+    }
+    public function equals(?TenantTermsOfUseRelyingPartyVO $other): bool
+    {
+        return $this->value()?->uid() == $other?->value()?->uid();
     }
 }

@@ -20,7 +20,7 @@ trait TenantTermsOfUseActivationDateAccessor
     }
     public function isActivationDateChanged(?self $original = null): bool
     {
-        return $this->_activationDate?->value() !== ($original ? $original->_activationDate?->value() : null);
+        return null !== $this->_activationDate && !$this->_activationDate->equals($original?->_activationDate);
     }
     public function withActivationDate(TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $activationDate): self
     {

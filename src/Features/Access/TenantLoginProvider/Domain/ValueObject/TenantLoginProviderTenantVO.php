@@ -13,6 +13,22 @@ class TenantLoginProviderTenantVO
 {
     public static function from(TenantLoginProviderTenantVO|TenantRef $value): TenantLoginProviderTenantVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderTenantVO
+    {
+        if ($value instanceof TenantLoginProviderTenantVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, TenantRef::class)) {
+            return new TenantLoginProviderTenantVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['tenant'], [$value], ['TenantRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderTenantVO
+    {
         if ($value instanceof TenantLoginProviderTenantVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class TenantLoginProviderTenantVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderTenantVO
-    {
-        if ($value instanceof TenantLoginProviderTenantVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, TenantRef::class)) {
-            return new TenantLoginProviderTenantVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['tenant'], [$value], ['TenantRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class TenantLoginProviderTenantVO
     public function value(): TenantRef
     {
         return $this->tenant;
+    }
+    public function equals(?TenantLoginProviderTenantVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

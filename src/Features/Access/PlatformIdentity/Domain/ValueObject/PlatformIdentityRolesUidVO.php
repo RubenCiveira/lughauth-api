@@ -13,19 +13,7 @@ class PlatformIdentityRolesUidVO
 {
     public static function from(PlatformIdentityRolesUidVO|string $value): PlatformIdentityRolesUidVO
     {
-        if ($value instanceof PlatformIdentityRolesUidVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof PlatformIdentityRolesUidVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityRolesUidVO
     {
@@ -53,6 +41,22 @@ class PlatformIdentityRolesUidVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): PlatformIdentityRolesUidVO
+    {
+        if ($value instanceof PlatformIdentityRolesUidVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof PlatformIdentityRolesUidVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class PlatformIdentityRolesUidVO
     public function value(): string
     {
         return $this->uid;
+    }
+    public function equals(?PlatformIdentityRolesUidVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -20,7 +20,7 @@ trait TenantLoginProviderDisabledAccessor
     }
     public function isDisabledChanged(?self $original = null): bool
     {
-        return $this->_disabled?->value() !== ($original ? $original->_disabled?->value() : null);
+        return null !== $this->_disabled && !$this->_disabled->equals($original?->_disabled);
     }
     public function withDisabled(TenantLoginProviderDisabledVO|bool|null $disabled): self
     {

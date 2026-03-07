@@ -20,7 +20,7 @@ trait TenantLoginProviderCertificateAccessor
     }
     public function isCertificateChanged(?self $original = null): bool
     {
-        return $this->_certificate?->value() !== ($original ? $original->_certificate?->value() : null);
+        return null !== $this->_certificate && !$this->_certificate->equals($original?->_certificate);
     }
     public function withCertificate(TenantLoginProviderCertificateVO|string|null $certificate): self
     {

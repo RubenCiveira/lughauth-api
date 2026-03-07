@@ -20,7 +20,7 @@ trait TenantTermsOfUseTextAccessor
     }
     public function isTextChanged(?self $original = null): bool
     {
-        return $this->_text->value() !== ($original ? $original->_text->value() : null);
+        return !$this->_text->equals($original?->_text);
     }
     public function withText(TenantTermsOfUseTextVO|string $text): self
     {

@@ -21,7 +21,7 @@ trait PlatformIdentityUserAccessor
     }
     public function isUserChanged(?self $original = null): bool
     {
-        return $this->_user->value() !== ($original ? $original->_user->value() : null);
+        return !$this->_user->equals($original?->_user);
     }
     public function withUser(PlatformIdentityUserVO|UserRef $user): self
     {

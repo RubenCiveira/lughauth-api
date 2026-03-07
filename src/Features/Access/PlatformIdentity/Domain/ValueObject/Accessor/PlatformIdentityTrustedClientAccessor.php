@@ -21,7 +21,7 @@ trait PlatformIdentityTrustedClientAccessor
     }
     public function isTrustedClientChanged(?self $original = null): bool
     {
-        return $this->_trustedClient?->value() !== ($original ? $original->_trustedClient?->value() : null);
+        return null !== $this->_trustedClient && !$this->_trustedClient->equals($original?->_trustedClient);
     }
     public function withTrustedClient(PlatformIdentityTrustedClientVO|TrustedClientRef|null $trustedClient): self
     {

@@ -21,7 +21,7 @@ trait UserAcceptedTermnsOfUseConditionsAccessor
     }
     public function isConditionsChanged(?self $original = null): bool
     {
-        return $this->_conditions->value() !== ($original ? $original->_conditions->value() : null);
+        return !$this->_conditions->equals($original?->_conditions);
     }
     public function withConditions(UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef $conditions): self
     {

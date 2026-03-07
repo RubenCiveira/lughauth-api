@@ -16,19 +16,7 @@ class TenantConfigEnableRegisterUsersVO
     }
     public static function from(TenantConfigEnableRegisterUsersVO|bool|null $value): TenantConfigEnableRegisterUsersVO
     {
-        if ($value instanceof TenantConfigEnableRegisterUsersVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantConfigEnableRegisterUsersVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigEnableRegisterUsersVO
     {
@@ -44,6 +32,22 @@ class TenantConfigEnableRegisterUsersVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantConfigEnableRegisterUsersVO
+    {
+        if ($value instanceof TenantConfigEnableRegisterUsersVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantConfigEnableRegisterUsersVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantConfigEnableRegisterUsersVO
     public function value(): ?bool
     {
         return $this->enableRegisterUsers;
+    }
+    public function equals(?TenantConfigEnableRegisterUsersVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

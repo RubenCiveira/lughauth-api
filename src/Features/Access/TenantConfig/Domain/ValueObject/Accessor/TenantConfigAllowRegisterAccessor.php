@@ -20,7 +20,7 @@ trait TenantConfigAllowRegisterAccessor
     }
     public function isAllowRegisterChanged(?self $original = null): bool
     {
-        return $this->_allowRegister?->value() !== ($original ? $original->_allowRegister?->value() : null);
+        return null !== $this->_allowRegister && !$this->_allowRegister->equals($original?->_allowRegister);
     }
     public function withAllowRegister(TenantConfigAllowRegisterVO|bool|null $allowRegister): self
     {

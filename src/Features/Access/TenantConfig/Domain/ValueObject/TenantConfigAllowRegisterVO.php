@@ -16,19 +16,7 @@ class TenantConfigAllowRegisterVO
     }
     public static function from(TenantConfigAllowRegisterVO|bool|null $value): TenantConfigAllowRegisterVO
     {
-        if ($value instanceof TenantConfigAllowRegisterVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantConfigAllowRegisterVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigAllowRegisterVO
     {
@@ -44,6 +32,22 @@ class TenantConfigAllowRegisterVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantConfigAllowRegisterVO
+    {
+        if ($value instanceof TenantConfigAllowRegisterVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantConfigAllowRegisterVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantConfigAllowRegisterVO
     public function value(): ?bool
     {
         return $this->allowRegister;
+    }
+    public function equals(?TenantConfigAllowRegisterVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -16,19 +16,7 @@ class UserAccessTemporalCodeFailedLoginAttemptsVO
     }
     public static function from(UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $value): UserAccessTemporalCodeFailedLoginAttemptsVO
     {
-        if ($value instanceof UserAccessTemporalCodeFailedLoginAttemptsVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserAccessTemporalCodeFailedLoginAttemptsVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAccessTemporalCodeFailedLoginAttemptsVO
     {
@@ -44,6 +32,22 @@ class UserAccessTemporalCodeFailedLoginAttemptsVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): UserAccessTemporalCodeFailedLoginAttemptsVO
+    {
+        if ($value instanceof UserAccessTemporalCodeFailedLoginAttemptsVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserAccessTemporalCodeFailedLoginAttemptsVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class UserAccessTemporalCodeFailedLoginAttemptsVO
     public function value(): ?int
     {
         return $this->failedLoginAttempts;
+    }
+    public function equals(?UserAccessTemporalCodeFailedLoginAttemptsVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

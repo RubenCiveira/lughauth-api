@@ -20,7 +20,7 @@ trait UserProviderAccessor
     }
     public function isProviderChanged(?self $original = null): bool
     {
-        return $this->_provider?->value() !== ($original ? $original->_provider?->value() : null);
+        return null !== $this->_provider && !$this->_provider->equals($original?->_provider);
     }
     public function withProvider(UserProviderVO|string|null $provider): self
     {

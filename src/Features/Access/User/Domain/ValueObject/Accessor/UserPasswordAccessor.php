@@ -29,7 +29,7 @@ trait UserPasswordAccessor
     }
     public function isPasswordChanged(?self $original = null): bool
     {
-        return $this->_password->value() !== ($original ? $original->_password->value() : null);
+        return !$this->_password->equals($original?->_password);
     }
     public function withPassword(UserPasswordVO|string $password): self
     {

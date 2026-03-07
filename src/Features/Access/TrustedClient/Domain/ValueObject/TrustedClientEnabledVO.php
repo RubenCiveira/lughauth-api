@@ -12,6 +12,22 @@ class TrustedClientEnabledVO
 {
     public static function from(TrustedClientEnabledVO|bool $value): TrustedClientEnabledVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientEnabledVO
+    {
+        if ($value instanceof TrustedClientEnabledVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_bool($value)) {
+            return new TrustedClientEnabledVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['enabled'], [$value], ['bool']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TrustedClientEnabledVO
+    {
         if ($value instanceof TrustedClientEnabledVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class TrustedClientEnabledVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientEnabledVO
-    {
-        if ($value instanceof TrustedClientEnabledVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_bool($value)) {
-            return new TrustedClientEnabledVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['enabled'], [$value], ['bool']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class TrustedClientEnabledVO
     public function value(): bool
     {
         return $this->enabled;
+    }
+    public function equals(?TrustedClientEnabledVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessor
     }
     public function isTempSecondFactorSeedExpirationChanged(?self $original = null): bool
     {
-        return $this->_tempSecondFactorSeedExpiration?->value() !== ($original ? $original->_tempSecondFactorSeedExpiration?->value() : null);
+        return null !== $this->_tempSecondFactorSeedExpiration && !$this->_tempSecondFactorSeedExpiration->equals($original?->_tempSecondFactorSeedExpiration);
     }
     public function withTempSecondFactorSeedExpiration(UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $tempSecondFactorSeedExpiration): self
     {

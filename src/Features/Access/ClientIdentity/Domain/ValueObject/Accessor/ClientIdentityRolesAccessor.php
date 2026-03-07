@@ -20,7 +20,7 @@ trait ClientIdentityRolesAccessor
     }
     public function isRolesChanged(?self $original = null): bool
     {
-        return $this->_roles?->value() !== ($original ? $original->_roles?->value() : null);
+        return null !== $this->_roles && !$this->_roles->equals($original?->_roles);
     }
     public function withRoles(ClientIdentityRolesVO|string|null $roles): self
     {

@@ -20,7 +20,7 @@ trait TenantMarkForDeleteAccessor
     }
     public function isMarkForDeleteChanged(?self $original = null): bool
     {
-        return $this->_markForDelete->value() !== ($original ? $original->_markForDelete->value() : null);
+        return !$this->_markForDelete->equals($original?->_markForDelete);
     }
     public function withMarkForDelete(TenantMarkForDeleteVO|bool $markForDelete): self
     {

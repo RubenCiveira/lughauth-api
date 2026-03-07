@@ -12,6 +12,22 @@ class TenantConfigForceMfaVO
 {
     public static function from(TenantConfigForceMfaVO|bool $value): TenantConfigForceMfaVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigForceMfaVO
+    {
+        if ($value instanceof TenantConfigForceMfaVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_bool($value)) {
+            return new TenantConfigForceMfaVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['forceMfa'], [$value], ['bool']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantConfigForceMfaVO
+    {
         if ($value instanceof TenantConfigForceMfaVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class TenantConfigForceMfaVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigForceMfaVO
-    {
-        if ($value instanceof TenantConfigForceMfaVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_bool($value)) {
-            return new TenantConfigForceMfaVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['forceMfa'], [$value], ['bool']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class TenantConfigForceMfaVO
     public function value(): bool
     {
         return $this->forceMfa;
+    }
+    public function equals(?TenantConfigForceMfaVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

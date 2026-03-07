@@ -21,7 +21,7 @@ trait UserApproveAccessor
     }
     public function isApproveChanged(?self $original = null): bool
     {
-        return $this->_approve?->value() !== ($original ? $original->_approve?->value() : null);
+        return null !== $this->_approve && !$this->_approve->equals($original?->_approve);
     }
     public function withApprove(UserApproveVO|UserApproveOptions|null $approve): self
     {

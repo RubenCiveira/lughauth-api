@@ -21,7 +21,7 @@ trait UserTenantAccessor
     }
     public function isTenantChanged(?self $original = null): bool
     {
-        return $this->_tenant->value() !== ($original ? $original->_tenant->value() : null);
+        return !$this->_tenant->equals($original?->_tenant);
     }
     public function withTenant(UserTenantVO|TenantRef $tenant): self
     {

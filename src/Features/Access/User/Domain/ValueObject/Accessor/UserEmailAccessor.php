@@ -20,7 +20,7 @@ trait UserEmailAccessor
     }
     public function isEmailChanged(?self $original = null): bool
     {
-        return $this->_email?->value() !== ($original ? $original->_email?->value() : null);
+        return null !== $this->_email && !$this->_email->equals($original?->_email);
     }
     public function withEmail(UserEmailVO|string|null $email): self
     {

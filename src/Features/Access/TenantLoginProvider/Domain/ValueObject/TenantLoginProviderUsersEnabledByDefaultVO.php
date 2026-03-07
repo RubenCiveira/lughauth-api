@@ -12,6 +12,22 @@ class TenantLoginProviderUsersEnabledByDefaultVO
 {
     public static function from(TenantLoginProviderUsersEnabledByDefaultVO|bool $value): TenantLoginProviderUsersEnabledByDefaultVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderUsersEnabledByDefaultVO
+    {
+        if ($value instanceof TenantLoginProviderUsersEnabledByDefaultVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_bool($value)) {
+            return new TenantLoginProviderUsersEnabledByDefaultVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['usersEnabledByDefault'], [$value], ['bool']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): TenantLoginProviderUsersEnabledByDefaultVO
+    {
         if ($value instanceof TenantLoginProviderUsersEnabledByDefaultVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -26,18 +42,6 @@ class TenantLoginProviderUsersEnabledByDefaultVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantLoginProviderUsersEnabledByDefaultVO
-    {
-        if ($value instanceof TenantLoginProviderUsersEnabledByDefaultVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_bool($value)) {
-            return new TenantLoginProviderUsersEnabledByDefaultVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['usersEnabledByDefault'], [$value], ['bool']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -48,5 +52,9 @@ class TenantLoginProviderUsersEnabledByDefaultVO
     public function value(): bool
     {
         return $this->usersEnabledByDefault;
+    }
+    public function equals(?TenantLoginProviderUsersEnabledByDefaultVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

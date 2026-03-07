@@ -13,19 +13,7 @@ class TrustedClientAllowedRedirectsUrlVO
 {
     public static function from(TrustedClientAllowedRedirectsUrlVO|string $value): TrustedClientAllowedRedirectsUrlVO
     {
-        if ($value instanceof TrustedClientAllowedRedirectsUrlVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TrustedClientAllowedRedirectsUrlVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientAllowedRedirectsUrlVO
     {
@@ -53,6 +41,22 @@ class TrustedClientAllowedRedirectsUrlVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): TrustedClientAllowedRedirectsUrlVO
+    {
+        if ($value instanceof TrustedClientAllowedRedirectsUrlVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TrustedClientAllowedRedirectsUrlVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class TrustedClientAllowedRedirectsUrlVO
     public function value(): string
     {
         return $this->url;
+    }
+    public function equals(?TrustedClientAllowedRedirectsUrlVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

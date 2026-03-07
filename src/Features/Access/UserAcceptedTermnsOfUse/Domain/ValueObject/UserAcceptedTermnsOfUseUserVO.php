@@ -13,6 +13,22 @@ class UserAcceptedTermnsOfUseUserVO
 {
     public static function from(UserAcceptedTermnsOfUseUserVO|UserRef $value): UserAcceptedTermnsOfUseUserVO
     {
+        return self::fromUnsafe($value);
+    }
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseUserVO
+    {
+        if ($value instanceof UserAcceptedTermnsOfUseUserVO) {
+            // If is a ValueObject, its already validated... nothing to append
+            return $value;
+        } elseif (is_a($value, UserRef::class)) {
+            return new UserAcceptedTermnsOfUseUserVO($value);
+        } else {
+            $list->add(new ConstraintFail('wrong_type', ['user'], [$value], ['UserRef']));
+            return null;
+        }
+    }
+    private static function fromUnsafe(mixed $value): UserAcceptedTermnsOfUseUserVO
+    {
         if ($value instanceof UserAcceptedTermnsOfUseUserVO) {
             // If is a ValueObject, its already validated
             return $value;
@@ -27,18 +43,6 @@ class UserAcceptedTermnsOfUseUserVO
             return $candidate;
         }
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAcceptedTermnsOfUseUserVO
-    {
-        if ($value instanceof UserAcceptedTermnsOfUseUserVO) {
-            // If is a ValueObject, its already validated... nothing to append
-            return $value;
-        } elseif (is_a($value, UserRef::class)) {
-            return new UserAcceptedTermnsOfUseUserVO($value);
-        } else {
-            $list->add(new ConstraintFail('wrong_type', ['user'], [$value], ['UserRef']));
-            return null;
-        }
-    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -49,5 +53,9 @@ class UserAcceptedTermnsOfUseUserVO
     public function value(): UserRef
     {
         return $this->user;
+    }
+    public function equals(?UserAcceptedTermnsOfUseUserVO $other): bool
+    {
+        return $this->value()->uid() == $other?->value()?->uid();
     }
 }

@@ -13,19 +13,7 @@ class RelyingPartyApiKeyVO
 {
     public static function from(RelyingPartyApiKeyVO|string $value): RelyingPartyApiKeyVO
     {
-        if ($value instanceof RelyingPartyApiKeyVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof RelyingPartyApiKeyVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?RelyingPartyApiKeyVO
     {
@@ -53,6 +41,22 @@ class RelyingPartyApiKeyVO
           new Length(min: null, max: 250),
         ];
     }
+    private static function fromUnsafe(mixed $value): RelyingPartyApiKeyVO
+    {
+        if ($value instanceof RelyingPartyApiKeyVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof RelyingPartyApiKeyVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -63,5 +67,9 @@ class RelyingPartyApiKeyVO
     public function value(): string
     {
         return $this->apiKey;
+    }
+    public function equals(?RelyingPartyApiKeyVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

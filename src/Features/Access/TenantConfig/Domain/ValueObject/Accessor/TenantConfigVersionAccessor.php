@@ -20,7 +20,7 @@ trait TenantConfigVersionAccessor
     }
     public function isVersionChanged(?self $original = null): bool
     {
-        return $this->_version?->value() !== ($original ? $original->_version?->value() : null);
+        return null !== $this->_version && !$this->_version->equals($original?->_version);
     }
     public function withVersion(TenantConfigVersionVO|int|null $version): self
     {

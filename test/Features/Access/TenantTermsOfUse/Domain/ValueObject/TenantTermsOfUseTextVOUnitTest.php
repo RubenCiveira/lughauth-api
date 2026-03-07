@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 
@@ -25,5 +26,24 @@ final class TenantTermsOfUseTextVOUnitTest extends TestCase
         $other = TenantTermsOfUseTextVO::tryFrom(1, $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantTermsOfUseTextVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantTermsOfUseTextVO::from('one');
+        $same = TenantTermsOfUseTextVO::from('one');
+        $other = TenantTermsOfUseTextVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
 }

@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
 
@@ -29,6 +30,25 @@ final class UserBlockedUntilVOUnitTest extends TestCase
         $other = UserBlockedUntilVO::tryFrom(22, $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(UserBlockedUntilVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = UserBlockedUntilVO::from((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = UserBlockedUntilVO::from((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $other = UserBlockedUntilVO::from((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
     }
     public function test_empty(): void
     {

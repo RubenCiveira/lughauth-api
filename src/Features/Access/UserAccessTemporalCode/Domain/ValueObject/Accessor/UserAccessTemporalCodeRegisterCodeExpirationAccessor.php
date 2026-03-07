@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeRegisterCodeExpirationAccessor
     }
     public function isRegisterCodeExpirationChanged(?self $original = null): bool
     {
-        return $this->_registerCodeExpiration?->value() !== ($original ? $original->_registerCodeExpiration?->value() : null);
+        return null !== $this->_registerCodeExpiration && !$this->_registerCodeExpiration->equals($original?->_registerCodeExpiration);
     }
     public function withRegisterCodeExpiration(UserAccessTemporalCodeRegisterCodeExpirationVO|\DateTimeImmutable|null $registerCodeExpiration): self
     {

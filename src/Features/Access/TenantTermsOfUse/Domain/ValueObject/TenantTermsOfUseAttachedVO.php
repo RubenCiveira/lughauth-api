@@ -51,19 +51,7 @@ class TenantTermsOfUseAttachedVO
     }
     public static function from(TenantTermsOfUseAttachedVO|string|null $value): TenantTermsOfUseAttachedVO
     {
-        if ($value instanceof TenantTermsOfUseAttachedVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantTermsOfUseAttachedVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantTermsOfUseAttachedVO
     {
@@ -79,6 +67,22 @@ class TenantTermsOfUseAttachedVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantTermsOfUseAttachedVO
+    {
+        if ($value instanceof TenantTermsOfUseAttachedVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantTermsOfUseAttachedVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -88,6 +92,10 @@ class TenantTermsOfUseAttachedVO
         if (null !== $this->attached) {
             $this->validateKey($this->attached);
         }
+    }
+    public function equals(?TenantTermsOfUseAttachedVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
     public function value(): ?string
     {

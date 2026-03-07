@@ -20,7 +20,7 @@ trait UserEnabledAccessor
     }
     public function isEnabledChanged(?self $original = null): bool
     {
-        return $this->_enabled?->value() !== ($original ? $original->_enabled?->value() : null);
+        return null !== $this->_enabled && !$this->_enabled->equals($original?->_enabled);
     }
     public function withEnabled(UserEnabledVO|bool|null $enabled): self
     {

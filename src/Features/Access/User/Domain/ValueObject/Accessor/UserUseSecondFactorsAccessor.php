@@ -20,7 +20,7 @@ trait UserUseSecondFactorsAccessor
     }
     public function isUseSecondFactorsChanged(?self $original = null): bool
     {
-        return $this->_useSecondFactors?->value() !== ($original ? $original->_useSecondFactors?->value() : null);
+        return null !== $this->_useSecondFactors && !$this->_useSecondFactors->equals($original?->_useSecondFactors);
     }
     public function withUseSecondFactors(UserUseSecondFactorsVO|bool|null $useSecondFactors): self
     {

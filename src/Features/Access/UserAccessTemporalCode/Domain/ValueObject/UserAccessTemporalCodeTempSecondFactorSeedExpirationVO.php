@@ -18,19 +18,7 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     }
     public static function from(UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $value): UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     {
-        if ($value instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     {
@@ -68,6 +56,22 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
             return null; // Retorna null si el formato no coincide con ISO 8601
         }
     }
+    private static function fromUnsafe(mixed $value): UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
+    {
+        if ($value instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof UserAccessTemporalCodeTempSecondFactorSeedExpirationVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -78,5 +82,9 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     public function value(): ?\DateTimeImmutable
     {
         return $this->tempSecondFactorSeedExpiration;
+    }
+    public function equals(?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

@@ -16,19 +16,7 @@ class TenantConfigAllowRecoverPassVO
     }
     public static function from(TenantConfigAllowRecoverPassVO|bool|null $value): TenantConfigAllowRecoverPassVO
     {
-        if ($value instanceof TenantConfigAllowRecoverPassVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TenantConfigAllowRecoverPassVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TenantConfigAllowRecoverPassVO
     {
@@ -44,6 +32,22 @@ class TenantConfigAllowRecoverPassVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TenantConfigAllowRecoverPassVO
+    {
+        if ($value instanceof TenantConfigAllowRecoverPassVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TenantConfigAllowRecoverPassVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TenantConfigAllowRecoverPassVO
     public function value(): ?bool
     {
         return $this->allowRecoverPass;
+    }
+    public function equals(?TenantConfigAllowRecoverPassVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

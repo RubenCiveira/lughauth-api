@@ -16,19 +16,7 @@ class TrustedClientVersionVO
     }
     public static function from(TrustedClientVersionVO|int|null $value): TrustedClientVersionVO
     {
-        if ($value instanceof TrustedClientVersionVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof TrustedClientVersionVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientVersionVO
     {
@@ -44,6 +32,22 @@ class TrustedClientVersionVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): TrustedClientVersionVO
+    {
+        if ($value instanceof TrustedClientVersionVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof TrustedClientVersionVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -54,5 +58,9 @@ class TrustedClientVersionVO
     public function value(): ?int
     {
         return $this->version;
+    }
+    public function equals(?TrustedClientVersionVO $other): bool
+    {
+        return $this->value() == $other?->value();
     }
 }

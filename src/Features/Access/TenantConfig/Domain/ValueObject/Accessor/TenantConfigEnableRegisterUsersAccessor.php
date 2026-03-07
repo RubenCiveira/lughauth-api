@@ -20,7 +20,7 @@ trait TenantConfigEnableRegisterUsersAccessor
     }
     public function isEnableRegisterUsersChanged(?self $original = null): bool
     {
-        return $this->_enableRegisterUsers?->value() !== ($original ? $original->_enableRegisterUsers?->value() : null);
+        return null !== $this->_enableRegisterUsers && !$this->_enableRegisterUsers->equals($original?->_enableRegisterUsers);
     }
     public function withEnableRegisterUsers(TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers): self
     {

@@ -12,19 +12,7 @@ class PlatformIdentityRolesVO
 {
     public static function from(PlatformIdentityRolesVO|PlatformIdentityRolesListRef| array |null $value): PlatformIdentityRolesVO
     {
-        if ($value instanceof PlatformIdentityRolesVO) {
-            // If is a ValueObject, its already validated
-            return $value;
-        } else {
-            // If is not a ValueObject, validation is need and exception throw
-            $errorsList = new ConstraintFailList();
-            $candidate = self::tryFrom($value, $errorsList);
-            if ($errorsList->hasErrors()) {
-                throw $errorsList->asConstraintException();
-            }
-            \assert($candidate instanceof PlatformIdentityRolesVO);
-            return $candidate;
-        }
+        return self::fromUnsafe($value);
     }
     public static function tryFrom(mixed $value, ConstraintFailList $list): ?PlatformIdentityRolesVO
     {
@@ -42,6 +30,22 @@ class PlatformIdentityRolesVO
             return null;
         }
     }
+    private static function fromUnsafe(mixed $value): PlatformIdentityRolesVO
+    {
+        if ($value instanceof PlatformIdentityRolesVO) {
+            // If is a ValueObject, its already validated
+            return $value;
+        } else {
+            // If is not a ValueObject, validation is need and exception throw
+            $errorsList = new ConstraintFailList();
+            $candidate = self::tryFrom($value, $errorsList);
+            if ($errorsList->hasErrors()) {
+                throw $errorsList->asConstraintException();
+            }
+            \assert($candidate instanceof PlatformIdentityRolesVO);
+            return $candidate;
+        }
+    }
     /**
      * private constructor to avoid build a value without all the rule validations.
      */
@@ -56,6 +60,10 @@ class PlatformIdentityRolesVO
             $value->rewind();
         }
         return $value;
+    }
+    public function equals(?PlatformIdentityRolesVO $other): bool
+    {
+        return $this->value()->equals($other?->value());
     }
     public function find(string $uid): ?PlatformIdentityRolesItem
     {

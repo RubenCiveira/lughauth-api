@@ -20,7 +20,7 @@ trait UserAccessTemporalCodeRecoveryCodeAccessor
     }
     public function isRecoveryCodeChanged(?self $original = null): bool
     {
-        return $this->_recoveryCode?->value() !== ($original ? $original->_recoveryCode?->value() : null);
+        return null !== $this->_recoveryCode && !$this->_recoveryCode->equals($original?->_recoveryCode);
     }
     public function withRecoveryCode(UserAccessTemporalCodeRecoveryCodeVO|string|null $recoveryCode): self
     {

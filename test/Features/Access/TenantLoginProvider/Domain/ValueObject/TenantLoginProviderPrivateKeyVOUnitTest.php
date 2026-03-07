@@ -27,6 +27,25 @@ final class TenantLoginProviderPrivateKeyVOUnitTest extends TestCase
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantLoginProviderPrivateKeyVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantLoginProviderPrivateKeyVO::from('one');
+        $same = TenantLoginProviderPrivateKeyVO::from('one');
+        $other = TenantLoginProviderPrivateKeyVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
+
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
     public function test_empty(): void
     {
         $ref = TenantLoginProviderPrivateKeyVO::empty();
