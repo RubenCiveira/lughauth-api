@@ -50,14 +50,14 @@ class UserBlockedUntilAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserBlockedUntilAccessorUnitTest();
-        $original = $holder->withBlockedUntil((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withBlockedUntil((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withBlockedUntil( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withBlockedUntil( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withBlockedUntil((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isBlockedUntilChanged();
-        $withSame = $original->isBlockedUntilChanged($same);
-        $withDiferent = $original->isBlockedUntilChanged($modified);
+        $withSame = $original->isBlockedUntilChanged( $same );
+        $withDiferent = $original->isBlockedUntilChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserBlockedUntilAccessorUnitTest extends TestCase
 }
 class ImplWithUserBlockedUntilAccessorUnitTest
 {
-    use UserBlockedUntilAccessor;
+  use UserBlockedUntilAccessor;
 }

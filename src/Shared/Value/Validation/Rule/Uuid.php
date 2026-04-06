@@ -26,7 +26,7 @@ class Uuid implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        /** @psalm-suppress UndefinedInterfaceMethod */
+		/** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::uuid()->isValid($value) ? null : new RuleFail('rule_uuid', $value, []);
     }
 }

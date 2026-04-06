@@ -50,13 +50,13 @@ class TenantEnabledAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantEnabledAccessorUnitTest()->withEnabled(true);
-        $original = $holder->withEnabled(true);
-        $same = $holder->withEnabled(true);
+        $original = $holder->withEnabled( true);
+        $same = $holder->withEnabled( true);
         $modified = $holder->withEnabled(false);
 
         // Act
-        $withSame = $original->isEnabledChanged($same);
-        $withDiferent = $original->isEnabledChanged($modified);
+        $withSame = $original->isEnabledChanged( $same );
+        $withDiferent = $original->isEnabledChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantEnabledAccessorUnitTest extends TestCase
 }
 class ImplWithTenantEnabledAccessorUnitTest
 {
-    use TenantEnabledAccessor;
+  use TenantEnabledAccessor;
 }

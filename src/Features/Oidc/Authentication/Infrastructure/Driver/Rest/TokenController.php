@@ -16,6 +16,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\TokenGranter\TokenGra
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
+use Civi\Lughauth\Features\Oidc\Device\Application\DeviceAuthorizationService;
+use Civi\Lughauth\Features\Oidc\Device\Domain\Exception\DeviceAuthorizationException;
 
 class TokenController
 {
@@ -63,6 +65,34 @@ class TokenController
                 $params
             );
             $identity = [];
+        } elseif (DeviceAuthorizationService::grantType() == $grant) {
+            try {
+                $client = null;
+                if (isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW'])) {
+                    $client = $this->clientDataGateway->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+                } else {
+                    $clientId = (string) ($params['client_id'] ?? '');
+                    if ($clientId !== '') {
+                        $client = $this->clientDataGateway->preValidatedClient($clientId);
+                    }
+                }
+                if (!$client) {
+                    throw DeviceAuthorizationException::invalidClient();
+                }
+                if (false === array_search($grant, $client->grants)) {
+                    throw DeviceAuthorizationException::invalidClient();
+                }
+                $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
+                $auth = $this->granter->authenticate(
+                    $grant,
+                    $tenant,
+                    new AuthenticationRequest($client, "", "", null, [$client->id, ...$audiences]),
+                    $params
+                );
+                $identity = [];
+            } catch (DeviceAuthorizationException $ex) {
+                return $this->deviceErrorResponse($ex, $response);
+            }
         } else {
             if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
                 throw new UnauthorizedException(message: 'Unauthorized by header.');
@@ -129,5 +159,18 @@ class TokenController
     {
         $aud = array_values(array_unique([$clientId, ...($audiences ?? [])]));
         return count($aud) == 1 ? $aud[0] : $aud;
+    }
+
+    private function deviceErrorResponse(DeviceAuthorizationException $exception, ResponseInterface $response): ResponseInterface
+    {
+        $payload = [
+            'error' => $exception->error(),
+            'error_description' => $exception->getMessage()
+        ];
+        $encoded = json_encode($payload);
+        $response->getBody()->write($encoded !== false ? $encoded : '{}');
+        return $response
+            ->withStatus($exception->statusCode())
+            ->withHeader('Content-Type', 'application/json');
     }
 }

@@ -21,7 +21,7 @@ class TaskProgress
         public ?DateTimeImmutable $startTime,
         /** @var DateTimeImmutable|null Task end time. */
         public ?DateTimeImmutable $endTime,
-        /** @var TaskStepProgress[] Step progress list. */
+		/** @var TaskStepProgress[] Step progress list. */
         public array $steps
     ) {
     }

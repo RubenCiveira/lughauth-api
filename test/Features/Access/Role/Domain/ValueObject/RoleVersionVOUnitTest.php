@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
 
 final class RoleVersionVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 1;
-        $ref = RoleVersionVO::from($value);
-        $this->assertEquals(1, $ref->value());
-        $other = RoleVersionVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = RoleVersionVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = RoleVersionVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(RoleVersionVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = RoleVersionVO::from(1);
-        $same = RoleVersionVO::from(1);
-        $other = RoleVersionVO::from(2);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 1;
+    $ref = RoleVersionVO::from( $value );
+    $this->assertEquals(1, $ref->value());
+    $other = RoleVersionVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = RoleVersionVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = RoleVersionVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(RoleVersionVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = RoleVersionVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = RoleVersionVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = RoleVersionVO::from(1);     $same = RoleVersionVO::from(1);     $other = RoleVersionVO::from(2);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = RoleVersionVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = RoleVersionVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

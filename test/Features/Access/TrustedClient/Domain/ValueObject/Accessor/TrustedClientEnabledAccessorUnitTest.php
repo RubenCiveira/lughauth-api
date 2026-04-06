@@ -50,13 +50,13 @@ class TrustedClientEnabledAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientEnabledAccessorUnitTest()->withEnabled(true);
-        $original = $holder->withEnabled(true);
-        $same = $holder->withEnabled(true);
+        $original = $holder->withEnabled( true);
+        $same = $holder->withEnabled( true);
         $modified = $holder->withEnabled(false);
 
         // Act
-        $withSame = $original->isEnabledChanged($same);
-        $withDiferent = $original->isEnabledChanged($modified);
+        $withSame = $original->isEnabledChanged( $same );
+        $withDiferent = $original->isEnabledChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TrustedClientEnabledAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientEnabledAccessorUnitTest
 {
-    use TrustedClientEnabledAccessor;
+  use TrustedClientEnabledAccessor;
 }

@@ -50,14 +50,14 @@ class UserTemporalPasswordAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserTemporalPasswordAccessorUnitTest();
-        $original = $holder->withTemporalPassword(true);
-        $same = $holder->withTemporalPassword(true);
+        $original = $holder->withTemporalPassword( true);
+        $same = $holder->withTemporalPassword( true);
         $modified = $holder->withTemporalPassword(false);
 
         // Act
         $unchanged = $holder->isTemporalPasswordChanged();
-        $withSame = $original->isTemporalPasswordChanged($same);
-        $withDiferent = $original->isTemporalPasswordChanged($modified);
+        $withSame = $original->isTemporalPasswordChanged( $same );
+        $withDiferent = $original->isTemporalPasswordChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserTemporalPasswordAccessorUnitTest extends TestCase
 }
 class ImplWithUserTemporalPasswordAccessorUnitTest
 {
-    use UserTemporalPasswordAccessor;
+  use UserTemporalPasswordAccessor;
 }

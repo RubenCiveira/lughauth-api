@@ -25,7 +25,7 @@ class IntVal implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        /** @psalm-suppress UndefinedInterfaceMethod */
+		/** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::intVal()->isValid($value) ? null : new RuleFail('rule_int_value', $value, []);
     }
 }

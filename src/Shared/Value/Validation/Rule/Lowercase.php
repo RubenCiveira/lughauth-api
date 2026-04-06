@@ -25,7 +25,7 @@ class Lowercase implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        /** @psalm-suppress UndefinedInterfaceMethod */
+		/** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::lowercase()->isValid($value) ? null : new RuleFail('rule_lowercase', $value, []);
     }
 }

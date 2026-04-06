@@ -50,13 +50,13 @@ class TenantTermsOfUseTextAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantTermsOfUseTextAccessorUnitTest()->withText('one');
-        $original = $holder->withText('one');
-        $same = $holder->withText('one');
+        $original = $holder->withText( 'one');
+        $same = $holder->withText( 'one');
         $modified = $holder->withText('other');
 
         // Act
-        $withSame = $original->isTextChanged($same);
-        $withDiferent = $original->isTextChanged($modified);
+        $withSame = $original->isTextChanged( $same );
+        $withDiferent = $original->isTextChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantTermsOfUseTextAccessorUnitTest extends TestCase
 }
 class ImplWithTenantTermsOfUseTextAccessorUnitTest
 {
-    use TenantTermsOfUseTextAccessor;
+  use TenantTermsOfUseTextAccessor;
 }

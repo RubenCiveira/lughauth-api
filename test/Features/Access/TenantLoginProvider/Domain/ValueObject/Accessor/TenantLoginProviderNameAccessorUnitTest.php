@@ -50,13 +50,13 @@ class TenantLoginProviderNameAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderNameAccessorUnitTest()->withName('one');
-        $original = $holder->withName('one');
-        $same = $holder->withName('one');
+        $original = $holder->withName( 'one');
+        $same = $holder->withName( 'one');
         $modified = $holder->withName('other');
 
         // Act
-        $withSame = $original->isNameChanged($same);
-        $withDiferent = $original->isNameChanged($modified);
+        $withSame = $original->isNameChanged( $same );
+        $withDiferent = $original->isNameChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantLoginProviderNameAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderNameAccessorUnitTest
 {
-    use TenantLoginProviderNameAccessor;
+  use TenantLoginProviderNameAccessor;
 }

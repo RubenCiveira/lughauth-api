@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 final class TrustedClientVersionVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 1;
-        $ref = TrustedClientVersionVO::from($value);
-        $this->assertEquals(1, $ref->value());
-        $other = TrustedClientVersionVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TrustedClientVersionVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TrustedClientVersionVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TrustedClientVersionVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TrustedClientVersionVO::from(1);
-        $same = TrustedClientVersionVO::from(1);
-        $other = TrustedClientVersionVO::from(2);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 1;
+    $ref = TrustedClientVersionVO::from( $value );
+    $this->assertEquals(1, $ref->value());
+    $other = TrustedClientVersionVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TrustedClientVersionVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TrustedClientVersionVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TrustedClientVersionVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = TrustedClientVersionVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = TrustedClientVersionVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = TrustedClientVersionVO::from(1);     $same = TrustedClientVersionVO::from(1);     $other = TrustedClientVersionVO::from(2);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = TrustedClientVersionVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = TrustedClientVersionVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

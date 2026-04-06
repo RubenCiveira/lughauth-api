@@ -6,7 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Infrastructure\Driver\UserRoleAssignamentPlugin;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\RolePlugin;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driver\UserGroupMembershipPlugin;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driver\UserAccessTemporalCodePlugin;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
@@ -15,9 +17,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfi
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
-use Civi\Lughauth\Features\Access\ClientIdentity\Infrastructure\Driver\ClientIdentityPlugin;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\UserPlugin;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Infrastructure\Driver\PlatformIdentityPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
 
 class AccessPlugin extends AggregatedMicroPlugin
@@ -25,7 +25,9 @@ class AccessPlugin extends AggregatedMicroPlugin
     public function __construct()
     {
         parent::__construct([
+          new UserRoleAssignamentPlugin(),
           new RolePlugin(),
+          new UserGroupMembershipPlugin(),
           new UserAccessTemporalCodePlugin(),
           new RelyingPartyPlugin(),
           new TrustedClientPlugin(),
@@ -34,9 +36,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new ApiKeyClientPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
-          new ClientIdentityPlugin(),
           new UserPlugin(),
-          new PlatformIdentityPlugin(),
           new TenantPlugin(),
 ]);
     }

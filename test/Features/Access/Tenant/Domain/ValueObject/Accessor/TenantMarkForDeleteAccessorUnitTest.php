@@ -50,13 +50,13 @@ class TenantMarkForDeleteAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantMarkForDeleteAccessorUnitTest()->withMarkForDelete(true);
-        $original = $holder->withMarkForDelete(true);
-        $same = $holder->withMarkForDelete(true);
+        $original = $holder->withMarkForDelete( true);
+        $same = $holder->withMarkForDelete( true);
         $modified = $holder->withMarkForDelete(false);
 
         // Act
-        $withSame = $original->isMarkForDeleteChanged($same);
-        $withDiferent = $original->isMarkForDeleteChanged($modified);
+        $withSame = $original->isMarkForDeleteChanged( $same );
+        $withDiferent = $original->isMarkForDeleteChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantMarkForDeleteAccessorUnitTest extends TestCase
 }
 class ImplWithTenantMarkForDeleteAccessorUnitTest
 {
-    use TenantMarkForDeleteAccessor;
+  use TenantMarkForDeleteAccessor;
 }

@@ -50,14 +50,14 @@ class TenantLoginProviderPrivateKeyAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderPrivateKeyAccessorUnitTest();
-        $original = $holder->withPrivateKey('one');
-        $same = $holder->withPrivateKey('one');
+        $original = $holder->withPrivateKey( 'one');
+        $same = $holder->withPrivateKey( 'one');
         $modified = $holder->withPrivateKey('other');
 
         // Act
         $unchanged = $holder->isPrivateKeyChanged();
-        $withSame = $original->isPrivateKeyChanged($same);
-        $withDiferent = $original->isPrivateKeyChanged($modified);
+        $withSame = $original->isPrivateKeyChanged( $same );
+        $withDiferent = $original->isPrivateKeyChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantLoginProviderPrivateKeyAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderPrivateKeyAccessorUnitTest
 {
-    use TenantLoginProviderPrivateKeyAccessor;
+  use TenantLoginProviderPrivateKeyAccessor;
 }

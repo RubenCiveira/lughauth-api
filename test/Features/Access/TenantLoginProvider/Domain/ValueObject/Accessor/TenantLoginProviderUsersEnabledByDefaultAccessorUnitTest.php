@@ -50,13 +50,13 @@ class TenantLoginProviderUsersEnabledByDefaultAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderUsersEnabledByDefaultAccessorUnitTest()->withUsersEnabledByDefault(true);
-        $original = $holder->withUsersEnabledByDefault(true);
-        $same = $holder->withUsersEnabledByDefault(true);
+        $original = $holder->withUsersEnabledByDefault( true);
+        $same = $holder->withUsersEnabledByDefault( true);
         $modified = $holder->withUsersEnabledByDefault(false);
 
         // Act
-        $withSame = $original->isUsersEnabledByDefaultChanged($same);
-        $withDiferent = $original->isUsersEnabledByDefaultChanged($modified);
+        $withSame = $original->isUsersEnabledByDefaultChanged( $same );
+        $withDiferent = $original->isUsersEnabledByDefaultChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantLoginProviderUsersEnabledByDefaultAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderUsersEnabledByDefaultAccessorUnitTest
 {
-    use TenantLoginProviderUsersEnabledByDefaultAccessor;
+  use TenantLoginProviderUsersEnabledByDefaultAccessor;
 }

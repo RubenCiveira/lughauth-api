@@ -50,14 +50,14 @@ class UserAccessTemporalCodeFailedLoginAttemptsAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeFailedLoginAttemptsAccessorUnitTest();
-        $original = $holder->withFailedLoginAttempts(1);
-        $same = $holder->withFailedLoginAttempts(1);
+        $original = $holder->withFailedLoginAttempts( 1);
+        $same = $holder->withFailedLoginAttempts( 1);
         $modified = $holder->withFailedLoginAttempts(2);
 
         // Act
         $unchanged = $holder->isFailedLoginAttemptsChanged();
-        $withSame = $original->isFailedLoginAttemptsChanged($same);
-        $withDiferent = $original->isFailedLoginAttemptsChanged($modified);
+        $withSame = $original->isFailedLoginAttemptsChanged( $same );
+        $withDiferent = $original->isFailedLoginAttemptsChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeFailedLoginAttemptsAccessorUnitTest extends TestCase
 }
 class ImplWithUserAccessTemporalCodeFailedLoginAttemptsAccessorUnitTest
 {
-    use UserAccessTemporalCodeFailedLoginAttemptsAccessor;
+  use UserAccessTemporalCodeFailedLoginAttemptsAccessor;
 }

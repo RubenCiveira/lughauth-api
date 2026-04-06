@@ -9,10 +9,12 @@ use Override;
 use Slim\Routing\RouteCollectorProxy;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
+use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driver\Html\DeviceVerificationHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\DelegatedController;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\LogoutController;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\TokenController;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\UserInfoController;
+use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driver\Rest\DeviceAuthorizationController;
 use Civi\Lughauth\Features\Oidc\Client\Infrastructure\Driver\Rest\ApiKeyController;
 use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest\JwksController;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
@@ -42,6 +44,8 @@ use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginGatewa
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Driven\DelegateLoginAdapter;
 use Civi\Lughauth\Features\Oidc\Scopes\Domain\Gateway\ScopesConsentGateway;
 use Civi\Lughauth\Features\Oidc\Scopes\Infrastructure\Driven\ScopesConsentAdapter;
+use Civi\Lughauth\Features\Oidc\Device\Domain\Gateway\DeviceAuthorizationGateway;
+use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driven\DeviceAuthorizationSqlAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -61,6 +65,7 @@ class OidcPlugin extends MicroPlugin
         $def[UserMfaGateway::class] = \DI\autowire(UserMfaAdapter::class);
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
+        $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
         return $def;
     }
 
@@ -72,6 +77,9 @@ class OidcPlugin extends MicroPlugin
             $group->get('/jwks', [JwksController::class, 'get']);
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);
+            $group->post('/device', [DeviceAuthorizationController::class, 'post']);
+            $group->get('/device/verify', [DeviceVerificationHtml::class, 'verify']);
+            $group->post('/device/verify', [DeviceVerificationHtml::class, 'formVerify']);
             $group->post('/api-key/validate', [ApiKeyController::class, 'post']);
             $group->get('/userinfo', [UserInfoController::class, 'get']);
 

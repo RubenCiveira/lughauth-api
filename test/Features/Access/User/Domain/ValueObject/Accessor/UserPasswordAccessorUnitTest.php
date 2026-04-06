@@ -50,13 +50,13 @@ class UserPasswordAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserPasswordAccessorUnitTest()->withPassword('cyphered://cypher');
-        $original = $holder->withPassword('cyphered://cypher');
-        $same = $holder->withPassword('cyphered://cypher');
+        $original = $holder->withPassword( 'cyphered://cypher');
+        $same = $holder->withPassword( 'cyphered://cypher');
         $modified = $holder->withPassword('cyphered://ocyphered');
 
         // Act
-        $withSame = $original->isPasswordChanged($same);
-        $withDiferent = $original->isPasswordChanged($modified);
+        $withSame = $original->isPasswordChanged( $same );
+        $withDiferent = $original->isPasswordChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class UserPasswordAccessorUnitTest extends TestCase
 }
 class ImplWithUserPasswordAccessorUnitTest
 {
-    use UserPasswordAccessor;
+  use UserPasswordAccessor;
 }

@@ -50,14 +50,14 @@ class TenantTermsOfUseAttachedAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantTermsOfUseAttachedAccessorUnitTest();
-        $original = $holder->withAttached('store://bin');
-        $same = $holder->withAttached('store://bin');
+        $original = $holder->withAttached( 'store://bin');
+        $same = $holder->withAttached( 'store://bin');
         $modified = $holder->withAttached('store://obin');
 
         // Act
         $unchanged = $holder->isAttachedChanged();
-        $withSame = $original->isAttachedChanged($same);
-        $withDiferent = $original->isAttachedChanged($modified);
+        $withSame = $original->isAttachedChanged( $same );
+        $withDiferent = $original->isAttachedChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantTermsOfUseAttachedAccessorUnitTest extends TestCase
 }
 class ImplWithTenantTermsOfUseAttachedAccessorUnitTest
 {
-    use TenantTermsOfUseAttachedAccessor;
+  use TenantTermsOfUseAttachedAccessor;
 }

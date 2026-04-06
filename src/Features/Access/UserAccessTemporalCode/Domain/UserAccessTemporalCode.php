@@ -180,12 +180,12 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
         $value->recordedEvents[] = new UserAccessTemporalCodeResetRegisterVerificationEvent($value, original: $this);
         return $value;
     }
-    public function generatePasswordRecover(string|null $url, string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode
+    public function generatePasswordRecover(string|null $recoveryLink, string|null $recoveryCode, \DateTimeImmutable|null $recoveryCodeExpiration): UserAccessTemporalCode
     {
         $value = clone $this;
         $value->_recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::from($recoveryCode);
         $value->_recoveryCodeExpiration = UserAccessTemporalCodeRecoveryCodeExpirationVO::from($recoveryCodeExpiration);
-        $value->recordedEvents[] = new UserAccessTemporalCodeGeneratePasswordRecoverEvent($value, original: $this, url: $url);
+        $value->recordedEvents[] = new UserAccessTemporalCodeGeneratePasswordRecoverEvent($value, original: $this, recoveryLink: $recoveryLink);
         return $value;
     }
     public function resetPasswordRecover(): UserAccessTemporalCode

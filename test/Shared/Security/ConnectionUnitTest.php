@@ -15,9 +15,9 @@ namespace {
     use Civi\Lughauth\Shared\Security\Connection;
     use Civi\Lughauth\Shared\AppConfig;
 
-    /**
-     * Unit tests for Connection.
-     */
+/**
+ * Unit tests for Connection.
+ */
     final class ConnectionUnitTest extends TestCase
     {
         protected function setUp(): void
@@ -31,207 +31,207 @@ namespace {
             unset($GLOBALS['__test_gethostname_return']);
         }
 
-        /**
-         * Ensures remoteHttp uses direct client IP when no proxy is configured.
+    /**
+     * Ensures remoteHttp uses direct client IP when no proxy is configured.
+     */
+    public function testRemoteHttpWithoutProxy(): void
+    {
+        /*
+         * Arrange: use the default server environment for a direct request.
          */
-        public function testRemoteHttpWithoutProxy(): void
-        {
-            /*
-             * Arrange: use the default server environment for a direct request.
-             */
-            $app = 'testApp';
+        $app = 'testApp';
 
-            /*
-             * Act: build a Connection from the HTTP environment.
-             */
-            $connection = Connection::remoteHttp(0, $app);
-
-            /*
-             * Assert: verify the connection details match the environment.
-             */
-            $this->assertInstanceOf(Connection::class, $connection);
-            $this->assertTrue($connection->remote);
-            $this->assertSame('testApp', $connection->application);
-            $this->assertSame('/callback', $connection->callback);
-            $this->assertSame('192.168.1.42', $connection->source);
-            $this->assertSame('example.org', $connection->target);
-            $this->assertSame('en-US', $connection->locale);
-        }
-
-        /**
-         * Ensures remoteHttp falls back to empty target when gethostname fails.
+        /*
+         * Act: build a Connection from the HTTP environment.
          */
-        public function testRemoteHttpWithGetHostnameFailure(): void
-        {
-            /*
-             * Arrange: remove SERVER_NAME and force gethostname to fail.
-             */
-            unset($_SERVER['SERVER_NAME']);
-            $GLOBALS['__test_gethostname_return'] = false;
+        $connection = Connection::remoteHttp(0, $app);
 
-            /*
-             * Act: build a Connection from the HTTP environment.
-             */
-            $connection = Connection::remoteHttp(0, 'hostnameFailApp');
-
-            /*
-             * Assert: verify the target is empty when hostname is unavailable.
-             */
-            $this->assertSame('', $connection->target);
-        }
-
-        /**
-         * Ensures X-Forwarded-For is used when proxy support is enabled.
+        /*
+         * Assert: verify the connection details match the environment.
          */
-        public function testRemoteHttpWithProxyXForwardedFor(): void
-        {
-            /*
-             * Arrange: add X-Forwarded-For header and enable proxy support.
-             */
-            $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.0.0.123, 10.0.0.124';
-            $config = $this->createMock(AppConfig::class);
-            $config->method('get')->willReturn('true');
-
-            /*
-             * Act: build a Connection from the proxied HTTP environment.
-             */
-            $connection = Connection::remoteHttp(0, 'proxiedApp', $config);
-
-            /*
-             * Assert: verify the client IP uses the first forwarded address.
-             */
-            $this->assertSame('10.0.0.123', $connection->source);
-        }
-
-        /**
-         * Ensures X-Real-IP is used when X-Forwarded-For is missing.
-         */
-        public function testRemoteHttpWithProxyXRealIp(): void
-        {
-            /*
-             * Arrange: remove X-Forwarded-For and set X-Real-IP.
-             */
-            unset($_SERVER['HTTP_X_FORWARDED_FOR']);
-            $_SERVER['HTTP_X_REAL_IP'] = '10.0.0.200';
-
-            $config = $this->createMock(AppConfig::class);
-            $config->method('get')->willReturn('true');
-
-            /*
-             * Act: build a Connection from the proxied HTTP environment.
-             */
-            $connection = Connection::remoteHttp(0, 'realIpApp', $config);
-
-            /*
-             * Assert: verify the client IP uses X-Real-IP.
-             */
-            $this->assertSame('10.0.0.200', $connection->source);
-        }
-
-        /**
-         * Ensures IPv6 loopback is normalized to IPv4.
-         */
-        public function testRemoteHttpWithIPv6Loopback(): void
-        {
-            /*
-             * Arrange: set the IPv6 loopback address in the server data.
-             */
-            $_SERVER['REMOTE_ADDR'] = '::1';
-
-            /*
-             * Act: build a Connection from the HTTP environment.
-             */
-            $connection = Connection::remoteHttp(0, 'ipv6App');
-
-            /*
-             * Assert: verify the loopback address is normalized.
-             */
-            $this->assertSame('127.0.0.1', $connection->source);
-        }
-
-        /**
-         * Ensures inRange returns true for matching CIDR blocks.
-         */
-        public function testInRangeTrue(): void
-        {
-            /*
-             * Arrange: create a connection within the target CIDR range.
-             */
-            $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.1.15', 'target', 'en');
-
-            /*
-             * Act: check if the source IP is inside the CIDR block.
-             */
-            $inRange = $connection->inRange('192.168.1.0/24');
-
-            /*
-             * Assert: verify the IP is reported as within range.
-             */
-            $this->assertTrue($inRange);
-        }
-
-        /**
-         * Ensures inRange returns false for non-matching CIDR blocks.
-         */
-        public function testInRangeFalse(): void
-        {
-            /*
-             * Arrange: create a connection outside the target CIDR range.
-             */
-            $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.2.15', 'target', 'en');
-
-            /*
-             * Act: check if the source IP is inside the CIDR block.
-             */
-            $inRange = $connection->inRange('192.168.1.0/24');
-
-            /*
-             * Assert: verify the IP is reported as outside the range.
-             */
-            $this->assertFalse($inRange);
-        }
-
-        /**
-         * Ensures inRange returns false when source IP is invalid.
-         */
-        public function testInRangeWithInvalidSource(): void
-        {
-            /*
-             * Arrange: create a connection with an invalid source IP.
-             */
-            $connection = new Connection(0, true, new \DateTime(), 'app', '/', 'invalid-ip', 'target', 'en');
-
-            /*
-             * Act: check if the invalid source IP matches the CIDR block.
-             */
-            $inRange = $connection->inRange('192.168.1.0/24');
-
-            /*
-             * Assert: verify the IP is reported as outside the range.
-             */
-            $this->assertFalse($inRange);
-        }
-
-        /**
-         * Ensures inRange returns false when subnet is invalid.
-         */
-        public function testInRangeWithInvalidSubnet(): void
-        {
-            /*
-             * Arrange: create a connection with a valid source IP.
-             */
-            $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.1.15', 'target', 'en');
-
-            /*
-             * Act: check if the source IP matches an invalid subnet.
-             */
-            $inRange = $connection->inRange('invalid-subnet/24');
-
-            /*
-             * Assert: verify the IP is reported as outside the range.
-             */
-            $this->assertFalse($inRange);
-        }
+        $this->assertInstanceOf(Connection::class, $connection);
+        $this->assertTrue($connection->remote);
+        $this->assertSame('testApp', $connection->application);
+        $this->assertSame('/callback', $connection->callback);
+        $this->assertSame('192.168.1.42', $connection->source);
+        $this->assertSame('example.org', $connection->target);
+        $this->assertSame('en-US', $connection->locale);
     }
+
+    /**
+     * Ensures remoteHttp falls back to empty target when gethostname fails.
+     */
+    public function testRemoteHttpWithGetHostnameFailure(): void
+    {
+        /*
+         * Arrange: remove SERVER_NAME and force gethostname to fail.
+         */
+        unset($_SERVER['SERVER_NAME']);
+        $GLOBALS['__test_gethostname_return'] = false;
+
+        /*
+         * Act: build a Connection from the HTTP environment.
+         */
+        $connection = Connection::remoteHttp(0, 'hostnameFailApp');
+
+        /*
+         * Assert: verify the target is empty when hostname is unavailable.
+         */
+        $this->assertSame('', $connection->target);
+    }
+
+    /**
+     * Ensures X-Forwarded-For is used when proxy support is enabled.
+     */
+    public function testRemoteHttpWithProxyXForwardedFor(): void
+    {
+        /*
+         * Arrange: add X-Forwarded-For header and enable proxy support.
+         */
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = '10.0.0.123, 10.0.0.124';
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('true');
+
+        /*
+         * Act: build a Connection from the proxied HTTP environment.
+         */
+        $connection = Connection::remoteHttp(0, 'proxiedApp', $config);
+
+        /*
+         * Assert: verify the client IP uses the first forwarded address.
+         */
+        $this->assertSame('10.0.0.123', $connection->source);
+    }
+
+    /**
+     * Ensures X-Real-IP is used when X-Forwarded-For is missing.
+     */
+    public function testRemoteHttpWithProxyXRealIp(): void
+    {
+        /*
+         * Arrange: remove X-Forwarded-For and set X-Real-IP.
+         */
+        unset($_SERVER['HTTP_X_FORWARDED_FOR']);
+        $_SERVER['HTTP_X_REAL_IP'] = '10.0.0.200';
+
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('true');
+
+        /*
+         * Act: build a Connection from the proxied HTTP environment.
+         */
+        $connection = Connection::remoteHttp(0, 'realIpApp', $config);
+
+        /*
+         * Assert: verify the client IP uses X-Real-IP.
+         */
+        $this->assertSame('10.0.0.200', $connection->source);
+    }
+
+    /**
+     * Ensures IPv6 loopback is normalized to IPv4.
+     */
+    public function testRemoteHttpWithIPv6Loopback(): void
+    {
+        /*
+         * Arrange: set the IPv6 loopback address in the server data.
+         */
+        $_SERVER['REMOTE_ADDR'] = '::1';
+
+        /*
+         * Act: build a Connection from the HTTP environment.
+         */
+        $connection = Connection::remoteHttp(0, 'ipv6App');
+
+        /*
+         * Assert: verify the loopback address is normalized.
+         */
+        $this->assertSame('127.0.0.1', $connection->source);
+    }
+
+    /**
+     * Ensures inRange returns true for matching CIDR blocks.
+     */
+    public function testInRangeTrue(): void
+    {
+        /*
+         * Arrange: create a connection within the target CIDR range.
+         */
+        $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.1.15', 'target', 'en');
+
+        /*
+         * Act: check if the source IP is inside the CIDR block.
+         */
+        $inRange = $connection->inRange('192.168.1.0/24');
+
+        /*
+         * Assert: verify the IP is reported as within range.
+         */
+        $this->assertTrue($inRange);
+    }
+
+    /**
+     * Ensures inRange returns false for non-matching CIDR blocks.
+     */
+    public function testInRangeFalse(): void
+    {
+        /*
+         * Arrange: create a connection outside the target CIDR range.
+         */
+        $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.2.15', 'target', 'en');
+
+        /*
+         * Act: check if the source IP is inside the CIDR block.
+         */
+        $inRange = $connection->inRange('192.168.1.0/24');
+
+        /*
+         * Assert: verify the IP is reported as outside the range.
+         */
+        $this->assertFalse($inRange);
+    }
+
+    /**
+     * Ensures inRange returns false when source IP is invalid.
+     */
+    public function testInRangeWithInvalidSource(): void
+    {
+        /*
+         * Arrange: create a connection with an invalid source IP.
+         */
+        $connection = new Connection(0, true, new \DateTime(), 'app', '/', 'invalid-ip', 'target', 'en');
+
+        /*
+         * Act: check if the invalid source IP matches the CIDR block.
+         */
+        $inRange = $connection->inRange('192.168.1.0/24');
+
+        /*
+         * Assert: verify the IP is reported as outside the range.
+         */
+        $this->assertFalse($inRange);
+    }
+
+    /**
+     * Ensures inRange returns false when subnet is invalid.
+     */
+    public function testInRangeWithInvalidSubnet(): void
+    {
+        /*
+         * Arrange: create a connection with a valid source IP.
+         */
+        $connection = new Connection(0, true, new \DateTime(), 'app', '/', '192.168.1.15', 'target', 'en');
+
+        /*
+         * Act: check if the source IP matches an invalid subnet.
+         */
+        $inRange = $connection->inRange('invalid-subnet/24');
+
+        /*
+         * Assert: verify the IP is reported as outside the range.
+         */
+        $this->assertFalse($inRange);
+    }
+}
 
 }

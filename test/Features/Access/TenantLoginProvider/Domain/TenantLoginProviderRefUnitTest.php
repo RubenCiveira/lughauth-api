@@ -5,13 +5,14 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderRef;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 
 final class TenantLoginProviderRefUnitTest extends TestCase
 {
-    public function test(): void
-    {
-        $uid = 'uid';
-        $ref = new TenantLoginProviderRef(uid: $uid);
-        $this->assertSame($uid, $ref->uid());
-    }
+  public function test(): void
+  {
+    $uid = 'uid';
+    $ref = new TenantLoginProviderRef(uid: $uid);
+    $this->assertSame($uid, $ref->uid());
+  }
 }

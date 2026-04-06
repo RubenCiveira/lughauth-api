@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEn
 
 final class TenantConfigEnableRegisterUsersVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = true;
-        $ref = TenantConfigEnableRegisterUsersVO::from($value);
-        $this->assertEquals(true, $ref->value());
-        $other = TenantConfigEnableRegisterUsersVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TenantConfigEnableRegisterUsersVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TenantConfigEnableRegisterUsersVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TenantConfigEnableRegisterUsersVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TenantConfigEnableRegisterUsersVO::from(true);
-        $same = TenantConfigEnableRegisterUsersVO::from(true);
-        $other = TenantConfigEnableRegisterUsersVO::from(false);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = true;
+    $ref = TenantConfigEnableRegisterUsersVO::from( $value );
+    $this->assertEquals(true, $ref->value());
+    $other = TenantConfigEnableRegisterUsersVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TenantConfigEnableRegisterUsersVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TenantConfigEnableRegisterUsersVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TenantConfigEnableRegisterUsersVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = TenantConfigEnableRegisterUsersVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = TenantConfigEnableRegisterUsersVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = TenantConfigEnableRegisterUsersVO::from(true);     $same = TenantConfigEnableRegisterUsersVO::from(true);     $other = TenantConfigEnableRegisterUsersVO::from(false);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = TenantConfigEnableRegisterUsersVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = TenantConfigEnableRegisterUsersVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

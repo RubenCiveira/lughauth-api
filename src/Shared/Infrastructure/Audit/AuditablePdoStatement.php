@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Shared\Infrastructure\Audit;
 use Override;
 use PDO;
 use PDOStatement;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
 /**
  * PDO statement wrapper that automatically captures database modifications for audit logging.

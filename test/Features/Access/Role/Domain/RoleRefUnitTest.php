@@ -5,13 +5,14 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
+use Civi\Lughauth\Features\Access\Role\Domain\Role;
 
 final class RoleRefUnitTest extends TestCase
 {
-    public function test(): void
-    {
-        $uid = 'uid';
-        $ref = new RoleRef(uid: $uid);
-        $this->assertSame($uid, $ref->uid());
-    }
+  public function test(): void
+  {
+    $uid = 'uid';
+    $ref = new RoleRef(uid: $uid);
+    $this->assertSame($uid, $ref->uid());
+  }
 }

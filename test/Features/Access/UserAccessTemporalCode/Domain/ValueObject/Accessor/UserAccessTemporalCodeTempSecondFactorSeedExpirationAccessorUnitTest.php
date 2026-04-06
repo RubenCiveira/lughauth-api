@@ -50,14 +50,14 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessorUnitTest exten
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeTempSecondFactorSeedExpirationAccessorUnitTest();
-        $original = $holder->withTempSecondFactorSeedExpiration((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withTempSecondFactorSeedExpiration((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withTempSecondFactorSeedExpiration( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withTempSecondFactorSeedExpiration( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withTempSecondFactorSeedExpiration((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isTempSecondFactorSeedExpirationChanged();
-        $withSame = $original->isTempSecondFactorSeedExpirationChanged($same);
-        $withDiferent = $original->isTempSecondFactorSeedExpirationChanged($modified);
+        $withSame = $original->isTempSecondFactorSeedExpirationChanged( $same );
+        $withDiferent = $original->isTempSecondFactorSeedExpirationChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessorUnitTest exten
 }
 class ImplWithUserAccessTemporalCodeTempSecondFactorSeedExpirationAccessorUnitTest
 {
-    use UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessor;
+  use UserAccessTemporalCodeTempSecondFactorSeedExpirationAccessor;
 }

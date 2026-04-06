@@ -51,11 +51,11 @@ class AppConfig
                 'value' => $this->valueToDump($code, (string)$value)
             ];
         }
-        if ($this->conf !== null) {
+        if( $this->conf !== null ) {
             foreach ($this->conf as $key => $value) {
                 $code = $this->keyToDump($key);
                 if (is_array($value)) {
-
+                    
                 } else {
                     $all[$key] = [
                         'value' => $this->valueToDump($code, $value)

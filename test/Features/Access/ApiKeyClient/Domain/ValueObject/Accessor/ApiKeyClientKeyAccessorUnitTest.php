@@ -50,14 +50,14 @@ class ApiKeyClientKeyAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithApiKeyClientKeyAccessorUnitTest();
-        $original = $holder->withKey('one');
-        $same = $holder->withKey('one');
+        $original = $holder->withKey( 'one');
+        $same = $holder->withKey( 'one');
         $modified = $holder->withKey('other');
 
         // Act
         $unchanged = $holder->isKeyChanged();
-        $withSame = $original->isKeyChanged($same);
-        $withDiferent = $original->isKeyChanged($modified);
+        $withSame = $original->isKeyChanged( $same );
+        $withDiferent = $original->isKeyChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class ApiKeyClientKeyAccessorUnitTest extends TestCase
 }
 class ImplWithApiKeyClientKeyAccessorUnitTest
 {
-    use ApiKeyClientKeyAccessor;
+  use ApiKeyClientKeyAccessor;
 }

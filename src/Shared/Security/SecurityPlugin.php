@@ -7,6 +7,8 @@ namespace Civi\Lughauth\Shared\Security;
 
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Security\AllowDecision;
+use Civi\Lughauth\Shared\Security\FieldsAccess;
 use Civi\Lughauth\Shared\Security\Rbac\AllowListener;
 use Civi\Lughauth\Shared\Security\Rbac\FieldsListener;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;

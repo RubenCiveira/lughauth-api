@@ -51,14 +51,14 @@ class UserApproveAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserApproveAccessorUnitTest();
-        $original = $holder->withApprove(UserApproveOptions::UNVERIFIED);
-        $same = $holder->withApprove(UserApproveOptions::UNVERIFIED);
+        $original = $holder->withApprove( UserApproveOptions::UNVERIFIED);
+        $same = $holder->withApprove( UserApproveOptions::UNVERIFIED);
         $modified = $holder->withApprove(UserApproveOptions::PENDING);
 
         // Act
         $unchanged = $holder->isApproveChanged();
-        $withSame = $original->isApproveChanged($same);
-        $withDiferent = $original->isApproveChanged($modified);
+        $withSame = $original->isApproveChanged( $same );
+        $withDiferent = $original->isApproveChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -68,5 +68,5 @@ class UserApproveAccessorUnitTest extends TestCase
 }
 class ImplWithUserApproveAccessorUnitTest
 {
-    use UserApproveAccessor;
+  use UserApproveAccessor;
 }

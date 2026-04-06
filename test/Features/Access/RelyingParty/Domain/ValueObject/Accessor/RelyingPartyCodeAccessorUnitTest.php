@@ -50,13 +50,13 @@ class RelyingPartyCodeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithRelyingPartyCodeAccessorUnitTest()->withCode('one');
-        $original = $holder->withCode('one');
-        $same = $holder->withCode('one');
+        $original = $holder->withCode( 'one');
+        $same = $holder->withCode( 'one');
         $modified = $holder->withCode('other');
 
         // Act
-        $withSame = $original->isCodeChanged($same);
-        $withDiferent = $original->isCodeChanged($modified);
+        $withSame = $original->isCodeChanged( $same );
+        $withDiferent = $original->isCodeChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class RelyingPartyCodeAccessorUnitTest extends TestCase
 }
 class ImplWithRelyingPartyCodeAccessorUnitTest
 {
-    use RelyingPartyCodeAccessor;
+  use RelyingPartyCodeAccessor;
 }

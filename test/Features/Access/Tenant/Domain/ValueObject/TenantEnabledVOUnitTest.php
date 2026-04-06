@@ -10,40 +10,39 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
 
 final class TenantEnabledVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = true;
-        $ref = TenantEnabledVO::from($value);
-        $this->assertEquals(true, $ref->value());
-        $other = TenantEnabledVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TenantEnabledVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TenantEnabledVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TenantEnabledVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TenantEnabledVO::from(true);
-        $same = TenantEnabledVO::from(true);
-        $other = TenantEnabledVO::from(false);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = true;
+    $ref = TenantEnabledVO::from( $value );
+    $this->assertEquals(true, $ref->value());
+    $other = TenantEnabledVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TenantEnabledVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TenantEnabledVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TenantEnabledVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
+  {
+     $one = TenantEnabledVO::from(true);     $same = TenantEnabledVO::from(true);     $other = TenantEnabledVO::from(false);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
 }

@@ -11,40 +11,39 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider
 
 final class TenantLoginProviderSourceVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = TenantLoginProviderSourceOptions::GOOGLE;
-        $ref = TenantLoginProviderSourceVO::from($value);
-        $this->assertEquals(TenantLoginProviderSourceOptions::GOOGLE, $ref->value());
-        $other = TenantLoginProviderSourceVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TenantLoginProviderSourceVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TenantLoginProviderSourceVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TenantLoginProviderSourceVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GOOGLE);
-        $same = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GOOGLE);
-        $other = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GITHUB);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = TenantLoginProviderSourceOptions::GOOGLE;
+    $ref = TenantLoginProviderSourceVO::from( $value );
+    $this->assertEquals(TenantLoginProviderSourceOptions::GOOGLE, $ref->value());
+    $other = TenantLoginProviderSourceVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TenantLoginProviderSourceVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TenantLoginProviderSourceVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TenantLoginProviderSourceVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
+  {
+     $one = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GOOGLE);     $same = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GOOGLE);     $other = TenantLoginProviderSourceVO::from(TenantLoginProviderSourceOptions::GITHUB);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
 }

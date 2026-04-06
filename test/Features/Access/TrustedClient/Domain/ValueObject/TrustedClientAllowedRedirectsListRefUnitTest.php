@@ -12,26 +12,26 @@ use PHPUnit\Framework\TestCase;
 
 class TrustedClientAllowedRedirectsListRefUnitTest extends TestCase
 {
-    public function test_iterator(): void
-    {
-        $one = new TrustedClientAllowedRedirectsItem(
-            uid: TrustedClientAllowedRedirectsUidVO::from('one'),
-            url: TrustedClientAllowedRedirectsUrlVO::from('one'),
-            version: TrustedClientAllowedRedirectsVersionVO::from(1)
-        );
-        $two = new TrustedClientAllowedRedirectsItem(
-            uid: TrustedClientAllowedRedirectsUidVO::from('one'),
-            url: TrustedClientAllowedRedirectsUrlVO::from('one'),
-            version: TrustedClientAllowedRedirectsVersionVO::from(1)
-        );
-        $list = TrustedClientAllowedRedirectsListRef::fromArray([$one, $two]);
-        foreach ($list as $_K => $item) {
-            $this->assertEquals('one', $item->uid());
-        }
+  public function test_iterator(): void
+  {
+    $one = new TrustedClientAllowedRedirectsItem(
+      uid: TrustedClientAllowedRedirectsUidVO::from('one'),
+      url: TrustedClientAllowedRedirectsUrlVO::from('one'),
+      version: TrustedClientAllowedRedirectsVersionVO::from(1)
+    );
+    $two = new TrustedClientAllowedRedirectsItem(
+      uid: TrustedClientAllowedRedirectsUidVO::from('one'),
+      url: TrustedClientAllowedRedirectsUrlVO::from('one'),
+      version: TrustedClientAllowedRedirectsVersionVO::from(1)
+    );
+    $list = TrustedClientAllowedRedirectsListRef::fromArray([$one, $two]);
+    foreach($list as $_K => $item) {
+      $this->assertEquals('one', $item->uid());
     }
-    public function test_invalid_builder(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $list = TrustedClientAllowedRedirectsListRef::fromArray(['none']);
-    }
+  }
+  public function test_invalid_builder(): void
+  {
+    $this->expectException(\InvalidArgumentException::class);
+    $list = TrustedClientAllowedRedirectsListRef::fromArray(['none']);
+  }
 }

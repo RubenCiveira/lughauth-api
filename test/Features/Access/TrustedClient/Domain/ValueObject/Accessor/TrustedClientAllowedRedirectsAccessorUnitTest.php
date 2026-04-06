@@ -29,19 +29,19 @@ class TrustedClientAllowedRedirectsAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientAllowedRedirectsAccessorUnitTest();
 
         // Act
-        $result = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
+        $result = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )), $result->getAllowedRedirects());
+        $this->assertEquals(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ), $result->getAllowedRedirects());
     }
     /**
      * Asserts that withallowedRedirects has access to the value object
@@ -53,47 +53,47 @@ class TrustedClientAllowedRedirectsAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientAllowedRedirectsAccessorUnitTest();
 
         // Act
-        $result = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
+        $result = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )), $result->allowedRedirects()->value());
+        $this->assertEquals(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ), $result->allowedRedirects()->value());
     }
     public function testChangedAllowedRedirects(): void
     {
         // Arrange
-        $holder = new ImplWithTrustedClientAllowedRedirectsAccessorUnitTest()->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
-        $original = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
-        $same = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
-        $modified = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('other'),
-            TrustedClientAllowedRedirectsUrlVO::from('other'),
-            TrustedClientAllowedRedirectsVersionVO::from(2)
-        )));
+        $holder = new ImplWithTrustedClientAllowedRedirectsAccessorUnitTest()->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));
+        $original = $holder->withAllowedRedirects( new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));
+        $same = $holder->withAllowedRedirects( new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));
+        $modified = $holder->withAllowedRedirects(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'other'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'other'),
+        TrustedClientAllowedRedirectsVersionVO::from( 2)
+) ));
 
         // Act
-        $withSame = $original->isAllowedRedirectsChanged($same);
-        $withDiferent = $original->isAllowedRedirectsChanged($modified);
+        $withSame = $original->isAllowedRedirectsChanged( $same );
+        $withDiferent = $original->isAllowedRedirectsChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -102,5 +102,5 @@ class TrustedClientAllowedRedirectsAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientAllowedRedirectsAccessorUnitTest
 {
-    use TrustedClientAllowedRedirectsAccessor;
+  use TrustedClientAllowedRedirectsAccessor;
 }

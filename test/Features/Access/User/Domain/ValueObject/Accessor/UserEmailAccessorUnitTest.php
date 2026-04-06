@@ -50,14 +50,14 @@ class UserEmailAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserEmailAccessorUnitTest();
-        $original = $holder->withEmail('one@fakemail.net');
-        $same = $holder->withEmail('one@fakemail.net');
+        $original = $holder->withEmail( 'one@fakemail.net');
+        $same = $holder->withEmail( 'one@fakemail.net');
         $modified = $holder->withEmail('other@fakemail.net');
 
         // Act
         $unchanged = $holder->isEmailChanged();
-        $withSame = $original->isEmailChanged($same);
-        $withDiferent = $original->isEmailChanged($modified);
+        $withSame = $original->isEmailChanged( $same );
+        $withDiferent = $original->isEmailChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserEmailAccessorUnitTest extends TestCase
 }
 class ImplWithUserEmailAccessorUnitTest
 {
-    use UserEmailAccessor;
+  use UserEmailAccessor;
 }

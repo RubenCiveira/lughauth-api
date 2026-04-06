@@ -51,13 +51,13 @@ class TenantLoginProviderSourceAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderSourceAccessorUnitTest()->withSource(TenantLoginProviderSourceOptions::GOOGLE);
-        $original = $holder->withSource(TenantLoginProviderSourceOptions::GOOGLE);
-        $same = $holder->withSource(TenantLoginProviderSourceOptions::GOOGLE);
+        $original = $holder->withSource( TenantLoginProviderSourceOptions::GOOGLE);
+        $same = $holder->withSource( TenantLoginProviderSourceOptions::GOOGLE);
         $modified = $holder->withSource(TenantLoginProviderSourceOptions::GITHUB);
 
         // Act
-        $withSame = $original->isSourceChanged($same);
-        $withDiferent = $original->isSourceChanged($modified);
+        $withSame = $original->isSourceChanged( $same );
+        $withDiferent = $original->isSourceChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class TenantLoginProviderSourceAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderSourceAccessorUnitTest
 {
-    use TenantLoginProviderSourceAccessor;
+  use TenantLoginProviderSourceAccessor;
 }

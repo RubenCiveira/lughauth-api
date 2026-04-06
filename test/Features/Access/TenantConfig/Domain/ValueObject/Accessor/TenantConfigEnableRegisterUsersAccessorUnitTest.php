@@ -50,14 +50,14 @@ class TenantConfigEnableRegisterUsersAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigEnableRegisterUsersAccessorUnitTest();
-        $original = $holder->withEnableRegisterUsers(true);
-        $same = $holder->withEnableRegisterUsers(true);
+        $original = $holder->withEnableRegisterUsers( true);
+        $same = $holder->withEnableRegisterUsers( true);
         $modified = $holder->withEnableRegisterUsers(false);
 
         // Act
         $unchanged = $holder->isEnableRegisterUsersChanged();
-        $withSame = $original->isEnableRegisterUsersChanged($same);
-        $withDiferent = $original->isEnableRegisterUsersChanged($modified);
+        $withSame = $original->isEnableRegisterUsersChanged( $same );
+        $withDiferent = $original->isEnableRegisterUsersChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigEnableRegisterUsersAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigEnableRegisterUsersAccessorUnitTest
 {
-    use TenantConfigEnableRegisterUsersAccessor;
+  use TenantConfigEnableRegisterUsersAccessor;
 }

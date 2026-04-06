@@ -51,13 +51,13 @@ class UserAccessTemporalCodeUserAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeUserAccessorUnitTest()->withUser(new UserRef('one'));
-        $original = $holder->withUser(new UserRef('one'));
-        $same = $holder->withUser(new UserRef('one'));
+        $original = $holder->withUser( new UserRef('one'));
+        $same = $holder->withUser( new UserRef('one'));
         $modified = $holder->withUser(new UserRef('other'));
 
         // Act
-        $withSame = $original->isUserChanged($same);
-        $withDiferent = $original->isUserChanged($modified);
+        $withSame = $original->isUserChanged( $same );
+        $withDiferent = $original->isUserChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class UserAccessTemporalCodeUserAccessorUnitTest extends TestCase
 }
 class ImplWithUserAccessTemporalCodeUserAccessorUnitTest
 {
-    use UserAccessTemporalCodeUserAccessor;
+  use UserAccessTemporalCodeUserAccessor;
 }

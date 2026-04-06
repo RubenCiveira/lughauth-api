@@ -11,9 +11,12 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 class TokenGranterMediator
 {
     private readonly array $granters;
-    public function __construct(ResolverForPassword $passResolver, ResolverForRefresh $refreshResolver)
-    {
-        $this->granters = [ $passResolver, $refreshResolver ];
+    public function __construct(
+        ResolverForPassword $passResolver,
+        ResolverForRefresh $refreshResolver,
+        ResolverForDevice $deviceResolver
+    ) {
+        $this->granters = [ $passResolver, $refreshResolver, $deviceResolver ];
     }
 
     public function authenticate(

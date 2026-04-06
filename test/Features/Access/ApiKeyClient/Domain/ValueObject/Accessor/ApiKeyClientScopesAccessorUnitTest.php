@@ -50,14 +50,14 @@ class ApiKeyClientScopesAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithApiKeyClientScopesAccessorUnitTest();
-        $original = $holder->withScopes('one');
-        $same = $holder->withScopes('one');
+        $original = $holder->withScopes( 'one');
+        $same = $holder->withScopes( 'one');
         $modified = $holder->withScopes('other');
 
         // Act
         $unchanged = $holder->isScopesChanged();
-        $withSame = $original->isScopesChanged($same);
-        $withDiferent = $original->isScopesChanged($modified);
+        $withSame = $original->isScopesChanged( $same );
+        $withDiferent = $original->isScopesChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class ApiKeyClientScopesAccessorUnitTest extends TestCase
 }
 class ImplWithApiKeyClientScopesAccessorUnitTest
 {
-    use ApiKeyClientScopesAccessor;
+  use ApiKeyClientScopesAccessor;
 }

@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientVe
 
 final class ApiKeyClientVersionVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 1;
-        $ref = ApiKeyClientVersionVO::from($value);
-        $this->assertEquals(1, $ref->value());
-        $other = ApiKeyClientVersionVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = ApiKeyClientVersionVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = ApiKeyClientVersionVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(ApiKeyClientVersionVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = ApiKeyClientVersionVO::from(1);
-        $same = ApiKeyClientVersionVO::from(1);
-        $other = ApiKeyClientVersionVO::from(2);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 1;
+    $ref = ApiKeyClientVersionVO::from( $value );
+    $this->assertEquals(1, $ref->value());
+    $other = ApiKeyClientVersionVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = ApiKeyClientVersionVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = ApiKeyClientVersionVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(ApiKeyClientVersionVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = ApiKeyClientVersionVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = ApiKeyClientVersionVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = ApiKeyClientVersionVO::from(1);     $same = ApiKeyClientVersionVO::from(1);     $other = ApiKeyClientVersionVO::from(2);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = ApiKeyClientVersionVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = ApiKeyClientVersionVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

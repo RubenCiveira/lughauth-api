@@ -19,7 +19,7 @@ final class AppConfigUnitTest extends TestCase
         /* Arrange: set environment variable. */
         $_ENV['TEST_VALUE'] = 'from-env';
         $_ENV['APP_NAME'] = 'test-app';
-
+        
         $config = new AppConfig(__DIR__ . '/../../../fixtures');
 
         /* Act: get value from environment. */
@@ -30,9 +30,9 @@ final class AppConfigUnitTest extends TestCase
         $this->assertSame('test-app', $config->name);
     }
 
-    /**
-         * Verifies configuration loads from YAML file.
-         */
+/**
+     * Verifies configuration loads from YAML file.
+     */
     public function testGetLoadsFromYaml(): void
     {
         /* Arrange: create config directory and YAML file. */
@@ -111,9 +111,9 @@ final class AppConfigUnitTest extends TestCase
         $this->assertFalse($config->is('nonexistent.false', false));
     }
 
-    /**
-         * Verifies all configuration is dumped correctly.
-         */
+/**
+     * Verifies all configuration is dumped correctly.
+     */
     public function testAllDumpsConfiguration(): void
     {
         /* Arrange: set environment and YAML config. */
@@ -147,11 +147,11 @@ final class AppConfigUnitTest extends TestCase
         /* Assert: environment variables are included. */
         $this->assertSame('test-app', $all['app.name']['value']);
         $this->assertSame('normal-value', $all['normal.value']['value']);
-
+        
         /* Assert: secret values are masked for environment variables. */
         $this->assertSame('su****rd', $all['database.secret']['value']);
         $this->assertSame('12****78', $all['api.key']['value']);
-
+        
         /* Assert: YAML values are included (they use original keys, not transformed). */
         $this->assertSame('yaml-service', $all['app.id.name']['value']);
         $this->assertSame('yaml-value', $all['nested.simple']['value']);
@@ -174,9 +174,9 @@ final class AppConfigUnitTest extends TestCase
         $this->assertSame('transformed-name', $all['app.id.name']['value']);
     }
 
-    /**
-         * Verifies array flattening works correctly.
-         */
+/**
+     * Verifies array flattening works correctly.
+     */
     public function testFlattenArrayWorksCorrectly(): void
     {
         /* Arrange: create YAML with nested arrays. */

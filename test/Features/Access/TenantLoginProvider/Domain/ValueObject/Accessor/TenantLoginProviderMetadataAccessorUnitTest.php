@@ -50,14 +50,14 @@ class TenantLoginProviderMetadataAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderMetadataAccessorUnitTest();
-        $original = $holder->withMetadata('store://bin');
-        $same = $holder->withMetadata('store://bin');
+        $original = $holder->withMetadata( 'store://bin');
+        $same = $holder->withMetadata( 'store://bin');
         $modified = $holder->withMetadata('store://obin');
 
         // Act
         $unchanged = $holder->isMetadataChanged();
-        $withSame = $original->isMetadataChanged($same);
-        $withDiferent = $original->isMetadataChanged($modified);
+        $withSame = $original->isMetadataChanged( $same );
+        $withDiferent = $original->isMetadataChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantLoginProviderMetadataAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderMetadataAccessorUnitTest
 {
-    use TenantLoginProviderMetadataAccessor;
+  use TenantLoginProviderMetadataAccessor;
 }

@@ -15,458 +15,458 @@ namespace Civi\Lughauth\Shared\Value {
 
 namespace {
 
-    use PHPUnit\Framework\TestCase;
-    use Psr\Http\Message\ServerRequestInterface;
-    use Psr\Http\Message\UploadedFileInterface;
-    use Civi\Lughauth\Shared\Value\UploadBinaryContent;
+use PHPUnit\Framework\TestCase;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\UploadedFileInterface;
+use Civi\Lughauth\Shared\Value\UploadBinaryContent;
+
+/**
+ * Unit tests for UploadBinaryContent.
+ */
+final class UploadBinaryContentUnitTest extends TestCase
+{
+    protected function tearDown(): void
+    {
+        unset($GLOBALS['__override_tempnam']);
+    }
 
     /**
-     * Unit tests for UploadBinaryContent.
+     * Validates successful upload handling and cleanup.
      */
-    final class UploadBinaryContentUnitTest extends TestCase
+    public function testFromUploadValid(): void
     {
-        protected function tearDown(): void
-        {
-            unset($GLOBALS['__override_tempnam']);
-        }
-
-        /**
-         * Validates successful upload handling and cleanup.
+        /*
+         * Arrange: create a temp file and mock an uploaded file/request pair.
          */
-        public function testFromUploadValid(): void
-        {
-            /*
-             * Arrange: create a temp file and mock an uploaded file/request pair.
-             */
-            $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
-            file_put_contents($tmpPath, 'hello test');
+        $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
+        file_put_contents($tmpPath, 'hello test');
 
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('test.txt');
-            $upload->method('getClientMediaType')->willReturn('text/plain');
-            $upload->expects($this->once())->method('moveTo')->with($this->callback(function ($path) use (&$movedPath, $tmpPath) {
-                copy($tmpPath, $path);
-                $movedPath = $path;
-                return true;
-            }));
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('test.txt');
+        $upload->method('getClientMediaType')->willReturn('text/plain');
+        $upload->expects($this->once())->method('moveTo')->with($this->callback(function ($path) use (&$movedPath, $tmpPath) {
+            copy($tmpPath, $path);
+            $movedPath = $path;
+            return true;
+        }));
 
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
 
-            /*
-             * Act: build UploadBinaryContent from the mocked upload and read its stream.
-             */
-            $binary = UploadBinaryContent::fromUpload($request, 'file');
-            $contents = stream_get_contents($binary->stream);
-
-            $pathProperty = (new ReflectionClass($binary))->getProperty('path');
-            $pathProperty->setAccessible(true);
-            $path = $pathProperty->getValue($binary);
-
-            /*
-             * Assert: verify metadata, content, and cleanup behavior for the upload.
-             */
-            $this->assertInstanceOf(UploadBinaryContent::class, $binary);
-            $this->assertSame('test.txt', $binary->name);
-            $this->assertSame('text/plain', $binary->mime);
-            $this->assertEquals('hello test', $contents);
-            $this->assertFileExists($path);
-
-            unset($binary);
-            $this->assertFileDoesNotExist($path);
-        }
-
-        /**
-         * Ensures missing uploads raise a validation error.
+        /*
+         * Act: build UploadBinaryContent from the mocked upload and read its stream.
          */
-        public function testMissingFileThrows(): void
-        {
-            /*
-             * Arrange: mock a request with no uploaded files and expect an exception.
-             */
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn([]);
+        $binary = UploadBinaryContent::fromUpload($request, 'file');
+        $contents = stream_get_contents($binary->stream);
 
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('file is not attached');
+        $pathProperty = (new ReflectionClass($binary))->getProperty('path');
+        $pathProperty->setAccessible(true);
+        $path = $pathProperty->getValue($binary);
 
-            /*
-             * Act: attempt to build UploadBinaryContent with a missing file.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the missing file triggers the expected exception.
-             */
-        }
-
-        /**
-         * Ensures missing file upload errors are mapped correctly.
+        /*
+         * Assert: verify metadata, content, and cleanup behavior for the upload.
          */
-        public function testUploadErrorNoFile(): void
-        {
-            /*
-             * Arrange: mock an uploaded file with a no-file error and expect an exception.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_NO_FILE);
+        $this->assertInstanceOf(UploadBinaryContent::class, $binary);
+        $this->assertSame('test.txt', $binary->name);
+        $this->assertSame('text/plain', $binary->mime);
+        $this->assertEquals('hello test', $contents);
+        $this->assertFileExists($path);
 
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('No file sent.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent with the error upload.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the error maps to the expected exception.
-             */
-        }
-
-        /**
-         * Ensures size limit errors are mapped correctly.
-         */
-        public function testUploadErrorExceededSize(): void
-        {
-            /*
-             * Arrange: mock an uploaded file with a size error and expect an exception.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_INI_SIZE);
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('Exceeded filesize limit.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent with the size error upload.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the size error maps to the expected exception.
-             */
-        }
-
-        /**
-         * Ensures unknown upload errors are mapped correctly.
-         */
-        public function testUploadErrorUnknown(): void
-        {
-            /*
-             * Arrange: mock an uploaded file with an unknown error and expect an exception.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(123);
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('Unknown errors.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent with the unknown error upload.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the unknown error maps to the expected exception.
-             */
-        }
-
-        /**
-         * Ensures null client filename throws an exception.
-         */
-        public function testNullClientFilenameThrows(): void
-        {
-            /*
-             * Arrange: mock an upload that returns null for the client filename.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn(null);
-            $upload->method('moveTo')->willReturnCallback(function ($path) {
-                file_put_contents($path, 'data');
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-
-            /*
-             * Act: attempt to build UploadBinaryContent with a null filename.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the null filename triggers the expected exception.
-             */
-        }
-
-        /**
-         * Ensures null client media type throws an exception.
-         */
-        public function testNullClientMediaTypeThrows(): void
-        {
-            /*
-             * Arrange: mock an upload that returns null for the media type.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('file.txt');
-            $upload->method('getClientMediaType')->willReturn(null);
-            $upload->method('moveTo')->willReturnCallback(function ($path) {
-                file_put_contents($path, 'data');
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-
-            /*
-             * Act: attempt to build UploadBinaryContent with a null media type.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the null media type triggers the expected exception.
-             */
-        }
-
-        /**
-         * Ensures UPLOAD_ERR_FORM_SIZE is mapped to the exceeded size error.
-         */
-        public function testUploadErrorFormSize(): void
-        {
-            /*
-             * Arrange: mock an uploaded file with a form size error.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_FORM_SIZE);
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('Exceeded filesize limit.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent with the form size error.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the form size error maps to the expected exception.
-             */
-        }
-
-        /**
-         * Ensures tempnam failure throws an exception.
-         */
-        public function testTempnamFailureThrows(): void
-        {
-            /*
-             * Arrange: override tempnam to simulate failure and mock a valid upload.
-             */
-            $GLOBALS['__override_tempnam'] = true;
-
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('No temp path.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent when tempnam fails.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the tempnam failure triggers the expected exception.
-             */
-        }
-
-        /**
-         * Ensures path traversal in filename is stripped to basename.
-         */
-        public function testFilenamePathTraversalIsSanitized(): void
-        {
-            /*
-             * Arrange: mock an upload with a path traversal filename.
-             */
-            $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
-            file_put_contents($tmpPath, 'data');
-
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('../../etc/passwd');
-            $upload->method('getClientMediaType')->willReturn('text/plain');
-            $upload->method('moveTo')->willReturnCallback(function ($path) use ($tmpPath) {
-                copy($tmpPath, $path);
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            /*
-             * Act: build UploadBinaryContent from the upload with traversal path.
-             */
-            $binary = UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: verify the filename is stripped to the safe basename.
-             */
-            $this->assertSame('passwd', $binary->name);
-            unset($binary);
-            unlink($tmpPath);
-        }
-
-        /**
-         * Ensures unsafe characters in filename are replaced.
-         */
-        public function testFilenameUnsafeCharactersAreReplaced(): void
-        {
-            /*
-             * Arrange: mock an upload with special characters in the filename.
-             */
-            $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
-            file_put_contents($tmpPath, 'data');
-
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('my file (1).txt');
-            $upload->method('getClientMediaType')->willReturn('text/plain');
-            $upload->method('moveTo')->willReturnCallback(function ($path) use ($tmpPath) {
-                copy($tmpPath, $path);
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            /*
-             * Act: build UploadBinaryContent from the upload with unsafe chars.
-             */
-            $binary = UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: verify the unsafe characters are replaced with underscores.
-             */
-            $this->assertSame('my_file__1_.txt', $binary->name);
-            unset($binary);
-            unlink($tmpPath);
-        }
-
-        /**
-         * Ensures an empty filename after sanitization throws.
-         */
-        public function testEmptyFilenameAfterSanitizationThrows(): void
-        {
-            /*
-             * Arrange: mock an upload with a filename that becomes empty after sanitization.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('.');
-            $upload->method('getClientMediaType')->willReturn('text/plain');
-            $upload->method('moveTo')->willReturnCallback(function ($path) {
-                file_put_contents($path, 'data');
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('Invalid filename.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent with an invalid filename.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the invalid filename triggers the expected exception.
-             */
-        }
-
-        /**
-         * Ensures an invalid MIME type format throws.
-         */
-        public function testInvalidMimeTypeThrows(): void
-        {
-            /*
-             * Arrange: mock an upload with a malformed MIME type.
-             */
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('file.txt');
-            $upload->method('getClientMediaType')->willReturn('not a mime type; evil');
-            $upload->method('moveTo')->willReturnCallback(function ($path) {
-                file_put_contents($path, 'data');
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('Invalid MIME type.');
-
-            /*
-             * Act: attempt to build UploadBinaryContent with an invalid MIME type.
-             */
-            UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: confirm the invalid MIME type triggers the expected exception.
-             */
-        }
-
-        /**
-         * Ensures valid complex MIME types are accepted.
-         */
-        public function testValidComplexMimeTypeIsAccepted(): void
-        {
-            /*
-             * Arrange: mock an upload with a valid structured MIME type.
-             */
-            $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
-            file_put_contents($tmpPath, 'data');
-
-            $upload = $this->createMock(UploadedFileInterface::class);
-            $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
-            $upload->method('getClientFilename')->willReturn('doc.json');
-            $upload->method('getClientMediaType')->willReturn('application/vnd.api+json');
-            $upload->method('moveTo')->willReturnCallback(function ($path) use ($tmpPath) {
-                copy($tmpPath, $path);
-            });
-
-            $request = $this->createMock(ServerRequestInterface::class);
-            $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
-
-            /*
-             * Act: build UploadBinaryContent with a complex but valid MIME type.
-             */
-            $binary = UploadBinaryContent::fromUpload($request, 'file');
-
-            /*
-             * Assert: verify the MIME type is preserved as-is.
-             */
-            $this->assertSame('application/vnd.api+json', $binary->mime);
-            unset($binary);
-            unlink($tmpPath);
-        }
+        unset($binary);
+        $this->assertFileDoesNotExist($path);
     }
+
+    /**
+     * Ensures missing uploads raise a validation error.
+     */
+    public function testMissingFileThrows(): void
+    {
+        /*
+         * Arrange: mock a request with no uploaded files and expect an exception.
+         */
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn([]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('file is not attached');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with a missing file.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the missing file triggers the expected exception.
+         */
+    }
+
+    /**
+     * Ensures missing file upload errors are mapped correctly.
+     */
+    public function testUploadErrorNoFile(): void
+    {
+        /*
+         * Arrange: mock an uploaded file with a no-file error and expect an exception.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_NO_FILE);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('No file sent.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with the error upload.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the error maps to the expected exception.
+         */
+    }
+
+    /**
+     * Ensures size limit errors are mapped correctly.
+     */
+    public function testUploadErrorExceededSize(): void
+    {
+        /*
+         * Arrange: mock an uploaded file with a size error and expect an exception.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_INI_SIZE);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Exceeded filesize limit.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with the size error upload.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the size error maps to the expected exception.
+         */
+    }
+
+    /**
+     * Ensures unknown upload errors are mapped correctly.
+     */
+    public function testUploadErrorUnknown(): void
+    {
+        /*
+         * Arrange: mock an uploaded file with an unknown error and expect an exception.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(123);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unknown errors.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with the unknown error upload.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the unknown error maps to the expected exception.
+         */
+    }
+
+    /**
+     * Ensures null client filename throws an exception.
+     */
+    public function testNullClientFilenameThrows(): void
+    {
+        /*
+         * Arrange: mock an upload that returns null for the client filename.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn(null);
+        $upload->method('moveTo')->willReturnCallback(function ($path) {
+            file_put_contents($path, 'data');
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        /*
+         * Act: attempt to build UploadBinaryContent with a null filename.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the null filename triggers the expected exception.
+         */
+    }
+
+    /**
+     * Ensures null client media type throws an exception.
+     */
+    public function testNullClientMediaTypeThrows(): void
+    {
+        /*
+         * Arrange: mock an upload that returns null for the media type.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('file.txt');
+        $upload->method('getClientMediaType')->willReturn(null);
+        $upload->method('moveTo')->willReturnCallback(function ($path) {
+            file_put_contents($path, 'data');
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        /*
+         * Act: attempt to build UploadBinaryContent with a null media type.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the null media type triggers the expected exception.
+         */
+    }
+
+    /**
+     * Ensures UPLOAD_ERR_FORM_SIZE is mapped to the exceeded size error.
+     */
+    public function testUploadErrorFormSize(): void
+    {
+        /*
+         * Arrange: mock an uploaded file with a form size error.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_FORM_SIZE);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Exceeded filesize limit.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with the form size error.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the form size error maps to the expected exception.
+         */
+    }
+
+    /**
+     * Ensures tempnam failure throws an exception.
+     */
+    public function testTempnamFailureThrows(): void
+    {
+        /*
+         * Arrange: override tempnam to simulate failure and mock a valid upload.
+         */
+        $GLOBALS['__override_tempnam'] = true;
+
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('No temp path.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent when tempnam fails.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the tempnam failure triggers the expected exception.
+         */
+    }
+
+    /**
+     * Ensures path traversal in filename is stripped to basename.
+     */
+    public function testFilenamePathTraversalIsSanitized(): void
+    {
+        /*
+         * Arrange: mock an upload with a path traversal filename.
+         */
+        $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
+        file_put_contents($tmpPath, 'data');
+
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('../../etc/passwd');
+        $upload->method('getClientMediaType')->willReturn('text/plain');
+        $upload->method('moveTo')->willReturnCallback(function ($path) use ($tmpPath) {
+            copy($tmpPath, $path);
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        /*
+         * Act: build UploadBinaryContent from the upload with traversal path.
+         */
+        $binary = UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: verify the filename is stripped to the safe basename.
+         */
+        $this->assertSame('passwd', $binary->name);
+        unset($binary);
+        unlink($tmpPath);
+    }
+
+    /**
+     * Ensures unsafe characters in filename are replaced.
+     */
+    public function testFilenameUnsafeCharactersAreReplaced(): void
+    {
+        /*
+         * Arrange: mock an upload with special characters in the filename.
+         */
+        $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
+        file_put_contents($tmpPath, 'data');
+
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('my file (1).txt');
+        $upload->method('getClientMediaType')->willReturn('text/plain');
+        $upload->method('moveTo')->willReturnCallback(function ($path) use ($tmpPath) {
+            copy($tmpPath, $path);
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        /*
+         * Act: build UploadBinaryContent from the upload with unsafe chars.
+         */
+        $binary = UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: verify the unsafe characters are replaced with underscores.
+         */
+        $this->assertSame('my_file__1_.txt', $binary->name);
+        unset($binary);
+        unlink($tmpPath);
+    }
+
+    /**
+     * Ensures an empty filename after sanitization throws.
+     */
+    public function testEmptyFilenameAfterSanitizationThrows(): void
+    {
+        /*
+         * Arrange: mock an upload with a filename that becomes empty after sanitization.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('.');
+        $upload->method('getClientMediaType')->willReturn('text/plain');
+        $upload->method('moveTo')->willReturnCallback(function ($path) {
+            file_put_contents($path, 'data');
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid filename.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with an invalid filename.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the invalid filename triggers the expected exception.
+         */
+    }
+
+    /**
+     * Ensures an invalid MIME type format throws.
+     */
+    public function testInvalidMimeTypeThrows(): void
+    {
+        /*
+         * Arrange: mock an upload with a malformed MIME type.
+         */
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('file.txt');
+        $upload->method('getClientMediaType')->willReturn('not a mime type; evil');
+        $upload->method('moveTo')->willReturnCallback(function ($path) {
+            file_put_contents($path, 'data');
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid MIME type.');
+
+        /*
+         * Act: attempt to build UploadBinaryContent with an invalid MIME type.
+         */
+        UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: confirm the invalid MIME type triggers the expected exception.
+         */
+    }
+
+    /**
+     * Ensures valid complex MIME types are accepted.
+     */
+    public function testValidComplexMimeTypeIsAccepted(): void
+    {
+        /*
+         * Arrange: mock an upload with a valid structured MIME type.
+         */
+        $tmpPath = tempnam(sys_get_temp_dir(), 'upload_');
+        file_put_contents($tmpPath, 'data');
+
+        $upload = $this->createMock(UploadedFileInterface::class);
+        $upload->method('getError')->willReturn(UPLOAD_ERR_OK);
+        $upload->method('getClientFilename')->willReturn('doc.json');
+        $upload->method('getClientMediaType')->willReturn('application/vnd.api+json');
+        $upload->method('moveTo')->willReturnCallback(function ($path) use ($tmpPath) {
+            copy($tmpPath, $path);
+        });
+
+        $request = $this->createMock(ServerRequestInterface::class);
+        $request->method('getUploadedFiles')->willReturn(['file' => $upload]);
+
+        /*
+         * Act: build UploadBinaryContent with a complex but valid MIME type.
+         */
+        $binary = UploadBinaryContent::fromUpload($request, 'file');
+
+        /*
+         * Assert: verify the MIME type is preserved as-is.
+         */
+        $this->assertSame('application/vnd.api+json', $binary->mime);
+        unset($binary);
+        unlink($tmpPath);
+    }
+}
 
 }

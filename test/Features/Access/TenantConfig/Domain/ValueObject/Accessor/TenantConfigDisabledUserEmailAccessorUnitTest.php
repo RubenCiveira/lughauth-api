@@ -50,14 +50,14 @@ class TenantConfigDisabledUserEmailAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigDisabledUserEmailAccessorUnitTest();
-        $original = $holder->withDisabledUserEmail('one');
-        $same = $holder->withDisabledUserEmail('one');
+        $original = $holder->withDisabledUserEmail( 'one');
+        $same = $holder->withDisabledUserEmail( 'one');
         $modified = $holder->withDisabledUserEmail('other');
 
         // Act
         $unchanged = $holder->isDisabledUserEmailChanged();
-        $withSame = $original->isDisabledUserEmailChanged($same);
-        $withDiferent = $original->isDisabledUserEmailChanged($modified);
+        $withSame = $original->isDisabledUserEmailChanged( $same );
+        $withDiferent = $original->isDisabledUserEmailChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigDisabledUserEmailAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigDisabledUserEmailAccessorUnitTest
 {
-    use TenantConfigDisabledUserEmailAccessor;
+  use TenantConfigDisabledUserEmailAccessor;
 }

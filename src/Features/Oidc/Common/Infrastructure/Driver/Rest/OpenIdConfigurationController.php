@@ -49,7 +49,14 @@ class OpenIdConfigurationController
             "frontchannel_logout_supported" => true,
             "jwks_uri" => "$baseUrl/openid/$tenant/jwks",
             "check_session_iframe" => "$baseUrl/openid/$tenant/check-session",
-            "grant_types_supported" => ['authorization_code', 'implicit', 'refresh_token', 'client_credentials'],
+            "grant_types_supported" => [
+                'authorization_code',
+                'implicit',
+                'refresh_token',
+                'client_credentials',
+                'password',
+                'urn:ietf:params:oauth:grant-type:device_code'
+            ],
             "acr_values_supported" => ['urn:mace:incommon:iap:silver'],
             "response_types_supported" => ['code', 'token', 'id_token'],
             "subject_types_supported" => ['public', 'pairwise'],

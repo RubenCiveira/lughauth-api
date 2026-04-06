@@ -5,13 +5,14 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseRef;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 
 final class UserAcceptedTermnsOfUseRefUnitTest extends TestCase
 {
-    public function test(): void
-    {
-        $uid = 'uid';
-        $ref = new UserAcceptedTermnsOfUseRef(uid: $uid);
-        $this->assertSame($uid, $ref->uid());
-    }
+  public function test(): void
+  {
+    $uid = 'uid';
+    $ref = new UserAcceptedTermnsOfUseRef(uid: $uid);
+    $this->assertSame($uid, $ref->uid());
+  }
 }

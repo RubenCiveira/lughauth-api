@@ -50,13 +50,13 @@ class ApiKeyClientEnabledAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithApiKeyClientEnabledAccessorUnitTest()->withEnabled(true);
-        $original = $holder->withEnabled(true);
-        $same = $holder->withEnabled(true);
+        $original = $holder->withEnabled( true);
+        $same = $holder->withEnabled( true);
         $modified = $holder->withEnabled(false);
 
         // Act
-        $withSame = $original->isEnabledChanged($same);
-        $withDiferent = $original->isEnabledChanged($modified);
+        $withSame = $original->isEnabledChanged( $same );
+        $withDiferent = $original->isEnabledChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class ApiKeyClientEnabledAccessorUnitTest extends TestCase
 }
 class ImplWithApiKeyClientEnabledAccessorUnitTest
 {
-    use ApiKeyClientEnabledAccessor;
+  use ApiKeyClientEnabledAccessor;
 }

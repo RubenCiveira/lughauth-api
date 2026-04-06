@@ -11,40 +11,39 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
 
 final class UserAcceptedTermnsOfUseConditionsVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = new TenantTermsOfUseRef('one');
-        $ref = UserAcceptedTermnsOfUseConditionsVO::from($value);
-        $this->assertEquals(new TenantTermsOfUseRef('one'), $ref->value());
-        $other = UserAcceptedTermnsOfUseConditionsVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = UserAcceptedTermnsOfUseConditionsVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = UserAcceptedTermnsOfUseConditionsVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(UserAcceptedTermnsOfUseConditionsVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = UserAcceptedTermnsOfUseConditionsVO::from(new TenantTermsOfUseRef('one'));
-        $same = UserAcceptedTermnsOfUseConditionsVO::from(new TenantTermsOfUseRef('one'));
-        $other = UserAcceptedTermnsOfUseConditionsVO::from(new TenantTermsOfUseRef('other'));
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = new TenantTermsOfUseRef('one');
+    $ref = UserAcceptedTermnsOfUseConditionsVO::from( $value );
+    $this->assertEquals(new TenantTermsOfUseRef('one'), $ref->value());
+    $other = UserAcceptedTermnsOfUseConditionsVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = UserAcceptedTermnsOfUseConditionsVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = UserAcceptedTermnsOfUseConditionsVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(UserAcceptedTermnsOfUseConditionsVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
+  {
+     $one = UserAcceptedTermnsOfUseConditionsVO::from(new TenantTermsOfUseRef('one'));     $same = UserAcceptedTermnsOfUseConditionsVO::from(new TenantTermsOfUseRef('one'));     $other = UserAcceptedTermnsOfUseConditionsVO::from(new TenantTermsOfUseRef('other'));
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
 }

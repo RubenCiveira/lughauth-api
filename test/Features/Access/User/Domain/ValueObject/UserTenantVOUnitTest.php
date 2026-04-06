@@ -11,40 +11,39 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 final class UserTenantVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = new TenantRef('one');
-        $ref = UserTenantVO::from($value);
-        $this->assertEquals(new TenantRef('one'), $ref->value());
-        $other = UserTenantVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = UserTenantVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = UserTenantVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(UserTenantVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = UserTenantVO::from(new TenantRef('one'));
-        $same = UserTenantVO::from(new TenantRef('one'));
-        $other = UserTenantVO::from(new TenantRef('other'));
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = new TenantRef('one');
+    $ref = UserTenantVO::from( $value );
+    $this->assertEquals(new TenantRef('one'), $ref->value());
+    $other = UserTenantVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = UserTenantVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = UserTenantVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(UserTenantVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
+  {
+     $one = UserTenantVO::from(new TenantRef('one'));     $same = UserTenantVO::from(new TenantRef('one'));     $other = UserTenantVO::from(new TenantRef('other'));
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
 }

@@ -10,55 +10,54 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
 
 final class UserProviderVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 'one';
-        $ref = UserProviderVO::from($value);
-        $this->assertEquals('one', $ref->value());
-        $other = UserProviderVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = UserProviderVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = UserProviderVO::tryFrom(1, $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(UserProviderVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = UserProviderVO::from('one');
-        $same = UserProviderVO::from('one');
-        $other = UserProviderVO::from('other');
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 'one';
+    $ref = UserProviderVO::from( $value );
+    $this->assertEquals('one', $ref->value());
+    $other = UserProviderVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = UserProviderVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = UserProviderVO::tryFrom(1, $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(UserProviderVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = UserProviderVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = UserProviderVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
-    public function test_exception_on_wrong_value_1(): void
-    {
-        $this->expectException(ConstraintException::class);
-        UserProviderVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
-    }
+  {
+     $one = UserProviderVO::from('one');     $same = UserProviderVO::from('one');     $other = UserProviderVO::from('other');
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = UserProviderVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = UserProviderVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
+  public function test_exception_on_wrong_value_1(): void
+  {
+    $this->expectException(ConstraintException::class);
+    UserProviderVO::from( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.' );
+  }
 }

@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO
 
 final class UserTemporalPasswordVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = true;
-        $ref = UserTemporalPasswordVO::from($value);
-        $this->assertEquals(true, $ref->value());
-        $other = UserTemporalPasswordVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = UserTemporalPasswordVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = UserTemporalPasswordVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(UserTemporalPasswordVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = UserTemporalPasswordVO::from(true);
-        $same = UserTemporalPasswordVO::from(true);
-        $other = UserTemporalPasswordVO::from(false);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = true;
+    $ref = UserTemporalPasswordVO::from( $value );
+    $this->assertEquals(true, $ref->value());
+    $other = UserTemporalPasswordVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = UserTemporalPasswordVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = UserTemporalPasswordVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(UserTemporalPasswordVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = UserTemporalPasswordVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = UserTemporalPasswordVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = UserTemporalPasswordVO::from(true);     $same = UserTemporalPasswordVO::from(true);     $other = UserTemporalPasswordVO::from(false);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = UserTemporalPasswordVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = UserTemporalPasswordVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

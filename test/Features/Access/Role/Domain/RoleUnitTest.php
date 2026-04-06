@@ -5,154 +5,155 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use PHPUnit\Framework\TestCase;
+use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 
 final class RoleUnitTest extends TestCase
 {
-    public function test_init_store_values(): void
-    {
-        // @Arrange
-        $one = new Role(
-            uid: 'one',
-            name: 'one',
-            relyingParty: new RelyingPartyRef('one'),
-            version: 1,
-        );
+  public function test_init_store_values(): void
+  {
+    // @Arrange
+    $one = new Role(
+      uid: 'one',
+      name: 'one',
+      relyingParty: new RelyingPartyRef('one'),
+      version: 1,
+    );
 
-        // @Act
-        $other = $one->toAttributes()->build();
-        $calculated = Role::calculatedFields();
+    // @Act
+    $other = $one->toAttributes()->build();
+    $calculated = Role::calculatedFields();
 
-        // @Assert
-        $this->assertEquals([], $calculated);
-        $this->assertEquals($one->uid(), $other->uid());
-        $this->assertEquals($one->getName(), $other->getName());
-        $this->assertTrue($one->isNameChanged());
-        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
-        $this->assertTrue($one->isRelyingPartyChanged());
-        $this->assertEquals($one->getVersion(), $other->getVersion());
-        $this->assertTrue($one->isVersionChanged());
-    }
-    public function test_replace_change_values(): void
-    {
-        // @Arrange
-        $base = new Role(
-            uid: 'one',
-            name: 'one',
-            relyingParty: new RelyingPartyRef('one'),
-            version: 1,
-        );
-        $other = new Role(
-            uid: 'other',
-            name: 'other',
-            relyingParty: new RelyingPartyRef('other'),
-            version: 2,
-        );
+    // @Assert
+    $this->assertEquals([], $calculated);
+    $this->assertEquals( $one->uid(), $other->uid());
+    $this->assertEquals( $one->getName(), $other->getName());
+    $this->assertTrue( $one->isNameChanged() );
+    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
+    $this->assertTrue( $one->isRelyingPartyChanged() );
+    $this->assertEquals( $one->getVersion(), $other->getVersion());
+    $this->assertTrue( $one->isVersionChanged() );
+  }
+  public function test_replace_change_values(): void
+  {
+    // @Arrange
+    $base = new Role(
+      uid: 'one',
+      name: 'one',
+      relyingParty: new RelyingPartyRef('one'),
+      version: 1,
+    );
+    $other = new Role(
+      uid: 'other',
+      name: 'other',
+      relyingParty: new RelyingPartyRef('other'),
+      version: 2,
+    );
 
-        // @Act
-        $one = $base->replace($other->toAttributes());
+    // @Act
+    $one = $base->replace( $other->toAttributes() );
 
-        // @Assert
-        $this->assertEquals($one->uid(), $base->uid());
-        $this->assertEquals($one->getName(), $other->getName());
-        $this->assertTrue($one->isNameChanged($base));
-        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
-        $this->assertTrue($one->isRelyingPartyChanged($base));
-        $this->assertEquals($one->getVersion(), $other->getVersion());
-        $this->assertTrue($one->isVersionChanged($base));
-    }
-    public function test_json_compare(): void
-    {
-        // @Arrange
-        $one = new Role(
-            uid: 'one',
-            name: 'one',
-            relyingParty: new RelyingPartyRef('one'),
-            version: 1,
-        );
+    // @Assert
+    $this->assertEquals( $one->uid(), $base->uid());
+    $this->assertEquals( $one->getName(), $other->getName());
+    $this->assertTrue( $one->isNameChanged($base) );
+    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
+    $this->assertTrue( $one->isRelyingPartyChanged($base) );
+    $this->assertEquals( $one->getVersion(), $other->getVersion());
+    $this->assertTrue( $one->isVersionChanged($base) );
+  }
+  public function test_json_compare(): void
+  {
+    // @Arrange
+    $one = new Role(
+      uid: 'one',
+      name: 'one',
+      relyingParty: new RelyingPartyRef('one'),
+      version: 1,
+    );
 
-        // @Act
-        $json = $one->asPublicJson();
+    // @Act
+    $json = $one->asPublicJson();
 
-        // @Assert
-        $this->assertEquals('one', $json['uid']);
-        $this->assertEquals('one', $json['name']);
-        $this->assertEquals('one', $json['relyingParty']['$ref']);
-        $this->assertEquals(1, $json['version']);
-    }
-    public function test_create_store_values(): void
-    {
-        // @Arrange
-        $one = new Role(
-            uid: 'one',
-            name: 'one',
-            relyingParty: new RelyingPartyRef('one'),
-            version: 1,
-        );
+    // @Assert
+$this->assertEquals('one', $json['uid']);
+$this->assertEquals('one', $json['name']);
+$this->assertEquals('one', $json['relyingParty']['$ref'] );
+$this->assertEquals(1, $json['version']);
+  }
+  public function test_create_store_values(): void
+  {
+    // @Arrange
+    $one = new Role(
+      uid: 'one',
+      name: 'one',
+      relyingParty: new RelyingPartyRef('one'),
+      version: 1,
+    );
 
-        // @Act
-        $other = Role::create($one->toAttributes());
+    // @Act
+    $other = Role::create($one->toAttributes() );
 
-        // @Assert
-        $this->assertEquals($one->uid(), $other->uid());
-        $this->assertEquals($one->getName(), $other->getName());
-        $this->assertTrue($one->isNameChanged());
-        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
-        $this->assertTrue($one->isRelyingPartyChanged());
-        $this->assertEquals($one->getVersion(), $other->getVersion());
-        $this->assertTrue($one->isVersionChanged());
-        $this->assertCount(0, $one->getTheEvents());
-        $this->assertCount(1, $other->getTheEvents());
-    }
-    public function test_update_change_values(): void
-    {
-        $base = new Role(
-            uid: 'one',
-            name: 'one',
-            relyingParty: new RelyingPartyRef('one'),
-            version: 1,
-        );
-        $other = new Role(
-            uid: 'other',
-            name: 'other',
-            relyingParty: new RelyingPartyRef('other'),
-            version: 2,
-        );
+    // @Assert
+    $this->assertEquals( $one->uid(), $other->uid());
+    $this->assertEquals( $one->getName(), $other->getName());
+    $this->assertTrue( $one->isNameChanged() );
+    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
+    $this->assertTrue( $one->isRelyingPartyChanged() );
+    $this->assertEquals( $one->getVersion(), $other->getVersion());
+    $this->assertTrue( $one->isVersionChanged() );
+    $this->assertCount(0, $one->getTheEvents() );
+    $this->assertCount(1, $other->getTheEvents() );
+  }
+  public function test_update_change_values(): void
+  {
+    $base = new Role(
+      uid: 'one',
+      name: 'one',
+      relyingParty: new RelyingPartyRef('one'),
+      version: 1,
+    );
+    $other = new Role(
+      uid: 'other',
+      name: 'other',
+      relyingParty: new RelyingPartyRef('other'),
+      version: 2,
+    );
 
-        // @Act
-        $one = $base->update($other->toAttributes());
+    // @Act
+    $one = $base->update( $other->toAttributes() );
 
-        // @Assert
-        $this->assertEquals($one->uid(), $base->uid());
-        $this->assertEquals($one->getName(), $other->getName());
-        $this->assertTrue($one->isNameChanged($base));
-        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
-        $this->assertTrue($one->isRelyingPartyChanged($base));
-        $this->assertEquals($one->getVersion(), $other->getVersion());
-        $this->assertTrue($one->isVersionChanged($base));
-        $this->assertCount(0, $other->getTheEvents());
-        $this->assertCount(1, $one->getTheEvents());
-    }
-    public function test_delete_store_values(): void
-    {
-        // @Arrange
-        $one = new Role(
-            uid: 'one',
-            name: 'one',
-            relyingParty: new RelyingPartyRef('one'),
-            version: 1,
-        );
+    // @Assert
+    $this->assertEquals( $one->uid(), $base->uid());
+    $this->assertEquals( $one->getName(), $other->getName());
+    $this->assertTrue( $one->isNameChanged($base) );
+    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
+    $this->assertTrue( $one->isRelyingPartyChanged($base) );
+    $this->assertEquals( $one->getVersion(), $other->getVersion());
+    $this->assertTrue( $one->isVersionChanged($base) );
+    $this->assertCount(0, $other->getTheEvents() );
+    $this->assertCount(1, $one->getTheEvents() );
+  }
+  public function test_delete_store_values(): void
+  {
+    // @Arrange
+    $one = new Role(
+      uid: 'one',
+      name: 'one',
+      relyingParty: new RelyingPartyRef('one'),
+      version: 1,
+    );
 
-        // @Act
-        $other = $one->delete();
+    // @Act
+    $other = $one->delete();
 
-        // @Assert
-        $this->assertEquals($one->uid(), $other->uid());
-        $this->assertEquals($one->getName(), $other->getName());
-        $this->assertTrue($one->isNameChanged());
-        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
-        $this->assertTrue($one->isRelyingPartyChanged());
-        $this->assertEquals($one->getVersion(), $other->getVersion());
-        $this->assertTrue($one->isVersionChanged());
-    }
+    // @Assert
+    $this->assertEquals( $one->uid(), $other->uid());
+    $this->assertEquals( $one->getName(), $other->getName());
+    $this->assertTrue( $one->isNameChanged() );
+    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
+    $this->assertTrue( $one->isRelyingPartyChanged() );
+    $this->assertEquals( $one->getVersion(), $other->getVersion());
+    $this->assertTrue( $one->isVersionChanged() );
+  }
 }

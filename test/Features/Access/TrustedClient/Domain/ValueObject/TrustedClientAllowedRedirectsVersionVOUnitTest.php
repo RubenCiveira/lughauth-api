@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 final class TrustedClientAllowedRedirectsVersionVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 1;
-        $ref = TrustedClientAllowedRedirectsVersionVO::from($value);
-        $this->assertEquals(1, $ref->value());
-        $other = TrustedClientAllowedRedirectsVersionVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TrustedClientAllowedRedirectsVersionVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TrustedClientAllowedRedirectsVersionVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TrustedClientAllowedRedirectsVersionVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TrustedClientAllowedRedirectsVersionVO::from(1);
-        $same = TrustedClientAllowedRedirectsVersionVO::from(1);
-        $other = TrustedClientAllowedRedirectsVersionVO::from(2);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 1;
+    $ref = TrustedClientAllowedRedirectsVersionVO::from( $value );
+    $this->assertEquals(1, $ref->value());
+    $other = TrustedClientAllowedRedirectsVersionVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TrustedClientAllowedRedirectsVersionVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TrustedClientAllowedRedirectsVersionVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TrustedClientAllowedRedirectsVersionVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = TrustedClientAllowedRedirectsVersionVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = TrustedClientAllowedRedirectsVersionVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = TrustedClientAllowedRedirectsVersionVO::from(1);     $same = TrustedClientAllowedRedirectsVersionVO::from(1);     $other = TrustedClientAllowedRedirectsVersionVO::from(2);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = TrustedClientAllowedRedirectsVersionVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = TrustedClientAllowedRedirectsVersionVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

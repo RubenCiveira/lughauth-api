@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Use
 
 final class UserAcceptedTermnsOfUseVersionVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 1;
-        $ref = UserAcceptedTermnsOfUseVersionVO::from($value);
-        $this->assertEquals(1, $ref->value());
-        $other = UserAcceptedTermnsOfUseVersionVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = UserAcceptedTermnsOfUseVersionVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = UserAcceptedTermnsOfUseVersionVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(UserAcceptedTermnsOfUseVersionVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = UserAcceptedTermnsOfUseVersionVO::from(1);
-        $same = UserAcceptedTermnsOfUseVersionVO::from(1);
-        $other = UserAcceptedTermnsOfUseVersionVO::from(2);
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 1;
+    $ref = UserAcceptedTermnsOfUseVersionVO::from( $value );
+    $this->assertEquals(1, $ref->value());
+    $other = UserAcceptedTermnsOfUseVersionVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = UserAcceptedTermnsOfUseVersionVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = UserAcceptedTermnsOfUseVersionVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(UserAcceptedTermnsOfUseVersionVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = UserAcceptedTermnsOfUseVersionVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = UserAcceptedTermnsOfUseVersionVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = UserAcceptedTermnsOfUseVersionVO::from(1);     $same = UserAcceptedTermnsOfUseVersionVO::from(1);     $other = UserAcceptedTermnsOfUseVersionVO::from(2);
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = UserAcceptedTermnsOfUseVersionVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = UserAcceptedTermnsOfUseVersionVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

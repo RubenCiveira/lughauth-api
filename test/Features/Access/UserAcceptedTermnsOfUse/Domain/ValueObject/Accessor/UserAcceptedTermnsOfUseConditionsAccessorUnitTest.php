@@ -51,13 +51,13 @@ class UserAcceptedTermnsOfUseConditionsAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAcceptedTermnsOfUseConditionsAccessorUnitTest()->withConditions(new TenantTermsOfUseRef('one'));
-        $original = $holder->withConditions(new TenantTermsOfUseRef('one'));
-        $same = $holder->withConditions(new TenantTermsOfUseRef('one'));
+        $original = $holder->withConditions( new TenantTermsOfUseRef('one'));
+        $same = $holder->withConditions( new TenantTermsOfUseRef('one'));
         $modified = $holder->withConditions(new TenantTermsOfUseRef('other'));
 
         // Act
-        $withSame = $original->isConditionsChanged($same);
-        $withDiferent = $original->isConditionsChanged($modified);
+        $withSame = $original->isConditionsChanged( $same );
+        $withDiferent = $original->isConditionsChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class UserAcceptedTermnsOfUseConditionsAccessorUnitTest extends TestCase
 }
 class ImplWithUserAcceptedTermnsOfUseConditionsAccessorUnitTest
 {
-    use UserAcceptedTermnsOfUseConditionsAccessor;
+  use UserAcceptedTermnsOfUseConditionsAccessor;
 }

@@ -50,13 +50,13 @@ class TenantDomainAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantDomainAccessorUnitTest()->withDomain('one');
-        $original = $holder->withDomain('one');
-        $same = $holder->withDomain('one');
+        $original = $holder->withDomain( 'one');
+        $same = $holder->withDomain( 'one');
         $modified = $holder->withDomain('other');
 
         // Act
-        $withSame = $original->isDomainChanged($same);
-        $withDiferent = $original->isDomainChanged($modified);
+        $withSame = $original->isDomainChanged( $same );
+        $withDiferent = $original->isDomainChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantDomainAccessorUnitTest extends TestCase
 }
 class ImplWithTenantDomainAccessorUnitTest
 {
-    use TenantDomainAccessor;
+  use TenantDomainAccessor;
 }

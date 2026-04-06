@@ -15,83 +15,77 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 final class TrustedClientAllowedRedirectsVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        ));
-        $ref = TrustedClientAllowedRedirectsVO::from($value);
-        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )), $ref->value());
-        $this->assertTrue(!!$ref->find('one'));
-        $this->assertTrue(!$ref->find('other'));
-        $current = new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            null,
-            null,
-        );
-        $cloned = TrustedClientAllowedRedirectsVO::from([$current]);
-        $clonedFilled = $cloned->getWithDefaults($ref);
+  public function test_asignation_keep_value(): void
+  {
+    $value = new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) );
+    $ref = TrustedClientAllowedRedirectsVO::from( $value );
+    $this->assertEquals(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ), $ref->value());
+  $this->assertTrue( !!$ref->find('one') );
+  $this->assertTrue( !$ref->find('other') );
+  $current = new TrustedClientAllowedRedirectsItem(
+TrustedClientAllowedRedirectsUidVO::from( 'one'),null,null,);        $cloned = TrustedClientAllowedRedirectsVO::from([$current]);        $clonedFilled = $cloned->getWithDefaults($ref);
         $clonedValue = $cloned->value();
         $clonedFilledValue = $clonedFilled->value();
         $this->assertNull($clonedValue->current()->getUrl());
-        $this->assertEquals('one', $clonedFilledValue->current()->getUrl());
+        $this->assertEquals('one', $clonedFilledValue->current()->getUrl() );
         $this->assertNull($clonedValue->current()->getVersion());
-        $this->assertEquals(1, $clonedFilledValue->current()->getVersion());
-        $other = TrustedClientAllowedRedirectsVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TrustedClientAllowedRedirectsVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TrustedClientAllowedRedirectsVO::tryFrom('1', $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TrustedClientAllowedRedirectsVO::class, 'fromUnsafe');
-        $method->invoke(null, "bad");
-    }
-    public function test_equals(): void
-    {
-        $one = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
-        $same = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )));
-        $other = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('other'),
-            TrustedClientAllowedRedirectsUrlVO::from('other'),
-            TrustedClientAllowedRedirectsVersionVO::from(2)
-        )));
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+        $this->assertEquals(1, $clonedFilledValue->current()->getVersion() );
+    $other = TrustedClientAllowedRedirectsVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TrustedClientAllowedRedirectsVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TrustedClientAllowedRedirectsVO::tryFrom('1', $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TrustedClientAllowedRedirectsVO::class, 'fromUnsafe');
+    $method->invoke(null, "bad");
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_build_empty(): void
-    {
-        $errors = new ConstraintFailList();
-        $temp = TrustedClientAllowedRedirectsVO::tryFrom([], $errors);
-        $this->assertFalse($temp->value()->valid());
-        $temp = TrustedClientAllowedRedirectsVO::tryFrom(null, $errors);
-        $this->assertNull($temp->value());
-    }
+  {
+     $one = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));     $same = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'one'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'one'),
+        TrustedClientAllowedRedirectsVersionVO::from( 1)
+) ));     $other = TrustedClientAllowedRedirectsVO::from(new TrustedClientAllowedRedirectsListRef( new TrustedClientAllowedRedirectsItem(
+        TrustedClientAllowedRedirectsUidVO::from( 'other'),
+        TrustedClientAllowedRedirectsUrlVO::from( 'other'),
+        TrustedClientAllowedRedirectsVersionVO::from( 2)
+) ));
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_build_empty(): void
+  {
+    $errors = new ConstraintFailList();
+    $temp = TrustedClientAllowedRedirectsVO::tryFrom([], $errors);
+    $this->assertFalse($temp->value()->valid());
+    $temp = TrustedClientAllowedRedirectsVO::tryFrom(null, $errors);
+    $this->assertNull($temp->value());
+  }
 }

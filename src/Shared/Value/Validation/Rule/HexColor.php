@@ -25,7 +25,7 @@ class HexColor implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        /** @psalm-suppress UndefinedInterfaceMethod */
+		/** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::hexRgbColor()->isValid($value) ? null : new RuleFail('rule_hex_color', $value, []);
     }
 }

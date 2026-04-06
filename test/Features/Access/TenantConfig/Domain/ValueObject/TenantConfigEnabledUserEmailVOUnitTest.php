@@ -10,50 +10,49 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEn
 
 final class TenantConfigEnabledUserEmailVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 'one';
-        $ref = TenantConfigEnabledUserEmailVO::from($value);
-        $this->assertEquals('one', $ref->value());
-        $other = TenantConfigEnabledUserEmailVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TenantConfigEnabledUserEmailVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TenantConfigEnabledUserEmailVO::tryFrom(1, $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TenantConfigEnabledUserEmailVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TenantConfigEnabledUserEmailVO::from('one');
-        $same = TenantConfigEnabledUserEmailVO::from('one');
-        $other = TenantConfigEnabledUserEmailVO::from('other');
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 'one';
+    $ref = TenantConfigEnabledUserEmailVO::from( $value );
+    $this->assertEquals('one', $ref->value());
+    $other = TenantConfigEnabledUserEmailVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TenantConfigEnabledUserEmailVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TenantConfigEnabledUserEmailVO::tryFrom(1, $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TenantConfigEnabledUserEmailVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = TenantConfigEnabledUserEmailVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = TenantConfigEnabledUserEmailVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
+  {
+     $one = TenantConfigEnabledUserEmailVO::from('one');     $same = TenantConfigEnabledUserEmailVO::from('one');     $other = TenantConfigEnabledUserEmailVO::from('other');
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = TenantConfigEnabledUserEmailVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = TenantConfigEnabledUserEmailVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
 }

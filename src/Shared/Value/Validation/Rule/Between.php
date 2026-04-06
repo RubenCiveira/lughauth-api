@@ -36,7 +36,7 @@ class Between implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        /** @psalm-suppress UndefinedInterfaceMethod */
+		/** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::between($this->min, $this->max)->isValid($value) ? null : new RuleFail(
             'rule_between',
             $value,

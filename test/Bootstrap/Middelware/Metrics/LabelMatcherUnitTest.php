@@ -53,7 +53,7 @@ final class LabelMatcherUnitTest extends TestCase
         /*
          * Act: evaluate a matcher with an invalid regex.
          */
-        $result = (new LabelMatcher('path', '=~', '(invalid'))->matches($labels);
+		$result = (new LabelMatcher('path', '=~', '(invalid'))->matches($labels);
 
         /*
          * Assert: verify invalid regexes return false.

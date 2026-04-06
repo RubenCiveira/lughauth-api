@@ -50,14 +50,14 @@ class TrustedClientVersionAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientVersionAccessorUnitTest();
-        $original = $holder->withVersion(1);
-        $same = $holder->withVersion(1);
+        $original = $holder->withVersion( 1);
+        $same = $holder->withVersion( 1);
         $modified = $holder->withVersion(2);
 
         // Act
         $unchanged = $holder->isVersionChanged();
-        $withSame = $original->isVersionChanged($same);
-        $withDiferent = $original->isVersionChanged($modified);
+        $withSame = $original->isVersionChanged( $same );
+        $withDiferent = $original->isVersionChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TrustedClientVersionAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientVersionAccessorUnitTest
 {
-    use TrustedClientVersionAccessor;
+  use TrustedClientVersionAccessor;
 }

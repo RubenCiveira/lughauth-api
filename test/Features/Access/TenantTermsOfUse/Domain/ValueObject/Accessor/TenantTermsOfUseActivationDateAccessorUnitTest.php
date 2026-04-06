@@ -50,14 +50,14 @@ class TenantTermsOfUseActivationDateAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantTermsOfUseActivationDateAccessorUnitTest();
-        $original = $holder->withActivationDate((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withActivationDate((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withActivationDate( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withActivationDate( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withActivationDate((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isActivationDateChanged();
-        $withSame = $original->isActivationDateChanged($same);
-        $withDiferent = $original->isActivationDateChanged($modified);
+        $withSame = $original->isActivationDateChanged( $same );
+        $withDiferent = $original->isActivationDateChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantTermsOfUseActivationDateAccessorUnitTest extends TestCase
 }
 class ImplWithTenantTermsOfUseActivationDateAccessorUnitTest
 {
-    use TenantTermsOfUseActivationDateAccessor;
+  use TenantTermsOfUseActivationDateAccessor;
 }

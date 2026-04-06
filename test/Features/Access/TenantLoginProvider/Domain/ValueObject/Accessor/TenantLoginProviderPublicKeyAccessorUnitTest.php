@@ -50,14 +50,14 @@ class TenantLoginProviderPublicKeyAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderPublicKeyAccessorUnitTest();
-        $original = $holder->withPublicKey('one');
-        $same = $holder->withPublicKey('one');
+        $original = $holder->withPublicKey( 'one');
+        $same = $holder->withPublicKey( 'one');
         $modified = $holder->withPublicKey('other');
 
         // Act
         $unchanged = $holder->isPublicKeyChanged();
-        $withSame = $original->isPublicKeyChanged($same);
-        $withDiferent = $original->isPublicKeyChanged($modified);
+        $withSame = $original->isPublicKeyChanged( $same );
+        $withDiferent = $original->isPublicKeyChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantLoginProviderPublicKeyAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderPublicKeyAccessorUnitTest
 {
-    use TenantLoginProviderPublicKeyAccessor;
+  use TenantLoginProviderPublicKeyAccessor;
 }

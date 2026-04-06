@@ -10,74 +10,73 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 
 final class TenantLoginProviderMetadataVOUnitTest extends TestCase
 {
-    public function test_asignation_keep_value(): void
-    {
-        $value = 'store://bin';
-        $ref = TenantLoginProviderMetadataVO::from($value);
-        $this->assertEquals('bin', $ref->value());
-        $other = TenantLoginProviderMetadataVO::tryFrom($ref, new ConstraintFailList());
-        $this->assertSame($other, $ref);
-        $more = TenantLoginProviderMetadataVO::from($ref);
-        $this->assertSame($more, $ref);
-    }
-    public function test_asignation_invalid_type(): void
-    {
-        $errors = new ConstraintFailList();
-        $other = TenantLoginProviderMetadataVO::tryFrom(1, $errors);
-        $this->assertNull($other);
-        $this->assertTrue($errors->hasErrors());
-    }
-    public function test_optimist_asignation_invalid_type(): void
-    {
-        $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TenantLoginProviderMetadataVO::class, 'fromUnsafe');
-        $method->invoke(null, [11, "bad"]);
-    }
-    public function test_equals(): void
-    {
-        $one = TenantLoginProviderMetadataVO::from('store://bin');
-        $same = TenantLoginProviderMetadataVO::from('store://bin');
-        $other = TenantLoginProviderMetadataVO::from('store://obin');
-        $withEmpty = $one->equals(null);
-        $withSame = $one->equals($same);
-        $withOther = $one->equals($other);
+  public function test_asignation_keep_value(): void
+  {
+    $value = 'store://bin';
+    $ref = TenantLoginProviderMetadataVO::from( $value );
+    $this->assertEquals('bin', $ref->value());
+    $other = TenantLoginProviderMetadataVO::tryFrom($ref, new ConstraintFailList() );
+    $this->assertSame($other, $ref);
+    $more = TenantLoginProviderMetadataVO::from($ref);
+    $this->assertSame($more, $ref);
+  }
+  public function test_asignation_invalid_type(): void
+  {
+    $errors = new ConstraintFailList();
+    $other = TenantLoginProviderMetadataVO::tryFrom(1, $errors);
+    $this->assertNull($other);
+    $this->assertTrue( $errors->hasErrors() );
+  }
+  public function test_optimist_asignation_invalid_type(): void
+  {
+    $this->expectException(ConstraintException::class);
+    $method = new ReflectionMethod(TenantLoginProviderMetadataVO::class, 'fromUnsafe');
+    $method->invoke(null, [11, "bad"]);
+  }
+  public function test_equals(): void
 
-        $this->assertFalse($withEmpty);
-        $this->assertTrue($withSame);
-        $this->assertFalse($withOther);
-    }
-    public function test_empty(): void
-    {
-        $ref = TenantLoginProviderMetadataVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = TenantLoginProviderMetadataVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
-    public function test_cypher_builders(): void
-    {
-        $errors = new ConstraintFailList();
-        $temp = TenantLoginProviderMetadataVO::fromTemporal('tempus');
-        $this->assertEquals('tempus', $temp->value());
-        $temp = TenantLoginProviderMetadataVO::tryFromTemporal('tempus', $errors);
-        $this->assertEquals('tempus', $temp->value());
-        $this->assertTrue($errors->isEmpty());
-        $external = TenantLoginProviderMetadataVO::fromStored('http://www.php.net/');
-        $this->assertEquals('http://www.php.net/', $external->value());
-        $external = TenantLoginProviderMetadataVO::tryFromStored('http://www.php.net/', $errors);
-        $this->assertEquals('http://www.php.net/', $external->value());
-        $this->assertTrue($errors->isEmpty());
-        $internal = TenantLoginProviderMetadataVO::fromStored('none');
-        $this->assertEquals('none', $internal->value());
-        $external = TenantLoginProviderMetadataVO::tryFromStored('none', $errors);
-        $this->assertEquals('none', $internal->value());
-        $this->assertTrue($errors->isEmpty());
-    }
-    public function test_invalid_file_schmea(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        TenantLoginProviderMetadataVO::from('none');
-    }
+  {
+     $one = TenantLoginProviderMetadataVO::from('store://bin');     $same = TenantLoginProviderMetadataVO::from('store://bin');     $other = TenantLoginProviderMetadataVO::from('store://obin');
+     $withEmpty = $one->equals(null);
+     $withSame = $one->equals($same);
+     $withOther = $one->equals($other);
+
+     $this->assertFalse( $withEmpty );
+     $this->assertTrue( $withSame );
+     $this->assertFalse( $withOther );
+  }
+  public function test_empty(): void
+  {
+    $ref = TenantLoginProviderMetadataVO::empty();
+    $this->assertNull($ref->value());
+  }
+  public function test_try_from_empty(): void
+  {
+    $ref = TenantLoginProviderMetadataVO::tryFrom(null, new ConstraintFailList() );
+    $this->assertNull($ref->value());
+  }
+  public function test_cypher_builders(): void
+  {
+    $errors = new ConstraintFailList();
+    $temp = TenantLoginProviderMetadataVO::fromTemporal('tempus');
+    $this->assertEquals('tempus', $temp->value());
+    $temp = TenantLoginProviderMetadataVO::tryFromTemporal('tempus', $errors);
+    $this->assertEquals('tempus', $temp->value());
+    $this->assertTrue( $errors->isEmpty() );
+    $external = TenantLoginProviderMetadataVO::fromStored('http://www.php.net/');
+    $this->assertEquals('http://www.php.net/', $external->value());
+    $external = TenantLoginProviderMetadataVO::tryFromStored('http://www.php.net/', $errors);
+    $this->assertEquals('http://www.php.net/', $external->value());
+    $this->assertTrue( $errors->isEmpty() );
+    $internal = TenantLoginProviderMetadataVO::fromStored('none');
+    $this->assertEquals('none', $internal->value());
+    $external = TenantLoginProviderMetadataVO::tryFromStored('none', $errors);
+    $this->assertEquals('none', $internal->value());
+    $this->assertTrue( $errors->isEmpty() );
+  }
+  public function test_invalid_file_schmea(): void
+  {
+    $this->expectException(\InvalidArgumentException::class);
+    TenantLoginProviderMetadataVO::from('none');
+  }
 }

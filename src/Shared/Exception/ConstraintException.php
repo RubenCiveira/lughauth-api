@@ -128,7 +128,7 @@ class ConstraintException extends \RuntimeException implements Iterator
      *
      * @return bool
      */
-    #[Override]
+	#[Override]
     public function valid(): bool
     {
         return key($this->fails) !== null;

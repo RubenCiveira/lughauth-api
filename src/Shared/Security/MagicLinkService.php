@@ -37,7 +37,7 @@ class MagicLinkService
             throw new \InvalidArgumentException('Magic link requires a JWT token or identity.');
         }
 
-        if (null !== $request) {
+        if( null !== $request ) {
             $jwtToken = $request->getHeader('Authorization')[0];
             $identity = null;
             $connection = null;

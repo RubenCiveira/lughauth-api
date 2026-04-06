@@ -50,14 +50,14 @@ class UserAccessTemporalCodeRecoveryCodeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeRecoveryCodeAccessorUnitTest();
-        $original = $holder->withRecoveryCode('one');
-        $same = $holder->withRecoveryCode('one');
+        $original = $holder->withRecoveryCode( 'one');
+        $same = $holder->withRecoveryCode( 'one');
         $modified = $holder->withRecoveryCode('other');
 
         // Act
         $unchanged = $holder->isRecoveryCodeChanged();
-        $withSame = $original->isRecoveryCodeChanged($same);
-        $withDiferent = $original->isRecoveryCodeChanged($modified);
+        $withSame = $original->isRecoveryCodeChanged( $same );
+        $withDiferent = $original->isRecoveryCodeChanged( $modified );
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeRecoveryCodeAccessorUnitTest extends TestCase
 }
 class ImplWithUserAccessTemporalCodeRecoveryCodeAccessorUnitTest
 {
-    use UserAccessTemporalCodeRecoveryCodeAccessor;
+  use UserAccessTemporalCodeRecoveryCodeAccessor;
 }

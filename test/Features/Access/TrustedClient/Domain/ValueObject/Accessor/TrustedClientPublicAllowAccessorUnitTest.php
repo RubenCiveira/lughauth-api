@@ -50,13 +50,13 @@ class TrustedClientPublicAllowAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientPublicAllowAccessorUnitTest()->withPublicAllow(true);
-        $original = $holder->withPublicAllow(true);
-        $same = $holder->withPublicAllow(true);
+        $original = $holder->withPublicAllow( true);
+        $same = $holder->withPublicAllow( true);
         $modified = $holder->withPublicAllow(false);
 
         // Act
-        $withSame = $original->isPublicAllowChanged($same);
-        $withDiferent = $original->isPublicAllowChanged($modified);
+        $withSame = $original->isPublicAllowChanged( $same );
+        $withDiferent = $original->isPublicAllowChanged( $modified );
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TrustedClientPublicAllowAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientPublicAllowAccessorUnitTest
 {
-    use TrustedClientPublicAllowAccessor;
+  use TrustedClientPublicAllowAccessor;
 }

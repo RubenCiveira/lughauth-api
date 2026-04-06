@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
 /**
  * Decorator for file storage that enables audit trail integration.
- *
+ * 
  * TODO: implement audti operations over files
  *
  * This class wraps a FileStorageInterface implementation to provide a hook
