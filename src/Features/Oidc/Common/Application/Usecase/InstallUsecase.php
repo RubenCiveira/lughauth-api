@@ -30,14 +30,17 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway\PlatformIdentityWriteGateway;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\PlatformIdentity;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\PlatformIdentityAttributes;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesItem;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesListRef;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesRoleVO;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesUidVO;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\ValueObject\PlatformIdentityRolesVersionVO;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\Gateway\UserRoleAssignamentWriteGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\UserRoleAssignament;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\UserRoleAssignamentAttributes;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRolesItem;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRolesListRef;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRolesRoleVO;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRolesUidVO;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRolesVersionVO;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembershipAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
@@ -55,7 +58,8 @@ class InstallUsecase
         private readonly TenantWriteGateway $createTenant,
         private readonly RoleWriteGateway $createRole,
         private readonly UserWriteGateway $createUser,
-        private readonly PlatformIdentityWriteGateway $createPlatformIdentity,
+        private readonly UserRoleAssignamentWriteGateway $createUserRoleAssignament,
+        private readonly UserGroupMembershipWriteGateway $createUserGroupMembership,
         private readonly ApiKeyClientWriteGateway $apiKeys,
     ) {
     }
@@ -130,27 +134,33 @@ class InstallUsecase
         $created = $this->createUser->create(User::create($user));
         $this->createUser->update($created, $created->enable());
 
-        $roleAdmin = new PlatformIdentityRolesItem(
-            uid: PlatformIdentityRolesUidVO::from(Random::comb()),
-            role: PlatformIdentityRolesRoleVO::from(new RoleRef($admin->uid() ?? '')),
-            version: PlatformIdentityRolesVersionVO::from(0)
+        $roleAdmin = new UserRoleAssignamentRolesItem(
+            uid: UserRoleAssignamentRolesUidVO::from(Random::comb()),
+            role: UserRoleAssignamentRolesRoleVO::from(new RoleRef($admin->uid() ?? '')),
+            version: UserRoleAssignamentRolesVersionVO::from(0)
         );
-        $roleRoot = new PlatformIdentityRolesItem(
-            uid: PlatformIdentityRolesUidVO::from(Random::comb()),
-            role: PlatformIdentityRolesRoleVO::from(new RoleRef($root->uid() ?? '')),
-            version: PlatformIdentityRolesVersionVO::from(0)
+        $roleRoot = new UserRoleAssignamentRolesItem(
+            uid: UserRoleAssignamentRolesUidVO::from(Random::comb()),
+            role: UserRoleAssignamentRolesRoleVO::from(new RoleRef($root->uid() ?? '')),
+            version: UserRoleAssignamentRolesVersionVO::from(0)
         );
-        $iamAdmin = new PlatformIdentityRolesItem(
-            uid: PlatformIdentityRolesUidVO::from(Random::comb()),
-            role: PlatformIdentityRolesRoleVO::from(new RoleRef($iam->uid() ?? '')),
-            version: PlatformIdentityRolesVersionVO::from(0)
+        $iamAdmin = new UserRoleAssignamentRolesItem(
+            uid: UserRoleAssignamentRolesUidVO::from(Random::comb()),
+            role: UserRoleAssignamentRolesRoleVO::from(new RoleRef($iam->uid() ?? '')),
+            version: UserRoleAssignamentRolesVersionVO::from(0)
         );
 
-        $identity = new PlatformIdentityAttributes();
-        $identity->uid(Random::comb());
-        $identity->user(new UserRef($user->getUid() ?? ''));
-        $identity->roles(new PlatformIdentityRolesListRef($roleAdmin, $roleRoot, $iamAdmin));
-        $this->createPlatformIdentity->create(PlatformIdentity::create($identity));
+        $assignament = new UserRoleAssignamentAttributes();
+        $assignament->uid(Random::comb());
+        $assignament->user(new UserRef($user->getUid() ?? ''));
+        $assignament->roles(new UserRoleAssignamentRolesListRef($roleAdmin, $roleRoot, $iamAdmin));
+        $this->createUserRoleAssignament->create(UserRoleAssignament::create($assignament));
+
+        $membership = new UserGroupMembershipAttributes();
+        $membership->uid(Random::comb());
+        $membership->user(new UserRef($user->getUid() ?? ''));
+        $membership->groups('root');
+        $this->createUserGroupMembership->create(UserGroupMembership::create($membership));
 
         $apiKey = new ApiKeyClientAttributes();
         $apiKey->uid(Random::comb());

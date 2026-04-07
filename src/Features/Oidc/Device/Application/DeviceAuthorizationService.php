@@ -18,7 +18,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 
 final class DeviceAuthorizationService
 {
-    public const string DEFAULT_INTERVAL = 5;
+    public const int DEFAULT_INTERVAL = 5;
     public const string DEFAULT_TTL = 'PT10M';
 
     public function __construct(private readonly DeviceAuthorizationGateway $gateway)

@@ -13,10 +13,10 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
-use Civi\Lughauth\Features\Access\ClientIdentity\Domain\Gateway\ClientIdentityFilter;
-use Civi\Lughauth\Features\Access\ClientIdentity\Domain\Gateway\ClientIdentityReadGateway;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway\PlatformIdentityFilter;
-use Civi\Lughauth\Features\Access\PlatformIdentity\Domain\Gateway\PlatformIdentityReadGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\Gateway\UserRoleAssignamentFilter;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\Gateway\UserRoleAssignamentReadGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
@@ -40,8 +40,8 @@ class LoginAdapter implements LoginGateway
         private readonly UserLoaderAdapter $users,
         private readonly TenantConfigReadGateway $configs,
         private readonly UserAcceptedTermnsOfUseReadGateway $userTerms,
-        private readonly PlatformIdentityReadGateway $platformIdentities,
-        private readonly ClientIdentityReadGateway $clientIdentities,
+        private readonly UserGroupMembershipReadGateway $userGroupMemberships,
+        private readonly UserRoleAssignamentReadGateway $userRoleAssignaments,
         private readonly TrustedClientReadGateway $clients,
         private readonly RelyingPartyReadGateway $parties,
         private readonly UserWriteGateway $writeUsers,
@@ -68,8 +68,8 @@ class LoginAdapter implements LoginGateway
             tenantName: $theTenant->getName(),
             scope: $client->scope,
             audiences: $client->audiences,
-            roles: $this->loadRoles($client, $theTenant, $theUser),
-            groups: $this->loadGroups(),
+            roles: $this->loadRoles($client, $theUser),
+            groups: $this->loadGroups($client, $theUser),
         );
     }
 
@@ -91,8 +91,8 @@ class LoginAdapter implements LoginGateway
             tenantName: $theTenant->getName(),
             scope: $client->scope,
             audiences: $client->audiences,
-            roles: $this->loadRoles($client, $theTenant, $theUser),
-            groups: $this->loadGroups(),
+            roles: $this->loadRoles($client, $theUser),
+            groups: $this->loadGroups($client, $theUser),
         );
     }
 
@@ -131,8 +131,8 @@ class LoginAdapter implements LoginGateway
             tenantName: $theTenant->getName(),
             scope: $client->scope,
             audiences: $client->audiences,
-            roles: $this->loadRoles($client, $theTenant, $theUser),
-            groups: $this->loadGroups(),
+            roles: $this->loadRoles($client, $theUser),
+            groups: $this->loadGroups($client, $theUser),
         );
     }
 
@@ -227,16 +227,14 @@ class LoginAdapter implements LoginGateway
     /**
      * @return array<array-key, list<string>>
      */
-    private function loadRoles(AuthenticationRequest $client, Tenant $tenant, User $user): array
+    private function loadRoles(AuthenticationRequest $client, User $user): array
     {
-        $main = $tenant->getName() === 'main';
         /** @var array<array-key, list<string>> $roles */
         $roles = [];
         // Tengo roles para cualquier audiencia
         /** @var list<string> $forAll */
         $forAll = [];
-        $this->clientRolesFromIdentity(new ClientIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
-        $this->platformRolesFromIdentity(new PlatformIdentityFilter(user: $user)->withForAllAudiences(true), $main, $forAll);
+        $this->rolesFromAssignament(new UserRoleAssignamentFilter(user: $user)->withForAllAudiences(true), $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
                 if (!is_string($audience)) {
@@ -244,20 +242,16 @@ class LoginAdapter implements LoginGateway
                 }
                 $roles[$audience] = $forAll;
                 if ($from = $this->clients->findOneByCode($audience)) {
-                    $this->platformRolesFromIdentity(new PlatformIdentityFilter(
+                    $this->rolesFromAssignament(new UserRoleAssignamentFilter(
                         user: $user,
                         trustedClient: $from
-                    ), $main, $roles[$audience]);
+                    ), $roles[$audience]);
                 }
                 if ($from = $this->parties->findOneByCode($audience)) {
-                    $this->platformRolesFromIdentity(new PlatformIdentityFilter(
+                    $this->rolesFromAssignament(new UserRoleAssignamentFilter(
                         user: $user,
                         relyingParty: $from
-                    ), $main, $roles[$audience]);
-                    $this->clientRolesFromIdentity(new ClientIdentityFilter(
-                        user: $user,
-                        relyingParty: $from
-                    ), $main, $roles[$audience]);
+                    ), $roles[$audience]);
                 }
             }
         }
@@ -268,44 +262,26 @@ class LoginAdapter implements LoginGateway
      * @param list<string> $roles
      * @psalm-param-out list<string> $roles
      */
-    private function platformRolesFromIdentity(PlatformIdentityFilter $identityFilter, bool $main, array &$roles): void
+    private function rolesFromAssignament(UserRoleAssignamentFilter $filter, array &$roles): void
     {
-        if ($tc = $this->platformIdentities->retrieve($identityFilter)) {
-            $hisRoles = $tc->getRoles();
-            if (null !== $hisRoles) {
-                foreach ($hisRoles as $role) {
-                    if ($role === null) {
-                        continue;
-                    }
-                    $ref = $role->getRole();
-                    if ($ref === null) {
-                        continue;
-                    }
-                    $theRole = $this->roles->resolve($ref);
-                    if ($theRole) {
-                        $roleName = 'platform:' . strtolower($theRole->getName());
-                        if (!in_array($roleName, $roles, true)) {
-                            $roles[] =   $roleName;
-                        }
-                    }
-                }
+        $assignaments = $this->userRoleAssignaments->list($filter);
+        foreach ($assignaments->values() as $assignament) {
+            $assignamentRoles = $assignament->getRoles();
+            if (null === $assignamentRoles) {
+                continue;
             }
-        }
-    }
-
-    /**
-     * @param list<string> $roles
-     * @psalm-param-out list<string> $roles
-     */
-    private function clientRolesFromIdentity(ClientIdentityFilter $identityFilter, bool $main, array &$roles): void
-    {
-        if ($tc = $this->clientIdentities->retrieve($identityFilter)) {
-            $hisRoles = $tc->getRoles();
-            if (null !== $hisRoles) {
-                $roles = explode(",", $hisRoles);
-                foreach ($roles as $role) {
-                    $roleName = str_replace(':', '-', strtolower($role));
-                    if (!in_array($roleName, $roles, true)) {
+            foreach ($assignamentRoles as $role) {
+                if ($role === null) {
+                    continue;
+                }
+                $ref = $role->getRole();
+                if ($ref === null) {
+                    continue;
+                }
+                $theRole = $this->roles->resolve($ref);
+                if ($theRole) {
+                    $roleName = $theRole->getName();
+                    if ($roleName !== null && $roleName !== '' && !in_array($roleName, $roles, true)) {
                         $roles[] = $roleName;
                     }
                 }
@@ -316,8 +292,69 @@ class LoginAdapter implements LoginGateway
     /**
      * @psalm-return array<never, never>
      */
-    private function loadGroups(): array
+    private function loadGroups(AuthenticationRequest $client, User $user): array
     {
-        return [];
+        /** @var list<string> $groups */
+        $groups = [];
+        /** @var list<string> $forAll */
+        $forAll = [];
+        $this->groupsFromMembership(new UserGroupMembershipFilter(user: $user)->withForAllAudiences(true), $forAll);
+        if ($client->audiences) {
+            foreach ($client->audiences as $audience) {
+                if (!is_string($audience)) {
+                    continue;
+                }
+                $audienceGroups = $forAll;
+                if ($from = $this->clients->findOneByCode($audience)) {
+                    $this->groupsFromMembership(new UserGroupMembershipFilter(
+                        user: $user,
+                        trustedClient: $from
+                    ), $audienceGroups);
+                }
+                if ($from = $this->parties->findOneByCode($audience)) {
+                    $this->groupsFromMembership(new UserGroupMembershipFilter(
+                        user: $user,
+                        relyingParty: $from
+                    ), $audienceGroups);
+                }
+                foreach ($audienceGroups as $group) {
+                    if (!in_array($group, $groups, true)) {
+                        $groups[] = $group;
+                    }
+                }
+            }
+            return $groups;
+        }
+        return $forAll;
+    }
+
+    /**
+     * @param list<string> $groups
+     * @psalm-param-out list<string> $groups
+     */
+    private function groupsFromMembership(UserGroupMembershipFilter $filter, array &$groups): void
+    {
+        $memberships = $this->userGroupMemberships->list($filter);
+        foreach ($memberships->values() as $membership) {
+            $rawGroups = $membership->getGroups();
+            foreach ($this->parseGroupList($rawGroups) as $group) {
+                if (!in_array($group, $groups, true)) {
+                    $groups[] = $group;
+                }
+            }
+        }
+    }
+
+    /**
+     * @psalm-return list<string>
+     */
+    private function parseGroupList(?string $groups): array
+    {
+        if ($groups === null || $groups === '') {
+            return [];
+        }
+        $parts = array_map('trim', explode(',', $groups));
+        $parts = array_filter($parts, static fn (string $value): bool => $value !== '');
+        return array_values($parts);
     }
 }
