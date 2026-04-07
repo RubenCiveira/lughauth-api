@@ -50,13 +50,13 @@ class MessageUrgentAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithMessageUrgentAccessorUnitTest()->withUrgent(true);
-        $original = $holder->withUrgent( true);
-        $same = $holder->withUrgent( true);
+        $original = $holder->withUrgent(true);
+        $same = $holder->withUrgent(true);
         $modified = $holder->withUrgent(false);
 
         // Act
-        $withSame = $original->isUrgentChanged( $same );
-        $withDiferent = $original->isUrgentChanged( $modified );
+        $withSame = $original->isUrgentChanged($same);
+        $withDiferent = $original->isUrgentChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class MessageUrgentAccessorUnitTest extends TestCase
 }
 class ImplWithMessageUrgentAccessorUnitTest
 {
-  use MessageUrgentAccessor;
+    use MessageUrgentAccessor;
 }

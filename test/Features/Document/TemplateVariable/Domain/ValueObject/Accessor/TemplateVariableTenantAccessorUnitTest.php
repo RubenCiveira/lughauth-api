@@ -51,13 +51,13 @@ class TemplateVariableTenantAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateVariableTenantAccessorUnitTest()->withTenant(new TenantRef('one'));
-        $original = $holder->withTenant( new TenantRef('one'));
-        $same = $holder->withTenant( new TenantRef('one'));
+        $original = $holder->withTenant(new TenantRef('one'));
+        $same = $holder->withTenant(new TenantRef('one'));
         $modified = $holder->withTenant(new TenantRef('other'));
 
         // Act
-        $withSame = $original->isTenantChanged( $same );
-        $withDiferent = $original->isTenantChanged( $modified );
+        $withSame = $original->isTenantChanged($same);
+        $withDiferent = $original->isTenantChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class TemplateVariableTenantAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateVariableTenantAccessorUnitTest
 {
-  use TemplateVariableTenantAccessor;
+    use TemplateVariableTenantAccessor;
 }

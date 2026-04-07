@@ -50,14 +50,14 @@ class TenantConfigAllowRecoverPassAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigAllowRecoverPassAccessorUnitTest();
-        $original = $holder->withAllowRecoverPass( true);
-        $same = $holder->withAllowRecoverPass( true);
+        $original = $holder->withAllowRecoverPass(true);
+        $same = $holder->withAllowRecoverPass(true);
         $modified = $holder->withAllowRecoverPass(false);
 
         // Act
         $unchanged = $holder->isAllowRecoverPassChanged();
-        $withSame = $original->isAllowRecoverPassChanged( $same );
-        $withDiferent = $original->isAllowRecoverPassChanged( $modified );
+        $withSame = $original->isAllowRecoverPassChanged($same);
+        $withDiferent = $original->isAllowRecoverPassChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigAllowRecoverPassAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigAllowRecoverPassAccessorUnitTest
 {
-  use TenantConfigAllowRecoverPassAccessor;
+    use TenantConfigAllowRecoverPassAccessor;
 }

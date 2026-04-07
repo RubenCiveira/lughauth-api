@@ -10,49 +10,50 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAss
 
 final class TemplateAssetVersionVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 1;
-    $ref = TemplateAssetVersionVO::from( $value );
-    $this->assertEquals(1, $ref->value());
-    $other = TemplateAssetVersionVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TemplateAssetVersionVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TemplateAssetVersionVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TemplateAssetVersionVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 1;
+        $ref = TemplateAssetVersionVO::from($value);
+        $this->assertEquals(1, $ref->value());
+        $other = TemplateAssetVersionVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TemplateAssetVersionVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TemplateAssetVersionVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TemplateAssetVersionVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TemplateAssetVersionVO::from(1);
+        $same = TemplateAssetVersionVO::from(1);
+        $other = TemplateAssetVersionVO::from(2);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TemplateAssetVersionVO::from(1);     $same = TemplateAssetVersionVO::from(1);     $other = TemplateAssetVersionVO::from(2);
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TemplateAssetVersionVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TemplateAssetVersionVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TemplateAssetVersionVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TemplateAssetVersionVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

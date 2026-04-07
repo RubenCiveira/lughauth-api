@@ -50,13 +50,13 @@ class SmtpOutboundConfigLoginAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigLoginAccessorUnitTest()->withLogin('one');
-        $original = $holder->withLogin( 'one');
-        $same = $holder->withLogin( 'one');
+        $original = $holder->withLogin('one');
+        $same = $holder->withLogin('one');
         $modified = $holder->withLogin('other');
 
         // Act
-        $withSame = $original->isLoginChanged( $same );
-        $withDiferent = $original->isLoginChanged( $modified );
+        $withSame = $original->isLoginChanged($same);
+        $withDiferent = $original->isLoginChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigLoginAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigLoginAccessorUnitTest
 {
-  use SmtpOutboundConfigLoginAccessor;
+    use SmtpOutboundConfigLoginAccessor;
 }

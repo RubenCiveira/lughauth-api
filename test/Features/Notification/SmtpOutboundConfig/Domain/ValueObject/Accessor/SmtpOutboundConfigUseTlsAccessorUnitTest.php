@@ -50,13 +50,13 @@ class SmtpOutboundConfigUseTlsAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigUseTlsAccessorUnitTest()->withUseTls(true);
-        $original = $holder->withUseTls( true);
-        $same = $holder->withUseTls( true);
+        $original = $holder->withUseTls(true);
+        $same = $holder->withUseTls(true);
         $modified = $holder->withUseTls(false);
 
         // Act
-        $withSame = $original->isUseTlsChanged( $same );
-        $withDiferent = $original->isUseTlsChanged( $modified );
+        $withSame = $original->isUseTlsChanged($same);
+        $withDiferent = $original->isUseTlsChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigUseTlsAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigUseTlsAccessorUnitTest
 {
-  use SmtpOutboundConfigUseTlsAccessor;
+    use SmtpOutboundConfigUseTlsAccessor;
 }

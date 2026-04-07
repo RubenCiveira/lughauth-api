@@ -50,14 +50,14 @@ class TenantLoginProviderDirectAccessAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderDirectAccessAccessorUnitTest();
-        $original = $holder->withDirectAccess( true);
-        $same = $holder->withDirectAccess( true);
+        $original = $holder->withDirectAccess(true);
+        $same = $holder->withDirectAccess(true);
         $modified = $holder->withDirectAccess(false);
 
         // Act
         $unchanged = $holder->isDirectAccessChanged();
-        $withSame = $original->isDirectAccessChanged( $same );
-        $withDiferent = $original->isDirectAccessChanged( $modified );
+        $withSame = $original->isDirectAccessChanged($same);
+        $withDiferent = $original->isDirectAccessChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantLoginProviderDirectAccessAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderDirectAccessAccessorUnitTest
 {
-  use TenantLoginProviderDirectAccessAccessor;
+    use TenantLoginProviderDirectAccessAccessor;
 }

@@ -11,39 +11,40 @@ use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
 
 final class UserRoleAssignamentRolesRoleVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = new RoleRef('one');
-    $ref = UserRoleAssignamentRolesRoleVO::from( $value );
-    $this->assertEquals(new RoleRef('one'), $ref->value());
-    $other = UserRoleAssignamentRolesRoleVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = UserRoleAssignamentRolesRoleVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = UserRoleAssignamentRolesRoleVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(UserRoleAssignamentRolesRoleVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = new RoleRef('one');
+        $ref = UserRoleAssignamentRolesRoleVO::from($value);
+        $this->assertEquals(new RoleRef('one'), $ref->value());
+        $other = UserRoleAssignamentRolesRoleVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = UserRoleAssignamentRolesRoleVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = UserRoleAssignamentRolesRoleVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(UserRoleAssignamentRolesRoleVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = UserRoleAssignamentRolesRoleVO::from(new RoleRef('one'));
+        $same = UserRoleAssignamentRolesRoleVO::from(new RoleRef('one'));
+        $other = UserRoleAssignamentRolesRoleVO::from(new RoleRef('other'));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = UserRoleAssignamentRolesRoleVO::from(new RoleRef('one'));     $same = UserRoleAssignamentRolesRoleVO::from(new RoleRef('one'));     $other = UserRoleAssignamentRolesRoleVO::from(new RoleRef('other'));
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
 }

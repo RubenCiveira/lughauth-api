@@ -12,13 +12,13 @@ use PHPUnit\Framework\TestCase;
 
 class UserRoleAssignamentRolesItemUnitTest extends TestCase
 {
-  public function test_item_build(): void
-  {
-    $item = new UserRoleAssignamentRolesItem(
-      uid: UserRoleAssignamentRolesUidVO::from('one'),
-      role: UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
-      version: UserRoleAssignamentRolesVersionVO::from(1)
-    );
-    $this->assertEquals('one', $item->uid());
-  }
+    public function test_item_build(): void
+    {
+        $item = new UserRoleAssignamentRolesItem(
+            uid: UserRoleAssignamentRolesUidVO::from('one'),
+            role: UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            version: UserRoleAssignamentRolesVersionVO::from(1)
+        );
+        $this->assertEquals('one', $item->uid());
+    }
 }

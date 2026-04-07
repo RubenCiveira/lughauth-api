@@ -50,13 +50,13 @@ class SmtpOutboundConfigRetryDelayAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigRetryDelayAccessorUnitTest()->withRetryDelay(1);
-        $original = $holder->withRetryDelay( 1);
-        $same = $holder->withRetryDelay( 1);
+        $original = $holder->withRetryDelay(1);
+        $same = $holder->withRetryDelay(1);
         $modified = $holder->withRetryDelay(2);
 
         // Act
-        $withSame = $original->isRetryDelayChanged( $same );
-        $withDiferent = $original->isRetryDelayChanged( $modified );
+        $withSame = $original->isRetryDelayChanged($same);
+        $withDiferent = $original->isRetryDelayChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigRetryDelayAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigRetryDelayAccessorUnitTest
 {
-  use SmtpOutboundConfigRetryDelayAccessor;
+    use SmtpOutboundConfigRetryDelayAccessor;
 }

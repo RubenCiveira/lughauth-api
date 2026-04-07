@@ -51,13 +51,13 @@ class TenantTermsOfUseTenantAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantTermsOfUseTenantAccessorUnitTest()->withTenant(new TenantRef('one'));
-        $original = $holder->withTenant( new TenantRef('one'));
-        $same = $holder->withTenant( new TenantRef('one'));
+        $original = $holder->withTenant(new TenantRef('one'));
+        $same = $holder->withTenant(new TenantRef('one'));
         $modified = $holder->withTenant(new TenantRef('other'));
 
         // Act
-        $withSame = $original->isTenantChanged( $same );
-        $withDiferent = $original->isTenantChanged( $modified );
+        $withSame = $original->isTenantChanged($same);
+        $withDiferent = $original->isTenantChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class TenantTermsOfUseTenantAccessorUnitTest extends TestCase
 }
 class ImplWithTenantTermsOfUseTenantAccessorUnitTest
 {
-  use TenantTermsOfUseTenantAccessor;
+    use TenantTermsOfUseTenantAccessor;
 }

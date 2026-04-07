@@ -10,49 +10,50 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateV
 
 final class TemplateVersionContentTextVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 'one';
-    $ref = TemplateVersionContentTextVO::from( $value );
-    $this->assertEquals('one', $ref->value());
-    $other = TemplateVersionContentTextVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TemplateVersionContentTextVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TemplateVersionContentTextVO::tryFrom(1, $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TemplateVersionContentTextVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 'one';
+        $ref = TemplateVersionContentTextVO::from($value);
+        $this->assertEquals('one', $ref->value());
+        $other = TemplateVersionContentTextVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TemplateVersionContentTextVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TemplateVersionContentTextVO::tryFrom(1, $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TemplateVersionContentTextVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TemplateVersionContentTextVO::from('one');
+        $same = TemplateVersionContentTextVO::from('one');
+        $other = TemplateVersionContentTextVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TemplateVersionContentTextVO::from('one');     $same = TemplateVersionContentTextVO::from('one');     $other = TemplateVersionContentTextVO::from('other');
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TemplateVersionContentTextVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TemplateVersionContentTextVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TemplateVersionContentTextVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TemplateVersionContentTextVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

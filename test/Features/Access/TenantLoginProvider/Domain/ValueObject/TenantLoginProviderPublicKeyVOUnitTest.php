@@ -10,54 +10,55 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 
 final class TenantLoginProviderPublicKeyVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 'one';
-    $ref = TenantLoginProviderPublicKeyVO::from( $value );
-    $this->assertEquals('one', $ref->value());
-    $other = TenantLoginProviderPublicKeyVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TenantLoginProviderPublicKeyVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TenantLoginProviderPublicKeyVO::tryFrom(1, $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TenantLoginProviderPublicKeyVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 'one';
+        $ref = TenantLoginProviderPublicKeyVO::from($value);
+        $this->assertEquals('one', $ref->value());
+        $other = TenantLoginProviderPublicKeyVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TenantLoginProviderPublicKeyVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TenantLoginProviderPublicKeyVO::tryFrom(1, $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantLoginProviderPublicKeyVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantLoginProviderPublicKeyVO::from('one');
+        $same = TenantLoginProviderPublicKeyVO::from('one');
+        $other = TenantLoginProviderPublicKeyVO::from('other');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TenantLoginProviderPublicKeyVO::from('one');     $same = TenantLoginProviderPublicKeyVO::from('one');     $other = TenantLoginProviderPublicKeyVO::from('other');
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TenantLoginProviderPublicKeyVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TenantLoginProviderPublicKeyVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
-  public function test_exception_on_wrong_value_1(): void
-  {
-    $this->expectException(ConstraintException::class);
-    TenantLoginProviderPublicKeyVO::from( 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.' );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TenantLoginProviderPublicKeyVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TenantLoginProviderPublicKeyVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
+    public function test_exception_on_wrong_value_1(): void
+    {
+        $this->expectException(ConstraintException::class);
+        TenantLoginProviderPublicKeyVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+    }
 }

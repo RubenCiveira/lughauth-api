@@ -11,49 +11,50 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 final class SmtpOutboundConfigTenantVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = new TenantRef('one');
-    $ref = SmtpOutboundConfigTenantVO::from( $value );
-    $this->assertEquals(new TenantRef('one'), $ref->value());
-    $other = SmtpOutboundConfigTenantVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = SmtpOutboundConfigTenantVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = SmtpOutboundConfigTenantVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(SmtpOutboundConfigTenantVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = new TenantRef('one');
+        $ref = SmtpOutboundConfigTenantVO::from($value);
+        $this->assertEquals(new TenantRef('one'), $ref->value());
+        $other = SmtpOutboundConfigTenantVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = SmtpOutboundConfigTenantVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = SmtpOutboundConfigTenantVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(SmtpOutboundConfigTenantVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = SmtpOutboundConfigTenantVO::from(new TenantRef('one'));
+        $same = SmtpOutboundConfigTenantVO::from(new TenantRef('one'));
+        $other = SmtpOutboundConfigTenantVO::from(new TenantRef('other'));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = SmtpOutboundConfigTenantVO::from(new TenantRef('one'));     $same = SmtpOutboundConfigTenantVO::from(new TenantRef('one'));     $other = SmtpOutboundConfigTenantVO::from(new TenantRef('other'));
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = SmtpOutboundConfigTenantVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = SmtpOutboundConfigTenantVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = SmtpOutboundConfigTenantVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = SmtpOutboundConfigTenantVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

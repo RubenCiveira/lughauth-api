@@ -51,13 +51,13 @@ class TemplateChannelAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateChannelAccessorUnitTest()->withChannel(TemplateChannelOptions::MAIL);
-        $original = $holder->withChannel( TemplateChannelOptions::MAIL);
-        $same = $holder->withChannel( TemplateChannelOptions::MAIL);
+        $original = $holder->withChannel(TemplateChannelOptions::MAIL);
+        $same = $holder->withChannel(TemplateChannelOptions::MAIL);
         $modified = $holder->withChannel(TemplateChannelOptions::SMS);
 
         // Act
-        $withSame = $original->isChannelChanged( $same );
-        $withDiferent = $original->isChannelChanged( $modified );
+        $withSame = $original->isChannelChanged($same);
+        $withDiferent = $original->isChannelChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class TemplateChannelAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateChannelAccessorUnitTest
 {
-  use TemplateChannelAccessor;
+    use TemplateChannelAccessor;
 }

@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\TemplateSnippetRef;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\TemplateSnippet;
 
 final class TemplateSnippetRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new TemplateSnippetRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new TemplateSnippetRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

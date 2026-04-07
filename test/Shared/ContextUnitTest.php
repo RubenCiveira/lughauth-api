@@ -25,7 +25,7 @@ final class ContextUnitTest extends TestCase
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
-        
+
         $connection = $this->createMock(Connection::class);
         $identity = $this->createMock(Identity::class);
 
@@ -62,7 +62,7 @@ final class ContextUnitTest extends TestCase
         /* Arrange: set server variables needed for Connection. */
         $_SERVER['REQUEST_URI'] = '/test';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
-        
+
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);

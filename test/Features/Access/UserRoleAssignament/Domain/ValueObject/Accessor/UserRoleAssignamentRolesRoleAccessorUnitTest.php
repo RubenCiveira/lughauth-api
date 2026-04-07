@@ -51,13 +51,13 @@ class UserRoleAssignamentRolesRoleAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserRoleAssignamentRolesRoleAccessorUnitTest()->withRole(new RoleRef('one'));
-        $original = $holder->withRole( new RoleRef('one'));
-        $same = $holder->withRole( new RoleRef('one'));
+        $original = $holder->withRole(new RoleRef('one'));
+        $same = $holder->withRole(new RoleRef('one'));
         $modified = $holder->withRole(new RoleRef('other'));
 
         // Act
-        $withSame = $original->isRoleChanged( $same );
-        $withDiferent = $original->isRoleChanged( $modified );
+        $withSame = $original->isRoleChanged($same);
+        $withDiferent = $original->isRoleChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class UserRoleAssignamentRolesRoleAccessorUnitTest extends TestCase
 }
 class ImplWithUserRoleAssignamentRolesRoleAccessorUnitTest
 {
-  use UserRoleAssignamentRolesRoleAccessor;
+    use UserRoleAssignamentRolesRoleAccessor;
 }

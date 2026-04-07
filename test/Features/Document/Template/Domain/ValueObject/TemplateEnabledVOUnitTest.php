@@ -10,49 +10,50 @@ use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateEnabledV
 
 final class TemplateEnabledVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = true;
-    $ref = TemplateEnabledVO::from( $value );
-    $this->assertEquals(true, $ref->value());
-    $other = TemplateEnabledVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TemplateEnabledVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TemplateEnabledVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TemplateEnabledVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = true;
+        $ref = TemplateEnabledVO::from($value);
+        $this->assertEquals(true, $ref->value());
+        $other = TemplateEnabledVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TemplateEnabledVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TemplateEnabledVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TemplateEnabledVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TemplateEnabledVO::from(true);
+        $same = TemplateEnabledVO::from(true);
+        $other = TemplateEnabledVO::from(false);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TemplateEnabledVO::from(true);     $same = TemplateEnabledVO::from(true);     $other = TemplateEnabledVO::from(false);
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TemplateEnabledVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TemplateEnabledVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TemplateEnabledVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TemplateEnabledVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

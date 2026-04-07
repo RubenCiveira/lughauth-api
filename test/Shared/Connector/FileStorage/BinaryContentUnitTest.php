@@ -19,230 +19,230 @@ namespace Civi\Lughauth\Shared\Connector\FileStorage {
 }
 
 namespace {
-use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
+    use PHPUnit\Framework\TestCase;
+    use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 
-final class FailingOpenStreamWrapper
-{
-    public function stream_open(string $path, string $mode, int $options, ?string &$openedPath): bool
+    final class FailingOpenStreamWrapper
     {
-        return false;
-    }
+        public function stream_open(string $path, string $mode, int $options, ?string &$openedPath): bool
+        {
+            return false;
+        }
 
-    public function url_stat(string $path, int $flags): array
-    {
-        return [
-            'mode' => 0100444,
-            'size' => 0,
-            'mtime' => time(),
-        ];
-    }
+        public function url_stat(string $path, int $flags): array
+        {
+            return [
+                'mode' => 0100444,
+                'size' => 0,
+                'mtime' => time(),
+            ];
+        }
 
-    public function stream_stat(): array
-    {
-        return $this->url_stat('', 0);
-    }
-}
-
-/**
- * Unit tests for BinaryContent.
- */
-final class BinaryContentUnitTest extends TestCase
-{
-    /**
-     * Ensures fromFile creates a BinaryContent instance.
-     */
-    public function testFromFileCreatesBinaryContent(): void
-    {
-        /*
-         * Arrange: create a temporary file with payload content.
-         */
-        $path = tempnam(sys_get_temp_dir(), 'binary_');
-        file_put_contents($path, 'payload');
-        $content = null;
-
-        try {
-            /*
-             * Act: build binary content from the file path.
-             */
-            $content = BinaryContent::fromFile($path);
-
-            /*
-             * Assert: verify the binary content metadata and stream.
-             */
-            $this->assertSame(basename($path), $content->name);
-            $this->assertSame('text/plain', $content->mime); // MIME detection now works
-            $this->assertInstanceOf(\DateTime::class, $content->lastChange);
-            $this->assertIsResource($content->stream);
-            $this->assertTrue($content->isStreamOpen());
-        } finally {
-            unlink($path);
+        public function stream_stat(): array
+        {
+            return $this->url_stat('', 0);
         }
     }
 
     /**
-     * Ensures the constructor stores all values.
+     * Unit tests for BinaryContent.
      */
-    public function testConstructorStoresValues(): void
+    final class BinaryContentUnitTest extends TestCase
     {
-        /*
-         * Arrange: create a BinaryContent instance with known values.
+        /**
+         * Ensures fromFile creates a BinaryContent instance.
          */
-        $date = new \DateTime('2024-01-01');
-        $stream = fopen('php://temp', 'r+');
-        $content = new BinaryContent('name', 'mime', $date, $stream, 'https://example.com/file');
+        public function testFromFileCreatesBinaryContent(): void
+        {
+            /*
+             * Arrange: create a temporary file with payload content.
+             */
+            $path = tempnam(sys_get_temp_dir(), 'binary_');
+            file_put_contents($path, 'payload');
+            $content = null;
 
-        /*
-         * Act: access the public properties on the content.
+            try {
+                /*
+                 * Act: build binary content from the file path.
+                 */
+                $content = BinaryContent::fromFile($path);
+
+                /*
+                 * Assert: verify the binary content metadata and stream.
+                 */
+                $this->assertSame(basename($path), $content->name);
+                $this->assertSame('text/plain', $content->mime); // MIME detection now works
+                $this->assertInstanceOf(\DateTime::class, $content->lastChange);
+                $this->assertIsResource($content->stream);
+                $this->assertTrue($content->isStreamOpen());
+            } finally {
+                unlink($path);
+            }
+        }
+
+        /**
+         * Ensures the constructor stores all values.
          */
-        $name = $content->name;
-        $mime = $content->mime;
-        $lastChange = $content->lastChange;
-        $contentStream = $content->stream;
-        $publicUrl = $content->publicUrl;
+        public function testConstructorStoresValues(): void
+        {
+            /*
+             * Arrange: create a BinaryContent instance with known values.
+             */
+            $date = new \DateTime('2024-01-01');
+            $stream = fopen('php://temp', 'r+');
+            $content = new BinaryContent('name', 'mime', $date, $stream, 'https://example.com/file');
 
-        /*
-         * Assert: verify the stored values match the inputs.
+            /*
+             * Act: access the public properties on the content.
+             */
+            $name = $content->name;
+            $mime = $content->mime;
+            $lastChange = $content->lastChange;
+            $contentStream = $content->stream;
+            $publicUrl = $content->publicUrl;
+
+            /*
+             * Assert: verify the stored values match the inputs.
+             */
+            $this->assertSame('name', $name);
+            $this->assertSame('mime', $mime);
+            $this->assertSame($date, $lastChange);
+            $this->assertSame($stream, $contentStream);
+            $this->assertSame('https://example.com/file', $publicUrl);
+
+            fclose($stream);
+        }
+
+        /**
+         * Tests fromFile with non-existent file throws exception.
          */
-        $this->assertSame('name', $name);
-        $this->assertSame('mime', $mime);
-        $this->assertSame($date, $lastChange);
-        $this->assertSame($stream, $contentStream);
-        $this->assertSame('https://example.com/file', $publicUrl);
-
-        fclose($stream);
-    }
-
-    /**
-     * Tests fromFile with non-existent file throws exception.
-     */
-    public function testFromFileWithNonExistentFileThrowsException(): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('File not found:');
-
-        BinaryContent::fromFile('/non/existent/file.txt');
-    }
-
-    /**
-     * Tests fromFile with unreadable file throws exception.
-     */
-    public function testFromFileWithUnreadableFileThrowsException(): void
-    {
-        $path = tempnam(sys_get_temp_dir(), 'unreadable_');
-        file_put_contents($path, 'test');
-        chmod($path, 0000);
-
-        try {
+        public function testFromFileWithNonExistentFileThrowsException(): void
+        {
             $this->expectException(\InvalidArgumentException::class);
-            $this->expectExceptionMessage('File is not readable:');
+            $this->expectExceptionMessage('File not found:');
 
-            BinaryContent::fromFile($path);
-        } finally {
-            chmod($path, 0644);
-            unlink($path);
+            BinaryContent::fromFile('/non/existent/file.txt');
         }
-    }
 
-    /**
-     * Tests fromFile throws exception when resource cannot be opened.
-     */
-    public function testFromFileWhenResourceCannotBeOpenedThrowsException(): void
-    {
-        $scheme = 'failopen';
-        if (in_array($scheme, stream_get_wrappers(), true)) {
-            stream_wrapper_unregister($scheme);
+        /**
+         * Tests fromFile with unreadable file throws exception.
+         */
+        public function testFromFileWithUnreadableFileThrowsException(): void
+        {
+            $path = tempnam(sys_get_temp_dir(), 'unreadable_');
+            file_put_contents($path, 'test');
+            chmod($path, 0000);
+
+            try {
+                $this->expectException(\InvalidArgumentException::class);
+                $this->expectExceptionMessage('File is not readable:');
+
+                BinaryContent::fromFile($path);
+            } finally {
+                chmod($path, 0644);
+                unlink($path);
+            }
         }
-        stream_wrapper_register($scheme, FailingOpenStreamWrapper::class);
 
-        set_error_handler(static fn () => true);
-        try {
-            $this->expectException(\RuntimeException::class);
-            $this->expectExceptionMessage('Failed to open file:');
+        /**
+         * Tests fromFile throws exception when resource cannot be opened.
+         */
+        public function testFromFileWhenResourceCannotBeOpenedThrowsException(): void
+        {
+            $scheme = 'failopen';
+            if (in_array($scheme, stream_get_wrappers(), true)) {
+                stream_wrapper_unregister($scheme);
+            }
+            stream_wrapper_register($scheme, FailingOpenStreamWrapper::class);
 
-            BinaryContent::fromFile("{$scheme}://file.txt");
-        } finally {
-            restore_error_handler();
-            stream_wrapper_unregister($scheme);
+            set_error_handler(static fn () => true);
+            try {
+                $this->expectException(\RuntimeException::class);
+                $this->expectExceptionMessage('Failed to open file:');
+
+                BinaryContent::fromFile("{$scheme}://file.txt");
+            } finally {
+                restore_error_handler();
+                stream_wrapper_unregister($scheme);
+            }
         }
-    }
 
-    /**
-     * Tests MIME type detection for different file types.
-     */
-    public function testMimeTypeDetection(): void
-    {
-        // Test JSON file
-        $jsonPath = tempnam(sys_get_temp_dir(), 'test_') . '.json';
-        file_put_contents($jsonPath, '{"test": "value"}');
+        /**
+         * Tests MIME type detection for different file types.
+         */
+        public function testMimeTypeDetection(): void
+        {
+            // Test JSON file
+            $jsonPath = tempnam(sys_get_temp_dir(), 'test_') . '.json';
+            file_put_contents($jsonPath, '{"test": "value"}');
 
-        $content = BinaryContent::fromFile($jsonPath);
-        $this->assertSame('application/json', $content->mime);
+            $content = BinaryContent::fromFile($jsonPath);
+            $this->assertSame('application/json', $content->mime);
 
-        unlink($jsonPath);
+            unlink($jsonPath);
 
-        // Test text file
-        $textPath = tempnam(sys_get_temp_dir(), 'test_') . '.txt';
-        file_put_contents($textPath, 'plain text content');
+            // Test text file
+            $textPath = tempnam(sys_get_temp_dir(), 'test_') . '.txt';
+            file_put_contents($textPath, 'plain text content');
 
-        $content = BinaryContent::fromFile($textPath);
-        $this->assertSame('text/plain', $content->mime);
+            $content = BinaryContent::fromFile($textPath);
+            $this->assertSame('text/plain', $content->mime);
 
-        unlink($textPath);
-    }
+            unlink($textPath);
+        }
 
-    /**
-     * Tests file timestamp is correctly retrieved.
-     */
-    public function testFileTimestamp(): void
-    {
-        $path = tempnam(sys_get_temp_dir(), 'timestamp_');
-        file_put_contents($path, 'content');
+        /**
+         * Tests file timestamp is correctly retrieved.
+         */
+        public function testFileTimestamp(): void
+        {
+            $path = tempnam(sys_get_temp_dir(), 'timestamp_');
+            file_put_contents($path, 'content');
 
-        $originalTime = filemtime($path);
-        $content = BinaryContent::fromFile($path);
-
-        $this->assertEqualsWithDelta(
-            new \DateTime("@{$originalTime}"),
-            $content->lastChange,
-            1 // Allow 1 second difference due to file system precision
-        );
-
-        unlink($path);
-    }
-
-    /**
-     * Tests isStreamOpen method.
-     */
-    public function testIsStreamOpen(): void
-    {
-        $path = tempnam(sys_get_temp_dir(), 'stream_');
-        file_put_contents($path, 'content');
-
-        $content = BinaryContent::fromFile($path);
-        $this->assertTrue($content->isStreamOpen());
-
-        unlink($path);
-    }
-
-    /**
-     * Tests MIME detection when finfo_file is unavailable.
-     */
-    public function testMimeTypeDetectionWithoutFinfoUsesMimeContentType(): void
-    {
-        $path = tempnam(sys_get_temp_dir(), 'mime_') . '.txt';
-        file_put_contents($path, 'plain text content');
-
-        $GLOBALS['disable_finfo_file'] = true;
-        try {
-            $expectedMime = mime_content_type($path);
+            $originalTime = filemtime($path);
             $content = BinaryContent::fromFile($path);
 
-            $this->assertSame($expectedMime, $content->mime);
-        } finally {
-            unset($GLOBALS['disable_finfo_file']);
+            $this->assertEqualsWithDelta(
+                new \DateTime("@{$originalTime}"),
+                $content->lastChange,
+                1 // Allow 1 second difference due to file system precision
+            );
+
             unlink($path);
         }
+
+        /**
+         * Tests isStreamOpen method.
+         */
+        public function testIsStreamOpen(): void
+        {
+            $path = tempnam(sys_get_temp_dir(), 'stream_');
+            file_put_contents($path, 'content');
+
+            $content = BinaryContent::fromFile($path);
+            $this->assertTrue($content->isStreamOpen());
+
+            unlink($path);
+        }
+
+        /**
+         * Tests MIME detection when finfo_file is unavailable.
+         */
+        public function testMimeTypeDetectionWithoutFinfoUsesMimeContentType(): void
+        {
+            $path = tempnam(sys_get_temp_dir(), 'mime_') . '.txt';
+            file_put_contents($path, 'plain text content');
+
+            $GLOBALS['disable_finfo_file'] = true;
+            try {
+                $expectedMime = mime_content_type($path);
+                $content = BinaryContent::fromFile($path);
+
+                $this->assertSame($expectedMime, $content->mime);
+            } finally {
+                unset($GLOBALS['disable_finfo_file']);
+                unlink($path);
+            }
+        }
     }
-}
 }

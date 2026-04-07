@@ -50,14 +50,14 @@ class TrustedClientSecretOauthAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientSecretOauthAccessorUnitTest();
-        $original = $holder->withSecretOauth( 'cyphered://cypher');
-        $same = $holder->withSecretOauth( 'cyphered://cypher');
+        $original = $holder->withSecretOauth('cyphered://cypher');
+        $same = $holder->withSecretOauth('cyphered://cypher');
         $modified = $holder->withSecretOauth('cyphered://ocyphered');
 
         // Act
         $unchanged = $holder->isSecretOauthChanged();
-        $withSame = $original->isSecretOauthChanged( $same );
-        $withDiferent = $original->isSecretOauthChanged( $modified );
+        $withSame = $original->isSecretOauthChanged($same);
+        $withDiferent = $original->isSecretOauthChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TrustedClientSecretOauthAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientSecretOauthAccessorUnitTest
 {
-  use TrustedClientSecretOauthAccessor;
+    use TrustedClientSecretOauthAccessor;
 }

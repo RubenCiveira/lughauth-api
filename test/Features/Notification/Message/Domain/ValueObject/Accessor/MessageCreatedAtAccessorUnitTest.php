@@ -50,13 +50,13 @@ class MessageCreatedAtAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithMessageCreatedAtAccessorUnitTest()->withCreatedAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $original = $holder->withCreatedAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withCreatedAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withCreatedAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withCreatedAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withCreatedAt((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
-        $withSame = $original->isCreatedAtChanged( $same );
-        $withDiferent = $original->isCreatedAtChanged( $modified );
+        $withSame = $original->isCreatedAtChanged($same);
+        $withDiferent = $original->isCreatedAtChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class MessageCreatedAtAccessorUnitTest extends TestCase
 }
 class ImplWithMessageCreatedAtAccessorUnitTest
 {
-  use MessageCreatedAtAccessor;
+    use MessageCreatedAtAccessor;
 }

@@ -50,13 +50,13 @@ class SmtpOutboundConfigRateLimitAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigRateLimitAccessorUnitTest()->withRateLimit(1);
-        $original = $holder->withRateLimit( 1);
-        $same = $holder->withRateLimit( 1);
+        $original = $holder->withRateLimit(1);
+        $same = $holder->withRateLimit(1);
         $modified = $holder->withRateLimit(2);
 
         // Act
-        $withSame = $original->isRateLimitChanged( $same );
-        $withDiferent = $original->isRateLimitChanged( $modified );
+        $withSame = $original->isRateLimitChanged($same);
+        $withDiferent = $original->isRateLimitChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigRateLimitAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigRateLimitAccessorUnitTest
 {
-  use SmtpOutboundConfigRateLimitAccessor;
+    use SmtpOutboundConfigRateLimitAccessor;
 }

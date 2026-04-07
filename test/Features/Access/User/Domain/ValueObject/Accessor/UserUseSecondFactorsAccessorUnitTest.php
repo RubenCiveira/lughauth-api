@@ -50,14 +50,14 @@ class UserUseSecondFactorsAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserUseSecondFactorsAccessorUnitTest();
-        $original = $holder->withUseSecondFactors( true);
-        $same = $holder->withUseSecondFactors( true);
+        $original = $holder->withUseSecondFactors(true);
+        $same = $holder->withUseSecondFactors(true);
         $modified = $holder->withUseSecondFactors(false);
 
         // Act
         $unchanged = $holder->isUseSecondFactorsChanged();
-        $withSame = $original->isUseSecondFactorsChanged( $same );
-        $withDiferent = $original->isUseSecondFactorsChanged( $modified );
+        $withSame = $original->isUseSecondFactorsChanged($same);
+        $withDiferent = $original->isUseSecondFactorsChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserUseSecondFactorsAccessorUnitTest extends TestCase
 }
 class ImplWithUserUseSecondFactorsAccessorUnitTest
 {
-  use UserUseSecondFactorsAccessor;
+    use UserUseSecondFactorsAccessor;
 }

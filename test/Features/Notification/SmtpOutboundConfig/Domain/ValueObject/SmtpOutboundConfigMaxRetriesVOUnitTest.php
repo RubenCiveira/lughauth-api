@@ -10,39 +10,40 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 final class SmtpOutboundConfigMaxRetriesVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 1;
-    $ref = SmtpOutboundConfigMaxRetriesVO::from( $value );
-    $this->assertEquals(1, $ref->value());
-    $other = SmtpOutboundConfigMaxRetriesVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = SmtpOutboundConfigMaxRetriesVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = SmtpOutboundConfigMaxRetriesVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(SmtpOutboundConfigMaxRetriesVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 1;
+        $ref = SmtpOutboundConfigMaxRetriesVO::from($value);
+        $this->assertEquals(1, $ref->value());
+        $other = SmtpOutboundConfigMaxRetriesVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = SmtpOutboundConfigMaxRetriesVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = SmtpOutboundConfigMaxRetriesVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(SmtpOutboundConfigMaxRetriesVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = SmtpOutboundConfigMaxRetriesVO::from(1);
+        $same = SmtpOutboundConfigMaxRetriesVO::from(1);
+        $other = SmtpOutboundConfigMaxRetriesVO::from(2);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = SmtpOutboundConfigMaxRetriesVO::from(1);     $same = SmtpOutboundConfigMaxRetriesVO::from(1);     $other = SmtpOutboundConfigMaxRetriesVO::from(2);
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
 }

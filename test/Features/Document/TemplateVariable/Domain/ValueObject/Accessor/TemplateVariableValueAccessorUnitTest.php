@@ -50,14 +50,14 @@ class TemplateVariableValueAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateVariableValueAccessorUnitTest();
-        $original = $holder->withValue( 'one');
-        $same = $holder->withValue( 'one');
+        $original = $holder->withValue('one');
+        $same = $holder->withValue('one');
         $modified = $holder->withValue('other');
 
         // Act
         $unchanged = $holder->isValueChanged();
-        $withSame = $original->isValueChanged( $same );
-        $withDiferent = $original->isValueChanged( $modified );
+        $withSame = $original->isValueChanged($same);
+        $withDiferent = $original->isValueChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TemplateVariableValueAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateVariableValueAccessorUnitTest
 {
-  use TemplateVariableValueAccessor;
+    use TemplateVariableValueAccessor;
 }

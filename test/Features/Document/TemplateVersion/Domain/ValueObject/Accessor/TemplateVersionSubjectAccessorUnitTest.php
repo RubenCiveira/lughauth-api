@@ -50,14 +50,14 @@ class TemplateVersionSubjectAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateVersionSubjectAccessorUnitTest();
-        $original = $holder->withSubject( 'one');
-        $same = $holder->withSubject( 'one');
+        $original = $holder->withSubject('one');
+        $same = $holder->withSubject('one');
         $modified = $holder->withSubject('other');
 
         // Act
         $unchanged = $holder->isSubjectChanged();
-        $withSame = $original->isSubjectChanged( $same );
-        $withDiferent = $original->isSubjectChanged( $modified );
+        $withSame = $original->isSubjectChanged($same);
+        $withDiferent = $original->isSubjectChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TemplateVersionSubjectAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateVersionSubjectAccessorUnitTest
 {
-  use TemplateVersionSubjectAccessor;
+    use TemplateVersionSubjectAccessor;
 }

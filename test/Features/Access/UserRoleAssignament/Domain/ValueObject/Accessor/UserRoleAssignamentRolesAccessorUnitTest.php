@@ -30,19 +30,19 @@ class UserRoleAssignamentRolesAccessorUnitTest extends TestCase
         $holder = new ImplWithUserRoleAssignamentRolesAccessorUnitTest();
 
         // Act
-        $result = $holder->withRoles(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));
+        $result = $holder->withRoles(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ), $result->getRoles());
+        $this->assertEquals(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )), $result->getRoles());
     }
     /**
      * Asserts that withroles has access to the value object
@@ -54,47 +54,47 @@ class UserRoleAssignamentRolesAccessorUnitTest extends TestCase
         $holder = new ImplWithUserRoleAssignamentRolesAccessorUnitTest();
 
         // Act
-        $result = $holder->withRoles(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));
+        $result = $holder->withRoles(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ), $result->roles()->value());
+        $this->assertEquals(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )), $result->roles()->value());
     }
     public function testChangedRoles(): void
     {
         // Arrange
-        $holder = new ImplWithUserRoleAssignamentRolesAccessorUnitTest()->withRoles(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));
-        $original = $holder->withRoles( new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));
-        $same = $holder->withRoles( new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));
-        $modified = $holder->withRoles(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'other'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('other')),
-        UserRoleAssignamentRolesVersionVO::from( 2)
-) ));
+        $holder = new ImplWithUserRoleAssignamentRolesAccessorUnitTest()->withRoles(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
+        $original = $holder->withRoles(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
+        $same = $holder->withRoles(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
+        $modified = $holder->withRoles(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('other'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('other')),
+            UserRoleAssignamentRolesVersionVO::from(2)
+        )));
 
         // Act
-        $withSame = $original->isRolesChanged( $same );
-        $withDiferent = $original->isRolesChanged( $modified );
+        $withSame = $original->isRolesChanged($same);
+        $withDiferent = $original->isRolesChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -103,5 +103,5 @@ class UserRoleAssignamentRolesAccessorUnitTest extends TestCase
 }
 class ImplWithUserRoleAssignamentRolesAccessorUnitTest
 {
-  use UserRoleAssignamentRolesAccessor;
+    use UserRoleAssignamentRolesAccessor;
 }

@@ -50,14 +50,14 @@ class TrustedClientAllowAllScopesAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientAllowAllScopesAccessorUnitTest();
-        $original = $holder->withAllowAllScopes( true);
-        $same = $holder->withAllowAllScopes( true);
+        $original = $holder->withAllowAllScopes(true);
+        $same = $holder->withAllowAllScopes(true);
         $modified = $holder->withAllowAllScopes(false);
 
         // Act
         $unchanged = $holder->isAllowAllScopesChanged();
-        $withSame = $original->isAllowAllScopesChanged( $same );
-        $withDiferent = $original->isAllowAllScopesChanged( $modified );
+        $withSame = $original->isAllowAllScopesChanged($same);
+        $withDiferent = $original->isAllowAllScopesChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TrustedClientAllowAllScopesAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientAllowAllScopesAccessorUnitTest
 {
-  use TrustedClientAllowAllScopesAccessor;
+    use TrustedClientAllowAllScopesAccessor;
 }

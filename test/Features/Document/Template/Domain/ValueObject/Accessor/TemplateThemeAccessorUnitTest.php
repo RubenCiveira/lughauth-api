@@ -51,14 +51,14 @@ class TemplateThemeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateThemeAccessorUnitTest();
-        $original = $holder->withTheme( new ThemeRef('one'));
-        $same = $holder->withTheme( new ThemeRef('one'));
+        $original = $holder->withTheme(new ThemeRef('one'));
+        $same = $holder->withTheme(new ThemeRef('one'));
         $modified = $holder->withTheme(new ThemeRef('other'));
 
         // Act
         $unchanged = $holder->isThemeChanged();
-        $withSame = $original->isThemeChanged( $same );
-        $withDiferent = $original->isThemeChanged( $modified );
+        $withSame = $original->isThemeChanged($same);
+        $withDiferent = $original->isThemeChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -68,5 +68,5 @@ class TemplateThemeAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateThemeAccessorUnitTest
 {
-  use TemplateThemeAccessor;
+    use TemplateThemeAccessor;
 }

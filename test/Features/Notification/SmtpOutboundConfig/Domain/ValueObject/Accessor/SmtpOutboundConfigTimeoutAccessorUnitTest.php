@@ -50,13 +50,13 @@ class SmtpOutboundConfigTimeoutAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigTimeoutAccessorUnitTest()->withTimeout(1);
-        $original = $holder->withTimeout( 1);
-        $same = $holder->withTimeout( 1);
+        $original = $holder->withTimeout(1);
+        $same = $holder->withTimeout(1);
         $modified = $holder->withTimeout(2);
 
         // Act
-        $withSame = $original->isTimeoutChanged( $same );
-        $withDiferent = $original->isTimeoutChanged( $modified );
+        $withSame = $original->isTimeoutChanged($same);
+        $withDiferent = $original->isTimeoutChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigTimeoutAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigTimeoutAccessorUnitTest
 {
-  use SmtpOutboundConfigTimeoutAccessor;
+    use SmtpOutboundConfigTimeoutAccessor;
 }

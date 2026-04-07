@@ -50,14 +50,14 @@ class TenantConfigRegisterdEmailAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigRegisterdEmailAccessorUnitTest();
-        $original = $holder->withRegisterdEmail( 'one');
-        $same = $holder->withRegisterdEmail( 'one');
+        $original = $holder->withRegisterdEmail('one');
+        $same = $holder->withRegisterdEmail('one');
         $modified = $holder->withRegisterdEmail('other');
 
         // Act
         $unchanged = $holder->isRegisterdEmailChanged();
-        $withSame = $original->isRegisterdEmailChanged( $same );
-        $withDiferent = $original->isRegisterdEmailChanged( $modified );
+        $withSame = $original->isRegisterdEmailChanged($same);
+        $withDiferent = $original->isRegisterdEmailChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigRegisterdEmailAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigRegisterdEmailAccessorUnitTest
 {
-  use TenantConfigRegisterdEmailAccessor;
+    use TenantConfigRegisterdEmailAccessor;
 }

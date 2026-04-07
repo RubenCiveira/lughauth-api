@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfigRef;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
 
 final class SmtpOutboundConfigRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new SmtpOutboundConfigRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new SmtpOutboundConfigRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

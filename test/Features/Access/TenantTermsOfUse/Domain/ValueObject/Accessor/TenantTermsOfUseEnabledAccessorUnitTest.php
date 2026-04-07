@@ -50,13 +50,13 @@ class TenantTermsOfUseEnabledAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantTermsOfUseEnabledAccessorUnitTest()->withEnabled(true);
-        $original = $holder->withEnabled( true);
-        $same = $holder->withEnabled( true);
+        $original = $holder->withEnabled(true);
+        $same = $holder->withEnabled(true);
         $modified = $holder->withEnabled(false);
 
         // Act
-        $withSame = $original->isEnabledChanged( $same );
-        $withDiferent = $original->isEnabledChanged( $modified );
+        $withSame = $original->isEnabledChanged($same);
+        $withDiferent = $original->isEnabledChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantTermsOfUseEnabledAccessorUnitTest extends TestCase
 }
 class ImplWithTenantTermsOfUseEnabledAccessorUnitTest
 {
-  use TenantTermsOfUseEnabledAccessor;
+    use TenantTermsOfUseEnabledAccessor;
 }

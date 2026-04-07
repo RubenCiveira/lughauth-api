@@ -50,14 +50,14 @@ class TenantConfigAllowRegisterAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigAllowRegisterAccessorUnitTest();
-        $original = $holder->withAllowRegister( true);
-        $same = $holder->withAllowRegister( true);
+        $original = $holder->withAllowRegister(true);
+        $same = $holder->withAllowRegister(true);
         $modified = $holder->withAllowRegister(false);
 
         // Act
         $unchanged = $holder->isAllowRegisterChanged();
-        $withSame = $original->isAllowRegisterChanged( $same );
-        $withDiferent = $original->isAllowRegisterChanged( $modified );
+        $withSame = $original->isAllowRegisterChanged($same);
+        $withDiferent = $original->isAllowRegisterChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigAllowRegisterAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigAllowRegisterAccessorUnitTest
 {
-  use TenantConfigAllowRegisterAccessor;
+    use TenantConfigAllowRegisterAccessor;
 }

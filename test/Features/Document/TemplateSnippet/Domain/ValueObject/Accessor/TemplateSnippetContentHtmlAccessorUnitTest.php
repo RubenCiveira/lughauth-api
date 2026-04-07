@@ -50,13 +50,13 @@ class TemplateSnippetContentHtmlAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateSnippetContentHtmlAccessorUnitTest()->withContentHtml('one');
-        $original = $holder->withContentHtml( 'one');
-        $same = $holder->withContentHtml( 'one');
+        $original = $holder->withContentHtml('one');
+        $same = $holder->withContentHtml('one');
         $modified = $holder->withContentHtml('other');
 
         // Act
-        $withSame = $original->isContentHtmlChanged( $same );
-        $withDiferent = $original->isContentHtmlChanged( $modified );
+        $withSame = $original->isContentHtmlChanged($same);
+        $withDiferent = $original->isContentHtmlChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TemplateSnippetContentHtmlAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateSnippetContentHtmlAccessorUnitTest
 {
-  use TemplateSnippetContentHtmlAccessor;
+    use TemplateSnippetContentHtmlAccessor;
 }

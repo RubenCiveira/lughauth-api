@@ -50,13 +50,13 @@ class RelyingPartyApiKeyAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithRelyingPartyApiKeyAccessorUnitTest()->withApiKey('one');
-        $original = $holder->withApiKey( 'one');
-        $same = $holder->withApiKey( 'one');
+        $original = $holder->withApiKey('one');
+        $same = $holder->withApiKey('one');
         $modified = $holder->withApiKey('other');
 
         // Act
-        $withSame = $original->isApiKeyChanged( $same );
-        $withDiferent = $original->isApiKeyChanged( $modified );
+        $withSame = $original->isApiKeyChanged($same);
+        $withDiferent = $original->isApiKeyChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class RelyingPartyApiKeyAccessorUnitTest extends TestCase
 }
 class ImplWithRelyingPartyApiKeyAccessorUnitTest
 {
-  use RelyingPartyApiKeyAccessor;
+    use RelyingPartyApiKeyAccessor;
 }

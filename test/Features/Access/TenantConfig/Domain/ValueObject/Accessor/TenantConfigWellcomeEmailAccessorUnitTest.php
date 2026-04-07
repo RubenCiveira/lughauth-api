@@ -50,14 +50,14 @@ class TenantConfigWellcomeEmailAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigWellcomeEmailAccessorUnitTest();
-        $original = $holder->withWellcomeEmail( 'one');
-        $same = $holder->withWellcomeEmail( 'one');
+        $original = $holder->withWellcomeEmail('one');
+        $same = $holder->withWellcomeEmail('one');
         $modified = $holder->withWellcomeEmail('other');
 
         // Act
         $unchanged = $holder->isWellcomeEmailChanged();
-        $withSame = $original->isWellcomeEmailChanged( $same );
-        $withDiferent = $original->isWellcomeEmailChanged( $modified );
+        $withSame = $original->isWellcomeEmailChanged($same);
+        $withDiferent = $original->isWellcomeEmailChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigWellcomeEmailAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigWellcomeEmailAccessorUnitTest
 {
-  use TenantConfigWellcomeEmailAccessor;
+    use TenantConfigWellcomeEmailAccessor;
 }

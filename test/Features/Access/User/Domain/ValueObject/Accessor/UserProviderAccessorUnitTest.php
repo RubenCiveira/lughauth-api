@@ -50,14 +50,14 @@ class UserProviderAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserProviderAccessorUnitTest();
-        $original = $holder->withProvider( 'one');
-        $same = $holder->withProvider( 'one');
+        $original = $holder->withProvider('one');
+        $same = $holder->withProvider('one');
         $modified = $holder->withProvider('other');
 
         // Act
         $unchanged = $holder->isProviderChanged();
-        $withSame = $original->isProviderChanged( $same );
-        $withDiferent = $original->isProviderChanged( $modified );
+        $withSame = $original->isProviderChanged($same);
+        $withDiferent = $original->isProviderChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserProviderAccessorUnitTest extends TestCase
 }
 class ImplWithUserProviderAccessorUnitTest
 {
-  use UserProviderAccessor;
+    use UserProviderAccessor;
 }

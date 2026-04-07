@@ -50,14 +50,14 @@ class ThemeIsDefaultAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithThemeIsDefaultAccessorUnitTest();
-        $original = $holder->withIsDefault( true);
-        $same = $holder->withIsDefault( true);
+        $original = $holder->withIsDefault(true);
+        $same = $holder->withIsDefault(true);
         $modified = $holder->withIsDefault(false);
 
         // Act
         $unchanged = $holder->isIsDefaultChanged();
-        $withSame = $original->isIsDefaultChanged( $same );
-        $withDiferent = $original->isIsDefaultChanged( $modified );
+        $withSame = $original->isIsDefaultChanged($same);
+        $withDiferent = $original->isIsDefaultChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class ThemeIsDefaultAccessorUnitTest extends TestCase
 }
 class ImplWithThemeIsDefaultAccessorUnitTest
 {
-  use ThemeIsDefaultAccessor;
+    use ThemeIsDefaultAccessor;
 }

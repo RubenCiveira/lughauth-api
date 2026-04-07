@@ -50,14 +50,14 @@ class MessageLockAtAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithMessageLockAtAccessorUnitTest();
-        $original = $holder->withLockAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withLockAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withLockAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withLockAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withLockAt((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isLockAtChanged();
-        $withSame = $original->isLockAtChanged( $same );
-        $withDiferent = $original->isLockAtChanged( $modified );
+        $withSame = $original->isLockAtChanged($same);
+        $withDiferent = $original->isLockAtChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class MessageLockAtAccessorUnitTest extends TestCase
 }
 class ImplWithMessageLockAtAccessorUnitTest
 {
-  use MessageLockAtAccessor;
+    use MessageLockAtAccessor;
 }

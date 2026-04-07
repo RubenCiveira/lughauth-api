@@ -25,7 +25,7 @@ class VideoUrl implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-		/** @psalm-suppress UndefinedInterfaceMethod */
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::videoUrl()->isValid($value) ? null : new RuleFail('rule_video_url', $value, []);
     }
 }

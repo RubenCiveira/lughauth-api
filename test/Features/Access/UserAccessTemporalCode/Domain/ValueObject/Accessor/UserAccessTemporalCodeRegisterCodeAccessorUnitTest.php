@@ -50,14 +50,14 @@ class UserAccessTemporalCodeRegisterCodeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeRegisterCodeAccessorUnitTest();
-        $original = $holder->withRegisterCode( 'one');
-        $same = $holder->withRegisterCode( 'one');
+        $original = $holder->withRegisterCode('one');
+        $same = $holder->withRegisterCode('one');
         $modified = $holder->withRegisterCode('other');
 
         // Act
         $unchanged = $holder->isRegisterCodeChanged();
-        $withSame = $original->isRegisterCodeChanged( $same );
-        $withDiferent = $original->isRegisterCodeChanged( $modified );
+        $withSame = $original->isRegisterCodeChanged($same);
+        $withDiferent = $original->isRegisterCodeChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeRegisterCodeAccessorUnitTest extends TestCase
 }
 class ImplWithUserAccessTemporalCodeRegisterCodeAccessorUnitTest
 {
-  use UserAccessTemporalCodeRegisterCodeAccessor;
+    use UserAccessTemporalCodeRegisterCodeAccessor;
 }

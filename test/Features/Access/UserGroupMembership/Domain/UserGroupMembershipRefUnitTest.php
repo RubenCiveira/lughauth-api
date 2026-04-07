@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembershipRef;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
 
 final class UserGroupMembershipRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new UserGroupMembershipRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new UserGroupMembershipRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

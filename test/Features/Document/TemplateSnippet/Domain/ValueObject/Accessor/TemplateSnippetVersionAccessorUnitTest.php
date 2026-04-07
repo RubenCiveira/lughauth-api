@@ -50,14 +50,14 @@ class TemplateSnippetVersionAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateSnippetVersionAccessorUnitTest();
-        $original = $holder->withVersion( 1);
-        $same = $holder->withVersion( 1);
+        $original = $holder->withVersion(1);
+        $same = $holder->withVersion(1);
         $modified = $holder->withVersion(2);
 
         // Act
         $unchanged = $holder->isVersionChanged();
-        $withSame = $original->isVersionChanged( $same );
-        $withDiferent = $original->isVersionChanged( $modified );
+        $withSame = $original->isVersionChanged($same);
+        $withDiferent = $original->isVersionChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TemplateSnippetVersionAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateSnippetVersionAccessorUnitTest
 {
-  use TemplateSnippetVersionAccessor;
+    use TemplateSnippetVersionAccessor;
 }

@@ -10,39 +10,40 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 final class SmtpOutboundConfigRateLimitVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 1;
-    $ref = SmtpOutboundConfigRateLimitVO::from( $value );
-    $this->assertEquals(1, $ref->value());
-    $other = SmtpOutboundConfigRateLimitVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = SmtpOutboundConfigRateLimitVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = SmtpOutboundConfigRateLimitVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(SmtpOutboundConfigRateLimitVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 1;
+        $ref = SmtpOutboundConfigRateLimitVO::from($value);
+        $this->assertEquals(1, $ref->value());
+        $other = SmtpOutboundConfigRateLimitVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = SmtpOutboundConfigRateLimitVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = SmtpOutboundConfigRateLimitVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(SmtpOutboundConfigRateLimitVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = SmtpOutboundConfigRateLimitVO::from(1);
+        $same = SmtpOutboundConfigRateLimitVO::from(1);
+        $other = SmtpOutboundConfigRateLimitVO::from(2);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = SmtpOutboundConfigRateLimitVO::from(1);     $same = SmtpOutboundConfigRateLimitVO::from(1);     $other = SmtpOutboundConfigRateLimitVO::from(2);
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
 }

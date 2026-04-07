@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\User\Domain\User;
 
 final class UserRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new UserRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new UserRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

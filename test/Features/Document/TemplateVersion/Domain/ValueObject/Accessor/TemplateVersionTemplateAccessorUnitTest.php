@@ -51,13 +51,13 @@ class TemplateVersionTemplateAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateVersionTemplateAccessorUnitTest()->withTemplate(new TemplateRef('one'));
-        $original = $holder->withTemplate( new TemplateRef('one'));
-        $same = $holder->withTemplate( new TemplateRef('one'));
+        $original = $holder->withTemplate(new TemplateRef('one'));
+        $same = $holder->withTemplate(new TemplateRef('one'));
         $modified = $holder->withTemplate(new TemplateRef('other'));
 
         // Act
-        $withSame = $original->isTemplateChanged( $same );
-        $withDiferent = $original->isTemplateChanged( $modified );
+        $withSame = $original->isTemplateChanged($same);
+        $withDiferent = $original->isTemplateChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class TemplateVersionTemplateAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateVersionTemplateAccessorUnitTest
 {
-  use TemplateVersionTemplateAccessor;
+    use TemplateVersionTemplateAccessor;
 }

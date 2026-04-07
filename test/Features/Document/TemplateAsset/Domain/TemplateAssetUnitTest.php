@@ -5,249 +5,248 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 
 final class TemplateAssetUnitTest extends TestCase
 {
-  public function test_init_store_values(): void
-  {
-    // @Arrange
-    $one = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
+    public function test_init_store_values(): void
+    {
+        // @Arrange
+        $one = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
 
-    // @Act
-    $other = $one->toAttributes()->build();
-    $calculated = TemplateAsset::calculatedFields();
+        // @Act
+        $other = $one->toAttributes()->build();
+        $calculated = TemplateAsset::calculatedFields();
 
-    // @Assert
-    $this->assertEquals([ 'enabled'], $calculated);
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged() );
-    $this->assertEquals( $one->getCode(), $other->getCode());
-    $this->assertTrue( $one->isCodeChanged() );
-    $this->assertEquals( $one->getType(), $other->getType());
-    $this->assertTrue( $one->isTypeChanged() );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-  }
-  public function test_replace_change_values(): void
-  {
-    // @Arrange
-    $base = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
-    $other = new TemplateAsset(
-      uid: 'other',
-      tenant: new TenantRef('other'),
-      code: 'other',
-      type: 'other',
-      content: 'store://obin',
-      enabled: false,
-      version: 2,
-    );
+        // @Assert
+        $this->assertEquals([ 'enabled'], $calculated);
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getCode(), $other->getCode());
+        $this->assertTrue($one->isCodeChanged());
+        $this->assertEquals($one->getType(), $other->getType());
+        $this->assertTrue($one->isTypeChanged());
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+    }
+    public function test_replace_change_values(): void
+    {
+        // @Arrange
+        $base = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
+        $other = new TemplateAsset(
+            uid: 'other',
+            tenant: new TenantRef('other'),
+            code: 'other',
+            type: 'other',
+            content: 'store://obin',
+            enabled: false,
+            version: 2,
+        );
 
-    // @Act
-    $one = $base->replace( $other->toAttributes() );
+        // @Act
+        $one = $base->replace($other->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $base->uid());
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged($base) );
-    $this->assertEquals( $one->getCode(), $other->getCode());
-    $this->assertTrue( $one->isCodeChanged($base) );
-    $this->assertEquals( $one->getType(), $other->getType());
-    $this->assertTrue( $one->isTypeChanged($base) );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged($base) );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged($base) );
-  }
-  public function test_json_compare(): void
-  {
-    // @Arrange
-    $one = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $base->uid());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->getCode(), $other->getCode());
+        $this->assertTrue($one->isCodeChanged($base));
+        $this->assertEquals($one->getType(), $other->getType());
+        $this->assertTrue($one->isTypeChanged($base));
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged($base));
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged($base));
+    }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
 
-    // @Act
-    $json = $one->asPublicJson();
+        // @Act
+        $json = $one->asPublicJson();
 
-    // @Assert
-$this->assertEquals('one', $json['uid']);
-$this->assertEquals('one', $json['tenant']['$ref'] );
-$this->assertEquals('one', $json['code']);
-$this->assertEquals('one', $json['type']);
-$this->assertEquals(true, $json['enabled']);
-$this->assertEquals(1, $json['version']);
-  }
-  public function test_create_store_values(): void
-  {
-    // @Arrange
-    $one = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals('one', $json['code']);
+        $this->assertEquals('one', $json['type']);
+        $this->assertEquals(true, $json['enabled']);
+        $this->assertEquals(1, $json['version']);
+    }
+    public function test_create_store_values(): void
+    {
+        // @Arrange
+        $one = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
 
-    // @Act
-    $other = TemplateAsset::create($one->toAttributes() );
+        // @Act
+        $other = TemplateAsset::create($one->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged() );
-    $this->assertEquals( $one->getCode(), $other->getCode());
-    $this->assertTrue( $one->isCodeChanged() );
-    $this->assertEquals( $one->getType(), $other->getType());
-    $this->assertTrue( $one->isTypeChanged() );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-    $this->assertCount(0, $one->getTheEvents() );
-    $this->assertCount(1, $other->getTheEvents() );
-  }
-  public function test_update_change_values(): void
-  {
-    $base = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
-    $other = new TemplateAsset(
-      uid: 'other',
-      tenant: new TenantRef('other'),
-      code: 'other',
-      type: 'other',
-      content: 'store://obin',
-      enabled: false,
-      version: 2,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getCode(), $other->getCode());
+        $this->assertTrue($one->isCodeChanged());
+        $this->assertEquals($one->getType(), $other->getType());
+        $this->assertTrue($one->isTypeChanged());
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+        $this->assertCount(0, $one->getTheEvents());
+        $this->assertCount(1, $other->getTheEvents());
+    }
+    public function test_update_change_values(): void
+    {
+        $base = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
+        $other = new TemplateAsset(
+            uid: 'other',
+            tenant: new TenantRef('other'),
+            code: 'other',
+            type: 'other',
+            content: 'store://obin',
+            enabled: false,
+            version: 2,
+        );
 
-    // @Act
-    $one = $base->update( $other->toAttributes() );
+        // @Act
+        $one = $base->update($other->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $base->uid());
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged($base) );
-    $this->assertEquals( $one->getCode(), $other->getCode());
-    $this->assertTrue( $one->isCodeChanged($base) );
-    $this->assertEquals( $one->getType(), $other->getType());
-    $this->assertTrue( $one->isTypeChanged($base) );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged($base) );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged($base) );
-    $this->assertCount(0, $other->getTheEvents() );
-    $this->assertCount(1, $one->getTheEvents() );
-  }
-  public function test_delete_store_values(): void
-  {
-    // @Arrange
-    $one = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $base->uid());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->getCode(), $other->getCode());
+        $this->assertTrue($one->isCodeChanged($base));
+        $this->assertEquals($one->getType(), $other->getType());
+        $this->assertTrue($one->isTypeChanged($base));
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged($base));
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged($base));
+        $this->assertCount(0, $other->getTheEvents());
+        $this->assertCount(1, $one->getTheEvents());
+    }
+    public function test_delete_store_values(): void
+    {
+        // @Arrange
+        $one = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
 
-    // @Act
-    $other = $one->delete();
+        // @Act
+        $other = $one->delete();
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged() );
-    $this->assertEquals( $one->getCode(), $other->getCode());
-    $this->assertTrue( $one->isCodeChanged() );
-    $this->assertEquals( $one->getType(), $other->getType());
-    $this->assertTrue( $one->isTypeChanged() );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-  }
-  public function test_enable_modify(): void
-  {
-    // @Arrange
-    $source = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
-    $sourceEnabled = false;
-    $targetEnabled = true;
-    $source = $source->withEnabled($sourceEnabled);
+        // @Assert
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->getCode(), $other->getCode());
+        $this->assertTrue($one->isCodeChanged());
+        $this->assertEquals($one->getType(), $other->getType());
+        $this->assertTrue($one->isTypeChanged());
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+    }
+    public function test_enable_modify(): void
+    {
+        // @Arrange
+        $source = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
+        $sourceEnabled = false;
+        $targetEnabled = true;
+        $source = $source->withEnabled($sourceEnabled);
 
-    // @Act
-    $target = $source->enable();
+        // @Act
+        $target = $source->enable();
 
-    // @Assert
-    $this->assertEquals(false, $source->isEnabled());
-    $this->assertEquals($targetEnabled, $target->isEnabled());
-    $this->assertNotEquals($sourceEnabled, $target->isEnabled());
-  }
-  public function test_disable_modify(): void
-  {
-    // @Arrange
-    $source = new TemplateAsset(
-      uid: 'one',
-      tenant: new TenantRef('one'),
-      code: 'one',
-      type: 'one',
-      content: 'store://bin',
-      enabled: true,
-      version: 1,
-    );
-    $sourceEnabled = true;
-    $targetEnabled = false;
-    $source = $source->withEnabled($sourceEnabled);
+        // @Assert
+        $this->assertEquals(false, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
+    }
+    public function test_disable_modify(): void
+    {
+        // @Arrange
+        $source = new TemplateAsset(
+            uid: 'one',
+            tenant: new TenantRef('one'),
+            code: 'one',
+            type: 'one',
+            content: 'store://bin',
+            enabled: true,
+            version: 1,
+        );
+        $sourceEnabled = true;
+        $targetEnabled = false;
+        $source = $source->withEnabled($sourceEnabled);
 
-    // @Act
-    $target = $source->disable();
+        // @Act
+        $target = $source->disable();
 
-    // @Assert
-    $this->assertEquals(true, $source->isEnabled());
-    $this->assertEquals($targetEnabled, $target->isEnabled());
-    $this->assertNotEquals($sourceEnabled, $target->isEnabled());
-  }
+        // @Assert
+        $this->assertEquals(true, $source->isEnabled());
+        $this->assertEquals($targetEnabled, $target->isEnabled());
+        $this->assertNotEquals($sourceEnabled, $target->isEnabled());
+    }
 }

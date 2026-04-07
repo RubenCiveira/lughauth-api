@@ -50,13 +50,13 @@ class ThemeNameAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithThemeNameAccessorUnitTest()->withName('one');
-        $original = $holder->withName( 'one');
-        $same = $holder->withName( 'one');
+        $original = $holder->withName('one');
+        $same = $holder->withName('one');
         $modified = $holder->withName('other');
 
         // Act
-        $withSame = $original->isNameChanged( $same );
-        $withDiferent = $original->isNameChanged( $modified );
+        $withSame = $original->isNameChanged($same);
+        $withDiferent = $original->isNameChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class ThemeNameAccessorUnitTest extends TestCase
 }
 class ImplWithThemeNameAccessorUnitTest
 {
-  use ThemeNameAccessor;
+    use ThemeNameAccessor;
 }

@@ -50,14 +50,14 @@ class UserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest extends TestCas
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest();
-        $original = $holder->withTempSecondFactorSeed( 'cyphered://cypher');
-        $same = $holder->withTempSecondFactorSeed( 'cyphered://cypher');
+        $original = $holder->withTempSecondFactorSeed('cyphered://cypher');
+        $same = $holder->withTempSecondFactorSeed('cyphered://cypher');
         $modified = $holder->withTempSecondFactorSeed('cyphered://ocyphered');
 
         // Act
         $unchanged = $holder->isTempSecondFactorSeedChanged();
-        $withSame = $original->isTempSecondFactorSeedChanged( $same );
-        $withDiferent = $original->isTempSecondFactorSeedChanged( $modified );
+        $withSame = $original->isTempSecondFactorSeedChanged($same);
+        $withDiferent = $original->isTempSecondFactorSeedChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest extends TestCas
 }
 class ImplWithUserAccessTemporalCodeTempSecondFactorSeedAccessorUnitTest
 {
-  use UserAccessTemporalCodeTempSecondFactorSeedAccessor;
+    use UserAccessTemporalCodeTempSecondFactorSeedAccessor;
 }

@@ -50,13 +50,13 @@ class SmtpOutboundConfigPortAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigPortAccessorUnitTest()->withPort(true);
-        $original = $holder->withPort( true);
-        $same = $holder->withPort( true);
+        $original = $holder->withPort(true);
+        $same = $holder->withPort(true);
         $modified = $holder->withPort(false);
 
         // Act
-        $withSame = $original->isPortChanged( $same );
-        $withDiferent = $original->isPortChanged( $modified );
+        $withSame = $original->isPortChanged($same);
+        $withDiferent = $original->isPortChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigPortAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigPortAccessorUnitTest
 {
-  use SmtpOutboundConfigPortAccessor;
+    use SmtpOutboundConfigPortAccessor;
 }

@@ -50,13 +50,13 @@ class MessageRetriesAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithMessageRetriesAccessorUnitTest()->withRetries(1);
-        $original = $holder->withRetries( 1);
-        $same = $holder->withRetries( 1);
+        $original = $holder->withRetries(1);
+        $same = $holder->withRetries(1);
         $modified = $holder->withRetries(2);
 
         // Act
-        $withSame = $original->isRetriesChanged( $same );
-        $withDiferent = $original->isRetriesChanged( $modified );
+        $withSame = $original->isRetriesChanged($same);
+        $withDiferent = $original->isRetriesChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class MessageRetriesAccessorUnitTest extends TestCase
 }
 class ImplWithMessageRetriesAccessorUnitTest
 {
-  use MessageRetriesAccessor;
+    use MessageRetriesAccessor;
 }

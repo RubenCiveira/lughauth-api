@@ -13,26 +13,26 @@ use PHPUnit\Framework\TestCase;
 
 class UserRoleAssignamentRolesListRefUnitTest extends TestCase
 {
-  public function test_iterator(): void
-  {
-    $one = new UserRoleAssignamentRolesItem(
-      uid: UserRoleAssignamentRolesUidVO::from('one'),
-      role: UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
-      version: UserRoleAssignamentRolesVersionVO::from(1)
-    );
-    $two = new UserRoleAssignamentRolesItem(
-      uid: UserRoleAssignamentRolesUidVO::from('one'),
-      role: UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
-      version: UserRoleAssignamentRolesVersionVO::from(1)
-    );
-    $list = UserRoleAssignamentRolesListRef::fromArray([$one, $two]);
-    foreach($list as $_K => $item) {
-      $this->assertEquals('one', $item->uid());
+    public function test_iterator(): void
+    {
+        $one = new UserRoleAssignamentRolesItem(
+            uid: UserRoleAssignamentRolesUidVO::from('one'),
+            role: UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            version: UserRoleAssignamentRolesVersionVO::from(1)
+        );
+        $two = new UserRoleAssignamentRolesItem(
+            uid: UserRoleAssignamentRolesUidVO::from('one'),
+            role: UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            version: UserRoleAssignamentRolesVersionVO::from(1)
+        );
+        $list = UserRoleAssignamentRolesListRef::fromArray([$one, $two]);
+        foreach ($list as $_K => $item) {
+            $this->assertEquals('one', $item->uid());
+        }
     }
-  }
-  public function test_invalid_builder(): void
-  {
-    $this->expectException(\InvalidArgumentException::class);
-    $list = UserRoleAssignamentRolesListRef::fromArray(['none']);
-  }
+    public function test_invalid_builder(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $list = UserRoleAssignamentRolesListRef::fromArray(['none']);
+    }
 }

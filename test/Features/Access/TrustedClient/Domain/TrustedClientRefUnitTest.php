@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
 final class TrustedClientRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new TrustedClientRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new TrustedClientRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

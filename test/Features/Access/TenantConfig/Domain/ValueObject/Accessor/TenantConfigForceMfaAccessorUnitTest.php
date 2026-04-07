@@ -50,13 +50,13 @@ class TenantConfigForceMfaAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigForceMfaAccessorUnitTest()->withForceMfa(true);
-        $original = $holder->withForceMfa( true);
-        $same = $holder->withForceMfa( true);
+        $original = $holder->withForceMfa(true);
+        $same = $holder->withForceMfa(true);
         $modified = $holder->withForceMfa(false);
 
         // Act
-        $withSame = $original->isForceMfaChanged( $same );
-        $withDiferent = $original->isForceMfaChanged( $modified );
+        $withSame = $original->isForceMfaChanged($same);
+        $withDiferent = $original->isForceMfaChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TenantConfigForceMfaAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigForceMfaAccessorUnitTest
 {
-  use TenantConfigForceMfaAccessor;
+    use TenantConfigForceMfaAccessor;
 }

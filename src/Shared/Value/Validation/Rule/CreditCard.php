@@ -25,7 +25,7 @@ class CreditCard implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-		/** @psalm-suppress UndefinedInterfaceMethod */
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::creditCard()->isValid($value) ? null : new RuleFail('rule_credit_card', $value, []);
     }
 }

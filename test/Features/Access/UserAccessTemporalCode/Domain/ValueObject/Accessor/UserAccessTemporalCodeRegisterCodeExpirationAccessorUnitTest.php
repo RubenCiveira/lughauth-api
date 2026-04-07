@@ -50,14 +50,14 @@ class UserAccessTemporalCodeRegisterCodeExpirationAccessorUnitTest extends TestC
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeRegisterCodeExpirationAccessorUnitTest();
-        $original = $holder->withRegisterCodeExpiration( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withRegisterCodeExpiration( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withRegisterCodeExpiration((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withRegisterCodeExpiration((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withRegisterCodeExpiration((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isRegisterCodeExpirationChanged();
-        $withSame = $original->isRegisterCodeExpirationChanged( $same );
-        $withDiferent = $original->isRegisterCodeExpirationChanged( $modified );
+        $withSame = $original->isRegisterCodeExpirationChanged($same);
+        $withDiferent = $original->isRegisterCodeExpirationChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeRegisterCodeExpirationAccessorUnitTest extends TestC
 }
 class ImplWithUserAccessTemporalCodeRegisterCodeExpirationAccessorUnitTest
 {
-  use UserAccessTemporalCodeRegisterCodeExpirationAccessor;
+    use UserAccessTemporalCodeRegisterCodeExpirationAccessor;
 }

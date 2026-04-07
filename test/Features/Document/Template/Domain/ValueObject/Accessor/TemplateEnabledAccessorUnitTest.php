@@ -50,14 +50,14 @@ class TemplateEnabledAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateEnabledAccessorUnitTest();
-        $original = $holder->withEnabled( true);
-        $same = $holder->withEnabled( true);
+        $original = $holder->withEnabled(true);
+        $same = $holder->withEnabled(true);
         $modified = $holder->withEnabled(false);
 
         // Act
         $unchanged = $holder->isEnabledChanged();
-        $withSame = $original->isEnabledChanged( $same );
-        $withDiferent = $original->isEnabledChanged( $modified );
+        $withSame = $original->isEnabledChanged($same);
+        $withDiferent = $original->isEnabledChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TemplateEnabledAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateEnabledAccessorUnitTest
 {
-  use TemplateEnabledAccessor;
+    use TemplateEnabledAccessor;
 }

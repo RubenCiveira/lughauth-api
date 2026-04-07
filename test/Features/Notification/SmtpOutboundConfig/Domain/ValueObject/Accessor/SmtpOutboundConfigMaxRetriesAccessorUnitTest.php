@@ -50,13 +50,13 @@ class SmtpOutboundConfigMaxRetriesAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigMaxRetriesAccessorUnitTest()->withMaxRetries(1);
-        $original = $holder->withMaxRetries( 1);
-        $same = $holder->withMaxRetries( 1);
+        $original = $holder->withMaxRetries(1);
+        $same = $holder->withMaxRetries(1);
         $modified = $holder->withMaxRetries(2);
 
         // Act
-        $withSame = $original->isMaxRetriesChanged( $same );
-        $withDiferent = $original->isMaxRetriesChanged( $modified );
+        $withSame = $original->isMaxRetriesChanged($same);
+        $withDiferent = $original->isMaxRetriesChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigMaxRetriesAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigMaxRetriesAccessorUnitTest
 {
-  use SmtpOutboundConfigMaxRetriesAccessor;
+    use SmtpOutboundConfigMaxRetriesAccessor;
 }

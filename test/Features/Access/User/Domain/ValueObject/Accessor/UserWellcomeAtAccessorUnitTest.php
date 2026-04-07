@@ -50,14 +50,14 @@ class UserWellcomeAtAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserWellcomeAtAccessorUnitTest();
-        $original = $holder->withWellcomeAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withWellcomeAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withWellcomeAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withWellcomeAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withWellcomeAt((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isWellcomeAtChanged();
-        $withSame = $original->isWellcomeAtChanged( $same );
-        $withDiferent = $original->isWellcomeAtChanged( $modified );
+        $withSame = $original->isWellcomeAtChanged($same);
+        $withDiferent = $original->isWellcomeAtChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserWellcomeAtAccessorUnitTest extends TestCase
 }
 class ImplWithUserWellcomeAtAccessorUnitTest
 {
-  use UserWellcomeAtAccessor;
+    use UserWellcomeAtAccessor;
 }

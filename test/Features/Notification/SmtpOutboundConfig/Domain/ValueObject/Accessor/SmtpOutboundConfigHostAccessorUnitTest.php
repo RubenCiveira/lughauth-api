@@ -50,13 +50,13 @@ class SmtpOutboundConfigHostAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigHostAccessorUnitTest()->withHost('one');
-        $original = $holder->withHost( 'one');
-        $same = $holder->withHost( 'one');
+        $original = $holder->withHost('one');
+        $same = $holder->withHost('one');
         $modified = $holder->withHost('other');
 
         // Act
-        $withSame = $original->isHostChanged( $same );
-        $withDiferent = $original->isHostChanged( $modified );
+        $withSame = $original->isHostChanged($same);
+        $withDiferent = $original->isHostChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigHostAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigHostAccessorUnitTest
 {
-  use SmtpOutboundConfigHostAccessor;
+    use SmtpOutboundConfigHostAccessor;
 }

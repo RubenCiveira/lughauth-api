@@ -11,49 +11,50 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 
 final class TenantTermsOfUseRelyingPartyVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = new RelyingPartyRef('one');
-    $ref = TenantTermsOfUseRelyingPartyVO::from( $value );
-    $this->assertEquals(new RelyingPartyRef('one'), $ref->value());
-    $other = TenantTermsOfUseRelyingPartyVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TenantTermsOfUseRelyingPartyVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TenantTermsOfUseRelyingPartyVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TenantTermsOfUseRelyingPartyVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = new RelyingPartyRef('one');
+        $ref = TenantTermsOfUseRelyingPartyVO::from($value);
+        $this->assertEquals(new RelyingPartyRef('one'), $ref->value());
+        $other = TenantTermsOfUseRelyingPartyVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TenantTermsOfUseRelyingPartyVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TenantTermsOfUseRelyingPartyVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantTermsOfUseRelyingPartyVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantTermsOfUseRelyingPartyVO::from(new RelyingPartyRef('one'));
+        $same = TenantTermsOfUseRelyingPartyVO::from(new RelyingPartyRef('one'));
+        $other = TenantTermsOfUseRelyingPartyVO::from(new RelyingPartyRef('other'));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TenantTermsOfUseRelyingPartyVO::from(new RelyingPartyRef('one'));     $same = TenantTermsOfUseRelyingPartyVO::from(new RelyingPartyRef('one'));     $other = TenantTermsOfUseRelyingPartyVO::from(new RelyingPartyRef('other'));
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TenantTermsOfUseRelyingPartyVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TenantTermsOfUseRelyingPartyVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TenantTermsOfUseRelyingPartyVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TenantTermsOfUseRelyingPartyVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\TemplateVariableRef;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\TemplateVariable;
 
 final class TemplateVariableRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new TemplateVariableRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new TemplateVariableRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

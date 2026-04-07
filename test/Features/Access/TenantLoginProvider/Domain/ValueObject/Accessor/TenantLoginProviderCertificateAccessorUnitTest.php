@@ -50,14 +50,14 @@ class TenantLoginProviderCertificateAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderCertificateAccessorUnitTest();
-        $original = $holder->withCertificate( 'one');
-        $same = $holder->withCertificate( 'one');
+        $original = $holder->withCertificate('one');
+        $same = $holder->withCertificate('one');
         $modified = $holder->withCertificate('other');
 
         // Act
         $unchanged = $holder->isCertificateChanged();
-        $withSame = $original->isCertificateChanged( $same );
-        $withDiferent = $original->isCertificateChanged( $modified );
+        $withSame = $original->isCertificateChanged($same);
+        $withDiferent = $original->isCertificateChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantLoginProviderCertificateAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderCertificateAccessorUnitTest
 {
-  use TenantLoginProviderCertificateAccessor;
+    use TenantLoginProviderCertificateAccessor;
 }

@@ -11,39 +11,40 @@ use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 
 final class TemplateChannelVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = TemplateChannelOptions::MAIL;
-    $ref = TemplateChannelVO::from( $value );
-    $this->assertEquals(TemplateChannelOptions::MAIL, $ref->value());
-    $other = TemplateChannelVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TemplateChannelVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TemplateChannelVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TemplateChannelVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = TemplateChannelOptions::MAIL;
+        $ref = TemplateChannelVO::from($value);
+        $this->assertEquals(TemplateChannelOptions::MAIL, $ref->value());
+        $other = TemplateChannelVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TemplateChannelVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TemplateChannelVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TemplateChannelVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TemplateChannelVO::from(TemplateChannelOptions::MAIL);
+        $same = TemplateChannelVO::from(TemplateChannelOptions::MAIL);
+        $other = TemplateChannelVO::from(TemplateChannelOptions::SMS);
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TemplateChannelVO::from(TemplateChannelOptions::MAIL);     $same = TemplateChannelVO::from(TemplateChannelOptions::MAIL);     $other = TemplateChannelVO::from(TemplateChannelOptions::SMS);
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
 }

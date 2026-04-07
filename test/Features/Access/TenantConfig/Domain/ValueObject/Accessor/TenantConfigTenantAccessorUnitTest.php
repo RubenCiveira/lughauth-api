@@ -51,13 +51,13 @@ class TenantConfigTenantAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigTenantAccessorUnitTest()->withTenant(new TenantRef('one'));
-        $original = $holder->withTenant( new TenantRef('one'));
-        $same = $holder->withTenant( new TenantRef('one'));
+        $original = $holder->withTenant(new TenantRef('one'));
+        $same = $holder->withTenant(new TenantRef('one'));
         $modified = $holder->withTenant(new TenantRef('other'));
 
         // Act
-        $withSame = $original->isTenantChanged( $same );
-        $withDiferent = $original->isTenantChanged( $modified );
+        $withSame = $original->isTenantChanged($same);
+        $withDiferent = $original->isTenantChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class TenantConfigTenantAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigTenantAccessorUnitTest
 {
-  use TenantConfigTenantAccessor;
+    use TenantConfigTenantAccessor;
 }

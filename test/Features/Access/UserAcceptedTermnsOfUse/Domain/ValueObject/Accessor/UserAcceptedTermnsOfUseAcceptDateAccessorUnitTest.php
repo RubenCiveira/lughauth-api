@@ -50,14 +50,14 @@ class UserAcceptedTermnsOfUseAcceptDateAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAcceptedTermnsOfUseAcceptDateAccessorUnitTest();
-        $original = $holder->withAcceptDate( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withAcceptDate( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withAcceptDate((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withAcceptDate((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withAcceptDate((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isAcceptDateChanged();
-        $withSame = $original->isAcceptDateChanged( $same );
-        $withDiferent = $original->isAcceptDateChanged( $modified );
+        $withSame = $original->isAcceptDateChanged($same);
+        $withDiferent = $original->isAcceptDateChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAcceptedTermnsOfUseAcceptDateAccessorUnitTest extends TestCase
 }
 class ImplWithUserAcceptedTermnsOfUseAcceptDateAccessorUnitTest
 {
-  use UserAcceptedTermnsOfUseAcceptDateAccessor;
+    use UserAcceptedTermnsOfUseAcceptDateAccessor;
 }

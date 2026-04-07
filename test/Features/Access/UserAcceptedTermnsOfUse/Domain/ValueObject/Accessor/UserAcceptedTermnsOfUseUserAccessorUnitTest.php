@@ -51,13 +51,13 @@ class UserAcceptedTermnsOfUseUserAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserAcceptedTermnsOfUseUserAccessorUnitTest()->withUser(new UserRef('one'));
-        $original = $holder->withUser( new UserRef('one'));
-        $same = $holder->withUser( new UserRef('one'));
+        $original = $holder->withUser(new UserRef('one'));
+        $same = $holder->withUser(new UserRef('one'));
         $modified = $holder->withUser(new UserRef('other'));
 
         // Act
-        $withSame = $original->isUserChanged( $same );
-        $withDiferent = $original->isUserChanged( $modified );
+        $withSame = $original->isUserChanged($same);
+        $withDiferent = $original->isUserChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -66,5 +66,5 @@ class UserAcceptedTermnsOfUseUserAccessorUnitTest extends TestCase
 }
 class ImplWithUserAcceptedTermnsOfUseUserAccessorUnitTest
 {
-  use UserAcceptedTermnsOfUseUserAccessor;
+    use UserAcceptedTermnsOfUseUserAccessor;
 }

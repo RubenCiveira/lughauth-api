@@ -50,13 +50,13 @@ class TemplateAssetTypeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateAssetTypeAccessorUnitTest()->withType('one');
-        $original = $holder->withType( 'one');
-        $same = $holder->withType( 'one');
+        $original = $holder->withType('one');
+        $same = $holder->withType('one');
         $modified = $holder->withType('other');
 
         // Act
-        $withSame = $original->isTypeChanged( $same );
-        $withDiferent = $original->isTypeChanged( $modified );
+        $withSame = $original->isTypeChanged($same);
+        $withDiferent = $original->isTypeChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TemplateAssetTypeAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateAssetTypeAccessorUnitTest
 {
-  use TemplateAssetTypeAccessor;
+    use TemplateAssetTypeAccessor;
 }

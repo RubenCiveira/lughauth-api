@@ -50,13 +50,13 @@ class TemplateAssetContentAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateAssetContentAccessorUnitTest()->withContent('store://bin');
-        $original = $holder->withContent( 'store://bin');
-        $same = $holder->withContent( 'store://bin');
+        $original = $holder->withContent('store://bin');
+        $same = $holder->withContent('store://bin');
         $modified = $holder->withContent('store://obin');
 
         // Act
-        $withSame = $original->isContentChanged( $same );
-        $withDiferent = $original->isContentChanged( $modified );
+        $withSame = $original->isContentChanged($same);
+        $withDiferent = $original->isContentChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TemplateAssetContentAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateAssetContentAccessorUnitTest
 {
-  use TemplateAssetContentAccessor;
+    use TemplateAssetContentAccessor;
 }

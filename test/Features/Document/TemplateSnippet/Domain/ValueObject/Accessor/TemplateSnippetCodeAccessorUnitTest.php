@@ -50,13 +50,13 @@ class TemplateSnippetCodeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateSnippetCodeAccessorUnitTest()->withCode('one');
-        $original = $holder->withCode( 'one');
-        $same = $holder->withCode( 'one');
+        $original = $holder->withCode('one');
+        $same = $holder->withCode('one');
         $modified = $holder->withCode('other');
 
         // Act
-        $withSame = $original->isCodeChanged( $same );
-        $withDiferent = $original->isCodeChanged( $modified );
+        $withSame = $original->isCodeChanged($same);
+        $withDiferent = $original->isCodeChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TemplateSnippetCodeAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateSnippetCodeAccessorUnitTest
 {
-  use TemplateSnippetCodeAccessor;
+    use TemplateSnippetCodeAccessor;
 }

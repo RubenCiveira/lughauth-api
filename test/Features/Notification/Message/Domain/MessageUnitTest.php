@@ -5,238 +5,237 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 
 final class MessageUnitTest extends TestCase
 {
-  public function test_init_store_values(): void
-  {
-    // @Arrange
-    $one = new Message(
-      uid: 'one',
-      target: 'one',
-      tenant: new TenantRef('one'),
-      urgent: true,
-      content: 'one',
-      retries: 1,
-      createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      version: 1,
-    );
+    public function test_init_store_values(): void
+    {
+        // @Arrange
+        $one = new Message(
+            uid: 'one',
+            target: 'one',
+            tenant: new TenantRef('one'),
+            urgent: true,
+            content: 'one',
+            retries: 1,
+            createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
 
-    // @Act
-    $other = $one->toAttributes()->build();
-    $calculated = Message::calculatedFields();
+        // @Act
+        $other = $one->toAttributes()->build();
+        $calculated = Message::calculatedFields();
 
-    // @Assert
-    $this->assertEquals([ 'createdAt', 'sendAt', 'lockAt'], $calculated);
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getTarget(), $other->getTarget());
-    $this->assertTrue( $one->isTargetChanged() );
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged() );
-    $this->assertEquals( $one->isUrgent(), $other->isUrgent());
-    $this->assertTrue( $one->isUrgentChanged() );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged() );
-    $this->assertEquals( $one->getRetries(), $other->getRetries());
-    $this->assertTrue( $one->isRetriesChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-  }
-  public function test_replace_change_values(): void
-  {
-    // @Arrange
-    $base = new Message(
-      uid: 'one',
-      target: 'one',
-      tenant: new TenantRef('one'),
-      urgent: true,
-      content: 'one',
-      retries: 1,
-      createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      version: 1,
-    );
-    $other = new Message(
-      uid: 'other',
-      target: 'other',
-      tenant: new TenantRef('other'),
-      urgent: false,
-      content: 'other',
-      retries: 2,
-      createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-      version: 2,
-    );
+        // @Assert
+        $this->assertEquals([ 'createdAt', 'sendAt', 'lockAt'], $calculated);
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getTarget(), $other->getTarget());
+        $this->assertTrue($one->isTargetChanged());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->isUrgent(), $other->isUrgent());
+        $this->assertTrue($one->isUrgentChanged());
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged());
+        $this->assertEquals($one->getRetries(), $other->getRetries());
+        $this->assertTrue($one->isRetriesChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+    }
+    public function test_replace_change_values(): void
+    {
+        // @Arrange
+        $base = new Message(
+            uid: 'one',
+            target: 'one',
+            tenant: new TenantRef('one'),
+            urgent: true,
+            content: 'one',
+            retries: 1,
+            createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+        $other = new Message(
+            uid: 'other',
+            target: 'other',
+            tenant: new TenantRef('other'),
+            urgent: false,
+            content: 'other',
+            retries: 2,
+            createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            version: 2,
+        );
 
-    // @Act
-    $one = $base->replace( $other->toAttributes() );
+        // @Act
+        $one = $base->replace($other->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $base->uid());
-    $this->assertEquals( $one->getTarget(), $other->getTarget());
-    $this->assertTrue( $one->isTargetChanged($base) );
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged($base) );
-    $this->assertEquals( $one->isUrgent(), $other->isUrgent());
-    $this->assertTrue( $one->isUrgentChanged($base) );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged($base) );
-    $this->assertEquals( $one->getRetries(), $other->getRetries());
-    $this->assertTrue( $one->isRetriesChanged($base) );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged($base) );
-  }
-  public function test_json_compare(): void
-  {
-    // @Arrange
-    $one = new Message(
-      uid: 'one',
-      target: 'one',
-      tenant: new TenantRef('one'),
-      urgent: true,
-      content: 'one',
-      retries: 1,
-      createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $base->uid());
+        $this->assertEquals($one->getTarget(), $other->getTarget());
+        $this->assertTrue($one->isTargetChanged($base));
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->isUrgent(), $other->isUrgent());
+        $this->assertTrue($one->isUrgentChanged($base));
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged($base));
+        $this->assertEquals($one->getRetries(), $other->getRetries());
+        $this->assertTrue($one->isRetriesChanged($base));
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged($base));
+    }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new Message(
+            uid: 'one',
+            target: 'one',
+            tenant: new TenantRef('one'),
+            urgent: true,
+            content: 'one',
+            retries: 1,
+            createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
 
-    // @Act
-    $json = $one->asPublicJson();
+        // @Act
+        $json = $one->asPublicJson();
 
-    // @Assert
-$this->assertEquals('one', $json['uid']);
-$this->assertEquals('one', $json['target']);
-$this->assertEquals('one', $json['tenant']['$ref'] );
-$this->assertEquals(true, $json['urgent']);
-$this->assertEquals(1, $json['retries']);
-$this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['createdAt']);
-$this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['sendAt']);
-$this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['lockAt']);
-$this->assertEquals(1, $json['version']);
-  }
-  public function test_create_store_values(): void
-  {
-    // @Arrange
-    $one = new Message(
-      uid: 'one',
-      target: 'one',
-      tenant: new TenantRef('one'),
-      urgent: true,
-      content: 'one',
-      retries: 1,
-      createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['target']);
+        $this->assertEquals('one', $json['tenant']['$ref']);
+        $this->assertEquals(true, $json['urgent']);
+        $this->assertEquals(1, $json['retries']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['createdAt']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['sendAt']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['lockAt']);
+        $this->assertEquals(1, $json['version']);
+    }
+    public function test_create_store_values(): void
+    {
+        // @Arrange
+        $one = new Message(
+            uid: 'one',
+            target: 'one',
+            tenant: new TenantRef('one'),
+            urgent: true,
+            content: 'one',
+            retries: 1,
+            createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
 
-    // @Act
-    $other = Message::create($one->toAttributes() );
+        // @Act
+        $other = Message::create($one->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getTarget(), $other->getTarget());
-    $this->assertTrue( $one->isTargetChanged() );
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged() );
-    $this->assertEquals( $one->isUrgent(), $other->isUrgent());
-    $this->assertTrue( $one->isUrgentChanged() );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged() );
-    $this->assertEquals( $one->getRetries(), $other->getRetries());
-    $this->assertTrue( $one->isRetriesChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-    $this->assertCount(0, $one->getTheEvents() );
-    $this->assertCount(1, $other->getTheEvents() );
-  }
-  public function test_update_change_values(): void
-  {
-    $base = new Message(
-      uid: 'one',
-      target: 'one',
-      tenant: new TenantRef('one'),
-      urgent: true,
-      content: 'one',
-      retries: 1,
-      createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      version: 1,
-    );
-    $other = new Message(
-      uid: 'other',
-      target: 'other',
-      tenant: new TenantRef('other'),
-      urgent: false,
-      content: 'other',
-      retries: 2,
-      createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
-      version: 2,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getTarget(), $other->getTarget());
+        $this->assertTrue($one->isTargetChanged());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->isUrgent(), $other->isUrgent());
+        $this->assertTrue($one->isUrgentChanged());
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged());
+        $this->assertEquals($one->getRetries(), $other->getRetries());
+        $this->assertTrue($one->isRetriesChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+        $this->assertCount(0, $one->getTheEvents());
+        $this->assertCount(1, $other->getTheEvents());
+    }
+    public function test_update_change_values(): void
+    {
+        $base = new Message(
+            uid: 'one',
+            target: 'one',
+            tenant: new TenantRef('one'),
+            urgent: true,
+            content: 'one',
+            retries: 1,
+            createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
+        $other = new Message(
+            uid: 'other',
+            target: 'other',
+            tenant: new TenantRef('other'),
+            urgent: false,
+            content: 'other',
+            retries: 2,
+            createdAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            version: 2,
+        );
 
-    // @Act
-    $one = $base->update( $other->toAttributes() );
+        // @Act
+        $one = $base->update($other->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $base->uid());
-    $this->assertEquals( $one->getTarget(), $other->getTarget());
-    $this->assertTrue( $one->isTargetChanged($base) );
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged($base) );
-    $this->assertEquals( $one->isUrgent(), $other->isUrgent());
-    $this->assertTrue( $one->isUrgentChanged($base) );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged($base) );
-    $this->assertEquals( $one->getRetries(), $other->getRetries());
-    $this->assertTrue( $one->isRetriesChanged($base) );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged($base) );
-    $this->assertCount(0, $other->getTheEvents() );
-    $this->assertCount(1, $one->getTheEvents() );
-  }
-  public function test_delete_store_values(): void
-  {
-    // @Arrange
-    $one = new Message(
-      uid: 'one',
-      target: 'one',
-      tenant: new TenantRef('one'),
-      urgent: true,
-      content: 'one',
-      retries: 1,
-      createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $base->uid());
+        $this->assertEquals($one->getTarget(), $other->getTarget());
+        $this->assertTrue($one->isTargetChanged($base));
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged($base));
+        $this->assertEquals($one->isUrgent(), $other->isUrgent());
+        $this->assertTrue($one->isUrgentChanged($base));
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged($base));
+        $this->assertEquals($one->getRetries(), $other->getRetries());
+        $this->assertTrue($one->isRetriesChanged($base));
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged($base));
+        $this->assertCount(0, $other->getTheEvents());
+        $this->assertCount(1, $one->getTheEvents());
+    }
+    public function test_delete_store_values(): void
+    {
+        // @Arrange
+        $one = new Message(
+            uid: 'one',
+            target: 'one',
+            tenant: new TenantRef('one'),
+            urgent: true,
+            content: 'one',
+            retries: 1,
+            createdAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            sendAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            lockAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            version: 1,
+        );
 
-    // @Act
-    $other = $one->delete();
+        // @Act
+        $other = $one->delete();
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getTarget(), $other->getTarget());
-    $this->assertTrue( $one->isTargetChanged() );
-    $this->assertEquals( $one->getTenant(), $other->getTenant());
-    $this->assertTrue( $one->isTenantChanged() );
-    $this->assertEquals( $one->isUrgent(), $other->isUrgent());
-    $this->assertTrue( $one->isUrgentChanged() );
-    $this->assertEquals( $one->getContent(), $other->getContent());
-    $this->assertTrue( $one->isContentChanged() );
-    $this->assertEquals( $one->getRetries(), $other->getRetries());
-    $this->assertTrue( $one->isRetriesChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-  }
+        // @Assert
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getTarget(), $other->getTarget());
+        $this->assertTrue($one->isTargetChanged());
+        $this->assertEquals($one->getTenant(), $other->getTenant());
+        $this->assertTrue($one->isTenantChanged());
+        $this->assertEquals($one->isUrgent(), $other->isUrgent());
+        $this->assertTrue($one->isUrgentChanged());
+        $this->assertEquals($one->getContent(), $other->getContent());
+        $this->assertTrue($one->isContentChanged());
+        $this->assertEquals($one->getRetries(), $other->getRetries());
+        $this->assertTrue($one->isRetriesChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+    }
 }

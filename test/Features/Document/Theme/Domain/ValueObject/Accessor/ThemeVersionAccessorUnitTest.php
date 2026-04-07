@@ -50,14 +50,14 @@ class ThemeVersionAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithThemeVersionAccessorUnitTest();
-        $original = $holder->withVersion( 1);
-        $same = $holder->withVersion( 1);
+        $original = $holder->withVersion(1);
+        $same = $holder->withVersion(1);
         $modified = $holder->withVersion(2);
 
         // Act
         $unchanged = $holder->isVersionChanged();
-        $withSame = $original->isVersionChanged( $same );
-        $withDiferent = $original->isVersionChanged( $modified );
+        $withSame = $original->isVersionChanged($same);
+        $withDiferent = $original->isVersionChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class ThemeVersionAccessorUnitTest extends TestCase
 }
 class ImplWithThemeVersionAccessorUnitTest
 {
-  use ThemeVersionAccessor;
+    use ThemeVersionAccessor;
 }

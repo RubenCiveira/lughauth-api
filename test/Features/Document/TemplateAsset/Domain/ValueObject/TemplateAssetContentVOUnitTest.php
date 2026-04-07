@@ -10,63 +10,64 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAss
 
 final class TemplateAssetContentVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 'store://bin';
-    $ref = TemplateAssetContentVO::from( $value );
-    $this->assertEquals('bin', $ref->value());
-    $other = TemplateAssetContentVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TemplateAssetContentVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TemplateAssetContentVO::tryFrom(1, $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TemplateAssetContentVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 'store://bin';
+        $ref = TemplateAssetContentVO::from($value);
+        $this->assertEquals('bin', $ref->value());
+        $other = TemplateAssetContentVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TemplateAssetContentVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TemplateAssetContentVO::tryFrom(1, $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TemplateAssetContentVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TemplateAssetContentVO::from('store://bin');
+        $same = TemplateAssetContentVO::from('store://bin');
+        $other = TemplateAssetContentVO::from('store://obin');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TemplateAssetContentVO::from('store://bin');     $same = TemplateAssetContentVO::from('store://bin');     $other = TemplateAssetContentVO::from('store://obin');
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_cypher_builders(): void
-  {
-    $errors = new ConstraintFailList();
-    $temp = TemplateAssetContentVO::fromTemporal('tempus');
-    $this->assertEquals('tempus', $temp->value());
-    $temp = TemplateAssetContentVO::tryFromTemporal('tempus', $errors);
-    $this->assertEquals('tempus', $temp->value());
-    $this->assertTrue( $errors->isEmpty() );
-    $external = TemplateAssetContentVO::fromStored('http://www.php.net/');
-    $this->assertEquals('http://www.php.net/', $external->value());
-    $external = TemplateAssetContentVO::tryFromStored('http://www.php.net/', $errors);
-    $this->assertEquals('http://www.php.net/', $external->value());
-    $this->assertTrue( $errors->isEmpty() );
-    $internal = TemplateAssetContentVO::fromStored('none');
-    $this->assertEquals('none', $internal->value());
-    $external = TemplateAssetContentVO::tryFromStored('none', $errors);
-    $this->assertEquals('none', $internal->value());
-    $this->assertTrue( $errors->isEmpty() );
-  }
-  public function test_invalid_file_schmea(): void
-  {
-    $this->expectException(\InvalidArgumentException::class);
-    TemplateAssetContentVO::from('none');
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_cypher_builders(): void
+    {
+        $errors = new ConstraintFailList();
+        $temp = TemplateAssetContentVO::fromTemporal('tempus');
+        $this->assertEquals('tempus', $temp->value());
+        $temp = TemplateAssetContentVO::tryFromTemporal('tempus', $errors);
+        $this->assertEquals('tempus', $temp->value());
+        $this->assertTrue($errors->isEmpty());
+        $external = TemplateAssetContentVO::fromStored('http://www.php.net/');
+        $this->assertEquals('http://www.php.net/', $external->value());
+        $external = TemplateAssetContentVO::tryFromStored('http://www.php.net/', $errors);
+        $this->assertEquals('http://www.php.net/', $external->value());
+        $this->assertTrue($errors->isEmpty());
+        $internal = TemplateAssetContentVO::fromStored('none');
+        $this->assertEquals('none', $internal->value());
+        $external = TemplateAssetContentVO::tryFromStored('none', $errors);
+        $this->assertEquals('none', $internal->value());
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_invalid_file_schmea(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        TemplateAssetContentVO::from('none');
+    }
 }

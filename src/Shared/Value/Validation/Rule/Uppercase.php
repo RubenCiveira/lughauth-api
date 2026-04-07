@@ -25,7 +25,7 @@ class Uppercase implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-		/** @psalm-suppress UndefinedInterfaceMethod */
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::uppercase()->isValid($value) ? null : new RuleFail('rule_uppercase', $value, []);
     }
 }

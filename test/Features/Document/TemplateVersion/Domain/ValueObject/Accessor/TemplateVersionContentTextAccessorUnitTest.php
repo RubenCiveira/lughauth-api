@@ -50,14 +50,14 @@ class TemplateVersionContentTextAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTemplateVersionContentTextAccessorUnitTest();
-        $original = $holder->withContentText( 'one');
-        $same = $holder->withContentText( 'one');
+        $original = $holder->withContentText('one');
+        $same = $holder->withContentText('one');
         $modified = $holder->withContentText('other');
 
         // Act
         $unchanged = $holder->isContentTextChanged();
-        $withSame = $original->isContentTextChanged( $same );
-        $withDiferent = $original->isContentTextChanged( $modified );
+        $withSame = $original->isContentTextChanged($same);
+        $withDiferent = $original->isContentTextChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TemplateVersionContentTextAccessorUnitTest extends TestCase
 }
 class ImplWithTemplateVersionContentTextAccessorUnitTest
 {
-  use TemplateVersionContentTextAccessor;
+    use TemplateVersionContentTextAccessor;
 }

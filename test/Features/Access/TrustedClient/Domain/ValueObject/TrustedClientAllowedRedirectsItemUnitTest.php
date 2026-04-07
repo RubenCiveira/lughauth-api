@@ -11,13 +11,13 @@ use PHPUnit\Framework\TestCase;
 
 class TrustedClientAllowedRedirectsItemUnitTest extends TestCase
 {
-  public function test_item_build(): void
-  {
-    $item = new TrustedClientAllowedRedirectsItem(
-      uid: TrustedClientAllowedRedirectsUidVO::from('one'),
-      url: TrustedClientAllowedRedirectsUrlVO::from('one'),
-      version: TrustedClientAllowedRedirectsVersionVO::from(1)
-    );
-    $this->assertEquals('one', $item->uid());
-  }
+    public function test_item_build(): void
+    {
+        $item = new TrustedClientAllowedRedirectsItem(
+            uid: TrustedClientAllowedRedirectsUidVO::from('one'),
+            url: TrustedClientAllowedRedirectsUrlVO::from('one'),
+            version: TrustedClientAllowedRedirectsVersionVO::from(1)
+        );
+        $this->assertEquals('one', $item->uid());
+    }
 }

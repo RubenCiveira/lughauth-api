@@ -51,14 +51,14 @@ class UserRoleAssignamentTrustedClientAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserRoleAssignamentTrustedClientAccessorUnitTest();
-        $original = $holder->withTrustedClient( new TrustedClientRef('one'));
-        $same = $holder->withTrustedClient( new TrustedClientRef('one'));
+        $original = $holder->withTrustedClient(new TrustedClientRef('one'));
+        $same = $holder->withTrustedClient(new TrustedClientRef('one'));
         $modified = $holder->withTrustedClient(new TrustedClientRef('other'));
 
         // Act
         $unchanged = $holder->isTrustedClientChanged();
-        $withSame = $original->isTrustedClientChanged( $same );
-        $withDiferent = $original->isTrustedClientChanged( $modified );
+        $withSame = $original->isTrustedClientChanged($same);
+        $withDiferent = $original->isTrustedClientChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -68,5 +68,5 @@ class UserRoleAssignamentTrustedClientAccessorUnitTest extends TestCase
 }
 class ImplWithUserRoleAssignamentTrustedClientAccessorUnitTest
 {
-  use UserRoleAssignamentTrustedClientAccessor;
+    use UserRoleAssignamentTrustedClientAccessor;
 }

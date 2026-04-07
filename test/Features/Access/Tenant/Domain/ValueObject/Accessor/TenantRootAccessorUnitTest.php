@@ -50,14 +50,14 @@ class TenantRootAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantRootAccessorUnitTest();
-        $original = $holder->withRoot( true);
-        $same = $holder->withRoot( true);
+        $original = $holder->withRoot(true);
+        $same = $holder->withRoot(true);
         $modified = $holder->withRoot(false);
 
         // Act
         $unchanged = $holder->isRootChanged();
-        $withSame = $original->isRootChanged( $same );
-        $withDiferent = $original->isRootChanged( $modified );
+        $withSame = $original->isRootChanged($same);
+        $withDiferent = $original->isRootChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantRootAccessorUnitTest extends TestCase
 }
 class ImplWithTenantRootAccessorUnitTest
 {
-  use TenantRootAccessor;
+    use TenantRootAccessor;
 }

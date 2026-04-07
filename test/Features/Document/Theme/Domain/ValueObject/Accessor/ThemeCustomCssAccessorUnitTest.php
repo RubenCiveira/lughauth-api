@@ -50,14 +50,14 @@ class ThemeCustomCssAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithThemeCustomCssAccessorUnitTest();
-        $original = $holder->withCustomCss( 'one');
-        $same = $holder->withCustomCss( 'one');
+        $original = $holder->withCustomCss('one');
+        $same = $holder->withCustomCss('one');
         $modified = $holder->withCustomCss('other');
 
         // Act
         $unchanged = $holder->isCustomCssChanged();
-        $withSame = $original->isCustomCssChanged( $same );
-        $withDiferent = $original->isCustomCssChanged( $modified );
+        $withSame = $original->isCustomCssChanged($same);
+        $withDiferent = $original->isCustomCssChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class ThemeCustomCssAccessorUnitTest extends TestCase
 }
 class ImplWithThemeCustomCssAccessorUnitTest
 {
-  use ThemeCustomCssAccessor;
+    use ThemeCustomCssAccessor;
 }

@@ -10,73 +10,74 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 
 final class TenantTermsOfUseAttachedVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = 'store://bin';
-    $ref = TenantTermsOfUseAttachedVO::from( $value );
-    $this->assertEquals('bin', $ref->value());
-    $other = TenantTermsOfUseAttachedVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TenantTermsOfUseAttachedVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TenantTermsOfUseAttachedVO::tryFrom(1, $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TenantTermsOfUseAttachedVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = 'store://bin';
+        $ref = TenantTermsOfUseAttachedVO::from($value);
+        $this->assertEquals('bin', $ref->value());
+        $other = TenantTermsOfUseAttachedVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TenantTermsOfUseAttachedVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TenantTermsOfUseAttachedVO::tryFrom(1, $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantTermsOfUseAttachedVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantTermsOfUseAttachedVO::from('store://bin');
+        $same = TenantTermsOfUseAttachedVO::from('store://bin');
+        $other = TenantTermsOfUseAttachedVO::from('store://obin');
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TenantTermsOfUseAttachedVO::from('store://bin');     $same = TenantTermsOfUseAttachedVO::from('store://bin');     $other = TenantTermsOfUseAttachedVO::from('store://obin');
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TenantTermsOfUseAttachedVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TenantTermsOfUseAttachedVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
-  public function test_cypher_builders(): void
-  {
-    $errors = new ConstraintFailList();
-    $temp = TenantTermsOfUseAttachedVO::fromTemporal('tempus');
-    $this->assertEquals('tempus', $temp->value());
-    $temp = TenantTermsOfUseAttachedVO::tryFromTemporal('tempus', $errors);
-    $this->assertEquals('tempus', $temp->value());
-    $this->assertTrue( $errors->isEmpty() );
-    $external = TenantTermsOfUseAttachedVO::fromStored('http://www.php.net/');
-    $this->assertEquals('http://www.php.net/', $external->value());
-    $external = TenantTermsOfUseAttachedVO::tryFromStored('http://www.php.net/', $errors);
-    $this->assertEquals('http://www.php.net/', $external->value());
-    $this->assertTrue( $errors->isEmpty() );
-    $internal = TenantTermsOfUseAttachedVO::fromStored('none');
-    $this->assertEquals('none', $internal->value());
-    $external = TenantTermsOfUseAttachedVO::tryFromStored('none', $errors);
-    $this->assertEquals('none', $internal->value());
-    $this->assertTrue( $errors->isEmpty() );
-  }
-  public function test_invalid_file_schmea(): void
-  {
-    $this->expectException(\InvalidArgumentException::class);
-    TenantTermsOfUseAttachedVO::from('none');
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TenantTermsOfUseAttachedVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TenantTermsOfUseAttachedVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
+    public function test_cypher_builders(): void
+    {
+        $errors = new ConstraintFailList();
+        $temp = TenantTermsOfUseAttachedVO::fromTemporal('tempus');
+        $this->assertEquals('tempus', $temp->value());
+        $temp = TenantTermsOfUseAttachedVO::tryFromTemporal('tempus', $errors);
+        $this->assertEquals('tempus', $temp->value());
+        $this->assertTrue($errors->isEmpty());
+        $external = TenantTermsOfUseAttachedVO::fromStored('http://www.php.net/');
+        $this->assertEquals('http://www.php.net/', $external->value());
+        $external = TenantTermsOfUseAttachedVO::tryFromStored('http://www.php.net/', $errors);
+        $this->assertEquals('http://www.php.net/', $external->value());
+        $this->assertTrue($errors->isEmpty());
+        $internal = TenantTermsOfUseAttachedVO::fromStored('none');
+        $this->assertEquals('none', $internal->value());
+        $external = TenantTermsOfUseAttachedVO::tryFromStored('none', $errors);
+        $this->assertEquals('none', $internal->value());
+        $this->assertTrue($errors->isEmpty());
+    }
+    public function test_invalid_file_schmea(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        TenantTermsOfUseAttachedVO::from('none');
+    }
 }

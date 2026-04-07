@@ -51,14 +51,14 @@ class RoleRelyingPartyAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithRoleRelyingPartyAccessorUnitTest();
-        $original = $holder->withRelyingParty( new RelyingPartyRef('one'));
-        $same = $holder->withRelyingParty( new RelyingPartyRef('one'));
+        $original = $holder->withRelyingParty(new RelyingPartyRef('one'));
+        $same = $holder->withRelyingParty(new RelyingPartyRef('one'));
         $modified = $holder->withRelyingParty(new RelyingPartyRef('other'));
 
         // Act
         $unchanged = $holder->isRelyingPartyChanged();
-        $withSame = $original->isRelyingPartyChanged( $same );
-        $withDiferent = $original->isRelyingPartyChanged( $modified );
+        $withSame = $original->isRelyingPartyChanged($same);
+        $withDiferent = $original->isRelyingPartyChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -68,5 +68,5 @@ class RoleRelyingPartyAccessorUnitTest extends TestCase
 }
 class ImplWithRoleRelyingPartyAccessorUnitTest
 {
-  use RoleRelyingPartyAccessor;
+    use RoleRelyingPartyAccessor;
 }

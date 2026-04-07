@@ -50,13 +50,13 @@ class SmtpOutboundConfigSenderEmailAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigSenderEmailAccessorUnitTest()->withSenderEmail('one');
-        $original = $holder->withSenderEmail( 'one');
-        $same = $holder->withSenderEmail( 'one');
+        $original = $holder->withSenderEmail('one');
+        $same = $holder->withSenderEmail('one');
         $modified = $holder->withSenderEmail('other');
 
         // Act
-        $withSame = $original->isSenderEmailChanged( $same );
-        $withDiferent = $original->isSenderEmailChanged( $modified );
+        $withSame = $original->isSenderEmailChanged($same);
+        $withDiferent = $original->isSenderEmailChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class SmtpOutboundConfigSenderEmailAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigSenderEmailAccessorUnitTest
 {
-  use SmtpOutboundConfigSenderEmailAccessor;
+    use SmtpOutboundConfigSenderEmailAccessor;
 }

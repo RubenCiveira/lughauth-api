@@ -50,14 +50,14 @@ class TenantLoginProviderDisabledAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantLoginProviderDisabledAccessorUnitTest();
-        $original = $holder->withDisabled( true);
-        $same = $holder->withDisabled( true);
+        $original = $holder->withDisabled(true);
+        $same = $holder->withDisabled(true);
         $modified = $holder->withDisabled(false);
 
         // Act
         $unchanged = $holder->isDisabledChanged();
-        $withSame = $original->isDisabledChanged( $same );
-        $withDiferent = $original->isDisabledChanged( $modified );
+        $withSame = $original->isDisabledChanged($same);
+        $withDiferent = $original->isDisabledChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantLoginProviderDisabledAccessorUnitTest extends TestCase
 }
 class ImplWithTenantLoginProviderDisabledAccessorUnitTest
 {
-  use TenantLoginProviderDisabledAccessor;
+    use TenantLoginProviderDisabledAccessor;
 }

@@ -16,77 +16,83 @@ use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRol
 
 final class UserRoleAssignamentRolesVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) );
-    $ref = UserRoleAssignamentRolesVO::from( $value );
-    $this->assertEquals(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ), $ref->value());
-  $this->assertTrue( !!$ref->find('one') );
-  $this->assertTrue( !$ref->find('other') );
-  $current = new UserRoleAssignamentRolesItem(
-UserRoleAssignamentRolesUidVO::from( 'one'),null,null,);        $cloned = UserRoleAssignamentRolesVO::from([$current]);        $clonedFilled = $cloned->getWithDefaults($ref);
+    public function test_asignation_keep_value(): void
+    {
+        $value = new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        ));
+        $ref = UserRoleAssignamentRolesVO::from($value);
+        $this->assertEquals(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )), $ref->value());
+        $this->assertTrue(!!$ref->find('one'));
+        $this->assertTrue(!$ref->find('other'));
+        $current = new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            null,
+            null,
+        );
+        $cloned = UserRoleAssignamentRolesVO::from([$current]);
+        $clonedFilled = $cloned->getWithDefaults($ref);
         $clonedValue = $cloned->value();
         $clonedFilledValue = $clonedFilled->value();
         $this->assertNull($clonedValue->current()->getRole());
-        $this->assertEquals(new RoleRef('one'), $clonedFilledValue->current()->getRole() );
+        $this->assertEquals(new RoleRef('one'), $clonedFilledValue->current()->getRole());
         $this->assertNull($clonedValue->current()->getVersion());
-        $this->assertEquals(1, $clonedFilledValue->current()->getVersion() );
-    $other = UserRoleAssignamentRolesVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = UserRoleAssignamentRolesVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = UserRoleAssignamentRolesVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(UserRoleAssignamentRolesVO::class, 'fromUnsafe');
-    $method->invoke(null, "bad");
-  }
-  public function test_equals(): void
+        $this->assertEquals(1, $clonedFilledValue->current()->getVersion());
+        $other = UserRoleAssignamentRolesVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = UserRoleAssignamentRolesVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = UserRoleAssignamentRolesVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(UserRoleAssignamentRolesVO::class, 'fromUnsafe');
+        $method->invoke(null, "bad");
+    }
+    public function test_equals(): void
+    {
+        $one = UserRoleAssignamentRolesVO::from(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
+        $same = UserRoleAssignamentRolesVO::from(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('one'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
+            UserRoleAssignamentRolesVersionVO::from(1)
+        )));
+        $other = UserRoleAssignamentRolesVO::from(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
+            UserRoleAssignamentRolesUidVO::from('other'),
+            UserRoleAssignamentRolesRoleVO::from(new RoleRef('other')),
+            UserRoleAssignamentRolesVersionVO::from(2)
+        )));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = UserRoleAssignamentRolesVO::from(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));     $same = UserRoleAssignamentRolesVO::from(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'one'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('one')),
-        UserRoleAssignamentRolesVersionVO::from( 1)
-) ));     $other = UserRoleAssignamentRolesVO::from(new UserRoleAssignamentRolesListRef( new UserRoleAssignamentRolesItem(
-        UserRoleAssignamentRolesUidVO::from( 'other'),
-        UserRoleAssignamentRolesRoleVO::from( new RoleRef('other')),
-        UserRoleAssignamentRolesVersionVO::from( 2)
-) ));
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_build_empty(): void
-  {
-    $errors = new ConstraintFailList();
-    $temp = UserRoleAssignamentRolesVO::tryFrom([], $errors);
-    $this->assertFalse($temp->value()->valid());
-    $temp = UserRoleAssignamentRolesVO::tryFrom(null, $errors);
-    $this->assertNull($temp->value());
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_build_empty(): void
+    {
+        $errors = new ConstraintFailList();
+        $temp = UserRoleAssignamentRolesVO::tryFrom([], $errors);
+        $this->assertFalse($temp->value()->valid());
+        $temp = UserRoleAssignamentRolesVO::tryFrom(null, $errors);
+        $this->assertNull($temp->value());
+    }
 }

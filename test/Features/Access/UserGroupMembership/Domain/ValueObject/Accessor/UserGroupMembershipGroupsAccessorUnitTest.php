@@ -50,14 +50,14 @@ class UserGroupMembershipGroupsAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithUserGroupMembershipGroupsAccessorUnitTest();
-        $original = $holder->withGroups( 'one');
-        $same = $holder->withGroups( 'one');
+        $original = $holder->withGroups('one');
+        $same = $holder->withGroups('one');
         $modified = $holder->withGroups('other');
 
         // Act
         $unchanged = $holder->isGroupsChanged();
-        $withSame = $original->isGroupsChanged( $same );
-        $withDiferent = $original->isGroupsChanged( $modified );
+        $withSame = $original->isGroupsChanged($same);
+        $withDiferent = $original->isGroupsChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserGroupMembershipGroupsAccessorUnitTest extends TestCase
 }
 class ImplWithUserGroupMembershipGroupsAccessorUnitTest
 {
-  use UserGroupMembershipGroupsAccessor;
+    use UserGroupMembershipGroupsAccessor;
 }

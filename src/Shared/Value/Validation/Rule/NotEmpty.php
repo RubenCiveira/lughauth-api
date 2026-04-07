@@ -25,7 +25,7 @@ class NotEmpty implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-		/** @psalm-suppress UndefinedInterfaceMethod */
+        /** @psalm-suppress UndefinedInterfaceMethod */
         return Validator::notEmpty()->isValid($value) ? null : new RuleFail('rule_not_empty', $value, []);
     }
 }

@@ -5,14 +5,13 @@ declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageRef;
-use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 
 final class MessageRefUnitTest extends TestCase
 {
-  public function test(): void
-  {
-    $uid = 'uid';
-    $ref = new MessageRef(uid: $uid);
-    $this->assertSame($uid, $ref->uid());
-  }
+    public function test(): void
+    {
+        $uid = 'uid';
+        $ref = new MessageRef(uid: $uid);
+        $this->assertSame($uid, $ref->uid());
+    }
 }

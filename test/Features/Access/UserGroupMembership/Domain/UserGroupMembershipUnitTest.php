@@ -7,192 +7,191 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use PHPUnit\Framework\TestCase;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembershipAttributes;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
 
 final class UserGroupMembershipUnitTest extends TestCase
 {
-  public function test_init_store_values(): void
-  {
-    // @Arrange
-    $one = new UserGroupMembership(
-      uid: 'one',
-      user: new UserRef('one'),
-      relyingParty: new RelyingPartyRef('one'),
-      trustedClient: new TrustedClientRef('one'),
-      groups: 'one',
-      version: 1,
-    );
+    public function test_init_store_values(): void
+    {
+        // @Arrange
+        $one = new UserGroupMembership(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            groups: 'one',
+            version: 1,
+        );
 
-    // @Act
-    $other = $one->toAttributes()->build();
-    $calculated = UserGroupMembership::calculatedFields();
+        // @Act
+        $other = $one->toAttributes()->build();
+        $calculated = UserGroupMembership::calculatedFields();
 
-    // @Assert
-    $this->assertEquals([], $calculated);
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getUser(), $other->getUser());
-    $this->assertTrue( $one->isUserChanged() );
-    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
-    $this->assertTrue( $one->isRelyingPartyChanged() );
-    $this->assertEquals( $one->getTrustedClient(), $other->getTrustedClient());
-    $this->assertTrue( $one->isTrustedClientChanged() );
-    $this->assertEquals( $one->getGroups(), $other->getGroups());
-    $this->assertTrue( $one->isGroupsChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-  }
-  public function test_replace_change_values(): void
-  {
-    // @Arrange
-    $base = new UserGroupMembership(
-      uid: 'one',
-      user: new UserRef('one'),
-      relyingParty: new RelyingPartyRef('one'),
-      trustedClient: new TrustedClientRef('one'),
-      groups: 'one',
-      version: 1,
-    );
-    $other = new UserGroupMembership(
-      uid: 'other',
-      user: new UserRef('other'),
-      relyingParty: new RelyingPartyRef('other'),
-      trustedClient: new TrustedClientRef('other'),
-      groups: 'other',
-      version: 2,
-    );
+        // @Assert
+        $this->assertEquals([], $calculated);
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getUser(), $other->getUser());
+        $this->assertTrue($one->isUserChanged());
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged());
+        $this->assertEquals($one->getTrustedClient(), $other->getTrustedClient());
+        $this->assertTrue($one->isTrustedClientChanged());
+        $this->assertEquals($one->getGroups(), $other->getGroups());
+        $this->assertTrue($one->isGroupsChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+    }
+    public function test_replace_change_values(): void
+    {
+        // @Arrange
+        $base = new UserGroupMembership(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            groups: 'one',
+            version: 1,
+        );
+        $other = new UserGroupMembership(
+            uid: 'other',
+            user: new UserRef('other'),
+            relyingParty: new RelyingPartyRef('other'),
+            trustedClient: new TrustedClientRef('other'),
+            groups: 'other',
+            version: 2,
+        );
 
-    // @Act
-    $one = $base->replace( $other->toAttributes() );
+        // @Act
+        $one = $base->replace($other->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $base->uid());
-    $this->assertEquals( $one->getUser(), $other->getUser());
-    $this->assertTrue( $one->isUserChanged($base) );
-    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
-    $this->assertTrue( $one->isRelyingPartyChanged($base) );
-    $this->assertEquals( $one->getTrustedClient(), $other->getTrustedClient());
-    $this->assertTrue( $one->isTrustedClientChanged($base) );
-    $this->assertEquals( $one->getGroups(), $other->getGroups());
-    $this->assertTrue( $one->isGroupsChanged($base) );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged($base) );
-  }
-  public function test_json_compare(): void
-  {
-    // @Arrange
-    $one = new UserGroupMembership(
-      uid: 'one',
-      user: new UserRef('one'),
-      relyingParty: new RelyingPartyRef('one'),
-      trustedClient: new TrustedClientRef('one'),
-      groups: 'one',
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $base->uid());
+        $this->assertEquals($one->getUser(), $other->getUser());
+        $this->assertTrue($one->isUserChanged($base));
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged($base));
+        $this->assertEquals($one->getTrustedClient(), $other->getTrustedClient());
+        $this->assertTrue($one->isTrustedClientChanged($base));
+        $this->assertEquals($one->getGroups(), $other->getGroups());
+        $this->assertTrue($one->isGroupsChanged($base));
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged($base));
+    }
+    public function test_json_compare(): void
+    {
+        // @Arrange
+        $one = new UserGroupMembership(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            groups: 'one',
+            version: 1,
+        );
 
-    // @Act
-    $json = $one->asPublicJson();
+        // @Act
+        $json = $one->asPublicJson();
 
-    // @Assert
-$this->assertEquals('one', $json['uid']);
-$this->assertEquals('one', $json['user']['$ref'] );
-$this->assertEquals('one', $json['relyingParty']['$ref'] );
-$this->assertEquals('one', $json['trustedClient']['$ref'] );
-$this->assertEquals(1, $json['version']);
-  }
-  public function test_create_store_values(): void
-  {
-    // @Arrange
-    $one = new UserGroupMembership(
-      uid: 'one',
-      user: new UserRef('one'),
-      relyingParty: new RelyingPartyRef('one'),
-      trustedClient: new TrustedClientRef('one'),
-      groups: 'one',
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals('one', $json['uid']);
+        $this->assertEquals('one', $json['user']['$ref']);
+        $this->assertEquals('one', $json['relyingParty']['$ref']);
+        $this->assertEquals('one', $json['trustedClient']['$ref']);
+        $this->assertEquals(1, $json['version']);
+    }
+    public function test_create_store_values(): void
+    {
+        // @Arrange
+        $one = new UserGroupMembership(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            groups: 'one',
+            version: 1,
+        );
 
-    // @Act
-    $other = UserGroupMembership::create($one->toAttributes() );
+        // @Act
+        $other = UserGroupMembership::create($one->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getUser(), $other->getUser());
-    $this->assertTrue( $one->isUserChanged() );
-    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
-    $this->assertTrue( $one->isRelyingPartyChanged() );
-    $this->assertEquals( $one->getTrustedClient(), $other->getTrustedClient());
-    $this->assertTrue( $one->isTrustedClientChanged() );
-    $this->assertEquals( $one->getGroups(), $other->getGroups());
-    $this->assertTrue( $one->isGroupsChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-    $this->assertCount(0, $one->getTheEvents() );
-    $this->assertCount(1, $other->getTheEvents() );
-  }
-  public function test_update_change_values(): void
-  {
-    $base = new UserGroupMembership(
-      uid: 'one',
-      user: new UserRef('one'),
-      relyingParty: new RelyingPartyRef('one'),
-      trustedClient: new TrustedClientRef('one'),
-      groups: 'one',
-      version: 1,
-    );
-    $other = new UserGroupMembership(
-      uid: 'other',
-      user: new UserRef('other'),
-      relyingParty: new RelyingPartyRef('other'),
-      trustedClient: new TrustedClientRef('other'),
-      groups: 'other',
-      version: 2,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getUser(), $other->getUser());
+        $this->assertTrue($one->isUserChanged());
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged());
+        $this->assertEquals($one->getTrustedClient(), $other->getTrustedClient());
+        $this->assertTrue($one->isTrustedClientChanged());
+        $this->assertEquals($one->getGroups(), $other->getGroups());
+        $this->assertTrue($one->isGroupsChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+        $this->assertCount(0, $one->getTheEvents());
+        $this->assertCount(1, $other->getTheEvents());
+    }
+    public function test_update_change_values(): void
+    {
+        $base = new UserGroupMembership(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            groups: 'one',
+            version: 1,
+        );
+        $other = new UserGroupMembership(
+            uid: 'other',
+            user: new UserRef('other'),
+            relyingParty: new RelyingPartyRef('other'),
+            trustedClient: new TrustedClientRef('other'),
+            groups: 'other',
+            version: 2,
+        );
 
-    // @Act
-    $one = $base->update( $other->toAttributes() );
+        // @Act
+        $one = $base->update($other->toAttributes());
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $base->uid());
-    $this->assertEquals( $one->getUser(), $other->getUser());
-    $this->assertTrue( $one->isUserChanged($base) );
-    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
-    $this->assertTrue( $one->isRelyingPartyChanged($base) );
-    $this->assertEquals( $one->getTrustedClient(), $other->getTrustedClient());
-    $this->assertTrue( $one->isTrustedClientChanged($base) );
-    $this->assertEquals( $one->getGroups(), $other->getGroups());
-    $this->assertTrue( $one->isGroupsChanged($base) );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged($base) );
-    $this->assertCount(0, $other->getTheEvents() );
-    $this->assertCount(1, $one->getTheEvents() );
-  }
-  public function test_delete_store_values(): void
-  {
-    // @Arrange
-    $one = new UserGroupMembership(
-      uid: 'one',
-      user: new UserRef('one'),
-      relyingParty: new RelyingPartyRef('one'),
-      trustedClient: new TrustedClientRef('one'),
-      groups: 'one',
-      version: 1,
-    );
+        // @Assert
+        $this->assertEquals($one->uid(), $base->uid());
+        $this->assertEquals($one->getUser(), $other->getUser());
+        $this->assertTrue($one->isUserChanged($base));
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged($base));
+        $this->assertEquals($one->getTrustedClient(), $other->getTrustedClient());
+        $this->assertTrue($one->isTrustedClientChanged($base));
+        $this->assertEquals($one->getGroups(), $other->getGroups());
+        $this->assertTrue($one->isGroupsChanged($base));
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged($base));
+        $this->assertCount(0, $other->getTheEvents());
+        $this->assertCount(1, $one->getTheEvents());
+    }
+    public function test_delete_store_values(): void
+    {
+        // @Arrange
+        $one = new UserGroupMembership(
+            uid: 'one',
+            user: new UserRef('one'),
+            relyingParty: new RelyingPartyRef('one'),
+            trustedClient: new TrustedClientRef('one'),
+            groups: 'one',
+            version: 1,
+        );
 
-    // @Act
-    $other = $one->delete();
+        // @Act
+        $other = $one->delete();
 
-    // @Assert
-    $this->assertEquals( $one->uid(), $other->uid());
-    $this->assertEquals( $one->getUser(), $other->getUser());
-    $this->assertTrue( $one->isUserChanged() );
-    $this->assertEquals( $one->getRelyingParty(), $other->getRelyingParty());
-    $this->assertTrue( $one->isRelyingPartyChanged() );
-    $this->assertEquals( $one->getTrustedClient(), $other->getTrustedClient());
-    $this->assertTrue( $one->isTrustedClientChanged() );
-    $this->assertEquals( $one->getGroups(), $other->getGroups());
-    $this->assertTrue( $one->isGroupsChanged() );
-    $this->assertEquals( $one->getVersion(), $other->getVersion());
-    $this->assertTrue( $one->isVersionChanged() );
-  }
+        // @Assert
+        $this->assertEquals($one->uid(), $other->uid());
+        $this->assertEquals($one->getUser(), $other->getUser());
+        $this->assertTrue($one->isUserChanged());
+        $this->assertEquals($one->getRelyingParty(), $other->getRelyingParty());
+        $this->assertTrue($one->isRelyingPartyChanged());
+        $this->assertEquals($one->getTrustedClient(), $other->getTrustedClient());
+        $this->assertTrue($one->isTrustedClientChanged());
+        $this->assertEquals($one->getGroups(), $other->getGroups());
+        $this->assertTrue($one->isGroupsChanged());
+        $this->assertEquals($one->getVersion(), $other->getVersion());
+        $this->assertTrue($one->isVersionChanged());
+    }
 }

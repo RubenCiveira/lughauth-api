@@ -50,14 +50,14 @@ class TenantMarkForDeleteTimeAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantMarkForDeleteTimeAccessorUnitTest();
-        $original = $holder->withMarkForDeleteTime( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withMarkForDeleteTime( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withMarkForDeleteTime((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withMarkForDeleteTime((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withMarkForDeleteTime((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isMarkForDeleteTimeChanged();
-        $withSame = $original->isMarkForDeleteTimeChanged( $same );
-        $withDiferent = $original->isMarkForDeleteTimeChanged( $modified );
+        $withSame = $original->isMarkForDeleteTimeChanged($same);
+        $withDiferent = $original->isMarkForDeleteTimeChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantMarkForDeleteTimeAccessorUnitTest extends TestCase
 }
 class ImplWithTenantMarkForDeleteTimeAccessorUnitTest
 {
-  use TenantMarkForDeleteTimeAccessor;
+    use TenantMarkForDeleteTimeAccessor;
 }

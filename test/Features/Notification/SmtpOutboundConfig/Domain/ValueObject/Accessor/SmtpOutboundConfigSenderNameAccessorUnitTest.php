@@ -50,14 +50,14 @@ class SmtpOutboundConfigSenderNameAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithSmtpOutboundConfigSenderNameAccessorUnitTest();
-        $original = $holder->withSenderName( 'one');
-        $same = $holder->withSenderName( 'one');
+        $original = $holder->withSenderName('one');
+        $same = $holder->withSenderName('one');
         $modified = $holder->withSenderName('other');
 
         // Act
         $unchanged = $holder->isSenderNameChanged();
-        $withSame = $original->isSenderNameChanged( $same );
-        $withDiferent = $original->isSenderNameChanged( $modified );
+        $withSame = $original->isSenderNameChanged($same);
+        $withDiferent = $original->isSenderNameChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class SmtpOutboundConfigSenderNameAccessorUnitTest extends TestCase
 }
 class ImplWithSmtpOutboundConfigSenderNameAccessorUnitTest
 {
-  use SmtpOutboundConfigSenderNameAccessor;
+    use SmtpOutboundConfigSenderNameAccessor;
 }

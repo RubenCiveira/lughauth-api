@@ -11,39 +11,40 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 
 final class UserRoleAssignamentUserVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = new UserRef('one');
-    $ref = UserRoleAssignamentUserVO::from( $value );
-    $this->assertEquals(new UserRef('one'), $ref->value());
-    $other = UserRoleAssignamentUserVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = UserRoleAssignamentUserVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = UserRoleAssignamentUserVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(UserRoleAssignamentUserVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = new UserRef('one');
+        $ref = UserRoleAssignamentUserVO::from($value);
+        $this->assertEquals(new UserRef('one'), $ref->value());
+        $other = UserRoleAssignamentUserVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = UserRoleAssignamentUserVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = UserRoleAssignamentUserVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(UserRoleAssignamentUserVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = UserRoleAssignamentUserVO::from(new UserRef('one'));
+        $same = UserRoleAssignamentUserVO::from(new UserRef('one'));
+        $other = UserRoleAssignamentUserVO::from(new UserRef('other'));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = UserRoleAssignamentUserVO::from(new UserRef('one'));     $same = UserRoleAssignamentUserVO::from(new UserRef('one'));     $other = UserRoleAssignamentUserVO::from(new UserRef('other'));
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
 }

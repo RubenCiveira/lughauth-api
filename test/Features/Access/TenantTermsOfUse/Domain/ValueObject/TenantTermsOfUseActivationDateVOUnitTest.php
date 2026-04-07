@@ -10,66 +10,67 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 
 final class TenantTermsOfUseActivationDateVOUnitTest extends TestCase
 {
-  public function test_asignation_keep_value(): void
-  {
-    $value = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
-    $ref = TenantTermsOfUseActivationDateVO::from( $value );
-    $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $ref->value());
-    $other = TenantTermsOfUseActivationDateVO::tryFrom($ref, new ConstraintFailList() );
-    $this->assertSame($other, $ref);
-    $more = TenantTermsOfUseActivationDateVO::from($ref);
-    $this->assertSame($more, $ref);
-  }
-  public function test_asignation_invalid_type(): void
-  {
-    $errors = new ConstraintFailList();
-    $other = TenantTermsOfUseActivationDateVO::tryFrom('1', $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-    $errors = new ConstraintFailList();
-    $other = TenantTermsOfUseActivationDateVO::tryFrom(22, $errors);
-    $this->assertNull($other);
-    $this->assertTrue( $errors->hasErrors() );
-  }
-  public function test_optimist_asignation_invalid_type(): void
-  {
-    $this->expectException(ConstraintException::class);
-    $method = new ReflectionMethod(TenantTermsOfUseActivationDateVO::class, 'fromUnsafe');
-    $method->invoke(null, [11, "bad"]);
-  }
-  public function test_equals(): void
+    public function test_asignation_keep_value(): void
+    {
+        $value = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
+        $ref = TenantTermsOfUseActivationDateVO::from($value);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $ref->value());
+        $other = TenantTermsOfUseActivationDateVO::tryFrom($ref, new ConstraintFailList());
+        $this->assertSame($other, $ref);
+        $more = TenantTermsOfUseActivationDateVO::from($ref);
+        $this->assertSame($more, $ref);
+    }
+    public function test_asignation_invalid_type(): void
+    {
+        $errors = new ConstraintFailList();
+        $other = TenantTermsOfUseActivationDateVO::tryFrom('1', $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+        $errors = new ConstraintFailList();
+        $other = TenantTermsOfUseActivationDateVO::tryFrom(22, $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
+    public function test_optimist_asignation_invalid_type(): void
+    {
+        $this->expectException(ConstraintException::class);
+        $method = new ReflectionMethod(TenantTermsOfUseActivationDateVO::class, 'fromUnsafe');
+        $method->invoke(null, [11, "bad"]);
+    }
+    public function test_equals(): void
+    {
+        $one = TenantTermsOfUseActivationDateVO::from((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = TenantTermsOfUseActivationDateVO::from((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $other = TenantTermsOfUseActivationDateVO::from((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
+        $withEmpty = $one->equals(null);
+        $withSame = $one->equals($same);
+        $withOther = $one->equals($other);
 
-  {
-     $one = TenantTermsOfUseActivationDateVO::from((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));     $same = TenantTermsOfUseActivationDateVO::from((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));     $other = TenantTermsOfUseActivationDateVO::from((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
-     $withEmpty = $one->equals(null);
-     $withSame = $one->equals($same);
-     $withOther = $one->equals($other);
-
-     $this->assertFalse( $withEmpty );
-     $this->assertTrue( $withSame );
-     $this->assertFalse( $withOther );
-  }
-  public function test_empty(): void
-  {
-    $ref = TenantTermsOfUseActivationDateVO::empty();
-    $this->assertNull($ref->value());
-  }
-  public function test_try_from_empty(): void
-  {
-    $ref = TenantTermsOfUseActivationDateVO::tryFrom(null, new ConstraintFailList() );
-    $this->assertNull($ref->value());
-  }
-  public function test_read_date_format(): void
-  {
-    $errors = new ConstraintFailList();
-    $value = '2024-05-26T14:32:45.123Z';
-    $other = TenantTermsOfUseActivationDateVO::tryFrom($value, $errors);
-    $date = new \DateTimeImmutable($value);
-    $this->assertEquals($date, $other->value());
-    $this->assertTrue( $errors->isEmpty() );
-    $invalid = '2024-15-26T14:32:45.123Z';
-    $other = TenantTermsOfUseActivationDateVO::tryFrom($invalid, $errors);
-    $this->assertNull( $other );
-    $this->assertTrue( $errors->hasErrors() );
-  }
+        $this->assertFalse($withEmpty);
+        $this->assertTrue($withSame);
+        $this->assertFalse($withOther);
+    }
+    public function test_empty(): void
+    {
+        $ref = TenantTermsOfUseActivationDateVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TenantTermsOfUseActivationDateVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
+    public function test_read_date_format(): void
+    {
+        $errors = new ConstraintFailList();
+        $value = '2024-05-26T14:32:45.123Z';
+        $other = TenantTermsOfUseActivationDateVO::tryFrom($value, $errors);
+        $date = new \DateTimeImmutable($value);
+        $this->assertEquals($date, $other->value());
+        $this->assertTrue($errors->isEmpty());
+        $invalid = '2024-15-26T14:32:45.123Z';
+        $other = TenantTermsOfUseActivationDateVO::tryFrom($invalid, $errors);
+        $this->assertNull($other);
+        $this->assertTrue($errors->hasErrors());
+    }
 }

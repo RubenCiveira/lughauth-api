@@ -13,8 +13,7 @@ class TaskKey
     public function __construct(
         /** @var string Unique task identifier. */
         public readonly string $uid
-    )
-    {
+    ) {
 
     }
 }

@@ -50,14 +50,14 @@ class UserAccessTemporalCodeRecoveryCodeExpirationAccessorUnitTest extends TestC
     {
         // Arrange
         $holder = new ImplWithUserAccessTemporalCodeRecoveryCodeExpirationAccessorUnitTest();
-        $original = $holder->withRecoveryCodeExpiration( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withRecoveryCodeExpiration( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withRecoveryCodeExpiration((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withRecoveryCodeExpiration((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withRecoveryCodeExpiration((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isRecoveryCodeExpirationChanged();
-        $withSame = $original->isRecoveryCodeExpirationChanged( $same );
-        $withDiferent = $original->isRecoveryCodeExpirationChanged( $modified );
+        $withSame = $original->isRecoveryCodeExpirationChanged($same);
+        $withDiferent = $original->isRecoveryCodeExpirationChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class UserAccessTemporalCodeRecoveryCodeExpirationAccessorUnitTest extends TestC
 }
 class ImplWithUserAccessTemporalCodeRecoveryCodeExpirationAccessorUnitTest
 {
-  use UserAccessTemporalCodeRecoveryCodeExpirationAccessor;
+    use UserAccessTemporalCodeRecoveryCodeExpirationAccessor;
 }

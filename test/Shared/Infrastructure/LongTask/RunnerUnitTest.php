@@ -37,7 +37,6 @@ namespace {
     use Civi\Lughauth\Shared\Infrastructure\LongTask\TaskCounterInterface;
     use Civi\Lughauth\Shared\Infrastructure\LongTask\TaskDescriptorInterface;
     use Civi\Lughauth\Shared\Infrastructure\LongTask\TaskProgress;
-    use Civi\Lughauth\Shared\Infrastructure\LongTask\TaskStepProgress;
     use Civi\Lughauth\Shared\Infrastructure\LongTask\RunnerTestRegistry;
 
     /**

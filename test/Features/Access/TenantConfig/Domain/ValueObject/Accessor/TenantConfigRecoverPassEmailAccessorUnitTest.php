@@ -50,14 +50,14 @@ class TenantConfigRecoverPassEmailAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigRecoverPassEmailAccessorUnitTest();
-        $original = $holder->withRecoverPassEmail( 'one');
-        $same = $holder->withRecoverPassEmail( 'one');
+        $original = $holder->withRecoverPassEmail('one');
+        $same = $holder->withRecoverPassEmail('one');
         $modified = $holder->withRecoverPassEmail('other');
 
         // Act
         $unchanged = $holder->isRecoverPassEmailChanged();
-        $withSame = $original->isRecoverPassEmailChanged( $same );
-        $withDiferent = $original->isRecoverPassEmailChanged( $modified );
+        $withSame = $original->isRecoverPassEmailChanged($same);
+        $withDiferent = $original->isRecoverPassEmailChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigRecoverPassEmailAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigRecoverPassEmailAccessorUnitTest
 {
-  use TenantConfigRecoverPassEmailAccessor;
+    use TenantConfigRecoverPassEmailAccessor;
 }

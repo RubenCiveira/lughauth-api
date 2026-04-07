@@ -50,13 +50,13 @@ class MessageContentAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithMessageContentAccessorUnitTest()->withContent('one');
-        $original = $holder->withContent( 'one');
-        $same = $holder->withContent( 'one');
+        $original = $holder->withContent('one');
+        $same = $holder->withContent('one');
         $modified = $holder->withContent('other');
 
         // Act
-        $withSame = $original->isContentChanged( $same );
-        $withDiferent = $original->isContentChanged( $modified );
+        $withSame = $original->isContentChanged($same);
+        $withDiferent = $original->isContentChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class MessageContentAccessorUnitTest extends TestCase
 }
 class ImplWithMessageContentAccessorUnitTest
 {
-  use MessageContentAccessor;
+    use MessageContentAccessor;
 }

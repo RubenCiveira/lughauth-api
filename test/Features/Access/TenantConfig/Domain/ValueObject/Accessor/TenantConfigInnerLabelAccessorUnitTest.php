@@ -50,14 +50,14 @@ class TenantConfigInnerLabelAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTenantConfigInnerLabelAccessorUnitTest();
-        $original = $holder->withInnerLabel( 'one');
-        $same = $holder->withInnerLabel( 'one');
+        $original = $holder->withInnerLabel('one');
+        $same = $holder->withInnerLabel('one');
         $modified = $holder->withInnerLabel('other');
 
         // Act
         $unchanged = $holder->isInnerLabelChanged();
-        $withSame = $original->isInnerLabelChanged( $same );
-        $withDiferent = $original->isInnerLabelChanged( $modified );
+        $withSame = $original->isInnerLabelChanged($same);
+        $withDiferent = $original->isInnerLabelChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class TenantConfigInnerLabelAccessorUnitTest extends TestCase
 }
 class ImplWithTenantConfigInnerLabelAccessorUnitTest
 {
-  use TenantConfigInnerLabelAccessor;
+    use TenantConfigInnerLabelAccessor;
 }

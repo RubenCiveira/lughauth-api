@@ -50,14 +50,14 @@ class MessageSendAtAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithMessageSendAtAccessorUnitTest();
-        $original = $holder->withSendAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
-        $same = $holder->withSendAt( (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $original = $holder->withSendAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
+        $same = $holder->withSendAt((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')));
         $modified = $holder->withSendAt((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')));
 
         // Act
         $unchanged = $holder->isSendAtChanged();
-        $withSame = $original->isSendAtChanged( $same );
-        $withDiferent = $original->isSendAtChanged( $modified );
+        $withSame = $original->isSendAtChanged($same);
+        $withDiferent = $original->isSendAtChanged($modified);
 
         // Assert
         $this->assertFalse($unchanged);
@@ -67,5 +67,5 @@ class MessageSendAtAccessorUnitTest extends TestCase
 }
 class ImplWithMessageSendAtAccessorUnitTest
 {
-  use MessageSendAtAccessor;
+    use MessageSendAtAccessor;
 }

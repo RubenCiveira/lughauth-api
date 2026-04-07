@@ -50,13 +50,13 @@ class TrustedClientAllowedRedirectsUrlAccessorUnitTest extends TestCase
     {
         // Arrange
         $holder = new ImplWithTrustedClientAllowedRedirectsUrlAccessorUnitTest()->withUrl('one');
-        $original = $holder->withUrl( 'one');
-        $same = $holder->withUrl( 'one');
+        $original = $holder->withUrl('one');
+        $same = $holder->withUrl('one');
         $modified = $holder->withUrl('other');
 
         // Act
-        $withSame = $original->isUrlChanged( $same );
-        $withDiferent = $original->isUrlChanged( $modified );
+        $withSame = $original->isUrlChanged($same);
+        $withDiferent = $original->isUrlChanged($modified);
 
         // Assert
         $this->assertFalse($withSame);
@@ -65,5 +65,5 @@ class TrustedClientAllowedRedirectsUrlAccessorUnitTest extends TestCase
 }
 class ImplWithTrustedClientAllowedRedirectsUrlAccessorUnitTest
 {
-  use TrustedClientAllowedRedirectsUrlAccessor;
+    use TrustedClientAllowedRedirectsUrlAccessor;
 }

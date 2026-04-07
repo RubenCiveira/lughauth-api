@@ -33,7 +33,7 @@ final class FileStoreKeyUnitTest extends TestCase
     }
 
     /**
-     * Ensures that an error is 
+     * Ensures that an error is
      */
     public function testThrowsException()
     {
