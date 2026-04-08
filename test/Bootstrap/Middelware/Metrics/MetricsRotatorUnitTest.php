@@ -261,7 +261,6 @@ namespace {
             $root = sys_get_temp_dir() . '/rotator_' . uniqid();
             $rotator = new MetricsRotator($root, ['raw' => 1], false);
             $method = new ReflectionMethod($rotator, 'extractYmdFromPath');
-            $method->setAccessible(true);
 
             /*
              * Act: extract YMD from an invalid path.
@@ -313,7 +312,6 @@ namespace {
             $root = sys_get_temp_dir() . '/rotator_' . uniqid();
             $rotator = new MetricsRotator($root, ['raw' => 1], true);
             $method = new ReflectionMethod($rotator, 'maybeGzip');
-            $method->setAccessible(true);
 
             /*
              * Act: invoke maybeGzip with an invalid path.
@@ -342,7 +340,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], true);
             $method = new ReflectionMethod($rotator, 'maybeGzip');
-            $method->setAccessible(true);
 
             FixedIntervalWindowPolicyTestHook::$forceFopenFail = true;
             try {
@@ -377,7 +374,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], true);
             $method = new ReflectionMethod($rotator, 'maybeGzip');
-            $method->setAccessible(true);
 
             FixedIntervalWindowPolicyTestHook::$forceGzopenFail = true;
             try {
@@ -412,7 +408,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], true);
             $method = new ReflectionMethod($rotator, 'maybeGzip');
-            $method->setAccessible(true);
 
             FixedIntervalWindowPolicyTestHook::$forceFreadFail = true;
             FixedIntervalWindowPolicyTestHook::$freadCalls = 0;
@@ -446,7 +441,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], true);
             $method = new ReflectionMethod($rotator, 'maybeGzip');
-            $method->setAccessible(true);
 
             /*
              * Act: invoke maybeGzip with normal read/write flow.
@@ -477,7 +471,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, [], false);
             $method = new ReflectionMethod($rotator, 'maybeDelete');
-            $method->setAccessible(true);
 
             /*
              * Act: invoke maybeDelete without TTL configuration.
@@ -504,7 +497,6 @@ namespace {
             file_put_contents($file, "{}");
             $rotator = new MetricsRotator($root, ['raw' => 1], false);
             $method = new ReflectionMethod($rotator, 'maybeDelete');
-            $method->setAccessible(true);
 
             /*
              * Act: invoke maybeDelete with an invalid path.
@@ -533,7 +525,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], false);
             $method = new ReflectionMethod($rotator, 'maybeDelete');
-            $method->setAccessible(true);
 
             /*
              * Act: invoke maybeDelete with invalid date components.
@@ -561,7 +552,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], false);
             $method = new ReflectionMethod($rotator, 'pruneEmptyDirs');
-            $method->setAccessible(true);
 
             /*
              * Act: prune empty directories.
@@ -588,7 +578,6 @@ namespace {
 
             $rotator = new MetricsRotator($root, ['raw' => 1], false);
             $method = new ReflectionMethod($rotator, 'pruneEmptyDirs');
-            $method->setAccessible(true);
 
             /*
              * Act: prune empty directories.

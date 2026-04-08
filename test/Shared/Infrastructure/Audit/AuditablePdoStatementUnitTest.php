@@ -64,7 +64,6 @@ final class AuditablePdoStatementUnitTest extends TestCase
 
         $stmt = $pdo->prepare('UPDATE items SET name = :name WHERE id = :id');
         $method = new ReflectionMethod($stmt, 'extractTable');
-        $method->setAccessible(true);
 
         $this->assertSame('items', $method->invoke($stmt, 'UPDATE items SET name = :name WHERE id = :id'));
         $this->assertNull($method->invoke($stmt, 'SELECT * FROM items'));
@@ -74,7 +73,6 @@ final class AuditablePdoStatementUnitTest extends TestCase
     {
         $stmt = $this->createStatementWithPdo(new FakePdo('mysql', 'id'));
         $method = new ReflectionMethod($stmt, 'findPrimaryKeyColumn');
-        $method->setAccessible(true);
         $result = $method->invoke($stmt, 'users', 'mysql');
         $this->assertSame('id', $result);
         $this->assertStringContainsString('INFORMATION_SCHEMA.COLUMNS', $stmt->getPdo()->preparedSql[0]);
@@ -82,14 +80,12 @@ final class AuditablePdoStatementUnitTest extends TestCase
 
         $stmt = $this->createStatementWithPdo(new FakePdo('pgsql', 'pk'));
         $method = new ReflectionMethod($stmt, 'findPrimaryKeyColumn');
-        $method->setAccessible(true);
         $result = $method->invoke($stmt, 'accounts', 'pgsql');
         $this->assertSame('pk', $result);
         $this->assertStringContainsString('pg_index', $stmt->getPdo()->preparedSql[0]);
 
         $stmt = $this->createStatementWithPdo(new FakePdo('sqlsrv', 'col'));
         $method = new ReflectionMethod($stmt, 'findPrimaryKeyColumn');
-        $method->setAccessible(true);
         $result = $method->invoke($stmt, 'orders', 'sqlsrv');
         $this->assertSame('col', $result);
         $this->assertStringContainsString('TABLE_CONSTRAINTS', $stmt->getPdo()->preparedSql[0]);
@@ -102,7 +98,6 @@ final class AuditablePdoStatementUnitTest extends TestCase
         $stmt = $this->createStatementWithPdo($pdo);
 
         $method = new ReflectionMethod($stmt, 'resolvePrimaryKeyValue');
-        $method->setAccessible(true);
 
         $result = $method->invoke($stmt, 'INSERT', 'id', 'mysql');
         $this->assertSame('10', $result);
@@ -112,14 +107,12 @@ final class AuditablePdoStatementUnitTest extends TestCase
         $pdo->lastInsertIdResult = '22';
         $stmt = $this->createStatementWithPdo($pdo);
         $method = new ReflectionMethod($stmt, 'resolvePrimaryKeyValue');
-        $method->setAccessible(true);
         $this->assertSame('22', $method->invoke($stmt, 'INSERT', 'id', 'pgsql'));
 
         $pdo = new FakePdo('sqlsrv');
         $pdo->queryFetchColumnResult = '33';
         $stmt = $this->createStatementWithPdo($pdo);
         $method = new ReflectionMethod($stmt, 'resolvePrimaryKeyValue');
-        $method->setAccessible(true);
         $this->assertSame('33', $method->invoke($stmt, 'INSERT', 'id', 'sqlsrv'));
         $this->assertSame('SELECT SCOPE_IDENTITY()', $pdo->preparedSql[0]);
     }
@@ -135,7 +128,6 @@ final class AuditablePdoStatementUnitTest extends TestCase
         $stmt->bindParam('id', $id, PDO::PARAM_INT, 0);
 
         $property = new ReflectionProperty($stmt, 'boundParams');
-        $property->setAccessible(true);
         $bound = $property->getValue($stmt);
 
         $this->assertSame(1, $bound['id']);
@@ -299,7 +291,6 @@ final class AuditablePdoStatementProbe extends AuditablePdoStatement
     {
         $ref = new ReflectionClass(AuditablePdoStatement::class);
         $prop = $ref->getProperty('pdo');
-        $prop->setAccessible(true);
         return $prop->getValue($this);
     }
 }

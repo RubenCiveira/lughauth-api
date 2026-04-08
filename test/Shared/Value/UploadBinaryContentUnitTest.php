@@ -61,7 +61,6 @@ namespace {
             $contents = stream_get_contents($binary->stream);
 
             $pathProperty = (new ReflectionClass($binary))->getProperty('path');
-            $pathProperty->setAccessible(true);
             $path = $pathProperty->getValue($binary);
 
             /*

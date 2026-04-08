@@ -119,7 +119,6 @@ final class MetricsQueryUnitTest extends TestCase
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $query = new MetricsQuery($fs);
         $method = new ReflectionMethod($query, 'interpolateOnGrid');
-        $method->setAccessible(true);
 
         /*
          * Act: apply different interpolation policies.
@@ -155,7 +154,6 @@ final class MetricsQueryUnitTest extends TestCase
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $query = new MetricsQuery($fs);
         $method = new ReflectionMethod($query, 'interpolateOnGrid');
-        $method->setAccessible(true);
 
         /*
          * Act: invoke with an empty grid.
@@ -179,7 +177,6 @@ final class MetricsQueryUnitTest extends TestCase
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $query = new MetricsQuery($fs);
         $method = new ReflectionMethod($query, 'interpolateOnGrid');
-        $method->setAccessible(true);
 
         /*
          * Act: interpolate a NaN between two finite values.
@@ -227,7 +224,6 @@ final class MetricsQueryUnitTest extends TestCase
         $fs = new MetricsFS(sys_get_temp_dir() . '/metrics_' . uniqid());
         $query = new MetricsQuery($fs);
         $method = new ReflectionMethod($query, 'pickPartition');
-        $method->setAccessible(true);
 
         /*
          * Act: evaluate partitions at different ranges.

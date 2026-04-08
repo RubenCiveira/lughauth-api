@@ -201,7 +201,6 @@ final class TaskStoreUnitTest extends TestCase
         $store = new TaskStore($template, $context);
 
         $method = new ReflectionMethod($store, 'date');
-        $method->setAccessible(true);
 
         $input = ['date' => '2024-01-01 00:00:00', 'timezone' => 'UTC'];
 

@@ -57,7 +57,6 @@ namespace {
             /* Arrange: create the queue consumer and reflector. */
             $consumer = new QueueConsumer();
             $method = new ReflectionMethod($consumer, 'defaultQueueName');
-            $method->setAccessible(true);
 
             /* Act: resolve the sanitized queue name. */
             $queueName = $method->invoke($consumer, 'user.*');

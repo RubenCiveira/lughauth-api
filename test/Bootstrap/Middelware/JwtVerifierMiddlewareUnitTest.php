@@ -476,7 +476,6 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware(['security.jwt.verify.issuer' => 'issuer']);
         $method = new ReflectionMethod($middleware, 'verifyToken');
-        $method->setAccessible(true);
 
         /*
          * Act: invoke verifyToken and expect an exception.
@@ -499,7 +498,6 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware(['security.jwt.verify.audiences' => 'aud1,aud2']);
         $method = new ReflectionMethod($middleware, 'verifyToken');
-        $method->setAccessible(true);
 
         /*
          * Act: invoke verifyToken and expect an exception.
@@ -522,7 +520,6 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware(['security.jwt.verify.path.roles' => 'realm_access/roles']);
         $method = new ReflectionMethod($middleware, 'extractRoles');
-        $method->setAccessible(true);
 
         /*
          * Act: invoke extractRoles with an empty payload.
@@ -551,7 +548,6 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
 
         $middleware = $this->middleware(['security.jwt.verify.publickey.location' => 'http://jwks'], $cache, null, $client);
         $method = new ReflectionMethod($middleware, 'getJwks');
-        $method->setAccessible(true);
 
         /*
          * Act: invoke the JWKS retrieval method.

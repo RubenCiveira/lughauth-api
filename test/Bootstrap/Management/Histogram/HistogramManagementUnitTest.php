@@ -302,7 +302,6 @@ final class HistogramManagementUnitTest extends TestCase
     private function invokePrivate(object $object, string $method, array $args = [])
     {
         $ref = new ReflectionMethod($object, $method);
-        $ref->setAccessible(true);
         return $ref->invokeArgs($object, $args);
     }
 }

@@ -40,7 +40,6 @@ final class LughMapperUnitTest extends TestCase
 
         $ref = new ReflectionClass($mapper);
         $prop = $ref->getProperty('registereds');
-        $prop->setAccessible(true);
         $registereds = $prop->getValue($mapper);
 
         /*
@@ -69,7 +68,6 @@ final class LughMapperUnitTest extends TestCase
 
         $ref = new ReflectionClass($mapper);
         $prop = $ref->getProperty('registereds');
-        $prop->setAccessible(true);
         $registereds = $prop->getValue($mapper);
 
         /*

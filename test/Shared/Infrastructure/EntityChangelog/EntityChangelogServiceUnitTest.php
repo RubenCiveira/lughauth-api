@@ -385,7 +385,6 @@ final class EntityChangelogServiceUnitTest extends TestCase
     {
         $ref = new ReflectionClass($target);
         $refMethod = $ref->getMethod($method);
-        $refMethod->setAccessible(true);
         return $refMethod->invokeArgs($target, $args);
     }
 }

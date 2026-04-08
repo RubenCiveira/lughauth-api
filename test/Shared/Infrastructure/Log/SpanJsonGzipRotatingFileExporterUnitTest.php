@@ -144,7 +144,6 @@ final class SpanJsonGzipRotatingFileExporterUnitTest extends TestCase
         $dir = $this->createTempDir();
         $exporter = new SpanJsonGzipRotatingFileExporter($dir . '/spans.jsonl');
         $method = new ReflectionMethod($exporter, 'gzipFile');
-        $method->setAccessible(true);
 
         $source = $dir . '/sample.jsonl';
         $invalidTarget = $dir . '/missing/sample.jsonl.gz';
@@ -174,7 +173,6 @@ final class SpanJsonGzipRotatingFileExporterUnitTest extends TestCase
         $dir = $this->createTempDir();
         $exporter = new SpanJsonGzipRotatingFileExporter($dir . '/spans.jsonl');
         $method = new ReflectionMethod($exporter, 'gzipFile');
-        $method->setAccessible(true);
         $target = $dir . '/failread.jsonl.gz';
 
         /* Act: gzip a stream that returns false on read. */

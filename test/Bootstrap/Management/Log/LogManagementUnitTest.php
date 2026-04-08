@@ -328,7 +328,6 @@ final class LogManagementUnitTest extends TestCase
     private function invokeIterateLines(LogManagement $management, string $path): array
     {
         $method = new ReflectionMethod(LogManagement::class, 'iterateLines');
-        $method->setAccessible(true);
         $generator = $method->invoke($management, $path);
         if ($generator === null) {
             return [];

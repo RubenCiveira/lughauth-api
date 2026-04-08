@@ -1021,21 +1021,18 @@ namespace {
         private function invokePrivate(object $target, string $method, array $args = [])
         {
             $ref = new \ReflectionMethod($target, $method);
-            $ref->setAccessible(true);
             return $ref->invokeArgs($target, $args);
         }
 
         private function getPrivateProperty(object $target, string $property)
         {
             $ref = new \ReflectionProperty($target, $property);
-            $ref->setAccessible(true);
             return $ref->getValue($target);
         }
 
         private function setPrivateProperty(object $target, string $property, mixed $value): void
         {
             $ref = new \ReflectionProperty($target, $property);
-            $ref->setAccessible(true);
             $ref->setValue($target, $value);
         }
 

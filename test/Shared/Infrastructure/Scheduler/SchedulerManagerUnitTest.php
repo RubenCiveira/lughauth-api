@@ -165,7 +165,6 @@ namespace {
             /* Arrange: prepare a scheduler manager and reflection access. */
             $manager = new SchedulerTestManager();
             $method = new ReflectionMethod($manager, 'getTaskKey');
-            $method->setAccessible(true);
 
             /* Act: build a task key. */
             $key = $method->invoke($manager, 'Type', 'method');

@@ -374,7 +374,6 @@ final class TraceManagementUnitTest extends TestCase
     private function invokeIterateLines(TraceManagement $management, string $path): array
     {
         $method = new \ReflectionMethod(TraceManagement::class, 'iterateLines');
-        $method->setAccessible(true);
         $generator = $method->invoke($management, $path);
         if ($generator === null) {
             return [];

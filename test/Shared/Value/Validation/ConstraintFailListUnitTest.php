@@ -80,7 +80,6 @@ final class ConstraintFailListUnitTest extends TestCase
         $list->add($child);
 
         $errorsProperty = (new \ReflectionObject($list))->getProperty('errors');
-        $errorsProperty->setAccessible(true);
         $errors = $errorsProperty->getValue($list);
 
         /*
@@ -107,7 +106,6 @@ final class ConstraintFailListUnitTest extends TestCase
         $list->add($fail);
         $ref = new \ReflectionClass($list);
         $prop = $ref->getProperty('errors');
-        $prop->setAccessible(true);
         $errors = $prop->getValue($list);
 
         /*

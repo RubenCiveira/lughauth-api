@@ -48,7 +48,6 @@ final class MonologGzipRotatingFileHandlerUnitTest extends TestCase
         file_put_contents($todayBackupFile, 'backup');
 
         $method = new ReflectionMethod($handler, 'zipRotated');
-        $method->setAccessible(true);
 
         /* Act: execute the rotation compression logic directly. */
         $method->invoke($handler);
@@ -71,7 +70,6 @@ final class MonologGzipRotatingFileHandlerUnitTest extends TestCase
         $dir = $this->createTempDir();
         $handler = new MonologGzipRotatingFileHandler($dir . '/app.log');
         $method = new ReflectionMethod($handler, 'gzipFile');
-        $method->setAccessible(true);
 
         $source = $dir . '/sample.log';
         $invalidTarget = $dir . '/missing/sample.log.gz';
@@ -101,7 +99,6 @@ final class MonologGzipRotatingFileHandlerUnitTest extends TestCase
         $dir = $this->createTempDir();
         $handler = new MonologGzipRotatingFileHandler($dir . '/app.log');
         $method = new ReflectionMethod($handler, 'gzipFile');
-        $method->setAccessible(true);
         $target = $dir . '/failread.log.gz';
 
         /* Act: gzip a stream that returns false on read. */

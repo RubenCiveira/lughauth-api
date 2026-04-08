@@ -175,7 +175,6 @@ namespace {
             SupervisorTestKernel::$procOutput = '321';
 
             $method = new ReflectionMethod($supervisor, 'spawnBackground');
-            $method->setAccessible(true);
 
             /* Act: spawn the worker in the background. */
             $pid = $method->invoke($supervisor, $worker, 'http://localhost', $dir . '/var/scheduler.log');
@@ -194,7 +193,6 @@ namespace {
             $worker = $this->createWorker($dir);
             $supervisor = new Supervisor($dir, PHP_BINARY, $worker, 'var/scheduler.pid', 'var/scheduler.lock', 'var/scheduler.log', 'Windows');
             $method = new ReflectionMethod($supervisor, 'spawnBackground');
-            $method->setAccessible(true);
 
             /* Act: spawn the worker in Windows mode. */
             $pid = $method->invoke($supervisor, $worker, 'http://localhost', $dir . '/var/scheduler.log');
@@ -215,7 +213,6 @@ namespace {
             SupervisorTestKernel::$procOpenSuccess = false;
 
             $method = new ReflectionMethod($supervisor, 'spawnBackground');
-            $method->setAccessible(true);
 
             /* Act: attempt to spawn the worker. */
             $pid = $method->invoke($supervisor, $worker, 'http://localhost', $dir . '/var/scheduler.log');
@@ -253,7 +250,6 @@ namespace {
             /* Arrange: create a supervisor instance. */
             $supervisor = new Supervisor($this->createTempDir(), PHP_BINARY, 'worker');
             $method = new ReflectionMethod($supervisor, 'resolvePhpCli');
-            $method->setAccessible(true);
 
             /* Act: resolve the PHP binary path. */
             $path = $method->invoke($supervisor);
@@ -281,7 +277,6 @@ namespace {
                 '/usr/sbin/php-fpm'
             );
             $method = new ReflectionMethod($supervisor, 'resolvePhpCli');
-            $method->setAccessible(true);
 
             /* Act: resolve the PHP binary path. */
             $path = $method->invoke($supervisor);
@@ -309,7 +304,6 @@ namespace {
                 '/usr/bin/php'
             );
             $method = new ReflectionMethod($supervisor, 'resolvePhpCli');
-            $method->setAccessible(true);
 
             /* Act: resolve the PHP binary path. */
             $path = $method->invoke($supervisor);
@@ -352,7 +346,6 @@ namespace {
                     []
                 );
                 $method = new ReflectionMethod($supervisor, 'resolvePhpCli');
-                $method->setAccessible(true);
 
                 /* Act: resolve the PHP binary path. */
                 $path = $method->invoke($supervisor);
@@ -399,7 +392,6 @@ namespace {
                     []
                 );
                 $method = new ReflectionMethod($supervisor, 'resolvePhpCli');
-                $method->setAccessible(true);
 
                 /* Act: resolve the PHP binary path. */
                 $path = $method->invoke($supervisor);
@@ -444,7 +436,6 @@ namespace {
                     []
                 );
                 $method = new ReflectionMethod($supervisor, 'resolvePhpCli');
-                $method->setAccessible(true);
 
                 /* Act: resolve the PHP binary path. */
                 $path = $method->invoke($supervisor);
@@ -468,7 +459,6 @@ namespace {
             $dir = $this->createTempDir();
             $supervisor = new Supervisor($dir, PHP_BINARY, 'worker');
             $method = new ReflectionMethod($supervisor, 'path');
-            $method->setAccessible(true);
 
             /* Act: resolve a relative and an absolute path. */
             $relative = $method->invoke($supervisor, 'var/logs');
@@ -488,7 +478,6 @@ namespace {
             $dir = $this->createTempDir();
             $supervisor = new Supervisor($dir, PHP_BINARY, 'worker');
             $method = new ReflectionMethod($supervisor, 'readPid');
-            $method->setAccessible(true);
 
             $missing = $dir . '/missing.pid';
             $invalid = $dir . '/invalid.pid';

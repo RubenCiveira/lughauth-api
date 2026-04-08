@@ -308,7 +308,6 @@ final class PdoFileStorageUnitTest extends TestCase
     {
         $ref = new ReflectionClass($target);
         $refMethod = $ref->getMethod($method);
-        $refMethod->setAccessible(true);
         return $refMethod->invokeArgs($target, $args);
     }
 
@@ -316,7 +315,6 @@ final class PdoFileStorageUnitTest extends TestCase
     {
         $ref = new ReflectionClass($target);
         $prop = $ref->getProperty($property);
-        $prop->setAccessible(true);
         $prop->setValue($target, $value);
     }
 }

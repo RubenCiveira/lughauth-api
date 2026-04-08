@@ -100,7 +100,6 @@ final class AuditMiddlewareUnitTest extends TestCase
             VALUES ('c2', 'a2', 'User', '1', 'update', 0, '{}', NULL)");
 
         $method = new ReflectionMethod($middleware, 'exportAndDeleteBefore');
-        $method->setAccessible(true);
         $method->invoke($middleware, new DateTimeImmutable('2024-01-01 00:00:00'));
 
         $this->assertSame(0, (int) $pdo->query('SELECT COUNT(*) FROM _audit_action')->fetchColumn());
@@ -129,7 +128,6 @@ final class AuditMiddlewareUnitTest extends TestCase
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
 
         $method = new ReflectionMethod($middleware, 'exportAndDeleteBefore');
-        $method->setAccessible(true);
         $method->invoke($middleware, new DateTimeImmutable('2024-01-01 00:00:00'));
 
         $this->assertSame(0, (int) $pdo->query('SELECT COUNT(*) FROM _audit_action')->fetchColumn());

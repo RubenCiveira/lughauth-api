@@ -474,7 +474,6 @@ namespace {
              */
             $ref = new \ReflectionClass(AppFactory::class);
             $prop = $ref->getProperty('container');
-            $prop->setAccessible(true);
             $prop->setValue(null, null);
 
             $app = AppFactory::create();

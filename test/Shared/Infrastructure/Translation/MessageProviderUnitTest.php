@@ -110,7 +110,6 @@ final class MessageProviderUnitTest extends TestCase
     {
         $ref = new ReflectionClass($catalogue);
         $prop = $ref->getProperty('domain');
-        $prop->setAccessible(true);
         return $prop->getValue($catalogue);
     }
 }

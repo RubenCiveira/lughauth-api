@@ -522,7 +522,6 @@ namespace {
             );
             $template = new SqlTemplate($pdo);
             $method = new \ReflectionMethod($template, 'prepare');
-            $method->setAccessible(true);
 
             $query = 'SELECT "id" FROM "items" WHERE id IN (:ids) AND status NOT IN (:statuses) AND flag = :flag AND content = :blob AND name = :name';
             $params = [
@@ -578,7 +577,6 @@ namespace {
             );
             $template = new SqlTemplate($pdo);
             $method = new \ReflectionMethod($template, 'prepare');
-            $method->setAccessible(true);
 
             $query = 'SELECT * FROM items WHERE id IN (:ids) AND status NOT IN (:statuses)';
             $params = [

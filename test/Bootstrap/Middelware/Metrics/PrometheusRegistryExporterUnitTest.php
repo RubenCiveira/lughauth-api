@@ -144,9 +144,7 @@ namespace {
             $exporter = new PrometheusRegistryExporter($this->policy(true), $this->registryWithSample(), new MetricsFS(sys_get_temp_dir() . '/export_' . uniqid()));
 
             $compile = new ReflectionMethod($exporter, 'compile');
-            $compile->setAccessible(true);
             $match = new ReflectionMethod($exporter, 'match');
-            $match->setAccessible(true);
 
             /*
              * Act: compile patterns and evaluate matches.
@@ -188,7 +186,6 @@ namespace {
             ]);
 
             $method = new ReflectionMethod($exporter, 'escapeAllLabels');
-            $method->setAccessible(true);
 
             /*
              * Act: invoke the label escape method and expect an exception.
@@ -224,7 +221,6 @@ namespace {
             ]);
 
             $method = new ReflectionMethod($exporter, 'escapeAllLabels');
-            $method->setAccessible(true);
 
             PrometheusRegistryExporterTestHook::$forceArrayCombineFalse = true;
             try {
@@ -331,7 +327,6 @@ namespace {
 
             $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
             $filesProp = new ReflectionProperty($exporter, 'files');
-            $filesProp->setAccessible(true);
             $filesProp->setValue($exporter, [
                 $path => ['buf' => "{\"ts\":1000,\"v\":1}\n", 'n' => 1]
             ]);
@@ -367,7 +362,6 @@ namespace {
 
             $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
             $filesProp = new ReflectionProperty($exporter, 'files');
-            $filesProp->setAccessible(true);
             $filesProp->setValue($exporter, [
                 $path => ['buf' => "{\"ts\":1000,\"v\":1}\n", 'n' => 1]
             ]);
@@ -408,7 +402,6 @@ namespace {
 
             $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
             $filesProp = new ReflectionProperty($exporter, 'files');
-            $filesProp->setAccessible(true);
             $filesProp->setValue($exporter, [
                 $path => ['buf' => '', 'n' => 0, 'h' => $handle]
             ]);
@@ -443,7 +436,6 @@ namespace {
 
             $path = $fs->dayFile('metric', 'sha', 'raw', 1000, false);
             $filesProp = new ReflectionProperty($exporter, 'files');
-            $filesProp->setAccessible(true);
             $filesProp->setValue($exporter, [
                 $path => ['buf' => "{\"ts\":1000,\"v\":1}\n", 'n' => 1, 'h' => $handle]
             ]);
@@ -502,7 +494,6 @@ namespace {
             ]);
 
             $method = new ReflectionMethod($exporter, 'extract');
-            $method->setAccessible(true);
 
             /*
              * Act: extract lines from unsorted metrics.
