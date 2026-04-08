@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder;
 
+use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageCreatedAtVO;
 
@@ -59,7 +60,7 @@ trait MessageCreatedAtAttributeHolder
     protected function withDefaultCreatedAt(): void
     {
         if ($this->createdAt === null) {
-            $this->createdAt = 'now';
+            $this->createdAt = new DateTimeImmutable('now');
         }
     }
     protected function withAssertedCreatedAtRules(self $value, ConstraintFailList $errorsList): void

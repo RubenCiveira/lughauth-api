@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Notification\Message\Domain\Formula;
 
+use DateTimeImmutable;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageCreatedAtVO;
 
@@ -12,6 +13,6 @@ class CreatedAtCalculator
 {
     public static function calculateCreatedAt(?Message $original = null): MessageCreatedAtVO
     {
-        return $original ? $original->createdAt() : MessageCreatedAtVO::from('now');
+        return $original ? $original->createdAt() : MessageCreatedAtVO::from(new DateTimeImmutable('now'));
     }
 }
