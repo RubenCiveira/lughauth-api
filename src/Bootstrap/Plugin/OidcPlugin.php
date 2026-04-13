@@ -12,6 +12,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Author
 use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driver\Html\DeviceVerificationHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\DelegatedController;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\LogoutController;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\IntrospectionController;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\TokenController;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest\UserInfoController;
 use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driver\Rest\DeviceAuthorizationController;
@@ -77,6 +78,7 @@ class OidcPlugin extends MicroPlugin
             $group->get('/jwks', [JwksController::class, 'get']);
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);
+            $group->post('/introspect', [IntrospectionController::class, 'post']);
             $group->post('/device', [DeviceAuthorizationController::class, 'post']);
             $group->get('/device/verify', [DeviceVerificationHtml::class, 'verify']);
             $group->post('/device/verify', [DeviceVerificationHtml::class, 'formVerify']);
