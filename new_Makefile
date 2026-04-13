@@ -1,0 +1,111 @@
+.PHONY: init test test-unit test-e2e lint sast release check-release build deploy
+
+COVERAGE_MIN := 90
+
+init:
+	@command -v composer >/dev/null 2>&1 || { echo "composer is required but not found in PATH"; exit 1; }
+	composer install
+	@command -v semgrep >/dev/null 2>&1 || { echo "semgrep not found, installing via pip..."; pip install semgrep; }
+	@command -v node >/dev/null 2>&1 || { echo "node is required for e2e tests but not found in PATH"; exit 1; }
+	@command -v npm >/dev/null 2>&1 || { echo "npm is required for e2e tests but not found in PATH"; exit 1; }
+	@npx playwright --version >/dev/null 2>&1 || { echo "playwright not found. Run: npm i -D @playwright/test && npx playwright install"; exit 1; }
+	@npx http-server --version >/dev/null 2>&1 || { echo "http-server not found. Run: npm i -D http-server"; exit 1; }
+
+
+test:
+	$(MAKE) test-unit
+
+test-unit:
+	@mkdir -p build/reports
+	@bash -c 'set -o pipefail; XDEBUG_MODE=coverage ./vendor/bin/phpunit --coverage-text --coverage-html build/reports/unit-html --log-junit build/reports/junit.xml | tee coverage.txt; status=$${PIPESTATUS[0]}; if [ $$status -ne 0 ]; then echo "FAILURES"; rm -f coverage.txt; exit $$status; fi'
+	@echo "======"
+	@line=$$(grep -m1 "Lines:" coverage.txt); \
+	echo "$$line"; \
+	pct=$$(echo "$$line" | sed -E 's/.*Lines:[[:space:]]*([0-9]+(\.[0-9]+)?)%.*/\1/'); \
+	rm -f coverage.txt; \
+	if [ -z "$$pct" ]; then echo "Error: unable to parse coverage percentage"; exit 2; fi; \
+	echo "Coverage (Lines): $$pct% (min: $(COVERAGE_MIN)%)"; \
+	if awk -v pct="$$pct" -v min="$(COVERAGE_MIN)" 'BEGIN{exit !(pct+0 >= min)}'; then \
+		echo "OK: coverage threshold met."; \
+	else \
+		echo "FAIL: coverage below threshold"; \
+		exit 1; \
+	fi
+	@zip -r build/reports/unit-html.zip build/reports/unit-html >/dev/null
+
+test-e2e:
+	@npm install
+	@npx playwright --version >/dev/null 2>&1 || { echo "playwright not found. Run: npm i -D @playwright/test && npx playwright install"; exit 1; }
+	@mkdir -p build/reports
+	@set -e; \
+	npx http-server public -p 8080 >/dev/null 2>&1 & \
+	PID=$$!; \
+	sleep 1; \
+	trap 'kill $$PID' EXIT; \
+	npx playwright test tests/front
+	@zip -r build/reports/e2e-html.zip build/reports/e2e-html >/dev/null
+
+lint:
+	./vendor/bin/psalm
+
+sast:
+	composer audit
+	./vendor/bin/psalm --taint-analysis
+	semgrep scan --config "p/php" --config "p/owasp-top-ten" --error .
+
+ensure-release-tag:
+	@git tag -l "v*" | while read TAG; do \
+		HASH=$$(git rev-list -1 "$$TAG"); \
+		MSG=$$(git log --format="%s" -1 "$$HASH"); \
+		case "$$MSG" in chore\(release\):*) ;; *) git tag -d "$$TAG" >/dev/null; echo "Removed orphan tag $$TAG";; esac; \
+	done; \
+	git log --format="%H %s" | grep "chore(release):" | while read HASH MSG; do \
+		VER=$$(echo "$$MSG" | awk '{print $$NF}'); \
+		TAG="v$$VER"; \
+		if ! git rev-parse "$$TAG" >/dev/null 2>&1; then \
+			git tag "$$TAG" "$$HASH"; \
+			echo "Recreated tag $$TAG on $$HASH"; \
+		fi; \
+	done
+
+check-release:
+	$(MAKE) ensure-release-tag
+	@TAG=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	if [ -z "$$TAG" ]; then \
+		echo "Error: no release tag found. Run 'make release' first."; exit 1; \
+	fi; \
+	COUNT=$$(git rev-list "$$TAG"..HEAD --count); \
+	if [ "$$COUNT" != "0" ]; then \
+		echo "Error: $$COUNT unreleased commit(s) since $$TAG. Run 'make release' first."; exit 1; \
+	fi; \
+	echo "OK: HEAD matches release $$TAG."
+
+build:
+	@VERSION=$$(cat VERSION 2>/dev/null || echo "dev"); \
+	DIST=build/dist/plugin-redmine-$$VERSION; \
+	rm -rf build/dist && mkdir -p $$DIST; \
+	cp -r src config public composer.json composer.lock $$DIST/; \
+	cd $$DIST && composer install --no-dev --optimize-autoloader --classmap-authoritative --no-interaction && cd -; \
+	tar -czf build/plugin-redmine-$$VERSION.tar.gz -C build/dist plugin-redmine-$$VERSION; \
+	rm -rf $$DIST; \
+	echo "Built build/plugin-redmine-$$VERSION.tar.gz"
+
+deploy:
+	$(MAKE) build
+
+release:
+	@git diff --quiet && git diff --cached --quiet || { echo "Error: uncommitted changes. Commit or stash them before releasing."; exit 1; }
+	@test -x ./vendor/bin/conventional-changelog || { echo "conventional-changelog not found. Run 'make init' first."; exit 1; }
+	$(MAKE) ensure-release-tag
+	@TAG=$$(git describe --tags --abbrev=0 2>/dev/null); \
+	if [ -n "$$TAG" ] && [ "$$(git rev-list "$$TAG"..HEAD --count)" = "0" ]; then \
+		echo "No commits since $$TAG. Nothing to release."; \
+	else \
+		php scripts/patch-conventional-changelog.php && \
+		(./vendor/bin/conventional-changelog --no-tag || true) && \
+		php scripts/patch-empty-changelog.php && \
+		php -r 'echo json_decode(file_get_contents("composer.json"))->version;' > VERSION && \
+		if command -v npm >/dev/null 2>&1; then npm install; else echo "npm not found, skipping npm install"; fi && \
+		git add CHANGELOG.md package.json package-lock.json composer.json VERSION && \
+		git commit -m "chore(release): $$(cat VERSION)"; \
+	fi

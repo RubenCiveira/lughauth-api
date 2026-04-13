@@ -7,7 +7,7 @@ COVERAGE_DIR=build/coverage
 # Ejecuta los tests unitarios
 test:
 	mkdir -p $(REPORT_DIR)
-	vendor/bin/phpunit  --log-junit $(REPORT_DIR)/test-report.xml
+	vendor/bin/phpunit --display-warnings --display-deprecations --log-junit $(REPORT_DIR)/test-report.xml
 
 format:
 	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/  --config=php-cs.dist
@@ -15,7 +15,8 @@ format:
 
 lint:
 	mkdir -p $(REPORT_DIR)
-	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ 
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/Shared
+	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/Bootstrap
 #	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix test/
 
 #	PHP_CS_FIXER_IGNORE_ENV=1 vendor/bin/php-cs-fixer fix src/ --dry-run --format=checkstyle > $(REPORT_DIR)/lint-report.xml

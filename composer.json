@@ -64,7 +64,8 @@
     "symfony/cache": "*",
     "dragonmantank/cron-expression": "*",
     "symfony/lock": "*",
-    "enqueue/amqp-lib": "*"
+    "enqueue/amqp-lib": "*",
+    "salesforce/handlebars-php": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "*",
