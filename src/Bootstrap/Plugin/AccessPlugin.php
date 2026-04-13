@@ -14,10 +14,10 @@ use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPart
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Driver\UserAcceptedTermnsOfUsePlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
-use Civi\Lughauth\Features\Access\UserGrantedClientScopes\Infrastructure\Driver\UserGrantedClientScopesPlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Infrastructure\Driver\UserConsentedScopesPlugin;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\UserPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
 
@@ -34,10 +34,10 @@ class AccessPlugin extends AggregatedMicroPlugin
           new TrustedClientPlugin(),
           new UserAcceptedTermnsOfUsePlugin(),
           new TenantConfigPlugin(),
-          new UserGrantedClientScopesPlugin(),
           new ApiKeyClientPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
+          new UserConsentedScopesPlugin(),
           new UserPlugin(),
           new TenantPlugin(),
 ]);

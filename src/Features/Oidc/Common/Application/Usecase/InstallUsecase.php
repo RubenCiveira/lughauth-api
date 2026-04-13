@@ -80,7 +80,7 @@ class InstallUsecase
         $party = new RelyingPartyAttributes();
         $party->uid(Random::comb());
         $party->apiKey('1111');
-        $party->code('phylax-api');
+        $party->code('lughauth-api');
         $party->enabled(true);
         $created = $this->createReling->create(RelyingParty::create($party));
         $this->createReling->update($created, $created->enable());
@@ -93,7 +93,7 @@ class InstallUsecase
 
         $trust = new TrustedClientAttributes();
         $trust->uid(Random::comb());
-        $trust->code('phylax-ui');
+        $trust->code('lughauth-ui');
         $trust->allowAllScopes(true);
         $trust->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->cypher, '123456'));
         $trust->publicAllow(true);

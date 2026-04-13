@@ -17,7 +17,6 @@ class NotifyRecover
     }
     public function __invoke(UserAccessTemporalCodeGeneratePasswordRecoverEvent $auth)
     {
-        /*
         $message = new Message(
             targetName: 'Ruben Civeira',
             targetAddress: 'rubenciveira@gmail.com',
@@ -26,6 +25,5 @@ class NotifyRecover
             htmlContent: '<h1>Como estas</h1><p>Tenemos que ir a <a href="'.($auth->url ?? '').'">activar</a> en la url '.($auth->url ?? '')
         );
         $this->sender->send($message);
-        */
     }
 }
