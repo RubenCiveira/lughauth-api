@@ -1,5 +1,7 @@
 # 01-01 — PKCE (Proof Key for Code Exchange) — RFC 7636
 
+[x] DONE
+
 **Prioridad:** P0  
 **Spec:** RFC 7636  
 **Esfuerzo estimado:** Medio (3-5 días)  

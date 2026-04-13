@@ -2,11 +2,16 @@
 
 **Prioridad:** P3  
 **Esfuerzo estimado:** Medio (2-3 días)  
-**Dependencias previas:** 01-03 Scope Consent Tracking (modelo de referencia)
+**Dependencias previas:** 01-03 Scope Consent Tracking (página HTML base + `UserConsentedScopes`)
 
 ---
 
 ## Contexto
+
+01-03 construye la página HTML `/account/{tenant}/consents` con dos secciones (scopes por
+aplicación + términos de uso aceptados) y el bounded context `UserConsentedScopes`. Esta
+tarea añade una **sección 3** a esa misma página: los propósitos de procesamiento GDPR.
+No duplica infraestructura; extiende lo ya creado.
 
 GDPR Art. 7 requiere que el consentimiento para el procesamiento de datos personales sea:
 - Libre (no condicionado al servicio)
@@ -80,35 +85,48 @@ CREATE TABLE IF NOT EXISTS access_user_consent (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
-### B. Nuevo sub-feature: src/Features/Access/UserConsent/
+### B. Nuevo bounded context: src/Features/Access/UserGdprConsent/
+
+Complementa `UserConsentedScopes` (ya creado en 01-03) con los propósitos GDPR:
 
 ```
-src/Features/Access/UserConsent/
+src/Features/Access/UserGdprConsent/
 ├── Domain/
-│   ├── UserConsent.php
-│   ├── ConsentPurpose.php
+│   ├── UserGdprConsent.php          ← entidad: (user, purposeKey, granted, grantedAt, revokedAt)
+│   ├── GdprConsentPurpose.php       ← catálogo de propósitos del tenant
 │   └── Gateway/
-│       ├── UserConsentReadGateway.php
-│       └── UserConsentWriteGateway.php
+│       ├── UserGdprConsentReadGateway.php
+│       └── UserGdprConsentWriteGateway.php
 ├── Application/
 │   └── Usecase/
-│       ├── GetUserConsents/
-│       │   └── GetUserConsentsUsecase.php
-│       ├── UpdateUserConsent/
-│       │   └── UpdateUserConsentUsecase.php
-│       └── GetConsentHistory/
-│           └── GetConsentHistoryUsecase.php
+│       ├── GetPending/UserGdprConsentGetPendingUsecase.php
+│       ├── Grant/UserGdprConsentGrantUsecase.php
+│       ├── Revoke/UserGdprConsentRevokeUsecase.php
+│       └── History/UserGdprConsentHistoryUsecase.php
 └── Infrastructure/...
 ```
 
-### C. Integración en authorize flow
+### C. Extensión de la página HTML de gestión (creada en 01-03)
+
+Añadir sección 3 a `UserConsentedScopeConsentPageController` (o extraer a un controller
+dedicado `UserConsentPageController` que orqueste los tres contextos):
+
+```
+GET /account/{tenant}/consents
+
+  Sección 1 — Aplicaciones con acceso (UserConsentedScopes)       ← ya en 01-03
+  Sección 2 — Términos de uso aceptados (UserAcceptedTermnsOfUse) ← ya en 01-03
+  Sección 3 — Propósitos de procesamiento GDPR (UserGdprConsent) ← esta tarea
+```
+
+### C.2 Integración en authorize flow
 
 En el paso `consent` del authorize flow (formulario de T&C), ampliar para mostrar
 también los propósitos de consentimiento que aún no han sido decididos:
 
 ```php
 // En ConsentForm.php
-$pendingPurposes = $this->consentUsecase->getPendingPurposes($userUid, $tenant);
+$pendingPurposes = $this->gdprConsentUsecase->getPendingPurposes($userUid, $tenant);
 if (!empty($pendingPurposes)) {
     // Añadir formulario de consentimientos al paso consent
 }

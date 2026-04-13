@@ -2,7 +2,7 @@
 
 **Prioridad:** P0  
 **Spec:** OIDC Core 1.0 §3.1.2.4 — Consent  
-**Esfuerzo estimado:** Medio (3-4 días)  
+**Esfuerzo estimado:** Medio-Alto (4-5 días)  
 **Dependencias previas:** ninguna  
 **Habilita:** 06-03 Gestión de Consentimientos GDPR
 
@@ -19,32 +19,54 @@ Resultado: cada login muestra el formulario de scopes aunque el usuario ya haya 
 
 ---
 
+## Decisión arquitectónica
+
+La persistencia del consentimiento de scopes **no es un concern del protocolo OIDC**; es un
+dato del usuario dentro del contexto `Access`. Por tanto:
+
+- Se crea `Features/Access/UserConsentedScopes/` como bounded context completo, siguiendo
+  el mismo patrón que `Features/Access/UserAcceptedTermnsOfUse/` (modelo autogenerado,
+  gateways read/write, eventos de dominio).
+- El `ScopesConsentGateway` en `Oidc/Scopes` actúa como capa anti-corrupción: el adaptador
+  delega al usecase de `UserConsentedScopes` en lugar de tocar la base de datos directamente.
+- La revocación de consentimientos se expone como **página HTML de gestión** (no solo REST),
+  unificando en una sola pantalla los consentimientos de scopes y los términos de uso
+  aceptados (`UserAcceptedTermnsOfUse`). Esto sirve de base para 06-03 GDPR.
+
+```
+Features/Access/UserConsentedScopes/   ← modelo, persistencia, CRUD, eventos
+Features/Oidc/Scopes/                  ← protocolo OIDC, delega al contexto anterior
+```
+
+---
+
 ## Qué implementar
 
 ### 1. Persistencia de consentimientos
 
-Tabla para guardar la decisión por (usuario, cliente, tenant, scope).
+Bounded context `UserConsentedScopes` con tabla para (usuario, cliente, tenant, scope).
 
 ### 2. Lógica de presentación inteligente
 
-El paso `scopes-consent` solo debe aparecer si hay scopes **nuevos** que el usuario
-no ha consentido previamente. Si ya existe consentimiento para todos los scopes solicitados,
-el paso se salta automáticamente (salvo que `prompt=consent` en la request).
+El paso `scopes-consent` solo aparece si hay scopes **nuevos** que el usuario no ha
+consentido previamente. Si ya existe consentimiento para todos los scopes solicitados,
+el paso se salta (salvo `prompt=consent`).
 
-### 3. Revocación de consentimiento
+### 3. Página HTML de gestión de consentimientos
 
-API para que el usuario pueda revocar el consentimiento a un cliente específico.
+Ruta autenticada donde el usuario ve y revoca todos sus consentimientos activos:
+scopes concedidos por aplicación y términos de uso aceptados.
 
 ---
 
 ## Dónde y cómo hacer los cambios
 
-### A. Migración — tabla _oauth_scope_consent
+### A. Migración — tabla access_user_consented_scope
 
-**Archivo nuevo:** `migrations/mysql/schema/YYYYMMDDHHMMSS_CreateScopeConsent.php`
+**Archivo nuevo:** `migrations/mysql/schema/YYYYMMDDHHMMSS_CreateUserConsentedScope.php`
 
 ```sql
-CREATE TABLE IF NOT EXISTS _oauth_scope_consent (
+CREATE TABLE IF NOT EXISTS access_user_consented_scope (
   uid         VARCHAR(36)  NOT NULL,
   tenant_id   VARCHAR(36)  NOT NULL,
   user_uid    VARCHAR(36)  NOT NULL,
@@ -60,11 +82,59 @@ CREATE TABLE IF NOT EXISTS _oauth_scope_consent (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
 
-### B. Dominio — ScopePermission actualizado
+### B. Bounded context — Features/Access/UserConsentedScopes/
+
+Siguiendo el patrón de `UserAcceptedTermnsOfUse`, generar el modelo completo:
+
+```
+src/Features/Access/UserConsentedScopes/
+├── Domain/
+│   ├── UserConsentedScope.php            ← entidad (uid, user, client, scope, grantedAt, revokedAt)
+│   ├── UserConsentedScopeRef.php
+│   ├── UserConsentedScopeAttributes.php
+│   ├── Event/
+│   │   ├── UserConsentedScopeEvent.php
+│   │   ├── UserConsentedScopeCreateEvent.php
+│   │   ├── UserConsentedScopeUpdateEvent.php
+│   │   └── UserConsentedScopeDeleteEvent.php
+│   ├── Gateway/
+│   │   ├── UserConsentedScopeReadGateway.php
+│   │   ├── UserConsentedScopeWriteGateway.php
+│   │   ├── UserConsentedScopeFilter.php
+│   │   ├── UserConsentedScopeCursor.php
+│   │   ├── UserConsentedScopeSlide.php
+│   │   └── UserConsentedScopeAttributesSlide.php
+│   └── ValueObject/...                   ← UidVO, UserVO, ClientVO, ScopeVO, GrantedAtVO, RevokedAtVO, VersionVO
+├── Application/
+│   └── Usecase/
+│       ├── Grant/UserConsentedScopeGrantUsecase.php    ← otorga uno o varios scopes
+│       ├── Revoke/UserConsentedScopeRevokeUsecase.php  ← revoca todos los scopes de un cliente
+│       ├── List/UserConsentedScopeListUsecase.php      ← scopes activos de un usuario (para la página)
+│       └── Pending/UserConsentedScopePendingUsecase.php ← scopes aún no consentidos (para el flow OIDC)
+├── Infrastructure/
+│   ├── Driver/
+│   │   ├── UserConsentedScopePlugin.php
+│   │   └── Html/
+│   │       └── UserConsentedScopeConsentPageController.php  ← ver sección F
+│   ├── Driven/
+│   │   ├── UserConsentedScopeReadRepositoryAdapter.php
+│   │   └── UserConsentedScopeWriteRepositoryAdapter.php
+│   └── Connector/Pdo/UserConsentedScopePdoConnector.php
+```
+
+Campos del modelo `UserConsentedScope`:
+- `uid` — identificador de fila
+- `user` — ref a `UserRef`
+- `client` — ref a `ClientIdentityRef`
+- `scope` — string (p.ej. `email`, `profile`)
+- `grantedAt` — fecha de concesión
+- `revokedAt` — fecha de revocación (null si activo)
+- `version` — versión optimista
+
+### C. Dominio Oidc — ScopePermission actualizado
 
 **Archivo:** `src/Features/Oidc/Scopes/Domain/ScopePermission.php`
 
-Añadir campos:
 ```php
 final class ScopePermission
 {
@@ -82,11 +152,10 @@ final class ScopePermission
 }
 ```
 
-### C. Dominio — Gateway actualizado
+### D. Gateway Oidc — ScopesConsentGateway actualizado
 
 **Archivo:** `src/Features/Oidc/Scopes/Domain/Gateway/ScopesConsentGateway.php`
 
-Reemplazar interfaz stub con:
 ```php
 interface ScopesConsentGateway
 {
@@ -98,17 +167,45 @@ interface ScopesConsentGateway
 
     /** Revoca todos los consentimientos de un usuario para un cliente */
     public function revokeConsent(string $userUid, string $clientUid, string $tenant): void;
-
-    /** @return array<string, ScopePermission[]> por cliente */
-    public function findAllConsentsForUser(string $userUid, string $tenant): array;
 }
 ```
 
-### D. Application — ScopesConsentUsecase completo
+### E. Infrastructure Oidc — ScopesConsentAdapter (capa anti-corrupción)
+
+**Archivo:** `src/Features/Oidc/Scopes/Infrastructure/Driven/ScopesConsentAdapter.php`
+
+El adaptador ya no habla con la DB directamente: delega en los usecases de
+`UserConsentedScopes`.
+
+```php
+class ScopesConsentAdapter implements ScopesConsentGateway
+{
+    public function __construct(
+        private readonly UserConsentedScopeGrantUsecase $grantUsecase,
+        private readonly UserConsentedScopePendingUsecase $pendingUsecase,
+        private readonly UserConsentedScopeRevokeUsecase $revokeUsecase,
+    ) {}
+
+    public function findGrantedScopes(string $userUid, string $clientUid, string $tenant): array
+    {
+        // delega a pendingUsecase para obtener los ya consentidos
+    }
+
+    public function grantScopes(string $userUid, string $clientUid, string $tenant, array $scopes): void
+    {
+        // delega a grantUsecase
+    }
+
+    public function revokeConsent(string $userUid, string $clientUid, string $tenant): void
+    {
+        // delega a revokeUsecase
+    }
+}
+```
+
+### F. Application Oidc — ScopesConsentUsecase completo
 
 **Archivo:** `src/Features/Oidc/Scopes/Application/Usecase/ScopesConsentUsecase.php`
-
-Tres métodos principales:
 
 ```php
 /**
@@ -118,7 +215,7 @@ Tres métodos principales:
 public function getPendingScopes(string $userUid, string $clientUid, string $tenant, array $requestedScopes): array;
 
 /**
- * Persiste la decisión del usuario (scopes granted/denied del formulario).
+ * Persiste la decisión del usuario (scopes granted del formulario).
  */
 public function saveConsent(string $userUid, string $clientUid, string $tenant, array $grantedScopes): void;
 
@@ -128,71 +225,51 @@ public function saveConsent(string $userUid, string $clientUid, string $tenant, 
 public function revokeConsent(string $userUid, string $clientUid, string $tenant): void;
 ```
 
-### E. Infrastructure — ScopesConsentAdapter (implementación real)
-
-**Archivo:** `src/Features/Oidc/Scopes/Infrastructure/Driven/ScopesConsentAdapter.php`
-
-Reemplazar stub con implementación real usando PDO:
-
-```php
-public function findGrantedScopes(string $userUid, string $clientUid, string $tenant): array
-{
-    $sql = 'SELECT scope FROM _oauth_scope_consent
-            WHERE user_uid = ? AND client_uid = ? AND tenant_id = ?
-              AND granted = 1 AND revoked_at IS NULL';
-    // ...
-}
-
-public function grantScopes(string $userUid, string $clientUid, string $tenant, array $scopes): void
-{
-    // INSERT ... ON DUPLICATE KEY UPDATE granted = 1, revoked_at = NULL, granted_at = NOW()
-}
-```
-
-### F. Authorize Flow — integración en paso scopes-consent
+### G. Authorize Flow — integración en paso scopes-consent
 
 **Archivo:** `src/Features/Oidc/Authentication/Infrastructure/Driver/Html/Forms/ScopesConsentForm.php`
 
 En el método que decide si mostrar el paso:
 ```php
-// Obtener scopes pedidos por el cliente
 $requestedScopes = explode(' ', $context->scope);
-// Filtrar 'openid' que no necesita consentimiento explícito
 $consentableScopes = array_diff($requestedScopes, ['openid']);
-// Consultar cuáles ya están consentidos
 $pendingScopes = $this->scopesConsentUsecase->getPendingScopes(
     $userUid, $clientUid, $context->tenant, $consentableScopes
 );
-// Si no hay pendientes y prompt != 'consent' → saltar paso
 if (empty($pendingScopes) && $context->prompt !== 'consent') {
     return StepResult::skip();
 }
 ```
 
-En el método que procesa el submit del formulario:
+En el método que procesa el submit:
 ```php
 $grantedScopes = $input->get('granted_scopes', []);
 $this->scopesConsentUsecase->saveConsent($userUid, $clientUid, $context->tenant, $grantedScopes);
 ```
 
-### G. API de revocación de consentimiento
+### H. Página HTML de gestión de consentimientos
 
-**Archivo nuevo:** `src/Features/Oidc/Scopes/Infrastructure/Driver/Rest/ScopeConsentController.php`
+**Archivo nuevo:** `src/Features/Access/UserConsentedScopes/Infrastructure/Driver/Html/UserConsentedScopeConsentPageController.php`
 
-```
-DELETE /openid/{tenant}/consent/{client_uid}
-Authorization: Bearer <access_token>
-```
+Ruta: `GET /account/{tenant}/consents` (autenticada con sesión activa)
 
-Respuesta: `204 No Content`
+La página muestra dos secciones:
 
-Registrar en el Plugin de Oidc/Scopes correspondiente.
+**Sección 1 — Aplicaciones con acceso**
+Por cada cliente con scopes consentidos activos:
+- Nombre del cliente, fecha de primer acceso
+- Lista de scopes concedidos con descripción humana
+- Botón "Revocar acceso" → `POST /account/{tenant}/consents/{client_uid}/revoke`
 
-### H. Discovery — scopes_supported
+**Sección 2 — Términos de uso aceptados**
+Lee de `UserAcceptedTermnsOfUse` (read-only, con fecha de aceptación por versión).
+
+Esta página es la base sobre la que 06-03 añadirá los propósitos GDPR como sección 3.
+
+### I. Discovery — scopes_supported
 
 **Archivo:** `src/Features/Oidc/Common/Infrastructure/Driver/Rest/OpenIdConfigurationController.php`
 
-Asegurarse de incluir:
 ```php
 'scopes_supported' => ['openid', 'email', 'profile', 'offline_access'],
 'claims_supported' => ['sub', 'iss', 'aud', 'exp', 'iat', 'email', 'name', 'given_name', 'family_name'],
@@ -206,7 +283,6 @@ Asegurarse de incluir:
 
 **Archivo:** `test/Features/Oidc/Scopes/Domain/ScopePermissionUnitTest.php`
 
-Casos:
 - `isActive()` cuando `granted=true` y `revokedAt=null` → `true`
 - `isActive()` cuando `revokedAt` tiene fecha → `false`
 - `isActive()` cuando `granted=false` → `false`
@@ -227,30 +303,36 @@ Casos `saveConsent`:
 - Gateway llamado con los scopes correctos
 - No llama gateway con scope `openid`
 
-### Test integración — ScopesConsentAdapter
+### Test unitario — UserConsentedScopePendingUsecase
 
-**Archivo:** `test/Features/Oidc/Scopes/Infrastructure/Driven/ScopesConsentAdapterIntegrationTest.php`
+**Archivo:** `test/Features/Access/UserConsentedScopes/Application/Usecase/Pending/UserConsentedScopePendingUsecaseUnitTest.php`
+
+- Devuelve solo los scopes sin registro activo en gateway
+- Ignora registros con `revokedAt != null`
+
+### Test integración — UserConsentedScopeReadRepositoryAdapter
+
+**Archivo:** `test/Features/Access/UserConsentedScopes/Infrastructure/Driven/UserConsentedScopeReadRepositoryAdapterIntegrationTest.php`
 
 Requiere DB de test:
-- `grantScopes()` → `findGrantedScopes()` devuelve los mismos scopes
-- `grantScopes()` dos veces (idempotente) → sin duplicados
-- `revokeConsent()` → `findGrantedScopes()` devuelve `[]`
+- `grant` → `findGranted` devuelve los mismos scopes
+- `grant` dos veces (idempotente) → sin duplicados
+- `revoke` → `findGranted` devuelve `[]`
 
 ### Test integración — Formulario scopes-consent
 
 **Archivo:** `test/Features/Oidc/Authentication/Infrastructure/Driver/Html/Forms/ScopesConsentFormStepUnitTest.php`
 *(ya existe, ampliar)*
 
-Casos adicionales:
 - Usuario con todos los scopes consentidos → `StepResult::skip()`
 - Usuario con scopes nuevos → form renderizado con scopes pendientes
 - Submit del formulario → `saveConsent()` llamado con los scopes marcados
 
-### Test integración — DELETE /consent/{client_uid}
+### Test integración — Página de gestión
 
-**Archivo:** `test/Features/Oidc/Scopes/Infrastructure/Driver/Rest/ScopeConsentControllerTest.php`
+**Archivo:** `test/Features/Access/UserConsentedScopes/Infrastructure/Driver/Html/UserConsentedScopeConsentPageControllerTest.php`
 
-Casos:
-- Token válido + cliente válido → `204`
-- Token inválido → `401`
-- Cliente inexistente → `404`
+- `GET /account/{tenant}/consents` sin sesión → redirect a login
+- `GET /account/{tenant}/consents` con sesión → lista clientes y scopes
+- `POST /account/{tenant}/consents/{client_uid}/revoke` → revoca y redirige a la misma página
+- La sección de términos de uso muestra las aceptaciones del usuario
