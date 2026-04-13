@@ -74,5 +74,58 @@ final class OidcFlowContextUnitTest extends TestCase
         $this->assertSame('https://example.com/openid/tenant1', $flow->issuer);
         $this->assertSame('sess-123', $flow->sessionId);
         $this->assertSame('pre-456', $flow->preSessionId);
+        $this->assertNull($flow->codeChallenge);
+        $this->assertNull($flow->codeChallengeMethod);
+    }
+
+    /**
+     * Verifies PKCE params are extracted when present.
+     */
+    public function testFromRequestExtractsPkceParams(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+
+        $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
+
+        $this->assertSame('E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM', $flow->codeChallenge);
+        $this->assertSame('S256', $flow->codeChallengeMethod);
+    }
+
+    /**
+     * Verifies empty code_challenge string is treated as null.
+     */
+    public function testFromRequestTreatsEmptyCodeChallengeAsNull(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'code_challenge' => '',
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+
+        $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
+
+        $this->assertNull($flow->codeChallenge);
+        $this->assertNull($flow->codeChallengeMethod);
     }
 }

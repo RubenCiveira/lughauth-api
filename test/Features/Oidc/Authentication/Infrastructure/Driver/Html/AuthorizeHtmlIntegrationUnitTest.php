@@ -74,6 +74,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 'scope' => 'openid',
                 'nonce' => 'nonce-abc',
                 'step' => StepName::CONSENT->value,
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
             ]);
 
         $builder = new ContainerBuilder();
@@ -144,6 +146,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 'redirect_uri' => 'https://client.example/callback',
                 'scope' => 'openid',
                 'nonce' => 'nonce-abc',
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
             ])
             ->withParsedBody([
                 'csid' => 'signed-csid'

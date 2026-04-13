@@ -25,6 +25,8 @@ final class OidcFlowContext
         public readonly string $issuer,
         public readonly ?string $sessionId,
         public readonly ?string $preSessionId,
+        public readonly ?string $codeChallenge,
+        public readonly ?string $codeChallengeMethod,
     ) {
     }
 
@@ -53,6 +55,8 @@ final class OidcFlowContext
             issuer: $issuer,
             sessionId: $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null,
             preSessionId: $cookies['PRE_SESSION_ID'] ?? null,
+            codeChallenge: isset($query['code_challenge']) && $query['code_challenge'] !== '' ? (string) $query['code_challenge'] : null,
+            codeChallengeMethod: isset($query['code_challenge_method']) && $query['code_challenge_method'] !== '' ? (string) $query['code_challenge_method'] : null,
         );
     }
 

@@ -16,6 +16,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\TokenGranter\TokenGra
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\OAuthTokenException;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\Oidc\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\Oidc\Device\Domain\Exception\DeviceAuthorizationException;
 
@@ -32,6 +34,18 @@ class TokenController
 
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
+        try {
+            return $this->handlePost($request, $response, $args);
+        } catch (OAuthTokenException $ex) {
+            $payload = ['error' => $ex->error(), 'error_description' => $ex->getMessage()];
+            $encoded = json_encode($payload);
+            $response->getBody()->write($encoded !== false ? $encoded : '{}');
+            return $response->withStatus($ex->statusCode())->withHeader('Content-Type', 'application/json');
+        }
+    }
+
+    private function handlePost(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
         $tenant = $args['tenant'];
         $params = (array) ($request->getParsedBody() ?? []);
         // Get client data
@@ -41,6 +55,16 @@ class TokenController
             $code = $this->temporals->retrieveTemporalAuthCode($params['code'] ?? '');
             if (!$code) {
                 throw new UnauthorizedException("Unkonw code");
+            }
+            if ($code->codeChallenge !== null) {
+                $codeVerifier = $params['code_verifier'] ?? null;
+                if ($codeVerifier === null || $codeVerifier === '') {
+                    throw OAuthTokenException::invalidRequest('code_verifier is required');
+                }
+                $pkce = PkceChallenge::fromRequest($code->codeChallenge, $code->codeChallengeMethod);
+                if ($pkce === null || !$pkce->verify((string) $codeVerifier)) {
+                    throw OAuthTokenException::invalidGrant('code_verifier does not match code_challenge');
+                }
             }
             $client = $code->client;
             $auth = $code->data;

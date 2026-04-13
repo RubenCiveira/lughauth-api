@@ -22,6 +22,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Shared\Context;
@@ -49,6 +50,10 @@ class AuthorizeHtml
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
+        $pkceError = $this->requirePkce($flow, $response);
+        if ($pkceError !== null) {
+            return $pkceError;
+        }
         $authRequest = $this->buildAuthRequest($flow, $client);
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
@@ -67,6 +72,10 @@ class AuthorizeHtml
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
+        $pkceError = $this->requirePkce($flow, $response);
+        if ($pkceError !== null) {
+            return $pkceError;
+        }
         $authRequest = $this->buildAuthRequest($flow, $client);
         $csid = $this->securer->verifyToken($body['csid']);
         if ($csid === null) {
@@ -95,6 +104,10 @@ class AuthorizeHtml
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
+        $pkceError = $this->requirePkce($flow, $response);
+        if ($pkceError !== null) {
+            return $pkceError;
+        }
         $clientRequest = $this->buildAuthRequest($flow, $client);
         $state = new ChallengesState();
         if ($flow->preSessionId !== null && $flow->preSessionId !== '') {
@@ -128,6 +141,19 @@ class AuthorizeHtml
         } catch (UnauthorizedException $ex) {
             return $this->renderStep($ex->getMessage(), null, $input, $response, null, $state);
         }
+    }
+
+    private function requirePkce(OidcFlowContext $flow, ResponseInterface $response): ?ResponseInterface
+    {
+        if ($flow->codeChallenge === null) {
+            return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
+        }
+        try {
+            PkceChallenge::fromRequest($flow->codeChallenge, $flow->codeChallengeMethod);
+        } catch (\InvalidArgumentException) {
+            return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
+        }
+        return null;
     }
 
     private function buildContext(ServerRequestInterface $request, string $tenant): OidcFlowContext

@@ -45,7 +45,9 @@ class OidcResponseBuilder
                 data: $auth->asAuthenticationResult(),
                 client: $client,
                 nonce: $flow->nonce,
-                request: $authRequest
+                request: $authRequest,
+                codeChallenge: $flow->codeChallenge,
+                codeChallengeMethod: $flow->codeChallengeMethod,
             );
             $location .= '&code=' . $this->temporals->registerTemporalAuthCode($data);
         } else {

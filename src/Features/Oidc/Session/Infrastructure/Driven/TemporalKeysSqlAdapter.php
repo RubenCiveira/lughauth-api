@@ -227,7 +227,9 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
                 data: $data,
                 nonce: $res['nonce'] ?? '',
                 client: $client,
-                request: $request
+                request: $request,
+                codeChallenge: $res['codeChallenge'] ?? null,
+                codeChallengeMethod: $res['codeChallengeMethod'] ?? null,
             );
         } else {
             return null;

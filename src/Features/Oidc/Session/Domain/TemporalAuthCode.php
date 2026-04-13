@@ -15,7 +15,9 @@ class TemporalAuthCode
         public readonly AuthenticationResult $data,
         public readonly ClientData $client,
         public readonly string $nonce,
-        public readonly AuthenticationRequest $request
+        public readonly AuthenticationRequest $request,
+        public readonly ?string $codeChallenge = null,
+        public readonly ?string $codeChallengeMethod = null,
     ) {
     }
 }
