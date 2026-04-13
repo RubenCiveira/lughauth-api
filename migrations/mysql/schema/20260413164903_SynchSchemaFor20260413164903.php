@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 use Phinx\Migration\AbstractMigration;
 
-final class SynchSchemaFor20260223221856 extends AbstractMigration
+final class SynchSchemaFor20260413164903 extends AbstractMigration
 {
     public function change(): void
     {
-        $sql = file_get_contents(__DIR__ . '/20260223221856_SynchSchemaFor20260223221856.sql');
+        $sql = file_get_contents(__DIR__ . '/20260413164903_SynchSchemaFor20260413164903.sql');
         // Eliminar líneas que comienzan con '--'
         $filtered = preg_replace('/^\s*--.*$/m', '', $sql);
         $filtered = preg_replace_callback(
