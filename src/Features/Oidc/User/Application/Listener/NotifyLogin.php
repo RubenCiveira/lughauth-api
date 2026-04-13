@@ -17,6 +17,7 @@ class NotifyLogin
     }
     public function __invoke(AuthenticationResult $auth)
     {
+        /*
         $message = new Message(
             targetName: 'Ruben Civeira',
             targetAddress: 'rubenciveira@gmail.com',
@@ -25,5 +26,6 @@ class NotifyLogin
             htmlContent: '<h1>Como estas</h1>'
         );
         $this->sender->send($message);
+        */
     }
 }
