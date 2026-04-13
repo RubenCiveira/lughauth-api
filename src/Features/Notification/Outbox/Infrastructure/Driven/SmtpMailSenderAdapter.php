@@ -5,15 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Notification\Outbox\Infrastructure\Driven;
 
-use Exception;
 use Override;
-use PHPMailer\PHPMailer\PHPMailer;
+use Exception;
 use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\PHPMailer;
+use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Gateway\SmtpMailSenderGateway;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Model\OutboundMail;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
-use Civi\Lughauth\Shared\AppConfig;
-use Civi\Lughauth\Shared\Security\AesCypherService;
 
 /**
  * Adapts SmtpMailSenderGateway to PHPMailer.

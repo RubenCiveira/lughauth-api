@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
+use Civi\Lughauth\Features\Notification\Outbox\Infrastructure\Driver\OutboxPlugin;
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driver\MessagePlugin;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driver\SmtpOutboundConfigPlugin;
 
@@ -14,6 +15,7 @@ class NotificationPlugin extends AggregatedMicroPlugin
     public function __construct()
     {
         parent::__construct([
+          new OutboxPlugin(),
           new MessagePlugin(),
           new SmtpOutboundConfigPlugin(),
 ]);

@@ -5,10 +5,10 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Notification\Outbox\Infrastructure\Driver;
 
-use Civi\Lughauth\Features\Notification\Outbox\Domain\Gateway\SmtpMailSenderGateway;
-use Civi\Lughauth\Features\Notification\Outbox\Infrastructure\Driven\SmtpMailSenderAdapter;
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Features\Notification\Outbox\Domain\Gateway\SmtpMailSenderGateway;
+use Civi\Lughauth\Features\Notification\Outbox\Infrastructure\Driven\SmtpMailSenderAdapter;
 
 class OutboxPlugin extends MicroPlugin
 {

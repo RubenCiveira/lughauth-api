@@ -6,9 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue;
 
 use LogicException;
-use Throwable;
 use Ramsey\Uuid\Uuid;
-use Psr\EventDispatcher\EventDispatcherInterface;
+use Throwable;
 use Civi\Lughauth\Features\Document\Rendering\Application\Usecase\Render\TemplateRenderInput;
 use Civi\Lughauth\Features\Document\Rendering\Application\Usecase\Render\TemplateRenderUsecase;
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateOutputFormat;
@@ -19,6 +18,7 @@ use Civi\Lughauth\Features\Notification\Outbox\Application\Service\NotificationD
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Event\UrgentMessageEnqueuedEvent;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Creates a Message in the outbox by rendering the requested template and persisting the
@@ -128,7 +128,7 @@ class EnqueueNotificationUsecase
         $this->dispatcher->dispatch(new UrgentMessageEnqueuedEvent($messageUid));
 
         $dispatchService = $this->dispatchService;
-        $logger          = fn(string $msg) => $this->logWarning($msg);
+        $logger          = fn (string $msg) => $this->logWarning($msg);
 
         register_shutdown_function(static function () use ($dispatchService, $messageUid, $logger): void {
             try {

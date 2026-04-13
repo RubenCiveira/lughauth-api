@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
+use Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driver\RenderingPlugin;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driver\TemplatePlugin;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driver\TemplateVersionPlugin;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Infrastructure\Driver\TemplateSnippetPlugin;
@@ -18,6 +19,7 @@ class DocumentPlugin extends AggregatedMicroPlugin
     public function __construct()
     {
         parent::__construct([
+          new RenderingPlugin(),
           new TemplatePlugin(),
           new TemplateVersionPlugin(),
           new TemplateSnippetPlugin(),

@@ -38,7 +38,7 @@ class NotificationDispatchService
     private const int DISPATCH_RATE         = 10;
     private const int RETENTION_HOURS       = 168; // 7 days
 
-    
+
     public function __construct(
         private readonly MessageReadGateway $messageReader,
         private readonly MessageWriteGateway $messageWriter,
@@ -57,7 +57,7 @@ class NotificationDispatchService
         try {
             $now        = new DateTimeImmutable('now');
             $messages   = $this->messageReader->list(new MessageFilter())->values();
-            $pending    = array_filter($messages, fn(Message $m) => $this->isPending($m, $now));
+            $pending    = array_filter($messages, fn (Message $m) => $this->isPending($m, $now));
             $batch      = array_slice(array_values($pending), 0, self::DISPATCH_RATE);
 
             foreach ($batch as $message) {

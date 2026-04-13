@@ -21,7 +21,6 @@ use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVari
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableReadGateway;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\Gateway\TemplateSnippetFilter;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\Gateway\TemplateSnippetReadGateway;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
@@ -147,7 +146,7 @@ class TemplateRenderUsecase
             return null;
         }
 
-        usort($versions, static fn(TemplateVersion $a, TemplateVersion $b) => ($b->getVersion() ?? 0) <=> ($a->getVersion() ?? 0));
+        usort($versions, static fn (TemplateVersion $a, TemplateVersion $b) => ($b->getVersion() ?? 0) <=> ($a->getVersion() ?? 0));
 
         return $versions[0];
     }
