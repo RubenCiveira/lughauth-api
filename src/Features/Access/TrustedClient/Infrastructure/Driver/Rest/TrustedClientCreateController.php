@@ -19,6 +19,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
@@ -101,6 +105,10 @@ class TrustedClientCreateController
             if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
                 $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
             }
+            $value->backchannelLogoutUri(TrustedClientBackchannelLogoutUriVO::tryFrom($body['backchannelLogoutUri'] ?? null, $errorsList));
+            $value->backchannelLogoutSessionRequired(TrustedClientBackchannelLogoutSessionRequiredVO::tryFrom($body['backchannelLogoutSessionRequired'] ?? null, $errorsList));
+            $value->frontchannelLogoutUri(TrustedClientFrontchannelLogoutUriVO::tryFrom($body['frontchannelLogoutUri'] ?? null, $errorsList));
+            $value->frontchannelLogoutSessionRequired(TrustedClientFrontchannelLogoutSessionRequiredVO::tryFrom($body['frontchannelLogoutSessionRequired'] ?? null, $errorsList));
             $allowedRedirectsList = [];
             if (in_array('allowedRedirects', array_keys($body))) {
                 $allowedRedirects = $body['allowedRedirects'] ?? null;
@@ -148,6 +156,10 @@ class TrustedClientCreateController
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
             $dto->secretOauth = '******';
+            $dto->backchannelLogoutUri = $value->getBackchannelLogoutUri();
+            $dto->backchannelLogoutSessionRequired = $value->isBackchannelLogoutSessionRequired();
+            $dto->frontchannelLogoutUri = $value->getFrontchannelLogoutUri();
+            $dto->frontchannelLogoutSessionRequired = $value->isFrontchannelLogoutSessionRequired();
             $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();

@@ -10,6 +10,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowAllScopesAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackchannelLogoutUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackchannelLogoutSessionRequiredAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontchannelLogoutUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontchannelLogoutSessionRequiredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientVersionAttributeHolder;
@@ -22,6 +26,10 @@ class TrustedClientCreateResult
     use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
+    use TrustedClientBackchannelLogoutUriAttributeHolder;
+    use TrustedClientBackchannelLogoutSessionRequiredAttributeHolder;
+    use TrustedClientFrontchannelLogoutUriAttributeHolder;
+    use TrustedClientFrontchannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
     use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientVersionAttributeHolder;
@@ -32,6 +40,10 @@ class TrustedClientCreateResult
       'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
       'secretOauth' => 'unsetSecretOauth',
+      'backchannelLogoutUri' => 'unsetBackchannelLogoutUri',
+      'backchannelLogoutSessionRequired' => 'unsetBackchannelLogoutSessionRequired',
+      'frontchannelLogoutUri' => 'unsetFrontchannelLogoutUri',
+      'frontchannelLogoutSessionRequired' => 'unsetFrontchannelLogoutSessionRequired',
       'enabled' => 'unsetEnabled',
       'allowedRedirects' => 'unsetAllowedRedirects',
       'version' => 'unsetVersion',
@@ -45,6 +57,10 @@ class TrustedClientCreateResult
             $this->readAllowAllScopesFrom($att);
             $this->readPublicAllowFrom($att);
             $this->readSecretOauthFrom($att);
+            $this->readBackchannelLogoutUriFrom($att);
+            $this->readBackchannelLogoutSessionRequiredFrom($att);
+            $this->readFrontchannelLogoutUriFrom($att);
+            $this->readFrontchannelLogoutSessionRequiredFrom($att);
             $this->readEnabledFrom($att);
             $this->readAllowedRedirectsFrom($att);
             $this->readVersionFrom($att);
@@ -58,6 +74,10 @@ class TrustedClientCreateResult
         $this->writeAllowAllScopesTo($att);
         $this->writePublicAllowTo($att);
         $this->writeSecretOauthTo($att);
+        $this->writeBackchannelLogoutUriTo($att);
+        $this->writeBackchannelLogoutSessionRequiredTo($att);
+        $this->writeFrontchannelLogoutUriTo($att);
+        $this->writeFrontchannelLogoutSessionRequiredTo($att);
         $this->writeEnabledTo($att);
         $this->writeAllowedRedirectsTo($att);
         $this->writeVersionTo($att);
@@ -76,6 +96,10 @@ class TrustedClientCreateResult
         $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
         $this->withDefaultSecretOauth();
+        $this->withDefaultBackchannelLogoutUri();
+        $this->withDefaultBackchannelLogoutSessionRequired();
+        $this->withDefaultFrontchannelLogoutUri();
+        $this->withDefaultFrontchannelLogoutSessionRequired();
         $this->withDefaultEnabled();
         $this->withDefaultAllowedRedirects();
         $this->withDefaultVersion();

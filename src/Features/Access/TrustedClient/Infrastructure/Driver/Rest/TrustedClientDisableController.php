@@ -129,6 +129,10 @@ class TrustedClientDisableController
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
             $dto->secretOauth = '******';
+            $dto->backchannelLogoutUri = $value->getBackchannelLogoutUri();
+            $dto->backchannelLogoutSessionRequired = $value->isBackchannelLogoutSessionRequired();
+            $dto->frontchannelLogoutUri = $value->getFrontchannelLogoutUri();
+            $dto->frontchannelLogoutSessionRequired = $value->isFrontchannelLogoutSessionRequired();
             $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();

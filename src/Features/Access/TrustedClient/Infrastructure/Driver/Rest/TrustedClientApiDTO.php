@@ -46,6 +46,34 @@ class TrustedClientApiDTO
     )]
     public ?string $secretOauth = null;
     #[OA\Property(
+        property: "backchannelLogoutUri",
+        title: "backchannel logout uri",
+        description:"El backchannel logout uri de trusted client",
+        type: "string"
+    )]
+    public ?string $backchannelLogoutUri = null;
+    #[OA\Property(
+        property: "backchannelLogoutSessionRequired",
+        title: "backchannel logout session required",
+        description:"El backchannel logout session required de trusted client",
+        type: "string"
+    )]
+    public ?bool $backchannelLogoutSessionRequired = null;
+    #[OA\Property(
+        property: "frontchannelLogoutUri",
+        title: "frontchannel logout uri",
+        description:"El frontchannel logout uri de trusted client",
+        type: "string"
+    )]
+    public ?string $frontchannelLogoutUri = null;
+    #[OA\Property(
+        property: "frontchannelLogoutSessionRequired",
+        title: "frontchannel logout session required",
+        description:"El frontchannel logout session required de trusted client",
+        type: "string"
+    )]
+    public ?bool $frontchannelLogoutSessionRequired = null;
+    #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"The indicator to allow the account be used without deleting it",
