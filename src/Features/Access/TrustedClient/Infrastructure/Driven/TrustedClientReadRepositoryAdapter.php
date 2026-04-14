@@ -124,4 +124,5 @@ class TrustedClientReadRepositoryAdapter implements TrustedClientReadGateway
             $span->end();
         }
     }
+
 }
