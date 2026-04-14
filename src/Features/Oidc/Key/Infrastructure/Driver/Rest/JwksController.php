@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest;
 use DateInterval;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use OpenApi\Attributes as OA;
 use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 
@@ -17,6 +18,33 @@ class JwksController
     {
     }
 
+    #[OA\Get(
+        path: '/oauth/openid/{tenant}/jwks',
+        summary: 'JSON Web Key Set',
+        description: 'Public keys for JWT signature verification. Cached for 1 hour.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'JWKS',
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: 'keys', type: 'array', items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'kty', type: 'string', example: 'RSA'),
+                            new OA\Property(property: 'use', type: 'string', example: 'sig'),
+                            new OA\Property(property: 'kid', type: 'string'),
+                            new OA\Property(property: 'alg', type: 'string', example: 'RS256'),
+                            new OA\Property(property: 'n', type: 'string'),
+                            new OA\Property(property: 'e', type: 'string'),
+                        ]
+                    )),
+                ])
+            ),
+        ]
+    )]
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

@@ -13,6 +13,7 @@ use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\Oidc\Device\Domain\Exception\DeviceAuthorizationException;
+use OpenApi\Attributes as OA;
 
 class DeviceAuthorizationController
 {
@@ -23,6 +24,41 @@ class DeviceAuthorizationController
     ) {
     }
 
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/device',
+        summary: 'Device Authorization Request (RFC 8628)',
+        description: 'Initiates the OAuth 2.0 Device Authorization Grant flow. Returns device_code and user_code for the device to display.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new OA\Schema(properties: [
+                    new OA\Property(property: 'client_id', type: 'string'),
+                    new OA\Property(property: 'scope', type: 'string'),
+                    new OA\Property(property: 'audience', type: 'string'),
+                ])
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Device authorization response',
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: 'device_code', type: 'string'),
+                    new OA\Property(property: 'user_code', type: 'string', example: 'ABCD-1234'),
+                    new OA\Property(property: 'verification_uri', type: 'string'),
+                    new OA\Property(property: 'verification_uri_complete', type: 'string'),
+                    new OA\Property(property: 'expires_in', type: 'integer'),
+                    new OA\Property(property: 'interval', type: 'integer'),
+                ])
+            ),
+            new OA\Response(response: 400, description: 'Invalid request'),
+            new OA\Response(response: 401, description: 'Invalid client'),
+        ]
+    )]
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

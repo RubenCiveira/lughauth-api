@@ -19,6 +19,17 @@ use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
     version: "1.0.0",
     description: "Documentación generada automáticamente"
 )]
+#[OA\SecurityScheme(
+    securityScheme: 'bearerAuth',
+    type: 'http',
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+)]
+#[OA\SecurityScheme(
+    securityScheme: 'basicAuth',
+    type: 'http',
+    scheme: 'basic',
+)]
 class Install
 {
     public static function bootstrap(): void

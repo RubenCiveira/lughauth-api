@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Rest;
 
 use Civi\Lughauth\Shared\Context;
+use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -15,6 +16,18 @@ class OpenIdConfigurationController
     {
 
     }
+    #[OA\Get(
+        path: '/oauth/openid/{tenant}/.well-known/openid-configuration',
+        summary: 'OpenID Connect Discovery Document',
+        description: 'Returns the OpenID Provider Metadata as defined in OpenID Connect Discovery 1.0.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'OpenID Provider Metadata'),
+        ]
+    )]
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
 

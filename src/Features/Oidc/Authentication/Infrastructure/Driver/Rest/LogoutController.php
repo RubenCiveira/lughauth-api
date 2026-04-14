@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
+use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -34,6 +35,24 @@ class LogoutController
         $this->base = $this->context->getBaseUrl() . '/oauth';
     }
 
+    #[OA\Get(
+        path: '/oauth/openid/{tenant}/logout',
+        summary: 'RP-Initiated Logout',
+        description: 'Ends the user session. Dispatches back-channel logout notifications and renders front-channel logout iframes if registered.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'id_token_hint', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'post_logout_redirect_uri', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'client_id', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(response: 302, description: 'Redirect to post_logout_redirect_uri'),
+            new OA\Response(response: 200, description: 'Logout page with front-channel iframes'),
+            new OA\Response(response: 400, description: 'Invalid request (missing or disallowed redirect URI)'),
+        ]
+    )]
     public function logout(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -98,6 +117,32 @@ class LogoutController
         return $response->withStatus(302)->withHeader('Location', $location);
     }
 
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/revoke',
+        summary: 'Token Revocation (RFC 7009)',
+        description: 'Revokes an access or refresh token. Always returns 200 OK even if the token is unknown or already revoked.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new OA\Schema(properties: [
+                    new OA\Property(property: 'token', type: 'string', description: 'Token to revoke'),
+                    new OA\Property(property: 'token_type_hint', type: 'string', description: 'access_token or refresh_token'),
+                    new OA\Property(property: 'client_id', type: 'string'),
+                    new OA\Property(property: 'client_secret', type: 'string'),
+                ])
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Token revoked (or already invalid)'),
+            new OA\Response(response: 400, description: 'Missing token parameter'),
+            new OA\Response(response: 401, description: 'Client authentication failed'),
+        ]
+    )]
     public function revoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

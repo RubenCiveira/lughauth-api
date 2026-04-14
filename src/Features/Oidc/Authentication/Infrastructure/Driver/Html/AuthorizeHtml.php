@@ -27,6 +27,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
+use OpenApi\Attributes as OA;
 
 class AuthorizeHtml
 {
@@ -45,6 +46,28 @@ class AuthorizeHtml
     }
 
 
+    #[OA\Get(
+        path: '/oauth/openid/{tenant}/authorize',
+        summary: 'Authorization Endpoint — interactive login UI',
+        description: 'Returns the HTML login form. Clients must redirect the user-agent here to initiate the Authorization Code flow with PKCE.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'response_type', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'code')),
+            new OA\Parameter(name: 'client_id', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'redirect_uri', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'scope', in: 'query', required: true, schema: new OA\Schema(type: 'string', example: 'openid email profile')),
+            new OA\Parameter(name: 'code_challenge', in: 'query', required: true, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'code_challenge_method', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['S256', 'plain'])),
+            new OA\Parameter(name: 'state', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'nonce', in: 'query', required: false, schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'prompt', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['none', 'login', 'consent', 'select_account'])),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'HTML login form'),
+            new OA\Response(response: 302, description: 'Redirect with authorization code (if session already active)'),
+        ]
+    )]
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -98,6 +121,30 @@ class AuthorizeHtml
         }
     }
 
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/authorize',
+        summary: 'Authorization Endpoint — form submission',
+        description: 'Processes login form submissions (credentials, MFA steps). Not intended for direct API calls; called by the browser during the interactive login flow.',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            content: new OA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new OA\Schema(properties: [
+                    new OA\Property(property: 'step', type: 'string', description: 'Current login step'),
+                    new OA\Property(property: 'username', type: 'string'),
+                    new OA\Property(property: 'password', type: 'string'),
+                    new OA\Property(property: 'csid', type: 'string', description: 'Cross-site ID token'),
+                ])
+            )
+        ),
+        responses: [
+            new OA\Response(response: 302, description: 'Redirect with authorization code on successful login'),
+            new OA\Response(response: 200, description: 'HTML form for next login step or error'),
+        ]
+    )]
     public function formAuthorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $body = (array) ($request->getParsedBody() ?? []);

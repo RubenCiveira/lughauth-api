@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
 use Civi\Lughauth\Shared\Context;
+use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -15,6 +16,30 @@ class UserInfoController
     {
     }
 
+    #[OA\Get(
+        path: '/oauth/openid/{tenant}/userinfo',
+        summary: 'OIDC UserInfo Endpoint',
+        description: 'Returns claims about the authenticated user. Requires Bearer access token with openid scope.',
+        tags: ['OIDC'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User claims',
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: 'sub', type: 'string'),
+                    new OA\Property(property: 'name', type: 'string'),
+                    new OA\Property(property: 'email', type: 'string'),
+                    new OA\Property(property: 'given_name', type: 'string'),
+                    new OA\Property(property: 'family_name', type: 'string'),
+                ])
+            ),
+            new OA\Response(response: 401, description: 'Unauthorized'),
+        ]
+    )]
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $identity = $this->context->getIdentity();

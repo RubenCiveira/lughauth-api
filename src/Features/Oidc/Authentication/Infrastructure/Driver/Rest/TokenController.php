@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\OAuthTokenExcept
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\Oidc\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\Oidc\Device\Domain\Exception\DeviceAuthorizationException;
+use OpenApi\Attributes as OA;
 
 class TokenController
 {
@@ -32,6 +33,46 @@ class TokenController
     ) {
     }
 
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/token',
+        summary: 'OAuth 2.0 Token Endpoint',
+        description: 'Exchange authorization code, refresh token, or device code for tokens. Supports: authorization_code, refresh_token, password, client_credentials, urn:ietf:params:oauth:grant-type:device_code',
+        tags: ['OIDC'],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new OA\Schema(properties: [
+                    new OA\Property(property: 'grant_type', type: 'string', example: 'authorization_code'),
+                    new OA\Property(property: 'code', type: 'string'),
+                    new OA\Property(property: 'redirect_uri', type: 'string'),
+                    new OA\Property(property: 'client_id', type: 'string'),
+                    new OA\Property(property: 'client_secret', type: 'string'),
+                    new OA\Property(property: 'code_verifier', type: 'string', description: 'PKCE verifier'),
+                    new OA\Property(property: 'refresh_token', type: 'string'),
+                ])
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Token response',
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: 'access_token', type: 'string'),
+                    new OA\Property(property: 'token_type', type: 'string', example: 'Bearer'),
+                    new OA\Property(property: 'expires_in', type: 'integer'),
+                    new OA\Property(property: 'id_token', type: 'string'),
+                    new OA\Property(property: 'refresh_token', type: 'string'),
+                    new OA\Property(property: 'scope', type: 'string'),
+                ])
+            ),
+            new OA\Response(response: 400, description: 'OAuth error (invalid_grant, invalid_client, etc.)'),
+            new OA\Response(response: 401, description: 'Client authentication failed'),
+        ]
+    )]
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {

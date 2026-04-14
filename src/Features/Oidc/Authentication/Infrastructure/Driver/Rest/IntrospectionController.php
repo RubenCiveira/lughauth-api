@@ -10,6 +10,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
+use OpenApi\Attributes as OA;
 
 class IntrospectionController
 {
@@ -20,6 +21,47 @@ class IntrospectionController
     ) {
     }
 
+    #[OA\Post(
+        path: '/oauth/openid/{tenant}/introspect',
+        summary: 'Token Introspection (RFC 7662)',
+        description: 'Returns metadata about an access or refresh token. Requires client authentication via HTTP Basic or client_id/client_secret in the body.',
+        tags: ['OIDC'],
+        security: [['basicAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'tenant', in: 'path', required: true, schema: new OA\Schema(type: 'string')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'application/x-www-form-urlencoded',
+                schema: new OA\Schema(properties: [
+                    new OA\Property(property: 'token', type: 'string', description: 'Token to introspect'),
+                    new OA\Property(property: 'token_type_hint', type: 'string', description: 'access_token or refresh_token'),
+                    new OA\Property(property: 'client_id', type: 'string'),
+                    new OA\Property(property: 'client_secret', type: 'string'),
+                ])
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Introspection response',
+                content: new OA\JsonContent(properties: [
+                    new OA\Property(property: 'active', type: 'boolean'),
+                    new OA\Property(property: 'scope', type: 'string'),
+                    new OA\Property(property: 'client_id', type: 'string'),
+                    new OA\Property(property: 'token_type', type: 'string'),
+                    new OA\Property(property: 'exp', type: 'integer'),
+                    new OA\Property(property: 'sub', type: 'string'),
+                    new OA\Property(property: 'iss', type: 'string'),
+                    new OA\Property(property: 'jti', type: 'string'),
+                    new OA\Property(property: 'tenant', type: 'string'),
+                ])
+            ),
+            new OA\Response(response: 400, description: 'Missing token parameter'),
+            new OA\Response(response: 401, description: 'Client authentication failed'),
+        ]
+    )]
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $params = (array) ($request->getParsedBody() ?? []);
