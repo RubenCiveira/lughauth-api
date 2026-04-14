@@ -11,6 +11,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Psr\SimpleCache\CacheInterface;
 use Slim\App;
 use Slim\Psr7\Factory\ResponseFactory;
@@ -47,6 +49,7 @@ class AccessControlMiddleware
         private readonly ClientInterface $client,
         /** @var StreamFactoryInterface Stream factory for request bodies. */
         private readonly StreamFactoryInterface $streamFactory,
+        private readonly LoggerInterface $logger = new NullLogger(),
         string $rulesFile = __DIR__ . '/../../../config/guard.yaml'
     ) {
         $this->rules = Yaml::parseFile($rulesFile) ?? [];
@@ -152,6 +155,10 @@ class AccessControlMiddleware
      */
     private function deny(int $statusCode, string $message): ResponseInterface
     {
+        $this->logger->warning("AccessControl denied: {$message}", [
+            'status' => $statusCode,
+            'path' => $_SERVER['REQUEST_URI'] ?? '?',
+        ]);
         $responseFactory = new ResponseFactory();
         $response = $responseFactory->createResponse($statusCode);
         $json = json_encode(['error' => $message]);

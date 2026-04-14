@@ -5,9 +5,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
+use DI\Container;
 use Override;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Slim\Psr7\Response;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Exception\HttpMethodNotAllowedException;
@@ -20,6 +23,22 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
  */
 class ErrorsPlugin extends MicroPlugin
 {
+    private LoggerInterface $logger;
+
+    public function __construct()
+    {
+        $this->logger = new NullLogger();
+    }
+
+    #[Override]
+    public function bindServices(Container $container): void
+    {
+        if ($container->has(LoggerInterface::class)) {
+            $this->logger = $container->get(LoggerInterface::class);
+        }
+        parent::bindServices($container);
+    }
+
     /**
      * Configures error handlers for validation and auth failures.
      */
@@ -44,7 +63,13 @@ class ErrorsPlugin extends MicroPlugin
             $response->getBody()->write($json !== false ? $json : '{}');
             return $response->withStatus(422)->withHeader("Content-Type", "application/problem+json");
         });
-        $errorHandler->setErrorHandler(UnauthorizedException::class, function (ServerRequestInterface $request, UnauthorizedException $exception): ResponseInterface {
+        $logger = $this->logger;
+        $errorHandler->setErrorHandler(UnauthorizedException::class, function (ServerRequestInterface $request, UnauthorizedException $exception) use ($logger): ResponseInterface {
+            $logger->warning('401 UnauthorizedException', [
+                'message' => $exception->getMessage(),
+                'path' => $request->getUri()->getPath(),
+                'trace' => $exception->getTraceAsString(),
+            ]);
             $response = new Response();
             $data = [
                 'message' => $exception->getMessage()

@@ -18,6 +18,8 @@ use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWS;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
@@ -54,7 +56,8 @@ class JwtVerifierMiddleware
         /** @var ClientInterface HTTP client for JWKS retrieval. */
         private readonly ClientInterface $client,
         /** @var MagicLinkService Magic link handler for temporary auth. */
-        private readonly MagicLinkService $magicLinkService
+        private readonly MagicLinkService $magicLinkService,
+        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
         $this->jwksUrl = $config->get('security.jwt.verify.publickey.location', '-');
         $this->requiredIssuer = $config->get('security.jwt.verify.issuer');
@@ -94,6 +97,7 @@ class JwtVerifierMiddleware
         if ($this->cache->has($cache_key)) {
             [$connection, $identity, $error] = json_decode($this->cache->get($cache_key), true);
             if ($error) {
+                $this->logger->warning('JWT rejected (cached result)', ['error' => $error, 'token_prefix' => substr($token, 0, 20)]);
                 throw new UnauthorizedException(message: $error);
             } else {
                 [$connection, $identity] = $this->deseiralize([$connection, $identity]);
@@ -105,23 +109,30 @@ class JwtVerifierMiddleware
                 $jwt = $this->extractJwt($token);
                 if ($this->verify($jwt, $jwks)) {
                     $payload = json_decode($jwt->getPayload() ?? '{}');
-                    $nbf = $payload->nbf;
-                    $exp = $payload->exp;
+                    $nbf = $payload->nbf ?? null;
+                    $exp = $payload->exp ?? null;
                     $now = time();
                     if (!$nbf || !$exp) {
                         $fail = 'The provided JWT dont have valid time range.';
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
+                        $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'exp' => $exp]);
                         throw new UnauthorizedException(message: $fail);
-                    } elseif (($now - $nbf) > 1000) {
+                    } elseif ($now < $nbf) {
                         $fail = 'The provided JWT is not ready for use.';
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
+                        $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'now' => $now, 'diff' => $nbf - $now]);
                         throw new UnauthorizedException(message: $fail);
                     } elseif ($now > $exp) {
                         $fail = 'The provided JWT is expired.';
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]));
+                        $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'exp' => $exp, 'now' => $now, 'expired_ago' => $now - $exp]);
+                        $ttl = max(1, $exp - $now + 60);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail]), $ttl);
                         throw new UnauthorizedException(message: $fail);
                     } else {
-                        $this->verifyToken($payload);
+                        try {
+                            $this->verifyToken($payload);
+                        } catch (UnauthorizedException $e) {
+                            $this->logger->warning('JWT rejected: verifyToken failed', ['sub' => $payload->sub ?? null, 'iss' => $payload->iss ?? null, 'aud' => $payload->aud ?? null, 'message' => $e->getMessage()]);
+                            throw $e;
+                        }
                         $claims = get_object_vars($payload);
                         $propertiesToRemove = ['sub', 'grant_type', 'aud', 'azp', 'scope', 'iss', 'groups', 'typ', 'exp', 'iat', 'jti'];
                         foreach ($propertiesToRemove as $property) {
@@ -140,17 +151,64 @@ class JwtVerifierMiddleware
                             claims: $claims
                         );
                         $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
-                        $this->cache->set($cache_key, json_encode([$connection, $identity, null]));
+                        $ttl = max(1, $exp - $now);
+                        $this->cache->set($cache_key, json_encode([$connection, $identity, null]), $ttl);
                         $this->context->setSecurityContext($connection, $identity);
                     }
                 } else {
-                    $fail = 'The provided JWT could not be verified.';
-                    $this->cache->set($cache_key, json_encode([null, null, $fail]));
-                    throw new UnauthorizedException(message: $fail);
+                    // Firma no válida con JWKS cacheado — puede ser rotación de claves.
+                    // Forzar re-descarga del JWKS y reintentar una vez.
+                    $this->logger->warning('JWT signature failed with cached JWKS — refreshing and retrying', [
+                        'token_prefix' => substr($token, 0, 20),
+                    ]);
+                    $freshJwks = $this->fetchAndCacheJwks();
+                    if (!$this->verify($jwt, $freshJwks)) {
+                        $fail = 'The provided JWT could not be verified.';
+                        $this->logger->warning('JWT rejected: signature verification failed even after JWKS refresh', [
+                            'token_prefix' => substr($token, 0, 20),
+                        ]);
+                        throw new UnauthorizedException(message: $fail);
+                    }
+                    // Verificación OK con claves frescas — continuar como éxito
+                    $payload = json_decode($jwt->getPayload() ?? '{}');
+                    $nbf = $payload->nbf ?? null;
+                    $exp = $payload->exp ?? null;
+                    $now = time();
+                    if (!$nbf || !$exp || $now < $nbf || $now > $exp) {
+                        $fail = 'The provided JWT time range is invalid or expired.';
+                        $this->logger->warning('JWT rejected after JWKS refresh: time range invalid', ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'exp' => $exp, 'now' => $now]);
+                        throw new UnauthorizedException(message: $fail);
+                    }
+                    try {
+                        $this->verifyToken($payload);
+                    } catch (UnauthorizedException $e) {
+                        $this->logger->warning('JWT rejected after JWKS refresh: verifyToken failed', ['sub' => $payload->sub ?? null, 'message' => $e->getMessage()]);
+                        throw $e;
+                    }
+                    $claims = get_object_vars($payload);
+                    foreach (['sub', 'grant_type', 'aud', 'azp', 'scope', 'iss', 'groups', 'typ', 'exp', 'iat', 'jti'] as $prop) {
+                        unset($claims[$prop]);
+                    }
+                    $identity = new Identity(
+                        anonymous: false,
+                        authScope: $authScope,
+                        id: $payload->sub,
+                        name: $payload->name ?? $payload->sub,
+                        email: $payload->email ?? $payload->sub,
+                        issuer: $payload->iss,
+                        roles: $this->extractRoles($payload),
+                        groups: $payload->groups ?? null,
+                        tenant: $payload->tenant ?? 'main',
+                        claims: $claims
+                    );
+                    $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
+                    $ttl = max(1, $exp - $now);
+                    $this->cache->set($cache_key, json_encode([$connection, $identity, null]), $ttl);
+                    $this->context->setSecurityContext($connection, $identity);
                 }
             } catch (\InvalidArgumentException $je) {
                 $fail = 'The provided JWT is not valid.';
-                $this->cache->set($cache_key, json_encode([null, null, $fail]));
+                $this->logger->warning('JWT rejected: invalid format', ['error' => $je->getMessage(), 'token_prefix' => substr($token, 0, 20)]);
                 throw new UnauthorizedException(message: $fail);
             }
         }
@@ -215,15 +273,18 @@ class JwtVerifierMiddleware
             if (is_string($cached)) {
                 return $cached;
             }
-        } else {
-            $response = $this->client->sendRequest($this->requestFactory->createRequest('GET', $this->jwksUrl));
-            $item = (string) $response->getBody();
-            $this->cache->set($cache_key, $item, new \DateInterval('PT1H'));
-            return $item;
+        }
+        return $this->fetchAndCacheJwks();
+    }
+
+    private function fetchAndCacheJwks(): string
+    {
+        if ($this->jwksUrl === null || $this->jwksUrl === '') {
+            throw new \RuntimeException('JWKS URL is not configured');
         }
         $response = $this->client->sendRequest($this->requestFactory->createRequest('GET', $this->jwksUrl));
         $item = (string) $response->getBody();
-        $this->cache->set($cache_key, $item, new \DateInterval('PT1H'));
+        $this->cache->set('jwks.verify.publickey', $item, new \DateInterval('PT1H'));
         return $item;
     }
 
