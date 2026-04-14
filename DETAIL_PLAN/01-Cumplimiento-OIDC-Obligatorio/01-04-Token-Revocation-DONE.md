@@ -1,5 +1,7 @@
 # 01-04 — Token Revocation Completa — RFC 7009
 
+[x] DONE
+
 **Prioridad:** P0  
 **Spec:** RFC 7009  
 **Esfuerzo estimado:** Bajo-Medio (2-3 días)  

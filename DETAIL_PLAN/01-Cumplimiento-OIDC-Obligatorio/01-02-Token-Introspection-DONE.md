@@ -1,5 +1,7 @@
 # 01-02 — Token Introspection — RFC 7662
 
+[x] DONE
+
 **Prioridad:** P1  
 **Spec:** RFC 7662  
 **Esfuerzo estimado:** Bajo-Medio (2-3 días)  

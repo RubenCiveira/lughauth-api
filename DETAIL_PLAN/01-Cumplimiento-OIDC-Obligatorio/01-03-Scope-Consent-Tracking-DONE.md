@@ -1,5 +1,7 @@
 # 01-03 — Scope Consent Tracking
 
+[x] DONE
+
 **Prioridad:** P0  
 **Spec:** OIDC Core 1.0 §3.1.2.4 — Consent  
 **Esfuerzo estimado:** Medio-Alto (4-5 días)  
