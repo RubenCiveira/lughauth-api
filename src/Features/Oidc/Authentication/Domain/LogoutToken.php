@@ -35,6 +35,6 @@ final class LogoutToken
             'aud'    => $clientId,
             'sid'    => $sessionId,
             'events' => ['http://schemas.openid.net/event/backchannel-logout' => new \stdClass()],
-        ], new \DateInterval('PT2M'));
+        ], new \DateInterval('PT5M'));
     }
 }
