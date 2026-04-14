@@ -17,6 +17,7 @@ class NotifyCreate
     }
     public function __invoke(UserCreateEvent $auth)
     {
+        /*
         $message = new Message(
             targetName: 'Ruben Civeira',
             targetAddress: 'rubenciveira@gmail.com',
@@ -25,5 +26,6 @@ class NotifyCreate
             htmlContent: '<h1>Como estas</h1>'
         );
         $this->sender->send($message);
+        */
     }
 }
