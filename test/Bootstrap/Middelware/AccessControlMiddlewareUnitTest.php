@@ -421,7 +421,17 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         $streamFactory = $this->createMock(StreamFactoryInterface::class);
         $streamFactory->method('createStream')->willReturn($this->stream(''));
 
-        return new AccessControlMiddleware($app, $context, $config, $cache, $requestFactory, $client, $streamFactory, $rulesFile);
+        return new AccessControlMiddleware(
+            $app,
+            $context,
+            $config,
+            $cache,
+            $requestFactory,
+            $client,
+            $streamFactory,
+            new \Psr\Log\NullLogger(),
+            $rulesFile
+        );
     }
 
     private function request(string $path, array $headers = []): ServerRequestInterface

@@ -363,8 +363,8 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
             'iss' => 'issuer',
             'aud' => 'aud1',
             'azp' => 'app',
-            'nbf' => $now - 2000,
-            'exp' => $now + 1000
+            'nbf' => $now + 2000,
+            'exp' => $now + 3000
         ], $key);
 
         $cache = new ArrayCache([
