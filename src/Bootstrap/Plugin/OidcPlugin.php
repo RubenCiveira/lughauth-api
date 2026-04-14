@@ -47,6 +47,8 @@ use Civi\Lughauth\Features\Oidc\Scopes\Domain\Gateway\ScopesConsentGateway;
 use Civi\Lughauth\Features\Oidc\Scopes\Infrastructure\Driven\ScopesConsentAdapter;
 use Civi\Lughauth\Features\Oidc\Device\Domain\Gateway\DeviceAuthorizationGateway;
 use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driven\DeviceAuthorizationSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven\TokenRevocationSqlAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -67,6 +69,7 @@ class OidcPlugin extends MicroPlugin
         $def[DelegateLoginGateway::class] = \DI\autowire(DelegateLoginAdapter::class);
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
         $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
+        $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
         return $def;
     }
 

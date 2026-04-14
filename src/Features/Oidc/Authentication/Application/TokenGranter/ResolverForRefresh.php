@@ -9,6 +9,7 @@ use Override;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\LoginUsecase;
 
@@ -16,9 +17,9 @@ class ResolverForRefresh implements TokenGranterStrategy
 {
     public function __construct(
         private readonly LoginUsecase $userLoginGateway,
-        private readonly TokenSigner $manager
+        private readonly TokenSigner $manager,
+        private readonly TokenRevocationGateway $revocationGateway
     ) {
-
     }
 
     #[Override]
@@ -36,6 +37,12 @@ class ResolverForRefresh implements TokenGranterStrategy
         if ($key === null || $key === '') {
             return AuthenticationResult::wrongCredentials($tenant, '');
         }
+
+        $jti = $payload['jti'] ?? null;
+        if ($jti !== null && $this->revocationGateway->isRevoked($jti, $tenant)) {
+            return AuthenticationResult::wrongCredentials($tenant, '');
+        }
+
         $challenges = (new ChallengesState())
             ->withSession(true)
             ->withUsername((string) $key);

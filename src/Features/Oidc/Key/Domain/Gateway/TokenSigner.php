@@ -18,4 +18,11 @@ interface TokenSigner
     public function verifyTokenPayload(string $tenant, string $token): ?array;
 
     public function verifiedKeypass(string $tenant, string $token): mixed;
+
+    /**
+     * Verifies the JWT signature but ignores time validity (exp/nbf).
+     * Returns the payload claims or null if the signature is invalid.
+     * Use for revocation flows where expired tokens must still be parseable.
+     */
+    public function parseSignedPayload(string $tenant, string $token): ?array;
 }

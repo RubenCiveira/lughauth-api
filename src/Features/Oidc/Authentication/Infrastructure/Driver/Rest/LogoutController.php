@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
+use Civi\Lughauth\Features\Oidc\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Shared\Context;
@@ -21,7 +22,8 @@ class LogoutController
         private readonly Context $context,
         private readonly SessionManager $sessionStore,
         private readonly ClientStoreGateway $clients,
-        private readonly TokenSigner $keys
+        private readonly TokenSigner $keys,
+        private readonly RevokeTokenUsecase $revokeTokenUsecase
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';
     }
@@ -54,15 +56,25 @@ class LogoutController
 
     public function revoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $body = $request->getParsedBody();
-        $token = $body['token'] ?? '';
+        $tenant = $args['tenant'];
+        $body = (array) ($request->getParsedBody() ?? []);
+        $token = (string) ($body['token'] ?? '');
 
         if ($token === '') {
             $response->getBody()->write('{"error":"invalid_request","error_description":"missing token parameter"}');
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
 
-        $this->sessionStore->removeSesion($token);
+        $client = $this->authenticateClient($body);
+        if ($client === null) {
+            $response->getBody()->write('{"error":"invalid_client","error_description":"client authentication required"}');
+            return $response->withStatus(401)
+                ->withHeader('Content-Type', 'application/json')
+                ->withHeader('WWW-Authenticate', 'Basic realm="OAuth2 Revocation"');
+        }
+
+        // RFC 7009: always 200 OK even if token is unknown or already revoked
+        $this->revokeTokenUsecase->revoke($token, $client->id, $tenant);
 
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
@@ -73,6 +85,28 @@ class LogoutController
         $authCookie = new Cookie(name: 'AUTH_SESSION_ID_' . strtoupper($tenant), path: $path);
         $preCookie = new Cookie(name: 'PRE_SESSION_ID', path: $path);
         return $preCookie->remove($authCookie->remove($response));
+    }
+
+    private function authenticateClient(array $body): mixed
+    {
+        // Confidential client: Basic auth
+        if (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
+            return $this->clients->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+        }
+
+        $clientId = (string) ($body['client_id'] ?? '');
+        if ($clientId === '') {
+            return null;
+        }
+
+        // Confidential client: client_id + client_secret in body
+        $clientSecret = (string) ($body['client_secret'] ?? '');
+        if ($clientSecret !== '') {
+            return $this->clients->clientData($clientId, $clientSecret);
+        }
+
+        // Public client (SPA): client_id only — security relies on azp claim validation in the usecase
+        return $this->clients->preValidatedClient($clientId);
     }
 
     private function isAllowedRedirect(string $clientId, string $tenant, string $redirectUri): bool

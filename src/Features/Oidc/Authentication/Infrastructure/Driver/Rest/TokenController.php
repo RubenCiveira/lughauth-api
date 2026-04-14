@@ -173,7 +173,7 @@ class TokenController
                 'groups' => $auth->groups ?? []
             ]), $expiration),
         ];
-        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ?? '' ], new DateInterval("PT10H"));
+        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'azp' => $client->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ?? '' ], new DateInterval("PT10H"));
         $encoded = json_encode($data);
         $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withHeader('Content-Type', 'application/json');

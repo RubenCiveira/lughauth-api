@@ -9,12 +9,14 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
 
 class IntrospectionController
 {
     public function __construct(
         private readonly TokenSigner $tokenSigner,
-        private readonly ClientStoreGateway $clients
+        private readonly ClientStoreGateway $clients,
+        private readonly TokenRevocationGateway $revocationGateway
     ) {
     }
 
@@ -43,6 +45,11 @@ class IntrospectionController
         $tenant = (string) ($args['tenant'] ?? '');
         $payload = $this->tokenSigner->verifyTokenPayload($tenant, $token);
         if ($payload === null) {
+            return $this->jsonResponse($response, ['active' => false]);
+        }
+
+        $jti = $payload['jti'] ?? null;
+        if ($jti !== null && $this->revocationGateway->isRevoked($jti, $tenant)) {
             return $this->jsonResponse($response, ['active' => false]);
         }
 

@@ -47,7 +47,7 @@ class JoseTokenSigner implements TokenSigner
         $initial = new \DateTimeImmutable();
         $end = $initial->add($expiration);
         $data = array_merge(['typ' => 'Bearer',
-                'jti' => $key->kid,
+                'jti' => Uuid::uuid4()->toString(),
                 'iat' => $initial->getTimestamp(),
                 'nbf' => $initial->getTimestamp(),
                 'exp' => $end->getTimestamp()], $data);
@@ -125,6 +125,25 @@ class JoseTokenSigner implements TokenSigner
     {
         $payload = $this->verifyTokenPayload($tenant, $token);
         return $payload['keypass'] ?? null;
+    }
+
+    #[Override]
+    public function parseSignedPayload(string $tenant, string $token): ?array
+    {
+        $jwkSet = $this->keysAsJwks($tenant);
+        $serializer = new CompactSerializer();
+        try {
+            $jwt = $serializer->unserialize($token);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
+        $algorithmManager = new AlgorithmManager([new RS256()]);
+        $jwsVerifier = new JWSVerifier($algorithmManager);
+        if (!$jwsVerifier->verifyWithKeySet($jwt, $jwkSet, 0)) {
+            return null;
+        }
+        $payload = json_decode($jwt->getPayload() ?? '{}', true);
+        return is_array($payload) ? $payload : null;
     }
 
     private function checkNewNeeded(string $tenant): void
