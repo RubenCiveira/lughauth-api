@@ -6,56 +6,56 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
 
-trait TrustedClientFrontchannelLogoutUriAttributeHolder
+trait TrustedClientFrontChannelLogoutUriAttributeHolder
 {
-    protected TrustedClientFrontchannelLogoutUriVO|string|null $frontchannelLogoutUri = null;
-    protected bool $frontchannelLogoutUriAssigned = false;
+    protected TrustedClientFrontChannelLogoutUriVO|string|null $frontChannelLogoutUri = null;
+    protected bool $frontChannelLogoutUriAssigned = false;
 
-    public function getFrontchannelLogoutUriOrDefault(?TrustedClientFrontchannelLogoutUriVO $frontchannelLogoutUri): ?TrustedClientFrontchannelLogoutUriVO
+    public function getFrontChannelLogoutUriOrDefault(?TrustedClientFrontChannelLogoutUriVO $frontChannelLogoutUri): ?TrustedClientFrontChannelLogoutUriVO
     {
-        return $this->frontchannelLogoutUriAssigned ? ($this->frontchannelLogoutUri !== null ? TrustedClientFrontchannelLogoutUriVO::from($this->frontchannelLogoutUri) : null) : $frontchannelLogoutUri;
+        return $this->frontChannelLogoutUriAssigned ? ($this->frontChannelLogoutUri !== null ? TrustedClientFrontChannelLogoutUriVO::from($this->frontChannelLogoutUri) : null) : $frontChannelLogoutUri;
     }
-    public function frontchannelLogoutUri(TrustedClientFrontchannelLogoutUriVO|string|null $frontchannelLogoutUri): static
+    public function frontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO|string|null $frontChannelLogoutUri): static
     {
-        $this->frontchannelLogoutUri = $frontchannelLogoutUri;
-        $this->frontchannelLogoutUriAssigned = true;
+        $this->frontChannelLogoutUri = $frontChannelLogoutUri;
+        $this->frontChannelLogoutUriAssigned = true;
         return $this;
     }
-    public function getFrontchannelLogoutUri(): ?string
+    public function getFrontChannelLogoutUri(): ?string
     {
-        return $this->frontchannelLogoutUri instanceof TrustedClientFrontchannelLogoutUriVO ? $this->frontchannelLogoutUri->value() : $this->frontchannelLogoutUri;
+        return $this->frontChannelLogoutUri instanceof TrustedClientFrontChannelLogoutUriVO ? $this->frontChannelLogoutUri->value() : $this->frontChannelLogoutUri;
     }
-    public function isFrontchannelLogoutUriAssigned(): bool
+    public function isFrontChannelLogoutUriAssigned(): bool
     {
-        return $this->frontchannelLogoutUriAssigned;
+        return $this->frontChannelLogoutUriAssigned;
     }
-    public function writeFrontchannelLogoutUriTo(mixed $att): void
+    public function writeFrontChannelLogoutUriTo(mixed $att): void
     {
-        if ($this->frontchannelLogoutUriAssigned) {
-            $att->frontchannelLogoutUri($this->frontchannelLogoutUri);
+        if ($this->frontChannelLogoutUriAssigned) {
+            $att->frontChannelLogoutUri($this->frontChannelLogoutUri);
         }
     }
-    public function readFrontchannelLogoutUriFrom(mixed $att): void
+    public function readFrontChannelLogoutUriFrom(mixed $att): void
     {
-        if ($att->isFrontchannelLogoutUriAssigned()) {
-            $frontchannelLogoutUri = $att->getFrontchannelLogoutUri();
-            $this->frontchannelLogoutUri($frontchannelLogoutUri);
+        if ($att->isFrontChannelLogoutUriAssigned()) {
+            $frontChannelLogoutUri = $att->getFrontChannelLogoutUri();
+            $this->frontChannelLogoutUri($frontChannelLogoutUri);
         }
     }
-    public function unsetFrontchannelLogoutUri(): static
+    public function unsetFrontChannelLogoutUri(): static
     {
-        $this->frontchannelLogoutUriAssigned = false;
+        $this->frontChannelLogoutUriAssigned = false;
         return $this;
     }
-    protected function withDefaultFrontchannelLogoutUri(): void
+    protected function withDefaultFrontChannelLogoutUri(): void
     {
     }
-    protected function withAssertedFrontchannelLogoutUriRules(self $value, ConstraintFailList $errorsList): void
+    protected function withAssertedFrontChannelLogoutUriRules(self $value, ConstraintFailList $errorsList): void
     {
-        if ($value->frontchannelLogoutUriAssigned = $this->frontchannelLogoutUriAssigned) {
-            $value->frontchannelLogoutUri = TrustedClientFrontchannelLogoutUriVO::tryFrom($this->frontchannelLogoutUri, $errorsList);
+        if ($value->frontChannelLogoutUriAssigned = $this->frontChannelLogoutUriAssigned) {
+            $value->frontChannelLogoutUri = TrustedClientFrontChannelLogoutUriVO::tryFrom($this->frontChannelLogoutUri, $errorsList);
         }
     }
 }

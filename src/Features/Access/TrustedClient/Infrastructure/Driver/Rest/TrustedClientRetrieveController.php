@@ -72,10 +72,10 @@ class TrustedClientRetrieveController
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
             $dto->secretOauth = '******';
-            $dto->backchannelLogoutUri = $value->getBackchannelLogoutUri();
-            $dto->backchannelLogoutSessionRequired = $value->isBackchannelLogoutSessionRequired();
-            $dto->frontchannelLogoutUri = $value->getFrontchannelLogoutUri();
-            $dto->frontchannelLogoutSessionRequired = $value->isFrontchannelLogoutSessionRequired();
+            $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
+            $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
+            $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
+            $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
             $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();

@@ -6,38 +6,38 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 
-final class TrustedClientFrontchannelLogoutSessionRequiredVOUnitTest extends TestCase
+final class TrustedClientFrontChannelLogoutSessionRequiredVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
         $value = true;
-        $ref = TrustedClientFrontchannelLogoutSessionRequiredVO::from($value);
+        $ref = TrustedClientFrontChannelLogoutSessionRequiredVO::from($value);
         $this->assertEquals(true, $ref->value());
-        $other = TrustedClientFrontchannelLogoutSessionRequiredVO::tryFrom($ref, new ConstraintFailList());
+        $other = TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
-        $more = TrustedClientFrontchannelLogoutSessionRequiredVO::from($ref);
+        $more = TrustedClientFrontChannelLogoutSessionRequiredVO::from($ref);
         $this->assertSame($more, $ref);
     }
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = TrustedClientFrontchannelLogoutSessionRequiredVO::tryFrom('1', $errors);
+        $other = TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
     public function test_optimist_asignation_invalid_type(): void
     {
         $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TrustedClientFrontchannelLogoutSessionRequiredVO::class, 'fromUnsafe');
+        $method = new ReflectionMethod(TrustedClientFrontChannelLogoutSessionRequiredVO::class, 'fromUnsafe');
         $method->invoke(null, [11, "bad"]);
     }
     public function test_equals(): void
     {
-        $one = TrustedClientFrontchannelLogoutSessionRequiredVO::from(true);
-        $same = TrustedClientFrontchannelLogoutSessionRequiredVO::from(true);
-        $other = TrustedClientFrontchannelLogoutSessionRequiredVO::from(false);
+        $one = TrustedClientFrontChannelLogoutSessionRequiredVO::from(true);
+        $same = TrustedClientFrontChannelLogoutSessionRequiredVO::from(true);
+        $other = TrustedClientFrontChannelLogoutSessionRequiredVO::from(false);
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -48,12 +48,12 @@ final class TrustedClientFrontchannelLogoutSessionRequiredVOUnitTest extends Tes
     }
     public function test_empty(): void
     {
-        $ref = TrustedClientFrontchannelLogoutSessionRequiredVO::empty();
+        $ref = TrustedClientFrontChannelLogoutSessionRequiredVO::empty();
         $this->assertNull($ref->value());
     }
     public function test_try_from_empty(): void
     {
-        $ref = TrustedClientFrontchannelLogoutSessionRequiredVO::tryFrom(null, new ConstraintFailList());
+        $ref = TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
 }

@@ -9,35 +9,35 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
-class TrustedClientBackchannelLogoutUriVO
+class TrustedClientBackChannelLogoutUriVO
 {
-    public static function empty(): TrustedClientBackchannelLogoutUriVO
+    public static function empty(): TrustedClientBackChannelLogoutUriVO
     {
-        return new TrustedClientBackchannelLogoutUriVO(null);
+        return new TrustedClientBackChannelLogoutUriVO(null);
     }
-    public static function from(TrustedClientBackchannelLogoutUriVO|string|null $value): TrustedClientBackchannelLogoutUriVO
+    public static function from(TrustedClientBackChannelLogoutUriVO|string|null $value): TrustedClientBackChannelLogoutUriVO
     {
         return self::fromUnsafe($value);
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientBackchannelLogoutUriVO
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientBackChannelLogoutUriVO
     {
-        if ($value instanceof TrustedClientBackchannelLogoutUriVO) {
+        if ($value instanceof TrustedClientBackChannelLogoutUriVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new TrustedClientBackchannelLogoutUriVO($value);
+            return new TrustedClientBackChannelLogoutUriVO($value);
         } elseif (is_string($value)) {
             // If is a ValueObject, we need to append all the errors for the context
             $valid = true;
             foreach (self::rules() as $rule) {
                 if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('backchannelLogoutUri', $fail));
+                    $list->add(ConstraintFail::fromRuleFail('backChannelLogoutUri', $fail));
                     $valid = false;
                 }
             }
-            return $valid ? new TrustedClientBackchannelLogoutUriVO($value) : null;
+            return $valid ? new TrustedClientBackChannelLogoutUriVO($value) : null;
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['backchannelLogoutUri'], [$value], ['string']));
+            $list->add(new ConstraintFail('wrong_type', ['backChannelLogoutUri'], [$value], ['string']));
             return null;
         }
     }
@@ -47,9 +47,9 @@ class TrustedClientBackchannelLogoutUriVO
           new Length(min: null, max: 250),
         ];
     }
-    private static function fromUnsafe(mixed $value): TrustedClientBackchannelLogoutUriVO
+    private static function fromUnsafe(mixed $value): TrustedClientBackChannelLogoutUriVO
     {
-        if ($value instanceof TrustedClientBackchannelLogoutUriVO) {
+        if ($value instanceof TrustedClientBackChannelLogoutUriVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -59,7 +59,7 @@ class TrustedClientBackchannelLogoutUriVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
-            \assert($candidate instanceof TrustedClientBackchannelLogoutUriVO);
+            \assert($candidate instanceof TrustedClientBackChannelLogoutUriVO);
             return $candidate;
         }
     }
@@ -67,14 +67,14 @@ class TrustedClientBackchannelLogoutUriVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly ?string $backchannelLogoutUri
+        private readonly ?string $backChannelLogoutUri
     ) {
     }
     public function value(): ?string
     {
-        return $this->backchannelLogoutUri;
+        return $this->backChannelLogoutUri;
     }
-    public function equals(?TrustedClientBackchannelLogoutUriVO $other): bool
+    public function equals(?TrustedClientBackChannelLogoutUriVO $other): bool
     {
         return $this->value() == $other?->value();
     }

@@ -81,6 +81,8 @@ class TrustedClientDisableController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 code: $params['code'] ?? null,
+                withBackChannelUrl: $params['with-back-channel-url'] ?? null,
+                withFrontChannelUrl: $params['with-front-channel-url'] ?? null,
             );
             $res = $this->runner->run(TrustedClientTaskDisable::class, ['filter' => $filter]);
             $encoded = json_encode($res);
@@ -129,10 +131,10 @@ class TrustedClientDisableController
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
             $dto->secretOauth = '******';
-            $dto->backchannelLogoutUri = $value->getBackchannelLogoutUri();
-            $dto->backchannelLogoutSessionRequired = $value->isBackchannelLogoutSessionRequired();
-            $dto->frontchannelLogoutUri = $value->getFrontchannelLogoutUri();
-            $dto->frontchannelLogoutSessionRequired = $value->isFrontchannelLogoutSessionRequired();
+            $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
+            $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
+            $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
+            $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
             $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();

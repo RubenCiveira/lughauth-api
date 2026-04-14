@@ -15,14 +15,14 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackchannelLogoutUriAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutUriVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackchannelLogoutSessionRequiredAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutSessionRequiredVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontchannelLogoutUriAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutUriVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontchannelLogoutSessionRequiredAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
@@ -38,10 +38,10 @@ class TrustedClientAttributes
     use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
-    use TrustedClientBackchannelLogoutUriAttributeHolder;
-    use TrustedClientBackchannelLogoutSessionRequiredAttributeHolder;
-    use TrustedClientFrontchannelLogoutUriAttributeHolder;
-    use TrustedClientFrontchannelLogoutSessionRequiredAttributeHolder;
+    use TrustedClientBackChannelLogoutUriAttributeHolder;
+    use TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
+    use TrustedClientFrontChannelLogoutUriAttributeHolder;
+    use TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
     use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientVersionAttributeHolder;
@@ -52,10 +52,10 @@ class TrustedClientAttributes
       'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
       'secretOauth' => 'unsetSecretOauth',
-      'backchannelLogoutUri' => 'unsetBackchannelLogoutUri',
-      'backchannelLogoutSessionRequired' => 'unsetBackchannelLogoutSessionRequired',
-      'frontchannelLogoutUri' => 'unsetFrontchannelLogoutUri',
-      'frontchannelLogoutSessionRequired' => 'unsetFrontchannelLogoutSessionRequired',
+      'backChannelLogoutUri' => 'unsetBackChannelLogoutUri',
+      'backChannelLogoutSessionRequired' => 'unsetBackChannelLogoutSessionRequired',
+      'frontChannelLogoutUri' => 'unsetFrontChannelLogoutUri',
+      'frontChannelLogoutSessionRequired' => 'unsetFrontChannelLogoutSessionRequired',
       'enabled' => 'unsetEnabled',
       'allowedRedirects' => 'unsetAllowedRedirects',
       'version' => 'unsetVersion',
@@ -69,10 +69,10 @@ class TrustedClientAttributes
         $allowAllScopes = TrustedClientAllowAllScopesVO::tryFrom($this->allowAllScopes, $errors);
         $publicAllow = TrustedClientPublicAllowVO::tryFrom($this->publicAllow, $errors);
         $secretOauth = TrustedClientSecretOauthVO::tryFrom($this->secretOauth, $errors);
-        $backchannelLogoutUri = TrustedClientBackchannelLogoutUriVO::tryFrom($this->backchannelLogoutUri, $errors);
-        $backchannelLogoutSessionRequired = TrustedClientBackchannelLogoutSessionRequiredVO::tryFrom($this->backchannelLogoutSessionRequired, $errors);
-        $frontchannelLogoutUri = TrustedClientFrontchannelLogoutUriVO::tryFrom($this->frontchannelLogoutUri, $errors);
-        $frontchannelLogoutSessionRequired = TrustedClientFrontchannelLogoutSessionRequiredVO::tryFrom($this->frontchannelLogoutSessionRequired, $errors);
+        $backChannelLogoutUri = TrustedClientBackChannelLogoutUriVO::tryFrom($this->backChannelLogoutUri, $errors);
+        $backChannelLogoutSessionRequired = TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($this->backChannelLogoutSessionRequired, $errors);
+        $frontChannelLogoutUri = TrustedClientFrontChannelLogoutUriVO::tryFrom($this->frontChannelLogoutUri, $errors);
+        $frontChannelLogoutSessionRequired = TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($this->frontChannelLogoutSessionRequired, $errors);
         $enabled = TrustedClientEnabledVO::tryFrom($this->enabled, $errors);
         $allowedRedirects = TrustedClientAllowedRedirectsVO::tryFrom($this->allowedRedirects, $errors);
         $version = TrustedClientVersionVO::tryFrom($this->version, $errors);
@@ -90,10 +90,10 @@ class TrustedClientAttributes
             allowAllScopes: $allowAllScopes,
             publicAllow: $publicAllow,
             secretOauth: $secretOauth,
-            backchannelLogoutUri: $backchannelLogoutUri,
-            backchannelLogoutSessionRequired: $backchannelLogoutSessionRequired,
-            frontchannelLogoutUri: $frontchannelLogoutUri,
-            frontchannelLogoutSessionRequired: $frontchannelLogoutSessionRequired,
+            backChannelLogoutUri: $backChannelLogoutUri,
+            backChannelLogoutSessionRequired: $backChannelLogoutSessionRequired,
+            frontChannelLogoutUri: $frontChannelLogoutUri,
+            frontChannelLogoutSessionRequired: $frontChannelLogoutSessionRequired,
             enabled: $enabled,
             allowedRedirects: $allowedRedirects,
             version: $version,
@@ -108,10 +108,10 @@ class TrustedClientAttributes
         $this->withAssertedAllowAllScopesRules($value, $errorsList);
         $this->withAssertedPublicAllowRules($value, $errorsList);
         $this->withAssertedSecretOauthRules($value, $errorsList);
-        $this->withAssertedBackchannelLogoutUriRules($value, $errorsList);
-        $this->withAssertedBackchannelLogoutSessionRequiredRules($value, $errorsList);
-        $this->withAssertedFrontchannelLogoutUriRules($value, $errorsList);
-        $this->withAssertedFrontchannelLogoutSessionRequiredRules($value, $errorsList);
+        $this->withAssertedBackChannelLogoutUriRules($value, $errorsList);
+        $this->withAssertedBackChannelLogoutSessionRequiredRules($value, $errorsList);
+        $this->withAssertedFrontChannelLogoutUriRules($value, $errorsList);
+        $this->withAssertedFrontChannelLogoutSessionRequiredRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedAllowedRedirectsRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
@@ -133,10 +133,10 @@ class TrustedClientAttributes
         $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
         $this->withDefaultSecretOauth();
-        $this->withDefaultBackchannelLogoutUri();
-        $this->withDefaultBackchannelLogoutSessionRequired();
-        $this->withDefaultFrontchannelLogoutUri();
-        $this->withDefaultFrontchannelLogoutSessionRequired();
+        $this->withDefaultBackChannelLogoutUri();
+        $this->withDefaultBackChannelLogoutSessionRequired();
+        $this->withDefaultFrontChannelLogoutUri();
+        $this->withDefaultFrontChannelLogoutSessionRequired();
         $this->withDefaultEnabled();
         $this->withDefaultAllowedRedirects();
         $this->withDefaultVersion();

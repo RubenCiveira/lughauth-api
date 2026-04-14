@@ -6,56 +6,56 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 
-trait TrustedClientFrontchannelLogoutSessionRequiredAttributeHolder
+trait TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder
 {
-    protected TrustedClientFrontchannelLogoutSessionRequiredVO|bool|null $frontchannelLogoutSessionRequired = null;
-    protected bool $frontchannelLogoutSessionRequiredAssigned = false;
+    protected TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $frontChannelLogoutSessionRequired = null;
+    protected bool $frontChannelLogoutSessionRequiredAssigned = false;
 
-    public function getFrontchannelLogoutSessionRequiredOrDefault(?TrustedClientFrontchannelLogoutSessionRequiredVO $frontchannelLogoutSessionRequired): ?TrustedClientFrontchannelLogoutSessionRequiredVO
+    public function getFrontChannelLogoutSessionRequiredOrDefault(?TrustedClientFrontChannelLogoutSessionRequiredVO $frontChannelLogoutSessionRequired): ?TrustedClientFrontChannelLogoutSessionRequiredVO
     {
-        return $this->frontchannelLogoutSessionRequiredAssigned ? ($this->frontchannelLogoutSessionRequired !== null ? TrustedClientFrontchannelLogoutSessionRequiredVO::from($this->frontchannelLogoutSessionRequired) : null) : $frontchannelLogoutSessionRequired;
+        return $this->frontChannelLogoutSessionRequiredAssigned ? ($this->frontChannelLogoutSessionRequired !== null ? TrustedClientFrontChannelLogoutSessionRequiredVO::from($this->frontChannelLogoutSessionRequired) : null) : $frontChannelLogoutSessionRequired;
     }
-    public function frontchannelLogoutSessionRequired(TrustedClientFrontchannelLogoutSessionRequiredVO|bool|null $frontchannelLogoutSessionRequired): static
+    public function frontChannelLogoutSessionRequired(TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $frontChannelLogoutSessionRequired): static
     {
-        $this->frontchannelLogoutSessionRequired = $frontchannelLogoutSessionRequired;
-        $this->frontchannelLogoutSessionRequiredAssigned = true;
+        $this->frontChannelLogoutSessionRequired = $frontChannelLogoutSessionRequired;
+        $this->frontChannelLogoutSessionRequiredAssigned = true;
         return $this;
     }
-    public function isFrontchannelLogoutSessionRequired(): ?bool
+    public function isFrontChannelLogoutSessionRequired(): ?bool
     {
-        return $this->frontchannelLogoutSessionRequired instanceof TrustedClientFrontchannelLogoutSessionRequiredVO ? $this->frontchannelLogoutSessionRequired->value() : $this->frontchannelLogoutSessionRequired;
+        return $this->frontChannelLogoutSessionRequired instanceof TrustedClientFrontChannelLogoutSessionRequiredVO ? $this->frontChannelLogoutSessionRequired->value() : $this->frontChannelLogoutSessionRequired;
     }
-    public function isFrontchannelLogoutSessionRequiredAssigned(): bool
+    public function isFrontChannelLogoutSessionRequiredAssigned(): bool
     {
-        return $this->frontchannelLogoutSessionRequiredAssigned;
+        return $this->frontChannelLogoutSessionRequiredAssigned;
     }
-    public function writeFrontchannelLogoutSessionRequiredTo(mixed $att): void
+    public function writeFrontChannelLogoutSessionRequiredTo(mixed $att): void
     {
-        if ($this->frontchannelLogoutSessionRequiredAssigned) {
-            $att->frontchannelLogoutSessionRequired($this->frontchannelLogoutSessionRequired);
+        if ($this->frontChannelLogoutSessionRequiredAssigned) {
+            $att->frontChannelLogoutSessionRequired($this->frontChannelLogoutSessionRequired);
         }
     }
-    public function readFrontchannelLogoutSessionRequiredFrom(mixed $att): void
+    public function readFrontChannelLogoutSessionRequiredFrom(mixed $att): void
     {
-        if ($att->isFrontchannelLogoutSessionRequiredAssigned()) {
-            $frontchannelLogoutSessionRequired = $att->isFrontchannelLogoutSessionRequired();
-            $this->frontchannelLogoutSessionRequired($frontchannelLogoutSessionRequired);
+        if ($att->isFrontChannelLogoutSessionRequiredAssigned()) {
+            $frontChannelLogoutSessionRequired = $att->isFrontChannelLogoutSessionRequired();
+            $this->frontChannelLogoutSessionRequired($frontChannelLogoutSessionRequired);
         }
     }
-    public function unsetFrontchannelLogoutSessionRequired(): static
+    public function unsetFrontChannelLogoutSessionRequired(): static
     {
-        $this->frontchannelLogoutSessionRequiredAssigned = false;
+        $this->frontChannelLogoutSessionRequiredAssigned = false;
         return $this;
     }
-    protected function withDefaultFrontchannelLogoutSessionRequired(): void
+    protected function withDefaultFrontChannelLogoutSessionRequired(): void
     {
     }
-    protected function withAssertedFrontchannelLogoutSessionRequiredRules(self $value, ConstraintFailList $errorsList): void
+    protected function withAssertedFrontChannelLogoutSessionRequiredRules(self $value, ConstraintFailList $errorsList): void
     {
-        if ($value->frontchannelLogoutSessionRequiredAssigned = $this->frontchannelLogoutSessionRequiredAssigned) {
-            $value->frontchannelLogoutSessionRequired = TrustedClientFrontchannelLogoutSessionRequiredVO::tryFrom($this->frontchannelLogoutSessionRequired, $errorsList);
+        if ($value->frontChannelLogoutSessionRequiredAssigned = $this->frontChannelLogoutSessionRequiredAssigned) {
+            $value->frontChannelLogoutSessionRequired = TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($this->frontChannelLogoutSessionRequired, $errorsList);
         }
     }
 }

@@ -97,10 +97,10 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("trusted-client", "allowAllScopes", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "publicAllow", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "secretOauth", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "backchannelLogoutUri", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "backchannelLogoutSessionRequired", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "frontchannelLogoutUri", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "frontchannelLogoutSessionRequired", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "backChannelLogoutUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "backChannelLogoutSessionRequired", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "frontChannelLogoutUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "frontChannelLogoutSessionRequired", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "enabled", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "version", "MANAGE");

@@ -144,16 +144,16 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute insert sql query for Trusted client");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "backchannel_logout_uri", "backchannel_logout_session_required", "frontchannel_logout_uri", "frontchannel_logout_session_required", "enabled", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backchannelLogoutUri, :backchannelLogoutSessionRequired, :frontchannelLogoutUri, :frontchannelLogoutSessionRequired, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $entity->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $entity->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $entity->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
-                     new SqlParam(name: 'backchannelLogoutUri', value: $entity->getBackchannelLogoutUri(), type: SqlParam::STR),
-                     new SqlParam(name: 'backchannelLogoutSessionRequired', value: $entity->isBackchannelLogoutSessionRequired(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'frontchannelLogoutUri', value: $entity->getFrontchannelLogoutUri(), type: SqlParam::STR),
-                     new SqlParam(name: 'frontchannelLogoutSessionRequired', value: $entity->isFrontchannelLogoutSessionRequired(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'backChannelLogoutUri', value: $entity->getBackChannelLogoutUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'backChannelLogoutSessionRequired', value: $entity->isBackChannelLogoutSessionRequired(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'frontChannelLogoutUri', value: $entity->getFrontChannelLogoutUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'frontChannelLogoutSessionRequired', value: $entity->isFrontChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -183,16 +183,16 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute update sql query for Trusted client");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "backchannel_logout_uri" = :backchannelLogoutUri , "backchannel_logout_session_required" = :backchannelLogoutSessionRequired , "frontchannel_logout_uri" = :frontchannelLogoutUri , "frontchannel_logout_session_required" = :frontchannelLogoutSessionRequired , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $update->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $update->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
-                     new SqlParam(name: 'backchannelLogoutUri', value: $update->getBackchannelLogoutUri(), type: SqlParam::STR),
-                     new SqlParam(name: 'backchannelLogoutSessionRequired', value: $update->isBackchannelLogoutSessionRequired(), type: SqlParam::BOOL),
-                     new SqlParam(name: 'frontchannelLogoutUri', value: $update->getFrontchannelLogoutUri(), type: SqlParam::STR),
-                     new SqlParam(name: 'frontchannelLogoutSessionRequired', value: $update->isFrontchannelLogoutSessionRequired(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'backChannelLogoutUri', value: $update->getBackChannelLogoutUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'backChannelLogoutSessionRequired', value: $update->isBackChannelLogoutSessionRequired(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'frontChannelLogoutUri', value: $update->getFrontChannelLogoutUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'frontChannelLogoutSessionRequired', value: $update->isFrontChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
@@ -337,6 +337,14 @@ class TrustedClientPdoConnector
                 if (null !== $filterCode) {
                     $query .= ' and "access_trusted_client"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
+                }
+                $filterWithBackChannelUrl = $filter->withBackChannelUrl();
+                if (null !== $filterWithBackChannelUrl) {
+                    $query .= ' and "back_channel_logout_uri" is null ';
+                }
+                $filterWithFrontChannelUrl = $filter->withFrontChannelUrl();
+                if (null !== $filterWithFrontChannelUrl) {
+                    $query .= ' and "front_channel_logout_uri" is null ';
                 }
             }
             if ($sort) {
@@ -508,10 +516,10 @@ class TrustedClientPdoConnector
                 throw ConstraintException::ofError('not-null', ['publicAllow'], [null]);
             }
             $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
-            $backchannelLogoutUri = $row['backchannel_logout_uri'] ?? null;
-            $backchannelLogoutSessionRequired = isset($row['backchannel_logout_session_required']) ? !! $row['backchannel_logout_session_required'] : null;
-            $frontchannelLogoutUri = $row['frontchannel_logout_uri'] ?? null;
-            $frontchannelLogoutSessionRequired = isset($row['frontchannel_logout_session_required']) ? !! $row['frontchannel_logout_session_required'] : null;
+            $backChannelLogoutUri = $row['back_channel_logout_uri'] ?? null;
+            $backChannelLogoutSessionRequired = isset($row['back_channel_logout_session_required']) ? !! $row['back_channel_logout_session_required'] : null;
+            $frontChannelLogoutUri = $row['front_channel_logout_uri'] ?? null;
+            $frontChannelLogoutSessionRequired = isset($row['front_channel_logout_session_required']) ? !! $row['front_channel_logout_session_required'] : null;
             $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
             if (null === $enabled) {
                 throw ConstraintException::ofError('not-null', ['enabled'], [null]);
@@ -524,10 +532,10 @@ class TrustedClientPdoConnector
                 allowAllScopes: $allowAllScopes,
                 publicAllow: $publicAllow,
                 secretOauth: $secretOauth,
-                backchannelLogoutUri: $backchannelLogoutUri,
-                backchannelLogoutSessionRequired: $backchannelLogoutSessionRequired,
-                frontchannelLogoutUri: $frontchannelLogoutUri,
-                frontchannelLogoutSessionRequired: $frontchannelLogoutSessionRequired,
+                backChannelLogoutUri: $backChannelLogoutUri,
+                backChannelLogoutSessionRequired: $backChannelLogoutSessionRequired,
+                frontChannelLogoutUri: $frontChannelLogoutUri,
+                frontChannelLogoutSessionRequired: $frontChannelLogoutSessionRequired,
                 enabled: $enabled,
                 allowedRedirects: $allowedRedirects,
                 version: $version,

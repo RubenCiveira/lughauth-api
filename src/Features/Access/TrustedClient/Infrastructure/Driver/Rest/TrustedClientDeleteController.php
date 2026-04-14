@@ -76,6 +76,8 @@ class TrustedClientDeleteController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 code: $params['code'] ?? null,
+                withBackChannelUrl: $params['with-back-channel-url'] ?? null,
+                withFrontChannelUrl: $params['with-front-channel-url'] ?? null,
             );
             $res = $this->runner->run(TrustedClientTaskDelete::class, ['filter' => $filter]);
             $encoded = json_encode($res);

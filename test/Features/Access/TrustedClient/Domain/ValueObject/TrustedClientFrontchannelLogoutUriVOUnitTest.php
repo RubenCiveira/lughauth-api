@@ -6,38 +6,38 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
 
-final class TrustedClientFrontchannelLogoutUriVOUnitTest extends TestCase
+final class TrustedClientFrontChannelLogoutUriVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
         $value = 'one';
-        $ref = TrustedClientFrontchannelLogoutUriVO::from($value);
+        $ref = TrustedClientFrontChannelLogoutUriVO::from($value);
         $this->assertEquals('one', $ref->value());
-        $other = TrustedClientFrontchannelLogoutUriVO::tryFrom($ref, new ConstraintFailList());
+        $other = TrustedClientFrontChannelLogoutUriVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
-        $more = TrustedClientFrontchannelLogoutUriVO::from($ref);
+        $more = TrustedClientFrontChannelLogoutUriVO::from($ref);
         $this->assertSame($more, $ref);
     }
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = TrustedClientFrontchannelLogoutUriVO::tryFrom(1, $errors);
+        $other = TrustedClientFrontChannelLogoutUriVO::tryFrom(1, $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
     public function test_optimist_asignation_invalid_type(): void
     {
         $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TrustedClientFrontchannelLogoutUriVO::class, 'fromUnsafe');
+        $method = new ReflectionMethod(TrustedClientFrontChannelLogoutUriVO::class, 'fromUnsafe');
         $method->invoke(null, [11, "bad"]);
     }
     public function test_equals(): void
     {
-        $one = TrustedClientFrontchannelLogoutUriVO::from('one');
-        $same = TrustedClientFrontchannelLogoutUriVO::from('one');
-        $other = TrustedClientFrontchannelLogoutUriVO::from('other');
+        $one = TrustedClientFrontChannelLogoutUriVO::from('one');
+        $same = TrustedClientFrontChannelLogoutUriVO::from('one');
+        $other = TrustedClientFrontChannelLogoutUriVO::from('other');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -48,17 +48,17 @@ final class TrustedClientFrontchannelLogoutUriVOUnitTest extends TestCase
     }
     public function test_empty(): void
     {
-        $ref = TrustedClientFrontchannelLogoutUriVO::empty();
+        $ref = TrustedClientFrontChannelLogoutUriVO::empty();
         $this->assertNull($ref->value());
     }
     public function test_try_from_empty(): void
     {
-        $ref = TrustedClientFrontchannelLogoutUriVO::tryFrom(null, new ConstraintFailList());
+        $ref = TrustedClientFrontChannelLogoutUriVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
     public function test_exception_on_wrong_value_1(): void
     {
         $this->expectException(ConstraintException::class);
-        TrustedClientFrontchannelLogoutUriVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
+        TrustedClientFrontChannelLogoutUriVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

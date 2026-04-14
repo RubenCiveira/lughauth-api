@@ -11,6 +11,8 @@ class TrustedClientFilter
         private ?array $uids = null,
         private ?string $search = null,
         public readonly ?string $code = null,
+        private ?bool $withBackChannelUrl = null,
+        private ?bool $withFrontChannelUrl = null,
     ) {
     }
     public function uids(): ?array
@@ -41,6 +43,26 @@ class TrustedClientFilter
     {
         $copy = clone $this;
         $copy->code = $code;
+        return $copy;
+    }
+    public function withBackChannelUrl(): ?bool
+    {
+        return $this->withBackChannelUrl;
+    }
+    public function withWithBackChannelUrl(bool $withBackChannelUrl): self
+    {
+        $copy = clone $this;
+        $copy->withBackChannelUrl = $withBackChannelUrl;
+        return $copy;
+    }
+    public function withFrontChannelUrl(): ?bool
+    {
+        return $this->withFrontChannelUrl;
+    }
+    public function withWithFrontChannelUrl(bool $withFrontChannelUrl): self
+    {
+        $copy = clone $this;
+        $copy->withFrontChannelUrl = $withFrontChannelUrl;
         return $copy;
     }
 }

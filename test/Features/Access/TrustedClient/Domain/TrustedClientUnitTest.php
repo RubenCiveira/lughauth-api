@@ -22,10 +22,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -50,14 +50,14 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
-        $this->assertEquals($one->getBackchannelLogoutUri(), $other->getBackchannelLogoutUri());
-        $this->assertTrue($one->isBackchannelLogoutUriChanged());
-        $this->assertEquals($one->isBackchannelLogoutSessionRequired(), $other->isBackchannelLogoutSessionRequired());
-        $this->assertTrue($one->isBackchannelLogoutSessionRequiredChanged());
-        $this->assertEquals($one->getFrontchannelLogoutUri(), $other->getFrontchannelLogoutUri());
-        $this->assertTrue($one->isFrontchannelLogoutUriChanged());
-        $this->assertEquals($one->isFrontchannelLogoutSessionRequired(), $other->isFrontchannelLogoutSessionRequired());
-        $this->assertTrue($one->isFrontchannelLogoutSessionRequiredChanged());
+        $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
+        $this->assertTrue($one->isBackChannelLogoutUriChanged());
+        $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
+        $this->assertTrue($one->isBackChannelLogoutSessionRequiredChanged());
+        $this->assertEquals($one->getFrontChannelLogoutUri(), $other->getFrontChannelLogoutUri());
+        $this->assertTrue($one->isFrontChannelLogoutUriChanged());
+        $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
+        $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged());
         $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
         $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -72,10 +72,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -90,10 +90,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: false,
             publicAllow: false,
             secretOauth: 'cyphered://ocyphered',
-            backchannelLogoutUri: 'other',
-            backchannelLogoutSessionRequired: false,
-            frontchannelLogoutUri: 'other',
-            frontchannelLogoutSessionRequired: false,
+            backChannelLogoutUri: 'other',
+            backChannelLogoutSessionRequired: false,
+            frontChannelLogoutUri: 'other',
+            frontChannelLogoutSessionRequired: false,
             enabled: false,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('other'),
@@ -116,14 +116,14 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isPublicAllowChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
-        $this->assertEquals($one->getBackchannelLogoutUri(), $other->getBackchannelLogoutUri());
-        $this->assertTrue($one->isBackchannelLogoutUriChanged($base));
-        $this->assertEquals($one->isBackchannelLogoutSessionRequired(), $other->isBackchannelLogoutSessionRequired());
-        $this->assertTrue($one->isBackchannelLogoutSessionRequiredChanged($base));
-        $this->assertEquals($one->getFrontchannelLogoutUri(), $other->getFrontchannelLogoutUri());
-        $this->assertTrue($one->isFrontchannelLogoutUriChanged($base));
-        $this->assertEquals($one->isFrontchannelLogoutSessionRequired(), $other->isFrontchannelLogoutSessionRequired());
-        $this->assertTrue($one->isFrontchannelLogoutSessionRequiredChanged($base));
+        $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
+        $this->assertTrue($one->isBackChannelLogoutUriChanged($base));
+        $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
+        $this->assertTrue($one->isBackChannelLogoutSessionRequiredChanged($base));
+        $this->assertEquals($one->getFrontChannelLogoutUri(), $other->getFrontChannelLogoutUri());
+        $this->assertTrue($one->isFrontChannelLogoutUriChanged($base));
+        $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
+        $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged($base));
         $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
         $this->assertTrue($one->isAllowedRedirectsChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -138,10 +138,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -159,10 +159,10 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals('one', $json['code']);
         $this->assertEquals(true, $json['allowAllScopes']);
         $this->assertEquals(true, $json['publicAllow']);
-        $this->assertEquals('one', $json['backchannelLogoutUri']);
-        $this->assertEquals(true, $json['backchannelLogoutSessionRequired']);
-        $this->assertEquals('one', $json['frontchannelLogoutUri']);
-        $this->assertEquals(true, $json['frontchannelLogoutSessionRequired']);
+        $this->assertEquals('one', $json['backChannelLogoutUri']);
+        $this->assertEquals(true, $json['backChannelLogoutSessionRequired']);
+        $this->assertEquals('one', $json['frontChannelLogoutUri']);
+        $this->assertEquals(true, $json['frontChannelLogoutSessionRequired']);
         $this->assertEquals(true, $json['enabled']);
         $this->assertEquals('one', $json['allowedRedirects'][0]['uid']);
         $this->assertEquals('one', $json['allowedRedirects'][0]['url']);
@@ -179,10 +179,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -205,14 +205,14 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
-        $this->assertEquals($one->getBackchannelLogoutUri(), $other->getBackchannelLogoutUri());
-        $this->assertTrue($one->isBackchannelLogoutUriChanged());
-        $this->assertEquals($one->isBackchannelLogoutSessionRequired(), $other->isBackchannelLogoutSessionRequired());
-        $this->assertTrue($one->isBackchannelLogoutSessionRequiredChanged());
-        $this->assertEquals($one->getFrontchannelLogoutUri(), $other->getFrontchannelLogoutUri());
-        $this->assertTrue($one->isFrontchannelLogoutUriChanged());
-        $this->assertEquals($one->isFrontchannelLogoutSessionRequired(), $other->isFrontchannelLogoutSessionRequired());
-        $this->assertTrue($one->isFrontchannelLogoutSessionRequiredChanged());
+        $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
+        $this->assertTrue($one->isBackChannelLogoutUriChanged());
+        $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
+        $this->assertTrue($one->isBackChannelLogoutSessionRequiredChanged());
+        $this->assertEquals($one->getFrontChannelLogoutUri(), $other->getFrontChannelLogoutUri());
+        $this->assertTrue($one->isFrontChannelLogoutUriChanged());
+        $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
+        $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged());
         $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
         $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -228,10 +228,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -246,10 +246,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: false,
             publicAllow: false,
             secretOauth: 'cyphered://ocyphered',
-            backchannelLogoutUri: 'other',
-            backchannelLogoutSessionRequired: false,
-            frontchannelLogoutUri: 'other',
-            frontchannelLogoutSessionRequired: false,
+            backChannelLogoutUri: 'other',
+            backChannelLogoutSessionRequired: false,
+            frontChannelLogoutUri: 'other',
+            frontChannelLogoutSessionRequired: false,
             enabled: false,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('other'),
@@ -272,14 +272,14 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isPublicAllowChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
-        $this->assertEquals($one->getBackchannelLogoutUri(), $other->getBackchannelLogoutUri());
-        $this->assertTrue($one->isBackchannelLogoutUriChanged($base));
-        $this->assertEquals($one->isBackchannelLogoutSessionRequired(), $other->isBackchannelLogoutSessionRequired());
-        $this->assertTrue($one->isBackchannelLogoutSessionRequiredChanged($base));
-        $this->assertEquals($one->getFrontchannelLogoutUri(), $other->getFrontchannelLogoutUri());
-        $this->assertTrue($one->isFrontchannelLogoutUriChanged($base));
-        $this->assertEquals($one->isFrontchannelLogoutSessionRequired(), $other->isFrontchannelLogoutSessionRequired());
-        $this->assertTrue($one->isFrontchannelLogoutSessionRequiredChanged($base));
+        $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
+        $this->assertTrue($one->isBackChannelLogoutUriChanged($base));
+        $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
+        $this->assertTrue($one->isBackChannelLogoutSessionRequiredChanged($base));
+        $this->assertEquals($one->getFrontChannelLogoutUri(), $other->getFrontChannelLogoutUri());
+        $this->assertTrue($one->isFrontChannelLogoutUriChanged($base));
+        $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
+        $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged($base));
         $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
         $this->assertTrue($one->isAllowedRedirectsChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -296,10 +296,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -322,14 +322,14 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isPublicAllowChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
-        $this->assertEquals($one->getBackchannelLogoutUri(), $other->getBackchannelLogoutUri());
-        $this->assertTrue($one->isBackchannelLogoutUriChanged());
-        $this->assertEquals($one->isBackchannelLogoutSessionRequired(), $other->isBackchannelLogoutSessionRequired());
-        $this->assertTrue($one->isBackchannelLogoutSessionRequiredChanged());
-        $this->assertEquals($one->getFrontchannelLogoutUri(), $other->getFrontchannelLogoutUri());
-        $this->assertTrue($one->isFrontchannelLogoutUriChanged());
-        $this->assertEquals($one->isFrontchannelLogoutSessionRequired(), $other->isFrontchannelLogoutSessionRequired());
-        $this->assertTrue($one->isFrontchannelLogoutSessionRequiredChanged());
+        $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
+        $this->assertTrue($one->isBackChannelLogoutUriChanged());
+        $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
+        $this->assertTrue($one->isBackChannelLogoutSessionRequiredChanged());
+        $this->assertEquals($one->getFrontChannelLogoutUri(), $other->getFrontChannelLogoutUri());
+        $this->assertTrue($one->isFrontChannelLogoutUriChanged());
+        $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
+        $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged());
         $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
         $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -344,10 +344,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),
@@ -377,10 +377,10 @@ final class TrustedClientUnitTest extends TestCase
             allowAllScopes: true,
             publicAllow: true,
             secretOauth: 'cyphered://cypher',
-            backchannelLogoutUri: 'one',
-            backchannelLogoutSessionRequired: true,
-            frontchannelLogoutUri: 'one',
-            frontchannelLogoutSessionRequired: true,
+            backChannelLogoutUri: 'one',
+            backChannelLogoutSessionRequired: true,
+            frontChannelLogoutUri: 'one',
+            frontChannelLogoutSessionRequired: true,
             enabled: true,
             allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
                 TrustedClientAllowedRedirectsUidVO::from('one'),

@@ -6,56 +6,56 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
 
-trait TrustedClientBackchannelLogoutUriAttributeHolder
+trait TrustedClientBackChannelLogoutUriAttributeHolder
 {
-    protected TrustedClientBackchannelLogoutUriVO|string|null $backchannelLogoutUri = null;
-    protected bool $backchannelLogoutUriAssigned = false;
+    protected TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri = null;
+    protected bool $backChannelLogoutUriAssigned = false;
 
-    public function getBackchannelLogoutUriOrDefault(?TrustedClientBackchannelLogoutUriVO $backchannelLogoutUri): ?TrustedClientBackchannelLogoutUriVO
+    public function getBackChannelLogoutUriOrDefault(?TrustedClientBackChannelLogoutUriVO $backChannelLogoutUri): ?TrustedClientBackChannelLogoutUriVO
     {
-        return $this->backchannelLogoutUriAssigned ? ($this->backchannelLogoutUri !== null ? TrustedClientBackchannelLogoutUriVO::from($this->backchannelLogoutUri) : null) : $backchannelLogoutUri;
+        return $this->backChannelLogoutUriAssigned ? ($this->backChannelLogoutUri !== null ? TrustedClientBackChannelLogoutUriVO::from($this->backChannelLogoutUri) : null) : $backChannelLogoutUri;
     }
-    public function backchannelLogoutUri(TrustedClientBackchannelLogoutUriVO|string|null $backchannelLogoutUri): static
+    public function backChannelLogoutUri(TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri): static
     {
-        $this->backchannelLogoutUri = $backchannelLogoutUri;
-        $this->backchannelLogoutUriAssigned = true;
+        $this->backChannelLogoutUri = $backChannelLogoutUri;
+        $this->backChannelLogoutUriAssigned = true;
         return $this;
     }
-    public function getBackchannelLogoutUri(): ?string
+    public function getBackChannelLogoutUri(): ?string
     {
-        return $this->backchannelLogoutUri instanceof TrustedClientBackchannelLogoutUriVO ? $this->backchannelLogoutUri->value() : $this->backchannelLogoutUri;
+        return $this->backChannelLogoutUri instanceof TrustedClientBackChannelLogoutUriVO ? $this->backChannelLogoutUri->value() : $this->backChannelLogoutUri;
     }
-    public function isBackchannelLogoutUriAssigned(): bool
+    public function isBackChannelLogoutUriAssigned(): bool
     {
-        return $this->backchannelLogoutUriAssigned;
+        return $this->backChannelLogoutUriAssigned;
     }
-    public function writeBackchannelLogoutUriTo(mixed $att): void
+    public function writeBackChannelLogoutUriTo(mixed $att): void
     {
-        if ($this->backchannelLogoutUriAssigned) {
-            $att->backchannelLogoutUri($this->backchannelLogoutUri);
+        if ($this->backChannelLogoutUriAssigned) {
+            $att->backChannelLogoutUri($this->backChannelLogoutUri);
         }
     }
-    public function readBackchannelLogoutUriFrom(mixed $att): void
+    public function readBackChannelLogoutUriFrom(mixed $att): void
     {
-        if ($att->isBackchannelLogoutUriAssigned()) {
-            $backchannelLogoutUri = $att->getBackchannelLogoutUri();
-            $this->backchannelLogoutUri($backchannelLogoutUri);
+        if ($att->isBackChannelLogoutUriAssigned()) {
+            $backChannelLogoutUri = $att->getBackChannelLogoutUri();
+            $this->backChannelLogoutUri($backChannelLogoutUri);
         }
     }
-    public function unsetBackchannelLogoutUri(): static
+    public function unsetBackChannelLogoutUri(): static
     {
-        $this->backchannelLogoutUriAssigned = false;
+        $this->backChannelLogoutUriAssigned = false;
         return $this;
     }
-    protected function withDefaultBackchannelLogoutUri(): void
+    protected function withDefaultBackChannelLogoutUri(): void
     {
     }
-    protected function withAssertedBackchannelLogoutUriRules(self $value, ConstraintFailList $errorsList): void
+    protected function withAssertedBackChannelLogoutUriRules(self $value, ConstraintFailList $errorsList): void
     {
-        if ($value->backchannelLogoutUriAssigned = $this->backchannelLogoutUriAssigned) {
-            $value->backchannelLogoutUri = TrustedClientBackchannelLogoutUriVO::tryFrom($this->backchannelLogoutUri, $errorsList);
+        if ($value->backChannelLogoutUriAssigned = $this->backChannelLogoutUriAssigned) {
+            $value->backChannelLogoutUri = TrustedClientBackChannelLogoutUriVO::tryFrom($this->backChannelLogoutUri, $errorsList);
         }
     }
 }

@@ -46,33 +46,33 @@ class TrustedClientApiDTO
     )]
     public ?string $secretOauth = null;
     #[OA\Property(
-        property: "backchannelLogoutUri",
-        title: "backchannel logout uri",
-        description:"El backchannel logout uri de trusted client",
+        property: "backChannelLogoutUri",
+        title: "back channel logout uri",
+        description:"El back channel logout uri de trusted client",
         type: "string"
     )]
-    public ?string $backchannelLogoutUri = null;
+    public ?string $backChannelLogoutUri = null;
     #[OA\Property(
-        property: "backchannelLogoutSessionRequired",
-        title: "backchannel logout session required",
-        description:"El backchannel logout session required de trusted client",
+        property: "backChannelLogoutSessionRequired",
+        title: "back channel logout session required",
+        description:"El back channel logout session required de trusted client",
         type: "string"
     )]
-    public ?bool $backchannelLogoutSessionRequired = null;
+    public ?bool $backChannelLogoutSessionRequired = null;
     #[OA\Property(
-        property: "frontchannelLogoutUri",
-        title: "frontchannel logout uri",
-        description:"El frontchannel logout uri de trusted client",
+        property: "frontChannelLogoutUri",
+        title: "front channel logout uri",
+        description:"El front channel logout uri de trusted client",
         type: "string"
     )]
-    public ?string $frontchannelLogoutUri = null;
+    public ?string $frontChannelLogoutUri = null;
     #[OA\Property(
-        property: "frontchannelLogoutSessionRequired",
-        title: "frontchannel logout session required",
-        description:"El frontchannel logout session required de trusted client",
+        property: "frontChannelLogoutSessionRequired",
+        title: "front channel logout session required",
+        description:"El front channel logout session required de trusted client",
         type: "string"
     )]
-    public ?bool $frontchannelLogoutSessionRequired = null;
+    public ?bool $frontChannelLogoutSessionRequired = null;
     #[OA\Property(
         property: "enabled",
         title: "enabled",

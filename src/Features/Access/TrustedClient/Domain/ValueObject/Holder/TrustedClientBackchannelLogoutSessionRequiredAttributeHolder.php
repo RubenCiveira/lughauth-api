@@ -6,56 +6,56 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
 
-trait TrustedClientBackchannelLogoutSessionRequiredAttributeHolder
+trait TrustedClientBackChannelLogoutSessionRequiredAttributeHolder
 {
-    protected TrustedClientBackchannelLogoutSessionRequiredVO|bool|null $backchannelLogoutSessionRequired = null;
-    protected bool $backchannelLogoutSessionRequiredAssigned = false;
+    protected TrustedClientBackChannelLogoutSessionRequiredVO|bool|null $backChannelLogoutSessionRequired = null;
+    protected bool $backChannelLogoutSessionRequiredAssigned = false;
 
-    public function getBackchannelLogoutSessionRequiredOrDefault(?TrustedClientBackchannelLogoutSessionRequiredVO $backchannelLogoutSessionRequired): ?TrustedClientBackchannelLogoutSessionRequiredVO
+    public function getBackChannelLogoutSessionRequiredOrDefault(?TrustedClientBackChannelLogoutSessionRequiredVO $backChannelLogoutSessionRequired): ?TrustedClientBackChannelLogoutSessionRequiredVO
     {
-        return $this->backchannelLogoutSessionRequiredAssigned ? ($this->backchannelLogoutSessionRequired !== null ? TrustedClientBackchannelLogoutSessionRequiredVO::from($this->backchannelLogoutSessionRequired) : null) : $backchannelLogoutSessionRequired;
+        return $this->backChannelLogoutSessionRequiredAssigned ? ($this->backChannelLogoutSessionRequired !== null ? TrustedClientBackChannelLogoutSessionRequiredVO::from($this->backChannelLogoutSessionRequired) : null) : $backChannelLogoutSessionRequired;
     }
-    public function backchannelLogoutSessionRequired(TrustedClientBackchannelLogoutSessionRequiredVO|bool|null $backchannelLogoutSessionRequired): static
+    public function backChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO|bool|null $backChannelLogoutSessionRequired): static
     {
-        $this->backchannelLogoutSessionRequired = $backchannelLogoutSessionRequired;
-        $this->backchannelLogoutSessionRequiredAssigned = true;
+        $this->backChannelLogoutSessionRequired = $backChannelLogoutSessionRequired;
+        $this->backChannelLogoutSessionRequiredAssigned = true;
         return $this;
     }
-    public function isBackchannelLogoutSessionRequired(): ?bool
+    public function isBackChannelLogoutSessionRequired(): ?bool
     {
-        return $this->backchannelLogoutSessionRequired instanceof TrustedClientBackchannelLogoutSessionRequiredVO ? $this->backchannelLogoutSessionRequired->value() : $this->backchannelLogoutSessionRequired;
+        return $this->backChannelLogoutSessionRequired instanceof TrustedClientBackChannelLogoutSessionRequiredVO ? $this->backChannelLogoutSessionRequired->value() : $this->backChannelLogoutSessionRequired;
     }
-    public function isBackchannelLogoutSessionRequiredAssigned(): bool
+    public function isBackChannelLogoutSessionRequiredAssigned(): bool
     {
-        return $this->backchannelLogoutSessionRequiredAssigned;
+        return $this->backChannelLogoutSessionRequiredAssigned;
     }
-    public function writeBackchannelLogoutSessionRequiredTo(mixed $att): void
+    public function writeBackChannelLogoutSessionRequiredTo(mixed $att): void
     {
-        if ($this->backchannelLogoutSessionRequiredAssigned) {
-            $att->backchannelLogoutSessionRequired($this->backchannelLogoutSessionRequired);
+        if ($this->backChannelLogoutSessionRequiredAssigned) {
+            $att->backChannelLogoutSessionRequired($this->backChannelLogoutSessionRequired);
         }
     }
-    public function readBackchannelLogoutSessionRequiredFrom(mixed $att): void
+    public function readBackChannelLogoutSessionRequiredFrom(mixed $att): void
     {
-        if ($att->isBackchannelLogoutSessionRequiredAssigned()) {
-            $backchannelLogoutSessionRequired = $att->isBackchannelLogoutSessionRequired();
-            $this->backchannelLogoutSessionRequired($backchannelLogoutSessionRequired);
+        if ($att->isBackChannelLogoutSessionRequiredAssigned()) {
+            $backChannelLogoutSessionRequired = $att->isBackChannelLogoutSessionRequired();
+            $this->backChannelLogoutSessionRequired($backChannelLogoutSessionRequired);
         }
     }
-    public function unsetBackchannelLogoutSessionRequired(): static
+    public function unsetBackChannelLogoutSessionRequired(): static
     {
-        $this->backchannelLogoutSessionRequiredAssigned = false;
+        $this->backChannelLogoutSessionRequiredAssigned = false;
         return $this;
     }
-    protected function withDefaultBackchannelLogoutSessionRequired(): void
+    protected function withDefaultBackChannelLogoutSessionRequired(): void
     {
     }
-    protected function withAssertedBackchannelLogoutSessionRequiredRules(self $value, ConstraintFailList $errorsList): void
+    protected function withAssertedBackChannelLogoutSessionRequiredRules(self $value, ConstraintFailList $errorsList): void
     {
-        if ($value->backchannelLogoutSessionRequiredAssigned = $this->backchannelLogoutSessionRequiredAssigned) {
-            $value->backchannelLogoutSessionRequired = TrustedClientBackchannelLogoutSessionRequiredVO::tryFrom($this->backchannelLogoutSessionRequired, $errorsList);
+        if ($value->backChannelLogoutSessionRequiredAssigned = $this->backChannelLogoutSessionRequiredAssigned) {
+            $value->backChannelLogoutSessionRequired = TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($this->backChannelLogoutSessionRequired, $errorsList);
         }
     }
 }

@@ -5,27 +5,27 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
 
-trait TrustedClientBackchannelLogoutUriAccessor
+trait TrustedClientBackChannelLogoutUriAccessor
 {
-    private ?TrustedClientBackchannelLogoutUriVO $_backchannelLogoutUri = null;
-    public function getBackchannelLogoutUri(): ?string
+    private ?TrustedClientBackChannelLogoutUriVO $_backChannelLogoutUri = null;
+    public function getBackChannelLogoutUri(): ?string
     {
-        return $this->_backchannelLogoutUri?->value();
+        return $this->_backChannelLogoutUri?->value();
     }
-    public function backchannelLogoutUri(): ?TrustedClientBackchannelLogoutUriVO
+    public function backChannelLogoutUri(): ?TrustedClientBackChannelLogoutUriVO
     {
-        return $this->_backchannelLogoutUri;
+        return $this->_backChannelLogoutUri;
     }
-    public function isBackchannelLogoutUriChanged(?self $original = null): bool
+    public function isBackChannelLogoutUriChanged(?self $original = null): bool
     {
-        return null !== $this->_backchannelLogoutUri && !$this->_backchannelLogoutUri->equals($original?->_backchannelLogoutUri);
+        return null !== $this->_backChannelLogoutUri && !$this->_backChannelLogoutUri->equals($original?->_backChannelLogoutUri);
     }
-    public function withBackchannelLogoutUri(TrustedClientBackchannelLogoutUriVO|string|null $backchannelLogoutUri): self
+    public function withBackChannelLogoutUri(TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri): self
     {
         $copy = clone $this;
-        $copy->_backchannelLogoutUri = TrustedClientBackchannelLogoutUriVO::from($backchannelLogoutUri);
+        $copy->_backChannelLogoutUri = TrustedClientBackChannelLogoutUriVO::from($backChannelLogoutUri);
         return $copy;
     }
 }

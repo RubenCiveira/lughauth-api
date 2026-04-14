@@ -6,38 +6,38 @@ declare(strict_types=1);
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
 
-final class TrustedClientBackchannelLogoutSessionRequiredVOUnitTest extends TestCase
+final class TrustedClientBackChannelLogoutSessionRequiredVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
         $value = true;
-        $ref = TrustedClientBackchannelLogoutSessionRequiredVO::from($value);
+        $ref = TrustedClientBackChannelLogoutSessionRequiredVO::from($value);
         $this->assertEquals(true, $ref->value());
-        $other = TrustedClientBackchannelLogoutSessionRequiredVO::tryFrom($ref, new ConstraintFailList());
+        $other = TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
-        $more = TrustedClientBackchannelLogoutSessionRequiredVO::from($ref);
+        $more = TrustedClientBackChannelLogoutSessionRequiredVO::from($ref);
         $this->assertSame($more, $ref);
     }
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = TrustedClientBackchannelLogoutSessionRequiredVO::tryFrom('1', $errors);
+        $other = TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom('1', $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
     public function test_optimist_asignation_invalid_type(): void
     {
         $this->expectException(ConstraintException::class);
-        $method = new ReflectionMethod(TrustedClientBackchannelLogoutSessionRequiredVO::class, 'fromUnsafe');
+        $method = new ReflectionMethod(TrustedClientBackChannelLogoutSessionRequiredVO::class, 'fromUnsafe');
         $method->invoke(null, [11, "bad"]);
     }
     public function test_equals(): void
     {
-        $one = TrustedClientBackchannelLogoutSessionRequiredVO::from(true);
-        $same = TrustedClientBackchannelLogoutSessionRequiredVO::from(true);
-        $other = TrustedClientBackchannelLogoutSessionRequiredVO::from(false);
+        $one = TrustedClientBackChannelLogoutSessionRequiredVO::from(true);
+        $same = TrustedClientBackChannelLogoutSessionRequiredVO::from(true);
+        $other = TrustedClientBackChannelLogoutSessionRequiredVO::from(false);
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -48,12 +48,12 @@ final class TrustedClientBackchannelLogoutSessionRequiredVOUnitTest extends Test
     }
     public function test_empty(): void
     {
-        $ref = TrustedClientBackchannelLogoutSessionRequiredVO::empty();
+        $ref = TrustedClientBackChannelLogoutSessionRequiredVO::empty();
         $this->assertNull($ref->value());
     }
     public function test_try_from_empty(): void
     {
-        $ref = TrustedClientBackchannelLogoutSessionRequiredVO::tryFrom(null, new ConstraintFailList());
+        $ref = TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
 }

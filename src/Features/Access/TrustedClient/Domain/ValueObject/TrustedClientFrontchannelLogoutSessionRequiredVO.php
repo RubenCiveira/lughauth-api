@@ -8,33 +8,33 @@ namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
-class TrustedClientFrontchannelLogoutSessionRequiredVO
+class TrustedClientFrontChannelLogoutSessionRequiredVO
 {
-    public static function empty(): TrustedClientFrontchannelLogoutSessionRequiredVO
+    public static function empty(): TrustedClientFrontChannelLogoutSessionRequiredVO
     {
-        return new TrustedClientFrontchannelLogoutSessionRequiredVO(null);
+        return new TrustedClientFrontChannelLogoutSessionRequiredVO(null);
     }
-    public static function from(TrustedClientFrontchannelLogoutSessionRequiredVO|bool|null $value): TrustedClientFrontchannelLogoutSessionRequiredVO
+    public static function from(TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $value): TrustedClientFrontChannelLogoutSessionRequiredVO
     {
         return self::fromUnsafe($value);
     }
-    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientFrontchannelLogoutSessionRequiredVO
+    public static function tryFrom(mixed $value, ConstraintFailList $list): ?TrustedClientFrontChannelLogoutSessionRequiredVO
     {
-        if ($value instanceof TrustedClientFrontchannelLogoutSessionRequiredVO) {
+        if ($value instanceof TrustedClientFrontChannelLogoutSessionRequiredVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
         } elseif (!$value) {
-            return new TrustedClientFrontchannelLogoutSessionRequiredVO($value);
+            return new TrustedClientFrontChannelLogoutSessionRequiredVO($value);
         } elseif (is_bool($value)) {
-            return new TrustedClientFrontchannelLogoutSessionRequiredVO($value);
+            return new TrustedClientFrontChannelLogoutSessionRequiredVO($value);
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['frontchannelLogoutSessionRequired'], [$value], ['bool']));
+            $list->add(new ConstraintFail('wrong_type', ['frontChannelLogoutSessionRequired'], [$value], ['bool']));
             return null;
         }
     }
-    private static function fromUnsafe(mixed $value): TrustedClientFrontchannelLogoutSessionRequiredVO
+    private static function fromUnsafe(mixed $value): TrustedClientFrontChannelLogoutSessionRequiredVO
     {
-        if ($value instanceof TrustedClientFrontchannelLogoutSessionRequiredVO) {
+        if ($value instanceof TrustedClientFrontChannelLogoutSessionRequiredVO) {
             // If is a ValueObject, its already validated
             return $value;
         } else {
@@ -44,7 +44,7 @@ class TrustedClientFrontchannelLogoutSessionRequiredVO
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
             }
-            \assert($candidate instanceof TrustedClientFrontchannelLogoutSessionRequiredVO);
+            \assert($candidate instanceof TrustedClientFrontChannelLogoutSessionRequiredVO);
             return $candidate;
         }
     }
@@ -52,14 +52,14 @@ class TrustedClientFrontchannelLogoutSessionRequiredVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly ?bool $frontchannelLogoutSessionRequired
+        private readonly ?bool $frontChannelLogoutSessionRequired
     ) {
     }
     public function value(): ?bool
     {
-        return $this->frontchannelLogoutSessionRequired;
+        return $this->frontChannelLogoutSessionRequired;
     }
-    public function equals(?TrustedClientFrontchannelLogoutSessionRequiredVO $other): bool
+    public function equals(?TrustedClientFrontChannelLogoutSessionRequiredVO $other): bool
     {
         return $this->value() == $other?->value();
     }

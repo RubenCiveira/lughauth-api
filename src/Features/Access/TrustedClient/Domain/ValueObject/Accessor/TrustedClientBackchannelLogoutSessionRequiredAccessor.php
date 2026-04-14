@@ -5,27 +5,27 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
 
-trait TrustedClientBackchannelLogoutSessionRequiredAccessor
+trait TrustedClientBackChannelLogoutSessionRequiredAccessor
 {
-    private ?TrustedClientBackchannelLogoutSessionRequiredVO $_backchannelLogoutSessionRequired = null;
-    public function isBackchannelLogoutSessionRequired(): ?bool
+    private ?TrustedClientBackChannelLogoutSessionRequiredVO $_backChannelLogoutSessionRequired = null;
+    public function isBackChannelLogoutSessionRequired(): ?bool
     {
-        return $this->_backchannelLogoutSessionRequired?->value();
+        return $this->_backChannelLogoutSessionRequired?->value();
     }
-    public function backchannelLogoutSessionRequired(): ?TrustedClientBackchannelLogoutSessionRequiredVO
+    public function backChannelLogoutSessionRequired(): ?TrustedClientBackChannelLogoutSessionRequiredVO
     {
-        return $this->_backchannelLogoutSessionRequired;
+        return $this->_backChannelLogoutSessionRequired;
     }
-    public function isBackchannelLogoutSessionRequiredChanged(?self $original = null): bool
+    public function isBackChannelLogoutSessionRequiredChanged(?self $original = null): bool
     {
-        return null !== $this->_backchannelLogoutSessionRequired && !$this->_backchannelLogoutSessionRequired->equals($original?->_backchannelLogoutSessionRequired);
+        return null !== $this->_backChannelLogoutSessionRequired && !$this->_backChannelLogoutSessionRequired->equals($original?->_backChannelLogoutSessionRequired);
     }
-    public function withBackchannelLogoutSessionRequired(TrustedClientBackchannelLogoutSessionRequiredVO|bool|null $backchannelLogoutSessionRequired): self
+    public function withBackChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO|bool|null $backChannelLogoutSessionRequired): self
     {
         $copy = clone $this;
-        $copy->_backchannelLogoutSessionRequired = TrustedClientBackchannelLogoutSessionRequiredVO::from($backchannelLogoutSessionRequired);
+        $copy->_backChannelLogoutSessionRequired = TrustedClientBackChannelLogoutSessionRequiredVO::from($backChannelLogoutSessionRequired);
         return $copy;
     }
 }

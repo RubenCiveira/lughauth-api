@@ -5,27 +5,27 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 
-trait TrustedClientFrontchannelLogoutSessionRequiredAccessor
+trait TrustedClientFrontChannelLogoutSessionRequiredAccessor
 {
-    private ?TrustedClientFrontchannelLogoutSessionRequiredVO $_frontchannelLogoutSessionRequired = null;
-    public function isFrontchannelLogoutSessionRequired(): ?bool
+    private ?TrustedClientFrontChannelLogoutSessionRequiredVO $_frontChannelLogoutSessionRequired = null;
+    public function isFrontChannelLogoutSessionRequired(): ?bool
     {
-        return $this->_frontchannelLogoutSessionRequired?->value();
+        return $this->_frontChannelLogoutSessionRequired?->value();
     }
-    public function frontchannelLogoutSessionRequired(): ?TrustedClientFrontchannelLogoutSessionRequiredVO
+    public function frontChannelLogoutSessionRequired(): ?TrustedClientFrontChannelLogoutSessionRequiredVO
     {
-        return $this->_frontchannelLogoutSessionRequired;
+        return $this->_frontChannelLogoutSessionRequired;
     }
-    public function isFrontchannelLogoutSessionRequiredChanged(?self $original = null): bool
+    public function isFrontChannelLogoutSessionRequiredChanged(?self $original = null): bool
     {
-        return null !== $this->_frontchannelLogoutSessionRequired && !$this->_frontchannelLogoutSessionRequired->equals($original?->_frontchannelLogoutSessionRequired);
+        return null !== $this->_frontChannelLogoutSessionRequired && !$this->_frontChannelLogoutSessionRequired->equals($original?->_frontChannelLogoutSessionRequired);
     }
-    public function withFrontchannelLogoutSessionRequired(TrustedClientFrontchannelLogoutSessionRequiredVO|bool|null $frontchannelLogoutSessionRequired): self
+    public function withFrontChannelLogoutSessionRequired(TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $frontChannelLogoutSessionRequired): self
     {
         $copy = clone $this;
-        $copy->_frontchannelLogoutSessionRequired = TrustedClientFrontchannelLogoutSessionRequiredVO::from($frontchannelLogoutSessionRequired);
+        $copy->_frontChannelLogoutSessionRequired = TrustedClientFrontChannelLogoutSessionRequiredVO::from($frontChannelLogoutSessionRequired);
         return $copy;
     }
 }

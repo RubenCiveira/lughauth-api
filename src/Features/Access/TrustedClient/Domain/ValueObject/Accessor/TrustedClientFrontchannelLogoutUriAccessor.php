@@ -5,27 +5,27 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor;
 
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontchannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
 
-trait TrustedClientFrontchannelLogoutUriAccessor
+trait TrustedClientFrontChannelLogoutUriAccessor
 {
-    private ?TrustedClientFrontchannelLogoutUriVO $_frontchannelLogoutUri = null;
-    public function getFrontchannelLogoutUri(): ?string
+    private ?TrustedClientFrontChannelLogoutUriVO $_frontChannelLogoutUri = null;
+    public function getFrontChannelLogoutUri(): ?string
     {
-        return $this->_frontchannelLogoutUri?->value();
+        return $this->_frontChannelLogoutUri?->value();
     }
-    public function frontchannelLogoutUri(): ?TrustedClientFrontchannelLogoutUriVO
+    public function frontChannelLogoutUri(): ?TrustedClientFrontChannelLogoutUriVO
     {
-        return $this->_frontchannelLogoutUri;
+        return $this->_frontChannelLogoutUri;
     }
-    public function isFrontchannelLogoutUriChanged(?self $original = null): bool
+    public function isFrontChannelLogoutUriChanged(?self $original = null): bool
     {
-        return null !== $this->_frontchannelLogoutUri && !$this->_frontchannelLogoutUri->equals($original?->_frontchannelLogoutUri);
+        return null !== $this->_frontChannelLogoutUri && !$this->_frontChannelLogoutUri->equals($original?->_frontChannelLogoutUri);
     }
-    public function withFrontchannelLogoutUri(TrustedClientFrontchannelLogoutUriVO|string|null $frontchannelLogoutUri): self
+    public function withFrontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO|string|null $frontChannelLogoutUri): self
     {
         $copy = clone $this;
-        $copy->_frontchannelLogoutUri = TrustedClientFrontchannelLogoutUriVO::from($frontchannelLogoutUri);
+        $copy->_frontChannelLogoutUri = TrustedClientFrontChannelLogoutUriVO::from($frontChannelLogoutUri);
         return $copy;
     }
 }
