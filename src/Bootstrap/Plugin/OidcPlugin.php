@@ -52,6 +52,9 @@ use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven\TokenRevocationSqlAdap
 use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driven\ParRequestSqlAdapter;
 use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driver\Rest\ParController;
+use Civi\Lughauth\Features\Oidc\Registration\Domain\Gateway\ClientRegistrationGateway;
+use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driven\ClientRegistrationSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driver\Rest\DynamicClientRegistrationController;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -74,6 +77,7 @@ class OidcPlugin extends MicroPlugin
         $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
         $def[ParRequestGateway::class] = \DI\autowire(ParRequestSqlAdapter::class);
+        $def[ClientRegistrationGateway::class] = \DI\autowire(ClientRegistrationSqlAdapter::class);
         return $def;
     }
 
@@ -87,6 +91,10 @@ class OidcPlugin extends MicroPlugin
             $group->post('/token', [TokenController::class, 'post']);
             $group->post('/introspect', [IntrospectionController::class, 'post']);
             $group->post('/par', [ParController::class, 'post']);
+            $group->post('/register', [DynamicClientRegistrationController::class, 'post']);
+            $group->get('/register/{client_id}', [DynamicClientRegistrationController::class, 'get']);
+            $group->put('/register/{client_id}', [DynamicClientRegistrationController::class, 'put']);
+            $group->delete('/register/{client_id}', [DynamicClientRegistrationController::class, 'delete']);
             $group->post('/device', [DeviceAuthorizationController::class, 'post']);
             $group->get('/device/verify', [DeviceVerificationHtml::class, 'verify']);
             $group->post('/device/verify', [DeviceVerificationHtml::class, 'formVerify']);
