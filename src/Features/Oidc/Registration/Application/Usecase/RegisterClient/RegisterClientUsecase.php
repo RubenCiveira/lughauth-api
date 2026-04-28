@@ -25,6 +25,7 @@ final class RegisterClientUsecase
         match ($policy) {
             'disabled' => throw RegistrationException::registrationNotAllowed(),
             'token-required' => $this->requireInitialAccessToken($params->initialAccessToken),
+            'token_required' => $this->requireInitialAccessToken($params->initialAccessToken),
             default => null,
         };
 
