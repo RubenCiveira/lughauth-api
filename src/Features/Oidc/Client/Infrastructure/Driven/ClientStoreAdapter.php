@@ -118,12 +118,6 @@ class ClientStoreAdapter implements ClientStoreGateway
         }
     }
 
-    #[Override]
-    public function findAndVerify(string $clientId, string $secret, string $tenant): ?ClientData
-    {
-        return $this->clientData($clientId, $secret);
-    }
-
     private function mapClientData(mixed $trustedClient): ClientData
     {
         $grants = ['password'];

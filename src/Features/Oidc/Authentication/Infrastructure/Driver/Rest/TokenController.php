@@ -169,7 +169,7 @@ class TokenController
                 throw OAuthTokenException::invalidClient();
             }
 
-            $client = $this->clientDataGateway->findAndVerify($clientId, $clientSecret, $tenant);
+            $client = $this->clientDataGateway->clientData($clientId, $clientSecret);
             if (!$client) {
                 throw OAuthTokenException::invalidClient();
             }
