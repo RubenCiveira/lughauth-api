@@ -44,6 +44,9 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedScopesM2mVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientM2mTokenTtlSecondsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRequestObjectSigningAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientJwksUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientJwksJsonVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateParams;
@@ -166,6 +169,9 @@ class TrustedClientCreateController
             if (null !== $valueM2mTokenTtlSeconds) {
                 $value->m2mTokenTtlSeconds($valueM2mTokenTtlSeconds);
             }
+            $value->requestObjectSigningAlg(TrustedClientRequestObjectSigningAlgVO::tryFrom($body['requestObjectSigningAlg'] ?? null, $errorsList));
+            $value->jwksUri(TrustedClientJwksUriVO::tryFrom($body['jwksUri'] ?? null, $errorsList));
+            $value->jwksJson(TrustedClientJwksJsonVO::tryFrom($body['jwksJson'] ?? null, $errorsList));
             $value->version(TrustedClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -219,6 +225,9 @@ class TrustedClientCreateController
             $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);
             $dto->allowedScopesM2m = $value->getAllowedScopesM2m();
             $dto->m2mTokenTtlSeconds = $value->getM2mTokenTtlSeconds();
+            $dto->requestObjectSigningAlg = $value->getRequestObjectSigningAlg();
+            $dto->jwksUri = $value->getJwksUri();
+            $dto->jwksJson = $value->getJwksJson();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

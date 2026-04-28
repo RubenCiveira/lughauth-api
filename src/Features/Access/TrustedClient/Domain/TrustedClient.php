@@ -53,6 +53,12 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedScopesM2mAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientM2mTokenTtlSecondsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientM2mTokenTtlSecondsAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRequestObjectSigningAlgVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientRequestObjectSigningAlgAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientJwksUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientJwksUriAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientJwksJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientJwksJsonAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientVersionAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Formula\EnabledCalculator;
@@ -87,6 +93,9 @@ class TrustedClient extends TrustedClientRef
     use TrustedClientRegisteredAtAccessor;
     use TrustedClientAllowedScopesM2mAccessor;
     use TrustedClientM2mTokenTtlSecondsAccessor;
+    use TrustedClientRequestObjectSigningAlgAccessor;
+    use TrustedClientJwksUriAccessor;
+    use TrustedClientJwksJsonAccessor;
     use TrustedClientVersionAccessor;
     private array $recordedEvents = [];
 
@@ -115,6 +124,9 @@ class TrustedClient extends TrustedClientRef
         TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered = null,
         TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt = null,
         TrustedClientAllowedScopesM2mVO|string|null $allowedScopesM2m = null,
+        TrustedClientRequestObjectSigningAlgVO|string|null $requestObjectSigningAlg = null,
+        TrustedClientJwksUriVO|string|null $jwksUri = null,
+        TrustedClientJwksJsonVO|string|null $jwksJson = null,
         TrustedClientVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
@@ -141,6 +153,9 @@ class TrustedClient extends TrustedClientRef
         $this->_registeredAt = null === $registeredAt ? TrustedClientRegisteredAtVO::empty() : TrustedClientRegisteredAtVO::from($registeredAt);
         $this->_allowedScopesM2m = null === $allowedScopesM2m ? TrustedClientAllowedScopesM2mVO::empty() : TrustedClientAllowedScopesM2mVO::from($allowedScopesM2m);
         $this->_m2mTokenTtlSeconds = TrustedClientM2mTokenTtlSecondsVO::from($m2mTokenTtlSeconds);
+        $this->_requestObjectSigningAlg = null === $requestObjectSigningAlg ? TrustedClientRequestObjectSigningAlgVO::empty() : TrustedClientRequestObjectSigningAlgVO::from($requestObjectSigningAlg);
+        $this->_jwksUri = null === $jwksUri ? TrustedClientJwksUriVO::empty() : TrustedClientJwksUriVO::from($jwksUri);
+        $this->_jwksJson = null === $jwksJson ? TrustedClientJwksJsonVO::empty() : TrustedClientJwksJsonVO::from($jwksJson);
         $this->_version = null === $version ? TrustedClientVersionVO::empty() : TrustedClientVersionVO::from($version);
     }
     public function replace(TrustedClientAttributes $values): TrustedClient
@@ -169,6 +184,9 @@ class TrustedClient extends TrustedClientRef
         $value->_registeredAt = $values->getRegisteredAtOrDefault($this->_registeredAt);
         $value->_allowedScopesM2m = $values->getAllowedScopesM2mOrDefault($this->_allowedScopesM2m);
         $value->_m2mTokenTtlSeconds = $values->getM2mTokenTtlSecondsOrDefault($this->_m2mTokenTtlSeconds);
+        $value->_requestObjectSigningAlg = $values->getRequestObjectSigningAlgOrDefault($this->_requestObjectSigningAlg);
+        $value->_jwksUri = $values->getJwksUriOrDefault($this->_jwksUri);
+        $value->_jwksJson = $values->getJwksJsonOrDefault($this->_jwksJson);
         $value->_version = $values->getVersionOrDefault($this->_version);
         return $value;
     }
@@ -248,6 +266,7 @@ class TrustedClient extends TrustedClientRef
         $data['dynamicallyRegistered'] = $this->isDynamicallyRegistered();
         $data['registeredAt'] = $this->getRegisteredAt();
         $data['m2mTokenTtlSeconds'] = $this->getM2mTokenTtlSeconds();
+        $data['requestObjectSigningAlg'] = $this->getRequestObjectSigningAlg();
         $data['version'] = $this->getVersion();
         return $data;
     }
@@ -278,6 +297,9 @@ class TrustedClient extends TrustedClientRef
           ->registeredAt($this->_registeredAt)
           ->allowedScopesM2m($this->_allowedScopesM2m)
           ->m2mTokenTtlSeconds($this->_m2mTokenTtlSeconds)
+          ->requestObjectSigningAlg($this->_requestObjectSigningAlg)
+          ->jwksUri($this->_jwksUri)
+          ->jwksJson($this->_jwksJson)
           ->version($this->_version);
     }
     public function getTheEvents(): array

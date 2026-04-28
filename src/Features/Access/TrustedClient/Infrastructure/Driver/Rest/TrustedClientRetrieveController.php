@@ -103,6 +103,9 @@ class TrustedClientRetrieveController
             $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);
             $dto->allowedScopesM2m = $value->getAllowedScopesM2m();
             $dto->m2mTokenTtlSeconds = $value->getM2mTokenTtlSeconds();
+            $dto->requestObjectSigningAlg = $value->getRequestObjectSigningAlg();
+            $dto->jwksUri = $value->getJwksUri();
+            $dto->jwksJson = $value->getJwksJson();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

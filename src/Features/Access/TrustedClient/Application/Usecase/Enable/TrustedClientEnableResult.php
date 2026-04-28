@@ -29,6 +29,9 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegisteredAtAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedScopesM2mAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientM2mTokenTtlSecondsAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRequestObjectSigningAlgAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientJwksUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientJwksJsonAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 
@@ -58,6 +61,9 @@ class TrustedClientEnableResult
     use TrustedClientRegisteredAtAttributeHolder;
     use TrustedClientAllowedScopesM2mAttributeHolder;
     use TrustedClientM2mTokenTtlSecondsAttributeHolder;
+    use TrustedClientRequestObjectSigningAlgAttributeHolder;
+    use TrustedClientJwksUriAttributeHolder;
+    use TrustedClientJwksJsonAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -85,6 +91,9 @@ class TrustedClientEnableResult
       'registeredAt' => 'unsetRegisteredAt',
       'allowedScopesM2m' => 'unsetAllowedScopesM2m',
       'm2mTokenTtlSeconds' => 'unsetM2mTokenTtlSeconds',
+      'requestObjectSigningAlg' => 'unsetRequestObjectSigningAlg',
+      'jwksUri' => 'unsetJwksUri',
+      'jwksJson' => 'unsetJwksJson',
       'version' => 'unsetVersion',
     ];
 
@@ -115,6 +124,9 @@ class TrustedClientEnableResult
             $this->readRegisteredAtFrom($att);
             $this->readAllowedScopesM2mFrom($att);
             $this->readM2mTokenTtlSecondsFrom($att);
+            $this->readRequestObjectSigningAlgFrom($att);
+            $this->readJwksUriFrom($att);
+            $this->readJwksJsonFrom($att);
             $this->readVersionFrom($att);
         }
     }
@@ -145,6 +157,9 @@ class TrustedClientEnableResult
         $this->writeRegisteredAtTo($att);
         $this->writeAllowedScopesM2mTo($att);
         $this->writeM2mTokenTtlSecondsTo($att);
+        $this->writeRequestObjectSigningAlgTo($att);
+        $this->writeJwksUriTo($att);
+        $this->writeJwksJsonTo($att);
         $this->writeVersionTo($att);
         return $att;
     }
@@ -180,6 +195,9 @@ class TrustedClientEnableResult
         $this->withDefaultRegisteredAt();
         $this->withDefaultAllowedScopesM2m();
         $this->withDefaultM2mTokenTtlSeconds();
+        $this->withDefaultRequestObjectSigningAlg();
+        $this->withDefaultJwksUri();
+        $this->withDefaultJwksJson();
         $this->withDefaultVersion();
         return $this;
     }

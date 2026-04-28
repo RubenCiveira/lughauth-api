@@ -45,6 +45,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
 
@@ -99,6 +102,12 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedScopesM2mChanged());
         $this->assertEquals($one->getM2mTokenTtlSeconds(), $other->getM2mTokenTtlSeconds());
         $this->assertTrue($one->isM2mTokenTtlSecondsChanged());
+        $this->assertEquals($one->getRequestObjectSigningAlg(), $other->getRequestObjectSigningAlg());
+        $this->assertTrue($one->isRequestObjectSigningAlgChanged());
+        $this->assertEquals($one->getJwksUri(), $other->getJwksUri());
+        $this->assertTrue($one->isJwksUriChanged());
+        $this->assertEquals($one->getJwksJson(), $other->getJwksJson());
+        $this->assertTrue($one->isJwksJsonChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -134,6 +143,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
         $other = new TrustedClient(
@@ -165,6 +177,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             allowedScopesM2m: 'other',
             m2mTokenTtlSeconds: 2,
+            requestObjectSigningAlg: 'other',
+            jwksUri: 'other',
+            jwksJson: 'other',
             version: 2,
         );
 
@@ -217,6 +232,12 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedScopesM2mChanged($base));
         $this->assertEquals($one->getM2mTokenTtlSeconds(), $other->getM2mTokenTtlSeconds());
         $this->assertTrue($one->isM2mTokenTtlSecondsChanged($base));
+        $this->assertEquals($one->getRequestObjectSigningAlg(), $other->getRequestObjectSigningAlg());
+        $this->assertTrue($one->isRequestObjectSigningAlgChanged($base));
+        $this->assertEquals($one->getJwksUri(), $other->getJwksUri());
+        $this->assertTrue($one->isJwksUriChanged($base));
+        $this->assertEquals($one->getJwksJson(), $other->getJwksJson());
+        $this->assertTrue($one->isJwksJsonChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -252,6 +273,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
 
@@ -283,6 +307,7 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals(true, $json['dynamicallyRegistered']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['registeredAt']);
         $this->assertEquals(1, $json['m2mTokenTtlSeconds']);
+        $this->assertEquals('one', $json['requestObjectSigningAlg']);
         $this->assertEquals(1, $json['version']);
     }
     public function test_create_store_values(): void
@@ -317,6 +342,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
 
@@ -369,6 +397,12 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedScopesM2mChanged());
         $this->assertEquals($one->getM2mTokenTtlSeconds(), $other->getM2mTokenTtlSeconds());
         $this->assertTrue($one->isM2mTokenTtlSecondsChanged());
+        $this->assertEquals($one->getRequestObjectSigningAlg(), $other->getRequestObjectSigningAlg());
+        $this->assertTrue($one->isRequestObjectSigningAlgChanged());
+        $this->assertEquals($one->getJwksUri(), $other->getJwksUri());
+        $this->assertTrue($one->isJwksUriChanged());
+        $this->assertEquals($one->getJwksJson(), $other->getJwksJson());
+        $this->assertTrue($one->isJwksJsonChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -405,6 +439,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
         $other = new TrustedClient(
@@ -436,6 +473,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             allowedScopesM2m: 'other',
             m2mTokenTtlSeconds: 2,
+            requestObjectSigningAlg: 'other',
+            jwksUri: 'other',
+            jwksJson: 'other',
             version: 2,
         );
 
@@ -488,6 +528,12 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedScopesM2mChanged($base));
         $this->assertEquals($one->getM2mTokenTtlSeconds(), $other->getM2mTokenTtlSeconds());
         $this->assertTrue($one->isM2mTokenTtlSecondsChanged($base));
+        $this->assertEquals($one->getRequestObjectSigningAlg(), $other->getRequestObjectSigningAlg());
+        $this->assertTrue($one->isRequestObjectSigningAlgChanged($base));
+        $this->assertEquals($one->getJwksUri(), $other->getJwksUri());
+        $this->assertTrue($one->isJwksUriChanged($base));
+        $this->assertEquals($one->getJwksJson(), $other->getJwksJson());
+        $this->assertTrue($one->isJwksJsonChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -525,6 +571,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
 
@@ -577,6 +626,12 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedScopesM2mChanged());
         $this->assertEquals($one->getM2mTokenTtlSeconds(), $other->getM2mTokenTtlSeconds());
         $this->assertTrue($one->isM2mTokenTtlSecondsChanged());
+        $this->assertEquals($one->getRequestObjectSigningAlg(), $other->getRequestObjectSigningAlg());
+        $this->assertTrue($one->isRequestObjectSigningAlgChanged());
+        $this->assertEquals($one->getJwksUri(), $other->getJwksUri());
+        $this->assertTrue($one->isJwksUriChanged());
+        $this->assertEquals($one->getJwksJson(), $other->getJwksJson());
+        $this->assertTrue($one->isJwksJsonChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -612,6 +667,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
         $sourceEnabled = false;
@@ -658,6 +716,9 @@ final class TrustedClientUnitTest extends TestCase
             registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             allowedScopesM2m: 'one',
             m2mTokenTtlSeconds: 1,
+            requestObjectSigningAlg: 'one',
+            jwksUri: 'one',
+            jwksJson: 'one',
             version: 1,
         );
         $sourceEnabled = true;

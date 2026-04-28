@@ -173,6 +173,27 @@ class TrustedClientApiDTO
     )]
     public ?int $m2mTokenTtlSeconds = null;
     #[OA\Property(
+        property: "requestObjectSigningAlg",
+        title: "request object signing alg",
+        description:"El request object signing alg de trusted client",
+        type: "string"
+    )]
+    public ?string $requestObjectSigningAlg = null;
+    #[OA\Property(
+        property: "jwksUri",
+        title: "jwks uri",
+        description:"El jwks uri de trusted client",
+        type: "string"
+    )]
+    public ?string $jwksUri = null;
+    #[OA\Property(
+        property: "jwksJson",
+        title: "jwks json",
+        description:"El jwks json de trusted client",
+        type: "string"
+    )]
+    public ?string $jwksJson = null;
+    #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de trusted client para controlar bloqueos optimistas",
