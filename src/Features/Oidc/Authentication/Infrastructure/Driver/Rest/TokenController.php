@@ -159,15 +159,22 @@ class TokenController
                 return $this->deviceErrorResponse($ex, $response);
             }
         } else {
-            if (!isset($_SERVER['PHP_AUTH_USER']) || !isset($_SERVER['PHP_AUTH_PW'])) {
-                throw new UnauthorizedException(message: 'Unauthorized by header.');
+            $headerClientId = isset($_SERVER['PHP_AUTH_USER']) ? (string) $_SERVER['PHP_AUTH_USER'] : '';
+            $headerClientSecret = isset($_SERVER['PHP_AUTH_PW']) ? (string) $_SERVER['PHP_AUTH_PW'] : '';
+            $bodyClientId = (string) ($params['client_id'] ?? '');
+            $bodyClientSecret = (string) ($params['client_secret'] ?? '');
+            $clientId = $headerClientId !== '' ? $headerClientId : $bodyClientId;
+            $clientSecret = $headerClientSecret !== '' ? $headerClientSecret : $bodyClientSecret;
+            if ($clientId === '' || $clientSecret === '') {
+                throw OAuthTokenException::invalidClient();
             }
-            $client = $this->clientDataGateway->clientData($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']);
+
+            $client = $this->clientDataGateway->findAndVerify($clientId, $clientSecret, $tenant);
             if (!$client) {
-                throw new UnauthorizedException(message: 'Unauthorized.');
+                throw OAuthTokenException::invalidClient();
             }
-            if (false === array_search($grant, $client->grants)) {
-                throw new UnauthorizedException(message: 'Unauthorized.');
+            if (false === array_search($grant, $client->grants, true)) {
+                throw OAuthTokenException::unauthorizedClient();
             }
             $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $auth = $this->granter->authenticate(
@@ -192,6 +199,10 @@ class TokenController
             'roles' => $auth->roles ?? [],
             'groups' => $auth->groups ?? []
         ];
+        if ($grant === 'client_credentials') {
+            $detail['client_id'] = $client->id;
+            $detail['token_use'] = 'client_credentials';
+        }
         $scopesForClaims = $auth->scope ?? $scopes;
         if (str_contains($scopesForClaims, 'profile')) {
             $detail['name'] = $auth->name ?? '';
@@ -200,13 +211,14 @@ class TokenController
             $detail['email'] = $auth->email ?? '';
         }
         $identity = [...$detail, ...$identity];
-        $expiration = new DateInterval("PT10M");
+        $expiration = $grant === 'client_credentials'
+            ? new DateInterval('PT'.max(1, $client->m2mTokenTtlSeconds).'S')
+            : new DateInterval("PT10M");
         $now = new DateTimeImmutable();
         $expires = $now->add($expiration);
         $data = [
             'token_type' => 'Bearer',
             'expires_in' => $expires->getTimestamp() - $now->getTimestamp(),
-            'id_token' => $this->manager->sign($tenant, $identity, $expiration),
             'access_token' => $this->manager->sign($tenant, array_merge($detail, [
                 // https://www.iana.org/assignments/jwt/jwt.xhtml
                 'scope' => $auth->scope ?? '',
@@ -214,7 +226,10 @@ class TokenController
                 'groups' => $auth->groups ?? []
             ]), $expiration),
         ];
-        $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'azp' => $client->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ?? '' ], new DateInterval("PT10H"));
+        if ($grant !== 'client_credentials') {
+            $data['id_token'] = $this->manager->sign($tenant, $identity, $expiration);
+            $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'azp' => $client->id, 'scope' => ['refresh'], 'original_scope' => $auth->scope ?? '' ], new DateInterval("PT10H"));
+        }
         $encoded = json_encode($data);
         $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withHeader('Content-Type', 'application/json');

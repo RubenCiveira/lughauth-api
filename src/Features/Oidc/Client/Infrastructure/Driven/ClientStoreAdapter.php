@@ -38,7 +38,7 @@ class ClientStoreAdapter implements ClientStoreGateway
                 $this->wrongPassword($clientId);
                 return null;
             } else {
-                return new ClientData($clientId, ['password'], true);
+                return $this->mapClientData($existent);
             }
         } else {
             // No code
@@ -61,7 +61,7 @@ class ClientStoreAdapter implements ClientStoreGateway
                 $this->notPublic($clientId);
                 return null;
             } else {
-                return new ClientData($clientId, ['password'], true);
+                return $this->mapClientData($existent);
             }
         } else {
             $this->inexistent($clientId);
@@ -109,13 +109,35 @@ class ClientStoreAdapter implements ClientStoreGateway
                     $this->notAllowed($id, $redirectUrl);
                     return null;
                 } else {
-                    return new ClientData($id, ['password'], true);
+                    return $this->mapClientData($existent);
                 }
             }
         } else {
             $this->inexistent($id);
             return null;
         }
+    }
+
+    #[Override]
+    public function findAndVerify(string $clientId, string $secret, string $tenant): ?ClientData
+    {
+        return $this->clientData($clientId, $secret);
+    }
+
+    private function mapClientData(mixed $trustedClient): ClientData
+    {
+        $grants = ['password'];
+        $grantTypesJson = $trustedClient->getGrantTypesJson();
+        if (is_string($grantTypesJson) && $grantTypesJson !== '') {
+            $decoded = json_decode($grantTypesJson, true);
+            if (is_array($decoded)) {
+                $grants = array_values(array_filter($decoded, static fn (mixed $item): bool => is_string($item) && $item !== ''));
+            }
+        }
+
+        $allowedScopesM2m = $trustedClient->getAllowedScopesM2m() ?? [];
+        $m2mTokenTtlSeconds = $trustedClient->getM2mTokenTtlSeconds() ?? 3600;
+        return new ClientData($trustedClient->getCode() ?? '', $grants, true, $allowedScopesM2m, $m2mTokenTtlSeconds);
     }
 
     private function notPublic(string $clientId): void

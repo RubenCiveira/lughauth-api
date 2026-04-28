@@ -14,9 +14,10 @@ class TokenGranterMediator
     public function __construct(
         ResolverForPassword $passResolver,
         ResolverForRefresh $refreshResolver,
-        ResolverForDevice $deviceResolver
+        ResolverForDevice $deviceResolver,
+        ResolverForClientCredentials $clientCredentialsResolver
     ) {
-        $this->granters = [ $passResolver, $refreshResolver, $deviceResolver ];
+        $this->granters = [ $passResolver, $refreshResolver, $deviceResolver, $clientCredentialsResolver ];
     }
 
     public function authenticate(

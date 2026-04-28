@@ -13,7 +13,11 @@ class ClientData
         /** The client grant list allowed  */
         public readonly array $grants,
         /** If true, client can use login endpoint, otherwise, he must use http oauth flow */
-        public readonly bool $secretLogin
+        public readonly bool $secretLogin,
+        /** M2M allowed scopes */
+        public readonly array $allowedScopesM2m = [],
+        /** M2M access token ttl seconds */
+        public readonly int $m2mTokenTtlSeconds = 3600
     ) {
     }
 }

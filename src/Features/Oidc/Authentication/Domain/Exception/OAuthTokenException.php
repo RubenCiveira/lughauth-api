@@ -34,4 +34,19 @@ final class OAuthTokenException extends \RuntimeException
     {
         return new self('invalid_grant', $detail);
     }
+
+    public static function invalidClient(string $detail = 'Client authentication failed'): self
+    {
+        return new self('invalid_client', $detail, 401);
+    }
+
+    public static function unauthorizedClient(string $detail = 'Unauthorized client'): self
+    {
+        return new self('unauthorized_client', $detail);
+    }
+
+    public static function invalidScope(string $detail = 'Invalid scope'): self
+    {
+        return new self('invalid_scope', $detail);
+    }
 }
