@@ -159,6 +159,20 @@ class TrustedClientApiDTO
     )]
     public ?string $registeredAt = null;
     #[OA\Property(
+        property: "allowedScopesM2m",
+        title: "allowed scopes m 2m",
+        description:"El allowed scopes m 2m de trusted client",
+        type: "string"
+    )]
+    public ?string $allowedScopesM2m = null;
+    #[OA\Property(
+        property: "m2mTokenTtlSeconds",
+        title: "m 2m token ttl seconds",
+        description:"El m 2m token ttl seconds de trusted client",
+        type: "string"
+    )]
+    public ?int $m2mTokenTtlSeconds = null;
+    #[OA\Property(
         property: "version",
         title: "version",
         description:"Campo con el número de version de trusted client para controlar bloqueos optimistas",

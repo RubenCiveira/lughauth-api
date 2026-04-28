@@ -49,6 +49,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegisteredAtAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedScopesM2mAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedScopesM2mVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientM2mTokenTtlSecondsAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientM2mTokenTtlSecondsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -77,6 +81,8 @@ class TrustedClientAttributes
     use TrustedClientResponseTypesJsonAttributeHolder;
     use TrustedClientDynamicallyRegisteredAttributeHolder;
     use TrustedClientRegisteredAtAttributeHolder;
+    use TrustedClientAllowedScopesM2mAttributeHolder;
+    use TrustedClientM2mTokenTtlSecondsAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -102,6 +108,8 @@ class TrustedClientAttributes
       'responseTypesJson' => 'unsetResponseTypesJson',
       'dynamicallyRegistered' => 'unsetDynamicallyRegistered',
       'registeredAt' => 'unsetRegisteredAt',
+      'allowedScopesM2m' => 'unsetAllowedScopesM2m',
+      'm2mTokenTtlSeconds' => 'unsetM2mTokenTtlSeconds',
       'version' => 'unsetVersion',
     ];
 
@@ -130,6 +138,8 @@ class TrustedClientAttributes
         $responseTypesJson = TrustedClientResponseTypesJsonVO::tryFrom($this->responseTypesJson, $errors);
         $dynamicallyRegistered = TrustedClientDynamicallyRegisteredVO::tryFrom($this->dynamicallyRegistered, $errors);
         $registeredAt = TrustedClientRegisteredAtVO::tryFrom($this->registeredAt, $errors);
+        $allowedScopesM2m = TrustedClientAllowedScopesM2mVO::tryFrom($this->allowedScopesM2m, $errors);
+        $m2mTokenTtlSeconds = TrustedClientM2mTokenTtlSecondsVO::tryFrom($this->m2mTokenTtlSeconds, $errors);
         $version = TrustedClientVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -140,6 +150,7 @@ class TrustedClientAttributes
         \assert($allowedRedirects !== null);
         \assert($enabled !== null);
         \assert($tokenEndpointAuthMethod !== null);
+        \assert($m2mTokenTtlSeconds !== null);
         return new TrustedClient(
             uid: $uid,
             code: $code,
@@ -163,6 +174,8 @@ class TrustedClientAttributes
             responseTypesJson: $responseTypesJson,
             dynamicallyRegistered: $dynamicallyRegistered,
             registeredAt: $registeredAt,
+            allowedScopesM2m: $allowedScopesM2m,
+            m2mTokenTtlSeconds: $m2mTokenTtlSeconds,
             version: $version,
         );
     }
@@ -192,6 +205,8 @@ class TrustedClientAttributes
         $this->withAssertedResponseTypesJsonRules($value, $errorsList);
         $this->withAssertedDynamicallyRegisteredRules($value, $errorsList);
         $this->withAssertedRegisteredAtRules($value, $errorsList);
+        $this->withAssertedAllowedScopesM2mRules($value, $errorsList);
+        $this->withAssertedM2mTokenTtlSecondsRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -228,6 +243,8 @@ class TrustedClientAttributes
         $this->withDefaultResponseTypesJson();
         $this->withDefaultDynamicallyRegistered();
         $this->withDefaultRegisteredAt();
+        $this->withDefaultAllowedScopesM2m();
+        $this->withDefaultM2mTokenTtlSeconds();
         $this->withDefaultVersion();
         return $this;
     }

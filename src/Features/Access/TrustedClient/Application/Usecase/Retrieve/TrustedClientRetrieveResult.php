@@ -27,6 +27,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientResponseTypesJsonAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDynamicallyRegisteredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegisteredAtAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedScopesM2mAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientM2mTokenTtlSecondsAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 
@@ -54,6 +56,8 @@ class TrustedClientRetrieveResult
     use TrustedClientResponseTypesJsonAttributeHolder;
     use TrustedClientDynamicallyRegisteredAttributeHolder;
     use TrustedClientRegisteredAtAttributeHolder;
+    use TrustedClientAllowedScopesM2mAttributeHolder;
+    use TrustedClientM2mTokenTtlSecondsAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -79,6 +83,8 @@ class TrustedClientRetrieveResult
       'responseTypesJson' => 'unsetResponseTypesJson',
       'dynamicallyRegistered' => 'unsetDynamicallyRegistered',
       'registeredAt' => 'unsetRegisteredAt',
+      'allowedScopesM2m' => 'unsetAllowedScopesM2m',
+      'm2mTokenTtlSeconds' => 'unsetM2mTokenTtlSeconds',
       'version' => 'unsetVersion',
     ];
 
@@ -107,6 +113,8 @@ class TrustedClientRetrieveResult
             $this->readResponseTypesJsonFrom($att);
             $this->readDynamicallyRegisteredFrom($att);
             $this->readRegisteredAtFrom($att);
+            $this->readAllowedScopesM2mFrom($att);
+            $this->readM2mTokenTtlSecondsFrom($att);
             $this->readVersionFrom($att);
         }
     }
@@ -135,6 +143,8 @@ class TrustedClientRetrieveResult
         $this->writeResponseTypesJsonTo($att);
         $this->writeDynamicallyRegisteredTo($att);
         $this->writeRegisteredAtTo($att);
+        $this->writeAllowedScopesM2mTo($att);
+        $this->writeM2mTokenTtlSecondsTo($att);
         $this->writeVersionTo($att);
         return $att;
     }
@@ -168,6 +178,8 @@ class TrustedClientRetrieveResult
         $this->withDefaultResponseTypesJson();
         $this->withDefaultDynamicallyRegistered();
         $this->withDefaultRegisteredAt();
+        $this->withDefaultAllowedScopesM2m();
+        $this->withDefaultM2mTokenTtlSeconds();
         $this->withDefaultVersion();
         return $this;
     }

@@ -49,6 +49,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientDynamicallyRegisteredAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientRegisteredAtAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedScopesM2mVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedScopesM2mAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientM2mTokenTtlSecondsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientM2mTokenTtlSecondsAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientVersionAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Formula\EnabledCalculator;
@@ -81,6 +85,8 @@ class TrustedClient extends TrustedClientRef
     use TrustedClientResponseTypesJsonAccessor;
     use TrustedClientDynamicallyRegisteredAccessor;
     use TrustedClientRegisteredAtAccessor;
+    use TrustedClientAllowedScopesM2mAccessor;
+    use TrustedClientM2mTokenTtlSecondsAccessor;
     use TrustedClientVersionAccessor;
     private array $recordedEvents = [];
 
@@ -91,6 +97,7 @@ class TrustedClient extends TrustedClientRef
         TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects,
         TrustedClientEnabledVO|bool $enabled,
         TrustedClientTokenEndpointAuthMethodVO|string $tokenEndpointAuthMethod,
+        TrustedClientM2mTokenTtlSecondsVO|int $m2mTokenTtlSeconds,
         TrustedClientAllowAllScopesVO|bool|null $allowAllScopes = null,
         TrustedClientSecretOauthVO|string|null $secretOauth = null,
         TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri = null,
@@ -107,6 +114,7 @@ class TrustedClient extends TrustedClientRef
         TrustedClientResponseTypesJsonVO|mixed|null $responseTypesJson = null,
         TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered = null,
         TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt = null,
+        TrustedClientAllowedScopesM2mVO|string|null $allowedScopesM2m = null,
         TrustedClientVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
@@ -131,6 +139,8 @@ class TrustedClient extends TrustedClientRef
         $this->_responseTypesJson = null === $responseTypesJson ? TrustedClientResponseTypesJsonVO::empty() : TrustedClientResponseTypesJsonVO::from($responseTypesJson);
         $this->_dynamicallyRegistered = null === $dynamicallyRegistered ? TrustedClientDynamicallyRegisteredVO::empty() : TrustedClientDynamicallyRegisteredVO::from($dynamicallyRegistered);
         $this->_registeredAt = null === $registeredAt ? TrustedClientRegisteredAtVO::empty() : TrustedClientRegisteredAtVO::from($registeredAt);
+        $this->_allowedScopesM2m = null === $allowedScopesM2m ? TrustedClientAllowedScopesM2mVO::empty() : TrustedClientAllowedScopesM2mVO::from($allowedScopesM2m);
+        $this->_m2mTokenTtlSeconds = TrustedClientM2mTokenTtlSecondsVO::from($m2mTokenTtlSeconds);
         $this->_version = null === $version ? TrustedClientVersionVO::empty() : TrustedClientVersionVO::from($version);
     }
     public function replace(TrustedClientAttributes $values): TrustedClient
@@ -157,6 +167,8 @@ class TrustedClient extends TrustedClientRef
         $value->_responseTypesJson = $values->getResponseTypesJsonOrDefault($this->_responseTypesJson);
         $value->_dynamicallyRegistered = $values->getDynamicallyRegisteredOrDefault($this->_dynamicallyRegistered);
         $value->_registeredAt = $values->getRegisteredAtOrDefault($this->_registeredAt);
+        $value->_allowedScopesM2m = $values->getAllowedScopesM2mOrDefault($this->_allowedScopesM2m);
+        $value->_m2mTokenTtlSeconds = $values->getM2mTokenTtlSecondsOrDefault($this->_m2mTokenTtlSeconds);
         $value->_version = $values->getVersionOrDefault($this->_version);
         return $value;
     }
@@ -235,6 +247,7 @@ class TrustedClient extends TrustedClientRef
         $data['responseTypesJson'] = $this->getResponseTypesJson();
         $data['dynamicallyRegistered'] = $this->isDynamicallyRegistered();
         $data['registeredAt'] = $this->getRegisteredAt();
+        $data['m2mTokenTtlSeconds'] = $this->getM2mTokenTtlSeconds();
         $data['version'] = $this->getVersion();
         return $data;
     }
@@ -263,6 +276,8 @@ class TrustedClient extends TrustedClientRef
           ->responseTypesJson($this->_responseTypesJson)
           ->dynamicallyRegistered($this->_dynamicallyRegistered)
           ->registeredAt($this->_registeredAt)
+          ->allowedScopesM2m($this->_allowedScopesM2m)
+          ->m2mTokenTtlSeconds($this->_m2mTokenTtlSeconds)
           ->version($this->_version);
     }
     public function getTheEvents(): array

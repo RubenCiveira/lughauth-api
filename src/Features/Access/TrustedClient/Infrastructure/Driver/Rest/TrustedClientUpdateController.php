@@ -43,6 +43,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientResponseTypesJsonVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedScopesM2mVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientM2mTokenTtlSecondsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateParams;
@@ -170,6 +172,11 @@ class TrustedClientUpdateController
             $value->responseTypesJson(TrustedClientResponseTypesJsonVO::tryFrom($body['responseTypesJson'] ?? null, $errorsList));
             $value->dynamicallyRegistered(TrustedClientDynamicallyRegisteredVO::tryFrom($body['dynamicallyRegistered'] ?? null, $errorsList));
             $value->registeredAt(TrustedClientRegisteredAtVO::tryFrom($body['registeredAt'] ?? null, $errorsList));
+            $value->allowedScopesM2m(TrustedClientAllowedScopesM2mVO::tryFrom($body['allowedScopesM2m'] ?? null, $errorsList));
+            $valueM2mTokenTtlSeconds = TrustedClientM2mTokenTtlSecondsVO::tryFrom($body['m2mTokenTtlSeconds'] ?? null, $errorsList);
+            if (null !== $valueM2mTokenTtlSeconds) {
+                $value->m2mTokenTtlSeconds($valueM2mTokenTtlSeconds);
+            }
             $value->version(TrustedClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -221,6 +228,8 @@ class TrustedClientUpdateController
             $dto->responseTypesJson = $value->getResponseTypesJson();
             $dto->dynamicallyRegistered = $value->isDynamicallyRegistered();
             $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);
+            $dto->allowedScopesM2m = $value->getAllowedScopesM2m();
+            $dto->m2mTokenTtlSeconds = $value->getM2mTokenTtlSeconds();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

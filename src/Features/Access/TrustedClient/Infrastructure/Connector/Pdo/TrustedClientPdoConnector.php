@@ -144,7 +144,7 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute insert sql query for Trusted client");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "registration_access", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "token_endpoint_auth_method", "grant_types_json", "response_types_json", "dynamically_registered", "registered_at", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :registrationAccess, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :tokenEndpointAuthMethod, :grantTypesJson, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :version)', [
+                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "registration_access", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "token_endpoint_auth_method", "grant_types_json", "response_types_json", "dynamically_registered", "registered_at", "allowed_scopes_m_2m", "m_2m_token_ttl_seconds", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :registrationAccess, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :tokenEndpointAuthMethod, :grantTypesJson, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :allowedScopesM2m, :m2mTokenTtlSeconds, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $entity->isAllowAllScopes(), type: SqlParam::BOOL),
@@ -166,6 +166,8 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'responseTypesJson', value: $entity->getResponseTypesJson(), type: SqlParam::STR),
                      new SqlParam(name: 'dynamicallyRegistered', value: $entity->isDynamicallyRegistered(), type: SqlParam::BOOL),
                      new SqlParam(name: 'registeredAt', value: $entity->getRegisteredAt(), type: SqlParam::STR),
+                     new SqlParam(name: 'allowedScopesM2m', value: $entity->getAllowedScopesM2m(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'm2mTokenTtlSeconds', value: $entity->getM2mTokenTtlSeconds(), type: SqlParam::INT),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
                 $entity = $this->saveChilds($entity);
@@ -194,7 +196,7 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute update sql query for Trusted client");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "registration_access" = :registrationAccess , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "grant_types_json" = :grantTypesJson , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "registration_access" = :registrationAccess , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "grant_types_json" = :grantTypesJson , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "allowed_scopes_m_2m" = :allowedScopesM2m , "m_2m_token_ttl_seconds" = :m2mTokenTtlSeconds , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $update->isAllowAllScopes(), type: SqlParam::BOOL),
@@ -216,6 +218,8 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'responseTypesJson', value: $update->getResponseTypesJson(), type: SqlParam::STR),
                      new SqlParam(name: 'dynamicallyRegistered', value: $update->isDynamicallyRegistered(), type: SqlParam::BOOL),
                      new SqlParam(name: 'registeredAt', value: $update->getRegisteredAt(), type: SqlParam::STR),
+                     new SqlParam(name: 'allowedScopesM2m', value: $update->getAllowedScopesM2m(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'm2mTokenTtlSeconds', value: $update->getM2mTokenTtlSeconds(), type: SqlParam::INT),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
@@ -561,6 +565,11 @@ class TrustedClientPdoConnector
             $responseTypesJson = $row['response_types_json'] ?? null;
             $dynamicallyRegistered = isset($row['dynamically_registered']) ? !! $row['dynamically_registered'] : null;
             $registeredAt = $row['registered_at'] ? new \DateTimeImmutable($row['registered_at']) : null;
+            $allowedScopesM2m = $row['allowed_scopes_m_2m'] ?? null;
+            $m2mTokenTtlSeconds = $row['m_2m_token_ttl_seconds'] ?? null;
+            if (null === $m2mTokenTtlSeconds) {
+                throw ConstraintException::ofError('not-null', ['m2mTokenTtlSeconds'], [null]);
+            }
             $version = $row['version'] ?? null;
             return new TrustedClient(
                 uid: $uid,
@@ -585,6 +594,8 @@ class TrustedClientPdoConnector
                 responseTypesJson: $responseTypesJson,
                 dynamicallyRegistered: $dynamicallyRegistered,
                 registeredAt: $registeredAt,
+                allowedScopesM2m: $allowedScopesM2m,
+                m2mTokenTtlSeconds: $m2mTokenTtlSeconds,
                 version: $version,
             );
         } catch (Throwable $ex) {

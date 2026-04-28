@@ -114,6 +114,8 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("trusted-client", "responseTypesJson", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "dynamicallyRegistered", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "registeredAt", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "allowedScopesM2m", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "m2mTokenTtlSeconds", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "version", "MANAGE");
         }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }
