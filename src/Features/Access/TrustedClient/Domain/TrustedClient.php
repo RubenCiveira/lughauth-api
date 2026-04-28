@@ -120,7 +120,7 @@ class TrustedClient extends TrustedClientRef
         TrustedClientPolicyUriVO|string|null $policyUri = null,
         TrustedClientTosUriVO|string|null $tosUri = null,
         TrustedClientGrantTypesJsonVO|string|null $grantTypesJson = null,
-        TrustedClientResponseTypesJsonVO|mixed|null $responseTypesJson = null,
+        mixed $responseTypesJson = null,
         TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered = null,
         TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt = null,
         TrustedClientAllowedScopesM2mVO|string|null $allowedScopesM2m = null,

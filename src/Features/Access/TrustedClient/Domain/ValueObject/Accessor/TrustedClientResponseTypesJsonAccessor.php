@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 trait TrustedClientResponseTypesJsonAccessor
 {
     private ?TrustedClientResponseTypesJsonVO $_responseTypesJson = null;
-    public function getResponseTypesJson(): ?mixed
+    public function getResponseTypesJson(): mixed
     {
         return $this->_responseTypesJson?->value();
     }
@@ -22,7 +22,7 @@ trait TrustedClientResponseTypesJsonAccessor
     {
         return null !== $this->_responseTypesJson && !$this->_responseTypesJson->equals($original?->_responseTypesJson);
     }
-    public function withResponseTypesJson(TrustedClientResponseTypesJsonVO|mixed|null $responseTypesJson): self
+    public function withResponseTypesJson(mixed $responseTypesJson): self
     {
         $copy = clone $this;
         $copy->_responseTypesJson = TrustedClientResponseTypesJsonVO::from($responseTypesJson);

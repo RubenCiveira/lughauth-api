@@ -10,20 +10,20 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 trait TrustedClientResponseTypesJsonAttributeHolder
 {
-    protected TrustedClientResponseTypesJsonVO|mixed|null $responseTypesJson = null;
+    protected mixed $responseTypesJson = null;
     protected bool $responseTypesJsonAssigned = false;
 
     public function getResponseTypesJsonOrDefault(?TrustedClientResponseTypesJsonVO $responseTypesJson): ?TrustedClientResponseTypesJsonVO
     {
         return $this->responseTypesJsonAssigned ? ($this->responseTypesJson !== null ? TrustedClientResponseTypesJsonVO::from($this->responseTypesJson) : null) : $responseTypesJson;
     }
-    public function responseTypesJson(TrustedClientResponseTypesJsonVO|mixed|null $responseTypesJson): static
+    public function responseTypesJson(mixed $responseTypesJson): static
     {
         $this->responseTypesJson = $responseTypesJson;
         $this->responseTypesJsonAssigned = true;
         return $this;
     }
-    public function getResponseTypesJson(): ?mixed
+    public function getResponseTypesJson(): mixed
     {
         return $this->responseTypesJson instanceof TrustedClientResponseTypesJsonVO ? $this->responseTypesJson->value() : $this->responseTypesJson;
     }

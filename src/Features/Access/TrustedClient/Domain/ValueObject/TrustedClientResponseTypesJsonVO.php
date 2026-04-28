@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
-use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class TrustedClientResponseTypesJsonVO
 {
@@ -14,7 +13,7 @@ class TrustedClientResponseTypesJsonVO
     {
         return new TrustedClientResponseTypesJsonVO(null);
     }
-    public static function from(TrustedClientResponseTypesJsonVO|mixed|null $value): TrustedClientResponseTypesJsonVO
+    public static function from(mixed $value): TrustedClientResponseTypesJsonVO
     {
         return self::fromUnsafe($value);
     }
@@ -23,13 +22,8 @@ class TrustedClientResponseTypesJsonVO
         if ($value instanceof TrustedClientResponseTypesJsonVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
-        } elseif (!$value) {
-            return new TrustedClientResponseTypesJsonVO($value);
-        } elseif (is_a($value, mixed::class)) {
-            return new TrustedClientResponseTypesJsonVO($value);
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['responseTypesJson'], [$value], ['mixed']));
-            return null;
+            return new TrustedClientResponseTypesJsonVO($value);
         }
     }
     private static function fromUnsafe(mixed $value): TrustedClientResponseTypesJsonVO
@@ -52,10 +46,10 @@ class TrustedClientResponseTypesJsonVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly ?mixed $responseTypesJson
+        private readonly mixed $responseTypesJson
     ) {
     }
-    public function value(): ?mixed
+    public function value(): mixed
     {
         return $this->responseTypesJson;
     }
