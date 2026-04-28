@@ -33,9 +33,19 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Servic
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\Oidc\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\RequestObjectValidator;
+use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
+use GuzzleHttp\ClientInterface;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
+use Civi\Lughauth\Shared\Exception\UnauthorizedException;
+use Jose\Component\Core\AlgorithmManager;
+use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\RS256;
+use Jose\Component\Signature\JWSBuilder;
+use Jose\Component\Signature\Serializer\CompactSerializer;
 
 /**
  * Integration tests for {@see AuthorizeHtml} step delegation.
@@ -93,14 +103,15 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->willReturn(null);
 
         $consentForm = $this->createMock(ConsentForm::class);
-        $consentForm->expects($this->once())
-            ->method('render')
-            ->willReturn(StepResult::render(new Response(), new ChallengesState()));
+        $consentForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
+
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
 
         $router = new OidcStepRouter(
             $consentForm,
             $this->createMock(ScopesConsentForm::class),
-            $this->createMock(LoginForm::class),
+            $loginForm,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
             $this->createMock(UseMfaForm::class),
@@ -124,7 +135,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(OidcResponseBuilder::class),
             $cookies,
             new OidcUrlBuilder($context),
-            $router
+            $router,
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            new RequestObjectValidator($this->createMock(ClientInterface::class))
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -240,7 +253,9 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $responseBuilder,
             $cookies,
             $urlBuilder,
-            $router
+            $router,
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            new RequestObjectValidator($this->createMock(ClientInterface::class))
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -248,5 +263,172 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $this->assertSame(302, $response->getStatusCode());
         $this->assertStringContainsString('code=temp-code', $response->getHeaderLine('Location'));
         $this->assertStringContainsString('state=state-xyz', $response->getHeaderLine('Location'));
+    }
+
+    public function testAuthorizeWithRequestObjectUsesJwtParamsPrecedence(): void
+    {
+        [$privateJwk, $jwksJson] = $this->buildRsaJwks();
+        $requestJwt = $this->buildRequestObjectJwt($privateJwk, [
+            'response_type' => 'code',
+            'client_id' => 'client-123',
+            'state' => 'state-xyz',
+            'redirect_uri' => 'https://client.example/from-jwt',
+            'scope' => 'openid',
+            'nonce' => 'nonce-abc',
+            'step' => StepName::CONSENT->value,
+            'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+            'code_challenge_method' => 'S256',
+        ]);
+
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/query-value',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+                'request' => $requestJwt,
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->expects($this->once())
+            ->method('preValidatedClient')
+            ->with('client-123')
+            ->willReturn(new ClientData('client-123', ['code'], true, [], 3600, 'RS256', null, $jwksJson));
+        $clients->expects($this->once())
+            ->method('publicClientData')
+            ->with('client-123', 'tenant1', 'https://client.example/from-jwt', 'openid')
+            ->willReturn(new ClientData('client-123', ['code'], true));
+
+        $sessions = $this->createMock(SessionManager::class);
+        $sessions->expects($this->once())->method('loadSession')->willReturn(null);
+
+        $consentForm = $this->createMock(ConsentForm::class);
+        $consentForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
+
+        $loginForm = $this->createMock(LoginForm::class);
+        $loginForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
+
+        $router = new OidcStepRouter(
+            $consentForm,
+            $this->createMock(ScopesConsentForm::class),
+            $loginForm,
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class)
+        );
+
+        $cookies = $this->createMock(OidcCookieManager::class);
+        $cookies->method('clearSession')->willReturn(new Response());
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $sessions,
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $cookies,
+            new OidcUrlBuilder($context),
+            $router,
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            new RequestObjectValidator($this->createMock(ClientInterface::class))
+        );
+
+        $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+        $this->assertInstanceOf(ResponseInterface::class, $response);
+    }
+
+    public function testAuthorizeWithInvalidRequestObjectThrowsUnauthorized(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+                'request' => 'eyJhbGciOiJub25lIn0.eyJjbGllbnRfaWQiOiJjbGllbnQtMTIzIn0.',
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->expects($this->once())
+            ->method('preValidatedClient')
+            ->with('client-123')
+            ->willReturn(new ClientData('client-123', ['code'], true));
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $this->createMock(SessionManager::class),
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $this->createMock(OidcCookieManager::class),
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(ConsentForm::class),
+                $this->createMock(ScopesConsentForm::class),
+                $this->createMock(LoginForm::class),
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class)
+            ),
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            new RequestObjectValidator($this->createMock(ClientInterface::class))
+        );
+
+        $this->expectException(UnauthorizedException::class);
+        $this->expectExceptionMessage('invalid_request_object');
+        $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+    }
+
+    private function buildRequestObjectJwt(object $privateJwk, array $payload): string
+    {
+        $builder = new JWSBuilder(new AlgorithmManager([new RS256()]));
+        $jws = $builder->create()
+            ->withPayload((string) json_encode($payload))
+            ->addSignature($privateJwk, ['alg' => 'RS256'])
+            ->build();
+
+        return (new CompactSerializer())->serialize($jws, 0);
+    }
+
+    private function buildRsaJwks(): array
+    {
+        $resource = openssl_pkey_new(['private_key_type' => OPENSSL_KEYTYPE_RSA, 'private_key_bits' => 2048]);
+        if ($resource === false) {
+            $this->fail('Unable to generate rsa key');
+        }
+
+        openssl_pkey_export($resource, $privatePem);
+        $details = openssl_pkey_get_details($resource);
+        $publicPem = is_array($details) ? (string) ($details['key'] ?? '') : '';
+
+        $privateJwk = JWKFactory::createFromKey($privatePem, null, ['kid' => 'k1', 'alg' => 'RS256', 'use' => 'sig']);
+        $publicJwk = JWKFactory::createFromKey($publicPem, null, ['kid' => 'k1', 'alg' => 'RS256', 'use' => 'sig']);
+        $jwksJson = (string) json_encode(['keys' => [$publicJwk->all()]]);
+
+        return [$privateJwk, $jwksJson];
     }
 }

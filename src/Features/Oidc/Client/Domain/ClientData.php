@@ -17,7 +17,13 @@ class ClientData
         /** M2M allowed scopes */
         public readonly array $allowedScopesM2m = [],
         /** M2M access token ttl seconds */
-        public readonly int $m2mTokenTtlSeconds = 3600
+        public readonly int $m2mTokenTtlSeconds = 3600,
+        /** Request object signing algorithm expected for this client */
+        public readonly ?string $requestObjectSigningAlg = null,
+        /** Public jwks uri for request object signature verification */
+        public readonly ?string $jwksUri = null,
+        /** Inline jwks json for request object signature verification */
+        public readonly ?string $jwksJson = null
     ) {
     }
 }

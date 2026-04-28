@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\RequestObjectValidator;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
@@ -45,6 +46,7 @@ class AuthorizeHtml
         private readonly OidcUrlBuilder $urlBuilder,
         private readonly OidcStepRouter $router,
         private readonly ResolveParRequestUsecase $resolveParRequest,
+        private readonly RequestObjectValidator $requestObjectValidator,
     ) {
     }
 
@@ -216,6 +218,25 @@ class AuthorizeHtml
                 throw new UnauthorizedException('invalid_request_uri');
             }
             $request = $request->withQueryParams(array_merge($parRequest->params, $query));
+            $query = $request->getQueryParams();
+        }
+
+        if (isset($query['request']) && $query['request'] !== '') {
+            $clientId = (string) ($query['client_id'] ?? '');
+            if ($clientId === '') {
+                throw new UnauthorizedException('invalid_request_object');
+            }
+            $client = $this->clients->preValidatedClient($clientId);
+            if ($client === null) {
+                throw new UnauthorizedException('invalid_request_object');
+            }
+            try {
+                $verifiedParams = $this->requestObjectValidator->validate((string) $query['request'], $client);
+            } catch (\InvalidArgumentException) {
+                throw new UnauthorizedException('invalid_request_object');
+            }
+            $query = array_merge($query, $verifiedParams);
+            $request = $request->withQueryParams($query);
         }
         return OidcFlowContext::fromRequest($request, $tenant, $this->context);
     }

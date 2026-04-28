@@ -131,7 +131,16 @@ class ClientStoreAdapter implements ClientStoreGateway
 
         $allowedScopesM2m = $trustedClient->getAllowedScopesM2m() ?? [];
         $m2mTokenTtlSeconds = $trustedClient->getM2mTokenTtlSeconds() ?? 3600;
-        return new ClientData($trustedClient->getCode() ?? '', $grants, true, $allowedScopesM2m, $m2mTokenTtlSeconds);
+        return new ClientData(
+            $trustedClient->getCode() ?? '',
+            $grants,
+            true,
+            $allowedScopesM2m,
+            $m2mTokenTtlSeconds,
+            $trustedClient->getRequestObjectSigningAlg(),
+            $trustedClient->getJwksUri(),
+            $trustedClient->getJwksJson()
+        );
     }
 
     private function notPublic(string $clientId): void
