@@ -1,5 +1,7 @@
 # 01-05 — Logout Distribuido (Back-Channel y Front-Channel)
 
+[x] DONE.
+
 **Prioridad:** P1  
 **Spec:** OIDC Back-Channel Logout 1.0 / OIDC Front-Channel Logout 1.0  
 **Esfuerzo estimado:** Medio (3-4 días)  
@@ -41,9 +43,9 @@ del usuario visita esas URLs, haciendo que cada RP limpie su sesión.
 
 ```sql
 ALTER TABLE access_trusted_client
-  ADD COLUMN backchannel_logout_uri              VARCHAR(500) NULL,
+  ADD COLUMN backchannel_logout_uri              VARCHAR(250) NULL,
   ADD COLUMN backchannel_logout_session_required TINYINT(1)   NOT NULL DEFAULT 0,
-  ADD COLUMN frontchannel_logout_uri             VARCHAR(500) NULL,
+  ADD COLUMN frontchannel_logout_uri             VARCHAR(250) NULL,
   ADD COLUMN frontchannel_logout_session_required TINYINT(1)  NOT NULL DEFAULT 0;
 ```
 
