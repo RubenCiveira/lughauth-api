@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\Rest;
 
 use OpenApi\Attributes as OA;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigDynamicRegistrationPolicyOptions;
 
 #[OA\Schema(title: "Tenant config", description: "tenant-config")]
 class TenantConfigApiDTO
@@ -41,6 +42,14 @@ class TenantConfigApiDTO
         type: "string"
     )]
     public ?bool $forceMfa = null;
+    #[OA\Property(
+        property: "dynamicRegistrationPolicy",
+        title: "dynamic registration policy",
+        description:"El dynamic registration policy de tenant config",
+        type: "string",
+        enum: ["OPEN","TOKEN_REQUIRED","DISABLED"]
+    )]
+    public ?TenantConfigDynamicRegistrationPolicyOptions $dynamicRegistrationPolicy = null;
     #[OA\Property(
         property: "allowRegister",
         title: "allow register",

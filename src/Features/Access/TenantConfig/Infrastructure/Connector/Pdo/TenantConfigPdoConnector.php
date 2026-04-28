@@ -21,6 +21,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDynamicRegistrationPolicyVO;
 
 class TenantConfigPdoConnector
 {
@@ -135,11 +136,12 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant config");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "allow_register", "enable_register_users", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :allowRegister, :enableRegisterUsers, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "dynamic_registration_policy", "allow_register", "enable_register_users", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :dynamicRegistrationPolicy, :allowRegister, :enableRegisterUsers, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $entity->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $entity->isForceMfa(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'dynamicRegistrationPolicy', value: $entity->getDynamicRegistrationPolicy()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'allowRegister', value: $entity->isAllowRegister(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enableRegisterUsers', value: $entity->isEnableRegisterUsers(), type: SqlParam::BOOL),
                      new SqlParam(name: 'wellcomeEmail', value: $entity->getWellcomeEmail(), type: SqlParam::TEXT),
@@ -175,11 +177,12 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant config");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "dynamic_registration_policy" = :dynamicRegistrationPolicy , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $update->getInnerLabel(), type: SqlParam::STR),
                      new SqlParam(name: 'forceMfa', value: $update->isForceMfa(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'dynamicRegistrationPolicy', value: $update->getDynamicRegistrationPolicy()?->value, type: SqlParam::STR),
                      new SqlParam(name: 'allowRegister', value: $update->isAllowRegister(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enableRegisterUsers', value: $update->isEnableRegisterUsers(), type: SqlParam::BOOL),
                      new SqlParam(name: 'wellcomeEmail', value: $update->getWellcomeEmail(), type: SqlParam::TEXT),
@@ -386,6 +389,7 @@ class TenantConfigPdoConnector
             if (null === $forceMfa) {
                 throw ConstraintException::ofError('not-null', ['forceMfa'], [null]);
             }
+            $dynamicRegistrationPolicy = isset($row['dynamic_registration_policy']) && $row['dynamic_registration_policy'] ? TenantConfigDynamicRegistrationPolicyVO::fromString($row['dynamic_registration_policy']) : TenantConfigDynamicRegistrationPolicyVO::empty();
             $allowRegister = isset($row['allow_register']) ? !! $row['allow_register'] : null;
             $enableRegisterUsers = isset($row['enable_register_users']) ? !! $row['enable_register_users'] : null;
             $wellcomeEmail = $row['wellcome_email'] ?? null;
@@ -400,6 +404,7 @@ class TenantConfigPdoConnector
                 tenant: $tenant,
                 innerLabel: $innerLabel,
                 forceMfa: $forceMfa,
+                dynamicRegistrationPolicy: $dynamicRegistrationPolicy,
                 allowRegister: $allowRegister,
                 enableRegisterUsers: $enableRegisterUsers,
                 wellcomeEmail: $wellcomeEmail,

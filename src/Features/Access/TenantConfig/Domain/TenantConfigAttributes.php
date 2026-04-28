@@ -13,6 +13,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInnerLabelVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigForceMfaAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDynamicRegistrationPolicyAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDynamicRegistrationPolicyVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
@@ -39,6 +41,7 @@ class TenantConfigAttributes
     use TenantConfigTenantAttributeHolder;
     use TenantConfigInnerLabelAttributeHolder;
     use TenantConfigForceMfaAttributeHolder;
+    use TenantConfigDynamicRegistrationPolicyAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
     use TenantConfigWellcomeEmailAttributeHolder;
@@ -54,6 +57,7 @@ class TenantConfigAttributes
       'tenant' => 'unsetTenant',
       'innerLabel' => 'unsetInnerLabel',
       'forceMfa' => 'unsetForceMfa',
+      'dynamicRegistrationPolicy' => 'unsetDynamicRegistrationPolicy',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
       'wellcomeEmail' => 'unsetWellcomeEmail',
@@ -72,6 +76,7 @@ class TenantConfigAttributes
         $tenant = TenantConfigTenantVO::tryFrom($this->tenant, $errors);
         $innerLabel = TenantConfigInnerLabelVO::tryFrom($this->innerLabel, $errors);
         $forceMfa = TenantConfigForceMfaVO::tryFrom($this->forceMfa, $errors);
+        $dynamicRegistrationPolicy = TenantConfigDynamicRegistrationPolicyVO::tryFrom($this->dynamicRegistrationPolicy, $errors);
         $allowRegister = TenantConfigAllowRegisterVO::tryFrom($this->allowRegister, $errors);
         $enableRegisterUsers = TenantConfigEnableRegisterUsersVO::tryFrom($this->enableRegisterUsers, $errors);
         $wellcomeEmail = TenantConfigWellcomeEmailVO::tryFrom($this->wellcomeEmail, $errors);
@@ -92,6 +97,7 @@ class TenantConfigAttributes
             tenant: $tenant,
             innerLabel: $innerLabel,
             forceMfa: $forceMfa,
+            dynamicRegistrationPolicy: $dynamicRegistrationPolicy,
             allowRegister: $allowRegister,
             enableRegisterUsers: $enableRegisterUsers,
             wellcomeEmail: $wellcomeEmail,
@@ -111,6 +117,7 @@ class TenantConfigAttributes
         $this->withAssertedTenantRules($value, $errorsList);
         $this->withAssertedInnerLabelRules($value, $errorsList);
         $this->withAssertedForceMfaRules($value, $errorsList);
+        $this->withAssertedDynamicRegistrationPolicyRules($value, $errorsList);
         $this->withAssertedAllowRegisterRules($value, $errorsList);
         $this->withAssertedEnableRegisterUsersRules($value, $errorsList);
         $this->withAssertedWellcomeEmailRules($value, $errorsList);
@@ -137,6 +144,7 @@ class TenantConfigAttributes
         $this->withDefaultTenant();
         $this->withDefaultInnerLabel();
         $this->withDefaultForceMfa();
+        $this->withDefaultDynamicRegistrationPolicy();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
         $this->withDefaultWellcomeEmail();

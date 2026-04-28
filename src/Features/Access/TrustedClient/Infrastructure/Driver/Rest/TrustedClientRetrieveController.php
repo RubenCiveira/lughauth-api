@@ -9,6 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
@@ -71,12 +72,6 @@ class TrustedClientRetrieveController
             $dto->code = $value->getCode();
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
-            $dto->secretOauth = '******';
-            $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
-            $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
-            $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
-            $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
-            $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();
             if (null !== $existentsAllowedRedirects) {
@@ -89,6 +84,23 @@ class TrustedClientRetrieveController
                 }
             }
             $dto->allowedRedirects = $allowedRedirects;
+            $dto->secretOauth = '******';
+            $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
+            $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
+            $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
+            $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
+            $dto->enabled = $value->isEnabled();
+            $dto->registrationAccess = $value->getRegistrationAccess();
+            $dto->clientName = $value->getClientName();
+            $dto->logoUri = $value->getLogoUri();
+            $dto->clientUri = $value->getClientUri();
+            $dto->policyUri = $value->getPolicyUri();
+            $dto->tosUri = $value->getTosUri();
+            $dto->tokenEndpointAuthMethod = $value->getTokenEndpointAuthMethod();
+            $dto->grantTypesJson = $value->getGrantTypesJson();
+            $dto->responseTypesJson = $value->getResponseTypesJson();
+            $dto->dynamicallyRegistered = $value->isDynamicallyRegistered();
+            $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

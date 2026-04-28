@@ -9,6 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenApi\Attributes as OA;
 use Throwable;
+use DateTime;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
@@ -17,12 +18,6 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Shared\Security\AesCypherService;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
@@ -30,6 +25,23 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
+use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientNameVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientLogoUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPolicyUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTosUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientGrantTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientResponseTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateParams;
@@ -101,14 +113,6 @@ class TrustedClientCreateController
             if (null !== $valuePublicAllow) {
                 $value->publicAllow($valuePublicAllow);
             }
-            $readSecretOauth = $body['secretOauth'] ?? '******';
-            if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
-                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
-            }
-            $value->backChannelLogoutUri(TrustedClientBackChannelLogoutUriVO::tryFrom($body['backChannelLogoutUri'] ?? null, $errorsList));
-            $value->backChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($body['backChannelLogoutSessionRequired'] ?? null, $errorsList));
-            $value->frontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO::tryFrom($body['frontChannelLogoutUri'] ?? null, $errorsList));
-            $value->frontChannelLogoutSessionRequired(TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($body['frontChannelLogoutSessionRequired'] ?? null, $errorsList));
             $allowedRedirectsList = [];
             if (in_array('allowedRedirects', array_keys($body))) {
                 $allowedRedirects = $body['allowedRedirects'] ?? null;
@@ -133,6 +137,28 @@ class TrustedClientCreateController
                 }
             }
             $value->allowedRedirects(TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($allowedRedirectsList)));
+            $readSecretOauth = $body['secretOauth'] ?? '******';
+            if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
+                $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
+            }
+            $value->backChannelLogoutUri(TrustedClientBackChannelLogoutUriVO::tryFrom($body['backChannelLogoutUri'] ?? null, $errorsList));
+            $value->backChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($body['backChannelLogoutSessionRequired'] ?? null, $errorsList));
+            $value->frontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO::tryFrom($body['frontChannelLogoutUri'] ?? null, $errorsList));
+            $value->frontChannelLogoutSessionRequired(TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($body['frontChannelLogoutSessionRequired'] ?? null, $errorsList));
+            $value->registrationAccess(TrustedClientRegistrationAccessVO::tryFrom($body['registrationAccess'] ?? null, $errorsList));
+            $value->clientName(TrustedClientClientNameVO::tryFrom($body['clientName'] ?? null, $errorsList));
+            $value->logoUri(TrustedClientLogoUriVO::tryFrom($body['logoUri'] ?? null, $errorsList));
+            $value->clientUri(TrustedClientClientUriVO::tryFrom($body['clientUri'] ?? null, $errorsList));
+            $value->policyUri(TrustedClientPolicyUriVO::tryFrom($body['policyUri'] ?? null, $errorsList));
+            $value->tosUri(TrustedClientTosUriVO::tryFrom($body['tosUri'] ?? null, $errorsList));
+            $valueTokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::tryFrom($body['tokenEndpointAuthMethod'] ?? null, $errorsList);
+            if (null !== $valueTokenEndpointAuthMethod) {
+                $value->tokenEndpointAuthMethod($valueTokenEndpointAuthMethod);
+            }
+            $value->grantTypesJson(TrustedClientGrantTypesJsonVO::tryFrom($body['grantTypesJson'] ?? null, $errorsList));
+            $value->responseTypesJson(TrustedClientResponseTypesJsonVO::tryFrom($body['responseTypesJson'] ?? null, $errorsList));
+            $value->dynamicallyRegistered(TrustedClientDynamicallyRegisteredVO::tryFrom($body['dynamicallyRegistered'] ?? null, $errorsList));
+            $value->registeredAt(TrustedClientRegisteredAtVO::tryFrom($body['registeredAt'] ?? null, $errorsList));
             $value->version(TrustedClientVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -155,12 +181,6 @@ class TrustedClientCreateController
             $dto->code = $value->getCode();
             $dto->allowAllScopes = $value->isAllowAllScopes();
             $dto->publicAllow = $value->isPublicAllow();
-            $dto->secretOauth = '******';
-            $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
-            $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
-            $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
-            $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
-            $dto->enabled = $value->isEnabled();
             $allowedRedirects = [];
             $existentsAllowedRedirects = $value->getAllowedRedirects();
             if (null !== $existentsAllowedRedirects) {
@@ -173,6 +193,23 @@ class TrustedClientCreateController
                 }
             }
             $dto->allowedRedirects = $allowedRedirects;
+            $dto->secretOauth = '******';
+            $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
+            $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
+            $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();
+            $dto->frontChannelLogoutSessionRequired = $value->isFrontChannelLogoutSessionRequired();
+            $dto->enabled = $value->isEnabled();
+            $dto->registrationAccess = $value->getRegistrationAccess();
+            $dto->clientName = $value->getClientName();
+            $dto->logoUri = $value->getLogoUri();
+            $dto->clientUri = $value->getClientUri();
+            $dto->policyUri = $value->getPolicyUri();
+            $dto->tosUri = $value->getTosUri();
+            $dto->tokenEndpointAuthMethod = $value->getTokenEndpointAuthMethod();
+            $dto->grantTypesJson = $value->getGrantTypesJson();
+            $dto->responseTypesJson = $value->getResponseTypesJson();
+            $dto->dynamicallyRegistered = $value->isDynamicallyRegistered();
+            $dto->registeredAt = $value->getRegisteredAt()?->format(DateTime::ATOM);
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

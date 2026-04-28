@@ -13,6 +13,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutUriAttributeHolder;
@@ -25,8 +27,28 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegistrationAccessAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientClientNameAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientNameVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientLogoUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientLogoUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientClientUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPolicyUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPolicyUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTosUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTosUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTokenEndpointAuthMethodAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientGrantTypesJsonAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientGrantTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientResponseTypesJsonAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientResponseTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDynamicallyRegisteredAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegisteredAtAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -37,13 +59,24 @@ class TrustedClientAttributes
     use TrustedClientCodeAttributeHolder;
     use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
+    use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
     use TrustedClientBackChannelLogoutUriAttributeHolder;
     use TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientFrontChannelLogoutUriAttributeHolder;
     use TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
-    use TrustedClientAllowedRedirectsAttributeHolder;
+    use TrustedClientRegistrationAccessAttributeHolder;
+    use TrustedClientClientNameAttributeHolder;
+    use TrustedClientLogoUriAttributeHolder;
+    use TrustedClientClientUriAttributeHolder;
+    use TrustedClientPolicyUriAttributeHolder;
+    use TrustedClientTosUriAttributeHolder;
+    use TrustedClientTokenEndpointAuthMethodAttributeHolder;
+    use TrustedClientGrantTypesJsonAttributeHolder;
+    use TrustedClientResponseTypesJsonAttributeHolder;
+    use TrustedClientDynamicallyRegisteredAttributeHolder;
+    use TrustedClientRegisteredAtAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -51,13 +84,24 @@ class TrustedClientAttributes
       'code' => 'unsetCode',
       'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
+      'allowedRedirects' => 'unsetAllowedRedirects',
       'secretOauth' => 'unsetSecretOauth',
       'backChannelLogoutUri' => 'unsetBackChannelLogoutUri',
       'backChannelLogoutSessionRequired' => 'unsetBackChannelLogoutSessionRequired',
       'frontChannelLogoutUri' => 'unsetFrontChannelLogoutUri',
       'frontChannelLogoutSessionRequired' => 'unsetFrontChannelLogoutSessionRequired',
       'enabled' => 'unsetEnabled',
-      'allowedRedirects' => 'unsetAllowedRedirects',
+      'registrationAccess' => 'unsetRegistrationAccess',
+      'clientName' => 'unsetClientName',
+      'logoUri' => 'unsetLogoUri',
+      'clientUri' => 'unsetClientUri',
+      'policyUri' => 'unsetPolicyUri',
+      'tosUri' => 'unsetTosUri',
+      'tokenEndpointAuthMethod' => 'unsetTokenEndpointAuthMethod',
+      'grantTypesJson' => 'unsetGrantTypesJson',
+      'responseTypesJson' => 'unsetResponseTypesJson',
+      'dynamicallyRegistered' => 'unsetDynamicallyRegistered',
+      'registeredAt' => 'unsetRegisteredAt',
       'version' => 'unsetVersion',
     ];
 
@@ -68,13 +112,24 @@ class TrustedClientAttributes
         $code = TrustedClientCodeVO::tryFrom($this->code, $errors);
         $allowAllScopes = TrustedClientAllowAllScopesVO::tryFrom($this->allowAllScopes, $errors);
         $publicAllow = TrustedClientPublicAllowVO::tryFrom($this->publicAllow, $errors);
+        $allowedRedirects = TrustedClientAllowedRedirectsVO::tryFrom($this->allowedRedirects, $errors);
         $secretOauth = TrustedClientSecretOauthVO::tryFrom($this->secretOauth, $errors);
         $backChannelLogoutUri = TrustedClientBackChannelLogoutUriVO::tryFrom($this->backChannelLogoutUri, $errors);
         $backChannelLogoutSessionRequired = TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($this->backChannelLogoutSessionRequired, $errors);
         $frontChannelLogoutUri = TrustedClientFrontChannelLogoutUriVO::tryFrom($this->frontChannelLogoutUri, $errors);
         $frontChannelLogoutSessionRequired = TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($this->frontChannelLogoutSessionRequired, $errors);
         $enabled = TrustedClientEnabledVO::tryFrom($this->enabled, $errors);
-        $allowedRedirects = TrustedClientAllowedRedirectsVO::tryFrom($this->allowedRedirects, $errors);
+        $registrationAccess = TrustedClientRegistrationAccessVO::tryFrom($this->registrationAccess, $errors);
+        $clientName = TrustedClientClientNameVO::tryFrom($this->clientName, $errors);
+        $logoUri = TrustedClientLogoUriVO::tryFrom($this->logoUri, $errors);
+        $clientUri = TrustedClientClientUriVO::tryFrom($this->clientUri, $errors);
+        $policyUri = TrustedClientPolicyUriVO::tryFrom($this->policyUri, $errors);
+        $tosUri = TrustedClientTosUriVO::tryFrom($this->tosUri, $errors);
+        $tokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::tryFrom($this->tokenEndpointAuthMethod, $errors);
+        $grantTypesJson = TrustedClientGrantTypesJsonVO::tryFrom($this->grantTypesJson, $errors);
+        $responseTypesJson = TrustedClientResponseTypesJsonVO::tryFrom($this->responseTypesJson, $errors);
+        $dynamicallyRegistered = TrustedClientDynamicallyRegisteredVO::tryFrom($this->dynamicallyRegistered, $errors);
+        $registeredAt = TrustedClientRegisteredAtVO::tryFrom($this->registeredAt, $errors);
         $version = TrustedClientVersionVO::tryFrom($this->version, $errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -82,20 +137,32 @@ class TrustedClientAttributes
         \assert($uid !== null);
         \assert($code !== null);
         \assert($publicAllow !== null);
-        \assert($enabled !== null);
         \assert($allowedRedirects !== null);
+        \assert($enabled !== null);
+        \assert($tokenEndpointAuthMethod !== null);
         return new TrustedClient(
             uid: $uid,
             code: $code,
             allowAllScopes: $allowAllScopes,
             publicAllow: $publicAllow,
+            allowedRedirects: $allowedRedirects,
             secretOauth: $secretOauth,
             backChannelLogoutUri: $backChannelLogoutUri,
             backChannelLogoutSessionRequired: $backChannelLogoutSessionRequired,
             frontChannelLogoutUri: $frontChannelLogoutUri,
             frontChannelLogoutSessionRequired: $frontChannelLogoutSessionRequired,
             enabled: $enabled,
-            allowedRedirects: $allowedRedirects,
+            registrationAccess: $registrationAccess,
+            clientName: $clientName,
+            logoUri: $logoUri,
+            clientUri: $clientUri,
+            policyUri: $policyUri,
+            tosUri: $tosUri,
+            tokenEndpointAuthMethod: $tokenEndpointAuthMethod,
+            grantTypesJson: $grantTypesJson,
+            responseTypesJson: $responseTypesJson,
+            dynamicallyRegistered: $dynamicallyRegistered,
+            registeredAt: $registeredAt,
             version: $version,
         );
     }
@@ -107,13 +174,24 @@ class TrustedClientAttributes
         $this->withAssertedCodeRules($value, $errorsList);
         $this->withAssertedAllowAllScopesRules($value, $errorsList);
         $this->withAssertedPublicAllowRules($value, $errorsList);
+        $this->withAssertedAllowedRedirectsRules($value, $errorsList);
         $this->withAssertedSecretOauthRules($value, $errorsList);
         $this->withAssertedBackChannelLogoutUriRules($value, $errorsList);
         $this->withAssertedBackChannelLogoutSessionRequiredRules($value, $errorsList);
         $this->withAssertedFrontChannelLogoutUriRules($value, $errorsList);
         $this->withAssertedFrontChannelLogoutSessionRequiredRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
-        $this->withAssertedAllowedRedirectsRules($value, $errorsList);
+        $this->withAssertedRegistrationAccessRules($value, $errorsList);
+        $this->withAssertedClientNameRules($value, $errorsList);
+        $this->withAssertedLogoUriRules($value, $errorsList);
+        $this->withAssertedClientUriRules($value, $errorsList);
+        $this->withAssertedPolicyUriRules($value, $errorsList);
+        $this->withAssertedTosUriRules($value, $errorsList);
+        $this->withAssertedTokenEndpointAuthMethodRules($value, $errorsList);
+        $this->withAssertedGrantTypesJsonRules($value, $errorsList);
+        $this->withAssertedResponseTypesJsonRules($value, $errorsList);
+        $this->withAssertedDynamicallyRegisteredRules($value, $errorsList);
+        $this->withAssertedRegisteredAtRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -132,13 +210,24 @@ class TrustedClientAttributes
         $this->withDefaultCode();
         $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
+        $this->withDefaultAllowedRedirects();
         $this->withDefaultSecretOauth();
         $this->withDefaultBackChannelLogoutUri();
         $this->withDefaultBackChannelLogoutSessionRequired();
         $this->withDefaultFrontChannelLogoutUri();
         $this->withDefaultFrontChannelLogoutSessionRequired();
         $this->withDefaultEnabled();
-        $this->withDefaultAllowedRedirects();
+        $this->withDefaultRegistrationAccess();
+        $this->withDefaultClientName();
+        $this->withDefaultLogoUri();
+        $this->withDefaultClientUri();
+        $this->withDefaultPolicyUri();
+        $this->withDefaultTosUri();
+        $this->withDefaultTokenEndpointAuthMethod();
+        $this->withDefaultGrantTypesJson();
+        $this->withDefaultResponseTypesJson();
+        $this->withDefaultDynamicallyRegistered();
+        $this->withDefaultRegisteredAt();
         $this->withDefaultVersion();
         return $this;
     }

@@ -9,13 +9,24 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientCodeAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowAllScopesAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegistrationAccessAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientClientNameAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientLogoUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientClientUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPolicyUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTosUriAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientTokenEndpointAuthMethodAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientGrantTypesJsonAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientResponseTypesJsonAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientDynamicallyRegisteredAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRegisteredAtAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 
@@ -25,13 +36,24 @@ class TrustedClientUpdateParams
     use TrustedClientCodeAttributeHolder;
     use TrustedClientAllowAllScopesAttributeHolder;
     use TrustedClientPublicAllowAttributeHolder;
+    use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
     use TrustedClientBackChannelLogoutUriAttributeHolder;
     use TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientFrontChannelLogoutUriAttributeHolder;
     use TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientEnabledAttributeHolder;
-    use TrustedClientAllowedRedirectsAttributeHolder;
+    use TrustedClientRegistrationAccessAttributeHolder;
+    use TrustedClientClientNameAttributeHolder;
+    use TrustedClientLogoUriAttributeHolder;
+    use TrustedClientClientUriAttributeHolder;
+    use TrustedClientPolicyUriAttributeHolder;
+    use TrustedClientTosUriAttributeHolder;
+    use TrustedClientTokenEndpointAuthMethodAttributeHolder;
+    use TrustedClientGrantTypesJsonAttributeHolder;
+    use TrustedClientResponseTypesJsonAttributeHolder;
+    use TrustedClientDynamicallyRegisteredAttributeHolder;
+    use TrustedClientRegisteredAtAttributeHolder;
     use TrustedClientVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -39,13 +61,24 @@ class TrustedClientUpdateParams
       'code' => 'unsetCode',
       'allowAllScopes' => 'unsetAllowAllScopes',
       'publicAllow' => 'unsetPublicAllow',
+      'allowedRedirects' => 'unsetAllowedRedirects',
       'secretOauth' => 'unsetSecretOauth',
       'backChannelLogoutUri' => 'unsetBackChannelLogoutUri',
       'backChannelLogoutSessionRequired' => 'unsetBackChannelLogoutSessionRequired',
       'frontChannelLogoutUri' => 'unsetFrontChannelLogoutUri',
       'frontChannelLogoutSessionRequired' => 'unsetFrontChannelLogoutSessionRequired',
       'enabled' => 'unsetEnabled',
-      'allowedRedirects' => 'unsetAllowedRedirects',
+      'registrationAccess' => 'unsetRegistrationAccess',
+      'clientName' => 'unsetClientName',
+      'logoUri' => 'unsetLogoUri',
+      'clientUri' => 'unsetClientUri',
+      'policyUri' => 'unsetPolicyUri',
+      'tosUri' => 'unsetTosUri',
+      'tokenEndpointAuthMethod' => 'unsetTokenEndpointAuthMethod',
+      'grantTypesJson' => 'unsetGrantTypesJson',
+      'responseTypesJson' => 'unsetResponseTypesJson',
+      'dynamicallyRegistered' => 'unsetDynamicallyRegistered',
+      'registeredAt' => 'unsetRegisteredAt',
       'version' => 'unsetVersion',
     ];
 
@@ -56,13 +89,24 @@ class TrustedClientUpdateParams
             $this->readCodeFrom($att);
             $this->readAllowAllScopesFrom($att);
             $this->readPublicAllowFrom($att);
+            $this->readAllowedRedirectsFrom($att);
             $this->readSecretOauthFrom($att);
             $this->readBackChannelLogoutUriFrom($att);
             $this->readBackChannelLogoutSessionRequiredFrom($att);
             $this->readFrontChannelLogoutUriFrom($att);
             $this->readFrontChannelLogoutSessionRequiredFrom($att);
             $this->readEnabledFrom($att);
-            $this->readAllowedRedirectsFrom($att);
+            $this->readRegistrationAccessFrom($att);
+            $this->readClientNameFrom($att);
+            $this->readLogoUriFrom($att);
+            $this->readClientUriFrom($att);
+            $this->readPolicyUriFrom($att);
+            $this->readTosUriFrom($att);
+            $this->readTokenEndpointAuthMethodFrom($att);
+            $this->readGrantTypesJsonFrom($att);
+            $this->readResponseTypesJsonFrom($att);
+            $this->readDynamicallyRegisteredFrom($att);
+            $this->readRegisteredAtFrom($att);
             $this->readVersionFrom($att);
         }
     }
@@ -73,13 +117,24 @@ class TrustedClientUpdateParams
         $this->writeCodeTo($att);
         $this->writeAllowAllScopesTo($att);
         $this->writePublicAllowTo($att);
+        $this->writeAllowedRedirectsTo($att);
         $this->writeSecretOauthTo($att);
         $this->writeBackChannelLogoutUriTo($att);
         $this->writeBackChannelLogoutSessionRequiredTo($att);
         $this->writeFrontChannelLogoutUriTo($att);
         $this->writeFrontChannelLogoutSessionRequiredTo($att);
         $this->writeEnabledTo($att);
-        $this->writeAllowedRedirectsTo($att);
+        $this->writeRegistrationAccessTo($att);
+        $this->writeClientNameTo($att);
+        $this->writeLogoUriTo($att);
+        $this->writeClientUriTo($att);
+        $this->writePolicyUriTo($att);
+        $this->writeTosUriTo($att);
+        $this->writeTokenEndpointAuthMethodTo($att);
+        $this->writeGrantTypesJsonTo($att);
+        $this->writeResponseTypesJsonTo($att);
+        $this->writeDynamicallyRegisteredTo($att);
+        $this->writeRegisteredAtTo($att);
         $this->writeVersionTo($att);
         return $att;
     }
@@ -95,13 +150,24 @@ class TrustedClientUpdateParams
         $this->withDefaultCode();
         $this->withDefaultAllowAllScopes();
         $this->withDefaultPublicAllow();
+        $this->withDefaultAllowedRedirects();
         $this->withDefaultSecretOauth();
         $this->withDefaultBackChannelLogoutUri();
         $this->withDefaultBackChannelLogoutSessionRequired();
         $this->withDefaultFrontChannelLogoutUri();
         $this->withDefaultFrontChannelLogoutSessionRequired();
         $this->withDefaultEnabled();
-        $this->withDefaultAllowedRedirects();
+        $this->withDefaultRegistrationAccess();
+        $this->withDefaultClientName();
+        $this->withDefaultLogoUri();
+        $this->withDefaultClientUri();
+        $this->withDefaultPolicyUri();
+        $this->withDefaultTosUri();
+        $this->withDefaultTokenEndpointAuthMethod();
+        $this->withDefaultGrantTypesJson();
+        $this->withDefaultResponseTypesJson();
+        $this->withDefaultDynamicallyRegistered();
+        $this->withDefaultRegisteredAt();
         $this->withDefaultVersion();
         return $this;
     }

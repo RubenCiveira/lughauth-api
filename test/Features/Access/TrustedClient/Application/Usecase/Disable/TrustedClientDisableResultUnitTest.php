@@ -7,17 +7,28 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientCodeVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowAllScopesVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientNameVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientLogoUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPolicyUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTosUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientGrantTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientResponseTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableResult;
 use PHPUnit\Framework\TestCase;
@@ -60,6 +71,49 @@ final class TrustedClientDisableResultUnitTest extends TestCase
         $value->unsetPublicAllow();
         $this->assertEquals(false, $value->getPublicAllowOrDefault(TrustedClientPublicAllowVO::from($publicAllowOtherValue))->value());
         $this->assertNotEquals(true, $value->getPublicAllowOrDefault(TrustedClientPublicAllowVO::from($publicAllowOtherValue))->value());
+        $allowedRedirectsOneValue = new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('one'),
+            TrustedClientAllowedRedirectsUrlVO::from('one'),
+            TrustedClientAllowedRedirectsVersionVO::from(1)
+        ));
+        $allowedRedirectsOtherValue = new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('other'),
+            TrustedClientAllowedRedirectsUrlVO::from('other'),
+            TrustedClientAllowedRedirectsVersionVO::from(2)
+        ));
+        $copy = $value->allowedRedirects($allowedRedirectsOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('one'),
+            TrustedClientAllowedRedirectsUrlVO::from('one'),
+            TrustedClientAllowedRedirectsVersionVO::from(1)
+        )), $value->getAllowedRedirects());
+        $this->assertNotEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('other'),
+            TrustedClientAllowedRedirectsUrlVO::from('other'),
+            TrustedClientAllowedRedirectsVersionVO::from(2)
+        )), $value->getAllowedRedirects());
+        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('one'),
+            TrustedClientAllowedRedirectsUrlVO::from('one'),
+            TrustedClientAllowedRedirectsVersionVO::from(1)
+        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
+        $this->assertNotEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('other'),
+            TrustedClientAllowedRedirectsUrlVO::from('other'),
+            TrustedClientAllowedRedirectsVersionVO::from(2)
+        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
+        $value->unsetAllowedRedirects();
+        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('other'),
+            TrustedClientAllowedRedirectsUrlVO::from('other'),
+            TrustedClientAllowedRedirectsVersionVO::from(2)
+        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
+        $this->assertNotEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+            TrustedClientAllowedRedirectsUidVO::from('one'),
+            TrustedClientAllowedRedirectsUrlVO::from('one'),
+            TrustedClientAllowedRedirectsVersionVO::from(1)
+        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
         $secretOauthOneValue = 'cyphered://cypher';
         $secretOauthOtherValue = 'cyphered://ocyphered';
         $copy = $value->secretOauth($secretOauthOneValue);
@@ -126,49 +180,127 @@ final class TrustedClientDisableResultUnitTest extends TestCase
         $value->unsetEnabled();
         $this->assertEquals(false, $value->getEnabledOrDefault(TrustedClientEnabledVO::from($enabledOtherValue))->value());
         $this->assertNotEquals(true, $value->getEnabledOrDefault(TrustedClientEnabledVO::from($enabledOtherValue))->value());
-        $allowedRedirectsOneValue = new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        ));
-        $allowedRedirectsOtherValue = new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('other'),
-            TrustedClientAllowedRedirectsUrlVO::from('other'),
-            TrustedClientAllowedRedirectsVersionVO::from(2)
-        ));
-        $copy = $value->allowedRedirects($allowedRedirectsOneValue);
+        $registrationAccessOneValue = 'one';
+        $registrationAccessOtherValue = 'other';
+        $copy = $value->registrationAccess($registrationAccessOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )), $value->getAllowedRedirects());
-        $this->assertNotEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('other'),
-            TrustedClientAllowedRedirectsUrlVO::from('other'),
-            TrustedClientAllowedRedirectsVersionVO::from(2)
-        )), $value->getAllowedRedirects());
-        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
-        $this->assertNotEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('other'),
-            TrustedClientAllowedRedirectsUrlVO::from('other'),
-            TrustedClientAllowedRedirectsVersionVO::from(2)
-        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
-        $value->unsetAllowedRedirects();
-        $this->assertEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('other'),
-            TrustedClientAllowedRedirectsUrlVO::from('other'),
-            TrustedClientAllowedRedirectsVersionVO::from(2)
-        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
-        $this->assertNotEquals(new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-            TrustedClientAllowedRedirectsUidVO::from('one'),
-            TrustedClientAllowedRedirectsUrlVO::from('one'),
-            TrustedClientAllowedRedirectsVersionVO::from(1)
-        )), $value->getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO::from($allowedRedirectsOtherValue))->value());
+        $this->assertEquals('one', $value->getRegistrationAccess());
+        $this->assertNotEquals('other', $value->getRegistrationAccess());
+        $this->assertEquals('one', $value->getRegistrationAccessOrDefault(TrustedClientRegistrationAccessVO::from($registrationAccessOtherValue))->value());
+        $this->assertNotEquals('other', $value->getRegistrationAccessOrDefault(TrustedClientRegistrationAccessVO::from($registrationAccessOtherValue))->value());
+        $value->unsetRegistrationAccess();
+        $this->assertEquals('other', $value->getRegistrationAccessOrDefault(TrustedClientRegistrationAccessVO::from($registrationAccessOtherValue))->value());
+        $this->assertNotEquals('one', $value->getRegistrationAccessOrDefault(TrustedClientRegistrationAccessVO::from($registrationAccessOtherValue))->value());
+        $clientNameOneValue = 'one';
+        $clientNameOtherValue = 'other';
+        $copy = $value->clientName($clientNameOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getClientName());
+        $this->assertNotEquals('other', $value->getClientName());
+        $this->assertEquals('one', $value->getClientNameOrDefault(TrustedClientClientNameVO::from($clientNameOtherValue))->value());
+        $this->assertNotEquals('other', $value->getClientNameOrDefault(TrustedClientClientNameVO::from($clientNameOtherValue))->value());
+        $value->unsetClientName();
+        $this->assertEquals('other', $value->getClientNameOrDefault(TrustedClientClientNameVO::from($clientNameOtherValue))->value());
+        $this->assertNotEquals('one', $value->getClientNameOrDefault(TrustedClientClientNameVO::from($clientNameOtherValue))->value());
+        $logoUriOneValue = 'one';
+        $logoUriOtherValue = 'other';
+        $copy = $value->logoUri($logoUriOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getLogoUri());
+        $this->assertNotEquals('other', $value->getLogoUri());
+        $this->assertEquals('one', $value->getLogoUriOrDefault(TrustedClientLogoUriVO::from($logoUriOtherValue))->value());
+        $this->assertNotEquals('other', $value->getLogoUriOrDefault(TrustedClientLogoUriVO::from($logoUriOtherValue))->value());
+        $value->unsetLogoUri();
+        $this->assertEquals('other', $value->getLogoUriOrDefault(TrustedClientLogoUriVO::from($logoUriOtherValue))->value());
+        $this->assertNotEquals('one', $value->getLogoUriOrDefault(TrustedClientLogoUriVO::from($logoUriOtherValue))->value());
+        $clientUriOneValue = 'one';
+        $clientUriOtherValue = 'other';
+        $copy = $value->clientUri($clientUriOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getClientUri());
+        $this->assertNotEquals('other', $value->getClientUri());
+        $this->assertEquals('one', $value->getClientUriOrDefault(TrustedClientClientUriVO::from($clientUriOtherValue))->value());
+        $this->assertNotEquals('other', $value->getClientUriOrDefault(TrustedClientClientUriVO::from($clientUriOtherValue))->value());
+        $value->unsetClientUri();
+        $this->assertEquals('other', $value->getClientUriOrDefault(TrustedClientClientUriVO::from($clientUriOtherValue))->value());
+        $this->assertNotEquals('one', $value->getClientUriOrDefault(TrustedClientClientUriVO::from($clientUriOtherValue))->value());
+        $policyUriOneValue = 'one';
+        $policyUriOtherValue = 'other';
+        $copy = $value->policyUri($policyUriOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getPolicyUri());
+        $this->assertNotEquals('other', $value->getPolicyUri());
+        $this->assertEquals('one', $value->getPolicyUriOrDefault(TrustedClientPolicyUriVO::from($policyUriOtherValue))->value());
+        $this->assertNotEquals('other', $value->getPolicyUriOrDefault(TrustedClientPolicyUriVO::from($policyUriOtherValue))->value());
+        $value->unsetPolicyUri();
+        $this->assertEquals('other', $value->getPolicyUriOrDefault(TrustedClientPolicyUriVO::from($policyUriOtherValue))->value());
+        $this->assertNotEquals('one', $value->getPolicyUriOrDefault(TrustedClientPolicyUriVO::from($policyUriOtherValue))->value());
+        $tosUriOneValue = 'one';
+        $tosUriOtherValue = 'other';
+        $copy = $value->tosUri($tosUriOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getTosUri());
+        $this->assertNotEquals('other', $value->getTosUri());
+        $this->assertEquals('one', $value->getTosUriOrDefault(TrustedClientTosUriVO::from($tosUriOtherValue))->value());
+        $this->assertNotEquals('other', $value->getTosUriOrDefault(TrustedClientTosUriVO::from($tosUriOtherValue))->value());
+        $value->unsetTosUri();
+        $this->assertEquals('other', $value->getTosUriOrDefault(TrustedClientTosUriVO::from($tosUriOtherValue))->value());
+        $this->assertNotEquals('one', $value->getTosUriOrDefault(TrustedClientTosUriVO::from($tosUriOtherValue))->value());
+        $tokenEndpointAuthMethodOneValue = 'one';
+        $tokenEndpointAuthMethodOtherValue = 'other';
+        $copy = $value->tokenEndpointAuthMethod($tokenEndpointAuthMethodOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getTokenEndpointAuthMethod());
+        $this->assertNotEquals('other', $value->getTokenEndpointAuthMethod());
+        $this->assertEquals('one', $value->getTokenEndpointAuthMethodOrDefault(TrustedClientTokenEndpointAuthMethodVO::from($tokenEndpointAuthMethodOtherValue))->value());
+        $this->assertNotEquals('other', $value->getTokenEndpointAuthMethodOrDefault(TrustedClientTokenEndpointAuthMethodVO::from($tokenEndpointAuthMethodOtherValue))->value());
+        $value->unsetTokenEndpointAuthMethod();
+        $this->assertEquals('other', $value->getTokenEndpointAuthMethodOrDefault(TrustedClientTokenEndpointAuthMethodVO::from($tokenEndpointAuthMethodOtherValue))->value());
+        $this->assertNotEquals('one', $value->getTokenEndpointAuthMethodOrDefault(TrustedClientTokenEndpointAuthMethodVO::from($tokenEndpointAuthMethodOtherValue))->value());
+        $grantTypesJsonOneValue = 'one';
+        $grantTypesJsonOtherValue = 'other';
+        $copy = $value->grantTypesJson($grantTypesJsonOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getGrantTypesJson());
+        $this->assertNotEquals('other', $value->getGrantTypesJson());
+        $this->assertEquals('one', $value->getGrantTypesJsonOrDefault(TrustedClientGrantTypesJsonVO::from($grantTypesJsonOtherValue))->value());
+        $this->assertNotEquals('other', $value->getGrantTypesJsonOrDefault(TrustedClientGrantTypesJsonVO::from($grantTypesJsonOtherValue))->value());
+        $value->unsetGrantTypesJson();
+        $this->assertEquals('other', $value->getGrantTypesJsonOrDefault(TrustedClientGrantTypesJsonVO::from($grantTypesJsonOtherValue))->value());
+        $this->assertNotEquals('one', $value->getGrantTypesJsonOrDefault(TrustedClientGrantTypesJsonVO::from($grantTypesJsonOtherValue))->value());
+        $responseTypesJsonOneValue = [];
+        $responseTypesJsonOtherValue = [];
+        $copy = $value->responseTypesJson($responseTypesJsonOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals([], $value->getResponseTypesJson());
+        $this->assertNotEquals([], $value->getResponseTypesJson());
+        $this->assertEquals([], $value->getResponseTypesJsonOrDefault(TrustedClientResponseTypesJsonVO::from($responseTypesJsonOtherValue))->value());
+        $this->assertNotEquals([], $value->getResponseTypesJsonOrDefault(TrustedClientResponseTypesJsonVO::from($responseTypesJsonOtherValue))->value());
+        $value->unsetResponseTypesJson();
+        $this->assertEquals([], $value->getResponseTypesJsonOrDefault(TrustedClientResponseTypesJsonVO::from($responseTypesJsonOtherValue))->value());
+        $this->assertNotEquals([], $value->getResponseTypesJsonOrDefault(TrustedClientResponseTypesJsonVO::from($responseTypesJsonOtherValue))->value());
+        $dynamicallyRegisteredOneValue = true;
+        $dynamicallyRegisteredOtherValue = false;
+        $copy = $value->dynamicallyRegistered($dynamicallyRegisteredOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals(true, $value->isDynamicallyRegistered());
+        $this->assertNotEquals(false, $value->isDynamicallyRegistered());
+        $this->assertEquals(true, $value->getDynamicallyRegisteredOrDefault(TrustedClientDynamicallyRegisteredVO::from($dynamicallyRegisteredOtherValue))->value());
+        $this->assertNotEquals(false, $value->getDynamicallyRegisteredOrDefault(TrustedClientDynamicallyRegisteredVO::from($dynamicallyRegisteredOtherValue))->value());
+        $value->unsetDynamicallyRegistered();
+        $this->assertEquals(false, $value->getDynamicallyRegisteredOrDefault(TrustedClientDynamicallyRegisteredVO::from($dynamicallyRegisteredOtherValue))->value());
+        $this->assertNotEquals(true, $value->getDynamicallyRegisteredOrDefault(TrustedClientDynamicallyRegisteredVO::from($dynamicallyRegisteredOtherValue))->value());
+        $registeredAtOneValue = (new \DateTimeImmutable('1980-08-20T14:32:45.123Z'));
+        $registeredAtOtherValue = (new \DateTimeImmutable('1981-09-06T14:32:45.123Z'));
+        $copy = $value->registeredAt($registeredAtOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $value->getRegisteredAt());
+        $this->assertNotEquals((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')), $value->getRegisteredAt());
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $value->getRegisteredAtOrDefault(TrustedClientRegisteredAtVO::from($registeredAtOtherValue))->value());
+        $this->assertNotEquals((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')), $value->getRegisteredAtOrDefault(TrustedClientRegisteredAtVO::from($registeredAtOtherValue))->value());
+        $value->unsetRegisteredAt();
+        $this->assertEquals((new \DateTimeImmutable('1981-09-06T14:32:45.123Z')), $value->getRegisteredAtOrDefault(TrustedClientRegisteredAtVO::from($registeredAtOtherValue))->value());
+        $this->assertNotEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $value->getRegisteredAtOrDefault(TrustedClientRegisteredAtVO::from($registeredAtOtherValue))->value());
         $versionOneValue = 1;
         $versionOtherValue = 2;
         $copy = $value->version($versionOneValue);

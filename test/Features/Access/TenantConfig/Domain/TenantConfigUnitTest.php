@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigDynamicRegistrationPolicyOptions;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 
@@ -17,6 +18,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
             wellcomeEmail: 'one',
@@ -41,6 +43,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isInnerLabelChanged());
         $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged());
+        $this->assertEquals($one->getDynamicRegistrationPolicy(), $other->getDynamicRegistrationPolicy());
+        $this->assertTrue($one->isDynamicRegistrationPolicyChanged());
         $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
@@ -68,6 +72,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
             wellcomeEmail: 'one',
@@ -83,6 +88,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('other'),
             innerLabel: 'other',
             forceMfa: false,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::TOKEN_REQUIRED,
             allowRegister: false,
             enableRegisterUsers: false,
             wellcomeEmail: 'other',
@@ -105,6 +111,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isInnerLabelChanged($base));
         $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged($base));
+        $this->assertEquals($one->getDynamicRegistrationPolicy(), $other->getDynamicRegistrationPolicy());
+        $this->assertTrue($one->isDynamicRegistrationPolicyChanged($base));
         $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
@@ -132,6 +140,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
             wellcomeEmail: 'one',
@@ -151,6 +160,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertEquals('one', $json['tenant']['$ref']);
         $this->assertEquals('one', $json['innerLabel']);
         $this->assertEquals(true, $json['forceMfa']);
+        $this->assertEquals(TenantConfigDynamicRegistrationPolicyOptions::OPEN, $json['dynamicRegistrationPolicy']);
         $this->assertEquals(true, $json['allowRegister']);
         $this->assertEquals(true, $json['enableRegisterUsers']);
         $this->assertEquals(true, $json['allowRecoverPass']);
@@ -164,6 +174,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
             wellcomeEmail: 'one',
@@ -186,6 +197,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isInnerLabelChanged());
         $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged());
+        $this->assertEquals($one->getDynamicRegistrationPolicy(), $other->getDynamicRegistrationPolicy());
+        $this->assertTrue($one->isDynamicRegistrationPolicyChanged());
         $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
@@ -214,6 +227,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
             wellcomeEmail: 'one',
@@ -229,6 +243,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('other'),
             innerLabel: 'other',
             forceMfa: false,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::TOKEN_REQUIRED,
             allowRegister: false,
             enableRegisterUsers: false,
             wellcomeEmail: 'other',
@@ -251,6 +266,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isInnerLabelChanged($base));
         $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged($base));
+        $this->assertEquals($one->getDynamicRegistrationPolicy(), $other->getDynamicRegistrationPolicy());
+        $this->assertTrue($one->isDynamicRegistrationPolicyChanged($base));
         $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
@@ -280,6 +297,7 @@ final class TenantConfigUnitTest extends TestCase
             tenant: new TenantRef('one'),
             innerLabel: 'one',
             forceMfa: true,
+            dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
             wellcomeEmail: 'one',
@@ -302,6 +320,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isInnerLabelChanged());
         $this->assertEquals($one->isForceMfa(), $other->isForceMfa());
         $this->assertTrue($one->isForceMfaChanged());
+        $this->assertEquals($one->getDynamicRegistrationPolicy(), $other->getDynamicRegistrationPolicy());
+        $this->assertTrue($one->isDynamicRegistrationPolicyChanged());
         $this->assertEquals($one->isAllowRegister(), $other->isAllowRegister());
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());

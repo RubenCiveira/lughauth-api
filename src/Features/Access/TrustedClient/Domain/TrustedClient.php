@@ -12,6 +12,9 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowAllScopesAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPublicAllowVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientPublicAllowAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedRedirectsAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientSecretOauthAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
@@ -24,9 +27,28 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientFrontChannelLogoutSessionRequiredAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientEnabledVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientEnabledAccessor;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedRedirectsAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegistrationAccessVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientRegistrationAccessAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientNameVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientClientNameAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientLogoUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientLogoUriAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientClientUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientClientUriAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientPolicyUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientPolicyUriAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTosUriVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientTosUriAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientTokenEndpointAuthMethodVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientTokenEndpointAuthMethodAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientGrantTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientGrantTypesJsonAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientResponseTypesJsonVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientResponseTypesJsonAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientDynamicallyRegisteredVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientDynamicallyRegisteredAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRegisteredAtVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientRegisteredAtAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientVersionAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Formula\EnabledCalculator;
@@ -41,13 +63,24 @@ class TrustedClient extends TrustedClientRef
     use TrustedClientCodeAccessor;
     use TrustedClientAllowAllScopesAccessor;
     use TrustedClientPublicAllowAccessor;
+    use TrustedClientAllowedRedirectsAccessor;
     use TrustedClientSecretOauthAccessor;
     use TrustedClientBackChannelLogoutUriAccessor;
     use TrustedClientBackChannelLogoutSessionRequiredAccessor;
     use TrustedClientFrontChannelLogoutUriAccessor;
     use TrustedClientFrontChannelLogoutSessionRequiredAccessor;
     use TrustedClientEnabledAccessor;
-    use TrustedClientAllowedRedirectsAccessor;
+    use TrustedClientRegistrationAccessAccessor;
+    use TrustedClientClientNameAccessor;
+    use TrustedClientLogoUriAccessor;
+    use TrustedClientClientUriAccessor;
+    use TrustedClientPolicyUriAccessor;
+    use TrustedClientTosUriAccessor;
+    use TrustedClientTokenEndpointAuthMethodAccessor;
+    use TrustedClientGrantTypesJsonAccessor;
+    use TrustedClientResponseTypesJsonAccessor;
+    use TrustedClientDynamicallyRegisteredAccessor;
+    use TrustedClientRegisteredAtAccessor;
     use TrustedClientVersionAccessor;
     private array $recordedEvents = [];
 
@@ -55,27 +88,49 @@ class TrustedClient extends TrustedClientRef
         TrustedClientUidVO|string $uid,
         TrustedClientCodeVO|string $code,
         TrustedClientPublicAllowVO|bool $publicAllow,
-        TrustedClientEnabledVO|bool $enabled,
         TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects,
+        TrustedClientEnabledVO|bool $enabled,
+        TrustedClientTokenEndpointAuthMethodVO|string $tokenEndpointAuthMethod,
         TrustedClientAllowAllScopesVO|bool|null $allowAllScopes = null,
         TrustedClientSecretOauthVO|string|null $secretOauth = null,
         TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri = null,
         TrustedClientBackChannelLogoutSessionRequiredVO|bool|null $backChannelLogoutSessionRequired = null,
         TrustedClientFrontChannelLogoutUriVO|string|null $frontChannelLogoutUri = null,
         TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $frontChannelLogoutSessionRequired = null,
+        TrustedClientRegistrationAccessVO|string|null $registrationAccess = null,
+        TrustedClientClientNameVO|string|null $clientName = null,
+        TrustedClientLogoUriVO|string|null $logoUri = null,
+        TrustedClientClientUriVO|string|null $clientUri = null,
+        TrustedClientPolicyUriVO|string|null $policyUri = null,
+        TrustedClientTosUriVO|string|null $tosUri = null,
+        TrustedClientGrantTypesJsonVO|string|null $grantTypesJson = null,
+        TrustedClientResponseTypesJsonVO|mixed|null $responseTypesJson = null,
+        TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered = null,
+        TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt = null,
         TrustedClientVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
         $this->_code = TrustedClientCodeVO::from($code);
         $this->_allowAllScopes = null === $allowAllScopes ? TrustedClientAllowAllScopesVO::empty() : TrustedClientAllowAllScopesVO::from($allowAllScopes);
         $this->_publicAllow = TrustedClientPublicAllowVO::from($publicAllow);
+        $this->_allowedRedirects = TrustedClientAllowedRedirectsVO::from($allowedRedirects);
         $this->_secretOauth = null === $secretOauth ? TrustedClientSecretOauthVO::empty() : TrustedClientSecretOauthVO::from($secretOauth);
         $this->_backChannelLogoutUri = null === $backChannelLogoutUri ? TrustedClientBackChannelLogoutUriVO::empty() : TrustedClientBackChannelLogoutUriVO::from($backChannelLogoutUri);
         $this->_backChannelLogoutSessionRequired = null === $backChannelLogoutSessionRequired ? TrustedClientBackChannelLogoutSessionRequiredVO::empty() : TrustedClientBackChannelLogoutSessionRequiredVO::from($backChannelLogoutSessionRequired);
         $this->_frontChannelLogoutUri = null === $frontChannelLogoutUri ? TrustedClientFrontChannelLogoutUriVO::empty() : TrustedClientFrontChannelLogoutUriVO::from($frontChannelLogoutUri);
         $this->_frontChannelLogoutSessionRequired = null === $frontChannelLogoutSessionRequired ? TrustedClientFrontChannelLogoutSessionRequiredVO::empty() : TrustedClientFrontChannelLogoutSessionRequiredVO::from($frontChannelLogoutSessionRequired);
         $this->_enabled = TrustedClientEnabledVO::from($enabled);
-        $this->_allowedRedirects = TrustedClientAllowedRedirectsVO::from($allowedRedirects);
+        $this->_registrationAccess = null === $registrationAccess ? TrustedClientRegistrationAccessVO::empty() : TrustedClientRegistrationAccessVO::from($registrationAccess);
+        $this->_clientName = null === $clientName ? TrustedClientClientNameVO::empty() : TrustedClientClientNameVO::from($clientName);
+        $this->_logoUri = null === $logoUri ? TrustedClientLogoUriVO::empty() : TrustedClientLogoUriVO::from($logoUri);
+        $this->_clientUri = null === $clientUri ? TrustedClientClientUriVO::empty() : TrustedClientClientUriVO::from($clientUri);
+        $this->_policyUri = null === $policyUri ? TrustedClientPolicyUriVO::empty() : TrustedClientPolicyUriVO::from($policyUri);
+        $this->_tosUri = null === $tosUri ? TrustedClientTosUriVO::empty() : TrustedClientTosUriVO::from($tosUri);
+        $this->_tokenEndpointAuthMethod = TrustedClientTokenEndpointAuthMethodVO::from($tokenEndpointAuthMethod);
+        $this->_grantTypesJson = null === $grantTypesJson ? TrustedClientGrantTypesJsonVO::empty() : TrustedClientGrantTypesJsonVO::from($grantTypesJson);
+        $this->_responseTypesJson = null === $responseTypesJson ? TrustedClientResponseTypesJsonVO::empty() : TrustedClientResponseTypesJsonVO::from($responseTypesJson);
+        $this->_dynamicallyRegistered = null === $dynamicallyRegistered ? TrustedClientDynamicallyRegisteredVO::empty() : TrustedClientDynamicallyRegisteredVO::from($dynamicallyRegistered);
+        $this->_registeredAt = null === $registeredAt ? TrustedClientRegisteredAtVO::empty() : TrustedClientRegisteredAtVO::from($registeredAt);
         $this->_version = null === $version ? TrustedClientVersionVO::empty() : TrustedClientVersionVO::from($version);
     }
     public function replace(TrustedClientAttributes $values): TrustedClient
@@ -84,13 +139,24 @@ class TrustedClient extends TrustedClientRef
         $value->_code = $values->getCodeOrDefault($this->_code);
         $value->_allowAllScopes = $values->getAllowAllScopesOrDefault($this->_allowAllScopes);
         $value->_publicAllow = $values->getPublicAllowOrDefault($this->_publicAllow);
+        $value->_allowedRedirects = $values->getAllowedRedirectsOrDefault($this->_allowedRedirects);
         $value->_secretOauth = $values->getSecretOauthOrDefault($this->_secretOauth);
         $value->_backChannelLogoutUri = $values->getBackChannelLogoutUriOrDefault($this->_backChannelLogoutUri);
         $value->_backChannelLogoutSessionRequired = $values->getBackChannelLogoutSessionRequiredOrDefault($this->_backChannelLogoutSessionRequired);
         $value->_frontChannelLogoutUri = $values->getFrontChannelLogoutUriOrDefault($this->_frontChannelLogoutUri);
         $value->_frontChannelLogoutSessionRequired = $values->getFrontChannelLogoutSessionRequiredOrDefault($this->_frontChannelLogoutSessionRequired);
         $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_allowedRedirects = $values->getAllowedRedirectsOrDefault($this->_allowedRedirects);
+        $value->_registrationAccess = $values->getRegistrationAccessOrDefault($this->_registrationAccess);
+        $value->_clientName = $values->getClientNameOrDefault($this->_clientName);
+        $value->_logoUri = $values->getLogoUriOrDefault($this->_logoUri);
+        $value->_clientUri = $values->getClientUriOrDefault($this->_clientUri);
+        $value->_policyUri = $values->getPolicyUriOrDefault($this->_policyUri);
+        $value->_tosUri = $values->getTosUriOrDefault($this->_tosUri);
+        $value->_tokenEndpointAuthMethod = $values->getTokenEndpointAuthMethodOrDefault($this->_tokenEndpointAuthMethod);
+        $value->_grantTypesJson = $values->getGrantTypesJsonOrDefault($this->_grantTypesJson);
+        $value->_responseTypesJson = $values->getResponseTypesJsonOrDefault($this->_responseTypesJson);
+        $value->_dynamicallyRegistered = $values->getDynamicallyRegisteredOrDefault($this->_dynamicallyRegistered);
+        $value->_registeredAt = $values->getRegisteredAtOrDefault($this->_registeredAt);
         $value->_version = $values->getVersionOrDefault($this->_version);
         return $value;
     }
@@ -141,11 +207,6 @@ class TrustedClient extends TrustedClientRef
         $data['code'] = $this->getCode();
         $data['allowAllScopes'] = $this->isAllowAllScopes();
         $data['publicAllow'] = $this->isPublicAllow();
-        $data['backChannelLogoutUri'] = $this->getBackChannelLogoutUri();
-        $data['backChannelLogoutSessionRequired'] = $this->isBackChannelLogoutSessionRequired();
-        $data['frontChannelLogoutUri'] = $this->getFrontChannelLogoutUri();
-        $data['frontChannelLogoutSessionRequired'] = $this->isFrontChannelLogoutSessionRequired();
-        $data['enabled'] = $this->isEnabled();
         $allowedRedirects = $this->getAllowedRedirects();
         if (null !== $allowedRedirects) {
             $data['allowedRedirects'] = [];
@@ -159,6 +220,21 @@ class TrustedClient extends TrustedClientRef
                 }
             }
         }
+        $data['backChannelLogoutUri'] = $this->getBackChannelLogoutUri();
+        $data['backChannelLogoutSessionRequired'] = $this->isBackChannelLogoutSessionRequired();
+        $data['frontChannelLogoutUri'] = $this->getFrontChannelLogoutUri();
+        $data['frontChannelLogoutSessionRequired'] = $this->isFrontChannelLogoutSessionRequired();
+        $data['enabled'] = $this->isEnabled();
+        $data['registrationAccess'] = $this->getRegistrationAccess();
+        $data['clientName'] = $this->getClientName();
+        $data['logoUri'] = $this->getLogoUri();
+        $data['clientUri'] = $this->getClientUri();
+        $data['policyUri'] = $this->getPolicyUri();
+        $data['tosUri'] = $this->getTosUri();
+        $data['tokenEndpointAuthMethod'] = $this->getTokenEndpointAuthMethod();
+        $data['responseTypesJson'] = $this->getResponseTypesJson();
+        $data['dynamicallyRegistered'] = $this->isDynamicallyRegistered();
+        $data['registeredAt'] = $this->getRegisteredAt();
         $data['version'] = $this->getVersion();
         return $data;
     }
@@ -169,13 +245,24 @@ class TrustedClient extends TrustedClientRef
           ->code($this->_code)
           ->allowAllScopes($this->_allowAllScopes)
           ->publicAllow($this->_publicAllow)
+          ->allowedRedirects($this->_allowedRedirects)
           ->secretOauth($this->_secretOauth)
           ->backChannelLogoutUri($this->_backChannelLogoutUri)
           ->backChannelLogoutSessionRequired($this->_backChannelLogoutSessionRequired)
           ->frontChannelLogoutUri($this->_frontChannelLogoutUri)
           ->frontChannelLogoutSessionRequired($this->_frontChannelLogoutSessionRequired)
           ->enabled($this->_enabled)
-          ->allowedRedirects($this->_allowedRedirects)
+          ->registrationAccess($this->_registrationAccess)
+          ->clientName($this->_clientName)
+          ->logoUri($this->_logoUri)
+          ->clientUri($this->_clientUri)
+          ->policyUri($this->_policyUri)
+          ->tosUri($this->_tosUri)
+          ->tokenEndpointAuthMethod($this->_tokenEndpointAuthMethod)
+          ->grantTypesJson($this->_grantTypesJson)
+          ->responseTypesJson($this->_responseTypesJson)
+          ->dynamicallyRegistered($this->_dynamicallyRegistered)
+          ->registeredAt($this->_registeredAt)
           ->version($this->_version);
     }
     public function getTheEvents(): array

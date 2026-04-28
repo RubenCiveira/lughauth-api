@@ -12,6 +12,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigIn
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigInnerLabelAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigForceMfaAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDynamicRegistrationPolicyVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigDynamicRegistrationPolicyAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigAllowRegisterAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
@@ -40,6 +42,7 @@ class TenantConfig extends TenantConfigRef
     use TenantConfigTenantAccessor;
     use TenantConfigInnerLabelAccessor;
     use TenantConfigForceMfaAccessor;
+    use TenantConfigDynamicRegistrationPolicyAccessor;
     use TenantConfigAllowRegisterAccessor;
     use TenantConfigEnableRegisterUsersAccessor;
     use TenantConfigWellcomeEmailAccessor;
@@ -56,6 +59,7 @@ class TenantConfig extends TenantConfigRef
         TenantConfigTenantVO|TenantRef $tenant,
         TenantConfigForceMfaVO|bool $forceMfa,
         TenantConfigInnerLabelVO|string|null $innerLabel = null,
+        TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = null,
         TenantConfigAllowRegisterVO|bool|null $allowRegister = null,
         TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null,
         TenantConfigWellcomeEmailVO|string|null $wellcomeEmail = null,
@@ -70,6 +74,7 @@ class TenantConfig extends TenantConfigRef
         $this->_tenant = TenantConfigTenantVO::from($tenant);
         $this->_innerLabel = null === $innerLabel ? TenantConfigInnerLabelVO::empty() : TenantConfigInnerLabelVO::from($innerLabel);
         $this->_forceMfa = TenantConfigForceMfaVO::from($forceMfa);
+        $this->_dynamicRegistrationPolicy = null === $dynamicRegistrationPolicy ? TenantConfigDynamicRegistrationPolicyVO::empty() : TenantConfigDynamicRegistrationPolicyVO::from($dynamicRegistrationPolicy);
         $this->_allowRegister = null === $allowRegister ? TenantConfigAllowRegisterVO::empty() : TenantConfigAllowRegisterVO::from($allowRegister);
         $this->_enableRegisterUsers = null === $enableRegisterUsers ? TenantConfigEnableRegisterUsersVO::empty() : TenantConfigEnableRegisterUsersVO::from($enableRegisterUsers);
         $this->_wellcomeEmail = null === $wellcomeEmail ? TenantConfigWellcomeEmailVO::empty() : TenantConfigWellcomeEmailVO::from($wellcomeEmail);
@@ -86,6 +91,7 @@ class TenantConfig extends TenantConfigRef
         $value->_tenant = $values->getTenantOrDefault($this->_tenant);
         $value->_innerLabel = $values->getInnerLabelOrDefault($this->_innerLabel);
         $value->_forceMfa = $values->getForceMfaOrDefault($this->_forceMfa);
+        $value->_dynamicRegistrationPolicy = $values->getDynamicRegistrationPolicyOrDefault($this->_dynamicRegistrationPolicy);
         $value->_allowRegister = $values->getAllowRegisterOrDefault($this->_allowRegister);
         $value->_enableRegisterUsers = $values->getEnableRegisterUsersOrDefault($this->_enableRegisterUsers);
         $value->_wellcomeEmail = $values->getWellcomeEmailOrDefault($this->_wellcomeEmail);
@@ -126,6 +132,7 @@ class TenantConfig extends TenantConfigRef
         $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
         $data['innerLabel'] = $this->getInnerLabel();
         $data['forceMfa'] = $this->isForceMfa();
+        $data['dynamicRegistrationPolicy'] = $this->getDynamicRegistrationPolicy();
         $data['allowRegister'] = $this->isAllowRegister();
         $data['enableRegisterUsers'] = $this->isEnableRegisterUsers();
         $data['allowRecoverPass'] = $this->isAllowRecoverPass();
@@ -139,6 +146,7 @@ class TenantConfig extends TenantConfigRef
           ->tenant($this->_tenant)
           ->innerLabel($this->_innerLabel)
           ->forceMfa($this->_forceMfa)
+          ->dynamicRegistrationPolicy($this->_dynamicRegistrationPolicy)
           ->allowRegister($this->_allowRegister)
           ->enableRegisterUsers($this->_enableRegisterUsers)
           ->wellcomeEmail($this->_wellcomeEmail)

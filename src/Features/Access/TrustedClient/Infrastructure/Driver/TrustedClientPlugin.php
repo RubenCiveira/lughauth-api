@@ -96,13 +96,24 @@ class TrustedClientPlugin extends MicroPlugin
             $handler->registerResourceAttribute("trusted-client", "code", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "allowAllScopes", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "publicAllow", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "secretOauth", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "backChannelLogoutUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "backChannelLogoutSessionRequired", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "frontChannelLogoutUri", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "frontChannelLogoutSessionRequired", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "enabled", "MANAGE");
-            $handler->registerResourceAttribute("trusted-client", "allowedRedirects", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "registrationAccess", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "clientName", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "logoUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "clientUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "policyUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tosUri", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "tokenEndpointAuthMethod", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "grantTypesJson", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "responseTypesJson", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "dynamicallyRegistered", "MANAGE");
+            $handler->registerResourceAttribute("trusted-client", "registeredAt", "MANAGE");
             $handler->registerResourceAttribute("trusted-client", "version", "MANAGE");
         }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }

@@ -9,6 +9,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigTenantAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigInnerLabelAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigForceMfaAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDynamicRegistrationPolicyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
@@ -26,6 +27,7 @@ class TenantConfigUpdateParams
     use TenantConfigTenantAttributeHolder;
     use TenantConfigInnerLabelAttributeHolder;
     use TenantConfigForceMfaAttributeHolder;
+    use TenantConfigDynamicRegistrationPolicyAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
     use TenantConfigWellcomeEmailAttributeHolder;
@@ -41,6 +43,7 @@ class TenantConfigUpdateParams
       'tenant' => 'unsetTenant',
       'innerLabel' => 'unsetInnerLabel',
       'forceMfa' => 'unsetForceMfa',
+      'dynamicRegistrationPolicy' => 'unsetDynamicRegistrationPolicy',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
       'wellcomeEmail' => 'unsetWellcomeEmail',
@@ -59,6 +62,7 @@ class TenantConfigUpdateParams
             $this->readTenantFrom($att);
             $this->readInnerLabelFrom($att);
             $this->readForceMfaFrom($att);
+            $this->readDynamicRegistrationPolicyFrom($att);
             $this->readAllowRegisterFrom($att);
             $this->readEnableRegisterUsersFrom($att);
             $this->readWellcomeEmailFrom($att);
@@ -77,6 +81,7 @@ class TenantConfigUpdateParams
         $this->writeTenantTo($att);
         $this->writeInnerLabelTo($att);
         $this->writeForceMfaTo($att);
+        $this->writeDynamicRegistrationPolicyTo($att);
         $this->writeAllowRegisterTo($att);
         $this->writeEnableRegisterUsersTo($att);
         $this->writeWellcomeEmailTo($att);
@@ -100,6 +105,7 @@ class TenantConfigUpdateParams
         $this->withDefaultTenant();
         $this->withDefaultInnerLabel();
         $this->withDefaultForceMfa();
+        $this->withDefaultDynamicRegistrationPolicy();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
         $this->withDefaultWellcomeEmail();

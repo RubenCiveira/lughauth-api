@@ -38,6 +38,7 @@ class TrustedClientApiDTO
         type: "string"
     )]
     public ?bool $publicAllow = null;
+    public ?array $allowedRedirects = null;
     #[OA\Property(
         property: "secretOauth",
         title: "secret oauth",
@@ -80,7 +81,83 @@ class TrustedClientApiDTO
         type: "string"
     )]
     public ?bool $enabled = null;
-    public ?array $allowedRedirects = null;
+    #[OA\Property(
+        property: "registrationAccess",
+        title: "registration access",
+        description:"El registration access de trusted client",
+        type: "string"
+    )]
+    public ?string $registrationAccess = null;
+    #[OA\Property(
+        property: "clientName",
+        title: "client name",
+        description:"El client name de trusted client",
+        type: "string"
+    )]
+    public ?string $clientName = null;
+    #[OA\Property(
+        property: "logoUri",
+        title: "logo uri",
+        description:"El logo uri de trusted client",
+        type: "string"
+    )]
+    public ?string $logoUri = null;
+    #[OA\Property(
+        property: "clientUri",
+        title: "client uri",
+        description:"El client uri de trusted client",
+        type: "string"
+    )]
+    public ?string $clientUri = null;
+    #[OA\Property(
+        property: "policyUri",
+        title: "policy uri",
+        description:"El policy uri de trusted client",
+        type: "string"
+    )]
+    public ?string $policyUri = null;
+    #[OA\Property(
+        property: "tosUri",
+        title: "tos uri",
+        description:"El tos uri de trusted client",
+        type: "string"
+    )]
+    public ?string $tosUri = null;
+    #[OA\Property(
+        property: "tokenEndpointAuthMethod",
+        title: "token endpoint auth method",
+        description:"El token endpoint auth method de trusted client",
+        type: "string"
+    )]
+    public ?string $tokenEndpointAuthMethod = null;
+    #[OA\Property(
+        property: "grantTypesJson",
+        title: "grant types json",
+        description:"El grant types json de trusted client",
+        type: "string"
+    )]
+    public ?string $grantTypesJson = null;
+    #[OA\Property(
+        property: "responseTypesJson",
+        title: "response types json",
+        description:"El response types json de trusted client",
+        type: "string"
+    )]
+    public ?mixed $responseTypesJson = null;
+    #[OA\Property(
+        property: "dynamicallyRegistered",
+        title: "dynamically registered",
+        description:"El dynamically registered de trusted client",
+        type: "string"
+    )]
+    public ?bool $dynamicallyRegistered = null;
+    #[OA\Property(
+        property: "registeredAt",
+        title: "registered at",
+        description:"El registered at de trusted client",
+        type: "string"
+    )]
+    public ?string $registeredAt = null;
     #[OA\Property(
         property: "version",
         title: "version",

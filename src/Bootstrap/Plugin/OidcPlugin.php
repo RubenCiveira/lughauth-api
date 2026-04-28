@@ -53,7 +53,7 @@ use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driven\ParRequestSqlAdapter;
 use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driver\Rest\ParController;
 use Civi\Lughauth\Features\Oidc\Registration\Domain\Gateway\ClientRegistrationGateway;
-use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driven\ClientRegistrationSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driven\ClientRegistrationAdapter;
 use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driver\Rest\DynamicClientRegistrationController;
 
 class OidcPlugin extends MicroPlugin
@@ -77,7 +77,7 @@ class OidcPlugin extends MicroPlugin
         $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
         $def[ParRequestGateway::class] = \DI\autowire(ParRequestSqlAdapter::class);
-        $def[ClientRegistrationGateway::class] = \DI\autowire(ClientRegistrationSqlAdapter::class);
+        $def[ClientRegistrationGateway::class] = \DI\autowire(ClientRegistrationAdapter::class);
         return $def;
     }
 

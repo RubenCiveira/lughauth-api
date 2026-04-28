@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigTe
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInnerLabelVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDynamicRegistrationPolicyVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
@@ -109,6 +110,7 @@ class TenantConfigUpdateController
             if (null !== $valueForceMfa) {
                 $value->forceMfa($valueForceMfa);
             }
+            $value->dynamicRegistrationPolicy(TenantConfigDynamicRegistrationPolicyVO::tryFrom(isset($body['dynamicRegistrationPolicy']) ? strtoupper($body['dynamicRegistrationPolicy']) : null, $errorsList));
             $value->allowRegister(TenantConfigAllowRegisterVO::tryFrom($body['allowRegister'] ?? null, $errorsList));
             $value->enableRegisterUsers(TenantConfigEnableRegisterUsersVO::tryFrom($body['enableRegisterUsers'] ?? null, $errorsList));
             $value->wellcomeEmail(TenantConfigWellcomeEmailVO::tryFrom($body['wellcomeEmail'] ?? null, $errorsList));
@@ -140,6 +142,7 @@ class TenantConfigUpdateController
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->innerLabel = $value->getInnerLabel();
             $dto->forceMfa = $value->isForceMfa();
+            $dto->dynamicRegistrationPolicy = $value->getDynamicRegistrationPolicy();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
             $dto->wellcomeEmail = $value->getWellcomeEmail();

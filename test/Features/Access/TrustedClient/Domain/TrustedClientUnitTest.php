@@ -21,17 +21,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
 
@@ -48,6 +59,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowAllScopesChanged());
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
+        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
+        $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
@@ -58,8 +71,28 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isFrontChannelLogoutUriChanged());
         $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
         $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged());
-        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
-        $this->assertTrue($one->isAllowedRedirectsChanged());
+        $this->assertEquals($one->getRegistrationAccess(), $other->getRegistrationAccess());
+        $this->assertTrue($one->isRegistrationAccessChanged());
+        $this->assertEquals($one->getClientName(), $other->getClientName());
+        $this->assertTrue($one->isClientNameChanged());
+        $this->assertEquals($one->getLogoUri(), $other->getLogoUri());
+        $this->assertTrue($one->isLogoUriChanged());
+        $this->assertEquals($one->getClientUri(), $other->getClientUri());
+        $this->assertTrue($one->isClientUriChanged());
+        $this->assertEquals($one->getPolicyUri(), $other->getPolicyUri());
+        $this->assertTrue($one->isPolicyUriChanged());
+        $this->assertEquals($one->getTosUri(), $other->getTosUri());
+        $this->assertTrue($one->isTosUriChanged());
+        $this->assertEquals($one->getTokenEndpointAuthMethod(), $other->getTokenEndpointAuthMethod());
+        $this->assertTrue($one->isTokenEndpointAuthMethodChanged());
+        $this->assertEquals($one->getGrantTypesJson(), $other->getGrantTypesJson());
+        $this->assertTrue($one->isGrantTypesJsonChanged());
+        $this->assertEquals($one->getResponseTypesJson(), $other->getResponseTypesJson());
+        $this->assertTrue($one->isResponseTypesJsonChanged());
+        $this->assertEquals($one->isDynamicallyRegistered(), $other->isDynamicallyRegistered());
+        $this->assertTrue($one->isDynamicallyRegisteredChanged());
+        $this->assertEquals($one->getRegisteredAt(), $other->getRegisteredAt());
+        $this->assertTrue($one->isRegisteredAtChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -71,17 +104,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $other = new TrustedClient(
@@ -89,17 +133,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'other',
             allowAllScopes: false,
             publicAllow: false,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('other'),
+                TrustedClientAllowedRedirectsUrlVO::from('other'),
+                TrustedClientAllowedRedirectsVersionVO::from(2)
+            )),
             secretOauth: 'cyphered://ocyphered',
             backChannelLogoutUri: 'other',
             backChannelLogoutSessionRequired: false,
             frontChannelLogoutUri: 'other',
             frontChannelLogoutSessionRequired: false,
             enabled: false,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('other'),
-                TrustedClientAllowedRedirectsUrlVO::from('other'),
-                TrustedClientAllowedRedirectsVersionVO::from(2)
-            )),
+            registrationAccess: 'other',
+            clientName: 'other',
+            logoUri: 'other',
+            clientUri: 'other',
+            policyUri: 'other',
+            tosUri: 'other',
+            tokenEndpointAuthMethod: 'other',
+            grantTypesJson: 'other',
+            responseTypesJson: [],
+            dynamicallyRegistered: false,
+            registeredAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
         );
 
@@ -114,6 +169,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowAllScopesChanged($base));
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged($base));
+        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
+        $this->assertTrue($one->isAllowedRedirectsChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
@@ -124,8 +181,28 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isFrontChannelLogoutUriChanged($base));
         $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
         $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged($base));
-        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
-        $this->assertTrue($one->isAllowedRedirectsChanged($base));
+        $this->assertEquals($one->getRegistrationAccess(), $other->getRegistrationAccess());
+        $this->assertTrue($one->isRegistrationAccessChanged($base));
+        $this->assertEquals($one->getClientName(), $other->getClientName());
+        $this->assertTrue($one->isClientNameChanged($base));
+        $this->assertEquals($one->getLogoUri(), $other->getLogoUri());
+        $this->assertTrue($one->isLogoUriChanged($base));
+        $this->assertEquals($one->getClientUri(), $other->getClientUri());
+        $this->assertTrue($one->isClientUriChanged($base));
+        $this->assertEquals($one->getPolicyUri(), $other->getPolicyUri());
+        $this->assertTrue($one->isPolicyUriChanged($base));
+        $this->assertEquals($one->getTosUri(), $other->getTosUri());
+        $this->assertTrue($one->isTosUriChanged($base));
+        $this->assertEquals($one->getTokenEndpointAuthMethod(), $other->getTokenEndpointAuthMethod());
+        $this->assertTrue($one->isTokenEndpointAuthMethodChanged($base));
+        $this->assertEquals($one->getGrantTypesJson(), $other->getGrantTypesJson());
+        $this->assertTrue($one->isGrantTypesJsonChanged($base));
+        $this->assertEquals($one->getResponseTypesJson(), $other->getResponseTypesJson());
+        $this->assertTrue($one->isResponseTypesJsonChanged($base));
+        $this->assertEquals($one->isDynamicallyRegistered(), $other->isDynamicallyRegistered());
+        $this->assertTrue($one->isDynamicallyRegisteredChanged($base));
+        $this->assertEquals($one->getRegisteredAt(), $other->getRegisteredAt());
+        $this->assertTrue($one->isRegisteredAtChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -137,17 +214,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
 
@@ -159,15 +247,25 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals('one', $json['code']);
         $this->assertEquals(true, $json['allowAllScopes']);
         $this->assertEquals(true, $json['publicAllow']);
+        $this->assertEquals('one', $json['allowedRedirects'][0]['uid']);
+        $this->assertEquals('one', $json['allowedRedirects'][0]['url']);
+        $this->assertEquals(1, $json['allowedRedirects'][0]['version']);
+        $this->assertCount(1, $json['allowedRedirects']);
         $this->assertEquals('one', $json['backChannelLogoutUri']);
         $this->assertEquals(true, $json['backChannelLogoutSessionRequired']);
         $this->assertEquals('one', $json['frontChannelLogoutUri']);
         $this->assertEquals(true, $json['frontChannelLogoutSessionRequired']);
         $this->assertEquals(true, $json['enabled']);
-        $this->assertEquals('one', $json['allowedRedirects'][0]['uid']);
-        $this->assertEquals('one', $json['allowedRedirects'][0]['url']);
-        $this->assertEquals(1, $json['allowedRedirects'][0]['version']);
-        $this->assertCount(1, $json['allowedRedirects']);
+        $this->assertEquals('one', $json['registrationAccess']);
+        $this->assertEquals('one', $json['clientName']);
+        $this->assertEquals('one', $json['logoUri']);
+        $this->assertEquals('one', $json['clientUri']);
+        $this->assertEquals('one', $json['policyUri']);
+        $this->assertEquals('one', $json['tosUri']);
+        $this->assertEquals('one', $json['tokenEndpointAuthMethod']);
+        $this->assertEquals([], $json['responseTypesJson']);
+        $this->assertEquals(true, $json['dynamicallyRegistered']);
+        $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['registeredAt']);
         $this->assertEquals(1, $json['version']);
     }
     public function test_create_store_values(): void
@@ -178,17 +276,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
 
@@ -203,6 +312,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowAllScopesChanged());
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
+        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
+        $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
@@ -213,8 +324,28 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isFrontChannelLogoutUriChanged());
         $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
         $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged());
-        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
-        $this->assertTrue($one->isAllowedRedirectsChanged());
+        $this->assertEquals($one->getRegistrationAccess(), $other->getRegistrationAccess());
+        $this->assertTrue($one->isRegistrationAccessChanged());
+        $this->assertEquals($one->getClientName(), $other->getClientName());
+        $this->assertTrue($one->isClientNameChanged());
+        $this->assertEquals($one->getLogoUri(), $other->getLogoUri());
+        $this->assertTrue($one->isLogoUriChanged());
+        $this->assertEquals($one->getClientUri(), $other->getClientUri());
+        $this->assertTrue($one->isClientUriChanged());
+        $this->assertEquals($one->getPolicyUri(), $other->getPolicyUri());
+        $this->assertTrue($one->isPolicyUriChanged());
+        $this->assertEquals($one->getTosUri(), $other->getTosUri());
+        $this->assertTrue($one->isTosUriChanged());
+        $this->assertEquals($one->getTokenEndpointAuthMethod(), $other->getTokenEndpointAuthMethod());
+        $this->assertTrue($one->isTokenEndpointAuthMethodChanged());
+        $this->assertEquals($one->getGrantTypesJson(), $other->getGrantTypesJson());
+        $this->assertTrue($one->isGrantTypesJsonChanged());
+        $this->assertEquals($one->getResponseTypesJson(), $other->getResponseTypesJson());
+        $this->assertTrue($one->isResponseTypesJsonChanged());
+        $this->assertEquals($one->isDynamicallyRegistered(), $other->isDynamicallyRegistered());
+        $this->assertTrue($one->isDynamicallyRegisteredChanged());
+        $this->assertEquals($one->getRegisteredAt(), $other->getRegisteredAt());
+        $this->assertTrue($one->isRegisteredAtChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -227,17 +358,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $other = new TrustedClient(
@@ -245,17 +387,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'other',
             allowAllScopes: false,
             publicAllow: false,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('other'),
+                TrustedClientAllowedRedirectsUrlVO::from('other'),
+                TrustedClientAllowedRedirectsVersionVO::from(2)
+            )),
             secretOauth: 'cyphered://ocyphered',
             backChannelLogoutUri: 'other',
             backChannelLogoutSessionRequired: false,
             frontChannelLogoutUri: 'other',
             frontChannelLogoutSessionRequired: false,
             enabled: false,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('other'),
-                TrustedClientAllowedRedirectsUrlVO::from('other'),
-                TrustedClientAllowedRedirectsVersionVO::from(2)
-            )),
+            registrationAccess: 'other',
+            clientName: 'other',
+            logoUri: 'other',
+            clientUri: 'other',
+            policyUri: 'other',
+            tosUri: 'other',
+            tokenEndpointAuthMethod: 'other',
+            grantTypesJson: 'other',
+            responseTypesJson: [],
+            dynamicallyRegistered: false,
+            registeredAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
             version: 2,
         );
 
@@ -270,6 +423,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowAllScopesChanged($base));
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged($base));
+        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
+        $this->assertTrue($one->isAllowedRedirectsChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
@@ -280,8 +435,28 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isFrontChannelLogoutUriChanged($base));
         $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
         $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged($base));
-        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
-        $this->assertTrue($one->isAllowedRedirectsChanged($base));
+        $this->assertEquals($one->getRegistrationAccess(), $other->getRegistrationAccess());
+        $this->assertTrue($one->isRegistrationAccessChanged($base));
+        $this->assertEquals($one->getClientName(), $other->getClientName());
+        $this->assertTrue($one->isClientNameChanged($base));
+        $this->assertEquals($one->getLogoUri(), $other->getLogoUri());
+        $this->assertTrue($one->isLogoUriChanged($base));
+        $this->assertEquals($one->getClientUri(), $other->getClientUri());
+        $this->assertTrue($one->isClientUriChanged($base));
+        $this->assertEquals($one->getPolicyUri(), $other->getPolicyUri());
+        $this->assertTrue($one->isPolicyUriChanged($base));
+        $this->assertEquals($one->getTosUri(), $other->getTosUri());
+        $this->assertTrue($one->isTosUriChanged($base));
+        $this->assertEquals($one->getTokenEndpointAuthMethod(), $other->getTokenEndpointAuthMethod());
+        $this->assertTrue($one->isTokenEndpointAuthMethodChanged($base));
+        $this->assertEquals($one->getGrantTypesJson(), $other->getGrantTypesJson());
+        $this->assertTrue($one->isGrantTypesJsonChanged($base));
+        $this->assertEquals($one->getResponseTypesJson(), $other->getResponseTypesJson());
+        $this->assertTrue($one->isResponseTypesJsonChanged($base));
+        $this->assertEquals($one->isDynamicallyRegistered(), $other->isDynamicallyRegistered());
+        $this->assertTrue($one->isDynamicallyRegisteredChanged($base));
+        $this->assertEquals($one->getRegisteredAt(), $other->getRegisteredAt());
+        $this->assertTrue($one->isRegisteredAtChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -295,17 +470,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
 
@@ -320,6 +506,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowAllScopesChanged());
         $this->assertEquals($one->isPublicAllow(), $other->isPublicAllow());
         $this->assertTrue($one->isPublicAllowChanged());
+        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
+        $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
@@ -330,8 +518,28 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isFrontChannelLogoutUriChanged());
         $this->assertEquals($one->isFrontChannelLogoutSessionRequired(), $other->isFrontChannelLogoutSessionRequired());
         $this->assertTrue($one->isFrontChannelLogoutSessionRequiredChanged());
-        $this->assertEquals($one->getAllowedRedirects(), $other->getAllowedRedirects());
-        $this->assertTrue($one->isAllowedRedirectsChanged());
+        $this->assertEquals($one->getRegistrationAccess(), $other->getRegistrationAccess());
+        $this->assertTrue($one->isRegistrationAccessChanged());
+        $this->assertEquals($one->getClientName(), $other->getClientName());
+        $this->assertTrue($one->isClientNameChanged());
+        $this->assertEquals($one->getLogoUri(), $other->getLogoUri());
+        $this->assertTrue($one->isLogoUriChanged());
+        $this->assertEquals($one->getClientUri(), $other->getClientUri());
+        $this->assertTrue($one->isClientUriChanged());
+        $this->assertEquals($one->getPolicyUri(), $other->getPolicyUri());
+        $this->assertTrue($one->isPolicyUriChanged());
+        $this->assertEquals($one->getTosUri(), $other->getTosUri());
+        $this->assertTrue($one->isTosUriChanged());
+        $this->assertEquals($one->getTokenEndpointAuthMethod(), $other->getTokenEndpointAuthMethod());
+        $this->assertTrue($one->isTokenEndpointAuthMethodChanged());
+        $this->assertEquals($one->getGrantTypesJson(), $other->getGrantTypesJson());
+        $this->assertTrue($one->isGrantTypesJsonChanged());
+        $this->assertEquals($one->getResponseTypesJson(), $other->getResponseTypesJson());
+        $this->assertTrue($one->isResponseTypesJsonChanged());
+        $this->assertEquals($one->isDynamicallyRegistered(), $other->isDynamicallyRegistered());
+        $this->assertTrue($one->isDynamicallyRegisteredChanged());
+        $this->assertEquals($one->getRegisteredAt(), $other->getRegisteredAt());
+        $this->assertTrue($one->isRegisteredAtChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -343,17 +551,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $sourceEnabled = false;
@@ -376,17 +595,28 @@ final class TrustedClientUnitTest extends TestCase
             code: 'one',
             allowAllScopes: true,
             publicAllow: true,
+            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
+                TrustedClientAllowedRedirectsUidVO::from('one'),
+                TrustedClientAllowedRedirectsUrlVO::from('one'),
+                TrustedClientAllowedRedirectsVersionVO::from(1)
+            )),
             secretOauth: 'cyphered://cypher',
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
             frontChannelLogoutSessionRequired: true,
             enabled: true,
-            allowedRedirects: new TrustedClientAllowedRedirectsListRef(new TrustedClientAllowedRedirectsItem(
-                TrustedClientAllowedRedirectsUidVO::from('one'),
-                TrustedClientAllowedRedirectsUrlVO::from('one'),
-                TrustedClientAllowedRedirectsVersionVO::from(1)
-            )),
+            registrationAccess: 'one',
+            clientName: 'one',
+            logoUri: 'one',
+            clientUri: 'one',
+            policyUri: 'one',
+            tosUri: 'one',
+            tokenEndpointAuthMethod: 'one',
+            grantTypesJson: 'one',
+            responseTypesJson: [],
+            dynamicallyRegistered: true,
+            registeredAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
             version: 1,
         );
         $sourceEnabled = true;

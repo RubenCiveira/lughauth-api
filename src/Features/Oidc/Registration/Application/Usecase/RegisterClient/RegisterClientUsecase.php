@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Registration\Application\Usecase\RegisterClient;
 
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Features\Oidc\Registration\Domain\ClientRegistrationRequest;
 use Civi\Lughauth\Features\Oidc\Registration\Domain\Gateway\ClientRegistrationGateway;
 use Civi\Lughauth\Features\Oidc\Registration\Domain\Exception\RegistrationException;
 
@@ -25,7 +24,7 @@ final class RegisterClientUsecase
 
         match ($policy) {
             'disabled' => throw RegistrationException::registrationNotAllowed(),
-            'token_required' => $this->requireInitialAccessToken($params->initialAccessToken),
+            'token-required' => $this->requireInitialAccessToken($params->initialAccessToken),
             default => null,
         };
 

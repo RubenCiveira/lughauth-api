@@ -23,9 +23,9 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
@@ -144,7 +144,7 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute insert sql query for Trusted client");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "registration_access", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "token_endpoint_auth_method", "grant_types_json", "response_types_json", "dynamically_registered", "registered_at", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :registrationAccess, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :tokenEndpointAuthMethod, :grantTypesJson, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $entity->isAllowAllScopes(), type: SqlParam::BOOL),
@@ -155,6 +155,17 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'frontChannelLogoutUri', value: $entity->getFrontChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'frontChannelLogoutSessionRequired', value: $entity->isFrontChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'registrationAccess', value: $entity->getRegistrationAccess(), type: SqlParam::STR),
+                     new SqlParam(name: 'clientName', value: $entity->getClientName(), type: SqlParam::STR),
+                     new SqlParam(name: 'logoUri', value: $entity->getLogoUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'clientUri', value: $entity->getClientUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'policyUri', value: $entity->getPolicyUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'tosUri', value: $entity->getTosUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'tokenEndpointAuthMethod', value: $entity->getTokenEndpointAuthMethod(), type: SqlParam::STR),
+                     new SqlParam(name: 'grantTypesJson', value: $entity->getGrantTypesJson(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'responseTypesJson', value: $entity->getResponseTypesJson(), type: SqlParam::STR),
+                     new SqlParam(name: 'dynamicallyRegistered', value: $entity->isDynamicallyRegistered(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'registeredAt', value: $entity->getRegisteredAt(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
                 $entity = $this->saveChilds($entity);
@@ -183,7 +194,7 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute update sql query for Trusted client");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "registration_access" = :registrationAccess , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "grant_types_json" = :grantTypesJson , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $update->isAllowAllScopes(), type: SqlParam::BOOL),
@@ -194,6 +205,17 @@ class TrustedClientPdoConnector
                      new SqlParam(name: 'frontChannelLogoutUri', value: $update->getFrontChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'frontChannelLogoutSessionRequired', value: $update->isFrontChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'registrationAccess', value: $update->getRegistrationAccess(), type: SqlParam::STR),
+                     new SqlParam(name: 'clientName', value: $update->getClientName(), type: SqlParam::STR),
+                     new SqlParam(name: 'logoUri', value: $update->getLogoUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'clientUri', value: $update->getClientUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'policyUri', value: $update->getPolicyUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'tosUri', value: $update->getTosUri(), type: SqlParam::STR),
+                     new SqlParam(name: 'tokenEndpointAuthMethod', value: $update->getTokenEndpointAuthMethod(), type: SqlParam::STR),
+                     new SqlParam(name: 'grantTypesJson', value: $update->getGrantTypesJson(), type: SqlParam::TEXT),
+                     new SqlParam(name: 'responseTypesJson', value: $update->getResponseTypesJson(), type: SqlParam::STR),
+                     new SqlParam(name: 'dynamicallyRegistered', value: $update->isDynamicallyRegistered(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'registeredAt', value: $update->getRegisteredAt(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
@@ -515,6 +537,7 @@ class TrustedClientPdoConnector
             if (null === $publicAllow) {
                 throw ConstraintException::ofError('not-null', ['publicAllow'], [null]);
             }
+            $allowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? []));
             $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
             $backChannelLogoutUri = $row['back_channel_logout_uri'] ?? null;
             $backChannelLogoutSessionRequired = isset($row['back_channel_logout_session_required']) ? !! $row['back_channel_logout_session_required'] : null;
@@ -524,20 +547,44 @@ class TrustedClientPdoConnector
             if (null === $enabled) {
                 throw ConstraintException::ofError('not-null', ['enabled'], [null]);
             }
-            $allowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? []));
+            $registrationAccess = $row['registration_access'] ?? null;
+            $clientName = $row['client_name'] ?? null;
+            $logoUri = $row['logo_uri'] ?? null;
+            $clientUri = $row['client_uri'] ?? null;
+            $policyUri = $row['policy_uri'] ?? null;
+            $tosUri = $row['tos_uri'] ?? null;
+            $tokenEndpointAuthMethod = $row['token_endpoint_auth_method'] ?? null;
+            if (null === $tokenEndpointAuthMethod) {
+                throw ConstraintException::ofError('not-null', ['tokenEndpointAuthMethod'], [null]);
+            }
+            $grantTypesJson = $row['grant_types_json'] ?? null;
+            $responseTypesJson = $row['response_types_json'] ?? null;
+            $dynamicallyRegistered = isset($row['dynamically_registered']) ? !! $row['dynamically_registered'] : null;
+            $registeredAt = $row['registered_at'] ? new \DateTimeImmutable($row['registered_at']) : null;
             $version = $row['version'] ?? null;
             return new TrustedClient(
                 uid: $uid,
                 code: $code,
                 allowAllScopes: $allowAllScopes,
                 publicAllow: $publicAllow,
+                allowedRedirects: $allowedRedirects,
                 secretOauth: $secretOauth,
                 backChannelLogoutUri: $backChannelLogoutUri,
                 backChannelLogoutSessionRequired: $backChannelLogoutSessionRequired,
                 frontChannelLogoutUri: $frontChannelLogoutUri,
                 frontChannelLogoutSessionRequired: $frontChannelLogoutSessionRequired,
                 enabled: $enabled,
-                allowedRedirects: $allowedRedirects,
+                registrationAccess: $registrationAccess,
+                clientName: $clientName,
+                logoUri: $logoUri,
+                clientUri: $clientUri,
+                policyUri: $policyUri,
+                tosUri: $tosUri,
+                tokenEndpointAuthMethod: $tokenEndpointAuthMethod,
+                grantTypesJson: $grantTypesJson,
+                responseTypesJson: $responseTypesJson,
+                dynamicallyRegistered: $dynamicallyRegistered,
+                registeredAt: $registeredAt,
                 version: $version,
             );
         } catch (Throwable $ex) {

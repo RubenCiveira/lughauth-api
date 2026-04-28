@@ -105,6 +105,7 @@ class TenantConfigListController
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->innerLabel = $value->getInnerLabel();
             $dto->forceMfa = $value->isForceMfa();
+            $dto->dynamicRegistrationPolicy = $value->getDynamicRegistrationPolicy();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
             $dto->wellcomeEmail = $value->getWellcomeEmail();
