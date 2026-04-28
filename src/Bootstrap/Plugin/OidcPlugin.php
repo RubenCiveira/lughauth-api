@@ -49,6 +49,9 @@ use Civi\Lughauth\Features\Oidc\Device\Domain\Gateway\DeviceAuthorizationGateway
 use Civi\Lughauth\Features\Oidc\Device\Infrastructure\Driven\DeviceAuthorizationSqlAdapter;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driven\TokenRevocationSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
+use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driven\ParRequestSqlAdapter;
+use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driver\Rest\ParController;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -70,6 +73,7 @@ class OidcPlugin extends MicroPlugin
         $def[ScopesConsentGateway::class] = \DI\autowire(ScopesConsentAdapter::class);
         $def[DeviceAuthorizationGateway::class] = \DI\autowire(DeviceAuthorizationSqlAdapter::class);
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
+        $def[ParRequestGateway::class] = \DI\autowire(ParRequestSqlAdapter::class);
         return $def;
     }
 
@@ -82,6 +86,7 @@ class OidcPlugin extends MicroPlugin
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);
             $group->post('/introspect', [IntrospectionController::class, 'post']);
+            $group->post('/par', [ParController::class, 'post']);
             $group->post('/device', [DeviceAuthorizationController::class, 'post']);
             $group->get('/device/verify', [DeviceVerificationHtml::class, 'verify']);
             $group->post('/device/verify', [DeviceVerificationHtml::class, 'formVerify']);

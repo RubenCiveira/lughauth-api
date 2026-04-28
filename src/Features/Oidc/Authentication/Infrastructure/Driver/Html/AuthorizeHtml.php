@@ -27,6 +27,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ValueObject\PkceChallenge;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\Oidc\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
+use Civi\Lughauth\Features\Oidc\Par\Domain\Exception\ParException;
 use OpenApi\Attributes as OA;
 
 class AuthorizeHtml
@@ -41,7 +43,8 @@ class AuthorizeHtml
         private readonly OidcResponseBuilder $responseBuilder,
         private readonly OidcCookieManager $cookies,
         private readonly OidcUrlBuilder $urlBuilder,
-        private readonly OidcStepRouter $router
+        private readonly OidcStepRouter $router,
+        private readonly ResolveParRequestUsecase $resolveParRequest,
     ) {
     }
 
@@ -205,6 +208,15 @@ class AuthorizeHtml
 
     private function buildContext(ServerRequestInterface $request, string $tenant): OidcFlowContext
     {
+        $query = $request->getQueryParams();
+        if (isset($query['request_uri']) && $query['request_uri'] !== '') {
+            try {
+                $parRequest = $this->resolveParRequest->resolve((string) $query['request_uri'], $tenant);
+            } catch (ParException) {
+                throw new UnauthorizedException('invalid_request_uri');
+            }
+            $request = $request->withQueryParams(array_merge($parRequest->params, $query));
+        }
         return OidcFlowContext::fromRequest($request, $tenant, $this->context);
     }
 
