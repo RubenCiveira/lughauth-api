@@ -8,9 +8,9 @@ namespace Civi\Lughauth\Features\Oidc\Key\Infrastructure\Driver\Rest;
 use DateInterval;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use OpenApi\Attributes as OA;
 use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use OpenApi\Attributes as OA;
 
 class JwksController
 {

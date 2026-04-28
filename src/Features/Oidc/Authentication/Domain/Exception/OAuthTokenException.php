@@ -49,4 +49,5 @@ final class OAuthTokenException extends \RuntimeException
     {
         return new self('invalid_scope', $detail);
     }
+
 }

@@ -5,10 +5,10 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
-use Civi\Lughauth\Shared\Context;
-use OpenApi\Attributes as OA;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Shared\Context;
+use OpenApi\Attributes as OA;
 
 class UserInfoController
 {
