@@ -81,6 +81,9 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "dynamicRegistrationPolicy", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "allowRegister", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "enableRegisterUsers", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "webauthnEnabled", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "webauthnRpId", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "webauthnRpName", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "wellcomeEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "registerdEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "disabledUserEmail", "MANAGE");

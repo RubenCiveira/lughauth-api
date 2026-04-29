@@ -65,6 +65,27 @@ class TenantConfigApiDTO
     )]
     public ?bool $enableRegisterUsers = null;
     #[OA\Property(
+        property: "webauthnEnabled",
+        title: "webauthn enabled",
+        description:"El webauthn enabled de tenant config",
+        type: "string"
+    )]
+    public ?bool $webauthnEnabled = null;
+    #[OA\Property(
+        property: "webauthnRpId",
+        title: "webauthn rp id",
+        description:"El webauthn rp id de tenant config",
+        type: "string"
+    )]
+    public ?string $webauthnRpId = null;
+    #[OA\Property(
+        property: "webauthnRpName",
+        title: "webauthn rp name",
+        description:"El webauthn rp name de tenant config",
+        type: "string"
+    )]
+    public ?string $webauthnRpName = null;
+    #[OA\Property(
         property: "wellcomeEmail",
         title: "wellcome email",
         description:"Email send to the enabled user",

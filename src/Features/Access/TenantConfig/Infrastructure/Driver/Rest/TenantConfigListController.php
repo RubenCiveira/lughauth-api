@@ -108,6 +108,9 @@ class TenantConfigListController
             $dto->dynamicRegistrationPolicy = $value->getDynamicRegistrationPolicy();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
+            $dto->webauthnEnabled = $value->isWebauthnEnabled();
+            $dto->webauthnRpId = $value->getWebauthnRpId();
+            $dto->webauthnRpName = $value->getWebauthnRpName();
             $dto->wellcomeEmail = $value->getWellcomeEmail();
             $dto->registerdEmail = $value->getRegisterdEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();

@@ -9,10 +9,10 @@ use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driver\RenderingPlugin;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driver\TemplatePlugin;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driver\TemplateVersionPlugin;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Infrastructure\Driver\TemplateSnippetPlugin;
 use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driver\TemplateVariablePlugin;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driver\ThemePlugin;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driver\TemplateAssetPlugin;
+use Civi\Lughauth\Features\Document\TemplateSnippet\Infrastructure\Driver\TemplateSnippetPlugin;
 
 class DocumentPlugin extends AggregatedMicroPlugin
 {
@@ -22,10 +22,10 @@ class DocumentPlugin extends AggregatedMicroPlugin
           new RenderingPlugin(),
           new TemplatePlugin(),
           new TemplateVersionPlugin(),
-          new TemplateSnippetPlugin(),
           new TemplateVariablePlugin(),
           new ThemePlugin(),
           new TemplateAssetPlugin(),
+          new TemplateSnippetPlugin(),
 ]);
     }
 }

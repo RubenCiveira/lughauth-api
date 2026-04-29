@@ -22,8 +22,7 @@ final class RequestObjectValidator
     public function __construct(
         private readonly ClientInterface $http,
         private readonly RequestFactoryInterface $requestFactory,
-    )
-    {
+    ) {
     }
 
     public function validate(string $requestJwt, ClientData $client): array

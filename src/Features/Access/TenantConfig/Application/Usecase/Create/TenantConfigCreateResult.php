@@ -12,6 +12,9 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDynamicRegistrationPolicyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnEnabledAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpIdAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpNameAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
@@ -30,6 +33,9 @@ class TenantConfigCreateResult
     use TenantConfigDynamicRegistrationPolicyAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
+    use TenantConfigWebauthnEnabledAttributeHolder;
+    use TenantConfigWebauthnRpIdAttributeHolder;
+    use TenantConfigWebauthnRpNameAttributeHolder;
     use TenantConfigWellcomeEmailAttributeHolder;
     use TenantConfigRegisterdEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
@@ -46,6 +52,9 @@ class TenantConfigCreateResult
       'dynamicRegistrationPolicy' => 'unsetDynamicRegistrationPolicy',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
+      'webauthnEnabled' => 'unsetWebauthnEnabled',
+      'webauthnRpId' => 'unsetWebauthnRpId',
+      'webauthnRpName' => 'unsetWebauthnRpName',
       'wellcomeEmail' => 'unsetWellcomeEmail',
       'registerdEmail' => 'unsetRegisterdEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
@@ -65,6 +74,9 @@ class TenantConfigCreateResult
             $this->readDynamicRegistrationPolicyFrom($att);
             $this->readAllowRegisterFrom($att);
             $this->readEnableRegisterUsersFrom($att);
+            $this->readWebauthnEnabledFrom($att);
+            $this->readWebauthnRpIdFrom($att);
+            $this->readWebauthnRpNameFrom($att);
             $this->readWellcomeEmailFrom($att);
             $this->readRegisterdEmailFrom($att);
             $this->readDisabledUserEmailFrom($att);
@@ -84,6 +96,9 @@ class TenantConfigCreateResult
         $this->writeDynamicRegistrationPolicyTo($att);
         $this->writeAllowRegisterTo($att);
         $this->writeEnableRegisterUsersTo($att);
+        $this->writeWebauthnEnabledTo($att);
+        $this->writeWebauthnRpIdTo($att);
+        $this->writeWebauthnRpNameTo($att);
         $this->writeWellcomeEmailTo($att);
         $this->writeRegisterdEmailTo($att);
         $this->writeDisabledUserEmailTo($att);
@@ -108,6 +123,9 @@ class TenantConfigCreateResult
         $this->withDefaultDynamicRegistrationPolicy();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
+        $this->withDefaultWebauthnEnabled();
+        $this->withDefaultWebauthnRpId();
+        $this->withDefaultWebauthnRpName();
         $this->withDefaultWellcomeEmail();
         $this->withDefaultRegisterdEmail();
         $this->withDefaultDisabledUserEmail();

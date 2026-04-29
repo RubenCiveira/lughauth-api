@@ -21,6 +21,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            webauthnEnabled: true,
+            webauthnRpId: 'one',
+            webauthnRpName: 'one',
             wellcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
@@ -49,6 +52,12 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
+        $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
+        $this->assertTrue($one->isWebauthnEnabledChanged());
+        $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
+        $this->assertTrue($one->isWebauthnRpIdChanged());
+        $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
+        $this->assertTrue($one->isWebauthnRpNameChanged());
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged());
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
@@ -75,6 +84,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            webauthnEnabled: true,
+            webauthnRpId: 'one',
+            webauthnRpName: 'one',
             wellcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
@@ -91,6 +103,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::TOKEN_REQUIRED,
             allowRegister: false,
             enableRegisterUsers: false,
+            webauthnEnabled: false,
+            webauthnRpId: 'other',
+            webauthnRpName: 'other',
             wellcomeEmail: 'other',
             registerdEmail: 'other',
             disabledUserEmail: 'other',
@@ -117,6 +132,12 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
+        $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
+        $this->assertTrue($one->isWebauthnEnabledChanged($base));
+        $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
+        $this->assertTrue($one->isWebauthnRpIdChanged($base));
+        $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
+        $this->assertTrue($one->isWebauthnRpNameChanged($base));
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged($base));
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
@@ -143,6 +164,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            webauthnEnabled: true,
+            webauthnRpId: 'one',
+            webauthnRpName: 'one',
             wellcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
@@ -163,6 +187,9 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertEquals(TenantConfigDynamicRegistrationPolicyOptions::OPEN, $json['dynamicRegistrationPolicy']);
         $this->assertEquals(true, $json['allowRegister']);
         $this->assertEquals(true, $json['enableRegisterUsers']);
+        $this->assertEquals(true, $json['webauthnEnabled']);
+        $this->assertEquals('one', $json['webauthnRpId']);
+        $this->assertEquals('one', $json['webauthnRpName']);
         $this->assertEquals(true, $json['allowRecoverPass']);
         $this->assertEquals(1, $json['version']);
     }
@@ -177,6 +204,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            webauthnEnabled: true,
+            webauthnRpId: 'one',
+            webauthnRpName: 'one',
             wellcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
@@ -203,6 +233,12 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
+        $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
+        $this->assertTrue($one->isWebauthnEnabledChanged());
+        $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
+        $this->assertTrue($one->isWebauthnRpIdChanged());
+        $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
+        $this->assertTrue($one->isWebauthnRpNameChanged());
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged());
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
@@ -230,6 +266,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            webauthnEnabled: true,
+            webauthnRpId: 'one',
+            webauthnRpName: 'one',
             wellcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
@@ -246,6 +285,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::TOKEN_REQUIRED,
             allowRegister: false,
             enableRegisterUsers: false,
+            webauthnEnabled: false,
+            webauthnRpId: 'other',
+            webauthnRpName: 'other',
             wellcomeEmail: 'other',
             registerdEmail: 'other',
             disabledUserEmail: 'other',
@@ -272,6 +314,12 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
+        $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
+        $this->assertTrue($one->isWebauthnEnabledChanged($base));
+        $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
+        $this->assertTrue($one->isWebauthnRpIdChanged($base));
+        $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
+        $this->assertTrue($one->isWebauthnRpNameChanged($base));
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged($base));
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
@@ -300,6 +348,9 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            webauthnEnabled: true,
+            webauthnRpId: 'one',
+            webauthnRpName: 'one',
             wellcomeEmail: 'one',
             registerdEmail: 'one',
             disabledUserEmail: 'one',
@@ -326,6 +377,12 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
+        $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
+        $this->assertTrue($one->isWebauthnEnabledChanged());
+        $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
+        $this->assertTrue($one->isWebauthnRpIdChanged());
+        $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
+        $this->assertTrue($one->isWebauthnRpNameChanged());
         $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
         $this->assertTrue($one->isWellcomeEmailChanged());
         $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
