@@ -13,7 +13,7 @@ trait SmtpOutboundConfigLoginAttributeHolder
     protected SmtpOutboundConfigLoginVO|string|null $login = null;
     protected bool $loginAssigned = false;
 
-    public function getLoginOrDefault(SmtpOutboundConfigLoginVO $login): SmtpOutboundConfigLoginVO
+    public function getLoginOrCurrent(SmtpOutboundConfigLoginVO $login): SmtpOutboundConfigLoginVO
     {
         if ($this->loginAssigned) {
             \assert(null !== $this->login);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigLoginAttributeHolder
         } else {
             return $login;
         }
+    }
+    public function loginTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigLoginVO
+    {
+        return  SmtpOutboundConfigLoginVO::tryFrom($this->loginAssigned ? $this->login : null, $error);
     }
     public function login(SmtpOutboundConfigLoginVO|string $login): static
     {

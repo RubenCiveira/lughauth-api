@@ -14,7 +14,7 @@ trait TrustedClientAllowedRedirectsAttributeHolder
     protected TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects = null;
     protected bool $allowedRedirectsAssigned = false;
 
-    public function getAllowedRedirectsOrDefault(TrustedClientAllowedRedirectsVO $allowedRedirects): TrustedClientAllowedRedirectsVO
+    public function getAllowedRedirectsOrCurrent(TrustedClientAllowedRedirectsVO $allowedRedirects): TrustedClientAllowedRedirectsVO
     {
         if ($this->allowedRedirectsAssigned) {
             $current = TrustedClientAllowedRedirectsVO::from($this->allowedRedirects);
@@ -22,6 +22,10 @@ trait TrustedClientAllowedRedirectsAttributeHolder
         } else {
             return $allowedRedirects;
         }
+    }
+    public function allowedRedirectsTryBuildInitial(ConstraintFailList $error): ?TrustedClientAllowedRedirectsVO
+    {
+        return  TrustedClientAllowedRedirectsVO::tryFrom($this->allowedRedirectsAssigned ? $this->allowedRedirects : null, $error);
     }
     public function allowedRedirects(TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects): static
     {

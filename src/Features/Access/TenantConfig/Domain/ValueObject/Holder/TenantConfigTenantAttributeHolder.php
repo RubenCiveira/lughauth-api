@@ -14,7 +14,7 @@ trait TenantConfigTenantAttributeHolder
     protected TenantConfigTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(TenantConfigTenantVO $tenant): TenantConfigTenantVO
+    public function getTenantOrCurrent(TenantConfigTenantVO $tenant): TenantConfigTenantVO
     {
         if ($this->tenantAssigned) {
             \assert(null !== $this->tenant);
@@ -22,6 +22,10 @@ trait TenantConfigTenantAttributeHolder
         } else {
             return $tenant;
         }
+    }
+    public function tenantTryBuildInitial(ConstraintFailList $error): ?TenantConfigTenantVO
+    {
+        return  TenantConfigTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
     public function tenant(TenantConfigTenantVO|TenantRef $tenant): static
     {

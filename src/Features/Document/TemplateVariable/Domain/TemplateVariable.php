@@ -56,12 +56,12 @@ class TemplateVariable extends TemplateVariableRef
     public function replace(TemplateVariableAttributes $values): TemplateVariable
     {
         $value = clone $this;
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_type = $values->getTypeOrDefault($this->_type);
-        $value->_value = $values->getValueOrDefault($this->_value);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_type = $values->getTypeOrCurrent($this->_type);
+        $value->_value = $values->getValueOrCurrent($this->_value);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -72,7 +72,7 @@ class TemplateVariable extends TemplateVariableRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TemplateVariableCreateEvent($value);
         return $value;
     }

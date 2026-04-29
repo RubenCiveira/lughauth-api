@@ -25,7 +25,7 @@ final class TemplateUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = Template::calculatedFields();
 
         // @Assert

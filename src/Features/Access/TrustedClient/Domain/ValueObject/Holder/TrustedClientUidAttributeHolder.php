@@ -13,7 +13,7 @@ trait TrustedClientUidAttributeHolder
     protected TrustedClientUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(TrustedClientUidVO $uid): TrustedClientUidVO
+    public function getUidOrCurrent(TrustedClientUidVO $uid): TrustedClientUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait TrustedClientUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?TrustedClientUidVO
+    {
+        return  TrustedClientUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(TrustedClientUidVO|string|null $uid): static
     {

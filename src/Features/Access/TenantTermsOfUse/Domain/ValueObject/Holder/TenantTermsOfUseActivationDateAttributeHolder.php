@@ -13,9 +13,13 @@ trait TenantTermsOfUseActivationDateAttributeHolder
     protected TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $activationDate = null;
     protected bool $activationDateAssigned = false;
 
-    public function getActivationDateOrDefault(?TenantTermsOfUseActivationDateVO $activationDate): ?TenantTermsOfUseActivationDateVO
+    public function getActivationDateOrCurrent(?TenantTermsOfUseActivationDateVO $activationDate): ?TenantTermsOfUseActivationDateVO
     {
-        return $this->activationDateAssigned ? ($this->activationDate !== null ? TenantTermsOfUseActivationDateVO::from($this->activationDate) : null) : $activationDate;
+        return $this->activationDateAssigned ? ($this->activationDate === null ? null : TenantTermsOfUseActivationDateVO::from($this->activationDate)) : $activationDate;
+    }
+    public function activationDateTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseActivationDateVO
+    {
+        return  TenantTermsOfUseActivationDateVO::tryFrom($this->activationDateAssigned ? $this->activationDate : null, $error);
     }
     public function activationDate(TenantTermsOfUseActivationDateVO|\DateTimeImmutable|null $activationDate): static
     {

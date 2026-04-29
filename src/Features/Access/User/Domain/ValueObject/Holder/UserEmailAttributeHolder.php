@@ -13,9 +13,13 @@ trait UserEmailAttributeHolder
     protected UserEmailVO|string|null $email = null;
     protected bool $emailAssigned = false;
 
-    public function getEmailOrDefault(?UserEmailVO $email): ?UserEmailVO
+    public function getEmailOrCurrent(?UserEmailVO $email): ?UserEmailVO
     {
-        return $this->emailAssigned ? ($this->email !== null ? UserEmailVO::from($this->email) : null) : $email;
+        return $this->emailAssigned ? ($this->email === null ? null : UserEmailVO::from($this->email)) : $email;
+    }
+    public function emailTryBuildInitial(ConstraintFailList $error): ?UserEmailVO
+    {
+        return  UserEmailVO::tryFrom($this->emailAssigned ? $this->email : null, $error);
     }
     public function email(UserEmailVO|string|null $email): static
     {

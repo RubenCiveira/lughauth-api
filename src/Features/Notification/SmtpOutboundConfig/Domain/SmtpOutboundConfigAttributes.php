@@ -6,33 +6,19 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain;
 
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigUidAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigUidVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigTenantAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigTenantVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigHostAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigHostVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigPortAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPortVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigLoginAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigLoginVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigPasswordAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigSenderNameAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigSenderNameVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigSenderEmailAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigSenderEmailVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigTimeoutAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigTimeoutVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigUseTlsAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigUseTlsVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigMaxRetriesAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigMaxRetriesVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigRetryDelayAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigRetryDelayVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigRateLimitAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigRateLimitVO;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Holder\SmtpOutboundConfigVersionAttributeHolder;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class SmtpOutboundConfigAttributes
@@ -69,23 +55,23 @@ class SmtpOutboundConfigAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): SmtpOutboundConfig
+    public function createNewInstance(): SmtpOutboundConfig
     {
         $errors = new ConstraintFailList();
-        $uid = SmtpOutboundConfigUidVO::tryFrom($this->uid, $errors);
-        $tenant = SmtpOutboundConfigTenantVO::tryFrom($this->tenant, $errors);
-        $host = SmtpOutboundConfigHostVO::tryFrom($this->host, $errors);
-        $port = SmtpOutboundConfigPortVO::tryFrom($this->port, $errors);
-        $login = SmtpOutboundConfigLoginVO::tryFrom($this->login, $errors);
-        $password = SmtpOutboundConfigPasswordVO::tryFrom($this->password, $errors);
-        $senderName = SmtpOutboundConfigSenderNameVO::tryFrom($this->senderName, $errors);
-        $senderEmail = SmtpOutboundConfigSenderEmailVO::tryFrom($this->senderEmail, $errors);
-        $timeout = SmtpOutboundConfigTimeoutVO::tryFrom($this->timeout, $errors);
-        $useTls = SmtpOutboundConfigUseTlsVO::tryFrom($this->useTls, $errors);
-        $maxRetries = SmtpOutboundConfigMaxRetriesVO::tryFrom($this->maxRetries, $errors);
-        $retryDelay = SmtpOutboundConfigRetryDelayVO::tryFrom($this->retryDelay, $errors);
-        $rateLimit = SmtpOutboundConfigRateLimitVO::tryFrom($this->rateLimit, $errors);
-        $version = SmtpOutboundConfigVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $host = $this->hostTryBuildInitial($errors);
+        $port = $this->portTryBuildInitial($errors);
+        $login = $this->loginTryBuildInitial($errors);
+        $password = $this->passwordTryBuildInitial($errors);
+        $senderName = $this->senderNameTryBuildInitial($errors);
+        $senderEmail = $this->senderEmailTryBuildInitial($errors);
+        $timeout = $this->timeoutTryBuildInitial($errors);
+        $useTls = $this->useTlsTryBuildInitial($errors);
+        $maxRetries = $this->maxRetriesTryBuildInitial($errors);
+        $retryDelay = $this->retryDelayTryBuildInitial($errors);
+        $rateLimit = $this->rateLimitTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

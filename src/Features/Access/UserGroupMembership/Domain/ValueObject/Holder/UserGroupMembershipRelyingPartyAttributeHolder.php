@@ -14,9 +14,13 @@ trait UserGroupMembershipRelyingPartyAttributeHolder
     protected UserGroupMembershipRelyingPartyVO|RelyingPartyRef|null $relyingParty = null;
     protected bool $relyingPartyAssigned = false;
 
-    public function getRelyingPartyOrDefault(?UserGroupMembershipRelyingPartyVO $relyingParty): ?UserGroupMembershipRelyingPartyVO
+    public function getRelyingPartyOrCurrent(?UserGroupMembershipRelyingPartyVO $relyingParty): ?UserGroupMembershipRelyingPartyVO
     {
-        return $this->relyingPartyAssigned ? ($this->relyingParty !== null ? UserGroupMembershipRelyingPartyVO::from($this->relyingParty) : null) : $relyingParty;
+        return $this->relyingPartyAssigned ? ($this->relyingParty === null ? null : UserGroupMembershipRelyingPartyVO::from($this->relyingParty)) : $relyingParty;
+    }
+    public function relyingPartyTryBuildInitial(ConstraintFailList $error): ?UserGroupMembershipRelyingPartyVO
+    {
+        return  UserGroupMembershipRelyingPartyVO::tryFrom($this->relyingPartyAssigned ? $this->relyingParty : null, $error);
     }
     public function relyingParty(UserGroupMembershipRelyingPartyVO|RelyingPartyRef|null $relyingParty): static
     {

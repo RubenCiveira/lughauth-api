@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteV
 
 trait TenantMarkForDeleteAttributeHolder
 {
-    protected TenantMarkForDeleteVO|bool|null $markForDelete = false;
+    protected TenantMarkForDeleteVO|bool|null $markForDelete = null;
     protected bool $markForDeleteAssigned = false;
 
-    public function getMarkForDeleteOrDefault(TenantMarkForDeleteVO $markForDelete): TenantMarkForDeleteVO
+    public function getMarkForDeleteOrCurrent(TenantMarkForDeleteVO $markForDelete): TenantMarkForDeleteVO
     {
         if ($this->markForDeleteAssigned) {
             \assert(null !== $this->markForDelete);
@@ -21,6 +21,10 @@ trait TenantMarkForDeleteAttributeHolder
         } else {
             return $markForDelete;
         }
+    }
+    public function markForDeleteTryBuildInitial(ConstraintFailList $error): ?TenantMarkForDeleteVO
+    {
+        return  TenantMarkForDeleteVO::tryFrom($this->markForDeleteAssigned ? $this->markForDelete : false, $error);
     }
     public function markForDelete(TenantMarkForDeleteVO|bool $markForDelete): static
     {

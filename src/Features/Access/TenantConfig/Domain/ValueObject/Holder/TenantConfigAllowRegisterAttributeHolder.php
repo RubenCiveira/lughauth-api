@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAl
 
 trait TenantConfigAllowRegisterAttributeHolder
 {
-    protected TenantConfigAllowRegisterVO|bool|null $allowRegister = true;
+    protected TenantConfigAllowRegisterVO|bool|null $allowRegister = null;
     protected bool $allowRegisterAssigned = false;
 
-    public function getAllowRegisterOrDefault(?TenantConfigAllowRegisterVO $allowRegister): ?TenantConfigAllowRegisterVO
+    public function getAllowRegisterOrCurrent(?TenantConfigAllowRegisterVO $allowRegister): ?TenantConfigAllowRegisterVO
     {
-        return $this->allowRegisterAssigned ? ($this->allowRegister !== null ? TenantConfigAllowRegisterVO::from($this->allowRegister) : null) : $allowRegister;
+        return $this->allowRegisterAssigned ? ($this->allowRegister === null ? null : TenantConfigAllowRegisterVO::from($this->allowRegister)) : $allowRegister;
+    }
+    public function allowRegisterTryBuildInitial(ConstraintFailList $error): ?TenantConfigAllowRegisterVO
+    {
+        return  TenantConfigAllowRegisterVO::tryFrom($this->allowRegisterAssigned ? $this->allowRegister : true, $error);
     }
     public function allowRegister(TenantConfigAllowRegisterVO|bool|null $allowRegister): static
     {

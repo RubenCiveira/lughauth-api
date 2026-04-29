@@ -13,9 +13,13 @@ trait UserConsentedScopesGrantedAttributeHolder
     protected UserConsentedScopesGrantedVO|bool|null $granted = null;
     protected bool $grantedAssigned = false;
 
-    public function getGrantedOrDefault(?UserConsentedScopesGrantedVO $granted): ?UserConsentedScopesGrantedVO
+    public function getGrantedOrCurrent(?UserConsentedScopesGrantedVO $granted): ?UserConsentedScopesGrantedVO
     {
-        return $this->grantedAssigned ? ($this->granted !== null ? UserConsentedScopesGrantedVO::from($this->granted) : null) : $granted;
+        return $this->grantedAssigned ? ($this->granted === null ? null : UserConsentedScopesGrantedVO::from($this->granted)) : $granted;
+    }
+    public function grantedTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesGrantedVO
+    {
+        return  UserConsentedScopesGrantedVO::tryFrom($this->grantedAssigned ? $this->granted : null, $error);
     }
     public function granted(UserConsentedScopesGrantedVO|bool|null $granted): static
     {

@@ -13,9 +13,13 @@ trait TrustedClientJwksJsonAttributeHolder
     protected TrustedClientJwksJsonVO|string|null $jwksJson = null;
     protected bool $jwksJsonAssigned = false;
 
-    public function getJwksJsonOrDefault(?TrustedClientJwksJsonVO $jwksJson): ?TrustedClientJwksJsonVO
+    public function getJwksJsonOrCurrent(?TrustedClientJwksJsonVO $jwksJson): ?TrustedClientJwksJsonVO
     {
-        return $this->jwksJsonAssigned ? ($this->jwksJson !== null ? TrustedClientJwksJsonVO::from($this->jwksJson) : null) : $jwksJson;
+        return $this->jwksJsonAssigned ? ($this->jwksJson === null ? null : TrustedClientJwksJsonVO::from($this->jwksJson)) : $jwksJson;
+    }
+    public function jwksJsonTryBuildInitial(ConstraintFailList $error): ?TrustedClientJwksJsonVO
+    {
+        return  TrustedClientJwksJsonVO::tryFrom($this->jwksJsonAssigned ? $this->jwksJson : null, $error);
     }
     public function jwksJson(TrustedClientJwksJsonVO|string|null $jwksJson): static
     {

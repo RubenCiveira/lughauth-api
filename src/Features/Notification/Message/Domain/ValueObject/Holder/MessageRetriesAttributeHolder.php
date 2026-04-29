@@ -13,7 +13,7 @@ trait MessageRetriesAttributeHolder
     protected MessageRetriesVO|int|null $retries = null;
     protected bool $retriesAssigned = false;
 
-    public function getRetriesOrDefault(MessageRetriesVO $retries): MessageRetriesVO
+    public function getRetriesOrCurrent(MessageRetriesVO $retries): MessageRetriesVO
     {
         if ($this->retriesAssigned) {
             \assert(null !== $this->retries);
@@ -21,6 +21,10 @@ trait MessageRetriesAttributeHolder
         } else {
             return $retries;
         }
+    }
+    public function retriesTryBuildInitial(ConstraintFailList $error): ?MessageRetriesVO
+    {
+        return  MessageRetriesVO::tryFrom($this->retriesAssigned ? $this->retries : null, $error);
     }
     public function retries(MessageRetriesVO|int $retries): static
     {

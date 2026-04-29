@@ -13,7 +13,7 @@ trait MessageUidAttributeHolder
     protected MessageUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(MessageUidVO $uid): MessageUidVO
+    public function getUidOrCurrent(MessageUidVO $uid): MessageUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait MessageUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?MessageUidVO
+    {
+        return  MessageUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(MessageUidVO|string|null $uid): static
     {

@@ -13,7 +13,7 @@ trait TemplateAssetTypeAttributeHolder
     protected TemplateAssetTypeVO|string|null $type = null;
     protected bool $typeAssigned = false;
 
-    public function getTypeOrDefault(TemplateAssetTypeVO $type): TemplateAssetTypeVO
+    public function getTypeOrCurrent(TemplateAssetTypeVO $type): TemplateAssetTypeVO
     {
         if ($this->typeAssigned) {
             \assert(null !== $this->type);
@@ -21,6 +21,10 @@ trait TemplateAssetTypeAttributeHolder
         } else {
             return $type;
         }
+    }
+    public function typeTryBuildInitial(ConstraintFailList $error): ?TemplateAssetTypeVO
+    {
+        return  TemplateAssetTypeVO::tryFrom($this->typeAssigned ? $this->type : null, $error);
     }
     public function type(TemplateAssetTypeVO|string $type): static
     {

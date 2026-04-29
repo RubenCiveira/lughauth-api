@@ -11,12 +11,16 @@ use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 
 trait UserApproveAttributeHolder
 {
-    protected UserApproveVO|UserApproveOptions|null $approve = UserApproveOptions::ACCEPTED;
+    protected UserApproveVO|UserApproveOptions|null $approve = null;
     protected bool $approveAssigned = false;
 
-    public function getApproveOrDefault(?UserApproveVO $approve): ?UserApproveVO
+    public function getApproveOrCurrent(?UserApproveVO $approve): ?UserApproveVO
     {
-        return $this->approveAssigned ? ($this->approve !== null ? UserApproveVO::from($this->approve) : null) : $approve;
+        return $this->approveAssigned ? ($this->approve === null ? null : UserApproveVO::from($this->approve)) : $approve;
+    }
+    public function approveTryBuildInitial(ConstraintFailList $error): ?UserApproveVO
+    {
+        return  UserApproveVO::tryFrom($this->approveAssigned ? $this->approve : UserApproveOptions::ACCEPTED, $error);
     }
     public function approve(UserApproveVO|UserApproveOptions|null $approve): static
     {

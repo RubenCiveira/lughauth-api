@@ -13,9 +13,13 @@ trait TenantConfigWellcomeEmailAttributeHolder
     protected TenantConfigWellcomeEmailVO|string|null $wellcomeEmail = null;
     protected bool $wellcomeEmailAssigned = false;
 
-    public function getWellcomeEmailOrDefault(?TenantConfigWellcomeEmailVO $wellcomeEmail): ?TenantConfigWellcomeEmailVO
+    public function getWellcomeEmailOrCurrent(?TenantConfigWellcomeEmailVO $wellcomeEmail): ?TenantConfigWellcomeEmailVO
     {
-        return $this->wellcomeEmailAssigned ? ($this->wellcomeEmail !== null ? TenantConfigWellcomeEmailVO::from($this->wellcomeEmail) : null) : $wellcomeEmail;
+        return $this->wellcomeEmailAssigned ? ($this->wellcomeEmail === null ? null : TenantConfigWellcomeEmailVO::from($this->wellcomeEmail)) : $wellcomeEmail;
+    }
+    public function wellcomeEmailTryBuildInitial(ConstraintFailList $error): ?TenantConfigWellcomeEmailVO
+    {
+        return  TenantConfigWellcomeEmailVO::tryFrom($this->wellcomeEmailAssigned ? $this->wellcomeEmail : null, $error);
     }
     public function wellcomeEmail(TenantConfigWellcomeEmailVO|string|null $wellcomeEmail): static
     {

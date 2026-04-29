@@ -45,10 +45,10 @@ class RelyingParty extends RelyingPartyRef
     public function replace(RelyingPartyAttributes $values): RelyingParty
     {
         $value = clone $this;
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_apiKey = $values->getApiKeyOrDefault($this->_apiKey);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_apiKey = $values->getApiKeyOrCurrent($this->_apiKey);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -59,7 +59,7 @@ class RelyingParty extends RelyingPartyRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new RelyingPartyCreateEvent($value);
         return $value;
     }

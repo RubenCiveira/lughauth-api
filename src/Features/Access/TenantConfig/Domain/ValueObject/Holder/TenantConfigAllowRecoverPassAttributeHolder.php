@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAl
 
 trait TenantConfigAllowRecoverPassAttributeHolder
 {
-    protected TenantConfigAllowRecoverPassVO|bool|null $allowRecoverPass = true;
+    protected TenantConfigAllowRecoverPassVO|bool|null $allowRecoverPass = null;
     protected bool $allowRecoverPassAssigned = false;
 
-    public function getAllowRecoverPassOrDefault(?TenantConfigAllowRecoverPassVO $allowRecoverPass): ?TenantConfigAllowRecoverPassVO
+    public function getAllowRecoverPassOrCurrent(?TenantConfigAllowRecoverPassVO $allowRecoverPass): ?TenantConfigAllowRecoverPassVO
     {
-        return $this->allowRecoverPassAssigned ? ($this->allowRecoverPass !== null ? TenantConfigAllowRecoverPassVO::from($this->allowRecoverPass) : null) : $allowRecoverPass;
+        return $this->allowRecoverPassAssigned ? ($this->allowRecoverPass === null ? null : TenantConfigAllowRecoverPassVO::from($this->allowRecoverPass)) : $allowRecoverPass;
+    }
+    public function allowRecoverPassTryBuildInitial(ConstraintFailList $error): ?TenantConfigAllowRecoverPassVO
+    {
+        return  TenantConfigAllowRecoverPassVO::tryFrom($this->allowRecoverPassAssigned ? $this->allowRecoverPass : true, $error);
     }
     public function allowRecoverPass(TenantConfigAllowRecoverPassVO|bool|null $allowRecoverPass): static
     {

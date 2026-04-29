@@ -13,9 +13,13 @@ trait TenantMarkForDeleteTimeAttributeHolder
     protected TenantMarkForDeleteTimeVO|\DateTimeImmutable|null $markForDeleteTime = null;
     protected bool $markForDeleteTimeAssigned = false;
 
-    public function getMarkForDeleteTimeOrDefault(?TenantMarkForDeleteTimeVO $markForDeleteTime): ?TenantMarkForDeleteTimeVO
+    public function getMarkForDeleteTimeOrCurrent(?TenantMarkForDeleteTimeVO $markForDeleteTime): ?TenantMarkForDeleteTimeVO
     {
-        return $this->markForDeleteTimeAssigned ? ($this->markForDeleteTime !== null ? TenantMarkForDeleteTimeVO::from($this->markForDeleteTime) : null) : $markForDeleteTime;
+        return $this->markForDeleteTimeAssigned ? ($this->markForDeleteTime === null ? null : TenantMarkForDeleteTimeVO::from($this->markForDeleteTime)) : $markForDeleteTime;
+    }
+    public function markForDeleteTimeTryBuildInitial(ConstraintFailList $error): ?TenantMarkForDeleteTimeVO
+    {
+        return  TenantMarkForDeleteTimeVO::tryFrom($this->markForDeleteTimeAssigned ? $this->markForDeleteTime : null, $error);
     }
     public function markForDeleteTime(TenantMarkForDeleteTimeVO|\DateTimeImmutable|null $markForDeleteTime): static
     {

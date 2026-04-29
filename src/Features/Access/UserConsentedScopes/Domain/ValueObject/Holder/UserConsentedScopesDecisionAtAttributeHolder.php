@@ -13,9 +13,13 @@ trait UserConsentedScopesDecisionAtAttributeHolder
     protected UserConsentedScopesDecisionAtVO|\DateTimeImmutable|null $decisionAt = null;
     protected bool $decisionAtAssigned = false;
 
-    public function getDecisionAtOrDefault(?UserConsentedScopesDecisionAtVO $decisionAt): ?UserConsentedScopesDecisionAtVO
+    public function getDecisionAtOrCurrent(?UserConsentedScopesDecisionAtVO $decisionAt): ?UserConsentedScopesDecisionAtVO
     {
-        return $this->decisionAtAssigned ? ($this->decisionAt !== null ? UserConsentedScopesDecisionAtVO::from($this->decisionAt) : null) : $decisionAt;
+        return $this->decisionAtAssigned ? ($this->decisionAt === null ? null : UserConsentedScopesDecisionAtVO::from($this->decisionAt)) : $decisionAt;
+    }
+    public function decisionAtTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesDecisionAtVO
+    {
+        return  UserConsentedScopesDecisionAtVO::tryFrom($this->decisionAtAssigned ? $this->decisionAt : null, $error);
     }
     public function decisionAt(UserConsentedScopesDecisionAtVO|\DateTimeImmutable|null $decisionAt): static
     {

@@ -13,7 +13,7 @@ trait SmtpOutboundConfigUidAttributeHolder
     protected SmtpOutboundConfigUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(SmtpOutboundConfigUidVO $uid): SmtpOutboundConfigUidVO
+    public function getUidOrCurrent(SmtpOutboundConfigUidVO $uid): SmtpOutboundConfigUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigUidVO
+    {
+        return  SmtpOutboundConfigUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(SmtpOutboundConfigUidVO|string|null $uid): static
     {

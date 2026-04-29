@@ -23,7 +23,7 @@ final class TemplateAssetUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = TemplateAsset::calculatedFields();
 
         // @Assert

@@ -13,9 +13,13 @@ trait ApiKeyClientScopesAttributeHolder
     protected ApiKeyClientScopesVO|string|null $scopes = null;
     protected bool $scopesAssigned = false;
 
-    public function getScopesOrDefault(?ApiKeyClientScopesVO $scopes): ?ApiKeyClientScopesVO
+    public function getScopesOrCurrent(?ApiKeyClientScopesVO $scopes): ?ApiKeyClientScopesVO
     {
-        return $this->scopesAssigned ? ($this->scopes !== null ? ApiKeyClientScopesVO::from($this->scopes) : null) : $scopes;
+        return $this->scopesAssigned ? ($this->scopes === null ? null : ApiKeyClientScopesVO::from($this->scopes)) : $scopes;
+    }
+    public function scopesTryBuildInitial(ConstraintFailList $error): ?ApiKeyClientScopesVO
+    {
+        return  ApiKeyClientScopesVO::tryFrom($this->scopesAssigned ? $this->scopes : null, $error);
     }
     public function scopes(ApiKeyClientScopesVO|string|null $scopes): static
     {

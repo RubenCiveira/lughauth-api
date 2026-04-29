@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeIsDefaultVO;
 
 trait ThemeIsDefaultAttributeHolder
 {
-    protected ThemeIsDefaultVO|bool|null $isDefault = false;
+    protected ThemeIsDefaultVO|bool|null $isDefault = null;
     protected bool $isDefaultAssigned = false;
 
-    public function getIsDefaultOrDefault(?ThemeIsDefaultVO $isDefault): ?ThemeIsDefaultVO
+    public function getIsDefaultOrCurrent(?ThemeIsDefaultVO $isDefault): ?ThemeIsDefaultVO
     {
-        return $this->isDefaultAssigned ? ($this->isDefault !== null ? ThemeIsDefaultVO::from($this->isDefault) : null) : $isDefault;
+        return $this->isDefaultAssigned ? ($this->isDefault === null ? null : ThemeIsDefaultVO::from($this->isDefault)) : $isDefault;
+    }
+    public function isDefaultTryBuildInitial(ConstraintFailList $error): ?ThemeIsDefaultVO
+    {
+        return  ThemeIsDefaultVO::tryFrom($this->isDefaultAssigned ? $this->isDefault : false, $error);
     }
     public function isDefault(ThemeIsDefaultVO|bool|null $isDefault): static
     {

@@ -14,9 +14,13 @@ trait SmtpOutboundConfigTenantAttributeHolder
     protected SmtpOutboundConfigTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?SmtpOutboundConfigTenantVO $tenant): ?SmtpOutboundConfigTenantVO
+    public function getTenantOrCurrent(?SmtpOutboundConfigTenantVO $tenant): ?SmtpOutboundConfigTenantVO
     {
-        return $this->tenantAssigned ? ($this->tenant !== null ? SmtpOutboundConfigTenantVO::from($this->tenant) : null) : $tenant;
+        return $this->tenantAssigned ? ($this->tenant === null ? null : SmtpOutboundConfigTenantVO::from($this->tenant)) : $tenant;
+    }
+    public function tenantTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigTenantVO
+    {
+        return  SmtpOutboundConfigTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
     public function tenant(SmtpOutboundConfigTenantVO|TenantRef|null $tenant): static
     {

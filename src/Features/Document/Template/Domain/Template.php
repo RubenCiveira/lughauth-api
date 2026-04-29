@@ -57,12 +57,12 @@ class Template extends TemplateRef
     public function replace(TemplateAttributes $values): Template
     {
         $value = clone $this;
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_theme = $values->getThemeOrDefault($this->_theme);
-        $value->_channel = $values->getChannelOrDefault($this->_channel);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_theme = $values->getThemeOrCurrent($this->_theme);
+        $value->_channel = $values->getChannelOrCurrent($this->_channel);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -73,7 +73,7 @@ class Template extends TemplateRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TemplateCreateEvent($value);
         return $value;
     }

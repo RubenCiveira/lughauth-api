@@ -13,9 +13,13 @@ trait TrustedClientFrontChannelLogoutUriAttributeHolder
     protected TrustedClientFrontChannelLogoutUriVO|string|null $frontChannelLogoutUri = null;
     protected bool $frontChannelLogoutUriAssigned = false;
 
-    public function getFrontChannelLogoutUriOrDefault(?TrustedClientFrontChannelLogoutUriVO $frontChannelLogoutUri): ?TrustedClientFrontChannelLogoutUriVO
+    public function getFrontChannelLogoutUriOrCurrent(?TrustedClientFrontChannelLogoutUriVO $frontChannelLogoutUri): ?TrustedClientFrontChannelLogoutUriVO
     {
-        return $this->frontChannelLogoutUriAssigned ? ($this->frontChannelLogoutUri !== null ? TrustedClientFrontChannelLogoutUriVO::from($this->frontChannelLogoutUri) : null) : $frontChannelLogoutUri;
+        return $this->frontChannelLogoutUriAssigned ? ($this->frontChannelLogoutUri === null ? null : TrustedClientFrontChannelLogoutUriVO::from($this->frontChannelLogoutUri)) : $frontChannelLogoutUri;
+    }
+    public function frontChannelLogoutUriTryBuildInitial(ConstraintFailList $error): ?TrustedClientFrontChannelLogoutUriVO
+    {
+        return  TrustedClientFrontChannelLogoutUriVO::tryFrom($this->frontChannelLogoutUriAssigned ? $this->frontChannelLogoutUri : null, $error);
     }
     public function frontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO|string|null $frontChannelLogoutUri): static
     {

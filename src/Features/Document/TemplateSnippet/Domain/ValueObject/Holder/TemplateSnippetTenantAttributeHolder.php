@@ -14,7 +14,7 @@ trait TemplateSnippetTenantAttributeHolder
     protected TemplateSnippetTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(TemplateSnippetTenantVO $tenant): TemplateSnippetTenantVO
+    public function getTenantOrCurrent(TemplateSnippetTenantVO $tenant): TemplateSnippetTenantVO
     {
         if ($this->tenantAssigned) {
             \assert(null !== $this->tenant);
@@ -22,6 +22,10 @@ trait TemplateSnippetTenantAttributeHolder
         } else {
             return $tenant;
         }
+    }
+    public function tenantTryBuildInitial(ConstraintFailList $error): ?TemplateSnippetTenantVO
+    {
+        return  TemplateSnippetTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
     public function tenant(TemplateSnippetTenantVO|TenantRef $tenant): static
     {

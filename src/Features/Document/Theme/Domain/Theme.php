@@ -55,12 +55,12 @@ class Theme extends ThemeRef
     public function replace(ThemeAttributes $values): Theme
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_name = $values->getNameOrDefault($this->_name);
-        $value->_isDefault = $values->getIsDefaultOrDefault($this->_isDefault);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_customCss = $values->getCustomCssOrDefault($this->_customCss);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_name = $values->getNameOrCurrent($this->_name);
+        $value->_isDefault = $values->getIsDefaultOrCurrent($this->_isDefault);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_customCss = $values->getCustomCssOrCurrent($this->_customCss);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -69,7 +69,7 @@ class Theme extends ThemeRef
     }
     public static function create(ThemeAttributes $values): Theme
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new ThemeCreateEvent($value);
         return $value;
     }

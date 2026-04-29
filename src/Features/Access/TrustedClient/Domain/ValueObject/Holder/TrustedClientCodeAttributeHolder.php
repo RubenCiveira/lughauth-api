@@ -13,7 +13,7 @@ trait TrustedClientCodeAttributeHolder
     protected TrustedClientCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(TrustedClientCodeVO $code): TrustedClientCodeVO
+    public function getCodeOrCurrent(TrustedClientCodeVO $code): TrustedClientCodeVO
     {
         if ($this->codeAssigned) {
             \assert(null !== $this->code);
@@ -21,6 +21,10 @@ trait TrustedClientCodeAttributeHolder
         } else {
             return $code;
         }
+    }
+    public function codeTryBuildInitial(ConstraintFailList $error): ?TrustedClientCodeVO
+    {
+        return  TrustedClientCodeVO::tryFrom($this->codeAssigned ? $this->code : null, $error);
     }
     public function code(TrustedClientCodeVO|string $code): static
     {

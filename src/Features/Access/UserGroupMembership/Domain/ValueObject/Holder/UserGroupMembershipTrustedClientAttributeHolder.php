@@ -14,9 +14,13 @@ trait UserGroupMembershipTrustedClientAttributeHolder
     protected UserGroupMembershipTrustedClientVO|TrustedClientRef|null $trustedClient = null;
     protected bool $trustedClientAssigned = false;
 
-    public function getTrustedClientOrDefault(?UserGroupMembershipTrustedClientVO $trustedClient): ?UserGroupMembershipTrustedClientVO
+    public function getTrustedClientOrCurrent(?UserGroupMembershipTrustedClientVO $trustedClient): ?UserGroupMembershipTrustedClientVO
     {
-        return $this->trustedClientAssigned ? ($this->trustedClient !== null ? UserGroupMembershipTrustedClientVO::from($this->trustedClient) : null) : $trustedClient;
+        return $this->trustedClientAssigned ? ($this->trustedClient === null ? null : UserGroupMembershipTrustedClientVO::from($this->trustedClient)) : $trustedClient;
+    }
+    public function trustedClientTryBuildInitial(ConstraintFailList $error): ?UserGroupMembershipTrustedClientVO
+    {
+        return  UserGroupMembershipTrustedClientVO::tryFrom($this->trustedClientAssigned ? $this->trustedClient : null, $error);
     }
     public function trustedClient(UserGroupMembershipTrustedClientVO|TrustedClientRef|null $trustedClient): static
     {

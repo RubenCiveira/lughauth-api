@@ -13,7 +13,7 @@ trait TenantTermsOfUseUidAttributeHolder
     protected TenantTermsOfUseUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(TenantTermsOfUseUidVO $uid): TenantTermsOfUseUidVO
+    public function getUidOrCurrent(TenantTermsOfUseUidVO $uid): TenantTermsOfUseUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait TenantTermsOfUseUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseUidVO
+    {
+        return  TenantTermsOfUseUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(TenantTermsOfUseUidVO|string|null $uid): static
     {

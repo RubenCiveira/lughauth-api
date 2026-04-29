@@ -6,15 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\RelyingParty\Domain;
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyUidAttributeHolder;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyUidVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyCodeAttributeHolder;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyCodeVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyApiKeyAttributeHolder;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyApiKeyVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEnabledVO;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\Holder\RelyingPartyVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class RelyingPartyAttributes
@@ -33,14 +28,14 @@ class RelyingPartyAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): RelyingParty
+    public function createNewInstance(): RelyingParty
     {
         $errors = new ConstraintFailList();
-        $uid = RelyingPartyUidVO::tryFrom($this->uid, $errors);
-        $code = RelyingPartyCodeVO::tryFrom($this->code, $errors);
-        $apiKey = RelyingPartyApiKeyVO::tryFrom($this->apiKey, $errors);
-        $enabled = RelyingPartyEnabledVO::tryFrom($this->enabled, $errors);
-        $version = RelyingPartyVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $code = $this->codeTryBuildInitial($errors);
+        $apiKey = $this->apiKeyTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

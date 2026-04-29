@@ -13,9 +13,13 @@ trait TrustedClientRegistrationAccessAttributeHolder
     protected TrustedClientRegistrationAccessVO|string|null $registrationAccess = null;
     protected bool $registrationAccessAssigned = false;
 
-    public function getRegistrationAccessOrDefault(?TrustedClientRegistrationAccessVO $registrationAccess): ?TrustedClientRegistrationAccessVO
+    public function getRegistrationAccessOrCurrent(?TrustedClientRegistrationAccessVO $registrationAccess): ?TrustedClientRegistrationAccessVO
     {
-        return $this->registrationAccessAssigned ? ($this->registrationAccess !== null ? TrustedClientRegistrationAccessVO::from($this->registrationAccess) : null) : $registrationAccess;
+        return $this->registrationAccessAssigned ? ($this->registrationAccess === null ? null : TrustedClientRegistrationAccessVO::from($this->registrationAccess)) : $registrationAccess;
+    }
+    public function registrationAccessTryBuildInitial(ConstraintFailList $error): ?TrustedClientRegistrationAccessVO
+    {
+        return  TrustedClientRegistrationAccessVO::tryFrom($this->registrationAccessAssigned ? $this->registrationAccess : null, $error);
     }
     public function registrationAccess(TrustedClientRegistrationAccessVO|string|null $registrationAccess): static
     {

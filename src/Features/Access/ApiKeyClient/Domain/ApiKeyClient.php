@@ -50,11 +50,11 @@ class ApiKeyClient extends ApiKeyClientRef
     public function replace(ApiKeyClientAttributes $values): ApiKeyClient
     {
         $value = clone $this;
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_key = $values->getKeyOrDefault($this->_key);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_scopes = $values->getScopesOrDefault($this->_scopes);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_key = $values->getKeyOrCurrent($this->_key);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_scopes = $values->getScopesOrCurrent($this->_scopes);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -65,7 +65,7 @@ class ApiKeyClient extends ApiKeyClientRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new ApiKeyClientCreateEvent($value);
         return $value;
     }

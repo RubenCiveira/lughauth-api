@@ -13,7 +13,7 @@ trait RoleNameAttributeHolder
     protected RoleNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(RoleNameVO $name): RoleNameVO
+    public function getNameOrCurrent(RoleNameVO $name): RoleNameVO
     {
         if ($this->nameAssigned) {
             \assert(null !== $this->name);
@@ -21,6 +21,10 @@ trait RoleNameAttributeHolder
         } else {
             return $name;
         }
+    }
+    public function nameTryBuildInitial(ConstraintFailList $error): ?RoleNameVO
+    {
+        return  RoleNameVO::tryFrom($this->nameAssigned ? $this->name : null, $error);
     }
     public function name(RoleNameVO|string $name): static
     {

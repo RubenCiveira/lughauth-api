@@ -64,13 +64,13 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
     public function replace(TenantTermsOfUseAttributes $values): TenantTermsOfUse
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_relyingParty = $values->getRelyingPartyOrDefault($this->_relyingParty);
-        $value->_text = $values->getTextOrDefault($this->_text);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_attached = $values->getAttachedOrDefault($this->_attached);
-        $value->_activationDate = $values->getActivationDateOrDefault($this->_activationDate);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_relyingParty = $values->getRelyingPartyOrCurrent($this->_relyingParty);
+        $value->_text = $values->getTextOrCurrent($this->_text);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_attached = $values->getAttachedOrCurrent($this->_attached);
+        $value->_activationDate = $values->getActivationDateOrCurrent($this->_activationDate);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -81,7 +81,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TenantTermsOfUseCreateEvent($value);
         return $value;
     }

@@ -13,9 +13,13 @@ trait TrustedClientAllowedScopesM2mAttributeHolder
     protected TrustedClientAllowedScopesM2mVO|string|null $allowedScopesM2m = null;
     protected bool $allowedScopesM2mAssigned = false;
 
-    public function getAllowedScopesM2mOrDefault(?TrustedClientAllowedScopesM2mVO $allowedScopesM2m): ?TrustedClientAllowedScopesM2mVO
+    public function getAllowedScopesM2mOrCurrent(?TrustedClientAllowedScopesM2mVO $allowedScopesM2m): ?TrustedClientAllowedScopesM2mVO
     {
-        return $this->allowedScopesM2mAssigned ? ($this->allowedScopesM2m !== null ? TrustedClientAllowedScopesM2mVO::from($this->allowedScopesM2m) : null) : $allowedScopesM2m;
+        return $this->allowedScopesM2mAssigned ? ($this->allowedScopesM2m === null ? null : TrustedClientAllowedScopesM2mVO::from($this->allowedScopesM2m)) : $allowedScopesM2m;
+    }
+    public function allowedScopesM2mTryBuildInitial(ConstraintFailList $error): ?TrustedClientAllowedScopesM2mVO
+    {
+        return  TrustedClientAllowedScopesM2mVO::tryFrom($this->allowedScopesM2mAssigned ? $this->allowedScopesM2m : null, $error);
     }
     public function allowedScopesM2m(TrustedClientAllowedScopesM2mVO|string|null $allowedScopesM2m): static
     {

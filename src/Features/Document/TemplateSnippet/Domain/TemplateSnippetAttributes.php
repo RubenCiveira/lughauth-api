@@ -6,17 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateSnippet\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\Holder\TemplateSnippetUidAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateSnippetUidVO;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\Holder\TemplateSnippetCodeAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateSnippetCodeVO;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\Holder\TemplateSnippetTenantAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateSnippetTenantVO;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\Holder\TemplateSnippetContentHtmlAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateSnippetContentHtmlVO;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\Holder\TemplateSnippetEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateSnippetEnabledVO;
 use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\Holder\TemplateSnippetVersionAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateSnippetVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TemplateSnippetAttributes
@@ -37,15 +31,15 @@ class TemplateSnippetAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TemplateSnippet
+    public function createNewInstance(): TemplateSnippet
     {
         $errors = new ConstraintFailList();
-        $uid = TemplateSnippetUidVO::tryFrom($this->uid, $errors);
-        $code = TemplateSnippetCodeVO::tryFrom($this->code, $errors);
-        $tenant = TemplateSnippetTenantVO::tryFrom($this->tenant, $errors);
-        $contentHtml = TemplateSnippetContentHtmlVO::tryFrom($this->contentHtml, $errors);
-        $enabled = TemplateSnippetEnabledVO::tryFrom($this->enabled, $errors);
-        $version = TemplateSnippetVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $code = $this->codeTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $contentHtml = $this->contentHtmlTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

@@ -13,7 +13,7 @@ trait SmtpOutboundConfigSenderEmailAttributeHolder
     protected SmtpOutboundConfigSenderEmailVO|string|null $senderEmail = null;
     protected bool $senderEmailAssigned = false;
 
-    public function getSenderEmailOrDefault(SmtpOutboundConfigSenderEmailVO $senderEmail): SmtpOutboundConfigSenderEmailVO
+    public function getSenderEmailOrCurrent(SmtpOutboundConfigSenderEmailVO $senderEmail): SmtpOutboundConfigSenderEmailVO
     {
         if ($this->senderEmailAssigned) {
             \assert(null !== $this->senderEmail);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigSenderEmailAttributeHolder
         } else {
             return $senderEmail;
         }
+    }
+    public function senderEmailTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigSenderEmailVO
+    {
+        return  SmtpOutboundConfigSenderEmailVO::tryFrom($this->senderEmailAssigned ? $this->senderEmail : null, $error);
     }
     public function senderEmail(SmtpOutboundConfigSenderEmailVO|string $senderEmail): static
     {

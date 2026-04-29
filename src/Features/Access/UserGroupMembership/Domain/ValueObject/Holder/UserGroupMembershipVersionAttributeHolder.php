@@ -13,9 +13,13 @@ trait UserGroupMembershipVersionAttributeHolder
     protected UserGroupMembershipVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserGroupMembershipVersionVO $version): ?UserGroupMembershipVersionVO
+    public function getVersionOrCurrent(?UserGroupMembershipVersionVO $version): ?UserGroupMembershipVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? UserGroupMembershipVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : UserGroupMembershipVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?UserGroupMembershipVersionVO
+    {
+        return  UserGroupMembershipVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(UserGroupMembershipVersionVO|int|null $version): static
     {

@@ -13,7 +13,7 @@ trait ThemeNameAttributeHolder
     protected ThemeNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(ThemeNameVO $name): ThemeNameVO
+    public function getNameOrCurrent(ThemeNameVO $name): ThemeNameVO
     {
         if ($this->nameAssigned) {
             \assert(null !== $this->name);
@@ -21,6 +21,10 @@ trait ThemeNameAttributeHolder
         } else {
             return $name;
         }
+    }
+    public function nameTryBuildInitial(ConstraintFailList $error): ?ThemeNameVO
+    {
+        return  ThemeNameVO::tryFrom($this->nameAssigned ? $this->name : null, $error);
     }
     public function name(ThemeNameVO|string $name): static
     {

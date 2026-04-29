@@ -13,7 +13,7 @@ trait UserUidAttributeHolder
     protected UserUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(UserUidVO $uid): UserUidVO
+    public function getUidOrCurrent(UserUidVO $uid): UserUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait UserUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?UserUidVO
+    {
+        return  UserUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(UserUidVO|string|null $uid): static
     {

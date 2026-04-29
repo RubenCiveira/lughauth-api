@@ -13,7 +13,7 @@ trait SmtpOutboundConfigHostAttributeHolder
     protected SmtpOutboundConfigHostVO|string|null $host = null;
     protected bool $hostAssigned = false;
 
-    public function getHostOrDefault(SmtpOutboundConfigHostVO $host): SmtpOutboundConfigHostVO
+    public function getHostOrCurrent(SmtpOutboundConfigHostVO $host): SmtpOutboundConfigHostVO
     {
         if ($this->hostAssigned) {
             \assert(null !== $this->host);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigHostAttributeHolder
         } else {
             return $host;
         }
+    }
+    public function hostTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigHostVO
+    {
+        return  SmtpOutboundConfigHostVO::tryFrom($this->hostAssigned ? $this->host : null, $error);
     }
     public function host(SmtpOutboundConfigHostVO|string $host): static
     {

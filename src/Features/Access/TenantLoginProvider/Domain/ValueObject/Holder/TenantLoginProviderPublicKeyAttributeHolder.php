@@ -13,9 +13,13 @@ trait TenantLoginProviderPublicKeyAttributeHolder
     protected TenantLoginProviderPublicKeyVO|string|null $publicKey = null;
     protected bool $publicKeyAssigned = false;
 
-    public function getPublicKeyOrDefault(?TenantLoginProviderPublicKeyVO $publicKey): ?TenantLoginProviderPublicKeyVO
+    public function getPublicKeyOrCurrent(?TenantLoginProviderPublicKeyVO $publicKey): ?TenantLoginProviderPublicKeyVO
     {
-        return $this->publicKeyAssigned ? ($this->publicKey !== null ? TenantLoginProviderPublicKeyVO::from($this->publicKey) : null) : $publicKey;
+        return $this->publicKeyAssigned ? ($this->publicKey === null ? null : TenantLoginProviderPublicKeyVO::from($this->publicKey)) : $publicKey;
+    }
+    public function publicKeyTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderPublicKeyVO
+    {
+        return  TenantLoginProviderPublicKeyVO::tryFrom($this->publicKeyAssigned ? $this->publicKey : null, $error);
     }
     public function publicKey(TenantLoginProviderPublicKeyVO|string|null $publicKey): static
     {

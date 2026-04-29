@@ -13,7 +13,7 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
     protected TenantLoginProviderUsersEnabledByDefaultVO|bool|null $usersEnabledByDefault = null;
     protected bool $usersEnabledByDefaultAssigned = false;
 
-    public function getUsersEnabledByDefaultOrDefault(TenantLoginProviderUsersEnabledByDefaultVO $usersEnabledByDefault): TenantLoginProviderUsersEnabledByDefaultVO
+    public function getUsersEnabledByDefaultOrCurrent(TenantLoginProviderUsersEnabledByDefaultVO $usersEnabledByDefault): TenantLoginProviderUsersEnabledByDefaultVO
     {
         if ($this->usersEnabledByDefaultAssigned) {
             \assert(null !== $this->usersEnabledByDefault);
@@ -21,6 +21,10 @@ trait TenantLoginProviderUsersEnabledByDefaultAttributeHolder
         } else {
             return $usersEnabledByDefault;
         }
+    }
+    public function usersEnabledByDefaultTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderUsersEnabledByDefaultVO
+    {
+        return  TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($this->usersEnabledByDefaultAssigned ? $this->usersEnabledByDefault : null, $error);
     }
     public function usersEnabledByDefault(TenantLoginProviderUsersEnabledByDefaultVO|bool $usersEnabledByDefault): static
     {

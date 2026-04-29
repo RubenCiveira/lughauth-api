@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateEnabledV
 
 trait TemplateEnabledAttributeHolder
 {
-    protected TemplateEnabledVO|bool|null $enabled = true;
+    protected TemplateEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?TemplateEnabledVO $enabled): ?TemplateEnabledVO
+    public function getEnabledOrCurrent(?TemplateEnabledVO $enabled): ?TemplateEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? TemplateEnabledVO::from($this->enabled) : null) : $enabled;
+        return $this->enabledAssigned ? ($this->enabled === null ? null : TemplateEnabledVO::from($this->enabled)) : $enabled;
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?TemplateEnabledVO
+    {
+        return  TemplateEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : true, $error);
     }
     public function enabled(TemplateEnabledVO|bool|null $enabled): static
     {

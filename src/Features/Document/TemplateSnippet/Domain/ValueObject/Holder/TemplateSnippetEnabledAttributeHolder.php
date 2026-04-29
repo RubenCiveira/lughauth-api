@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateS
 
 trait TemplateSnippetEnabledAttributeHolder
 {
-    protected TemplateSnippetEnabledVO|bool|null $enabled = true;
+    protected TemplateSnippetEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?TemplateSnippetEnabledVO $enabled): ?TemplateSnippetEnabledVO
+    public function getEnabledOrCurrent(?TemplateSnippetEnabledVO $enabled): ?TemplateSnippetEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? TemplateSnippetEnabledVO::from($this->enabled) : null) : $enabled;
+        return $this->enabledAssigned ? ($this->enabled === null ? null : TemplateSnippetEnabledVO::from($this->enabled)) : $enabled;
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?TemplateSnippetEnabledVO
+    {
+        return  TemplateSnippetEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : true, $error);
     }
     public function enabled(TemplateSnippetEnabledVO|bool|null $enabled): static
     {

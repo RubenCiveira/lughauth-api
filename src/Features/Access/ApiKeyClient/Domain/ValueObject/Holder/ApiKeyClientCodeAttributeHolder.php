@@ -13,7 +13,7 @@ trait ApiKeyClientCodeAttributeHolder
     protected ApiKeyClientCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(ApiKeyClientCodeVO $code): ApiKeyClientCodeVO
+    public function getCodeOrCurrent(ApiKeyClientCodeVO $code): ApiKeyClientCodeVO
     {
         if ($this->codeAssigned) {
             \assert(null !== $this->code);
@@ -21,6 +21,10 @@ trait ApiKeyClientCodeAttributeHolder
         } else {
             return $code;
         }
+    }
+    public function codeTryBuildInitial(ConstraintFailList $error): ?ApiKeyClientCodeVO
+    {
+        return  ApiKeyClientCodeVO::tryFrom($this->codeAssigned ? $this->code : null, $error);
     }
     public function code(ApiKeyClientCodeVO|string $code): static
     {

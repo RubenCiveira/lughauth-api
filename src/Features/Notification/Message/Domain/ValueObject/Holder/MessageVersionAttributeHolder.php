@@ -13,9 +13,13 @@ trait MessageVersionAttributeHolder
     protected MessageVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?MessageVersionVO $version): ?MessageVersionVO
+    public function getVersionOrCurrent(?MessageVersionVO $version): ?MessageVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? MessageVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : MessageVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?MessageVersionVO
+    {
+        return  MessageVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(MessageVersionVO|int|null $version): static
     {

@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 trait TrustedClientEnabledAttributeHolder
 {
-    protected TrustedClientEnabledVO|bool|null $enabled = false;
+    protected TrustedClientEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(TrustedClientEnabledVO $enabled): TrustedClientEnabledVO
+    public function getEnabledOrCurrent(TrustedClientEnabledVO $enabled): TrustedClientEnabledVO
     {
         if ($this->enabledAssigned) {
             \assert(null !== $this->enabled);
@@ -21,6 +21,10 @@ trait TrustedClientEnabledAttributeHolder
         } else {
             return $enabled;
         }
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?TrustedClientEnabledVO
+    {
+        return  TrustedClientEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : false, $error);
     }
     public function enabled(TrustedClientEnabledVO|bool $enabled): static
     {

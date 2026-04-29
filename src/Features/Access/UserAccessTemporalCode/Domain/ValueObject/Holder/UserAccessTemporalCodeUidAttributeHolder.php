@@ -13,7 +13,7 @@ trait UserAccessTemporalCodeUidAttributeHolder
     protected UserAccessTemporalCodeUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(UserAccessTemporalCodeUidVO $uid): UserAccessTemporalCodeUidVO
+    public function getUidOrCurrent(UserAccessTemporalCodeUidVO $uid): UserAccessTemporalCodeUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait UserAccessTemporalCodeUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeUidVO
+    {
+        return  UserAccessTemporalCodeUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(UserAccessTemporalCodeUidVO|string|null $uid): static
     {

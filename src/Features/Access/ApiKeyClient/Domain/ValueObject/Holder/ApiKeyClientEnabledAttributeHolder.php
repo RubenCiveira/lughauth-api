@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientEn
 
 trait ApiKeyClientEnabledAttributeHolder
 {
-    protected ApiKeyClientEnabledVO|bool|null $enabled = false;
+    protected ApiKeyClientEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(ApiKeyClientEnabledVO $enabled): ApiKeyClientEnabledVO
+    public function getEnabledOrCurrent(ApiKeyClientEnabledVO $enabled): ApiKeyClientEnabledVO
     {
         if ($this->enabledAssigned) {
             \assert(null !== $this->enabled);
@@ -21,6 +21,10 @@ trait ApiKeyClientEnabledAttributeHolder
         } else {
             return $enabled;
         }
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?ApiKeyClientEnabledVO
+    {
+        return  ApiKeyClientEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : false, $error);
     }
     public function enabled(ApiKeyClientEnabledVO|bool $enabled): static
     {

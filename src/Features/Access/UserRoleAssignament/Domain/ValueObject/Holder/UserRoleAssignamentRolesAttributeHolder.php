@@ -14,7 +14,7 @@ trait UserRoleAssignamentRolesAttributeHolder
     protected UserRoleAssignamentRolesVO|UserRoleAssignamentRolesListRef| array |null $roles = null;
     protected bool $rolesAssigned = false;
 
-    public function getRolesOrDefault(UserRoleAssignamentRolesVO $roles): UserRoleAssignamentRolesVO
+    public function getRolesOrCurrent(UserRoleAssignamentRolesVO $roles): UserRoleAssignamentRolesVO
     {
         if ($this->rolesAssigned) {
             $current = UserRoleAssignamentRolesVO::from($this->roles);
@@ -22,6 +22,10 @@ trait UserRoleAssignamentRolesAttributeHolder
         } else {
             return $roles;
         }
+    }
+    public function rolesTryBuildInitial(ConstraintFailList $error): ?UserRoleAssignamentRolesVO
+    {
+        return  UserRoleAssignamentRolesVO::tryFrom($this->rolesAssigned ? $this->roles : null, $error);
     }
     public function roles(UserRoleAssignamentRolesVO|UserRoleAssignamentRolesListRef| array |null $roles): static
     {

@@ -13,9 +13,13 @@ trait TemplateSnippetVersionAttributeHolder
     protected TemplateSnippetVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TemplateSnippetVersionVO $version): ?TemplateSnippetVersionVO
+    public function getVersionOrCurrent(?TemplateSnippetVersionVO $version): ?TemplateSnippetVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? TemplateSnippetVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : TemplateSnippetVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?TemplateSnippetVersionVO
+    {
+        return  TemplateSnippetVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(TemplateSnippetVersionVO|int|null $version): static
     {

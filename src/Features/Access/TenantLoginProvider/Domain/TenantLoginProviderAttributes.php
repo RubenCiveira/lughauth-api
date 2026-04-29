@@ -6,29 +6,17 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Domain;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderUidAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUidVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderTenantAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderTenantVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderNameAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderNameVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSourceAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderDisabledAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDisabledVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderDirectAccessAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderDirectAccessVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPublicKeyAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPublicKeyVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPrivateKeyAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPrivateKeyVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderCertificateAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderCertificateVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderMetadataAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUsersEnabledByDefaultVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TenantLoginProviderAttributes
@@ -61,21 +49,21 @@ class TenantLoginProviderAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TenantLoginProvider
+    public function createNewInstance(): TenantLoginProvider
     {
         $errors = new ConstraintFailList();
-        $uid = TenantLoginProviderUidVO::tryFrom($this->uid, $errors);
-        $tenant = TenantLoginProviderTenantVO::tryFrom($this->tenant, $errors);
-        $name = TenantLoginProviderNameVO::tryFrom($this->name, $errors);
-        $source = TenantLoginProviderSourceVO::tryFrom($this->source, $errors);
-        $disabled = TenantLoginProviderDisabledVO::tryFrom($this->disabled, $errors);
-        $directAccess = TenantLoginProviderDirectAccessVO::tryFrom($this->directAccess, $errors);
-        $publicKey = TenantLoginProviderPublicKeyVO::tryFrom($this->publicKey, $errors);
-        $privateKey = TenantLoginProviderPrivateKeyVO::tryFrom($this->privateKey, $errors);
-        $certificate = TenantLoginProviderCertificateVO::tryFrom($this->certificate, $errors);
-        $metadata = TenantLoginProviderMetadataVO::tryFrom($this->metadata, $errors);
-        $usersEnabledByDefault = TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($this->usersEnabledByDefault, $errors);
-        $version = TenantLoginProviderVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $name = $this->nameTryBuildInitial($errors);
+        $source = $this->sourceTryBuildInitial($errors);
+        $disabled = $this->disabledTryBuildInitial($errors);
+        $directAccess = $this->directAccessTryBuildInitial($errors);
+        $publicKey = $this->publicKeyTryBuildInitial($errors);
+        $privateKey = $this->privateKeyTryBuildInitial($errors);
+        $certificate = $this->certificateTryBuildInitial($errors);
+        $metadata = $this->metadataTryBuildInitial($errors);
+        $usersEnabledByDefault = $this->usersEnabledByDefaultTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

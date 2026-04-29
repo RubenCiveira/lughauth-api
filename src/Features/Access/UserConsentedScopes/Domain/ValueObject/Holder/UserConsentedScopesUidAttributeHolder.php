@@ -13,7 +13,7 @@ trait UserConsentedScopesUidAttributeHolder
     protected UserConsentedScopesUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(UserConsentedScopesUidVO $uid): UserConsentedScopesUidVO
+    public function getUidOrCurrent(UserConsentedScopesUidVO $uid): UserConsentedScopesUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait UserConsentedScopesUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesUidVO
+    {
+        return  UserConsentedScopesUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(UserConsentedScopesUidVO|string|null $uid): static
     {

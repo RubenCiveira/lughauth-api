@@ -13,9 +13,13 @@ trait UserConsentedScopesScopeAttributeHolder
     protected UserConsentedScopesScopeVO|string|null $scope = null;
     protected bool $scopeAssigned = false;
 
-    public function getScopeOrDefault(?UserConsentedScopesScopeVO $scope): ?UserConsentedScopesScopeVO
+    public function getScopeOrCurrent(?UserConsentedScopesScopeVO $scope): ?UserConsentedScopesScopeVO
     {
-        return $this->scopeAssigned ? ($this->scope !== null ? UserConsentedScopesScopeVO::from($this->scope) : null) : $scope;
+        return $this->scopeAssigned ? ($this->scope === null ? null : UserConsentedScopesScopeVO::from($this->scope)) : $scope;
+    }
+    public function scopeTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesScopeVO
+    {
+        return  UserConsentedScopesScopeVO::tryFrom($this->scopeAssigned ? $this->scope : null, $error);
     }
     public function scope(UserConsentedScopesScopeVO|string|null $scope): static
     {

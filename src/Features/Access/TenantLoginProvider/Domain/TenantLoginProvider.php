@@ -83,17 +83,17 @@ class TenantLoginProvider extends TenantLoginProviderRef
     public function replace(TenantLoginProviderAttributes $values): TenantLoginProvider
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_name = $values->getNameOrDefault($this->_name);
-        $value->_source = $values->getSourceOrDefault($this->_source);
-        $value->_disabled = $values->getDisabledOrDefault($this->_disabled);
-        $value->_directAccess = $values->getDirectAccessOrDefault($this->_directAccess);
-        $value->_publicKey = $values->getPublicKeyOrDefault($this->_publicKey);
-        $value->_privateKey = $values->getPrivateKeyOrDefault($this->_privateKey);
-        $value->_certificate = $values->getCertificateOrDefault($this->_certificate);
-        $value->_metadata = $values->getMetadataOrDefault($this->_metadata);
-        $value->_usersEnabledByDefault = $values->getUsersEnabledByDefaultOrDefault($this->_usersEnabledByDefault);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_name = $values->getNameOrCurrent($this->_name);
+        $value->_source = $values->getSourceOrCurrent($this->_source);
+        $value->_disabled = $values->getDisabledOrCurrent($this->_disabled);
+        $value->_directAccess = $values->getDirectAccessOrCurrent($this->_directAccess);
+        $value->_publicKey = $values->getPublicKeyOrCurrent($this->_publicKey);
+        $value->_privateKey = $values->getPrivateKeyOrCurrent($this->_privateKey);
+        $value->_certificate = $values->getCertificateOrCurrent($this->_certificate);
+        $value->_metadata = $values->getMetadataOrCurrent($this->_metadata);
+        $value->_usersEnabledByDefault = $values->getUsersEnabledByDefaultOrCurrent($this->_usersEnabledByDefault);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -104,7 +104,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
     {
         $calculated = clone $values;
         $calculated->disabled(DisabledCalculator::calculateDisabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TenantLoginProviderCreateEvent($value);
         return $value;
     }

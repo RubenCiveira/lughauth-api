@@ -13,7 +13,7 @@ trait TemplateVersionContentHtmlAttributeHolder
     protected TemplateVersionContentHtmlVO|string|null $contentHtml = null;
     protected bool $contentHtmlAssigned = false;
 
-    public function getContentHtmlOrDefault(TemplateVersionContentHtmlVO $contentHtml): TemplateVersionContentHtmlVO
+    public function getContentHtmlOrCurrent(TemplateVersionContentHtmlVO $contentHtml): TemplateVersionContentHtmlVO
     {
         if ($this->contentHtmlAssigned) {
             \assert(null !== $this->contentHtml);
@@ -21,6 +21,10 @@ trait TemplateVersionContentHtmlAttributeHolder
         } else {
             return $contentHtml;
         }
+    }
+    public function contentHtmlTryBuildInitial(ConstraintFailList $error): ?TemplateVersionContentHtmlVO
+    {
+        return  TemplateVersionContentHtmlVO::tryFrom($this->contentHtmlAssigned ? $this->contentHtml : null, $error);
     }
     public function contentHtml(TemplateVersionContentHtmlVO|string $contentHtml): static
     {

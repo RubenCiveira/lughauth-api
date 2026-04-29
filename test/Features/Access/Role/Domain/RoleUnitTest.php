@@ -20,7 +20,7 @@ final class RoleUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = Role::calculatedFields();
 
         // @Assert

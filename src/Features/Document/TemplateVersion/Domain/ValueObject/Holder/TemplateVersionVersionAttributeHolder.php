@@ -13,9 +13,13 @@ trait TemplateVersionVersionAttributeHolder
     protected TemplateVersionVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TemplateVersionVersionVO $version): ?TemplateVersionVersionVO
+    public function getVersionOrCurrent(?TemplateVersionVersionVO $version): ?TemplateVersionVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? TemplateVersionVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : TemplateVersionVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?TemplateVersionVersionVO
+    {
+        return  TemplateVersionVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(TemplateVersionVersionVO|int|null $version): static
     {

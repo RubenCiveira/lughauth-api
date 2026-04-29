@@ -38,9 +38,9 @@ class Role extends RoleRef
     public function replace(RoleAttributes $values): Role
     {
         $value = clone $this;
-        $value->_name = $values->getNameOrDefault($this->_name);
-        $value->_relyingParty = $values->getRelyingPartyOrDefault($this->_relyingParty);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_name = $values->getNameOrCurrent($this->_name);
+        $value->_relyingParty = $values->getRelyingPartyOrCurrent($this->_relyingParty);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -49,7 +49,7 @@ class Role extends RoleRef
     }
     public static function create(RoleAttributes $values): Role
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new RoleCreateEvent($value);
         return $value;
     }

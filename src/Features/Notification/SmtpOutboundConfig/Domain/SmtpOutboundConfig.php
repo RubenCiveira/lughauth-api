@@ -88,19 +88,19 @@ class SmtpOutboundConfig extends SmtpOutboundConfigRef
     public function replace(SmtpOutboundConfigAttributes $values): SmtpOutboundConfig
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_host = $values->getHostOrDefault($this->_host);
-        $value->_port = $values->getPortOrDefault($this->_port);
-        $value->_login = $values->getLoginOrDefault($this->_login);
-        $value->_password = $values->getPasswordOrDefault($this->_password);
-        $value->_senderName = $values->getSenderNameOrDefault($this->_senderName);
-        $value->_senderEmail = $values->getSenderEmailOrDefault($this->_senderEmail);
-        $value->_timeout = $values->getTimeoutOrDefault($this->_timeout);
-        $value->_useTls = $values->getUseTlsOrDefault($this->_useTls);
-        $value->_maxRetries = $values->getMaxRetriesOrDefault($this->_maxRetries);
-        $value->_retryDelay = $values->getRetryDelayOrDefault($this->_retryDelay);
-        $value->_rateLimit = $values->getRateLimitOrDefault($this->_rateLimit);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_host = $values->getHostOrCurrent($this->_host);
+        $value->_port = $values->getPortOrCurrent($this->_port);
+        $value->_login = $values->getLoginOrCurrent($this->_login);
+        $value->_password = $values->getPasswordOrCurrent($this->_password);
+        $value->_senderName = $values->getSenderNameOrCurrent($this->_senderName);
+        $value->_senderEmail = $values->getSenderEmailOrCurrent($this->_senderEmail);
+        $value->_timeout = $values->getTimeoutOrCurrent($this->_timeout);
+        $value->_useTls = $values->getUseTlsOrCurrent($this->_useTls);
+        $value->_maxRetries = $values->getMaxRetriesOrCurrent($this->_maxRetries);
+        $value->_retryDelay = $values->getRetryDelayOrCurrent($this->_retryDelay);
+        $value->_rateLimit = $values->getRateLimitOrCurrent($this->_rateLimit);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -109,7 +109,7 @@ class SmtpOutboundConfig extends SmtpOutboundConfigRef
     }
     public static function create(SmtpOutboundConfigAttributes $values): SmtpOutboundConfig
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new SmtpOutboundConfigCreateEvent($value);
         return $value;
     }

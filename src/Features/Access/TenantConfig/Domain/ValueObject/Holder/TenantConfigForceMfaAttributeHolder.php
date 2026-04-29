@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigFo
 
 trait TenantConfigForceMfaAttributeHolder
 {
-    protected TenantConfigForceMfaVO|bool|null $forceMfa = false;
+    protected TenantConfigForceMfaVO|bool|null $forceMfa = null;
     protected bool $forceMfaAssigned = false;
 
-    public function getForceMfaOrDefault(TenantConfigForceMfaVO $forceMfa): TenantConfigForceMfaVO
+    public function getForceMfaOrCurrent(TenantConfigForceMfaVO $forceMfa): TenantConfigForceMfaVO
     {
         if ($this->forceMfaAssigned) {
             \assert(null !== $this->forceMfa);
@@ -21,6 +21,10 @@ trait TenantConfigForceMfaAttributeHolder
         } else {
             return $forceMfa;
         }
+    }
+    public function forceMfaTryBuildInitial(ConstraintFailList $error): ?TenantConfigForceMfaVO
+    {
+        return  TenantConfigForceMfaVO::tryFrom($this->forceMfaAssigned ? $this->forceMfa : false, $error);
     }
     public function forceMfa(TenantConfigForceMfaVO|bool $forceMfa): static
     {

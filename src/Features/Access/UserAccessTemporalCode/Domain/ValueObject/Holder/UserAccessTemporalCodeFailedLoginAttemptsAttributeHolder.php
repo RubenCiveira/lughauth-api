@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\User
 
 trait UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder
 {
-    protected UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts = 0;
+    protected UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts = null;
     protected bool $failedLoginAttemptsAssigned = false;
 
-    public function getFailedLoginAttemptsOrDefault(?UserAccessTemporalCodeFailedLoginAttemptsVO $failedLoginAttempts): ?UserAccessTemporalCodeFailedLoginAttemptsVO
+    public function getFailedLoginAttemptsOrCurrent(?UserAccessTemporalCodeFailedLoginAttemptsVO $failedLoginAttempts): ?UserAccessTemporalCodeFailedLoginAttemptsVO
     {
-        return $this->failedLoginAttemptsAssigned ? ($this->failedLoginAttempts !== null ? UserAccessTemporalCodeFailedLoginAttemptsVO::from($this->failedLoginAttempts) : null) : $failedLoginAttempts;
+        return $this->failedLoginAttemptsAssigned ? ($this->failedLoginAttempts === null ? null : UserAccessTemporalCodeFailedLoginAttemptsVO::from($this->failedLoginAttempts)) : $failedLoginAttempts;
+    }
+    public function failedLoginAttemptsTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeFailedLoginAttemptsVO
+    {
+        return  UserAccessTemporalCodeFailedLoginAttemptsVO::tryFrom($this->failedLoginAttemptsAssigned ? $this->failedLoginAttempts : 0, $error);
     }
     public function failedLoginAttempts(UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts): static
     {

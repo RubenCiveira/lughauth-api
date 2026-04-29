@@ -6,17 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Domain;
 
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Holder\ApiKeyClientUidAttributeHolder;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientUidVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Holder\ApiKeyClientCodeAttributeHolder;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientCodeVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Holder\ApiKeyClientKeyAttributeHolder;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientKeyVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Holder\ApiKeyClientEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientEnabledVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Holder\ApiKeyClientScopesAttributeHolder;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientScopesVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\Holder\ApiKeyClientVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class ApiKeyClientAttributes
@@ -37,15 +31,15 @@ class ApiKeyClientAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): ApiKeyClient
+    public function createNewInstance(): ApiKeyClient
     {
         $errors = new ConstraintFailList();
-        $uid = ApiKeyClientUidVO::tryFrom($this->uid, $errors);
-        $code = ApiKeyClientCodeVO::tryFrom($this->code, $errors);
-        $key = ApiKeyClientKeyVO::tryFrom($this->key, $errors);
-        $enabled = ApiKeyClientEnabledVO::tryFrom($this->enabled, $errors);
-        $scopes = ApiKeyClientScopesVO::tryFrom($this->scopes, $errors);
-        $version = ApiKeyClientVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $code = $this->codeTryBuildInitial($errors);
+        $key = $this->keyTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $scopes = $this->scopesTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

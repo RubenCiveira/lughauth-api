@@ -6,17 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateVersion\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionUidAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionUidVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionTemplateAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionTemplateVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionSubjectAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionSubjectVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionContentHtmlAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentHtmlVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionContentTextAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentTextVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionVersionAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TemplateVersionAttributes
@@ -37,15 +31,15 @@ class TemplateVersionAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TemplateVersion
+    public function createNewInstance(): TemplateVersion
     {
         $errors = new ConstraintFailList();
-        $uid = TemplateVersionUidVO::tryFrom($this->uid, $errors);
-        $template = TemplateVersionTemplateVO::tryFrom($this->template, $errors);
-        $subject = TemplateVersionSubjectVO::tryFrom($this->subject, $errors);
-        $contentHtml = TemplateVersionContentHtmlVO::tryFrom($this->contentHtml, $errors);
-        $contentText = TemplateVersionContentTextVO::tryFrom($this->contentText, $errors);
-        $version = TemplateVersionVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $template = $this->templateTryBuildInitial($errors);
+        $subject = $this->subjectTryBuildInitial($errors);
+        $contentHtml = $this->contentHtmlTryBuildInitial($errors);
+        $contentText = $this->contentTextTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

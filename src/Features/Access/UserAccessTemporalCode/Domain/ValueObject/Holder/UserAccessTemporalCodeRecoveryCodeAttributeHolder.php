@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeRecoveryCodeAttributeHolder
     protected UserAccessTemporalCodeRecoveryCodeVO|string|null $recoveryCode = null;
     protected bool $recoveryCodeAssigned = false;
 
-    public function getRecoveryCodeOrDefault(?UserAccessTemporalCodeRecoveryCodeVO $recoveryCode): ?UserAccessTemporalCodeRecoveryCodeVO
+    public function getRecoveryCodeOrCurrent(?UserAccessTemporalCodeRecoveryCodeVO $recoveryCode): ?UserAccessTemporalCodeRecoveryCodeVO
     {
-        return $this->recoveryCodeAssigned ? ($this->recoveryCode !== null ? UserAccessTemporalCodeRecoveryCodeVO::from($this->recoveryCode) : null) : $recoveryCode;
+        return $this->recoveryCodeAssigned ? ($this->recoveryCode === null ? null : UserAccessTemporalCodeRecoveryCodeVO::from($this->recoveryCode)) : $recoveryCode;
+    }
+    public function recoveryCodeTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeRecoveryCodeVO
+    {
+        return  UserAccessTemporalCodeRecoveryCodeVO::tryFrom($this->recoveryCodeAssigned ? $this->recoveryCode : null, $error);
     }
     public function recoveryCode(UserAccessTemporalCodeRecoveryCodeVO|string|null $recoveryCode): static
     {

@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 
 trait TenantTermsOfUseEnabledAttributeHolder
 {
-    protected TenantTermsOfUseEnabledVO|bool|null $enabled = false;
+    protected TenantTermsOfUseEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(TenantTermsOfUseEnabledVO $enabled): TenantTermsOfUseEnabledVO
+    public function getEnabledOrCurrent(TenantTermsOfUseEnabledVO $enabled): TenantTermsOfUseEnabledVO
     {
         if ($this->enabledAssigned) {
             \assert(null !== $this->enabled);
@@ -21,6 +21,10 @@ trait TenantTermsOfUseEnabledAttributeHolder
         } else {
             return $enabled;
         }
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseEnabledVO
+    {
+        return  TenantTermsOfUseEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : false, $error);
     }
     public function enabled(TenantTermsOfUseEnabledVO|bool $enabled): static
     {

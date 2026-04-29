@@ -13,9 +13,13 @@ trait TenantLoginProviderDirectAccessAttributeHolder
     protected TenantLoginProviderDirectAccessVO|bool|null $directAccess = null;
     protected bool $directAccessAssigned = false;
 
-    public function getDirectAccessOrDefault(?TenantLoginProviderDirectAccessVO $directAccess): ?TenantLoginProviderDirectAccessVO
+    public function getDirectAccessOrCurrent(?TenantLoginProviderDirectAccessVO $directAccess): ?TenantLoginProviderDirectAccessVO
     {
-        return $this->directAccessAssigned ? ($this->directAccess !== null ? TenantLoginProviderDirectAccessVO::from($this->directAccess) : null) : $directAccess;
+        return $this->directAccessAssigned ? ($this->directAccess === null ? null : TenantLoginProviderDirectAccessVO::from($this->directAccess)) : $directAccess;
+    }
+    public function directAccessTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderDirectAccessVO
+    {
+        return  TenantLoginProviderDirectAccessVO::tryFrom($this->directAccessAssigned ? $this->directAccess : null, $error);
     }
     public function directAccess(TenantLoginProviderDirectAccessVO|bool|null $directAccess): static
     {

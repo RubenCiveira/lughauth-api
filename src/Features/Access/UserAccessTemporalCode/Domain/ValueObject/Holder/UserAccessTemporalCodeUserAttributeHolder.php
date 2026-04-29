@@ -14,7 +14,7 @@ trait UserAccessTemporalCodeUserAttributeHolder
     protected UserAccessTemporalCodeUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(UserAccessTemporalCodeUserVO $user): UserAccessTemporalCodeUserVO
+    public function getUserOrCurrent(UserAccessTemporalCodeUserVO $user): UserAccessTemporalCodeUserVO
     {
         if ($this->userAssigned) {
             \assert(null !== $this->user);
@@ -22,6 +22,10 @@ trait UserAccessTemporalCodeUserAttributeHolder
         } else {
             return $user;
         }
+    }
+    public function userTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeUserVO
+    {
+        return  UserAccessTemporalCodeUserVO::tryFrom($this->userAssigned ? $this->user : null, $error);
     }
     public function user(UserAccessTemporalCodeUserVO|UserRef $user): static
     {

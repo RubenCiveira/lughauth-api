@@ -14,9 +14,13 @@ trait TenantTermsOfUseRelyingPartyAttributeHolder
     protected TenantTermsOfUseRelyingPartyVO|RelyingPartyRef|null $relyingParty = null;
     protected bool $relyingPartyAssigned = false;
 
-    public function getRelyingPartyOrDefault(?TenantTermsOfUseRelyingPartyVO $relyingParty): ?TenantTermsOfUseRelyingPartyVO
+    public function getRelyingPartyOrCurrent(?TenantTermsOfUseRelyingPartyVO $relyingParty): ?TenantTermsOfUseRelyingPartyVO
     {
-        return $this->relyingPartyAssigned ? ($this->relyingParty !== null ? TenantTermsOfUseRelyingPartyVO::from($this->relyingParty) : null) : $relyingParty;
+        return $this->relyingPartyAssigned ? ($this->relyingParty === null ? null : TenantTermsOfUseRelyingPartyVO::from($this->relyingParty)) : $relyingParty;
+    }
+    public function relyingPartyTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseRelyingPartyVO
+    {
+        return  TenantTermsOfUseRelyingPartyVO::tryFrom($this->relyingPartyAssigned ? $this->relyingParty : null, $error);
     }
     public function relyingParty(TenantTermsOfUseRelyingPartyVO|RelyingPartyRef|null $relyingParty): static
     {

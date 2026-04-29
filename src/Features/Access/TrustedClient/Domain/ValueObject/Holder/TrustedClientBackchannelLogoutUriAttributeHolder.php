@@ -13,9 +13,13 @@ trait TrustedClientBackChannelLogoutUriAttributeHolder
     protected TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri = null;
     protected bool $backChannelLogoutUriAssigned = false;
 
-    public function getBackChannelLogoutUriOrDefault(?TrustedClientBackChannelLogoutUriVO $backChannelLogoutUri): ?TrustedClientBackChannelLogoutUriVO
+    public function getBackChannelLogoutUriOrCurrent(?TrustedClientBackChannelLogoutUriVO $backChannelLogoutUri): ?TrustedClientBackChannelLogoutUriVO
     {
-        return $this->backChannelLogoutUriAssigned ? ($this->backChannelLogoutUri !== null ? TrustedClientBackChannelLogoutUriVO::from($this->backChannelLogoutUri) : null) : $backChannelLogoutUri;
+        return $this->backChannelLogoutUriAssigned ? ($this->backChannelLogoutUri === null ? null : TrustedClientBackChannelLogoutUriVO::from($this->backChannelLogoutUri)) : $backChannelLogoutUri;
+    }
+    public function backChannelLogoutUriTryBuildInitial(ConstraintFailList $error): ?TrustedClientBackChannelLogoutUriVO
+    {
+        return  TrustedClientBackChannelLogoutUriVO::tryFrom($this->backChannelLogoutUriAssigned ? $this->backChannelLogoutUri : null, $error);
     }
     public function backChannelLogoutUri(TrustedClientBackChannelLogoutUriVO|string|null $backChannelLogoutUri): static
     {

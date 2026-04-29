@@ -13,7 +13,7 @@ trait SmtpOutboundConfigPortAttributeHolder
     protected SmtpOutboundConfigPortVO|bool|null $port = null;
     protected bool $portAssigned = false;
 
-    public function getPortOrDefault(SmtpOutboundConfigPortVO $port): SmtpOutboundConfigPortVO
+    public function getPortOrCurrent(SmtpOutboundConfigPortVO $port): SmtpOutboundConfigPortVO
     {
         if ($this->portAssigned) {
             \assert(null !== $this->port);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigPortAttributeHolder
         } else {
             return $port;
         }
+    }
+    public function portTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigPortVO
+    {
+        return  SmtpOutboundConfigPortVO::tryFrom($this->portAssigned ? $this->port : null, $error);
     }
     public function port(SmtpOutboundConfigPortVO|bool $port): static
     {

@@ -6,17 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserRoleAssignament\Domain;
 
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\Holder\UserRoleAssignamentUidAttributeHolder;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentUidVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\Holder\UserRoleAssignamentUserAttributeHolder;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentUserVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\Holder\UserRoleAssignamentRelyingPartyAttributeHolder;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRelyingPartyVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\Holder\UserRoleAssignamentTrustedClientAttributeHolder;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentTrustedClientVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\Holder\UserRoleAssignamentRolesAttributeHolder;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentRolesVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\Holder\UserRoleAssignamentVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\ValueObject\UserRoleAssignamentVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class UserRoleAssignamentAttributes
@@ -37,15 +31,15 @@ class UserRoleAssignamentAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): UserRoleAssignament
+    public function createNewInstance(): UserRoleAssignament
     {
         $errors = new ConstraintFailList();
-        $uid = UserRoleAssignamentUidVO::tryFrom($this->uid, $errors);
-        $user = UserRoleAssignamentUserVO::tryFrom($this->user, $errors);
-        $relyingParty = UserRoleAssignamentRelyingPartyVO::tryFrom($this->relyingParty, $errors);
-        $trustedClient = UserRoleAssignamentTrustedClientVO::tryFrom($this->trustedClient, $errors);
-        $roles = UserRoleAssignamentRolesVO::tryFrom($this->roles, $errors);
-        $version = UserRoleAssignamentVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $user = $this->userTryBuildInitial($errors);
+        $relyingParty = $this->relyingPartyTryBuildInitial($errors);
+        $trustedClient = $this->trustedClientTryBuildInitial($errors);
+        $roles = $this->rolesTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

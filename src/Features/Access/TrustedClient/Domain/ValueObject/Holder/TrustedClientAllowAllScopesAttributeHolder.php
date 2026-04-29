@@ -13,9 +13,13 @@ trait TrustedClientAllowAllScopesAttributeHolder
     protected TrustedClientAllowAllScopesVO|bool|null $allowAllScopes = null;
     protected bool $allowAllScopesAssigned = false;
 
-    public function getAllowAllScopesOrDefault(?TrustedClientAllowAllScopesVO $allowAllScopes): ?TrustedClientAllowAllScopesVO
+    public function getAllowAllScopesOrCurrent(?TrustedClientAllowAllScopesVO $allowAllScopes): ?TrustedClientAllowAllScopesVO
     {
-        return $this->allowAllScopesAssigned ? ($this->allowAllScopes !== null ? TrustedClientAllowAllScopesVO::from($this->allowAllScopes) : null) : $allowAllScopes;
+        return $this->allowAllScopesAssigned ? ($this->allowAllScopes === null ? null : TrustedClientAllowAllScopesVO::from($this->allowAllScopes)) : $allowAllScopes;
+    }
+    public function allowAllScopesTryBuildInitial(ConstraintFailList $error): ?TrustedClientAllowAllScopesVO
+    {
+        return  TrustedClientAllowAllScopesVO::tryFrom($this->allowAllScopesAssigned ? $this->allowAllScopes : null, $error);
     }
     public function allowAllScopes(TrustedClientAllowAllScopesVO|bool|null $allowAllScopes): static
     {

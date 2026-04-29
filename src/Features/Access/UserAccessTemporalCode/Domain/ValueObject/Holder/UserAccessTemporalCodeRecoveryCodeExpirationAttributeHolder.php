@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder
     protected UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null $recoveryCodeExpiration = null;
     protected bool $recoveryCodeExpirationAssigned = false;
 
-    public function getRecoveryCodeExpirationOrDefault(?UserAccessTemporalCodeRecoveryCodeExpirationVO $recoveryCodeExpiration): ?UserAccessTemporalCodeRecoveryCodeExpirationVO
+    public function getRecoveryCodeExpirationOrCurrent(?UserAccessTemporalCodeRecoveryCodeExpirationVO $recoveryCodeExpiration): ?UserAccessTemporalCodeRecoveryCodeExpirationVO
     {
-        return $this->recoveryCodeExpirationAssigned ? ($this->recoveryCodeExpiration !== null ? UserAccessTemporalCodeRecoveryCodeExpirationVO::from($this->recoveryCodeExpiration) : null) : $recoveryCodeExpiration;
+        return $this->recoveryCodeExpirationAssigned ? ($this->recoveryCodeExpiration === null ? null : UserAccessTemporalCodeRecoveryCodeExpirationVO::from($this->recoveryCodeExpiration)) : $recoveryCodeExpiration;
+    }
+    public function recoveryCodeExpirationTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeRecoveryCodeExpirationVO
+    {
+        return  UserAccessTemporalCodeRecoveryCodeExpirationVO::tryFrom($this->recoveryCodeExpirationAssigned ? $this->recoveryCodeExpiration : null, $error);
     }
     public function recoveryCodeExpiration(UserAccessTemporalCodeRecoveryCodeExpirationVO|\DateTimeImmutable|null $recoveryCodeExpiration): static
     {

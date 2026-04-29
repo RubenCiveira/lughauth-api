@@ -6,25 +6,15 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\Message\Domain;
 
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageUidAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageUidVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageTargetAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageTargetVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageTenantAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageTenantVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageUrgentAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageUrgentVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageContentAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageContentVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageRetriesAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageRetriesVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageCreatedAtAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageCreatedAtVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageSendAtAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageSendAtVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageLockAtAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageLockAtVO;
 use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\Holder\MessageVersionAttributeHolder;
-use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class MessageAttributes
@@ -53,19 +43,19 @@ class MessageAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): Message
+    public function createNewInstance(): Message
     {
         $errors = new ConstraintFailList();
-        $uid = MessageUidVO::tryFrom($this->uid, $errors);
-        $target = MessageTargetVO::tryFrom($this->target, $errors);
-        $tenant = MessageTenantVO::tryFrom($this->tenant, $errors);
-        $urgent = MessageUrgentVO::tryFrom($this->urgent, $errors);
-        $content = MessageContentVO::tryFrom($this->content, $errors);
-        $retries = MessageRetriesVO::tryFrom($this->retries, $errors);
-        $createdAt = MessageCreatedAtVO::tryFrom($this->createdAt, $errors);
-        $sendAt = MessageSendAtVO::tryFrom($this->sendAt, $errors);
-        $lockAt = MessageLockAtVO::tryFrom($this->lockAt, $errors);
-        $version = MessageVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $target = $this->targetTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $urgent = $this->urgentTryBuildInitial($errors);
+        $content = $this->contentTryBuildInitial($errors);
+        $retries = $this->retriesTryBuildInitial($errors);
+        $createdAt = $this->createdAtTryBuildInitial($errors);
+        $sendAt = $this->sendAtTryBuildInitial($errors);
+        $lockAt = $this->lockAtTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

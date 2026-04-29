@@ -14,9 +14,13 @@ trait TemplateThemeAttributeHolder
     protected TemplateThemeVO|ThemeRef|null $theme = null;
     protected bool $themeAssigned = false;
 
-    public function getThemeOrDefault(?TemplateThemeVO $theme): ?TemplateThemeVO
+    public function getThemeOrCurrent(?TemplateThemeVO $theme): ?TemplateThemeVO
     {
-        return $this->themeAssigned ? ($this->theme !== null ? TemplateThemeVO::from($this->theme) : null) : $theme;
+        return $this->themeAssigned ? ($this->theme === null ? null : TemplateThemeVO::from($this->theme)) : $theme;
+    }
+    public function themeTryBuildInitial(ConstraintFailList $error): ?TemplateThemeVO
+    {
+        return  TemplateThemeVO::tryFrom($this->themeAssigned ? $this->theme : null, $error);
     }
     public function theme(TemplateThemeVO|ThemeRef|null $theme): static
     {

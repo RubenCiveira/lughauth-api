@@ -13,7 +13,7 @@ trait TemplateVersionUidAttributeHolder
     protected TemplateVersionUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(TemplateVersionUidVO $uid): TemplateVersionUidVO
+    public function getUidOrCurrent(TemplateVersionUidVO $uid): TemplateVersionUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait TemplateVersionUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?TemplateVersionUidVO
+    {
+        return  TemplateVersionUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(TemplateVersionUidVO|string|null $uid): static
     {

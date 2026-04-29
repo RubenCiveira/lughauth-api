@@ -13,9 +13,13 @@ trait TenantTermsOfUseVersionAttributeHolder
     protected TenantTermsOfUseVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TenantTermsOfUseVersionVO $version): ?TenantTermsOfUseVersionVO
+    public function getVersionOrCurrent(?TenantTermsOfUseVersionVO $version): ?TenantTermsOfUseVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? TenantTermsOfUseVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : TenantTermsOfUseVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseVersionVO
+    {
+        return  TenantTermsOfUseVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(TenantTermsOfUseVersionVO|int|null $version): static
     {

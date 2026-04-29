@@ -13,9 +13,13 @@ trait TrustedClientLogoUriAttributeHolder
     protected TrustedClientLogoUriVO|string|null $logoUri = null;
     protected bool $logoUriAssigned = false;
 
-    public function getLogoUriOrDefault(?TrustedClientLogoUriVO $logoUri): ?TrustedClientLogoUriVO
+    public function getLogoUriOrCurrent(?TrustedClientLogoUriVO $logoUri): ?TrustedClientLogoUriVO
     {
-        return $this->logoUriAssigned ? ($this->logoUri !== null ? TrustedClientLogoUriVO::from($this->logoUri) : null) : $logoUri;
+        return $this->logoUriAssigned ? ($this->logoUri === null ? null : TrustedClientLogoUriVO::from($this->logoUri)) : $logoUri;
+    }
+    public function logoUriTryBuildInitial(ConstraintFailList $error): ?TrustedClientLogoUriVO
+    {
+        return  TrustedClientLogoUriVO::tryFrom($this->logoUriAssigned ? $this->logoUri : null, $error);
     }
     public function logoUri(TrustedClientLogoUriVO|string|null $logoUri): static
     {

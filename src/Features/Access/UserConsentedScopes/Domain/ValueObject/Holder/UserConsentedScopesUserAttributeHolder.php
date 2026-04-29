@@ -14,7 +14,7 @@ trait UserConsentedScopesUserAttributeHolder
     protected UserConsentedScopesUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(UserConsentedScopesUserVO $user): UserConsentedScopesUserVO
+    public function getUserOrCurrent(UserConsentedScopesUserVO $user): UserConsentedScopesUserVO
     {
         if ($this->userAssigned) {
             \assert(null !== $this->user);
@@ -22,6 +22,10 @@ trait UserConsentedScopesUserAttributeHolder
         } else {
             return $user;
         }
+    }
+    public function userTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesUserVO
+    {
+        return  UserConsentedScopesUserVO::tryFrom($this->userAssigned ? $this->user : null, $error);
     }
     public function user(UserConsentedScopesUserVO|UserRef $user): static
     {

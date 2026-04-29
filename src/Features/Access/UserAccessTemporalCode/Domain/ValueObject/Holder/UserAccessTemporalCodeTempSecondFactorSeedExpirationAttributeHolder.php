@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeTempSecondFactorSeedExpirationAttributeHolder
     protected UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $tempSecondFactorSeedExpiration = null;
     protected bool $tempSecondFactorSeedExpirationAssigned = false;
 
-    public function getTempSecondFactorSeedExpirationOrDefault(?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO $tempSecondFactorSeedExpiration): ?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
+    public function getTempSecondFactorSeedExpirationOrCurrent(?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO $tempSecondFactorSeedExpiration): ?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
     {
-        return $this->tempSecondFactorSeedExpirationAssigned ? ($this->tempSecondFactorSeedExpiration !== null ? UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($this->tempSecondFactorSeedExpiration) : null) : $tempSecondFactorSeedExpiration;
+        return $this->tempSecondFactorSeedExpirationAssigned ? ($this->tempSecondFactorSeedExpiration === null ? null : UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::from($this->tempSecondFactorSeedExpiration)) : $tempSecondFactorSeedExpiration;
+    }
+    public function tempSecondFactorSeedExpirationTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeTempSecondFactorSeedExpirationVO
+    {
+        return  UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::tryFrom($this->tempSecondFactorSeedExpirationAssigned ? $this->tempSecondFactorSeedExpiration : null, $error);
     }
     public function tempSecondFactorSeedExpiration(UserAccessTemporalCodeTempSecondFactorSeedExpirationVO|\DateTimeImmutable|null $tempSecondFactorSeedExpiration): static
     {

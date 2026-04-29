@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigTimeoutAttributeHolder
 {
-    protected SmtpOutboundConfigTimeoutVO|int|null $timeout = 30;
+    protected SmtpOutboundConfigTimeoutVO|int|null $timeout = null;
     protected bool $timeoutAssigned = false;
 
-    public function getTimeoutOrDefault(SmtpOutboundConfigTimeoutVO $timeout): SmtpOutboundConfigTimeoutVO
+    public function getTimeoutOrCurrent(SmtpOutboundConfigTimeoutVO $timeout): SmtpOutboundConfigTimeoutVO
     {
         if ($this->timeoutAssigned) {
             \assert(null !== $this->timeout);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigTimeoutAttributeHolder
         } else {
             return $timeout;
         }
+    }
+    public function timeoutTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigTimeoutVO
+    {
+        return  SmtpOutboundConfigTimeoutVO::tryFrom($this->timeoutAssigned ? $this->timeout : 30, $error);
     }
     public function timeout(SmtpOutboundConfigTimeoutVO|int $timeout): static
     {

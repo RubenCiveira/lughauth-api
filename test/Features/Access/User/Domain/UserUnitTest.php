@@ -32,7 +32,7 @@ final class UserUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = User::calculatedFields();
 
         // @Assert

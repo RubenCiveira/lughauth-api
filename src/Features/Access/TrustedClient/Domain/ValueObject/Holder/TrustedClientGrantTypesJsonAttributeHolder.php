@@ -13,9 +13,13 @@ trait TrustedClientGrantTypesJsonAttributeHolder
     protected TrustedClientGrantTypesJsonVO|string|null $grantTypesJson = null;
     protected bool $grantTypesJsonAssigned = false;
 
-    public function getGrantTypesJsonOrDefault(?TrustedClientGrantTypesJsonVO $grantTypesJson): ?TrustedClientGrantTypesJsonVO
+    public function getGrantTypesJsonOrCurrent(?TrustedClientGrantTypesJsonVO $grantTypesJson): ?TrustedClientGrantTypesJsonVO
     {
-        return $this->grantTypesJsonAssigned ? ($this->grantTypesJson !== null ? TrustedClientGrantTypesJsonVO::from($this->grantTypesJson) : null) : $grantTypesJson;
+        return $this->grantTypesJsonAssigned ? ($this->grantTypesJson === null ? null : TrustedClientGrantTypesJsonVO::from($this->grantTypesJson)) : $grantTypesJson;
+    }
+    public function grantTypesJsonTryBuildInitial(ConstraintFailList $error): ?TrustedClientGrantTypesJsonVO
+    {
+        return  TrustedClientGrantTypesJsonVO::tryFrom($this->grantTypesJsonAssigned ? $this->grantTypesJson : null, $error);
     }
     public function grantTypesJson(TrustedClientGrantTypesJsonVO|string|null $grantTypesJson): static
     {

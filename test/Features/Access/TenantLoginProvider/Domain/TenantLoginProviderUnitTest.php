@@ -29,7 +29,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = TenantLoginProvider::calculatedFields();
 
         // @Assert

@@ -13,7 +13,7 @@ trait TrustedClientPublicAllowAttributeHolder
     protected TrustedClientPublicAllowVO|bool|null $publicAllow = null;
     protected bool $publicAllowAssigned = false;
 
-    public function getPublicAllowOrDefault(TrustedClientPublicAllowVO $publicAllow): TrustedClientPublicAllowVO
+    public function getPublicAllowOrCurrent(TrustedClientPublicAllowVO $publicAllow): TrustedClientPublicAllowVO
     {
         if ($this->publicAllowAssigned) {
             \assert(null !== $this->publicAllow);
@@ -21,6 +21,10 @@ trait TrustedClientPublicAllowAttributeHolder
         } else {
             return $publicAllow;
         }
+    }
+    public function publicAllowTryBuildInitial(ConstraintFailList $error): ?TrustedClientPublicAllowVO
+    {
+        return  TrustedClientPublicAllowVO::tryFrom($this->publicAllowAssigned ? $this->publicAllow : null, $error);
     }
     public function publicAllow(TrustedClientPublicAllowVO|bool $publicAllow): static
     {

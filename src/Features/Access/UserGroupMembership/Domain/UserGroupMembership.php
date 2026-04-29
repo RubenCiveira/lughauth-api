@@ -50,11 +50,11 @@ class UserGroupMembership extends UserGroupMembershipRef
     public function replace(UserGroupMembershipAttributes $values): UserGroupMembership
     {
         $value = clone $this;
-        $value->_user = $values->getUserOrDefault($this->_user);
-        $value->_relyingParty = $values->getRelyingPartyOrDefault($this->_relyingParty);
-        $value->_trustedClient = $values->getTrustedClientOrDefault($this->_trustedClient);
-        $value->_groups = $values->getGroupsOrDefault($this->_groups);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_user = $values->getUserOrCurrent($this->_user);
+        $value->_relyingParty = $values->getRelyingPartyOrCurrent($this->_relyingParty);
+        $value->_trustedClient = $values->getTrustedClientOrCurrent($this->_trustedClient);
+        $value->_groups = $values->getGroupsOrCurrent($this->_groups);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -63,7 +63,7 @@ class UserGroupMembership extends UserGroupMembershipRef
     }
     public static function create(UserGroupMembershipAttributes $values): UserGroupMembership
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new UserGroupMembershipCreateEvent($value);
         return $value;
     }

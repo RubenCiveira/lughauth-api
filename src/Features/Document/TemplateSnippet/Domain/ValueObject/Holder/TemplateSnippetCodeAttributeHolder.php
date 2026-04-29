@@ -13,7 +13,7 @@ trait TemplateSnippetCodeAttributeHolder
     protected TemplateSnippetCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(TemplateSnippetCodeVO $code): TemplateSnippetCodeVO
+    public function getCodeOrCurrent(TemplateSnippetCodeVO $code): TemplateSnippetCodeVO
     {
         if ($this->codeAssigned) {
             \assert(null !== $this->code);
@@ -21,6 +21,10 @@ trait TemplateSnippetCodeAttributeHolder
         } else {
             return $code;
         }
+    }
+    public function codeTryBuildInitial(ConstraintFailList $error): ?TemplateSnippetCodeVO
+    {
+        return  TemplateSnippetCodeVO::tryFrom($this->codeAssigned ? $this->code : null, $error);
     }
     public function code(TemplateSnippetCodeVO|string $code): static
     {

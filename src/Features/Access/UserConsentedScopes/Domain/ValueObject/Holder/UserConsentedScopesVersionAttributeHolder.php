@@ -13,9 +13,13 @@ trait UserConsentedScopesVersionAttributeHolder
     protected UserConsentedScopesVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserConsentedScopesVersionVO $version): ?UserConsentedScopesVersionVO
+    public function getVersionOrCurrent(?UserConsentedScopesVersionVO $version): ?UserConsentedScopesVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? UserConsentedScopesVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : UserConsentedScopesVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesVersionVO
+    {
+        return  UserConsentedScopesVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(UserConsentedScopesVersionVO|int|null $version): static
     {

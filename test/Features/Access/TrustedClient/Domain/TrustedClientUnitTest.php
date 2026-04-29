@@ -52,7 +52,7 @@ final class TrustedClientUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = TrustedClient::calculatedFields();
 
         // @Assert

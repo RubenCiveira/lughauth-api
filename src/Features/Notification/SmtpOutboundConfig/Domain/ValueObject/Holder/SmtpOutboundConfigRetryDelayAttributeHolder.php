@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigRetryDelayAttributeHolder
 {
-    protected SmtpOutboundConfigRetryDelayVO|int|null $retryDelay = 30;
+    protected SmtpOutboundConfigRetryDelayVO|int|null $retryDelay = null;
     protected bool $retryDelayAssigned = false;
 
-    public function getRetryDelayOrDefault(SmtpOutboundConfigRetryDelayVO $retryDelay): SmtpOutboundConfigRetryDelayVO
+    public function getRetryDelayOrCurrent(SmtpOutboundConfigRetryDelayVO $retryDelay): SmtpOutboundConfigRetryDelayVO
     {
         if ($this->retryDelayAssigned) {
             \assert(null !== $this->retryDelay);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigRetryDelayAttributeHolder
         } else {
             return $retryDelay;
         }
+    }
+    public function retryDelayTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigRetryDelayVO
+    {
+        return  SmtpOutboundConfigRetryDelayVO::tryFrom($this->retryDelayAssigned ? $this->retryDelay : 30, $error);
     }
     public function retryDelay(SmtpOutboundConfigRetryDelayVO|int $retryDelay): static
     {

@@ -13,7 +13,7 @@ trait MessageTargetAttributeHolder
     protected MessageTargetVO|string|null $target = null;
     protected bool $targetAssigned = false;
 
-    public function getTargetOrDefault(MessageTargetVO $target): MessageTargetVO
+    public function getTargetOrCurrent(MessageTargetVO $target): MessageTargetVO
     {
         if ($this->targetAssigned) {
             \assert(null !== $this->target);
@@ -21,6 +21,10 @@ trait MessageTargetAttributeHolder
         } else {
             return $target;
         }
+    }
+    public function targetTryBuildInitial(ConstraintFailList $error): ?MessageTargetVO
+    {
+        return  MessageTargetVO::tryFrom($this->targetAssigned ? $this->target : null, $error);
     }
     public function target(MessageTargetVO|string $target): static
     {

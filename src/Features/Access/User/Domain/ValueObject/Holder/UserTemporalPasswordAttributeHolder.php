@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO
 
 trait UserTemporalPasswordAttributeHolder
 {
-    protected UserTemporalPasswordVO|bool|null $temporalPassword = false;
+    protected UserTemporalPasswordVO|bool|null $temporalPassword = null;
     protected bool $temporalPasswordAssigned = false;
 
-    public function getTemporalPasswordOrDefault(?UserTemporalPasswordVO $temporalPassword): ?UserTemporalPasswordVO
+    public function getTemporalPasswordOrCurrent(?UserTemporalPasswordVO $temporalPassword): ?UserTemporalPasswordVO
     {
-        return $this->temporalPasswordAssigned ? ($this->temporalPassword !== null ? UserTemporalPasswordVO::from($this->temporalPassword) : null) : $temporalPassword;
+        return $this->temporalPasswordAssigned ? ($this->temporalPassword === null ? null : UserTemporalPasswordVO::from($this->temporalPassword)) : $temporalPassword;
+    }
+    public function temporalPasswordTryBuildInitial(ConstraintFailList $error): ?UserTemporalPasswordVO
+    {
+        return  UserTemporalPasswordVO::tryFrom($this->temporalPasswordAssigned ? $this->temporalPassword : false, $error);
     }
     public function temporalPassword(UserTemporalPasswordVO|bool|null $temporalPassword): static
     {

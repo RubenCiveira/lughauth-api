@@ -13,9 +13,13 @@ trait TrustedClientBackChannelLogoutSessionRequiredAttributeHolder
     protected TrustedClientBackChannelLogoutSessionRequiredVO|bool|null $backChannelLogoutSessionRequired = null;
     protected bool $backChannelLogoutSessionRequiredAssigned = false;
 
-    public function getBackChannelLogoutSessionRequiredOrDefault(?TrustedClientBackChannelLogoutSessionRequiredVO $backChannelLogoutSessionRequired): ?TrustedClientBackChannelLogoutSessionRequiredVO
+    public function getBackChannelLogoutSessionRequiredOrCurrent(?TrustedClientBackChannelLogoutSessionRequiredVO $backChannelLogoutSessionRequired): ?TrustedClientBackChannelLogoutSessionRequiredVO
     {
-        return $this->backChannelLogoutSessionRequiredAssigned ? ($this->backChannelLogoutSessionRequired !== null ? TrustedClientBackChannelLogoutSessionRequiredVO::from($this->backChannelLogoutSessionRequired) : null) : $backChannelLogoutSessionRequired;
+        return $this->backChannelLogoutSessionRequiredAssigned ? ($this->backChannelLogoutSessionRequired === null ? null : TrustedClientBackChannelLogoutSessionRequiredVO::from($this->backChannelLogoutSessionRequired)) : $backChannelLogoutSessionRequired;
+    }
+    public function backChannelLogoutSessionRequiredTryBuildInitial(ConstraintFailList $error): ?TrustedClientBackChannelLogoutSessionRequiredVO
+    {
+        return  TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($this->backChannelLogoutSessionRequiredAssigned ? $this->backChannelLogoutSessionRequired : null, $error);
     }
     public function backChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO|bool|null $backChannelLogoutSessionRequired): static
     {

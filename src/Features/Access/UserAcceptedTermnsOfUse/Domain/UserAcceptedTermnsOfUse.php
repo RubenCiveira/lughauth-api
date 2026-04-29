@@ -44,10 +44,10 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
     public function replace(UserAcceptedTermnsOfUseAttributes $values): UserAcceptedTermnsOfUse
     {
         $value = clone $this;
-        $value->_user = $values->getUserOrDefault($this->_user);
-        $value->_conditions = $values->getConditionsOrDefault($this->_conditions);
-        $value->_acceptDate = $values->getAcceptDateOrDefault($this->_acceptDate);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_user = $values->getUserOrCurrent($this->_user);
+        $value->_conditions = $values->getConditionsOrCurrent($this->_conditions);
+        $value->_acceptDate = $values->getAcceptDateOrCurrent($this->_acceptDate);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -56,7 +56,7 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
     }
     public static function create(UserAcceptedTermnsOfUseAttributes $values): UserAcceptedTermnsOfUse
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new UserAcceptedTermnsOfUseCreateEvent($value);
         return $value;
     }

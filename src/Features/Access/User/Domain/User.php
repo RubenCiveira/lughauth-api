@@ -105,19 +105,19 @@ class User extends UserRef
     public function replace(UserAttributes $values): User
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_name = $values->getNameOrDefault($this->_name);
-        $value->_password = $values->getPasswordOrDefault($this->_password);
-        $value->_email = $values->getEmailOrDefault($this->_email);
-        $value->_wellcomeAt = $values->getWellcomeAtOrDefault($this->_wellcomeAt);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_approve = $values->getApproveOrDefault($this->_approve);
-        $value->_temporalPassword = $values->getTemporalPasswordOrDefault($this->_temporalPassword);
-        $value->_useSecondFactors = $values->getUseSecondFactorsOrDefault($this->_useSecondFactors);
-        $value->_secondFactorSeed = $values->getSecondFactorSeedOrDefault($this->_secondFactorSeed);
-        $value->_blockedUntil = $values->getBlockedUntilOrDefault($this->_blockedUntil);
-        $value->_provider = $values->getProviderOrDefault($this->_provider);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_name = $values->getNameOrCurrent($this->_name);
+        $value->_password = $values->getPasswordOrCurrent($this->_password);
+        $value->_email = $values->getEmailOrCurrent($this->_email);
+        $value->_wellcomeAt = $values->getWellcomeAtOrCurrent($this->_wellcomeAt);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_approve = $values->getApproveOrCurrent($this->_approve);
+        $value->_temporalPassword = $values->getTemporalPasswordOrCurrent($this->_temporalPassword);
+        $value->_useSecondFactors = $values->getUseSecondFactorsOrCurrent($this->_useSecondFactors);
+        $value->_secondFactorSeed = $values->getSecondFactorSeedOrCurrent($this->_secondFactorSeed);
+        $value->_blockedUntil = $values->getBlockedUntilOrCurrent($this->_blockedUntil);
+        $value->_provider = $values->getProviderOrCurrent($this->_provider);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -133,7 +133,7 @@ class User extends UserRef
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $calculated->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $calculated->provider(ProviderCalculator::calculateProvider());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new UserCreateEvent($value);
         return $value;
     }
@@ -170,7 +170,7 @@ class User extends UserRef
         $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $attributes->provider(ProviderCalculator::calculateProvider());
-        $value = $attributes->build();
+        $value = $attributes->createNewInstance();
         $value->recordedEvents[] = new UserRegisterEvent($value);
         return $value;
     }

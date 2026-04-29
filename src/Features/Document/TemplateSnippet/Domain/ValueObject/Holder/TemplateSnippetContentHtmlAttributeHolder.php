@@ -13,7 +13,7 @@ trait TemplateSnippetContentHtmlAttributeHolder
     protected TemplateSnippetContentHtmlVO|string|null $contentHtml = null;
     protected bool $contentHtmlAssigned = false;
 
-    public function getContentHtmlOrDefault(TemplateSnippetContentHtmlVO $contentHtml): TemplateSnippetContentHtmlVO
+    public function getContentHtmlOrCurrent(TemplateSnippetContentHtmlVO $contentHtml): TemplateSnippetContentHtmlVO
     {
         if ($this->contentHtmlAssigned) {
             \assert(null !== $this->contentHtml);
@@ -21,6 +21,10 @@ trait TemplateSnippetContentHtmlAttributeHolder
         } else {
             return $contentHtml;
         }
+    }
+    public function contentHtmlTryBuildInitial(ConstraintFailList $error): ?TemplateSnippetContentHtmlVO
+    {
+        return  TemplateSnippetContentHtmlVO::tryFrom($this->contentHtmlAssigned ? $this->contentHtml : null, $error);
     }
     public function contentHtml(TemplateSnippetContentHtmlVO|string $contentHtml): static
     {

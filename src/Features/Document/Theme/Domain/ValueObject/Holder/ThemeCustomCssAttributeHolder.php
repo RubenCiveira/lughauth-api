@@ -13,9 +13,13 @@ trait ThemeCustomCssAttributeHolder
     protected ThemeCustomCssVO|string|null $customCss = null;
     protected bool $customCssAssigned = false;
 
-    public function getCustomCssOrDefault(?ThemeCustomCssVO $customCss): ?ThemeCustomCssVO
+    public function getCustomCssOrCurrent(?ThemeCustomCssVO $customCss): ?ThemeCustomCssVO
     {
-        return $this->customCssAssigned ? ($this->customCss !== null ? ThemeCustomCssVO::from($this->customCss) : null) : $customCss;
+        return $this->customCssAssigned ? ($this->customCss === null ? null : ThemeCustomCssVO::from($this->customCss)) : $customCss;
+    }
+    public function customCssTryBuildInitial(ConstraintFailList $error): ?ThemeCustomCssVO
+    {
+        return  ThemeCustomCssVO::tryFrom($this->customCssAssigned ? $this->customCss : null, $error);
     }
     public function customCss(ThemeCustomCssVO|string|null $customCss): static
     {

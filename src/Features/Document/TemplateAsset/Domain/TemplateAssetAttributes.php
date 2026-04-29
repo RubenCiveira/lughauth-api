@@ -6,19 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetUidAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetUidVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTenantAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetTenantVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetCodeAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetCodeVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTypeAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetTypeVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetContentAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetContentVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetEnabledVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetVersionAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TemplateAssetAttributes
@@ -41,16 +34,16 @@ class TemplateAssetAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TemplateAsset
+    public function createNewInstance(): TemplateAsset
     {
         $errors = new ConstraintFailList();
-        $uid = TemplateAssetUidVO::tryFrom($this->uid, $errors);
-        $tenant = TemplateAssetTenantVO::tryFrom($this->tenant, $errors);
-        $code = TemplateAssetCodeVO::tryFrom($this->code, $errors);
-        $type = TemplateAssetTypeVO::tryFrom($this->type, $errors);
-        $content = TemplateAssetContentVO::tryFrom($this->content, $errors);
-        $enabled = TemplateAssetEnabledVO::tryFrom($this->enabled, $errors);
-        $version = TemplateAssetVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $code = $this->codeTryBuildInitial($errors);
+        $type = $this->typeTryBuildInitial($errors);
+        $content = $this->contentTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

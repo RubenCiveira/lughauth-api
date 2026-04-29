@@ -6,19 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserConsentedScopes\Domain;
 
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesUidAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesUidVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesUserAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesUserVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesTrustedClientAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesTrustedClientVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesScopeAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesScopeVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesGrantedAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesGrantedVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesDecisionAtAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesDecisionAtVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class UserConsentedScopesAttributes
@@ -41,16 +34,16 @@ class UserConsentedScopesAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): UserConsentedScopes
+    public function createNewInstance(): UserConsentedScopes
     {
         $errors = new ConstraintFailList();
-        $uid = UserConsentedScopesUidVO::tryFrom($this->uid, $errors);
-        $user = UserConsentedScopesUserVO::tryFrom($this->user, $errors);
-        $trustedClient = UserConsentedScopesTrustedClientVO::tryFrom($this->trustedClient, $errors);
-        $scope = UserConsentedScopesScopeVO::tryFrom($this->scope, $errors);
-        $granted = UserConsentedScopesGrantedVO::tryFrom($this->granted, $errors);
-        $decisionAt = UserConsentedScopesDecisionAtVO::tryFrom($this->decisionAt, $errors);
-        $version = UserConsentedScopesVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $user = $this->userTryBuildInitial($errors);
+        $trustedClient = $this->trustedClientTryBuildInitial($errors);
+        $scope = $this->scopeTryBuildInitial($errors);
+        $granted = $this->grantedTryBuildInitial($errors);
+        $decisionAt = $this->decisionAtTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

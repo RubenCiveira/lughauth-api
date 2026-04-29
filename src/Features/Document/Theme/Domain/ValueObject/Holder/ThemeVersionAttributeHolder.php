@@ -13,9 +13,13 @@ trait ThemeVersionAttributeHolder
     protected ThemeVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?ThemeVersionVO $version): ?ThemeVersionVO
+    public function getVersionOrCurrent(?ThemeVersionVO $version): ?ThemeVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? ThemeVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : ThemeVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?ThemeVersionVO
+    {
+        return  ThemeVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(ThemeVersionVO|int|null $version): static
     {

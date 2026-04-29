@@ -13,9 +13,13 @@ trait UserSecondFactorSeedAttributeHolder
     protected UserSecondFactorSeedVO|string|null $secondFactorSeed = null;
     protected bool $secondFactorSeedAssigned = false;
 
-    public function getSecondFactorSeedOrDefault(?UserSecondFactorSeedVO $secondFactorSeed): ?UserSecondFactorSeedVO
+    public function getSecondFactorSeedOrCurrent(?UserSecondFactorSeedVO $secondFactorSeed): ?UserSecondFactorSeedVO
     {
-        return $this->secondFactorSeedAssigned ? ($this->secondFactorSeed !== null ? UserSecondFactorSeedVO::from($this->secondFactorSeed) : null) : $secondFactorSeed;
+        return $this->secondFactorSeedAssigned ? ($this->secondFactorSeed === null ? null : UserSecondFactorSeedVO::from($this->secondFactorSeed)) : $secondFactorSeed;
+    }
+    public function secondFactorSeedTryBuildInitial(ConstraintFailList $error): ?UserSecondFactorSeedVO
+    {
+        return  UserSecondFactorSeedVO::tryFrom($this->secondFactorSeedAssigned ? $this->secondFactorSeed : null, $error);
     }
     public function secondFactorSeed(UserSecondFactorSeedVO|string|null $secondFactorSeed): static
     {

@@ -13,9 +13,13 @@ trait TenantLoginProviderMetadataAttributeHolder
     protected TenantLoginProviderMetadataVO|string|null $metadata = null;
     protected bool $metadataAssigned = false;
 
-    public function getMetadataOrDefault(?TenantLoginProviderMetadataVO $metadata): ?TenantLoginProviderMetadataVO
+    public function getMetadataOrCurrent(?TenantLoginProviderMetadataVO $metadata): ?TenantLoginProviderMetadataVO
     {
-        return $this->metadataAssigned ? ($this->metadata !== null ? TenantLoginProviderMetadataVO::from($this->metadata) : null) : $metadata;
+        return $this->metadataAssigned ? ($this->metadata === null ? null : TenantLoginProviderMetadataVO::from($this->metadata)) : $metadata;
+    }
+    public function metadataTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderMetadataVO
+    {
+        return  TenantLoginProviderMetadataVO::tryFrom($this->metadataAssigned ? $this->metadata : null, $error);
     }
     public function metadata(TenantLoginProviderMetadataVO|string|null $metadata): static
     {

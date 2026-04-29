@@ -13,7 +13,7 @@ trait UserNameAttributeHolder
     protected UserNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(UserNameVO $name): UserNameVO
+    public function getNameOrCurrent(UserNameVO $name): UserNameVO
     {
         if ($this->nameAssigned) {
             \assert(null !== $this->name);
@@ -21,6 +21,10 @@ trait UserNameAttributeHolder
         } else {
             return $name;
         }
+    }
+    public function nameTryBuildInitial(ConstraintFailList $error): ?UserNameVO
+    {
+        return  UserNameVO::tryFrom($this->nameAssigned ? $this->name : null, $error);
     }
     public function name(UserNameVO|string $name): static
     {

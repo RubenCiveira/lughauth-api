@@ -13,7 +13,7 @@ trait ApiKeyClientUidAttributeHolder
     protected ApiKeyClientUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(ApiKeyClientUidVO $uid): ApiKeyClientUidVO
+    public function getUidOrCurrent(ApiKeyClientUidVO $uid): ApiKeyClientUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait ApiKeyClientUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?ApiKeyClientUidVO
+    {
+        return  ApiKeyClientUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(ApiKeyClientUidVO|string|null $uid): static
     {

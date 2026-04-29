@@ -58,12 +58,12 @@ class TemplateAsset extends TemplateAssetRef
     public function replace(TemplateAssetAttributes $values): TemplateAsset
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_type = $values->getTypeOrDefault($this->_type);
-        $value->_content = $values->getContentOrDefault($this->_content);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_type = $values->getTypeOrCurrent($this->_type);
+        $value->_content = $values->getContentOrCurrent($this->_content);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -74,7 +74,7 @@ class TemplateAsset extends TemplateAssetRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TemplateAssetCreateEvent($value);
         return $value;
     }

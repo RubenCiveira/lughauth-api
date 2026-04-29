@@ -31,33 +31,33 @@ final class UserRoleAssignamentCreateResultUnitTest extends TestCase
         $this->assertSame($value, $copy);
         $this->assertEquals(new UserRef('one'), $value->getUser());
         $this->assertNotEquals(new UserRef('other'), $value->getUser());
-        $this->assertEquals(new UserRef('one'), $value->getUserOrDefault(UserRoleAssignamentUserVO::from($userOtherValue))->value());
-        $this->assertNotEquals(new UserRef('other'), $value->getUserOrDefault(UserRoleAssignamentUserVO::from($userOtherValue))->value());
+        $this->assertEquals(new UserRef('one'), $value->getUserOrCurrent(UserRoleAssignamentUserVO::from($userOtherValue))->value());
+        $this->assertNotEquals(new UserRef('other'), $value->getUserOrCurrent(UserRoleAssignamentUserVO::from($userOtherValue))->value());
         $value->unsetUser();
-        $this->assertEquals(new UserRef('other'), $value->getUserOrDefault(UserRoleAssignamentUserVO::from($userOtherValue))->value());
-        $this->assertNotEquals(new UserRef('one'), $value->getUserOrDefault(UserRoleAssignamentUserVO::from($userOtherValue))->value());
+        $this->assertEquals(new UserRef('other'), $value->getUserOrCurrent(UserRoleAssignamentUserVO::from($userOtherValue))->value());
+        $this->assertNotEquals(new UserRef('one'), $value->getUserOrCurrent(UserRoleAssignamentUserVO::from($userOtherValue))->value());
         $relyingPartyOneValue = new RelyingPartyRef('one');
         $relyingPartyOtherValue = new RelyingPartyRef('other');
         $copy = $value->relyingParty($relyingPartyOneValue);
         $this->assertSame($value, $copy);
         $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingParty());
         $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingParty());
-        $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrDefault(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
-        $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrDefault(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrCurrent(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertNotEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrCurrent(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
         $value->unsetRelyingParty();
-        $this->assertEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrDefault(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
-        $this->assertNotEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrDefault(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertEquals(new RelyingPartyRef('other'), $value->getRelyingPartyOrCurrent(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
+        $this->assertNotEquals(new RelyingPartyRef('one'), $value->getRelyingPartyOrCurrent(UserRoleAssignamentRelyingPartyVO::from($relyingPartyOtherValue))->value());
         $trustedClientOneValue = new TrustedClientRef('one');
         $trustedClientOtherValue = new TrustedClientRef('other');
         $copy = $value->trustedClient($trustedClientOneValue);
         $this->assertSame($value, $copy);
         $this->assertEquals(new TrustedClientRef('one'), $value->getTrustedClient());
         $this->assertNotEquals(new TrustedClientRef('other'), $value->getTrustedClient());
-        $this->assertEquals(new TrustedClientRef('one'), $value->getTrustedClientOrDefault(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
-        $this->assertNotEquals(new TrustedClientRef('other'), $value->getTrustedClientOrDefault(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertEquals(new TrustedClientRef('one'), $value->getTrustedClientOrCurrent(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertNotEquals(new TrustedClientRef('other'), $value->getTrustedClientOrCurrent(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
         $value->unsetTrustedClient();
-        $this->assertEquals(new TrustedClientRef('other'), $value->getTrustedClientOrDefault(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
-        $this->assertNotEquals(new TrustedClientRef('one'), $value->getTrustedClientOrDefault(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertEquals(new TrustedClientRef('other'), $value->getTrustedClientOrCurrent(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
+        $this->assertNotEquals(new TrustedClientRef('one'), $value->getTrustedClientOrCurrent(UserRoleAssignamentTrustedClientVO::from($trustedClientOtherValue))->value());
         $rolesOneValue = new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
             UserRoleAssignamentRolesUidVO::from('one'),
             UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
@@ -84,34 +84,34 @@ final class UserRoleAssignamentCreateResultUnitTest extends TestCase
             UserRoleAssignamentRolesUidVO::from('one'),
             UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
             UserRoleAssignamentRolesVersionVO::from(1)
-        )), $value->getRolesOrDefault(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
+        )), $value->getRolesOrCurrent(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
         $this->assertNotEquals(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
             UserRoleAssignamentRolesUidVO::from('other'),
             UserRoleAssignamentRolesRoleVO::from(new RoleRef('other')),
             UserRoleAssignamentRolesVersionVO::from(2)
-        )), $value->getRolesOrDefault(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
+        )), $value->getRolesOrCurrent(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
         $value->unsetRoles();
         $this->assertEquals(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
             UserRoleAssignamentRolesUidVO::from('other'),
             UserRoleAssignamentRolesRoleVO::from(new RoleRef('other')),
             UserRoleAssignamentRolesVersionVO::from(2)
-        )), $value->getRolesOrDefault(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
+        )), $value->getRolesOrCurrent(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
         $this->assertNotEquals(new UserRoleAssignamentRolesListRef(new UserRoleAssignamentRolesItem(
             UserRoleAssignamentRolesUidVO::from('one'),
             UserRoleAssignamentRolesRoleVO::from(new RoleRef('one')),
             UserRoleAssignamentRolesVersionVO::from(1)
-        )), $value->getRolesOrDefault(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
+        )), $value->getRolesOrCurrent(UserRoleAssignamentRolesVO::from($rolesOtherValue))->value());
         $versionOneValue = 1;
         $versionOtherValue = 2;
         $copy = $value->version($versionOneValue);
         $this->assertSame($value, $copy);
         $this->assertEquals(1, $value->getVersion());
         $this->assertNotEquals(2, $value->getVersion());
-        $this->assertEquals(1, $value->getVersionOrDefault(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
-        $this->assertNotEquals(2, $value->getVersionOrDefault(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
+        $this->assertEquals(1, $value->getVersionOrCurrent(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
+        $this->assertNotEquals(2, $value->getVersionOrCurrent(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
         $value->unsetVersion();
-        $this->assertEquals(2, $value->getVersionOrDefault(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
-        $this->assertNotEquals(1, $value->getVersionOrDefault(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
+        $this->assertEquals(2, $value->getVersionOrCurrent(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
+        $this->assertNotEquals(1, $value->getVersionOrCurrent(UserRoleAssignamentVersionVO::from($versionOtherValue))->value());
         $this->assertSame($value, $copy);
     }
 }

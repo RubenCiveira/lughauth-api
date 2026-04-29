@@ -13,9 +13,13 @@ trait TrustedClientDynamicallyRegisteredAttributeHolder
     protected TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered = null;
     protected bool $dynamicallyRegisteredAssigned = false;
 
-    public function getDynamicallyRegisteredOrDefault(?TrustedClientDynamicallyRegisteredVO $dynamicallyRegistered): ?TrustedClientDynamicallyRegisteredVO
+    public function getDynamicallyRegisteredOrCurrent(?TrustedClientDynamicallyRegisteredVO $dynamicallyRegistered): ?TrustedClientDynamicallyRegisteredVO
     {
-        return $this->dynamicallyRegisteredAssigned ? ($this->dynamicallyRegistered !== null ? TrustedClientDynamicallyRegisteredVO::from($this->dynamicallyRegistered) : null) : $dynamicallyRegistered;
+        return $this->dynamicallyRegisteredAssigned ? ($this->dynamicallyRegistered === null ? null : TrustedClientDynamicallyRegisteredVO::from($this->dynamicallyRegistered)) : $dynamicallyRegistered;
+    }
+    public function dynamicallyRegisteredTryBuildInitial(ConstraintFailList $error): ?TrustedClientDynamicallyRegisteredVO
+    {
+        return  TrustedClientDynamicallyRegisteredVO::tryFrom($this->dynamicallyRegisteredAssigned ? $this->dynamicallyRegistered : null, $error);
     }
     public function dynamicallyRegistered(TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered): static
     {

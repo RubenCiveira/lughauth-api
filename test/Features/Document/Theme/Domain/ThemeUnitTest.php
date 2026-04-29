@@ -23,7 +23,7 @@ final class ThemeUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = Theme::calculatedFields();
 
         // @Assert

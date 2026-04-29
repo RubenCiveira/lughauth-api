@@ -13,9 +13,13 @@ trait TrustedClientFrontChannelLogoutSessionRequiredAttributeHolder
     protected TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $frontChannelLogoutSessionRequired = null;
     protected bool $frontChannelLogoutSessionRequiredAssigned = false;
 
-    public function getFrontChannelLogoutSessionRequiredOrDefault(?TrustedClientFrontChannelLogoutSessionRequiredVO $frontChannelLogoutSessionRequired): ?TrustedClientFrontChannelLogoutSessionRequiredVO
+    public function getFrontChannelLogoutSessionRequiredOrCurrent(?TrustedClientFrontChannelLogoutSessionRequiredVO $frontChannelLogoutSessionRequired): ?TrustedClientFrontChannelLogoutSessionRequiredVO
     {
-        return $this->frontChannelLogoutSessionRequiredAssigned ? ($this->frontChannelLogoutSessionRequired !== null ? TrustedClientFrontChannelLogoutSessionRequiredVO::from($this->frontChannelLogoutSessionRequired) : null) : $frontChannelLogoutSessionRequired;
+        return $this->frontChannelLogoutSessionRequiredAssigned ? ($this->frontChannelLogoutSessionRequired === null ? null : TrustedClientFrontChannelLogoutSessionRequiredVO::from($this->frontChannelLogoutSessionRequired)) : $frontChannelLogoutSessionRequired;
+    }
+    public function frontChannelLogoutSessionRequiredTryBuildInitial(ConstraintFailList $error): ?TrustedClientFrontChannelLogoutSessionRequiredVO
+    {
+        return  TrustedClientFrontChannelLogoutSessionRequiredVO::tryFrom($this->frontChannelLogoutSessionRequiredAssigned ? $this->frontChannelLogoutSessionRequired : null, $error);
     }
     public function frontChannelLogoutSessionRequired(TrustedClientFrontChannelLogoutSessionRequiredVO|bool|null $frontChannelLogoutSessionRequired): static
     {

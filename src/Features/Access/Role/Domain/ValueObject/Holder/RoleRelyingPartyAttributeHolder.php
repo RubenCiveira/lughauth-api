@@ -14,9 +14,13 @@ trait RoleRelyingPartyAttributeHolder
     protected RoleRelyingPartyVO|RelyingPartyRef|null $relyingParty = null;
     protected bool $relyingPartyAssigned = false;
 
-    public function getRelyingPartyOrDefault(?RoleRelyingPartyVO $relyingParty): ?RoleRelyingPartyVO
+    public function getRelyingPartyOrCurrent(?RoleRelyingPartyVO $relyingParty): ?RoleRelyingPartyVO
     {
-        return $this->relyingPartyAssigned ? ($this->relyingParty !== null ? RoleRelyingPartyVO::from($this->relyingParty) : null) : $relyingParty;
+        return $this->relyingPartyAssigned ? ($this->relyingParty === null ? null : RoleRelyingPartyVO::from($this->relyingParty)) : $relyingParty;
+    }
+    public function relyingPartyTryBuildInitial(ConstraintFailList $error): ?RoleRelyingPartyVO
+    {
+        return  RoleRelyingPartyVO::tryFrom($this->relyingPartyAssigned ? $this->relyingParty : null, $error);
     }
     public function relyingParty(RoleRelyingPartyVO|RelyingPartyRef|null $relyingParty): static
     {

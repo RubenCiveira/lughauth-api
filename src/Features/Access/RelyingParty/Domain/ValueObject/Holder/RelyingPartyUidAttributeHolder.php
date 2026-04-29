@@ -13,7 +13,7 @@ trait RelyingPartyUidAttributeHolder
     protected RelyingPartyUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(RelyingPartyUidVO $uid): RelyingPartyUidVO
+    public function getUidOrCurrent(RelyingPartyUidVO $uid): RelyingPartyUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait RelyingPartyUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?RelyingPartyUidVO
+    {
+        return  RelyingPartyUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(RelyingPartyUidVO|string|null $uid): static
     {

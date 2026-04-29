@@ -13,9 +13,13 @@ trait UserWellcomeAtAttributeHolder
     protected UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null;
     protected bool $wellcomeAtAssigned = false;
 
-    public function getWellcomeAtOrDefault(?UserWellcomeAtVO $wellcomeAt): ?UserWellcomeAtVO
+    public function getWellcomeAtOrCurrent(?UserWellcomeAtVO $wellcomeAt): ?UserWellcomeAtVO
     {
-        return $this->wellcomeAtAssigned ? ($this->wellcomeAt !== null ? UserWellcomeAtVO::from($this->wellcomeAt) : null) : $wellcomeAt;
+        return $this->wellcomeAtAssigned ? ($this->wellcomeAt === null ? null : UserWellcomeAtVO::from($this->wellcomeAt)) : $wellcomeAt;
+    }
+    public function wellcomeAtTryBuildInitial(ConstraintFailList $error): ?UserWellcomeAtVO
+    {
+        return  UserWellcomeAtVO::tryFrom($this->wellcomeAtAssigned ? $this->wellcomeAt : null, $error);
     }
     public function wellcomeAt(UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt): static
     {

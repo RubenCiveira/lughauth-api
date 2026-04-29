@@ -161,33 +161,33 @@ class TrustedClient extends TrustedClientRef
     public function replace(TrustedClientAttributes $values): TrustedClient
     {
         $value = clone $this;
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_allowAllScopes = $values->getAllowAllScopesOrDefault($this->_allowAllScopes);
-        $value->_publicAllow = $values->getPublicAllowOrDefault($this->_publicAllow);
-        $value->_allowedRedirects = $values->getAllowedRedirectsOrDefault($this->_allowedRedirects);
-        $value->_secretOauth = $values->getSecretOauthOrDefault($this->_secretOauth);
-        $value->_backChannelLogoutUri = $values->getBackChannelLogoutUriOrDefault($this->_backChannelLogoutUri);
-        $value->_backChannelLogoutSessionRequired = $values->getBackChannelLogoutSessionRequiredOrDefault($this->_backChannelLogoutSessionRequired);
-        $value->_frontChannelLogoutUri = $values->getFrontChannelLogoutUriOrDefault($this->_frontChannelLogoutUri);
-        $value->_frontChannelLogoutSessionRequired = $values->getFrontChannelLogoutSessionRequiredOrDefault($this->_frontChannelLogoutSessionRequired);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_registrationAccess = $values->getRegistrationAccessOrDefault($this->_registrationAccess);
-        $value->_clientName = $values->getClientNameOrDefault($this->_clientName);
-        $value->_logoUri = $values->getLogoUriOrDefault($this->_logoUri);
-        $value->_clientUri = $values->getClientUriOrDefault($this->_clientUri);
-        $value->_policyUri = $values->getPolicyUriOrDefault($this->_policyUri);
-        $value->_tosUri = $values->getTosUriOrDefault($this->_tosUri);
-        $value->_tokenEndpointAuthMethod = $values->getTokenEndpointAuthMethodOrDefault($this->_tokenEndpointAuthMethod);
-        $value->_grantTypesJson = $values->getGrantTypesJsonOrDefault($this->_grantTypesJson);
-        $value->_responseTypesJson = $values->getResponseTypesJsonOrDefault($this->_responseTypesJson);
-        $value->_dynamicallyRegistered = $values->getDynamicallyRegisteredOrDefault($this->_dynamicallyRegistered);
-        $value->_registeredAt = $values->getRegisteredAtOrDefault($this->_registeredAt);
-        $value->_allowedScopesM2m = $values->getAllowedScopesM2mOrDefault($this->_allowedScopesM2m);
-        $value->_m2mTokenTtlSeconds = $values->getM2mTokenTtlSecondsOrDefault($this->_m2mTokenTtlSeconds);
-        $value->_requestObjectSigningAlg = $values->getRequestObjectSigningAlgOrDefault($this->_requestObjectSigningAlg);
-        $value->_jwksUri = $values->getJwksUriOrDefault($this->_jwksUri);
-        $value->_jwksJson = $values->getJwksJsonOrDefault($this->_jwksJson);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_allowAllScopes = $values->getAllowAllScopesOrCurrent($this->_allowAllScopes);
+        $value->_publicAllow = $values->getPublicAllowOrCurrent($this->_publicAllow);
+        $value->_allowedRedirects = $values->getAllowedRedirectsOrCurrent($this->_allowedRedirects);
+        $value->_secretOauth = $values->getSecretOauthOrCurrent($this->_secretOauth);
+        $value->_backChannelLogoutUri = $values->getBackChannelLogoutUriOrCurrent($this->_backChannelLogoutUri);
+        $value->_backChannelLogoutSessionRequired = $values->getBackChannelLogoutSessionRequiredOrCurrent($this->_backChannelLogoutSessionRequired);
+        $value->_frontChannelLogoutUri = $values->getFrontChannelLogoutUriOrCurrent($this->_frontChannelLogoutUri);
+        $value->_frontChannelLogoutSessionRequired = $values->getFrontChannelLogoutSessionRequiredOrCurrent($this->_frontChannelLogoutSessionRequired);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_registrationAccess = $values->getRegistrationAccessOrCurrent($this->_registrationAccess);
+        $value->_clientName = $values->getClientNameOrCurrent($this->_clientName);
+        $value->_logoUri = $values->getLogoUriOrCurrent($this->_logoUri);
+        $value->_clientUri = $values->getClientUriOrCurrent($this->_clientUri);
+        $value->_policyUri = $values->getPolicyUriOrCurrent($this->_policyUri);
+        $value->_tosUri = $values->getTosUriOrCurrent($this->_tosUri);
+        $value->_tokenEndpointAuthMethod = $values->getTokenEndpointAuthMethodOrCurrent($this->_tokenEndpointAuthMethod);
+        $value->_grantTypesJson = $values->getGrantTypesJsonOrCurrent($this->_grantTypesJson);
+        $value->_responseTypesJson = $values->getResponseTypesJsonOrCurrent($this->_responseTypesJson);
+        $value->_dynamicallyRegistered = $values->getDynamicallyRegisteredOrCurrent($this->_dynamicallyRegistered);
+        $value->_registeredAt = $values->getRegisteredAtOrCurrent($this->_registeredAt);
+        $value->_allowedScopesM2m = $values->getAllowedScopesM2mOrCurrent($this->_allowedScopesM2m);
+        $value->_m2mTokenTtlSeconds = $values->getM2mTokenTtlSecondsOrCurrent($this->_m2mTokenTtlSeconds);
+        $value->_requestObjectSigningAlg = $values->getRequestObjectSigningAlgOrCurrent($this->_requestObjectSigningAlg);
+        $value->_jwksUri = $values->getJwksUriOrCurrent($this->_jwksUri);
+        $value->_jwksJson = $values->getJwksJsonOrCurrent($this->_jwksJson);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -198,7 +198,7 @@ class TrustedClient extends TrustedClientRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TrustedClientCreateEvent($value);
         return $value;
     }

@@ -14,7 +14,7 @@ trait UserAcceptedTermnsOfUseUserAttributeHolder
     protected UserAcceptedTermnsOfUseUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(UserAcceptedTermnsOfUseUserVO $user): UserAcceptedTermnsOfUseUserVO
+    public function getUserOrCurrent(UserAcceptedTermnsOfUseUserVO $user): UserAcceptedTermnsOfUseUserVO
     {
         if ($this->userAssigned) {
             \assert(null !== $this->user);
@@ -22,6 +22,10 @@ trait UserAcceptedTermnsOfUseUserAttributeHolder
         } else {
             return $user;
         }
+    }
+    public function userTryBuildInitial(ConstraintFailList $error): ?UserAcceptedTermnsOfUseUserVO
+    {
+        return  UserAcceptedTermnsOfUseUserVO::tryFrom($this->userAssigned ? $this->user : null, $error);
     }
     public function user(UserAcceptedTermnsOfUseUserVO|UserRef $user): static
     {

@@ -13,9 +13,13 @@ trait TrustedClientTosUriAttributeHolder
     protected TrustedClientTosUriVO|string|null $tosUri = null;
     protected bool $tosUriAssigned = false;
 
-    public function getTosUriOrDefault(?TrustedClientTosUriVO $tosUri): ?TrustedClientTosUriVO
+    public function getTosUriOrCurrent(?TrustedClientTosUriVO $tosUri): ?TrustedClientTosUriVO
     {
-        return $this->tosUriAssigned ? ($this->tosUri !== null ? TrustedClientTosUriVO::from($this->tosUri) : null) : $tosUri;
+        return $this->tosUriAssigned ? ($this->tosUri === null ? null : TrustedClientTosUriVO::from($this->tosUri)) : $tosUri;
+    }
+    public function tosUriTryBuildInitial(ConstraintFailList $error): ?TrustedClientTosUriVO
+    {
+        return  TrustedClientTosUriVO::tryFrom($this->tosUriAssigned ? $this->tosUri : null, $error);
     }
     public function tosUri(TrustedClientTosUriVO|string|null $tosUri): static
     {

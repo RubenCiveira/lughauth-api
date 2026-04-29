@@ -11,12 +11,16 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigDynamicRegistr
 
 trait TenantConfigDynamicRegistrationPolicyAttributeHolder
 {
-    protected TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = TenantConfigDynamicRegistrationPolicyOptions::DISABLED;
+    protected TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = null;
     protected bool $dynamicRegistrationPolicyAssigned = false;
 
-    public function getDynamicRegistrationPolicyOrDefault(?TenantConfigDynamicRegistrationPolicyVO $dynamicRegistrationPolicy): ?TenantConfigDynamicRegistrationPolicyVO
+    public function getDynamicRegistrationPolicyOrCurrent(?TenantConfigDynamicRegistrationPolicyVO $dynamicRegistrationPolicy): ?TenantConfigDynamicRegistrationPolicyVO
     {
-        return $this->dynamicRegistrationPolicyAssigned ? ($this->dynamicRegistrationPolicy !== null ? TenantConfigDynamicRegistrationPolicyVO::from($this->dynamicRegistrationPolicy) : null) : $dynamicRegistrationPolicy;
+        return $this->dynamicRegistrationPolicyAssigned ? ($this->dynamicRegistrationPolicy === null ? null : TenantConfigDynamicRegistrationPolicyVO::from($this->dynamicRegistrationPolicy)) : $dynamicRegistrationPolicy;
+    }
+    public function dynamicRegistrationPolicyTryBuildInitial(ConstraintFailList $error): ?TenantConfigDynamicRegistrationPolicyVO
+    {
+        return  TenantConfigDynamicRegistrationPolicyVO::tryFrom($this->dynamicRegistrationPolicyAssigned ? $this->dynamicRegistrationPolicy : TenantConfigDynamicRegistrationPolicyOptions::DISABLED, $error);
     }
     public function dynamicRegistrationPolicy(TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy): static
     {

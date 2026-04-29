@@ -13,9 +13,13 @@ trait TenantLoginProviderCertificateAttributeHolder
     protected TenantLoginProviderCertificateVO|string|null $certificate = null;
     protected bool $certificateAssigned = false;
 
-    public function getCertificateOrDefault(?TenantLoginProviderCertificateVO $certificate): ?TenantLoginProviderCertificateVO
+    public function getCertificateOrCurrent(?TenantLoginProviderCertificateVO $certificate): ?TenantLoginProviderCertificateVO
     {
-        return $this->certificateAssigned ? ($this->certificate !== null ? TenantLoginProviderCertificateVO::from($this->certificate) : null) : $certificate;
+        return $this->certificateAssigned ? ($this->certificate === null ? null : TenantLoginProviderCertificateVO::from($this->certificate)) : $certificate;
+    }
+    public function certificateTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderCertificateVO
+    {
+        return  TenantLoginProviderCertificateVO::tryFrom($this->certificateAssigned ? $this->certificate : null, $error);
     }
     public function certificate(TenantLoginProviderCertificateVO|string|null $certificate): static
     {

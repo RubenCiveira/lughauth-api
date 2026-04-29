@@ -13,9 +13,13 @@ trait TrustedClientRegisteredAtAttributeHolder
     protected TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt = null;
     protected bool $registeredAtAssigned = false;
 
-    public function getRegisteredAtOrDefault(?TrustedClientRegisteredAtVO $registeredAt): ?TrustedClientRegisteredAtVO
+    public function getRegisteredAtOrCurrent(?TrustedClientRegisteredAtVO $registeredAt): ?TrustedClientRegisteredAtVO
     {
-        return $this->registeredAtAssigned ? ($this->registeredAt !== null ? TrustedClientRegisteredAtVO::from($this->registeredAt) : null) : $registeredAt;
+        return $this->registeredAtAssigned ? ($this->registeredAt === null ? null : TrustedClientRegisteredAtVO::from($this->registeredAt)) : $registeredAt;
+    }
+    public function registeredAtTryBuildInitial(ConstraintFailList $error): ?TrustedClientRegisteredAtVO
+    {
+        return  TrustedClientRegisteredAtVO::tryFrom($this->registeredAtAssigned ? $this->registeredAt : null, $error);
     }
     public function registeredAt(TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt): static
     {

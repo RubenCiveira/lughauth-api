@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
 
 trait TenantRootAttributeHolder
 {
-    protected TenantRootVO|bool|null $root = false;
+    protected TenantRootVO|bool|null $root = null;
     protected bool $rootAssigned = false;
 
-    public function getRootOrDefault(?TenantRootVO $root): ?TenantRootVO
+    public function getRootOrCurrent(?TenantRootVO $root): ?TenantRootVO
     {
-        return $this->rootAssigned ? ($this->root !== null ? TenantRootVO::from($this->root) : null) : $root;
+        return $this->rootAssigned ? ($this->root === null ? null : TenantRootVO::from($this->root)) : $root;
+    }
+    public function rootTryBuildInitial(ConstraintFailList $error): ?TenantRootVO
+    {
+        return  TenantRootVO::tryFrom($this->rootAssigned ? $this->root : false, $error);
     }
     public function root(TenantRootVO|bool|null $root): static
     {

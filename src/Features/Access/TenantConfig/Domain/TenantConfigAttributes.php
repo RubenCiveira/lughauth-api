@@ -6,33 +6,19 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantConfig\Domain;
 
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigUidAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigUidVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigTenantAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigTenantVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigInnerLabelAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInnerLabelVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigForceMfaAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigForceMfaVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDynamicRegistrationPolicyAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDynamicRegistrationPolicyVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnabledUserEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRecoverPassAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRecoverPassVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRecoverPassEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRecoverPassEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TenantConfigAttributes
@@ -69,23 +55,23 @@ class TenantConfigAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TenantConfig
+    public function createNewInstance(): TenantConfig
     {
         $errors = new ConstraintFailList();
-        $uid = TenantConfigUidVO::tryFrom($this->uid, $errors);
-        $tenant = TenantConfigTenantVO::tryFrom($this->tenant, $errors);
-        $innerLabel = TenantConfigInnerLabelVO::tryFrom($this->innerLabel, $errors);
-        $forceMfa = TenantConfigForceMfaVO::tryFrom($this->forceMfa, $errors);
-        $dynamicRegistrationPolicy = TenantConfigDynamicRegistrationPolicyVO::tryFrom($this->dynamicRegistrationPolicy, $errors);
-        $allowRegister = TenantConfigAllowRegisterVO::tryFrom($this->allowRegister, $errors);
-        $enableRegisterUsers = TenantConfigEnableRegisterUsersVO::tryFrom($this->enableRegisterUsers, $errors);
-        $wellcomeEmail = TenantConfigWellcomeEmailVO::tryFrom($this->wellcomeEmail, $errors);
-        $registerdEmail = TenantConfigRegisterdEmailVO::tryFrom($this->registerdEmail, $errors);
-        $disabledUserEmail = TenantConfigDisabledUserEmailVO::tryFrom($this->disabledUserEmail, $errors);
-        $enabledUserEmail = TenantConfigEnabledUserEmailVO::tryFrom($this->enabledUserEmail, $errors);
-        $allowRecoverPass = TenantConfigAllowRecoverPassVO::tryFrom($this->allowRecoverPass, $errors);
-        $recoverPassEmail = TenantConfigRecoverPassEmailVO::tryFrom($this->recoverPassEmail, $errors);
-        $version = TenantConfigVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $innerLabel = $this->innerLabelTryBuildInitial($errors);
+        $forceMfa = $this->forceMfaTryBuildInitial($errors);
+        $dynamicRegistrationPolicy = $this->dynamicRegistrationPolicyTryBuildInitial($errors);
+        $allowRegister = $this->allowRegisterTryBuildInitial($errors);
+        $enableRegisterUsers = $this->enableRegisterUsersTryBuildInitial($errors);
+        $wellcomeEmail = $this->wellcomeEmailTryBuildInitial($errors);
+        $registerdEmail = $this->registerdEmailTryBuildInitial($errors);
+        $disabledUserEmail = $this->disabledUserEmailTryBuildInitial($errors);
+        $enabledUserEmail = $this->enabledUserEmailTryBuildInitial($errors);
+        $allowRecoverPass = $this->allowRecoverPassTryBuildInitial($errors);
+        $recoverPassEmail = $this->recoverPassEmailTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

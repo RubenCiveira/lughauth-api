@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeRegisterCodeUrlAttributeHolder
     protected UserAccessTemporalCodeRegisterCodeUrlVO|string|null $registerCodeUrl = null;
     protected bool $registerCodeUrlAssigned = false;
 
-    public function getRegisterCodeUrlOrDefault(?UserAccessTemporalCodeRegisterCodeUrlVO $registerCodeUrl): ?UserAccessTemporalCodeRegisterCodeUrlVO
+    public function getRegisterCodeUrlOrCurrent(?UserAccessTemporalCodeRegisterCodeUrlVO $registerCodeUrl): ?UserAccessTemporalCodeRegisterCodeUrlVO
     {
-        return $this->registerCodeUrlAssigned ? ($this->registerCodeUrl !== null ? UserAccessTemporalCodeRegisterCodeUrlVO::from($this->registerCodeUrl) : null) : $registerCodeUrl;
+        return $this->registerCodeUrlAssigned ? ($this->registerCodeUrl === null ? null : UserAccessTemporalCodeRegisterCodeUrlVO::from($this->registerCodeUrl)) : $registerCodeUrl;
+    }
+    public function registerCodeUrlTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeRegisterCodeUrlVO
+    {
+        return  UserAccessTemporalCodeRegisterCodeUrlVO::tryFrom($this->registerCodeUrlAssigned ? $this->registerCodeUrl : null, $error);
     }
     public function registerCodeUrl(UserAccessTemporalCodeRegisterCodeUrlVO|string|null $registerCodeUrl): static
     {

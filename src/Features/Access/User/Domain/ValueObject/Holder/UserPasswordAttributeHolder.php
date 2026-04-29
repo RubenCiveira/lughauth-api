@@ -13,7 +13,7 @@ trait UserPasswordAttributeHolder
     protected UserPasswordVO|string|null $password = null;
     protected bool $passwordAssigned = false;
 
-    public function getPasswordOrDefault(UserPasswordVO $password): UserPasswordVO
+    public function getPasswordOrCurrent(UserPasswordVO $password): UserPasswordVO
     {
         if ($this->passwordAssigned) {
             \assert(null !== $this->password);
@@ -21,6 +21,10 @@ trait UserPasswordAttributeHolder
         } else {
             return $password;
         }
+    }
+    public function passwordTryBuildInitial(ConstraintFailList $error): ?UserPasswordVO
+    {
+        return  UserPasswordVO::tryFrom($this->passwordAssigned ? $this->password : null, $error);
     }
     public function password(UserPasswordVO|string $password): static
     {

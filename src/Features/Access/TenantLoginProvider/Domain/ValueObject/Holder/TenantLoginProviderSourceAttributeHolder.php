@@ -14,7 +14,7 @@ trait TenantLoginProviderSourceAttributeHolder
     protected TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions|null $source = null;
     protected bool $sourceAssigned = false;
 
-    public function getSourceOrDefault(TenantLoginProviderSourceVO $source): TenantLoginProviderSourceVO
+    public function getSourceOrCurrent(TenantLoginProviderSourceVO $source): TenantLoginProviderSourceVO
     {
         if ($this->sourceAssigned) {
             \assert(null !== $this->source);
@@ -22,6 +22,10 @@ trait TenantLoginProviderSourceAttributeHolder
         } else {
             return $source;
         }
+    }
+    public function sourceTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderSourceVO
+    {
+        return  TenantLoginProviderSourceVO::tryFrom($this->sourceAssigned ? $this->source : null, $error);
     }
     public function source(TenantLoginProviderSourceVO|TenantLoginProviderSourceOptions $source): static
     {

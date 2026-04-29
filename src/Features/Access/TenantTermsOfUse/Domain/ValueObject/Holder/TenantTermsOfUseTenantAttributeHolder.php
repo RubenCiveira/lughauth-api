@@ -14,7 +14,7 @@ trait TenantTermsOfUseTenantAttributeHolder
     protected TenantTermsOfUseTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(TenantTermsOfUseTenantVO $tenant): TenantTermsOfUseTenantVO
+    public function getTenantOrCurrent(TenantTermsOfUseTenantVO $tenant): TenantTermsOfUseTenantVO
     {
         if ($this->tenantAssigned) {
             \assert(null !== $this->tenant);
@@ -22,6 +22,10 @@ trait TenantTermsOfUseTenantAttributeHolder
         } else {
             return $tenant;
         }
+    }
+    public function tenantTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseTenantVO
+    {
+        return  TenantTermsOfUseTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
     public function tenant(TenantTermsOfUseTenantVO|TenantRef $tenant): static
     {

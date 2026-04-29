@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeRegisterCodeAttributeHolder
     protected UserAccessTemporalCodeRegisterCodeVO|string|null $registerCode = null;
     protected bool $registerCodeAssigned = false;
 
-    public function getRegisterCodeOrDefault(?UserAccessTemporalCodeRegisterCodeVO $registerCode): ?UserAccessTemporalCodeRegisterCodeVO
+    public function getRegisterCodeOrCurrent(?UserAccessTemporalCodeRegisterCodeVO $registerCode): ?UserAccessTemporalCodeRegisterCodeVO
     {
-        return $this->registerCodeAssigned ? ($this->registerCode !== null ? UserAccessTemporalCodeRegisterCodeVO::from($this->registerCode) : null) : $registerCode;
+        return $this->registerCodeAssigned ? ($this->registerCode === null ? null : UserAccessTemporalCodeRegisterCodeVO::from($this->registerCode)) : $registerCode;
+    }
+    public function registerCodeTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeRegisterCodeVO
+    {
+        return  UserAccessTemporalCodeRegisterCodeVO::tryFrom($this->registerCodeAssigned ? $this->registerCode : null, $error);
     }
     public function registerCode(UserAccessTemporalCodeRegisterCodeVO|string|null $registerCode): static
     {

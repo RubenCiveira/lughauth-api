@@ -13,9 +13,13 @@ trait ApiKeyClientVersionAttributeHolder
     protected ApiKeyClientVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?ApiKeyClientVersionVO $version): ?ApiKeyClientVersionVO
+    public function getVersionOrCurrent(?ApiKeyClientVersionVO $version): ?ApiKeyClientVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? ApiKeyClientVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : ApiKeyClientVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?ApiKeyClientVersionVO
+    {
+        return  ApiKeyClientVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(ApiKeyClientVersionVO|int|null $version): static
     {

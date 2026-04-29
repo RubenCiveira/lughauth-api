@@ -13,7 +13,7 @@ trait UserAcceptedTermnsOfUseUidAttributeHolder
     protected UserAcceptedTermnsOfUseUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(UserAcceptedTermnsOfUseUidVO $uid): UserAcceptedTermnsOfUseUidVO
+    public function getUidOrCurrent(UserAcceptedTermnsOfUseUidVO $uid): UserAcceptedTermnsOfUseUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait UserAcceptedTermnsOfUseUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?UserAcceptedTermnsOfUseUidVO
+    {
+        return  UserAcceptedTermnsOfUseUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(UserAcceptedTermnsOfUseUidVO|string|null $uid): static
     {

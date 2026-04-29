@@ -84,16 +84,16 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     public function replace(UserAccessTemporalCodeAttributes $values): UserAccessTemporalCode
     {
         $value = clone $this;
-        $value->_user = $values->getUserOrDefault($this->_user);
-        $value->_tempSecondFactorSeed = $values->getTempSecondFactorSeedOrDefault($this->_tempSecondFactorSeed);
-        $value->_tempSecondFactorSeedExpiration = $values->getTempSecondFactorSeedExpirationOrDefault($this->_tempSecondFactorSeedExpiration);
-        $value->_failedLoginAttempts = $values->getFailedLoginAttemptsOrDefault($this->_failedLoginAttempts);
-        $value->_registerCode = $values->getRegisterCodeOrDefault($this->_registerCode);
-        $value->_registerCodeUrl = $values->getRegisterCodeUrlOrDefault($this->_registerCodeUrl);
-        $value->_registerCodeExpiration = $values->getRegisterCodeExpirationOrDefault($this->_registerCodeExpiration);
-        $value->_recoveryCode = $values->getRecoveryCodeOrDefault($this->_recoveryCode);
-        $value->_recoveryCodeExpiration = $values->getRecoveryCodeExpirationOrDefault($this->_recoveryCodeExpiration);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_user = $values->getUserOrCurrent($this->_user);
+        $value->_tempSecondFactorSeed = $values->getTempSecondFactorSeedOrCurrent($this->_tempSecondFactorSeed);
+        $value->_tempSecondFactorSeedExpiration = $values->getTempSecondFactorSeedExpirationOrCurrent($this->_tempSecondFactorSeedExpiration);
+        $value->_failedLoginAttempts = $values->getFailedLoginAttemptsOrCurrent($this->_failedLoginAttempts);
+        $value->_registerCode = $values->getRegisterCodeOrCurrent($this->_registerCode);
+        $value->_registerCodeUrl = $values->getRegisterCodeUrlOrCurrent($this->_registerCodeUrl);
+        $value->_registerCodeExpiration = $values->getRegisterCodeExpirationOrCurrent($this->_registerCodeExpiration);
+        $value->_recoveryCode = $values->getRecoveryCodeOrCurrent($this->_recoveryCode);
+        $value->_recoveryCodeExpiration = $values->getRecoveryCodeExpirationOrCurrent($this->_recoveryCodeExpiration);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -104,7 +104,7 @@ class UserAccessTemporalCode extends UserAccessTemporalCodeRef
     {
         $calculated = clone $values;
         $calculated->failedLoginAttempts(FailedLoginAttemptsCalculator::calculateFailedLoginAttempts());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new UserAccessTemporalCodeCreateEvent($value);
         return $value;
     }

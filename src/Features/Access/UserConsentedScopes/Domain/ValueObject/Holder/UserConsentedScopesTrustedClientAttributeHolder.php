@@ -14,7 +14,7 @@ trait UserConsentedScopesTrustedClientAttributeHolder
     protected UserConsentedScopesTrustedClientVO|TrustedClientRef|null $trustedClient = null;
     protected bool $trustedClientAssigned = false;
 
-    public function getTrustedClientOrDefault(UserConsentedScopesTrustedClientVO $trustedClient): UserConsentedScopesTrustedClientVO
+    public function getTrustedClientOrCurrent(UserConsentedScopesTrustedClientVO $trustedClient): UserConsentedScopesTrustedClientVO
     {
         if ($this->trustedClientAssigned) {
             \assert(null !== $this->trustedClient);
@@ -22,6 +22,10 @@ trait UserConsentedScopesTrustedClientAttributeHolder
         } else {
             return $trustedClient;
         }
+    }
+    public function trustedClientTryBuildInitial(ConstraintFailList $error): ?UserConsentedScopesTrustedClientVO
+    {
+        return  UserConsentedScopesTrustedClientVO::tryFrom($this->trustedClientAssigned ? $this->trustedClient : null, $error);
     }
     public function trustedClient(UserConsentedScopesTrustedClientVO|TrustedClientRef $trustedClient): static
     {

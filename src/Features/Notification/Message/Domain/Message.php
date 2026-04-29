@@ -71,15 +71,15 @@ class Message extends MessageRef
     public function replace(MessageAttributes $values): Message
     {
         $value = clone $this;
-        $value->_target = $values->getTargetOrDefault($this->_target);
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_urgent = $values->getUrgentOrDefault($this->_urgent);
-        $value->_content = $values->getContentOrDefault($this->_content);
-        $value->_retries = $values->getRetriesOrDefault($this->_retries);
-        $value->_createdAt = $values->getCreatedAtOrDefault($this->_createdAt);
-        $value->_sendAt = $values->getSendAtOrDefault($this->_sendAt);
-        $value->_lockAt = $values->getLockAtOrDefault($this->_lockAt);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_target = $values->getTargetOrCurrent($this->_target);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_urgent = $values->getUrgentOrCurrent($this->_urgent);
+        $value->_content = $values->getContentOrCurrent($this->_content);
+        $value->_retries = $values->getRetriesOrCurrent($this->_retries);
+        $value->_createdAt = $values->getCreatedAtOrCurrent($this->_createdAt);
+        $value->_sendAt = $values->getSendAtOrCurrent($this->_sendAt);
+        $value->_lockAt = $values->getLockAtOrCurrent($this->_lockAt);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -92,7 +92,7 @@ class Message extends MessageRef
         $calculated->createdAt(CreatedAtCalculator::calculateCreatedAt());
         $calculated->sendAt(SendAtCalculator::calculateSendAt());
         $calculated->lockAt(LockAtCalculator::calculateLockAt());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new MessageCreateEvent($value);
         return $value;
     }

@@ -6,19 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Theme\Domain;
 
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeUidAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeUidVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeTenantAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeTenantVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeNameAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeNameVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeIsDefaultAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeIsDefaultVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeEnabledVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeCustomCssAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeCustomCssVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeVersionAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class ThemeAttributes
@@ -41,16 +34,16 @@ class ThemeAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): Theme
+    public function createNewInstance(): Theme
     {
         $errors = new ConstraintFailList();
-        $uid = ThemeUidVO::tryFrom($this->uid, $errors);
-        $tenant = ThemeTenantVO::tryFrom($this->tenant, $errors);
-        $name = ThemeNameVO::tryFrom($this->name, $errors);
-        $isDefault = ThemeIsDefaultVO::tryFrom($this->isDefault, $errors);
-        $enabled = ThemeEnabledVO::tryFrom($this->enabled, $errors);
-        $customCss = ThemeCustomCssVO::tryFrom($this->customCss, $errors);
-        $version = ThemeVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $name = $this->nameTryBuildInitial($errors);
+        $isDefault = $this->isDefaultTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $customCss = $this->customCssTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

@@ -13,9 +13,13 @@ trait TenantLoginProviderVersionAttributeHolder
     protected TenantLoginProviderVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TenantLoginProviderVersionVO $version): ?TenantLoginProviderVersionVO
+    public function getVersionOrCurrent(?TenantLoginProviderVersionVO $version): ?TenantLoginProviderVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? TenantLoginProviderVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : TenantLoginProviderVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderVersionVO
+    {
+        return  TenantLoginProviderVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(TenantLoginProviderVersionVO|int|null $version): static
     {

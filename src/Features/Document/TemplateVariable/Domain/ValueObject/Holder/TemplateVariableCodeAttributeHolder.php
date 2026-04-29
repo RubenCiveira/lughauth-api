@@ -13,7 +13,7 @@ trait TemplateVariableCodeAttributeHolder
     protected TemplateVariableCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(TemplateVariableCodeVO $code): TemplateVariableCodeVO
+    public function getCodeOrCurrent(TemplateVariableCodeVO $code): TemplateVariableCodeVO
     {
         if ($this->codeAssigned) {
             \assert(null !== $this->code);
@@ -21,6 +21,10 @@ trait TemplateVariableCodeAttributeHolder
         } else {
             return $code;
         }
+    }
+    public function codeTryBuildInitial(ConstraintFailList $error): ?TemplateVariableCodeVO
+    {
+        return  TemplateVariableCodeVO::tryFrom($this->codeAssigned ? $this->code : null, $error);
     }
     public function code(TemplateVariableCodeVO|string $code): static
     {

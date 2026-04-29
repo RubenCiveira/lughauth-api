@@ -11,10 +11,10 @@ use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageCreate
 
 trait MessageCreatedAtAttributeHolder
 {
-    protected MessageCreatedAtVO|\DateTimeImmutable|null $createdAt = new DateTimeImmutable('now');
+    protected MessageCreatedAtVO|\DateTimeImmutable|null $createdAt = null;
     protected bool $createdAtAssigned = false;
 
-    public function getCreatedAtOrDefault(MessageCreatedAtVO $createdAt): MessageCreatedAtVO
+    public function getCreatedAtOrCurrent(MessageCreatedAtVO $createdAt): MessageCreatedAtVO
     {
         if ($this->createdAtAssigned) {
             \assert(null !== $this->createdAt);
@@ -22,6 +22,10 @@ trait MessageCreatedAtAttributeHolder
         } else {
             return $createdAt;
         }
+    }
+    public function createdAtTryBuildInitial(ConstraintFailList $error): ?MessageCreatedAtVO
+    {
+        return  MessageCreatedAtVO::tryFrom($this->createdAtAssigned ? $this->createdAt : new DateTimeImmutable('now'), $error);
     }
     public function createdAt(MessageCreatedAtVO|\DateTimeImmutable $createdAt): static
     {

@@ -13,7 +13,7 @@ trait TenantTermsOfUseTextAttributeHolder
     protected TenantTermsOfUseTextVO|string|null $text = null;
     protected bool $textAssigned = false;
 
-    public function getTextOrDefault(TenantTermsOfUseTextVO $text): TenantTermsOfUseTextVO
+    public function getTextOrCurrent(TenantTermsOfUseTextVO $text): TenantTermsOfUseTextVO
     {
         if ($this->textAssigned) {
             \assert(null !== $this->text);
@@ -21,6 +21,10 @@ trait TenantTermsOfUseTextAttributeHolder
         } else {
             return $text;
         }
+    }
+    public function textTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseTextVO
+    {
+        return  TenantTermsOfUseTextVO::tryFrom($this->textAssigned ? $this->text : null, $error);
     }
     public function text(TenantTermsOfUseTextVO|string $text): static
     {

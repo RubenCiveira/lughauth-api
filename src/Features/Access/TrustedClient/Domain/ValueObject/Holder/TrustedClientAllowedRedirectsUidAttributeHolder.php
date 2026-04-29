@@ -13,7 +13,7 @@ trait TrustedClientAllowedRedirectsUidAttributeHolder
     protected TrustedClientAllowedRedirectsUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(TrustedClientAllowedRedirectsUidVO $uid): TrustedClientAllowedRedirectsUidVO
+    public function getUidOrCurrent(TrustedClientAllowedRedirectsUidVO $uid): TrustedClientAllowedRedirectsUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait TrustedClientAllowedRedirectsUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?TrustedClientAllowedRedirectsUidVO
+    {
+        return  TrustedClientAllowedRedirectsUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(TrustedClientAllowedRedirectsUidVO|string|null $uid): static
     {

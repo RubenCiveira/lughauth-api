@@ -13,7 +13,7 @@ trait RelyingPartyApiKeyAttributeHolder
     protected RelyingPartyApiKeyVO|string|null $apiKey = null;
     protected bool $apiKeyAssigned = false;
 
-    public function getApiKeyOrDefault(RelyingPartyApiKeyVO $apiKey): RelyingPartyApiKeyVO
+    public function getApiKeyOrCurrent(RelyingPartyApiKeyVO $apiKey): RelyingPartyApiKeyVO
     {
         if ($this->apiKeyAssigned) {
             \assert(null !== $this->apiKey);
@@ -21,6 +21,10 @@ trait RelyingPartyApiKeyAttributeHolder
         } else {
             return $apiKey;
         }
+    }
+    public function apiKeyTryBuildInitial(ConstraintFailList $error): ?RelyingPartyApiKeyVO
+    {
+        return  RelyingPartyApiKeyVO::tryFrom($this->apiKeyAssigned ? $this->apiKey : null, $error);
     }
     public function apiKey(RelyingPartyApiKeyVO|string $apiKey): static
     {

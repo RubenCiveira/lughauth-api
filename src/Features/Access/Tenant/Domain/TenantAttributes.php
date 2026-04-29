@@ -6,21 +6,13 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Tenant\Domain;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantUidAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantUidVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantNameAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantNameVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantRootAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantDomainAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantDomainVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantMarkForDeleteAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantMarkForDeleteTimeAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteTimeVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\Holder\TenantVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TenantAttributes
@@ -45,17 +37,17 @@ class TenantAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): Tenant
+    public function createNewInstance(): Tenant
     {
         $errors = new ConstraintFailList();
-        $uid = TenantUidVO::tryFrom($this->uid, $errors);
-        $name = TenantNameVO::tryFrom($this->name, $errors);
-        $root = TenantRootVO::tryFrom($this->root, $errors);
-        $domain = TenantDomainVO::tryFrom($this->domain, $errors);
-        $enabled = TenantEnabledVO::tryFrom($this->enabled, $errors);
-        $markForDelete = TenantMarkForDeleteVO::tryFrom($this->markForDelete, $errors);
-        $markForDeleteTime = TenantMarkForDeleteTimeVO::tryFrom($this->markForDeleteTime, $errors);
-        $version = TenantVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $name = $this->nameTryBuildInitial($errors);
+        $root = $this->rootTryBuildInitial($errors);
+        $domain = $this->domainTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $markForDelete = $this->markForDeleteTryBuildInitial($errors);
+        $markForDeleteTime = $this->markForDeleteTimeTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

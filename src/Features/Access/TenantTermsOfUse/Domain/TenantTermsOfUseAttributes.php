@@ -6,21 +6,13 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain;
 
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseUidAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseUidVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTenantAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTenantVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseRelyingPartyAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseRelyingPartyVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseTextAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseTextVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseEnabledVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseAttachedAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseAttachedVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseActivationDateAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseActivationDateVO;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\Holder\TenantTermsOfUseVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTermsOfUseVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TenantTermsOfUseAttributes
@@ -45,17 +37,17 @@ class TenantTermsOfUseAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TenantTermsOfUse
+    public function createNewInstance(): TenantTermsOfUse
     {
         $errors = new ConstraintFailList();
-        $uid = TenantTermsOfUseUidVO::tryFrom($this->uid, $errors);
-        $tenant = TenantTermsOfUseTenantVO::tryFrom($this->tenant, $errors);
-        $relyingParty = TenantTermsOfUseRelyingPartyVO::tryFrom($this->relyingParty, $errors);
-        $text = TenantTermsOfUseTextVO::tryFrom($this->text, $errors);
-        $enabled = TenantTermsOfUseEnabledVO::tryFrom($this->enabled, $errors);
-        $attached = TenantTermsOfUseAttachedVO::tryFrom($this->attached, $errors);
-        $activationDate = TenantTermsOfUseActivationDateVO::tryFrom($this->activationDate, $errors);
-        $version = TenantTermsOfUseVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $relyingParty = $this->relyingPartyTryBuildInitial($errors);
+        $text = $this->textTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $attached = $this->attachedTryBuildInitial($errors);
+        $activationDate = $this->activationDateTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

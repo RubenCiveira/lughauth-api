@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeTempSecondFactorSeedAttributeHolder
     protected UserAccessTemporalCodeTempSecondFactorSeedVO|string|null $tempSecondFactorSeed = null;
     protected bool $tempSecondFactorSeedAssigned = false;
 
-    public function getTempSecondFactorSeedOrDefault(?UserAccessTemporalCodeTempSecondFactorSeedVO $tempSecondFactorSeed): ?UserAccessTemporalCodeTempSecondFactorSeedVO
+    public function getTempSecondFactorSeedOrCurrent(?UserAccessTemporalCodeTempSecondFactorSeedVO $tempSecondFactorSeed): ?UserAccessTemporalCodeTempSecondFactorSeedVO
     {
-        return $this->tempSecondFactorSeedAssigned ? ($this->tempSecondFactorSeed !== null ? UserAccessTemporalCodeTempSecondFactorSeedVO::from($this->tempSecondFactorSeed) : null) : $tempSecondFactorSeed;
+        return $this->tempSecondFactorSeedAssigned ? ($this->tempSecondFactorSeed === null ? null : UserAccessTemporalCodeTempSecondFactorSeedVO::from($this->tempSecondFactorSeed)) : $tempSecondFactorSeed;
+    }
+    public function tempSecondFactorSeedTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeTempSecondFactorSeedVO
+    {
+        return  UserAccessTemporalCodeTempSecondFactorSeedVO::tryFrom($this->tempSecondFactorSeedAssigned ? $this->tempSecondFactorSeed : null, $error);
     }
     public function tempSecondFactorSeed(UserAccessTemporalCodeTempSecondFactorSeedVO|string|null $tempSecondFactorSeed): static
     {

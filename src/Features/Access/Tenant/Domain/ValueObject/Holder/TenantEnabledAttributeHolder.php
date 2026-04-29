@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
 
 trait TenantEnabledAttributeHolder
 {
-    protected TenantEnabledVO|bool|null $enabled = false;
+    protected TenantEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(TenantEnabledVO $enabled): TenantEnabledVO
+    public function getEnabledOrCurrent(TenantEnabledVO $enabled): TenantEnabledVO
     {
         if ($this->enabledAssigned) {
             \assert(null !== $this->enabled);
@@ -21,6 +21,10 @@ trait TenantEnabledAttributeHolder
         } else {
             return $enabled;
         }
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?TenantEnabledVO
+    {
+        return  TenantEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : false, $error);
     }
     public function enabled(TenantEnabledVO|bool $enabled): static
     {

@@ -14,7 +14,7 @@ trait TemplateChannelAttributeHolder
     protected TemplateChannelVO|TemplateChannelOptions|null $channel = null;
     protected bool $channelAssigned = false;
 
-    public function getChannelOrDefault(TemplateChannelVO $channel): TemplateChannelVO
+    public function getChannelOrCurrent(TemplateChannelVO $channel): TemplateChannelVO
     {
         if ($this->channelAssigned) {
             \assert(null !== $this->channel);
@@ -22,6 +22,10 @@ trait TemplateChannelAttributeHolder
         } else {
             return $channel;
         }
+    }
+    public function channelTryBuildInitial(ConstraintFailList $error): ?TemplateChannelVO
+    {
+        return  TemplateChannelVO::tryFrom($this->channelAssigned ? $this->channel : null, $error);
     }
     public function channel(TemplateChannelVO|TemplateChannelOptions $channel): static
     {

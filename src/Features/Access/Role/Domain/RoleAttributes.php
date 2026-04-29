@@ -6,13 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Role\Domain;
 
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleUidAttributeHolder;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleUidVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleNameAttributeHolder;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleNameVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleRelyingPartyAttributeHolder;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleRelyingPartyVO;
 use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\Holder\RoleVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\Role\Domain\ValueObject\RoleVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class RoleAttributes
@@ -29,13 +25,13 @@ class RoleAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): Role
+    public function createNewInstance(): Role
     {
         $errors = new ConstraintFailList();
-        $uid = RoleUidVO::tryFrom($this->uid, $errors);
-        $name = RoleNameVO::tryFrom($this->name, $errors);
-        $relyingParty = RoleRelyingPartyVO::tryFrom($this->relyingParty, $errors);
-        $version = RoleVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $name = $this->nameTryBuildInitial($errors);
+        $relyingParty = $this->relyingPartyTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

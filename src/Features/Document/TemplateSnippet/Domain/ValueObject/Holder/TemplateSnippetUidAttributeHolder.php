@@ -13,7 +13,7 @@ trait TemplateSnippetUidAttributeHolder
     protected TemplateSnippetUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(TemplateSnippetUidVO $uid): TemplateSnippetUidVO
+    public function getUidOrCurrent(TemplateSnippetUidVO $uid): TemplateSnippetUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait TemplateSnippetUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?TemplateSnippetUidVO
+    {
+        return  TemplateSnippetUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(TemplateSnippetUidVO|string|null $uid): static
     {

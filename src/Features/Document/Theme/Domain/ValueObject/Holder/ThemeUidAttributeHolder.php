@@ -13,7 +13,7 @@ trait ThemeUidAttributeHolder
     protected ThemeUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(ThemeUidVO $uid): ThemeUidVO
+    public function getUidOrCurrent(ThemeUidVO $uid): ThemeUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait ThemeUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?ThemeUidVO
+    {
+        return  ThemeUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(ThemeUidVO|string|null $uid): static
     {

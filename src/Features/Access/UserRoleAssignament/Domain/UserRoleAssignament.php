@@ -51,11 +51,11 @@ class UserRoleAssignament extends UserRoleAssignamentRef
     public function replace(UserRoleAssignamentAttributes $values): UserRoleAssignament
     {
         $value = clone $this;
-        $value->_user = $values->getUserOrDefault($this->_user);
-        $value->_relyingParty = $values->getRelyingPartyOrDefault($this->_relyingParty);
-        $value->_trustedClient = $values->getTrustedClientOrDefault($this->_trustedClient);
-        $value->_roles = $values->getRolesOrDefault($this->_roles);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_user = $values->getUserOrCurrent($this->_user);
+        $value->_relyingParty = $values->getRelyingPartyOrCurrent($this->_relyingParty);
+        $value->_trustedClient = $values->getTrustedClientOrCurrent($this->_trustedClient);
+        $value->_roles = $values->getRolesOrCurrent($this->_roles);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -64,7 +64,7 @@ class UserRoleAssignament extends UserRoleAssignamentRef
     }
     public static function create(UserRoleAssignamentAttributes $values): UserRoleAssignament
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new UserRoleAssignamentCreateEvent($value);
         return $value;
     }

@@ -13,7 +13,7 @@ trait SmtpOutboundConfigUseTlsAttributeHolder
     protected SmtpOutboundConfigUseTlsVO|bool|null $useTls = null;
     protected bool $useTlsAssigned = false;
 
-    public function getUseTlsOrDefault(SmtpOutboundConfigUseTlsVO $useTls): SmtpOutboundConfigUseTlsVO
+    public function getUseTlsOrCurrent(SmtpOutboundConfigUseTlsVO $useTls): SmtpOutboundConfigUseTlsVO
     {
         if ($this->useTlsAssigned) {
             \assert(null !== $this->useTls);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigUseTlsAttributeHolder
         } else {
             return $useTls;
         }
+    }
+    public function useTlsTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigUseTlsVO
+    {
+        return  SmtpOutboundConfigUseTlsVO::tryFrom($this->useTlsAssigned ? $this->useTls : null, $error);
     }
     public function useTls(SmtpOutboundConfigUseTlsVO|bool $useTls): static
     {

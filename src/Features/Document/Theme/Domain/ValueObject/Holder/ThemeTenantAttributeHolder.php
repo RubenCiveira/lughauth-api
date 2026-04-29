@@ -14,7 +14,7 @@ trait ThemeTenantAttributeHolder
     protected ThemeTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(ThemeTenantVO $tenant): ThemeTenantVO
+    public function getTenantOrCurrent(ThemeTenantVO $tenant): ThemeTenantVO
     {
         if ($this->tenantAssigned) {
             \assert(null !== $this->tenant);
@@ -22,6 +22,10 @@ trait ThemeTenantAttributeHolder
         } else {
             return $tenant;
         }
+    }
+    public function tenantTryBuildInitial(ConstraintFailList $error): ?ThemeTenantVO
+    {
+        return  ThemeTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
     public function tenant(ThemeTenantVO|TenantRef $tenant): static
     {

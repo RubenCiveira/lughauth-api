@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEn
 
 trait RelyingPartyEnabledAttributeHolder
 {
-    protected RelyingPartyEnabledVO|bool|null $enabled = false;
+    protected RelyingPartyEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?RelyingPartyEnabledVO $enabled): ?RelyingPartyEnabledVO
+    public function getEnabledOrCurrent(?RelyingPartyEnabledVO $enabled): ?RelyingPartyEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? RelyingPartyEnabledVO::from($this->enabled) : null) : $enabled;
+        return $this->enabledAssigned ? ($this->enabled === null ? null : RelyingPartyEnabledVO::from($this->enabled)) : $enabled;
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?RelyingPartyEnabledVO
+    {
+        return  RelyingPartyEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : false, $error);
     }
     public function enabled(RelyingPartyEnabledVO|bool|null $enabled): static
     {

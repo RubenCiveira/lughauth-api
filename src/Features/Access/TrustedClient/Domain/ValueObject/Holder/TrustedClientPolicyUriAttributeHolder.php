@@ -13,9 +13,13 @@ trait TrustedClientPolicyUriAttributeHolder
     protected TrustedClientPolicyUriVO|string|null $policyUri = null;
     protected bool $policyUriAssigned = false;
 
-    public function getPolicyUriOrDefault(?TrustedClientPolicyUriVO $policyUri): ?TrustedClientPolicyUriVO
+    public function getPolicyUriOrCurrent(?TrustedClientPolicyUriVO $policyUri): ?TrustedClientPolicyUriVO
     {
-        return $this->policyUriAssigned ? ($this->policyUri !== null ? TrustedClientPolicyUriVO::from($this->policyUri) : null) : $policyUri;
+        return $this->policyUriAssigned ? ($this->policyUri === null ? null : TrustedClientPolicyUriVO::from($this->policyUri)) : $policyUri;
+    }
+    public function policyUriTryBuildInitial(ConstraintFailList $error): ?TrustedClientPolicyUriVO
+    {
+        return  TrustedClientPolicyUriVO::tryFrom($this->policyUriAssigned ? $this->policyUri : null, $error);
     }
     public function policyUri(TrustedClientPolicyUriVO|string|null $policyUri): static
     {

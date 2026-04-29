@@ -13,7 +13,7 @@ trait TemplateAssetContentAttributeHolder
     protected TemplateAssetContentVO|string|null $content = null;
     protected bool $contentAssigned = false;
 
-    public function getContentOrDefault(TemplateAssetContentVO $content): TemplateAssetContentVO
+    public function getContentOrCurrent(TemplateAssetContentVO $content): TemplateAssetContentVO
     {
         if ($this->contentAssigned) {
             \assert(null !== $this->content);
@@ -21,6 +21,10 @@ trait TemplateAssetContentAttributeHolder
         } else {
             return $content;
         }
+    }
+    public function contentTryBuildInitial(ConstraintFailList $error): ?TemplateAssetContentVO
+    {
+        return  TemplateAssetContentVO::tryFrom($this->contentAssigned ? $this->content : null, $error);
     }
     public function content(TemplateAssetContentVO|string $content): static
     {

@@ -13,9 +13,13 @@ trait TenantConfigRecoverPassEmailAttributeHolder
     protected TenantConfigRecoverPassEmailVO|string|null $recoverPassEmail = null;
     protected bool $recoverPassEmailAssigned = false;
 
-    public function getRecoverPassEmailOrDefault(?TenantConfigRecoverPassEmailVO $recoverPassEmail): ?TenantConfigRecoverPassEmailVO
+    public function getRecoverPassEmailOrCurrent(?TenantConfigRecoverPassEmailVO $recoverPassEmail): ?TenantConfigRecoverPassEmailVO
     {
-        return $this->recoverPassEmailAssigned ? ($this->recoverPassEmail !== null ? TenantConfigRecoverPassEmailVO::from($this->recoverPassEmail) : null) : $recoverPassEmail;
+        return $this->recoverPassEmailAssigned ? ($this->recoverPassEmail === null ? null : TenantConfigRecoverPassEmailVO::from($this->recoverPassEmail)) : $recoverPassEmail;
+    }
+    public function recoverPassEmailTryBuildInitial(ConstraintFailList $error): ?TenantConfigRecoverPassEmailVO
+    {
+        return  TenantConfigRecoverPassEmailVO::tryFrom($this->recoverPassEmailAssigned ? $this->recoverPassEmail : null, $error);
     }
     public function recoverPassEmail(TenantConfigRecoverPassEmailVO|string|null $recoverPassEmail): static
     {

@@ -6,27 +6,16 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeUidAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeUidVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeUserAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeUserVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeTempSecondFactorSeedAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeTempSecondFactorSeedExpirationAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeTempSecondFactorSeedExpirationVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeFailedLoginAttemptsVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRegisterCodeAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRegisterCodeUrlAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeUrlVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRegisterCodeExpirationAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRegisterCodeExpirationVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRecoveryCodeAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeRecoveryCodeExpirationAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeRecoveryCodeExpirationVO;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\Holder\UserAccessTemporalCodeVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\UserAccessTemporalCodeVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class UserAccessTemporalCodeAttributes
@@ -57,20 +46,20 @@ class UserAccessTemporalCodeAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): UserAccessTemporalCode
+    public function createNewInstance(): UserAccessTemporalCode
     {
         $errors = new ConstraintFailList();
-        $uid = UserAccessTemporalCodeUidVO::tryFrom($this->uid, $errors);
-        $user = UserAccessTemporalCodeUserVO::tryFrom($this->user, $errors);
-        $tempSecondFactorSeed = UserAccessTemporalCodeTempSecondFactorSeedVO::tryFrom($this->tempSecondFactorSeed, $errors);
-        $tempSecondFactorSeedExpiration = UserAccessTemporalCodeTempSecondFactorSeedExpirationVO::tryFrom($this->tempSecondFactorSeedExpiration, $errors);
-        $failedLoginAttempts = UserAccessTemporalCodeFailedLoginAttemptsVO::tryFrom($this->failedLoginAttempts, $errors);
-        $registerCode = UserAccessTemporalCodeRegisterCodeVO::tryFrom($this->registerCode, $errors);
-        $registerCodeUrl = UserAccessTemporalCodeRegisterCodeUrlVO::tryFrom($this->registerCodeUrl, $errors);
-        $registerCodeExpiration = UserAccessTemporalCodeRegisterCodeExpirationVO::tryFrom($this->registerCodeExpiration, $errors);
-        $recoveryCode = UserAccessTemporalCodeRecoveryCodeVO::tryFrom($this->recoveryCode, $errors);
-        $recoveryCodeExpiration = UserAccessTemporalCodeRecoveryCodeExpirationVO::tryFrom($this->recoveryCodeExpiration, $errors);
-        $version = UserAccessTemporalCodeVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $user = $this->userTryBuildInitial($errors);
+        $tempSecondFactorSeed = $this->tempSecondFactorSeedTryBuildInitial($errors);
+        $tempSecondFactorSeedExpiration = $this->tempSecondFactorSeedExpirationTryBuildInitial($errors);
+        $failedLoginAttempts = $this->failedLoginAttemptsTryBuildInitial($errors);
+        $registerCode = $this->registerCodeTryBuildInitial($errors);
+        $registerCodeUrl = $this->registerCodeUrlTryBuildInitial($errors);
+        $registerCodeExpiration = $this->registerCodeExpirationTryBuildInitial($errors);
+        $recoveryCode = $this->recoveryCodeTryBuildInitial($errors);
+        $recoveryCodeExpiration = $this->recoveryCodeExpirationTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

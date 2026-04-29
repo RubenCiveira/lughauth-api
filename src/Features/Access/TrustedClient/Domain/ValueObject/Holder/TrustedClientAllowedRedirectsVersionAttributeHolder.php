@@ -13,9 +13,13 @@ trait TrustedClientAllowedRedirectsVersionAttributeHolder
     protected TrustedClientAllowedRedirectsVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TrustedClientAllowedRedirectsVersionVO $version): ?TrustedClientAllowedRedirectsVersionVO
+    public function getVersionOrCurrent(?TrustedClientAllowedRedirectsVersionVO $version): ?TrustedClientAllowedRedirectsVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? TrustedClientAllowedRedirectsVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : TrustedClientAllowedRedirectsVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?TrustedClientAllowedRedirectsVersionVO
+    {
+        return  TrustedClientAllowedRedirectsVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(TrustedClientAllowedRedirectsVersionVO|int|null $version): static
     {

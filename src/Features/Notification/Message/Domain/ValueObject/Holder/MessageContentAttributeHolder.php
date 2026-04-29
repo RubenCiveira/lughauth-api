@@ -13,7 +13,7 @@ trait MessageContentAttributeHolder
     protected MessageContentVO|string|null $content = null;
     protected bool $contentAssigned = false;
 
-    public function getContentOrDefault(MessageContentVO $content): MessageContentVO
+    public function getContentOrCurrent(MessageContentVO $content): MessageContentVO
     {
         if ($this->contentAssigned) {
             \assert(null !== $this->content);
@@ -21,6 +21,10 @@ trait MessageContentAttributeHolder
         } else {
             return $content;
         }
+    }
+    public function contentTryBuildInitial(ConstraintFailList $error): ?MessageContentVO
+    {
+        return  MessageContentVO::tryFrom($this->contentAssigned ? $this->content : null, $error);
     }
     public function content(MessageContentVO|string $content): static
     {

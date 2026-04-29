@@ -6,17 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserGroupMembership\Domain;
 
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\Holder\UserGroupMembershipUidAttributeHolder;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\UserGroupMembershipUidVO;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\Holder\UserGroupMembershipUserAttributeHolder;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\UserGroupMembershipUserVO;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\Holder\UserGroupMembershipRelyingPartyAttributeHolder;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\UserGroupMembershipRelyingPartyVO;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\Holder\UserGroupMembershipTrustedClientAttributeHolder;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\UserGroupMembershipTrustedClientVO;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\Holder\UserGroupMembershipGroupsAttributeHolder;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\UserGroupMembershipGroupsVO;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\Holder\UserGroupMembershipVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\ValueObject\UserGroupMembershipVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class UserGroupMembershipAttributes
@@ -37,15 +31,15 @@ class UserGroupMembershipAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): UserGroupMembership
+    public function createNewInstance(): UserGroupMembership
     {
         $errors = new ConstraintFailList();
-        $uid = UserGroupMembershipUidVO::tryFrom($this->uid, $errors);
-        $user = UserGroupMembershipUserVO::tryFrom($this->user, $errors);
-        $relyingParty = UserGroupMembershipRelyingPartyVO::tryFrom($this->relyingParty, $errors);
-        $trustedClient = UserGroupMembershipTrustedClientVO::tryFrom($this->trustedClient, $errors);
-        $groups = UserGroupMembershipGroupsVO::tryFrom($this->groups, $errors);
-        $version = UserGroupMembershipVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $user = $this->userTryBuildInitial($errors);
+        $relyingParty = $this->relyingPartyTryBuildInitial($errors);
+        $trustedClient = $this->trustedClientTryBuildInitial($errors);
+        $groups = $this->groupsTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

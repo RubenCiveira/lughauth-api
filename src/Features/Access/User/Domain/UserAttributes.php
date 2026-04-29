@@ -6,33 +6,19 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Domain;
 
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserUidAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUidVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTenantAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTenantVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserNameAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserNameVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserUseSecondFactorsAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserSecondFactorSeedAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserBlockedUntilAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserBlockedUntilVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserProviderAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserProviderVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class UserAttributes
@@ -69,23 +55,23 @@ class UserAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): User
+    public function createNewInstance(): User
     {
         $errors = new ConstraintFailList();
-        $uid = UserUidVO::tryFrom($this->uid, $errors);
-        $tenant = UserTenantVO::tryFrom($this->tenant, $errors);
-        $name = UserNameVO::tryFrom($this->name, $errors);
-        $password = UserPasswordVO::tryFrom($this->password, $errors);
-        $email = UserEmailVO::tryFrom($this->email, $errors);
-        $wellcomeAt = UserWellcomeAtVO::tryFrom($this->wellcomeAt, $errors);
-        $enabled = UserEnabledVO::tryFrom($this->enabled, $errors);
-        $approve = UserApproveVO::tryFrom($this->approve, $errors);
-        $temporalPassword = UserTemporalPasswordVO::tryFrom($this->temporalPassword, $errors);
-        $useSecondFactors = UserUseSecondFactorsVO::tryFrom($this->useSecondFactors, $errors);
-        $secondFactorSeed = UserSecondFactorSeedVO::tryFrom($this->secondFactorSeed, $errors);
-        $blockedUntil = UserBlockedUntilVO::tryFrom($this->blockedUntil, $errors);
-        $provider = UserProviderVO::tryFrom($this->provider, $errors);
-        $version = UserVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $name = $this->nameTryBuildInitial($errors);
+        $password = $this->passwordTryBuildInitial($errors);
+        $email = $this->emailTryBuildInitial($errors);
+        $wellcomeAt = $this->wellcomeAtTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $approve = $this->approveTryBuildInitial($errors);
+        $temporalPassword = $this->temporalPasswordTryBuildInitial($errors);
+        $useSecondFactors = $this->useSecondFactorsTryBuildInitial($errors);
+        $secondFactorSeed = $this->secondFactorSeedTryBuildInitial($errors);
+        $blockedUntil = $this->blockedUntilTryBuildInitial($errors);
+        $provider = $this->providerTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

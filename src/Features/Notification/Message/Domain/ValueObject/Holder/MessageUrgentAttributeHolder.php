@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageUrgent
 
 trait MessageUrgentAttributeHolder
 {
-    protected MessageUrgentVO|bool|null $urgent = false;
+    protected MessageUrgentVO|bool|null $urgent = null;
     protected bool $urgentAssigned = false;
 
-    public function getUrgentOrDefault(MessageUrgentVO $urgent): MessageUrgentVO
+    public function getUrgentOrCurrent(MessageUrgentVO $urgent): MessageUrgentVO
     {
         if ($this->urgentAssigned) {
             \assert(null !== $this->urgent);
@@ -21,6 +21,10 @@ trait MessageUrgentAttributeHolder
         } else {
             return $urgent;
         }
+    }
+    public function urgentTryBuildInitial(ConstraintFailList $error): ?MessageUrgentVO
+    {
+        return  MessageUrgentVO::tryFrom($this->urgentAssigned ? $this->urgent : false, $error);
     }
     public function urgent(MessageUrgentVO|bool $urgent): static
     {

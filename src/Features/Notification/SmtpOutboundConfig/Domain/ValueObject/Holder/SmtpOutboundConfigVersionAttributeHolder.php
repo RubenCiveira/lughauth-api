@@ -13,9 +13,13 @@ trait SmtpOutboundConfigVersionAttributeHolder
     protected SmtpOutboundConfigVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?SmtpOutboundConfigVersionVO $version): ?SmtpOutboundConfigVersionVO
+    public function getVersionOrCurrent(?SmtpOutboundConfigVersionVO $version): ?SmtpOutboundConfigVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? SmtpOutboundConfigVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : SmtpOutboundConfigVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigVersionVO
+    {
+        return  SmtpOutboundConfigVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(SmtpOutboundConfigVersionVO|int|null $version): static
     {

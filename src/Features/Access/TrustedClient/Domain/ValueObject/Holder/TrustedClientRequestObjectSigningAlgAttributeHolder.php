@@ -13,9 +13,13 @@ trait TrustedClientRequestObjectSigningAlgAttributeHolder
     protected TrustedClientRequestObjectSigningAlgVO|string|null $requestObjectSigningAlg = null;
     protected bool $requestObjectSigningAlgAssigned = false;
 
-    public function getRequestObjectSigningAlgOrDefault(?TrustedClientRequestObjectSigningAlgVO $requestObjectSigningAlg): ?TrustedClientRequestObjectSigningAlgVO
+    public function getRequestObjectSigningAlgOrCurrent(?TrustedClientRequestObjectSigningAlgVO $requestObjectSigningAlg): ?TrustedClientRequestObjectSigningAlgVO
     {
-        return $this->requestObjectSigningAlgAssigned ? ($this->requestObjectSigningAlg !== null ? TrustedClientRequestObjectSigningAlgVO::from($this->requestObjectSigningAlg) : null) : $requestObjectSigningAlg;
+        return $this->requestObjectSigningAlgAssigned ? ($this->requestObjectSigningAlg === null ? null : TrustedClientRequestObjectSigningAlgVO::from($this->requestObjectSigningAlg)) : $requestObjectSigningAlg;
+    }
+    public function requestObjectSigningAlgTryBuildInitial(ConstraintFailList $error): ?TrustedClientRequestObjectSigningAlgVO
+    {
+        return  TrustedClientRequestObjectSigningAlgVO::tryFrom($this->requestObjectSigningAlgAssigned ? $this->requestObjectSigningAlg : null, $error);
     }
     public function requestObjectSigningAlg(TrustedClientRequestObjectSigningAlgVO|string|null $requestObjectSigningAlg): static
     {

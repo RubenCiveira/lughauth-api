@@ -6,19 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Template\Domain;
 
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateUidAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateUidVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateCodeAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateCodeVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateTenantAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateTenantVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateThemeAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateThemeVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateChannelAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateChannelVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateEnabledVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder\TemplateVersionAttributeHolder;
-use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TemplateAttributes
@@ -41,16 +34,16 @@ class TemplateAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): Template
+    public function createNewInstance(): Template
     {
         $errors = new ConstraintFailList();
-        $uid = TemplateUidVO::tryFrom($this->uid, $errors);
-        $code = TemplateCodeVO::tryFrom($this->code, $errors);
-        $tenant = TemplateTenantVO::tryFrom($this->tenant, $errors);
-        $theme = TemplateThemeVO::tryFrom($this->theme, $errors);
-        $channel = TemplateChannelVO::tryFrom($this->channel, $errors);
-        $enabled = TemplateEnabledVO::tryFrom($this->enabled, $errors);
-        $version = TemplateVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $code = $this->codeTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $theme = $this->themeTryBuildInitial($errors);
+        $channel = $this->channelTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

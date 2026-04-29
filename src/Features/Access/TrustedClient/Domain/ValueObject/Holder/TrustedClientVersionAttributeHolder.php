@@ -13,9 +13,13 @@ trait TrustedClientVersionAttributeHolder
     protected TrustedClientVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?TrustedClientVersionVO $version): ?TrustedClientVersionVO
+    public function getVersionOrCurrent(?TrustedClientVersionVO $version): ?TrustedClientVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? TrustedClientVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : TrustedClientVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?TrustedClientVersionVO
+    {
+        return  TrustedClientVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(TrustedClientVersionVO|int|null $version): static
     {

@@ -13,7 +13,7 @@ trait TenantDomainAttributeHolder
     protected TenantDomainVO|string|null $domain = null;
     protected bool $domainAssigned = false;
 
-    public function getDomainOrDefault(TenantDomainVO $domain): TenantDomainVO
+    public function getDomainOrCurrent(TenantDomainVO $domain): TenantDomainVO
     {
         if ($this->domainAssigned) {
             \assert(null !== $this->domain);
@@ -21,6 +21,10 @@ trait TenantDomainAttributeHolder
         } else {
             return $domain;
         }
+    }
+    public function domainTryBuildInitial(ConstraintFailList $error): ?TenantDomainVO
+    {
+        return  TenantDomainVO::tryFrom($this->domainAssigned ? $this->domain : null, $error);
     }
     public function domain(TenantDomainVO|string $domain): static
     {

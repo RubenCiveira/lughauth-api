@@ -13,9 +13,13 @@ trait TemplateVersionSubjectAttributeHolder
     protected TemplateVersionSubjectVO|string|null $subject = null;
     protected bool $subjectAssigned = false;
 
-    public function getSubjectOrDefault(?TemplateVersionSubjectVO $subject): ?TemplateVersionSubjectVO
+    public function getSubjectOrCurrent(?TemplateVersionSubjectVO $subject): ?TemplateVersionSubjectVO
     {
-        return $this->subjectAssigned ? ($this->subject !== null ? TemplateVersionSubjectVO::from($this->subject) : null) : $subject;
+        return $this->subjectAssigned ? ($this->subject === null ? null : TemplateVersionSubjectVO::from($this->subject)) : $subject;
+    }
+    public function subjectTryBuildInitial(ConstraintFailList $error): ?TemplateVersionSubjectVO
+    {
+        return  TemplateVersionSubjectVO::tryFrom($this->subjectAssigned ? $this->subject : null, $error);
     }
     public function subject(TemplateVersionSubjectVO|string|null $subject): static
     {

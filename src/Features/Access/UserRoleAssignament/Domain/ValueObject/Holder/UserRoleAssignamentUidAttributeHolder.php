@@ -13,7 +13,7 @@ trait UserRoleAssignamentUidAttributeHolder
     protected UserRoleAssignamentUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(UserRoleAssignamentUidVO $uid): UserRoleAssignamentUidVO
+    public function getUidOrCurrent(UserRoleAssignamentUidVO $uid): UserRoleAssignamentUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait UserRoleAssignamentUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?UserRoleAssignamentUidVO
+    {
+        return  UserRoleAssignamentUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(UserRoleAssignamentUidVO|string|null $uid): static
     {

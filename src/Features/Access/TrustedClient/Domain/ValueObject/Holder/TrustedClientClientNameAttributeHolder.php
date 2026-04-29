@@ -13,9 +13,13 @@ trait TrustedClientClientNameAttributeHolder
     protected TrustedClientClientNameVO|string|null $clientName = null;
     protected bool $clientNameAssigned = false;
 
-    public function getClientNameOrDefault(?TrustedClientClientNameVO $clientName): ?TrustedClientClientNameVO
+    public function getClientNameOrCurrent(?TrustedClientClientNameVO $clientName): ?TrustedClientClientNameVO
     {
-        return $this->clientNameAssigned ? ($this->clientName !== null ? TrustedClientClientNameVO::from($this->clientName) : null) : $clientName;
+        return $this->clientNameAssigned ? ($this->clientName === null ? null : TrustedClientClientNameVO::from($this->clientName)) : $clientName;
+    }
+    public function clientNameTryBuildInitial(ConstraintFailList $error): ?TrustedClientClientNameVO
+    {
+        return  TrustedClientClientNameVO::tryFrom($this->clientNameAssigned ? $this->clientName : null, $error);
     }
     public function clientName(TrustedClientClientNameVO|string|null $clientName): static
     {

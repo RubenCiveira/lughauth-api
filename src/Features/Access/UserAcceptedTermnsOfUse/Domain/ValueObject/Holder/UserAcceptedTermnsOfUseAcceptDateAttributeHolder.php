@@ -13,9 +13,13 @@ trait UserAcceptedTermnsOfUseAcceptDateAttributeHolder
     protected UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null $acceptDate = null;
     protected bool $acceptDateAssigned = false;
 
-    public function getAcceptDateOrDefault(?UserAcceptedTermnsOfUseAcceptDateVO $acceptDate): ?UserAcceptedTermnsOfUseAcceptDateVO
+    public function getAcceptDateOrCurrent(?UserAcceptedTermnsOfUseAcceptDateVO $acceptDate): ?UserAcceptedTermnsOfUseAcceptDateVO
     {
-        return $this->acceptDateAssigned ? ($this->acceptDate !== null ? UserAcceptedTermnsOfUseAcceptDateVO::from($this->acceptDate) : null) : $acceptDate;
+        return $this->acceptDateAssigned ? ($this->acceptDate === null ? null : UserAcceptedTermnsOfUseAcceptDateVO::from($this->acceptDate)) : $acceptDate;
+    }
+    public function acceptDateTryBuildInitial(ConstraintFailList $error): ?UserAcceptedTermnsOfUseAcceptDateVO
+    {
+        return  UserAcceptedTermnsOfUseAcceptDateVO::tryFrom($this->acceptDateAssigned ? $this->acceptDate : null, $error);
     }
     public function acceptDate(UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null $acceptDate): static
     {

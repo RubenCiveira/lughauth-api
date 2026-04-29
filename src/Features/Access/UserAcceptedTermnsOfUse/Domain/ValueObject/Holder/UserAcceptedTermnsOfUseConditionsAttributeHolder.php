@@ -14,7 +14,7 @@ trait UserAcceptedTermnsOfUseConditionsAttributeHolder
     protected UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef|null $conditions = null;
     protected bool $conditionsAssigned = false;
 
-    public function getConditionsOrDefault(UserAcceptedTermnsOfUseConditionsVO $conditions): UserAcceptedTermnsOfUseConditionsVO
+    public function getConditionsOrCurrent(UserAcceptedTermnsOfUseConditionsVO $conditions): UserAcceptedTermnsOfUseConditionsVO
     {
         if ($this->conditionsAssigned) {
             \assert(null !== $this->conditions);
@@ -22,6 +22,10 @@ trait UserAcceptedTermnsOfUseConditionsAttributeHolder
         } else {
             return $conditions;
         }
+    }
+    public function conditionsTryBuildInitial(ConstraintFailList $error): ?UserAcceptedTermnsOfUseConditionsVO
+    {
+        return  UserAcceptedTermnsOfUseConditionsVO::tryFrom($this->conditionsAssigned ? $this->conditions : null, $error);
     }
     public function conditions(UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef $conditions): static
     {

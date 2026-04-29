@@ -13,9 +13,13 @@ trait UserAccessTemporalCodeVersionAttributeHolder
     protected UserAccessTemporalCodeVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserAccessTemporalCodeVersionVO $version): ?UserAccessTemporalCodeVersionVO
+    public function getVersionOrCurrent(?UserAccessTemporalCodeVersionVO $version): ?UserAccessTemporalCodeVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? UserAccessTemporalCodeVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : UserAccessTemporalCodeVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?UserAccessTemporalCodeVersionVO
+    {
+        return  UserAccessTemporalCodeVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(UserAccessTemporalCodeVersionVO|int|null $version): static
     {

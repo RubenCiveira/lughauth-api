@@ -13,9 +13,13 @@ trait UserGroupMembershipGroupsAttributeHolder
     protected UserGroupMembershipGroupsVO|string|null $groups = null;
     protected bool $groupsAssigned = false;
 
-    public function getGroupsOrDefault(?UserGroupMembershipGroupsVO $groups): ?UserGroupMembershipGroupsVO
+    public function getGroupsOrCurrent(?UserGroupMembershipGroupsVO $groups): ?UserGroupMembershipGroupsVO
     {
-        return $this->groupsAssigned ? ($this->groups !== null ? UserGroupMembershipGroupsVO::from($this->groups) : null) : $groups;
+        return $this->groupsAssigned ? ($this->groups === null ? null : UserGroupMembershipGroupsVO::from($this->groups)) : $groups;
+    }
+    public function groupsTryBuildInitial(ConstraintFailList $error): ?UserGroupMembershipGroupsVO
+    {
+        return  UserGroupMembershipGroupsVO::tryFrom($this->groupsAssigned ? $this->groups : null, $error);
     }
     public function groups(UserGroupMembershipGroupsVO|string|null $groups): static
     {

@@ -13,9 +13,13 @@ trait TrustedClientResponseTypesJsonAttributeHolder
     protected TrustedClientResponseTypesJsonVO|string|null $responseTypesJson = null;
     protected bool $responseTypesJsonAssigned = false;
 
-    public function getResponseTypesJsonOrDefault(?TrustedClientResponseTypesJsonVO $responseTypesJson): ?TrustedClientResponseTypesJsonVO
+    public function getResponseTypesJsonOrCurrent(?TrustedClientResponseTypesJsonVO $responseTypesJson): ?TrustedClientResponseTypesJsonVO
     {
-        return $this->responseTypesJsonAssigned ? ($this->responseTypesJson !== null ? TrustedClientResponseTypesJsonVO::from($this->responseTypesJson) : null) : $responseTypesJson;
+        return $this->responseTypesJsonAssigned ? ($this->responseTypesJson === null ? null : TrustedClientResponseTypesJsonVO::from($this->responseTypesJson)) : $responseTypesJson;
+    }
+    public function responseTypesJsonTryBuildInitial(ConstraintFailList $error): ?TrustedClientResponseTypesJsonVO
+    {
+        return  TrustedClientResponseTypesJsonVO::tryFrom($this->responseTypesJsonAssigned ? $this->responseTypesJson : null, $error);
     }
     public function responseTypesJson(TrustedClientResponseTypesJsonVO|string|null $responseTypesJson): static
     {

@@ -13,7 +13,7 @@ trait SmtpOutboundConfigPasswordAttributeHolder
     protected SmtpOutboundConfigPasswordVO|string|null $password = null;
     protected bool $passwordAssigned = false;
 
-    public function getPasswordOrDefault(SmtpOutboundConfigPasswordVO $password): SmtpOutboundConfigPasswordVO
+    public function getPasswordOrCurrent(SmtpOutboundConfigPasswordVO $password): SmtpOutboundConfigPasswordVO
     {
         if ($this->passwordAssigned) {
             \assert(null !== $this->password);
@@ -21,6 +21,10 @@ trait SmtpOutboundConfigPasswordAttributeHolder
         } else {
             return $password;
         }
+    }
+    public function passwordTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigPasswordVO
+    {
+        return  SmtpOutboundConfigPasswordVO::tryFrom($this->passwordAssigned ? $this->password : null, $error);
     }
     public function password(SmtpOutboundConfigPasswordVO|string $password): static
     {

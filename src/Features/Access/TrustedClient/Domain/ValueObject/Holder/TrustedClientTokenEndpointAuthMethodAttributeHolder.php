@@ -10,10 +10,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 trait TrustedClientTokenEndpointAuthMethodAttributeHolder
 {
-    protected TrustedClientTokenEndpointAuthMethodVO|string|null $tokenEndpointAuthMethod = 'client_secret_basic';
+    protected TrustedClientTokenEndpointAuthMethodVO|string|null $tokenEndpointAuthMethod = null;
     protected bool $tokenEndpointAuthMethodAssigned = false;
 
-    public function getTokenEndpointAuthMethodOrDefault(TrustedClientTokenEndpointAuthMethodVO $tokenEndpointAuthMethod): TrustedClientTokenEndpointAuthMethodVO
+    public function getTokenEndpointAuthMethodOrCurrent(TrustedClientTokenEndpointAuthMethodVO $tokenEndpointAuthMethod): TrustedClientTokenEndpointAuthMethodVO
     {
         if ($this->tokenEndpointAuthMethodAssigned) {
             \assert(null !== $this->tokenEndpointAuthMethod);
@@ -21,6 +21,10 @@ trait TrustedClientTokenEndpointAuthMethodAttributeHolder
         } else {
             return $tokenEndpointAuthMethod;
         }
+    }
+    public function tokenEndpointAuthMethodTryBuildInitial(ConstraintFailList $error): ?TrustedClientTokenEndpointAuthMethodVO
+    {
+        return  TrustedClientTokenEndpointAuthMethodVO::tryFrom($this->tokenEndpointAuthMethodAssigned ? $this->tokenEndpointAuthMethod : 'client_secret_basic', $error);
     }
     public function tokenEndpointAuthMethod(TrustedClientTokenEndpointAuthMethodVO|string $tokenEndpointAuthMethod): static
     {

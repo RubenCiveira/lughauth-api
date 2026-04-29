@@ -48,11 +48,11 @@ class TemplateVersion extends TemplateVersionRef
     public function replace(TemplateVersionAttributes $values): TemplateVersion
     {
         $value = clone $this;
-        $value->_template = $values->getTemplateOrDefault($this->_template);
-        $value->_subject = $values->getSubjectOrDefault($this->_subject);
-        $value->_contentHtml = $values->getContentHtmlOrDefault($this->_contentHtml);
-        $value->_contentText = $values->getContentTextOrDefault($this->_contentText);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_template = $values->getTemplateOrCurrent($this->_template);
+        $value->_subject = $values->getSubjectOrCurrent($this->_subject);
+        $value->_contentHtml = $values->getContentHtmlOrCurrent($this->_contentHtml);
+        $value->_contentText = $values->getContentTextOrCurrent($this->_contentText);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -61,7 +61,7 @@ class TemplateVersion extends TemplateVersionRef
     }
     public static function create(TemplateVersionAttributes $values): TemplateVersion
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new TemplateVersionCreateEvent($value);
         return $value;
     }

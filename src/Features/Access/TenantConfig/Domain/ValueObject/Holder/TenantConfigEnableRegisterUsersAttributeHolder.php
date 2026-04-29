@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEn
 
 trait TenantConfigEnableRegisterUsersAttributeHolder
 {
-    protected TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = true;
+    protected TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null;
     protected bool $enableRegisterUsersAssigned = false;
 
-    public function getEnableRegisterUsersOrDefault(?TenantConfigEnableRegisterUsersVO $enableRegisterUsers): ?TenantConfigEnableRegisterUsersVO
+    public function getEnableRegisterUsersOrCurrent(?TenantConfigEnableRegisterUsersVO $enableRegisterUsers): ?TenantConfigEnableRegisterUsersVO
     {
-        return $this->enableRegisterUsersAssigned ? ($this->enableRegisterUsers !== null ? TenantConfigEnableRegisterUsersVO::from($this->enableRegisterUsers) : null) : $enableRegisterUsers;
+        return $this->enableRegisterUsersAssigned ? ($this->enableRegisterUsers === null ? null : TenantConfigEnableRegisterUsersVO::from($this->enableRegisterUsers)) : $enableRegisterUsers;
+    }
+    public function enableRegisterUsersTryBuildInitial(ConstraintFailList $error): ?TenantConfigEnableRegisterUsersVO
+    {
+        return  TenantConfigEnableRegisterUsersVO::tryFrom($this->enableRegisterUsersAssigned ? $this->enableRegisterUsers : true, $error);
     }
     public function enableRegisterUsers(TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers): static
     {

@@ -34,7 +34,7 @@ final class UserRoleAssignamentUnitTest extends TestCase
         );
 
         // @Act
-        $other = $one->toAttributes()->build();
+        $other = $one->toAttributes()->createNewInstance();
         $calculated = UserRoleAssignament::calculatedFields();
 
         // @Assert

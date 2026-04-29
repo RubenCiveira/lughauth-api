@@ -13,9 +13,13 @@ trait TenantConfigInnerLabelAttributeHolder
     protected TenantConfigInnerLabelVO|string|null $innerLabel = null;
     protected bool $innerLabelAssigned = false;
 
-    public function getInnerLabelOrDefault(?TenantConfigInnerLabelVO $innerLabel): ?TenantConfigInnerLabelVO
+    public function getInnerLabelOrCurrent(?TenantConfigInnerLabelVO $innerLabel): ?TenantConfigInnerLabelVO
     {
-        return $this->innerLabelAssigned ? ($this->innerLabel !== null ? TenantConfigInnerLabelVO::from($this->innerLabel) : null) : $innerLabel;
+        return $this->innerLabelAssigned ? ($this->innerLabel === null ? null : TenantConfigInnerLabelVO::from($this->innerLabel)) : $innerLabel;
+    }
+    public function innerLabelTryBuildInitial(ConstraintFailList $error): ?TenantConfigInnerLabelVO
+    {
+        return  TenantConfigInnerLabelVO::tryFrom($this->innerLabelAssigned ? $this->innerLabel : null, $error);
     }
     public function innerLabel(TenantConfigInnerLabelVO|string|null $innerLabel): static
     {

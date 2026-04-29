@@ -13,9 +13,13 @@ trait UserVersionAttributeHolder
     protected UserVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserVersionVO $version): ?UserVersionVO
+    public function getVersionOrCurrent(?UserVersionVO $version): ?UserVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? UserVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : UserVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?UserVersionVO
+    {
+        return  UserVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(UserVersionVO|int|null $version): static
     {

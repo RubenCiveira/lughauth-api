@@ -13,7 +13,7 @@ trait UserGroupMembershipUidAttributeHolder
     protected UserGroupMembershipUidVO|string|null $uid = null;
     protected bool $uidAssigned = false;
 
-    public function getUidOrDefault(UserGroupMembershipUidVO $uid): UserGroupMembershipUidVO
+    public function getUidOrCurrent(UserGroupMembershipUidVO $uid): UserGroupMembershipUidVO
     {
         if ($this->uidAssigned) {
             \assert(null !== $this->uid);
@@ -21,6 +21,10 @@ trait UserGroupMembershipUidAttributeHolder
         } else {
             return $uid;
         }
+    }
+    public function uidTryBuildInitial(ConstraintFailList $error): ?UserGroupMembershipUidVO
+    {
+        return  UserGroupMembershipUidVO::tryFrom($this->uidAssigned ? $this->uid : null, $error);
     }
     public function uid(UserGroupMembershipUidVO|string|null $uid): static
     {

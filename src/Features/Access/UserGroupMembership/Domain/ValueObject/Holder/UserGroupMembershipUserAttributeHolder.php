@@ -14,7 +14,7 @@ trait UserGroupMembershipUserAttributeHolder
     protected UserGroupMembershipUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(UserGroupMembershipUserVO $user): UserGroupMembershipUserVO
+    public function getUserOrCurrent(UserGroupMembershipUserVO $user): UserGroupMembershipUserVO
     {
         if ($this->userAssigned) {
             \assert(null !== $this->user);
@@ -22,6 +22,10 @@ trait UserGroupMembershipUserAttributeHolder
         } else {
             return $user;
         }
+    }
+    public function userTryBuildInitial(ConstraintFailList $error): ?UserGroupMembershipUserVO
+    {
+        return  UserGroupMembershipUserVO::tryFrom($this->userAssigned ? $this->user : null, $error);
     }
     public function user(UserGroupMembershipUserVO|UserRef $user): static
     {

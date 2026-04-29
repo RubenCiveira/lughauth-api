@@ -14,9 +14,13 @@ trait MessageTenantAttributeHolder
     protected MessageTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrDefault(?MessageTenantVO $tenant): ?MessageTenantVO
+    public function getTenantOrCurrent(?MessageTenantVO $tenant): ?MessageTenantVO
     {
-        return $this->tenantAssigned ? ($this->tenant !== null ? MessageTenantVO::from($this->tenant) : null) : $tenant;
+        return $this->tenantAssigned ? ($this->tenant === null ? null : MessageTenantVO::from($this->tenant)) : $tenant;
+    }
+    public function tenantTryBuildInitial(ConstraintFailList $error): ?MessageTenantVO
+    {
+        return  MessageTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
     public function tenant(MessageTenantVO|TenantRef|null $tenant): static
     {

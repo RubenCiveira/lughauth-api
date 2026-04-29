@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 
 trait UserEnabledAttributeHolder
 {
-    protected UserEnabledVO|bool|null $enabled = true;
+    protected UserEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?UserEnabledVO $enabled): ?UserEnabledVO
+    public function getEnabledOrCurrent(?UserEnabledVO $enabled): ?UserEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? UserEnabledVO::from($this->enabled) : null) : $enabled;
+        return $this->enabledAssigned ? ($this->enabled === null ? null : UserEnabledVO::from($this->enabled)) : $enabled;
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?UserEnabledVO
+    {
+        return  UserEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : true, $error);
     }
     public function enabled(UserEnabledVO|bool|null $enabled): static
     {

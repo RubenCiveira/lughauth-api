@@ -51,11 +51,11 @@ class TemplateSnippet extends TemplateSnippetRef
     public function replace(TemplateSnippetAttributes $values): TemplateSnippet
     {
         $value = clone $this;
-        $value->_code = $values->getCodeOrDefault($this->_code);
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_contentHtml = $values->getContentHtmlOrDefault($this->_contentHtml);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_code = $values->getCodeOrCurrent($this->_code);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_contentHtml = $values->getContentHtmlOrCurrent($this->_contentHtml);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -66,7 +66,7 @@ class TemplateSnippet extends TemplateSnippetRef
     {
         $calculated = clone $values;
         $calculated->enabled(EnabledCalculator::calculateEnabled());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TemplateSnippetCreateEvent($value);
         return $value;
     }

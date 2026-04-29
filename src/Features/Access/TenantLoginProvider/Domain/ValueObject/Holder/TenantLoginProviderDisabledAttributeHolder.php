@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 
 trait TenantLoginProviderDisabledAttributeHolder
 {
-    protected TenantLoginProviderDisabledVO|bool|null $disabled = false;
+    protected TenantLoginProviderDisabledVO|bool|null $disabled = null;
     protected bool $disabledAssigned = false;
 
-    public function getDisabledOrDefault(?TenantLoginProviderDisabledVO $disabled): ?TenantLoginProviderDisabledVO
+    public function getDisabledOrCurrent(?TenantLoginProviderDisabledVO $disabled): ?TenantLoginProviderDisabledVO
     {
-        return $this->disabledAssigned ? ($this->disabled !== null ? TenantLoginProviderDisabledVO::from($this->disabled) : null) : $disabled;
+        return $this->disabledAssigned ? ($this->disabled === null ? null : TenantLoginProviderDisabledVO::from($this->disabled)) : $disabled;
+    }
+    public function disabledTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderDisabledVO
+    {
+        return  TenantLoginProviderDisabledVO::tryFrom($this->disabledAssigned ? $this->disabled : false, $error);
     }
     public function disabled(TenantLoginProviderDisabledVO|bool|null $disabled): static
     {

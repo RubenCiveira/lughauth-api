@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeEnabledVO;
 
 trait ThemeEnabledAttributeHolder
 {
-    protected ThemeEnabledVO|bool|null $enabled = true;
+    protected ThemeEnabledVO|bool|null $enabled = null;
     protected bool $enabledAssigned = false;
 
-    public function getEnabledOrDefault(?ThemeEnabledVO $enabled): ?ThemeEnabledVO
+    public function getEnabledOrCurrent(?ThemeEnabledVO $enabled): ?ThemeEnabledVO
     {
-        return $this->enabledAssigned ? ($this->enabled !== null ? ThemeEnabledVO::from($this->enabled) : null) : $enabled;
+        return $this->enabledAssigned ? ($this->enabled === null ? null : ThemeEnabledVO::from($this->enabled)) : $enabled;
+    }
+    public function enabledTryBuildInitial(ConstraintFailList $error): ?ThemeEnabledVO
+    {
+        return  ThemeEnabledVO::tryFrom($this->enabledAssigned ? $this->enabled : true, $error);
     }
     public function enabled(ThemeEnabledVO|bool|null $enabled): static
     {

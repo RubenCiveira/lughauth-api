@@ -14,7 +14,7 @@ trait UserRoleAssignamentUserAttributeHolder
     protected UserRoleAssignamentUserVO|UserRef|null $user = null;
     protected bool $userAssigned = false;
 
-    public function getUserOrDefault(UserRoleAssignamentUserVO $user): UserRoleAssignamentUserVO
+    public function getUserOrCurrent(UserRoleAssignamentUserVO $user): UserRoleAssignamentUserVO
     {
         if ($this->userAssigned) {
             \assert(null !== $this->user);
@@ -22,6 +22,10 @@ trait UserRoleAssignamentUserAttributeHolder
         } else {
             return $user;
         }
+    }
+    public function userTryBuildInitial(ConstraintFailList $error): ?UserRoleAssignamentUserVO
+    {
+        return  UserRoleAssignamentUserVO::tryFrom($this->userAssigned ? $this->user : null, $error);
     }
     public function user(UserRoleAssignamentUserVO|UserRef $user): static
     {

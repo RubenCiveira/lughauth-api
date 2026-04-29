@@ -13,9 +13,13 @@ trait UserProviderAttributeHolder
     protected UserProviderVO|string|null $provider = null;
     protected bool $providerAssigned = false;
 
-    public function getProviderOrDefault(?UserProviderVO $provider): ?UserProviderVO
+    public function getProviderOrCurrent(?UserProviderVO $provider): ?UserProviderVO
     {
-        return $this->providerAssigned ? ($this->provider !== null ? UserProviderVO::from($this->provider) : null) : $provider;
+        return $this->providerAssigned ? ($this->provider === null ? null : UserProviderVO::from($this->provider)) : $provider;
+    }
+    public function providerTryBuildInitial(ConstraintFailList $error): ?UserProviderVO
+    {
+        return  UserProviderVO::tryFrom($this->providerAssigned ? $this->provider : null, $error);
     }
     public function provider(UserProviderVO|string|null $provider): static
     {

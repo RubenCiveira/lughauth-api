@@ -13,9 +13,13 @@ trait TemplateVariableValueAttributeHolder
     protected TemplateVariableValueVO|string|null $value = null;
     protected bool $valueAssigned = false;
 
-    public function getValueOrDefault(?TemplateVariableValueVO $value): ?TemplateVariableValueVO
+    public function getValueOrCurrent(?TemplateVariableValueVO $value): ?TemplateVariableValueVO
     {
-        return $this->valueAssigned ? ($this->value !== null ? TemplateVariableValueVO::from($this->value) : null) : $value;
+        return $this->valueAssigned ? ($this->value === null ? null : TemplateVariableValueVO::from($this->value)) : $value;
+    }
+    public function valueTryBuildInitial(ConstraintFailList $error): ?TemplateVariableValueVO
+    {
+        return  TemplateVariableValueVO::tryFrom($this->valueAssigned ? $this->value : null, $error);
     }
     public function value(TemplateVariableValueVO|string|null $value): static
     {

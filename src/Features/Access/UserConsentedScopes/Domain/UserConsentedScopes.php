@@ -54,12 +54,12 @@ class UserConsentedScopes extends UserConsentedScopesRef
     public function replace(UserConsentedScopesAttributes $values): UserConsentedScopes
     {
         $value = clone $this;
-        $value->_user = $values->getUserOrDefault($this->_user);
-        $value->_trustedClient = $values->getTrustedClientOrDefault($this->_trustedClient);
-        $value->_scope = $values->getScopeOrDefault($this->_scope);
-        $value->_granted = $values->getGrantedOrDefault($this->_granted);
-        $value->_decisionAt = $values->getDecisionAtOrDefault($this->_decisionAt);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_user = $values->getUserOrCurrent($this->_user);
+        $value->_trustedClient = $values->getTrustedClientOrCurrent($this->_trustedClient);
+        $value->_scope = $values->getScopeOrCurrent($this->_scope);
+        $value->_granted = $values->getGrantedOrCurrent($this->_granted);
+        $value->_decisionAt = $values->getDecisionAtOrCurrent($this->_decisionAt);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -68,7 +68,7 @@ class UserConsentedScopes extends UserConsentedScopesRef
     }
     public static function create(UserConsentedScopesAttributes $values): UserConsentedScopes
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new UserConsentedScopesCreateEvent($value);
         return $value;
     }

@@ -13,9 +13,13 @@ trait SmtpOutboundConfigSenderNameAttributeHolder
     protected SmtpOutboundConfigSenderNameVO|string|null $senderName = null;
     protected bool $senderNameAssigned = false;
 
-    public function getSenderNameOrDefault(?SmtpOutboundConfigSenderNameVO $senderName): ?SmtpOutboundConfigSenderNameVO
+    public function getSenderNameOrCurrent(?SmtpOutboundConfigSenderNameVO $senderName): ?SmtpOutboundConfigSenderNameVO
     {
-        return $this->senderNameAssigned ? ($this->senderName !== null ? SmtpOutboundConfigSenderNameVO::from($this->senderName) : null) : $senderName;
+        return $this->senderNameAssigned ? ($this->senderName === null ? null : SmtpOutboundConfigSenderNameVO::from($this->senderName)) : $senderName;
+    }
+    public function senderNameTryBuildInitial(ConstraintFailList $error): ?SmtpOutboundConfigSenderNameVO
+    {
+        return  SmtpOutboundConfigSenderNameVO::tryFrom($this->senderNameAssigned ? $this->senderName : null, $error);
     }
     public function senderName(SmtpOutboundConfigSenderNameVO|string|null $senderName): static
     {

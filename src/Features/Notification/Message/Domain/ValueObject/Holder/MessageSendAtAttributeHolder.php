@@ -13,9 +13,13 @@ trait MessageSendAtAttributeHolder
     protected MessageSendAtVO|\DateTimeImmutable|null $sendAt = null;
     protected bool $sendAtAssigned = false;
 
-    public function getSendAtOrDefault(?MessageSendAtVO $sendAt): ?MessageSendAtVO
+    public function getSendAtOrCurrent(?MessageSendAtVO $sendAt): ?MessageSendAtVO
     {
-        return $this->sendAtAssigned ? ($this->sendAt !== null ? MessageSendAtVO::from($this->sendAt) : null) : $sendAt;
+        return $this->sendAtAssigned ? ($this->sendAt === null ? null : MessageSendAtVO::from($this->sendAt)) : $sendAt;
+    }
+    public function sendAtTryBuildInitial(ConstraintFailList $error): ?MessageSendAtVO
+    {
+        return  MessageSendAtVO::tryFrom($this->sendAtAssigned ? $this->sendAt : null, $error);
     }
     public function sendAt(MessageSendAtVO|\DateTimeImmutable|null $sendAt): static
     {

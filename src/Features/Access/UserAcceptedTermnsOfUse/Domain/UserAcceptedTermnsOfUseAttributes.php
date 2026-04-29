@@ -6,15 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain;
 
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseUidAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseUidVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseUserAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseUserVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseConditionsAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseConditionsVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseAcceptDateAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseAcceptDateVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseVersionAttributeHolder;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class UserAcceptedTermnsOfUseAttributes
@@ -33,14 +28,14 @@ class UserAcceptedTermnsOfUseAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): UserAcceptedTermnsOfUse
+    public function createNewInstance(): UserAcceptedTermnsOfUse
     {
         $errors = new ConstraintFailList();
-        $uid = UserAcceptedTermnsOfUseUidVO::tryFrom($this->uid, $errors);
-        $user = UserAcceptedTermnsOfUseUserVO::tryFrom($this->user, $errors);
-        $conditions = UserAcceptedTermnsOfUseConditionsVO::tryFrom($this->conditions, $errors);
-        $acceptDate = UserAcceptedTermnsOfUseAcceptDateVO::tryFrom($this->acceptDate, $errors);
-        $version = UserAcceptedTermnsOfUseVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $user = $this->userTryBuildInitial($errors);
+        $conditions = $this->conditionsTryBuildInitial($errors);
+        $acceptDate = $this->acceptDateTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

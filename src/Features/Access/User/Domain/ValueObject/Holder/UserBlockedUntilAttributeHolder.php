@@ -13,9 +13,13 @@ trait UserBlockedUntilAttributeHolder
     protected UserBlockedUntilVO|\DateTimeImmutable|null $blockedUntil = null;
     protected bool $blockedUntilAssigned = false;
 
-    public function getBlockedUntilOrDefault(?UserBlockedUntilVO $blockedUntil): ?UserBlockedUntilVO
+    public function getBlockedUntilOrCurrent(?UserBlockedUntilVO $blockedUntil): ?UserBlockedUntilVO
     {
-        return $this->blockedUntilAssigned ? ($this->blockedUntil !== null ? UserBlockedUntilVO::from($this->blockedUntil) : null) : $blockedUntil;
+        return $this->blockedUntilAssigned ? ($this->blockedUntil === null ? null : UserBlockedUntilVO::from($this->blockedUntil)) : $blockedUntil;
+    }
+    public function blockedUntilTryBuildInitial(ConstraintFailList $error): ?UserBlockedUntilVO
+    {
+        return  UserBlockedUntilVO::tryFrom($this->blockedUntilAssigned ? $this->blockedUntil : null, $error);
     }
     public function blockedUntil(UserBlockedUntilVO|\DateTimeImmutable|null $blockedUntil): static
     {

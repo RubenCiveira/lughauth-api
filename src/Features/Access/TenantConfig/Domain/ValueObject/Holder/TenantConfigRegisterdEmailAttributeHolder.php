@@ -13,9 +13,13 @@ trait TenantConfigRegisterdEmailAttributeHolder
     protected TenantConfigRegisterdEmailVO|string|null $registerdEmail = null;
     protected bool $registerdEmailAssigned = false;
 
-    public function getRegisterdEmailOrDefault(?TenantConfigRegisterdEmailVO $registerdEmail): ?TenantConfigRegisterdEmailVO
+    public function getRegisterdEmailOrCurrent(?TenantConfigRegisterdEmailVO $registerdEmail): ?TenantConfigRegisterdEmailVO
     {
-        return $this->registerdEmailAssigned ? ($this->registerdEmail !== null ? TenantConfigRegisterdEmailVO::from($this->registerdEmail) : null) : $registerdEmail;
+        return $this->registerdEmailAssigned ? ($this->registerdEmail === null ? null : TenantConfigRegisterdEmailVO::from($this->registerdEmail)) : $registerdEmail;
+    }
+    public function registerdEmailTryBuildInitial(ConstraintFailList $error): ?TenantConfigRegisterdEmailVO
+    {
+        return  TenantConfigRegisterdEmailVO::tryFrom($this->registerdEmailAssigned ? $this->registerdEmail : null, $error);
     }
     public function registerdEmail(TenantConfigRegisterdEmailVO|string|null $registerdEmail): static
     {

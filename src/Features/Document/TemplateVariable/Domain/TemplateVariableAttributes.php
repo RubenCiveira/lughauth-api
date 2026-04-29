@@ -6,19 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateVariable\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableUidAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableUidVO;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableCodeAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableCodeVO;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableTenantAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableTenantVO;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableTypeAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableTypeVO;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableValueAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableValueVO;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableEnabledVO;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\Holder\TemplateVariableVersionAttributeHolder;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\ValueObject\TemplateVariableVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
 class TemplateVariableAttributes
@@ -41,16 +34,16 @@ class TemplateVariableAttributes
       'version' => 'unsetVersion',
     ];
 
-    public function build(): TemplateVariable
+    public function createNewInstance(): TemplateVariable
     {
         $errors = new ConstraintFailList();
-        $uid = TemplateVariableUidVO::tryFrom($this->uid, $errors);
-        $code = TemplateVariableCodeVO::tryFrom($this->code, $errors);
-        $tenant = TemplateVariableTenantVO::tryFrom($this->tenant, $errors);
-        $type = TemplateVariableTypeVO::tryFrom($this->type, $errors);
-        $value = TemplateVariableValueVO::tryFrom($this->value, $errors);
-        $enabled = TemplateVariableEnabledVO::tryFrom($this->enabled, $errors);
-        $version = TemplateVariableVersionVO::tryFrom($this->version, $errors);
+        $uid = $this->uidTryBuildInitial($errors);
+        $code = $this->codeTryBuildInitial($errors);
+        $tenant = $this->tenantTryBuildInitial($errors);
+        $type = $this->typeTryBuildInitial($errors);
+        $value = $this->valueTryBuildInitial($errors);
+        $enabled = $this->enabledTryBuildInitial($errors);
+        $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }

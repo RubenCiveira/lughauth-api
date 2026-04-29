@@ -13,7 +13,7 @@ trait RelyingPartyCodeAttributeHolder
     protected RelyingPartyCodeVO|string|null $code = null;
     protected bool $codeAssigned = false;
 
-    public function getCodeOrDefault(RelyingPartyCodeVO $code): RelyingPartyCodeVO
+    public function getCodeOrCurrent(RelyingPartyCodeVO $code): RelyingPartyCodeVO
     {
         if ($this->codeAssigned) {
             \assert(null !== $this->code);
@@ -21,6 +21,10 @@ trait RelyingPartyCodeAttributeHolder
         } else {
             return $code;
         }
+    }
+    public function codeTryBuildInitial(ConstraintFailList $error): ?RelyingPartyCodeVO
+    {
+        return  RelyingPartyCodeVO::tryFrom($this->codeAssigned ? $this->code : null, $error);
     }
     public function code(RelyingPartyCodeVO|string $code): static
     {

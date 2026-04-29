@@ -13,9 +13,13 @@ trait UserRoleAssignamentRolesVersionAttributeHolder
     protected UserRoleAssignamentRolesVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?UserRoleAssignamentRolesVersionVO $version): ?UserRoleAssignamentRolesVersionVO
+    public function getVersionOrCurrent(?UserRoleAssignamentRolesVersionVO $version): ?UserRoleAssignamentRolesVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? UserRoleAssignamentRolesVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : UserRoleAssignamentRolesVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?UserRoleAssignamentRolesVersionVO
+    {
+        return  UserRoleAssignamentRolesVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(UserRoleAssignamentRolesVersionVO|int|null $version): static
     {

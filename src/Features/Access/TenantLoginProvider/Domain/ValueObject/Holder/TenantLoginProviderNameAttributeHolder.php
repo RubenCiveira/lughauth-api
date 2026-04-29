@@ -13,7 +13,7 @@ trait TenantLoginProviderNameAttributeHolder
     protected TenantLoginProviderNameVO|string|null $name = null;
     protected bool $nameAssigned = false;
 
-    public function getNameOrDefault(TenantLoginProviderNameVO $name): TenantLoginProviderNameVO
+    public function getNameOrCurrent(TenantLoginProviderNameVO $name): TenantLoginProviderNameVO
     {
         if ($this->nameAssigned) {
             \assert(null !== $this->name);
@@ -21,6 +21,10 @@ trait TenantLoginProviderNameAttributeHolder
         } else {
             return $name;
         }
+    }
+    public function nameTryBuildInitial(ConstraintFailList $error): ?TenantLoginProviderNameVO
+    {
+        return  TenantLoginProviderNameVO::tryFrom($this->nameAssigned ? $this->name : null, $error);
     }
     public function name(TenantLoginProviderNameVO|string $name): static
     {

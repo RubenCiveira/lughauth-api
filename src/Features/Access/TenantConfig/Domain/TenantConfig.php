@@ -88,19 +88,19 @@ class TenantConfig extends TenantConfigRef
     public function replace(TenantConfigAttributes $values): TenantConfig
     {
         $value = clone $this;
-        $value->_tenant = $values->getTenantOrDefault($this->_tenant);
-        $value->_innerLabel = $values->getInnerLabelOrDefault($this->_innerLabel);
-        $value->_forceMfa = $values->getForceMfaOrDefault($this->_forceMfa);
-        $value->_dynamicRegistrationPolicy = $values->getDynamicRegistrationPolicyOrDefault($this->_dynamicRegistrationPolicy);
-        $value->_allowRegister = $values->getAllowRegisterOrDefault($this->_allowRegister);
-        $value->_enableRegisterUsers = $values->getEnableRegisterUsersOrDefault($this->_enableRegisterUsers);
-        $value->_wellcomeEmail = $values->getWellcomeEmailOrDefault($this->_wellcomeEmail);
-        $value->_registerdEmail = $values->getRegisterdEmailOrDefault($this->_registerdEmail);
-        $value->_disabledUserEmail = $values->getDisabledUserEmailOrDefault($this->_disabledUserEmail);
-        $value->_enabledUserEmail = $values->getEnabledUserEmailOrDefault($this->_enabledUserEmail);
-        $value->_allowRecoverPass = $values->getAllowRecoverPassOrDefault($this->_allowRecoverPass);
-        $value->_recoverPassEmail = $values->getRecoverPassEmailOrDefault($this->_recoverPassEmail);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
+        $value->_innerLabel = $values->getInnerLabelOrCurrent($this->_innerLabel);
+        $value->_forceMfa = $values->getForceMfaOrCurrent($this->_forceMfa);
+        $value->_dynamicRegistrationPolicy = $values->getDynamicRegistrationPolicyOrCurrent($this->_dynamicRegistrationPolicy);
+        $value->_allowRegister = $values->getAllowRegisterOrCurrent($this->_allowRegister);
+        $value->_enableRegisterUsers = $values->getEnableRegisterUsersOrCurrent($this->_enableRegisterUsers);
+        $value->_wellcomeEmail = $values->getWellcomeEmailOrCurrent($this->_wellcomeEmail);
+        $value->_registerdEmail = $values->getRegisterdEmailOrCurrent($this->_registerdEmail);
+        $value->_disabledUserEmail = $values->getDisabledUserEmailOrCurrent($this->_disabledUserEmail);
+        $value->_enabledUserEmail = $values->getEnabledUserEmailOrCurrent($this->_enabledUserEmail);
+        $value->_allowRecoverPass = $values->getAllowRecoverPassOrCurrent($this->_allowRecoverPass);
+        $value->_recoverPassEmail = $values->getRecoverPassEmailOrCurrent($this->_recoverPassEmail);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -109,7 +109,7 @@ class TenantConfig extends TenantConfigRef
     }
     public static function create(TenantConfigAttributes $values): TenantConfig
     {
-        $value = $values->build();
+        $value = $values->createNewInstance();
         $value->recordedEvents[] = new TenantConfigCreateEvent($value);
         return $value;
     }

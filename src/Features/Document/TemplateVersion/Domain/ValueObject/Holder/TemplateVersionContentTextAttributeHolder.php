@@ -13,9 +13,13 @@ trait TemplateVersionContentTextAttributeHolder
     protected TemplateVersionContentTextVO|string|null $contentText = null;
     protected bool $contentTextAssigned = false;
 
-    public function getContentTextOrDefault(?TemplateVersionContentTextVO $contentText): ?TemplateVersionContentTextVO
+    public function getContentTextOrCurrent(?TemplateVersionContentTextVO $contentText): ?TemplateVersionContentTextVO
     {
-        return $this->contentTextAssigned ? ($this->contentText !== null ? TemplateVersionContentTextVO::from($this->contentText) : null) : $contentText;
+        return $this->contentTextAssigned ? ($this->contentText === null ? null : TemplateVersionContentTextVO::from($this->contentText)) : $contentText;
+    }
+    public function contentTextTryBuildInitial(ConstraintFailList $error): ?TemplateVersionContentTextVO
+    {
+        return  TemplateVersionContentTextVO::tryFrom($this->contentTextAssigned ? $this->contentText : null, $error);
     }
     public function contentText(TemplateVersionContentTextVO|string|null $contentText): static
     {

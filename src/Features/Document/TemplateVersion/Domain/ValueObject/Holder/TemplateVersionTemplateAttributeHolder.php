@@ -14,7 +14,7 @@ trait TemplateVersionTemplateAttributeHolder
     protected TemplateVersionTemplateVO|TemplateRef|null $template = null;
     protected bool $templateAssigned = false;
 
-    public function getTemplateOrDefault(TemplateVersionTemplateVO $template): TemplateVersionTemplateVO
+    public function getTemplateOrCurrent(TemplateVersionTemplateVO $template): TemplateVersionTemplateVO
     {
         if ($this->templateAssigned) {
             \assert(null !== $this->template);
@@ -22,6 +22,10 @@ trait TemplateVersionTemplateAttributeHolder
         } else {
             return $template;
         }
+    }
+    public function templateTryBuildInitial(ConstraintFailList $error): ?TemplateVersionTemplateVO
+    {
+        return  TemplateVersionTemplateVO::tryFrom($this->templateAssigned ? $this->template : null, $error);
     }
     public function template(TemplateVersionTemplateVO|TemplateRef $template): static
     {

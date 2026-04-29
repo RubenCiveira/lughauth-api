@@ -13,9 +13,13 @@ trait RelyingPartyVersionAttributeHolder
     protected RelyingPartyVersionVO|int|null $version = null;
     protected bool $versionAssigned = false;
 
-    public function getVersionOrDefault(?RelyingPartyVersionVO $version): ?RelyingPartyVersionVO
+    public function getVersionOrCurrent(?RelyingPartyVersionVO $version): ?RelyingPartyVersionVO
     {
-        return $this->versionAssigned ? ($this->version !== null ? RelyingPartyVersionVO::from($this->version) : null) : $version;
+        return $this->versionAssigned ? ($this->version === null ? null : RelyingPartyVersionVO::from($this->version)) : $version;
+    }
+    public function versionTryBuildInitial(ConstraintFailList $error): ?RelyingPartyVersionVO
+    {
+        return  RelyingPartyVersionVO::tryFrom($this->versionAssigned ? $this->version : null, $error);
     }
     public function version(RelyingPartyVersionVO|int|null $version): static
     {

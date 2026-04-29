@@ -13,9 +13,13 @@ trait MessageLockAtAttributeHolder
     protected MessageLockAtVO|\DateTimeImmutable|null $lockAt = null;
     protected bool $lockAtAssigned = false;
 
-    public function getLockAtOrDefault(?MessageLockAtVO $lockAt): ?MessageLockAtVO
+    public function getLockAtOrCurrent(?MessageLockAtVO $lockAt): ?MessageLockAtVO
     {
-        return $this->lockAtAssigned ? ($this->lockAt !== null ? MessageLockAtVO::from($this->lockAt) : null) : $lockAt;
+        return $this->lockAtAssigned ? ($this->lockAt === null ? null : MessageLockAtVO::from($this->lockAt)) : $lockAt;
+    }
+    public function lockAtTryBuildInitial(ConstraintFailList $error): ?MessageLockAtVO
+    {
+        return  MessageLockAtVO::tryFrom($this->lockAtAssigned ? $this->lockAt : null, $error);
     }
     public function lockAt(MessageLockAtVO|\DateTimeImmutable|null $lockAt): static
     {

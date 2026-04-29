@@ -14,9 +14,13 @@ trait UserRoleAssignamentTrustedClientAttributeHolder
     protected UserRoleAssignamentTrustedClientVO|TrustedClientRef|null $trustedClient = null;
     protected bool $trustedClientAssigned = false;
 
-    public function getTrustedClientOrDefault(?UserRoleAssignamentTrustedClientVO $trustedClient): ?UserRoleAssignamentTrustedClientVO
+    public function getTrustedClientOrCurrent(?UserRoleAssignamentTrustedClientVO $trustedClient): ?UserRoleAssignamentTrustedClientVO
     {
-        return $this->trustedClientAssigned ? ($this->trustedClient !== null ? UserRoleAssignamentTrustedClientVO::from($this->trustedClient) : null) : $trustedClient;
+        return $this->trustedClientAssigned ? ($this->trustedClient === null ? null : UserRoleAssignamentTrustedClientVO::from($this->trustedClient)) : $trustedClient;
+    }
+    public function trustedClientTryBuildInitial(ConstraintFailList $error): ?UserRoleAssignamentTrustedClientVO
+    {
+        return  UserRoleAssignamentTrustedClientVO::tryFrom($this->trustedClientAssigned ? $this->trustedClient : null, $error);
     }
     public function trustedClient(UserRoleAssignamentTrustedClientVO|TrustedClientRef|null $trustedClient): static
     {

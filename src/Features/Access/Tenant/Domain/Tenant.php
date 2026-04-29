@@ -62,13 +62,13 @@ class Tenant extends TenantRef
     public function replace(TenantAttributes $values): Tenant
     {
         $value = clone $this;
-        $value->_name = $values->getNameOrDefault($this->_name);
-        $value->_root = $values->getRootOrDefault($this->_root);
-        $value->_domain = $values->getDomainOrDefault($this->_domain);
-        $value->_enabled = $values->getEnabledOrDefault($this->_enabled);
-        $value->_markForDelete = $values->getMarkForDeleteOrDefault($this->_markForDelete);
-        $value->_markForDeleteTime = $values->getMarkForDeleteTimeOrDefault($this->_markForDeleteTime);
-        $value->_version = $values->getVersionOrDefault($this->_version);
+        $value->_name = $values->getNameOrCurrent($this->_name);
+        $value->_root = $values->getRootOrCurrent($this->_root);
+        $value->_domain = $values->getDomainOrCurrent($this->_domain);
+        $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
+        $value->_markForDelete = $values->getMarkForDeleteOrCurrent($this->_markForDelete);
+        $value->_markForDeleteTime = $values->getMarkForDeleteTimeOrCurrent($this->_markForDeleteTime);
+        $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
     public static function calculatedFields(): array
@@ -81,7 +81,7 @@ class Tenant extends TenantRef
         $calculated->enabled(EnabledCalculator::calculateEnabled());
         $calculated->markForDelete(MarkForDeleteCalculator::calculateMarkForDelete());
         $calculated->markForDeleteTime(MarkForDeleteTimeCalculator::calculateMarkForDeleteTime());
-        $value = $calculated->build();
+        $value = $calculated->createNewInstance();
         $value->recordedEvents[] = new TenantCreateEvent($value);
         return $value;
     }

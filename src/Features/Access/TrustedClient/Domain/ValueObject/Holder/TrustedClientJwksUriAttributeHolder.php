@@ -13,9 +13,13 @@ trait TrustedClientJwksUriAttributeHolder
     protected TrustedClientJwksUriVO|string|null $jwksUri = null;
     protected bool $jwksUriAssigned = false;
 
-    public function getJwksUriOrDefault(?TrustedClientJwksUriVO $jwksUri): ?TrustedClientJwksUriVO
+    public function getJwksUriOrCurrent(?TrustedClientJwksUriVO $jwksUri): ?TrustedClientJwksUriVO
     {
-        return $this->jwksUriAssigned ? ($this->jwksUri !== null ? TrustedClientJwksUriVO::from($this->jwksUri) : null) : $jwksUri;
+        return $this->jwksUriAssigned ? ($this->jwksUri === null ? null : TrustedClientJwksUriVO::from($this->jwksUri)) : $jwksUri;
+    }
+    public function jwksUriTryBuildInitial(ConstraintFailList $error): ?TrustedClientJwksUriVO
+    {
+        return  TrustedClientJwksUriVO::tryFrom($this->jwksUriAssigned ? $this->jwksUri : null, $error);
     }
     public function jwksUri(TrustedClientJwksUriVO|string|null $jwksUri): static
     {

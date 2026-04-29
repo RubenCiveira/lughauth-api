@@ -13,9 +13,13 @@ trait ApiKeyClientKeyAttributeHolder
     protected ApiKeyClientKeyVO|string|null $key = null;
     protected bool $keyAssigned = false;
 
-    public function getKeyOrDefault(?ApiKeyClientKeyVO $key): ?ApiKeyClientKeyVO
+    public function getKeyOrCurrent(?ApiKeyClientKeyVO $key): ?ApiKeyClientKeyVO
     {
-        return $this->keyAssigned ? ($this->key !== null ? ApiKeyClientKeyVO::from($this->key) : null) : $key;
+        return $this->keyAssigned ? ($this->key === null ? null : ApiKeyClientKeyVO::from($this->key)) : $key;
+    }
+    public function keyTryBuildInitial(ConstraintFailList $error): ?ApiKeyClientKeyVO
+    {
+        return  ApiKeyClientKeyVO::tryFrom($this->keyAssigned ? $this->key : null, $error);
     }
     public function key(ApiKeyClientKeyVO|string|null $key): static
     {

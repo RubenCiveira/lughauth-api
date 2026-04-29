@@ -10,12 +10,16 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO
 
 trait UserUseSecondFactorsAttributeHolder
 {
-    protected UserUseSecondFactorsVO|bool|null $useSecondFactors = false;
+    protected UserUseSecondFactorsVO|bool|null $useSecondFactors = null;
     protected bool $useSecondFactorsAssigned = false;
 
-    public function getUseSecondFactorsOrDefault(?UserUseSecondFactorsVO $useSecondFactors): ?UserUseSecondFactorsVO
+    public function getUseSecondFactorsOrCurrent(?UserUseSecondFactorsVO $useSecondFactors): ?UserUseSecondFactorsVO
     {
-        return $this->useSecondFactorsAssigned ? ($this->useSecondFactors !== null ? UserUseSecondFactorsVO::from($this->useSecondFactors) : null) : $useSecondFactors;
+        return $this->useSecondFactorsAssigned ? ($this->useSecondFactors === null ? null : UserUseSecondFactorsVO::from($this->useSecondFactors)) : $useSecondFactors;
+    }
+    public function useSecondFactorsTryBuildInitial(ConstraintFailList $error): ?UserUseSecondFactorsVO
+    {
+        return  UserUseSecondFactorsVO::tryFrom($this->useSecondFactorsAssigned ? $this->useSecondFactors : false, $error);
     }
     public function useSecondFactors(UserUseSecondFactorsVO|bool|null $useSecondFactors): static
     {

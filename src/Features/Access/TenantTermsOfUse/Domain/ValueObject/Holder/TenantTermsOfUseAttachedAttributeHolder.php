@@ -13,9 +13,13 @@ trait TenantTermsOfUseAttachedAttributeHolder
     protected TenantTermsOfUseAttachedVO|string|null $attached = null;
     protected bool $attachedAssigned = false;
 
-    public function getAttachedOrDefault(?TenantTermsOfUseAttachedVO $attached): ?TenantTermsOfUseAttachedVO
+    public function getAttachedOrCurrent(?TenantTermsOfUseAttachedVO $attached): ?TenantTermsOfUseAttachedVO
     {
-        return $this->attachedAssigned ? ($this->attached !== null ? TenantTermsOfUseAttachedVO::from($this->attached) : null) : $attached;
+        return $this->attachedAssigned ? ($this->attached === null ? null : TenantTermsOfUseAttachedVO::from($this->attached)) : $attached;
+    }
+    public function attachedTryBuildInitial(ConstraintFailList $error): ?TenantTermsOfUseAttachedVO
+    {
+        return  TenantTermsOfUseAttachedVO::tryFrom($this->attachedAssigned ? $this->attached : null, $error);
     }
     public function attached(TenantTermsOfUseAttachedVO|string|null $attached): static
     {

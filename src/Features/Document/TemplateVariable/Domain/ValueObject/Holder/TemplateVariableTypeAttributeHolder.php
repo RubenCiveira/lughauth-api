@@ -13,7 +13,7 @@ trait TemplateVariableTypeAttributeHolder
     protected TemplateVariableTypeVO|string|null $type = null;
     protected bool $typeAssigned = false;
 
-    public function getTypeOrDefault(TemplateVariableTypeVO $type): TemplateVariableTypeVO
+    public function getTypeOrCurrent(TemplateVariableTypeVO $type): TemplateVariableTypeVO
     {
         if ($this->typeAssigned) {
             \assert(null !== $this->type);
@@ -21,6 +21,10 @@ trait TemplateVariableTypeAttributeHolder
         } else {
             return $type;
         }
+    }
+    public function typeTryBuildInitial(ConstraintFailList $error): ?TemplateVariableTypeVO
+    {
+        return  TemplateVariableTypeVO::tryFrom($this->typeAssigned ? $this->type : null, $error);
     }
     public function type(TemplateVariableTypeVO|string $type): static
     {
