@@ -24,11 +24,11 @@ class TrustedClientResponseTypesJsonAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientResponseTypesJsonAccessorUnitTest();
 
         // Act
-        $result = $holder->withResponseTypesJson([]);
+        $result = $holder->withResponseTypesJson('one');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals([], $result->getResponseTypesJson());
+        $this->assertEquals('one', $result->getResponseTypesJson());
     }
     /**
      * Asserts that withresponseTypesJson has access to the value object
@@ -40,19 +40,19 @@ class TrustedClientResponseTypesJsonAccessorUnitTest extends TestCase
         $holder = new ImplWithTrustedClientResponseTypesJsonAccessorUnitTest();
 
         // Act
-        $result = $holder->withResponseTypesJson([]);
+        $result = $holder->withResponseTypesJson('one');
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals([], $result->responseTypesJson()->value());
+        $this->assertEquals('one', $result->responseTypesJson()->value());
     }
     public function testChangedResponseTypesJson(): void
     {
         // Arrange
         $holder = new ImplWithTrustedClientResponseTypesJsonAccessorUnitTest();
-        $original = $holder->withResponseTypesJson([]);
-        $same = $holder->withResponseTypesJson([]);
-        $modified = $holder->withResponseTypesJson([]);
+        $original = $holder->withResponseTypesJson('one');
+        $same = $holder->withResponseTypesJson('one');
+        $modified = $holder->withResponseTypesJson('other');
 
         // Act
         $unchanged = $holder->isResponseTypesJsonChanged();

@@ -12,9 +12,9 @@ final class TrustedClientResponseTypesJsonVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = [];
+        $value = 'one';
         $ref = TrustedClientResponseTypesJsonVO::from($value);
-        $this->assertEquals([], $ref->value());
+        $this->assertEquals('one', $ref->value());
         $other = TrustedClientResponseTypesJsonVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TrustedClientResponseTypesJsonVO::from($ref);
@@ -23,7 +23,7 @@ final class TrustedClientResponseTypesJsonVOUnitTest extends TestCase
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = TrustedClientResponseTypesJsonVO::tryFrom('1', $errors);
+        $other = TrustedClientResponseTypesJsonVO::tryFrom(1, $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
@@ -35,9 +35,9 @@ final class TrustedClientResponseTypesJsonVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = TrustedClientResponseTypesJsonVO::from([]);
-        $same = TrustedClientResponseTypesJsonVO::from([]);
-        $other = TrustedClientResponseTypesJsonVO::from([]);
+        $one = TrustedClientResponseTypesJsonVO::from('one');
+        $same = TrustedClientResponseTypesJsonVO::from('one');
+        $other = TrustedClientResponseTypesJsonVO::from('other');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
