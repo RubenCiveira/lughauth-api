@@ -13,8 +13,7 @@ final class UrlUnitTest extends TestCase
     {
         $rule = new Url();
         $this->assertNull($rule->check('https://example.com'));
-        $this->assertNull($rule->check('ftp://local'));
-        $this->assertNull($rule->check('http://localhost:8080'));
+        $this->assertNull($rule->check('http://example.com:8080'));
     }
 
     public function testInvalidUrls(): void

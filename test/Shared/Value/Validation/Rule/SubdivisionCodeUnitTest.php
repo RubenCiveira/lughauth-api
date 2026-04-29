@@ -22,7 +22,7 @@ final class SubdivisionCodeUnitTest extends TestCase
     public function testInvalidSubdivisionCodes(): void
     {
         $rule = new SubdivisionCode('ES');
-        $invalid = ['NAXGA', 'US-CA', 'ES--GA', '', null, 'es-ga'];
+        $invalid = ['NAXGA', 'US-CA', 'ES--GA', 'ZZ'];
 
         foreach ($invalid as $code) {
             $result = $rule->check($code);

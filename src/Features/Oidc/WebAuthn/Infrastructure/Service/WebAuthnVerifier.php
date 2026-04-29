@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Exception\WebAuthnException;
  *   - ES256 (alg = -7): ECDSA P-256 / SHA-256
  *   - RS256 (alg = -257): RSASSA-PKCS1-v1_5 / SHA-256
  */
-final class WebAuthnVerifier
+class WebAuthnVerifier
 {
     private const ALG_ES256 = -7;
     private const ALG_RS256 = -257;

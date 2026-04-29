@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
-final class WebAuthnLoginForm implements StepForm
+class WebAuthnLoginForm implements StepForm
 {
     public function __construct(
         private readonly MessageProvider $messages,

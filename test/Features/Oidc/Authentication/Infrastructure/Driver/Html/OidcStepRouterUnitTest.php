@@ -26,6 +26,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\WebAuthnLoginForm;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
@@ -69,6 +70,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
+            $this->createMock(WebAuthnLoginForm::class),
             StepName::LOGIN->value
         );
 
@@ -95,6 +97,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
+            $this->createMock(WebAuthnLoginForm::class),
             StepName::LOGIN->value
         );
 
@@ -121,6 +124,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
+            $this->createMock(WebAuthnLoginForm::class),
             StepName::LOGIN->value
         );
 
@@ -149,6 +153,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
+            $this->createMock(WebAuthnLoginForm::class),
             StepName::LOGIN->value
         );
 
@@ -210,6 +215,7 @@ final class OidcStepRouterUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
+            $this->createMock(WebAuthnLoginForm::class),
             StepName::LOGIN->value
         );
 
