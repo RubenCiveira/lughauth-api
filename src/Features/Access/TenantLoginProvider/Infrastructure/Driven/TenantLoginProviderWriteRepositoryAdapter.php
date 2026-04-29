@@ -109,6 +109,7 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
         $span = $this->startSpan("Count for Tenant login provider on adapter");
         try {
             $entity->commitMetadataWith($this->store);
+            $entity->commitSamlIdpIdpCertWith($this->store);
             $created = $this->conn->create($entity, $verify);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
@@ -135,6 +136,14 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
                 }
                 $entity->commitMetadataWith($this->store);
             }
+            $prevSamlIdpIdpCert = $original?->getSamlIdpIdpCert();
+            $currSamlIdpIdpCert = $entity->getSamlIdpIdpCert();
+            if ($prevSamlIdpIdpCert != $currSamlIdpIdpCert) {
+                if (null !== $prevSamlIdpIdpCert) {
+                    $this->store->deleteFile(new FileStoreKey($prevSamlIdpIdpCert));
+                }
+                $entity->commitSamlIdpIdpCertWith($this->store);
+            }
             $updated = $this->conn->update($entity);
             $this->dispatch($entity);
             $this->changelog->recordChange('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
@@ -156,6 +165,10 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
             $currMetadata = $entity->getMetadata();
             if (null !== $currMetadata) {
                 $this->store->deleteFile(new FileStoreKey($currMetadata));
+            }
+            $currSamlIdpIdpCert = $entity->getSamlIdpIdpCert();
+            if (null !== $currSamlIdpIdpCert) {
+                $this->store->deleteFile(new FileStoreKey($currSamlIdpIdpCert));
             }
             $this->dispatch($entity);
             $this->changelog->recordDeletion('tenant-login-provider', $entity->uid() ?? 'no-id', $entity->asPublicJson());
@@ -205,6 +218,56 @@ class TenantLoginProviderWriteRepositoryAdapter implements TenantLoginProviderWr
     {
         $this->logDebug("Commit Metadata childs for Tenant login provider on adapter ");
         $span = $this->startSpan("Commit Metadata childs for Tenant login provider on adapter");
+        try {
+            if (null !== $original) {
+                $this->store->deleteFile(new FileStoreKey($original));
+            }
+            return $this->store->commitContent(new FileStoreKey($key))->key;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function temporalStoreSamlIdpIdpCert(BinaryContent $binary): string
+    {
+        $this->logDebug("Tempora store SamlIdpIdpCert childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Tempora store SamlIdpIdpCert childs for Tenant login provider on adapter");
+        try {
+            return $this->store->tempStore($binary)->key;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function readTemporalSamlIdpIdpCert(string $key): BinaryContent
+    {
+        $this->logDebug("Read temporal SamlIdpIdpCert childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Read temporal SamlIdpIdpCert childs for Tenant login provider on adapter");
+        try {
+            $binary = $this->store->retrieveTempFile(new FileStoreKey($key));
+            if ($binary) {
+                return $binary;
+            } else {
+                throw new NotFoundException('');
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function commitSamlIdpIdpCert(string $key, ?string $original = null): string
+    {
+        $this->logDebug("Commit SamlIdpIdpCert childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Commit SamlIdpIdpCert childs for Tenant login provider on adapter");
         try {
             if (null !== $original) {
                 $this->store->deleteFile(new FileStoreKey($original));

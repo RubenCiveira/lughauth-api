@@ -151,6 +151,13 @@ class TenantLoginProviderListController
                 $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
             }
+            $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
+            $dto->samlIdpEntityId = $value->getSamlIdpEntityId();
+            $dto->samlIdpSsoUrl = $value->getSamlIdpSsoUrl();
+            if (null !== $value->getSamlIdpIdpCert()) {
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/saml-idp-idp-cert';
+                $dto->samlIdpIdpCert = $this->links->create($url, $request);
+            }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();
             return $dto;

@@ -89,6 +89,32 @@ class TenantLoginProviderRetrieveController
             $span->end();
         }
     }
+    public function retrieveSamlIdpIdpCert(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->logDebug("Retrieve file Saml idp idp cert Tenant login provider");
+        $span = $this->startSpan("Retrieve file Saml idp idp cert Tenant login provider");
+        try {
+            if (!isset($args['uid'])) {
+                throw new NotFoundException('-');
+            }
+            $uid = $args['uid'];
+            $result = $this->retrieveUsecase->retrieveSamlIdpIdpCert($uid);
+            $resource = $result->stream;
+            fseek($resource, 0, SEEK_END);
+            $fileSize = ftell($resource);
+            rewind($resource);
+            $response = $response->withHeader('Content-Type', 'application/octet-stream')
+                               ->withHeader('Content-Disposition', 'attachment; filename="' . $result->name . '"')
+                               ->withHeader('Content-Length', (string)$fileSize);
+            $stream = new StreamResource($resource);
+            return $response->withBody($stream);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
 
     private function mapTenantLoginProvider(ServerRequestInterface $request, TenantLoginProviderRetrieveResult $value): TenantLoginProviderApiDTO
     {
@@ -109,6 +135,13 @@ class TenantLoginProviderRetrieveController
             if (null !== $value->getMetadata()) {
                 $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
+            }
+            $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
+            $dto->samlIdpEntityId = $value->getSamlIdpEntityId();
+            $dto->samlIdpSsoUrl = $value->getSamlIdpSsoUrl();
+            if (null !== $value->getSamlIdpIdpCert()) {
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/saml-idp-idp-cert';
+                $dto->samlIdpIdpCert = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();

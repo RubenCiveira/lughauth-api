@@ -4,12 +4,14 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\GitHubOAuthProvider;
 
+#[AllowMockObjectsWithoutExpectations]
 final class GitHubOAuthProviderUnitTest extends TestCase
 {
     public function testDelegatedUrlContainsExpectedQuery(): void

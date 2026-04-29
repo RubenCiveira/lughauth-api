@@ -4,10 +4,12 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\Saml2Provider;
 
+#[AllowMockObjectsWithoutExpectations]
 final class Saml2ProviderUnitTest extends TestCase
 {
     public function testDelegatedUrlContainsSamlRequestAndRelayState(): void

@@ -15,6 +15,10 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPrivateKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderCertificateAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderMetadataAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpIdpCertAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
@@ -31,6 +35,10 @@ class TenantLoginProviderRetrieveResult
     use TenantLoginProviderPrivateKeyAttributeHolder;
     use TenantLoginProviderCertificateAttributeHolder;
     use TenantLoginProviderMetadataAttributeHolder;
+    use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
+    use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
+    use TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
+    use TenantLoginProviderSamlIdpIdpCertAttributeHolder;
     use TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
     use TenantLoginProviderVersionAttributeHolder;
 
@@ -45,6 +53,10 @@ class TenantLoginProviderRetrieveResult
       'privateKey' => 'unsetPrivateKey',
       'certificate' => 'unsetCertificate',
       'metadata' => 'unsetMetadata',
+      'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
+      'samlIdpEntityId' => 'unsetSamlIdpEntityId',
+      'samlIdpSsoUrl' => 'unsetSamlIdpSsoUrl',
+      'samlIdpIdpCert' => 'unsetSamlIdpIdpCert',
       'usersEnabledByDefault' => 'unsetUsersEnabledByDefault',
       'version' => 'unsetVersion',
     ];
@@ -62,6 +74,10 @@ class TenantLoginProviderRetrieveResult
             $this->readPrivateKeyFrom($att);
             $this->readCertificateFrom($att);
             $this->readMetadataFrom($att);
+            $this->readSamlIdpMetadataUrlFrom($att);
+            $this->readSamlIdpEntityIdFrom($att);
+            $this->readSamlIdpSsoUrlFrom($att);
+            $this->readSamlIdpIdpCertFrom($att);
             $this->readUsersEnabledByDefaultFrom($att);
             $this->readVersionFrom($att);
         }
@@ -79,6 +95,10 @@ class TenantLoginProviderRetrieveResult
         $this->writePrivateKeyTo($att);
         $this->writeCertificateTo($att);
         $this->writeMetadataTo($att);
+        $this->writeSamlIdpMetadataUrlTo($att);
+        $this->writeSamlIdpEntityIdTo($att);
+        $this->writeSamlIdpSsoUrlTo($att);
+        $this->writeSamlIdpIdpCertTo($att);
         $this->writeUsersEnabledByDefaultTo($att);
         $this->writeVersionTo($att);
         return $att;
@@ -101,6 +121,10 @@ class TenantLoginProviderRetrieveResult
         $this->withDefaultPrivateKey();
         $this->withDefaultCertificate();
         $this->withDefaultMetadata();
+        $this->withDefaultSamlIdpMetadataUrl();
+        $this->withDefaultSamlIdpEntityId();
+        $this->withDefaultSamlIdpSsoUrl();
+        $this->withDefaultSamlIdpIdpCert();
         $this->withDefaultUsersEnabledByDefault();
         $this->withDefaultVersion();
         return $this;

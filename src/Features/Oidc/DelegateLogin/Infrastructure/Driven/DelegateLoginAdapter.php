@@ -139,44 +139,44 @@ class DelegateLoginAdapter implements DelegateLoginGateway
 
         return match ($provider->getSource()) {
             TenantLoginProviderSourceOptions::GOOGLE => new GoogleOAuthProvider(
-                    $this->conf,
-                    $this->context,
-                    $provider->uid() ?? '',
-                    $provider->getPublicKey() ?? '',
-                    $provider->getPrivateKey() ?? ''
-                ),
+                $this->conf,
+                $this->context,
+                $provider->uid() ?? '',
+                $provider->getPublicKey() ?? '',
+                $provider->getPrivateKey() ?? ''
+            ),
             TenantLoginProviderSourceOptions::GITHUB => new GitHubOAuthProvider(
-                    $this->conf,
-                    $this->context,
-                    $provider->uid() ?? '',
-                    $provider->getPublicKey() ?? '',
-                    $provider->getPrivateKey() ?? ''
-                ),
+                $this->conf,
+                $this->context,
+                $provider->uid() ?? '',
+                $provider->getPublicKey() ?? '',
+                $provider->getPrivateKey() ?? ''
+            ),
             TenantLoginProviderSourceOptions::MICROSOFT => new MicrosoftOAuthProvider(
-                    $this->conf,
-                    $this->context,
-                    $provider->uid() ?? '',
-                    $provider->getPublicKey() ?? '',
-                    $provider->getPrivateKey() ?? '',
-                    (string) ($provider->getMetadata() ?? 'common')
-                ),
+                $this->conf,
+                $this->context,
+                $provider->uid() ?? '',
+                $provider->getPublicKey() ?? '',
+                $provider->getPrivateKey() ?? '',
+                (string) ($provider->getMetadata() ?? 'common')
+            ),
             TenantLoginProviderSourceOptions::APPLE => new AppleOAuthProvider(
-                    $this->conf,
-                    $this->context,
-                    $provider->uid() ?? '',
-                    $provider->getPublicKey() ?? '',
-                    (string) ($this->conf->get('apple.team.id', '')),
-                    (string) ($this->conf->get('apple.key.id', '')),
-                    (string) ($provider->getPrivateKey() ?? '')
-                ),
+                $this->conf,
+                $this->context,
+                $provider->uid() ?? '',
+                $provider->getPublicKey() ?? '',
+                (string) ($this->conf->get('apple.team.id', '')),
+                (string) ($this->conf->get('apple.key.id', '')),
+                (string) ($provider->getPrivateKey() ?? '')
+            ),
             TenantLoginProviderSourceOptions::SAML => new Saml2Provider(
-                    $this->conf,
-                    $this->context,
-                    $provider->uid() ?? '',
-                    (string) ($saml['idp_sso_url'] ?? $provider->getPublicKey() ?? ''),
-                    (string) ($saml['entity_id'] ?? $provider->getName() ?? 'saml-sp'),
-                    (string) ($saml['name'] ?? $provider->getName() ?? 'SAML')
-                ),
+                $this->conf,
+                $this->context,
+                $provider->uid() ?? '',
+                (string) ($saml['idp_sso_url'] ?? $provider->getPublicKey() ?? ''),
+                (string) ($saml['entity_id'] ?? $provider->getName() ?? 'saml-sp'),
+                (string) ($saml['name'] ?? $provider->getName() ?? 'SAML')
+            ),
             default => null,
         };
     }

@@ -122,6 +122,25 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
         }
     }
     #[Override]
+    public function readSamlIdpIdpCert(string $key): BinaryContent
+    {
+        $this->logDebug("Load SamlIdpIdpCert childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Load SamlIdpIdpCert childs for Tenant login provider on adapter");
+        try {
+            $binary = $this->store->retrieveFile(new FileStoreKey($key));
+            if ($binary) {
+                return $binary;
+            } else {
+                throw new NotFoundException('');
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
     public function findOneByUid(string $uid): ?TenantLoginProvider
     {
         $this->logDebug("Find on by uid for Tenant login provider on adapter");

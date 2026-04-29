@@ -18,6 +18,7 @@ interface TenantLoginProviderReadGateway
     public function exists(TenantLoginProviderFilter $filter): bool;
     public function count(?TenantLoginProviderFilter $filter = null): int;
     public function readMetadata(string $key): BinaryContent;
+    public function readSamlIdpIdpCert(string $key): BinaryContent;
     public function findOneByUid(string $uid): ?TenantLoginProvider;
     public function findOneByTenantAndName(TenantRef $tenant, string $name): ?TenantLoginProvider;
 }

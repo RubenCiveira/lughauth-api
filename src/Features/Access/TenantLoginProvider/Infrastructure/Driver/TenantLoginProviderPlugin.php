@@ -17,6 +17,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderEnableController;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderDisableController;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempMetadataUploadController;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempSamlIdpIdpCertUploadController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
@@ -46,6 +47,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\Tena
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\UploadSamlIdpIdpCert\IsAuthenticatedUploadSamlIdpIdpCertAllow;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\UploadSamlIdpIdpCert\TenantLoginProviderUploadSamlIdpIdpCertAllowDecision;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -75,6 +78,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $listener->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
         $listener->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
         $listener->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAuthenticatedUploadMetadataAllow::class);
+        $listener->registerListener(TenantLoginProviderUploadSamlIdpIdpCertAllowDecision::class, IsAuthenticatedUploadSamlIdpIdpCertAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -98,6 +102,10 @@ class TenantLoginProviderPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-login-provider", "privateKey", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "certificate", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "metadata", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "samlIdpMetadataUrl", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "samlIdpEntityId", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "samlIdpSsoUrl", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "samlIdpIdpCert", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "usersEnabledByDefault", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "version", "MANAGE");
         }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
@@ -113,6 +121,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $tenantLoginProviderGroup->post('', [TenantLoginProviderCreateController::class, 'create']);
         $tenantLoginProviderGroup->get('/{uid}', [TenantLoginProviderRetrieveController::class, 'retrieve']);
         $tenantLoginProviderGroup->get('/{uid}/metadata', [TenantLoginProviderRetrieveController::class, 'retrieveMetadata']);
+        $tenantLoginProviderGroup->get('/{uid}/saml-idp-idp-cert', [TenantLoginProviderRetrieveController::class, 'retrieveSamlIdpIdpCert']);
         $tenantLoginProviderGroup->put('/{uid}', [TenantLoginProviderUpdateController::class, 'update']);
         $tenantLoginProviderGroup->delete('/{uid}', [TenantLoginProviderDeleteController::class, 'delete']);
         $tenantLoginProviderGroup->delete('', [TenantLoginProviderDeleteController::class, 'deleteAllForQuery']);
@@ -125,5 +134,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $tenantLoginProviderGroup->get('/~/disable-status/{uid}', [TenantLoginProviderDisableController::class, 'checkDisableAllForQueryStatus']);
         $tenantLoginProviderGroup->post('/-/temp-metadata', [TenantLoginProviderTempMetadataUploadController::class, 'uploadTemp']);
         $tenantLoginProviderGroup->get('/-/temp-metadata', [TenantLoginProviderTempMetadataUploadController::class, 'getTemp']);
+        $tenantLoginProviderGroup->post('/-/temp-saml-idp-idp-cert', [TenantLoginProviderTempSamlIdpIdpCertUploadController::class, 'uploadTemp']);
+        $tenantLoginProviderGroup->get('/-/temp-saml-idp-idp-cert', [TenantLoginProviderTempSamlIdpIdpCertUploadController::class, 'getTemp']);
     }
 }

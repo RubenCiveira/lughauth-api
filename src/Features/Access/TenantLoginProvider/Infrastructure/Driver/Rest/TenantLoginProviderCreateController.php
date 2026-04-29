@@ -25,6 +25,10 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpMetadataUrlVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpEntityIdVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpSsoUrlVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpIdpCertVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUsersEnabledByDefaultVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -112,6 +116,14 @@ class TenantLoginProviderCreateController
             if (null !== $metadata && strpos($metadata, $preffixMetadata) === 0) {
                 $value->metadata(TenantLoginProviderMetadataVO::tryFromTemporal(base64_decode(substr($metadata, strlen($preffixMetadata))), $errorsList));
             }
+            $value->samlIdpMetadataUrl(TenantLoginProviderSamlIdpMetadataUrlVO::tryFrom($body['samlIdpMetadataUrl'] ?? null, $errorsList));
+            $value->samlIdpEntityId(TenantLoginProviderSamlIdpEntityIdVO::tryFrom($body['samlIdpEntityId'] ?? null, $errorsList));
+            $value->samlIdpSsoUrl(TenantLoginProviderSamlIdpSsoUrlVO::tryFrom($body['samlIdpSsoUrl'] ?? null, $errorsList));
+            $samlIdpIdpCert = $body['samlIdpIdpCert'] ?? null;
+            $preffixSamlIdpIdpCert = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-saml-idp-idp-cert?temp=';
+            if (null !== $samlIdpIdpCert && strpos($samlIdpIdpCert, $preffixSamlIdpIdpCert) === 0) {
+                $value->samlIdpIdpCert(TenantLoginProviderSamlIdpIdpCertVO::tryFromTemporal(base64_decode(substr($samlIdpIdpCert, strlen($preffixSamlIdpIdpCert))), $errorsList));
+            }
             $valueUsersEnabledByDefault = TenantLoginProviderUsersEnabledByDefaultVO::tryFrom($body['usersEnabledByDefault'] ?? null, $errorsList);
             if (null !== $valueUsersEnabledByDefault) {
                 $value->usersEnabledByDefault($valueUsersEnabledByDefault);
@@ -147,6 +159,13 @@ class TenantLoginProviderCreateController
             if (null !== $value->getMetadata()) {
                 $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
+            }
+            $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
+            $dto->samlIdpEntityId = $value->getSamlIdpEntityId();
+            $dto->samlIdpSsoUrl = $value->getSamlIdpSsoUrl();
+            if (null !== $value->getSamlIdpIdpCert()) {
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/saml-idp-idp-cert';
+                $dto->samlIdpIdpCert = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();

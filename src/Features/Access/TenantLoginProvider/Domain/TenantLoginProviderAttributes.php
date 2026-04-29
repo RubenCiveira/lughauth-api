@@ -15,6 +15,10 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPrivateKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderCertificateAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderMetadataAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpIdpCertAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderVersionAttributeHolder;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -31,6 +35,10 @@ class TenantLoginProviderAttributes
     use TenantLoginProviderPrivateKeyAttributeHolder;
     use TenantLoginProviderCertificateAttributeHolder;
     use TenantLoginProviderMetadataAttributeHolder;
+    use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
+    use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
+    use TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
+    use TenantLoginProviderSamlIdpIdpCertAttributeHolder;
     use TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
     use TenantLoginProviderVersionAttributeHolder;
 
@@ -45,6 +53,10 @@ class TenantLoginProviderAttributes
       'privateKey' => 'unsetPrivateKey',
       'certificate' => 'unsetCertificate',
       'metadata' => 'unsetMetadata',
+      'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
+      'samlIdpEntityId' => 'unsetSamlIdpEntityId',
+      'samlIdpSsoUrl' => 'unsetSamlIdpSsoUrl',
+      'samlIdpIdpCert' => 'unsetSamlIdpIdpCert',
       'usersEnabledByDefault' => 'unsetUsersEnabledByDefault',
       'version' => 'unsetVersion',
     ];
@@ -62,6 +74,10 @@ class TenantLoginProviderAttributes
         $privateKey = $this->privateKeyTryBuildInitial($errors);
         $certificate = $this->certificateTryBuildInitial($errors);
         $metadata = $this->metadataTryBuildInitial($errors);
+        $samlIdpMetadataUrl = $this->samlIdpMetadataUrlTryBuildInitial($errors);
+        $samlIdpEntityId = $this->samlIdpEntityIdTryBuildInitial($errors);
+        $samlIdpSsoUrl = $this->samlIdpSsoUrlTryBuildInitial($errors);
+        $samlIdpIdpCert = $this->samlIdpIdpCertTryBuildInitial($errors);
         $usersEnabledByDefault = $this->usersEnabledByDefaultTryBuildInitial($errors);
         $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
@@ -83,6 +99,10 @@ class TenantLoginProviderAttributes
             privateKey: $privateKey,
             certificate: $certificate,
             metadata: $metadata,
+            samlIdpMetadataUrl: $samlIdpMetadataUrl,
+            samlIdpEntityId: $samlIdpEntityId,
+            samlIdpSsoUrl: $samlIdpSsoUrl,
+            samlIdpIdpCert: $samlIdpIdpCert,
             usersEnabledByDefault: $usersEnabledByDefault,
             version: $version,
         );
@@ -101,6 +121,10 @@ class TenantLoginProviderAttributes
         $this->withAssertedPrivateKeyRules($value, $errorsList);
         $this->withAssertedCertificateRules($value, $errorsList);
         $this->withAssertedMetadataRules($value, $errorsList);
+        $this->withAssertedSamlIdpMetadataUrlRules($value, $errorsList);
+        $this->withAssertedSamlIdpEntityIdRules($value, $errorsList);
+        $this->withAssertedSamlIdpSsoUrlRules($value, $errorsList);
+        $this->withAssertedSamlIdpIdpCertRules($value, $errorsList);
         $this->withAssertedUsersEnabledByDefaultRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
@@ -126,6 +150,10 @@ class TenantLoginProviderAttributes
         $this->withDefaultPrivateKey();
         $this->withDefaultCertificate();
         $this->withDefaultMetadata();
+        $this->withDefaultSamlIdpMetadataUrl();
+        $this->withDefaultSamlIdpEntityId();
+        $this->withDefaultSamlIdpSsoUrl();
+        $this->withDefaultSamlIdpIdpCert();
         $this->withDefaultUsersEnabledByDefault();
         $this->withDefaultVersion();
         return $this;

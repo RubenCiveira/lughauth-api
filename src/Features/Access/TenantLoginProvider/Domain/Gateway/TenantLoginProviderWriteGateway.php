@@ -24,6 +24,9 @@ interface TenantLoginProviderWriteGateway
     public function temporalStoreMetadata(BinaryContent $binary): string;
     public function readTemporalMetadata(string $key): BinaryContent;
     public function commitMetadata(string $key, ?string $original = null): string;
+    public function temporalStoreSamlIdpIdpCert(BinaryContent $binary): string;
+    public function readTemporalSamlIdpIdpCert(string $key): BinaryContent;
+    public function commitSamlIdpIdpCert(string $key, ?string $original = null): string;
     public function findOneForUpdateByUid(string $uid): ?TenantLoginProvider;
     public function findOneForUpdateByTenantAndName(TenantRef $tenant, string $name): ?TenantLoginProvider;
 }
