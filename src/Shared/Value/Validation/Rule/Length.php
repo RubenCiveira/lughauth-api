@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * Length class validates that the given value has a length between a minimum and maximum value.
@@ -38,6 +38,12 @@ class Length implements Rule
     public function check($value): ?RuleFail
     {
         /** @psalm-suppress UndefinedInterfaceMethod */
-        return Validator::length($this->min, $this->max)->isValid($value) ? null : new RuleFail('rule_length', $value, ['min' => $this->min, 'max' => $this->max]);
+        $validator = match (true) {
+            $this->min !== null && $this->max !== null => Validator::lengthBetween($this->min, $this->max),
+            $this->min !== null => Validator::lengthGreaterThanOrEqual($this->min),
+            $this->max !== null => Validator::lengthLessThanOrEqual($this->max),
+            default => Validator::alwaysValid(),
+        };
+        return $validator->isValid($value) ? null : new RuleFail('rule_length', $value, ['min' => $this->min, 'max' => $this->max]);
     }
 }

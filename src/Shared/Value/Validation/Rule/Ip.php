@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * Ip class validates that the given value is a valid IP address (IPv4 or IPv6).

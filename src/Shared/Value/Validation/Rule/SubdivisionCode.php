@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * SubdivisionCode class validates that the given value is a valid ISO 3166-2 subdivision code (e.g., US-CA for California).

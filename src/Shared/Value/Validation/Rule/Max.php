@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * Max class validates that the given value is less than or equal to a specified maximum value.
@@ -35,6 +35,6 @@ class Max implements Rule
     public function check($value): ?RuleFail
     {
         /** @psalm-suppress UndefinedInterfaceMethod */
-        return Validator::max($this->max)->isValid($value) ? null : new RuleFail('rule_max', $value, ['max' => $this->max]);
+        return Validator::lessThanOrEqual($this->max)->isValid($value) ? null : new RuleFail('rule_max', $value, ['max' => $this->max]);
     }
 }

@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * NotEmpty class validates that the given value is not empty.
@@ -26,6 +26,6 @@ class NotEmpty implements Rule
     public function check($value): ?RuleFail
     {
         /** @psalm-suppress UndefinedInterfaceMethod */
-        return Validator::notEmpty()->isValid($value) ? null : new RuleFail('rule_not_empty', $value, []);
+        return Validator::notBlank()->isValid($value) ? null : new RuleFail('rule_not_empty', $value, []);
     }
 }

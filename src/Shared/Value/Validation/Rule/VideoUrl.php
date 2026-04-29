@@ -8,7 +8,9 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+
+use function is_string;
+use function preg_match;
 
 /**
  * VideoUrl class validates that the given value is a valid video URL (e.g., YouTube, Vimeo).
@@ -16,6 +18,8 @@ use Respect\Validation\Validator;
  */
 class VideoUrl implements Rule
 {
+    private const string PATTERN = '/^https?:\/\/(www\.)?(youtube\.com\/(watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/|vimeo\.com\/(video\/)?\d)/i';
+
     /**
      * Checks whether the given value is a valid video URL.
      *
@@ -25,7 +29,8 @@ class VideoUrl implements Rule
     #[Override]
     public function check($value): ?RuleFail
     {
-        /** @psalm-suppress UndefinedInterfaceMethod */
-        return Validator::videoUrl()->isValid($value) ? null : new RuleFail('rule_video_url', $value, []);
+        return is_string($value) && preg_match(self::PATTERN, $value) === 1
+            ? null
+            : new RuleFail('rule_video_url', $value, []);
     }
 }

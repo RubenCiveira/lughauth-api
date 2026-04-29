@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule\Regional;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * Cnpj class validates that the given value is a valid Brazilian company registration number (CNPJ).

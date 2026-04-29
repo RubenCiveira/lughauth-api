@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\Validator;
+use Respect\Validation\ValidatorBuilder as Validator;
 
 /**
  * Min class validates that the given value is greater than or equal to a specified minimum value.
@@ -34,6 +34,6 @@ class Min implements Rule
     public function check($value): ?RuleFail
     {
         /** @psalm-suppress UndefinedInterfaceMethod */
-        return Validator::min($this->min)->isValid($value) ? null : new RuleFail('rule_min', $value, ['min' => $this->min]);
+        return Validator::greaterThanOrEqual($this->min)->isValid($value) ? null : new RuleFail('rule_min', $value, ['min' => $this->min]);
     }
 }
