@@ -23,8 +23,8 @@ final class ApiDocOidcContractTest extends TestCase
         // Restricting the scan path avoids triggering the nikic/php-parser
         // SplObjectStorage::attach() deprecation on every file in src/.
         $scanPaths = [
-            __DIR__ . '/../../../../src/Features/Oidc/',
-            __DIR__ . '/../../../../src/Bootstrap/Install.php',
+            __DIR__ . '/../../../src/Features/Oidc/',
+            __DIR__ . '/../../../src/Bootstrap/Install.php',
         ];
 
         // Suppress deprecations during parse so PHPUnit does not print
