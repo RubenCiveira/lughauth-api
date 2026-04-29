@@ -9,6 +9,8 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Hol
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseUserAttributeHolder;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseConditionsAttributeHolder;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseAcceptDateAttributeHolder;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseIpAddressAttributeHolder;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseUserAgentAttributeHolder;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Holder\UserAcceptedTermnsOfUseVersionAttributeHolder;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
@@ -18,6 +20,8 @@ class UserAcceptedTermnsOfUseAttributes
     use UserAcceptedTermnsOfUseUserAttributeHolder;
     use UserAcceptedTermnsOfUseConditionsAttributeHolder;
     use UserAcceptedTermnsOfUseAcceptDateAttributeHolder;
+    use UserAcceptedTermnsOfUseIpAddressAttributeHolder;
+    use UserAcceptedTermnsOfUseUserAgentAttributeHolder;
     use UserAcceptedTermnsOfUseVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -25,6 +29,8 @@ class UserAcceptedTermnsOfUseAttributes
       'user' => 'unsetUser',
       'conditions' => 'unsetConditions',
       'acceptDate' => 'unsetAcceptDate',
+      'ipAddress' => 'unsetIpAddress',
+      'userAgent' => 'unsetUserAgent',
       'version' => 'unsetVersion',
     ];
 
@@ -35,6 +41,8 @@ class UserAcceptedTermnsOfUseAttributes
         $user = $this->userTryBuildInitial($errors);
         $conditions = $this->conditionsTryBuildInitial($errors);
         $acceptDate = $this->acceptDateTryBuildInitial($errors);
+        $ipAddress = $this->ipAddressTryBuildInitial($errors);
+        $userAgent = $this->userAgentTryBuildInitial($errors);
         $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -47,6 +55,8 @@ class UserAcceptedTermnsOfUseAttributes
             user: $user,
             conditions: $conditions,
             acceptDate: $acceptDate,
+            ipAddress: $ipAddress,
+            userAgent: $userAgent,
             version: $version,
         );
     }
@@ -58,6 +68,8 @@ class UserAcceptedTermnsOfUseAttributes
         $this->withAssertedUserRules($value, $errorsList);
         $this->withAssertedConditionsRules($value, $errorsList);
         $this->withAssertedAcceptDateRules($value, $errorsList);
+        $this->withAssertedIpAddressRules($value, $errorsList);
+        $this->withAssertedUserAgentRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -76,6 +88,8 @@ class UserAcceptedTermnsOfUseAttributes
         $this->withDefaultUser();
         $this->withDefaultConditions();
         $this->withDefaultAcceptDate();
+        $this->withDefaultIpAddress();
+        $this->withDefaultUserAgent();
         $this->withDefaultVersion();
         return $this;
     }

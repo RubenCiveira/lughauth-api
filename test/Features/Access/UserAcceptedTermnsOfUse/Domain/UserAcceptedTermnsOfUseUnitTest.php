@@ -18,6 +18,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('one'),
             conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -34,6 +36,10 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertTrue($one->isConditionsChanged());
         $this->assertEquals($one->getAcceptDate(), $other->getAcceptDate());
         $this->assertTrue($one->isAcceptDateChanged());
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged());
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -45,6 +51,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('one'),
             conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
         $other = new UserAcceptedTermnsOfUse(
@@ -52,6 +60,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('other'),
             conditions: new TenantTermsOfUseRef('other'),
             acceptDate: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            ipAddress: 'other',
+            userAgent: 'other',
             version: 2,
         );
 
@@ -66,6 +76,10 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertTrue($one->isConditionsChanged($base));
         $this->assertEquals($one->getAcceptDate(), $other->getAcceptDate());
         $this->assertTrue($one->isAcceptDateChanged($base));
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged($base));
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -77,6 +91,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('one'),
             conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -88,6 +104,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertEquals('one', $json['user']['$ref']);
         $this->assertEquals('one', $json['conditions']['$ref']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['acceptDate']);
+        $this->assertEquals('one', $json['ipAddress']);
+        $this->assertEquals('one', $json['userAgent']);
         $this->assertEquals(1, $json['version']);
     }
     public function test_create_store_values(): void
@@ -98,6 +116,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('one'),
             conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -112,6 +132,10 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertTrue($one->isConditionsChanged());
         $this->assertEquals($one->getAcceptDate(), $other->getAcceptDate());
         $this->assertTrue($one->isAcceptDateChanged());
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged());
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -124,6 +148,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('one'),
             conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
         $other = new UserAcceptedTermnsOfUse(
@@ -131,6 +157,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('other'),
             conditions: new TenantTermsOfUseRef('other'),
             acceptDate: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            ipAddress: 'other',
+            userAgent: 'other',
             version: 2,
         );
 
@@ -145,6 +173,10 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertTrue($one->isConditionsChanged($base));
         $this->assertEquals($one->getAcceptDate(), $other->getAcceptDate());
         $this->assertTrue($one->isAcceptDateChanged($base));
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged($base));
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -158,6 +190,8 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
             user: new UserRef('one'),
             conditions: new TenantTermsOfUseRef('one'),
             acceptDate: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -172,6 +206,10 @@ final class UserAcceptedTermnsOfUseUnitTest extends TestCase
         $this->assertTrue($one->isConditionsChanged());
         $this->assertEquals($one->getAcceptDate(), $other->getAcceptDate());
         $this->assertTrue($one->isAcceptDateChanged());
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged());
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }

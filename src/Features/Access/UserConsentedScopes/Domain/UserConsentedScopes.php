@@ -16,6 +16,10 @@ use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserCon
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Accessor\UserConsentedScopesGrantedAccessor;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesDecisionAtVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Accessor\UserConsentedScopesDecisionAtAccessor;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesIpAddressVO;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Accessor\UserConsentedScopesIpAddressAccessor;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesUserAgentVO;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Accessor\UserConsentedScopesUserAgentAccessor;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\UserConsentedScopesVersionVO;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Accessor\UserConsentedScopesVersionAccessor;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Event\UserConsentedScopesCreateEvent;
@@ -31,6 +35,8 @@ class UserConsentedScopes extends UserConsentedScopesRef
     use UserConsentedScopesScopeAccessor;
     use UserConsentedScopesGrantedAccessor;
     use UserConsentedScopesDecisionAtAccessor;
+    use UserConsentedScopesIpAddressAccessor;
+    use UserConsentedScopesUserAgentAccessor;
     use UserConsentedScopesVersionAccessor;
     private array $recordedEvents = [];
 
@@ -41,6 +47,8 @@ class UserConsentedScopes extends UserConsentedScopesRef
         UserConsentedScopesScopeVO|string|null $scope = null,
         UserConsentedScopesGrantedVO|bool|null $granted = null,
         UserConsentedScopesDecisionAtVO|\DateTimeImmutable|null $decisionAt = null,
+        UserConsentedScopesIpAddressVO|string|null $ipAddress = null,
+        UserConsentedScopesUserAgentVO|string|null $userAgent = null,
         UserConsentedScopesVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
@@ -49,6 +57,8 @@ class UserConsentedScopes extends UserConsentedScopesRef
         $this->_scope = null === $scope ? UserConsentedScopesScopeVO::empty() : UserConsentedScopesScopeVO::from($scope);
         $this->_granted = null === $granted ? UserConsentedScopesGrantedVO::empty() : UserConsentedScopesGrantedVO::from($granted);
         $this->_decisionAt = null === $decisionAt ? UserConsentedScopesDecisionAtVO::empty() : UserConsentedScopesDecisionAtVO::from($decisionAt);
+        $this->_ipAddress = null === $ipAddress ? UserConsentedScopesIpAddressVO::empty() : UserConsentedScopesIpAddressVO::from($ipAddress);
+        $this->_userAgent = null === $userAgent ? UserConsentedScopesUserAgentVO::empty() : UserConsentedScopesUserAgentVO::from($userAgent);
         $this->_version = null === $version ? UserConsentedScopesVersionVO::empty() : UserConsentedScopesVersionVO::from($version);
     }
     public function replace(UserConsentedScopesAttributes $values): UserConsentedScopes
@@ -59,6 +69,8 @@ class UserConsentedScopes extends UserConsentedScopesRef
         $value->_scope = $values->getScopeOrCurrent($this->_scope);
         $value->_granted = $values->getGrantedOrCurrent($this->_granted);
         $value->_decisionAt = $values->getDecisionAtOrCurrent($this->_decisionAt);
+        $value->_ipAddress = $values->getIpAddressOrCurrent($this->_ipAddress);
+        $value->_userAgent = $values->getUserAgentOrCurrent($this->_userAgent);
         $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
@@ -93,6 +105,8 @@ class UserConsentedScopes extends UserConsentedScopesRef
         $data['scope'] = $this->getScope();
         $data['granted'] = $this->isGranted();
         $data['decisionAt'] = $this->getDecisionAt();
+        $data['ipAddress'] = $this->getIpAddress();
+        $data['userAgent'] = $this->getUserAgent();
         $data['version'] = $this->getVersion();
         return $data;
     }
@@ -105,6 +119,8 @@ class UserConsentedScopes extends UserConsentedScopesRef
           ->scope($this->_scope)
           ->granted($this->_granted)
           ->decisionAt($this->_decisionAt)
+          ->ipAddress($this->_ipAddress)
+          ->userAgent($this->_userAgent)
           ->version($this->_version);
     }
     public function getTheEvents(): array

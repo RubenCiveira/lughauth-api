@@ -11,6 +11,8 @@ use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesScopeAttributeHolder;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesGrantedAttributeHolder;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesDecisionAtAttributeHolder;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesIpAddressAttributeHolder;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesUserAgentAttributeHolder;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\ValueObject\Holder\UserConsentedScopesVersionAttributeHolder;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
@@ -22,6 +24,8 @@ class UserConsentedScopesAttributes
     use UserConsentedScopesScopeAttributeHolder;
     use UserConsentedScopesGrantedAttributeHolder;
     use UserConsentedScopesDecisionAtAttributeHolder;
+    use UserConsentedScopesIpAddressAttributeHolder;
+    use UserConsentedScopesUserAgentAttributeHolder;
     use UserConsentedScopesVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -31,6 +35,8 @@ class UserConsentedScopesAttributes
       'scope' => 'unsetScope',
       'granted' => 'unsetGranted',
       'decisionAt' => 'unsetDecisionAt',
+      'ipAddress' => 'unsetIpAddress',
+      'userAgent' => 'unsetUserAgent',
       'version' => 'unsetVersion',
     ];
 
@@ -43,6 +49,8 @@ class UserConsentedScopesAttributes
         $scope = $this->scopeTryBuildInitial($errors);
         $granted = $this->grantedTryBuildInitial($errors);
         $decisionAt = $this->decisionAtTryBuildInitial($errors);
+        $ipAddress = $this->ipAddressTryBuildInitial($errors);
+        $userAgent = $this->userAgentTryBuildInitial($errors);
         $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
@@ -57,6 +65,8 @@ class UserConsentedScopesAttributes
             scope: $scope,
             granted: $granted,
             decisionAt: $decisionAt,
+            ipAddress: $ipAddress,
+            userAgent: $userAgent,
             version: $version,
         );
     }
@@ -70,6 +80,8 @@ class UserConsentedScopesAttributes
         $this->withAssertedScopeRules($value, $errorsList);
         $this->withAssertedGrantedRules($value, $errorsList);
         $this->withAssertedDecisionAtRules($value, $errorsList);
+        $this->withAssertedIpAddressRules($value, $errorsList);
+        $this->withAssertedUserAgentRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -90,6 +102,8 @@ class UserConsentedScopesAttributes
         $this->withDefaultScope();
         $this->withDefaultGranted();
         $this->withDefaultDecisionAt();
+        $this->withDefaultIpAddress();
+        $this->withDefaultUserAgent();
         $this->withDefaultVersion();
         return $this;
     }

@@ -136,11 +136,13 @@ class UserAcceptedTermnsOfUsePdoConnector
         $span = $this->startSpan("Execute insert sql query for User accepted termns of use");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_user_accepted_termns_of_use" ( "uid", "user", "conditions", "accept_date", "version") VALUES ( :uid, :user, :conditions, :acceptDate, :version)', [
+                $this->db->execute('INSERT INTO "access_user_accepted_termns_of_use" ( "uid", "user", "conditions", "accept_date", "ip_address", "user_agent", "version") VALUES ( :uid, :user, :conditions, :acceptDate, :ipAddress, :userAgent, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'conditions', value: $entity->getConditions()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'acceptDate', value: $entity->getAcceptDate(), type: SqlParam::STR),
+                     new SqlParam(name: 'ipAddress', value: $entity->getIpAddress(), type: SqlParam::STR),
+                     new SqlParam(name: 'userAgent', value: $entity->getUserAgent(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
             } catch (NotUniqueException $ex) {
@@ -168,11 +170,13 @@ class UserAcceptedTermnsOfUsePdoConnector
         $span = $this->startSpan("Execute update sql query for User accepted termns of use");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_user_accepted_termns_of_use" SET "user" = :user , "conditions" = :conditions , "accept_date" = :acceptDate , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_user_accepted_termns_of_use" SET "user" = :user , "conditions" = :conditions , "accept_date" = :acceptDate , "ip_address" = :ipAddress , "user_agent" = :userAgent , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'conditions', value: $update->getConditions()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'acceptDate', value: $update->getAcceptDate(), type: SqlParam::STR),
+                     new SqlParam(name: 'ipAddress', value: $update->getIpAddress(), type: SqlParam::STR),
+                     new SqlParam(name: 'userAgent', value: $update->getUserAgent(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
@@ -388,12 +392,16 @@ class UserAcceptedTermnsOfUsePdoConnector
             }
             $conditions = new TenantTermsOfUseRef(uid: $rawConditions);
             $acceptDate = $row['accept_date'] ? new \DateTimeImmutable($row['accept_date']) : null;
+            $ipAddress = $row['ip_address'] ?? null;
+            $userAgent = $row['user_agent'] ?? null;
             $version = $row['version'] ?? null;
             return new UserAcceptedTermnsOfUse(
                 uid: $uid,
                 user: $user,
                 conditions: $conditions,
                 acceptDate: $acceptDate,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
                 version: $version,
             );
         } catch (Throwable $ex) {

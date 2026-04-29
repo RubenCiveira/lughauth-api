@@ -20,6 +20,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'one',
             granted: true,
             decisionAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -40,6 +42,10 @@ final class UserConsentedScopesUnitTest extends TestCase
         $this->assertTrue($one->isGrantedChanged());
         $this->assertEquals($one->getDecisionAt(), $other->getDecisionAt());
         $this->assertTrue($one->isDecisionAtChanged());
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged());
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -53,6 +59,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'one',
             granted: true,
             decisionAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
         $other = new UserConsentedScopes(
@@ -62,6 +70,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'other',
             granted: false,
             decisionAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            ipAddress: 'other',
+            userAgent: 'other',
             version: 2,
         );
 
@@ -80,6 +90,10 @@ final class UserConsentedScopesUnitTest extends TestCase
         $this->assertTrue($one->isGrantedChanged($base));
         $this->assertEquals($one->getDecisionAt(), $other->getDecisionAt());
         $this->assertTrue($one->isDecisionAtChanged($base));
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged($base));
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -93,6 +107,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'one',
             granted: true,
             decisionAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -106,6 +122,8 @@ final class UserConsentedScopesUnitTest extends TestCase
         $this->assertEquals('one', $json['scope']);
         $this->assertEquals(true, $json['granted']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['decisionAt']);
+        $this->assertEquals('one', $json['ipAddress']);
+        $this->assertEquals('one', $json['userAgent']);
         $this->assertEquals(1, $json['version']);
     }
     public function test_create_store_values(): void
@@ -118,6 +136,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'one',
             granted: true,
             decisionAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -136,6 +156,10 @@ final class UserConsentedScopesUnitTest extends TestCase
         $this->assertTrue($one->isGrantedChanged());
         $this->assertEquals($one->getDecisionAt(), $other->getDecisionAt());
         $this->assertTrue($one->isDecisionAtChanged());
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged());
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -150,6 +174,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'one',
             granted: true,
             decisionAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
         $other = new UserConsentedScopes(
@@ -159,6 +185,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'other',
             granted: false,
             decisionAt: (new \DateTimeImmutable('1981-09-06T14:32:45.123Z')),
+            ipAddress: 'other',
+            userAgent: 'other',
             version: 2,
         );
 
@@ -177,6 +205,10 @@ final class UserConsentedScopesUnitTest extends TestCase
         $this->assertTrue($one->isGrantedChanged($base));
         $this->assertEquals($one->getDecisionAt(), $other->getDecisionAt());
         $this->assertTrue($one->isDecisionAtChanged($base));
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged($base));
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -192,6 +224,8 @@ final class UserConsentedScopesUnitTest extends TestCase
             scope: 'one',
             granted: true,
             decisionAt: (new \DateTimeImmutable('1980-08-20T14:32:45.123Z')),
+            ipAddress: 'one',
+            userAgent: 'one',
             version: 1,
         );
 
@@ -210,6 +244,10 @@ final class UserConsentedScopesUnitTest extends TestCase
         $this->assertTrue($one->isGrantedChanged());
         $this->assertEquals($one->getDecisionAt(), $other->getDecisionAt());
         $this->assertTrue($one->isDecisionAtChanged());
+        $this->assertEquals($one->getIpAddress(), $other->getIpAddress());
+        $this->assertTrue($one->isIpAddressChanged());
+        $this->assertEquals($one->getUserAgent(), $other->getUserAgent());
+        $this->assertTrue($one->isUserAgentChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }

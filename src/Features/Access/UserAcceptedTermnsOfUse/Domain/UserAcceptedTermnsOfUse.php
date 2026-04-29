@@ -12,6 +12,10 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Use
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseConditionsAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseAcceptDateVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseAcceptDateAccessor;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseIpAddressVO;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseIpAddressAccessor;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseUserAgentVO;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseUserAgentAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\UserAcceptedTermnsOfUseVersionVO;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\ValueObject\Accessor\UserAcceptedTermnsOfUseVersionAccessor;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Event\UserAcceptedTermnsOfUseCreateEvent;
@@ -25,6 +29,8 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
     use UserAcceptedTermnsOfUseUserAccessor;
     use UserAcceptedTermnsOfUseConditionsAccessor;
     use UserAcceptedTermnsOfUseAcceptDateAccessor;
+    use UserAcceptedTermnsOfUseIpAddressAccessor;
+    use UserAcceptedTermnsOfUseUserAgentAccessor;
     use UserAcceptedTermnsOfUseVersionAccessor;
     private array $recordedEvents = [];
 
@@ -33,12 +39,16 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
         UserAcceptedTermnsOfUseUserVO|UserRef $user,
         UserAcceptedTermnsOfUseConditionsVO|TenantTermsOfUseRef $conditions,
         UserAcceptedTermnsOfUseAcceptDateVO|\DateTimeImmutable|null $acceptDate = null,
+        UserAcceptedTermnsOfUseIpAddressVO|string|null $ipAddress = null,
+        UserAcceptedTermnsOfUseUserAgentVO|string|null $userAgent = null,
         UserAcceptedTermnsOfUseVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
         $this->_user = UserAcceptedTermnsOfUseUserVO::from($user);
         $this->_conditions = UserAcceptedTermnsOfUseConditionsVO::from($conditions);
         $this->_acceptDate = null === $acceptDate ? UserAcceptedTermnsOfUseAcceptDateVO::empty() : UserAcceptedTermnsOfUseAcceptDateVO::from($acceptDate);
+        $this->_ipAddress = null === $ipAddress ? UserAcceptedTermnsOfUseIpAddressVO::empty() : UserAcceptedTermnsOfUseIpAddressVO::from($ipAddress);
+        $this->_userAgent = null === $userAgent ? UserAcceptedTermnsOfUseUserAgentVO::empty() : UserAcceptedTermnsOfUseUserAgentVO::from($userAgent);
         $this->_version = null === $version ? UserAcceptedTermnsOfUseVersionVO::empty() : UserAcceptedTermnsOfUseVersionVO::from($version);
     }
     public function replace(UserAcceptedTermnsOfUseAttributes $values): UserAcceptedTermnsOfUse
@@ -47,6 +57,8 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
         $value->_user = $values->getUserOrCurrent($this->_user);
         $value->_conditions = $values->getConditionsOrCurrent($this->_conditions);
         $value->_acceptDate = $values->getAcceptDateOrCurrent($this->_acceptDate);
+        $value->_ipAddress = $values->getIpAddressOrCurrent($this->_ipAddress);
+        $value->_userAgent = $values->getUserAgentOrCurrent($this->_userAgent);
         $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
@@ -79,6 +91,8 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
         $data['user'] = [ '$ref' => $this->getUser()->uid() ];
         $data['conditions'] = [ '$ref' => $this->getConditions()->uid() ];
         $data['acceptDate'] = $this->getAcceptDate();
+        $data['ipAddress'] = $this->getIpAddress();
+        $data['userAgent'] = $this->getUserAgent();
         $data['version'] = $this->getVersion();
         return $data;
     }
@@ -89,6 +103,8 @@ class UserAcceptedTermnsOfUse extends UserAcceptedTermnsOfUseRef
           ->user($this->_user)
           ->conditions($this->_conditions)
           ->acceptDate($this->_acceptDate)
+          ->ipAddress($this->_ipAddress)
+          ->userAgent($this->_userAgent)
           ->version($this->_version);
     }
     public function getTheEvents(): array

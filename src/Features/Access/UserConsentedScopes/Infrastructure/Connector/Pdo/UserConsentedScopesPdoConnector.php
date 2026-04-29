@@ -136,13 +136,15 @@ class UserConsentedScopesPdoConnector
         $span = $this->startSpan("Execute insert sql query for User consented scopes");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_user_consented_scopes" ( "uid", "user", "trusted_client", "scope", "granted", "decision_at", "version") VALUES ( :uid, :user, :trustedClient, :scope, :granted, :decisionAt, :version)', [
+                $this->db->execute('INSERT INTO "access_user_consented_scopes" ( "uid", "user", "trusted_client", "scope", "granted", "decision_at", "ip_address", "user_agent", "version") VALUES ( :uid, :user, :trustedClient, :scope, :granted, :decisionAt, :ipAddress, :userAgent, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'trustedClient', value: $entity->getTrustedClient()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'scope', value: $entity->getScope(), type: SqlParam::STR),
                      new SqlParam(name: 'granted', value: $entity->isGranted(), type: SqlParam::BOOL),
                      new SqlParam(name: 'decisionAt', value: $entity->getDecisionAt(), type: SqlParam::STR),
+                     new SqlParam(name: 'ipAddress', value: $entity->getIpAddress(), type: SqlParam::STR),
+                     new SqlParam(name: 'userAgent', value: $entity->getUserAgent(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
             } catch (NotUniqueException $ex) {
@@ -170,13 +172,15 @@ class UserConsentedScopesPdoConnector
         $span = $this->startSpan("Execute update sql query for User consented scopes");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_user_consented_scopes" SET "user" = :user , "trusted_client" = :trustedClient , "scope" = :scope , "granted" = :granted , "decision_at" = :decisionAt , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_user_consented_scopes" SET "user" = :user , "trusted_client" = :trustedClient , "scope" = :scope , "granted" = :granted , "decision_at" = :decisionAt , "ip_address" = :ipAddress , "user_agent" = :userAgent , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'trustedClient', value: $update->getTrustedClient()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'scope', value: $update->getScope(), type: SqlParam::STR),
                      new SqlParam(name: 'granted', value: $update->isGranted(), type: SqlParam::BOOL),
                      new SqlParam(name: 'decisionAt', value: $update->getDecisionAt(), type: SqlParam::STR),
+                     new SqlParam(name: 'ipAddress', value: $update->getIpAddress(), type: SqlParam::STR),
+                     new SqlParam(name: 'userAgent', value: $update->getUserAgent(), type: SqlParam::STR),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
                 ]);
@@ -384,6 +388,8 @@ class UserConsentedScopesPdoConnector
             $scope = $row['scope'] ?? null;
             $granted = isset($row['granted']) ? !! $row['granted'] : null;
             $decisionAt = $row['decision_at'] ? new \DateTimeImmutable($row['decision_at']) : null;
+            $ipAddress = $row['ip_address'] ?? null;
+            $userAgent = $row['user_agent'] ?? null;
             $version = $row['version'] ?? null;
             return new UserConsentedScopes(
                 uid: $uid,
@@ -392,6 +398,8 @@ class UserConsentedScopesPdoConnector
                 scope: $scope,
                 granted: $granted,
                 decisionAt: $decisionAt,
+                ipAddress: $ipAddress,
+                userAgent: $userAgent,
                 version: $version,
             );
         } catch (Throwable $ex) {
