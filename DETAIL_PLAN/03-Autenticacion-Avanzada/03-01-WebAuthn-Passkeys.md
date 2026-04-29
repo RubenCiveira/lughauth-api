@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS access_user_webauthn_credential (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Tabla para almacenar challenges temporales (TTL 5 min)
-CREATE TABLE IF NOT EXISTS _webauthn_challenge (
+CREATE TABLE IF NOT EXISTS _oauth_webauthn_challenge (
   challenge_id VARCHAR(36)   NOT NULL,
   tenant_id    VARCHAR(36)   NOT NULL,
   user_uid     VARCHAR(36)   NULL,   -- NULL durante autenticación (pre-login)
