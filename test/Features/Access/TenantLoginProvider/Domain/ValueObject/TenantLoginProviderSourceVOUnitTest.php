@@ -47,4 +47,13 @@ final class TenantLoginProviderSourceVOUnitTest extends TestCase
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
     }
+
+    public function test_from_string_accepts_microsoft_and_apple(): void
+    {
+        $microsoft = TenantLoginProviderSourceVO::fromString('MICROSOFT');
+        $apple = TenantLoginProviderSourceVO::fromString('apple');
+
+        $this->assertEquals(TenantLoginProviderSourceOptions::MICROSOFT, $microsoft->value());
+        $this->assertEquals(TenantLoginProviderSourceOptions::APPLE, $apple->value());
+    }
 }

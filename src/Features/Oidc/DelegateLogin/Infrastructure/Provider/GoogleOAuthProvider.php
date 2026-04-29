@@ -79,9 +79,10 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
             $name = (string) ($data['name'] ?? '');
             $email = (string) ($data['email'] ?? '');
             return new DelegatedUserData(
-                $sub,
-                $name,
-                $email
+                providerUserId: $sub,
+                email: $email,
+                name: $name,
+                emailVerified: ((bool) ($data['email_verified'] ?? false))
             );
         } catch (IdentityProviderException $ex) {
             return null;

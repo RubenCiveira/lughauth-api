@@ -52,6 +52,12 @@ class TenantLoginProviderSourceVO
         if (in_array($enumString, ['github', 'GITHUB', 'gITHUB'])) {
             return TenantLoginProviderSourceOptions::GITHUB;
         }
+        if (in_array($enumString, ['microsoft', 'MICROSOFT', 'mICROSOFT'])) {
+            return TenantLoginProviderSourceOptions::MICROSOFT;
+        }
+        if (in_array($enumString, ['apple', 'APPLE', 'aPPLE'])) {
+            return TenantLoginProviderSourceOptions::APPLE;
+        }
         if (in_array($enumString, ['saml', 'sAML', 'SAML'])) {
             return TenantLoginProviderSourceOptions::SAML;
         }

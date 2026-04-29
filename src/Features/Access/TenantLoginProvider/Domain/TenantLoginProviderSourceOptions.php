@@ -9,5 +9,7 @@ enum TenantLoginProviderSourceOptions: string
 {
     case GOOGLE = 'google';
     case GITHUB = 'github';
+    case MICROSOFT = 'microsoft';
+    case APPLE = 'apple';
     case SAML = 'saml';
 }

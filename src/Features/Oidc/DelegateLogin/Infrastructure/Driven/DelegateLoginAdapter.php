@@ -25,14 +25,16 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\DelegatedUserData;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\AppleOAuthProvider;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\GitHubOAuthProvider;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\MicrosoftOAuthProvider;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\GoogleOAuthProvider;
+use Civi\Lughauth\Features\Oidc\DelegateLogin\Infrastructure\Provider\Saml2Provider;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
 class DelegateLoginAdapter implements DelegateLoginGateway
 {
-    private readonly string $clientId;
-    private readonly string $secretId;
-
     public function __construct(
         private readonly AppConfig $conf,
         private readonly Context $context,
@@ -42,8 +44,6 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         private readonly AesCypherService $cypher,
         private readonly TenantLoginProviderReadGateway $loginProviders
     ) {
-        $this->clientId = $conf->get('google.client.id');
-        $this->secretId = $conf->get('google.secret');
     }
 
     #[Override]
@@ -129,21 +129,68 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         throw new NotFoundException('');
     }
 
-    private function loadProvider(TenantLoginProvider $provider): GoogleOAuthProvider|null
+    private function loadProvider(TenantLoginProvider $provider): DelegatedLoginProvider|null
     {
         if ($provider->isDisabled()) {
             return null;
-        } elseif ($provider->getSource() == 'GOOGLE') {
-            return
-                new GoogleOAuthProvider(
+        }
+
+        $saml = $this->readSamlConfig($provider);
+
+        return match ($provider->getSource()) {
+            TenantLoginProviderSourceOptions::GOOGLE => new GoogleOAuthProvider(
                     $this->conf,
                     $this->context,
                     $provider->uid() ?? '',
                     $provider->getPublicKey() ?? '',
                     $provider->getPrivateKey() ?? ''
-                );
-        } else {
-            return null;
+                ),
+            TenantLoginProviderSourceOptions::GITHUB => new GitHubOAuthProvider(
+                    $this->conf,
+                    $this->context,
+                    $provider->uid() ?? '',
+                    $provider->getPublicKey() ?? '',
+                    $provider->getPrivateKey() ?? ''
+                ),
+            TenantLoginProviderSourceOptions::MICROSOFT => new MicrosoftOAuthProvider(
+                    $this->conf,
+                    $this->context,
+                    $provider->uid() ?? '',
+                    $provider->getPublicKey() ?? '',
+                    $provider->getPrivateKey() ?? '',
+                    (string) ($provider->getMetadata() ?? 'common')
+                ),
+            TenantLoginProviderSourceOptions::APPLE => new AppleOAuthProvider(
+                    $this->conf,
+                    $this->context,
+                    $provider->uid() ?? '',
+                    $provider->getPublicKey() ?? '',
+                    (string) ($this->conf->get('apple.team.id', '')),
+                    (string) ($this->conf->get('apple.key.id', '')),
+                    (string) ($provider->getPrivateKey() ?? '')
+                ),
+            TenantLoginProviderSourceOptions::SAML => new Saml2Provider(
+                    $this->conf,
+                    $this->context,
+                    $provider->uid() ?? '',
+                    (string) ($saml['idp_sso_url'] ?? $provider->getPublicKey() ?? ''),
+                    (string) ($saml['entity_id'] ?? $provider->getName() ?? 'saml-sp'),
+                    (string) ($saml['name'] ?? $provider->getName() ?? 'SAML')
+                ),
+            default => null,
+        };
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function readSamlConfig(TenantLoginProvider $provider): array
+    {
+        $metadata = $provider->getMetadata();
+        if (!is_string($metadata) || $metadata === '') {
+            return [];
         }
+        $decoded = json_decode($metadata, true);
+        return is_array($decoded) ? $decoded : [];
     }
 }

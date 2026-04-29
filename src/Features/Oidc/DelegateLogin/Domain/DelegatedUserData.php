@@ -8,9 +8,13 @@ namespace Civi\Lughauth\Features\Oidc\DelegateLogin\Domain;
 class DelegatedUserData
 {
     public function __construct(
-        public readonly string $code,
-        public readonly string $name,
+        public readonly string $providerUserId,
         public readonly string $email,
+        public readonly ?string $name = null,
+        public readonly ?string $givenName = null,
+        public readonly ?string $familyName = null,
+        public readonly ?string $pictureUrl = null,
+        public readonly bool $emailVerified = false,
     ) {
     }
 }

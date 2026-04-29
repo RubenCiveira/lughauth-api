@@ -38,9 +38,9 @@ class TenantLoginProviderApiDTO
     #[OA\Property(
         property: "source",
         title: "source",
-        description:"The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, SAML).",
+        description:"The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, MICROSOFT, APPLE, SAML).",
         type: "string",
-        enum: ["GOOGLE","GITHUB","SAML"]
+        enum: ["GOOGLE","GITHUB","MICROSOFT","APPLE","SAML"]
     )]
     public ?TenantLoginProviderSourceOptions $source = null;
     #[OA\Property(
