@@ -6,7 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use GuzzleHttp\ClientInterface;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
@@ -18,7 +19,10 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 
 final class RequestObjectValidator
 {
-    public function __construct(private readonly ClientInterface $http)
+    public function __construct(
+        private readonly ClientInterface $http,
+        private readonly RequestFactoryInterface $requestFactory,
+    )
     {
     }
 
@@ -56,7 +60,8 @@ final class RequestObjectValidator
             throw new \InvalidArgumentException('invalid_request_object');
         }
 
-        $response = $this->http->request('GET', $client->jwksUri);
+        $request = $this->requestFactory->createRequest('GET', $client->jwksUri);
+        $response = $this->http->sendRequest($request);
         $body = (string) $response->getBody();
         $decoded = json_decode($body, true);
         if (!is_array($decoded)) {

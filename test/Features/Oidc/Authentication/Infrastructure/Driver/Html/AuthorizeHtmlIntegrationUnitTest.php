@@ -36,7 +36,6 @@ use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\RequestObjectValidator;
 use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
-use GuzzleHttp\ClientInterface;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
@@ -46,6 +45,8 @@ use Jose\Component\KeyManagement\JWKFactory;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 /**
  * Integration tests for {@see AuthorizeHtml} step delegation.
@@ -137,7 +138,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             new OidcUrlBuilder($context),
             $router,
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            new RequestObjectValidator($this->createMock(ClientInterface::class))
+            $this->buildRequestObjectValidator()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -255,7 +256,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $urlBuilder,
             $router,
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            new RequestObjectValidator($this->createMock(ClientInterface::class))
+            $this->buildRequestObjectValidator()
         );
 
         $response = $authorize->formAuthorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -342,7 +343,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             new OidcUrlBuilder($context),
             $router,
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            new RequestObjectValidator($this->createMock(ClientInterface::class))
+            $this->buildRequestObjectValidator()
         );
 
         $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
@@ -395,7 +396,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(RegisterUserForm::class)
             ),
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
-            new RequestObjectValidator($this->createMock(ClientInterface::class))
+            $this->buildRequestObjectValidator()
         );
 
         $this->expectException(UnauthorizedException::class);
@@ -430,5 +431,13 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $jwksJson = (string) json_encode(['keys' => [$publicJwk->all()]]);
 
         return [$privateJwk, $jwksJson];
+    }
+
+    private function buildRequestObjectValidator(): RequestObjectValidator
+    {
+        $http = $this->createMock(ClientInterface::class);
+        $requestFactory = $this->createMock(RequestFactoryInterface::class);
+        $requestFactory->method('createRequest')->willReturn(new \GuzzleHttp\Psr7\Request('GET', 'https://client.example/jwks'));
+        return new RequestObjectValidator($http, $requestFactory);
     }
 }

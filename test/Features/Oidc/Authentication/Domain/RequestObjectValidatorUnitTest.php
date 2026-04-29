@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\RequestObjectValidator;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
@@ -13,6 +12,8 @@ use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use PHPUnit\Framework\TestCase;
+use Psr\Http\Client\ClientInterface;
+use Psr\Http\Message\RequestFactoryInterface;
 
 final class RequestObjectValidatorUnitTest extends TestCase
 {
@@ -22,7 +23,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
         $jwt = $this->buildJwt($privateJwk, ['client_id' => 'client-123', 'scope' => 'openid'], 'RS256');
 
         $http = $this->createMock(ClientInterface::class);
-        $validator = new RequestObjectValidator($http);
+        $validator = $this->buildValidator($http);
         $client = new ClientData('client-123', ['code'], true, [], 3600, 'RS256', null, $publicJwkJson);
 
         $payload = $validator->validate($jwt, $client);
@@ -36,7 +37,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
         [$privateJwk, $publicJwkJson] = $this->buildRsaJwks();
         $jwt = $this->buildJwt($privateJwk, ['client_id' => 'other-client'], 'RS256');
 
-        $validator = new RequestObjectValidator($this->createMock(ClientInterface::class));
+        $validator = $this->buildValidator($this->createMock(ClientInterface::class));
         $client = new ClientData('client-123', ['code'], true, [], 3600, 'RS256', null, $publicJwkJson);
 
         $this->expectException(InvalidArgumentException::class);
@@ -49,7 +50,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
         $jwt = $this->buildJwt($privateJwk, ['client_id' => 'client-123'], 'RS256');
         $invalid = substr($jwt, 0, -1) . (str_ends_with($jwt, 'a') ? 'b' : 'a');
 
-        $validator = new RequestObjectValidator($this->createMock(ClientInterface::class));
+        $validator = $this->buildValidator($this->createMock(ClientInterface::class));
         $client = new ClientData('client-123', ['code'], true, [], 3600, 'RS256', null, $publicJwkJson);
 
         $this->expectException(InvalidArgumentException::class);
@@ -62,7 +63,7 @@ final class RequestObjectValidatorUnitTest extends TestCase
         $payload = rtrim(strtr(base64_encode('{"client_id":"client-123"}'), '+/', '-_'), '=');
         $jwt = $header . '.' . $payload . '.';
 
-        $validator = new RequestObjectValidator($this->createMock(ClientInterface::class));
+        $validator = $this->buildValidator($this->createMock(ClientInterface::class));
         $client = new ClientData('client-123', ['code'], true);
 
         $this->expectException(InvalidArgumentException::class);
@@ -76,11 +77,10 @@ final class RequestObjectValidatorUnitTest extends TestCase
 
         $http = $this->createMock(ClientInterface::class);
         $http->expects($this->once())
-            ->method('request')
-            ->with('GET', 'https://client.example/jwks')
+            ->method('sendRequest')
             ->willReturn(new Response(200, [], $publicJwkJson));
 
-        $validator = new RequestObjectValidator($http);
+        $validator = $this->buildValidator($http);
         $client = new ClientData('client-123', ['code'], true, [], 3600, 'RS256', 'https://client.example/jwks', null);
 
         $payload = $validator->validate($jwt, $client);
@@ -114,5 +114,12 @@ final class RequestObjectValidatorUnitTest extends TestCase
         $jwksJson = (string) json_encode(['keys' => [$publicJwk->all()]]);
 
         return [$privateJwk, $jwksJson];
+    }
+
+    private function buildValidator(ClientInterface $http): RequestObjectValidator
+    {
+        $requestFactory = $this->createMock(RequestFactoryInterface::class);
+        $requestFactory->method('createRequest')->willReturn(new \GuzzleHttp\Psr7\Request('GET', 'https://client.example/jwks'));
+        return new RequestObjectValidator($http, $requestFactory);
     }
 }
