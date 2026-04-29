@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Shared\Value\Validation\Rule;
 use Override;
 use Civi\Lughauth\Shared\Value\Validation\Rule;
 use Civi\Lughauth\Shared\Value\Validation\RuleFail;
-use Respect\Validation\ValidatorBuilder as Validator;
+use Civi\Lughauth\Shared\Value\Validation\RespectValidator as Validator;
 
 /**
  * Length class validates that the given value has a length between a minimum and maximum value.
