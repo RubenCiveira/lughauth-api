@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace {
     use DI\Container;
     use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+    use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use Slim\App;
     use Slim\Routing\RouteCollectorProxy;

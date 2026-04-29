@@ -16,7 +16,7 @@ namespace Civi\Lughauth\Shared\Security {
 
 namespace {
     use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+    use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\SimpleCache\CacheInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Message\UriInterface;

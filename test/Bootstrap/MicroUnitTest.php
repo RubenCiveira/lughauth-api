@@ -7,7 +7,7 @@ namespace {
     use DI\Container;
     use DI\ContainerBuilder;
     use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+    use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use Psr\EventDispatcher\EventDispatcherInterface;
     use Psr\Http\Client\ClientInterface;

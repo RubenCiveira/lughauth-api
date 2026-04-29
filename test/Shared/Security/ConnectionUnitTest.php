@@ -12,7 +12,7 @@ namespace Civi\Lughauth\Shared\Security {
 
 namespace {
     use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+    use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Civi\Lughauth\Shared\Security\Connection;
     use Civi\Lughauth\Shared\AppConfig;
 

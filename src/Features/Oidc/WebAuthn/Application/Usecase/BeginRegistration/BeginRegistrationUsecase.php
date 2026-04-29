@@ -75,7 +75,7 @@ final class BeginRegistrationUsecase
                 'userVerification' => 'preferred',
             ],
             'excludeCredentials' => array_map(
-                fn($c) => ['id' => $c->credentialId, 'type' => 'public-key'],
+                fn ($c) => ['id' => $c->credentialId, 'type' => 'public-key'],
                 $existingCredentials
             ),
             'timeout' => 60000,

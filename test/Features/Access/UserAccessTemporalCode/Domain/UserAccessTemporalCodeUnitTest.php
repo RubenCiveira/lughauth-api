@@ -10,7 +10,6 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 
 #[AllowMockObjectsWithoutExpectations]
-
 final class UserAccessTemporalCodeUnitTest extends TestCase
 {
     public function test_init_store_values(): void

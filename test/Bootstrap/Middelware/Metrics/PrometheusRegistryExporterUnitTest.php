@@ -63,7 +63,7 @@ namespace Civi\Lughauth\Bootstrap\Middleware\Metrics {
 
 namespace {
     use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+    use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Prometheus\CollectorRegistry;
     use Prometheus\MetricFamilySamples;
     use Prometheus\Storage\InMemory;

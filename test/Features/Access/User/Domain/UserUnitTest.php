@@ -11,7 +11,6 @@ use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 
 #[AllowMockObjectsWithoutExpectations]
-
 final class UserUnitTest extends TestCase
 {
     public function test_init_store_values(): void

@@ -5,7 +5,7 @@ declare(strict_types=1);
 
 namespace {
     use PHPUnit\Framework\TestCase;
-use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
+    use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Civi\Lughauth\Shared\Infrastructure\Sql\SqlParam;
     use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
     use Civi\Lughauth\Shared\Exception\NotUniqueException;

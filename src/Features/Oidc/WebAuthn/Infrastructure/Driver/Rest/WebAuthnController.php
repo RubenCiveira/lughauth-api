@@ -15,7 +15,6 @@ use Civi\Lughauth\Features\Oidc\WebAuthn\Application\Usecase\BeginRegistration\B
 use Civi\Lughauth\Features\Oidc\WebAuthn\Application\Usecase\FinishRegistration\FinishRegistrationUsecase;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Application\Usecase\BeginAuthentication\BeginAuthenticationUsecase;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Application\Usecase\FinishAuthentication\FinishAuthenticationUsecase;
-use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Exception\WebAuthnException;
 use OpenApi\Attributes as OA;
 
 final class WebAuthnController
