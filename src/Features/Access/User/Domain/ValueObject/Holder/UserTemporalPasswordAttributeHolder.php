@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserTemporalPasswordVO
 
 trait UserTemporalPasswordAttributeHolder
 {
-    protected UserTemporalPasswordVO|bool|null $temporalPassword = null;
+    protected UserTemporalPasswordVO|bool|null $temporalPassword = false;
     protected bool $temporalPasswordAssigned = false;
 
     public function getTemporalPasswordOrDefault(?UserTemporalPasswordVO $temporalPassword): ?UserTemporalPasswordVO

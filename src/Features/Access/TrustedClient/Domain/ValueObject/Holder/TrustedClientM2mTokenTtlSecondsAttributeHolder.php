@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 trait TrustedClientM2mTokenTtlSecondsAttributeHolder
 {
-    protected TrustedClientM2mTokenTtlSecondsVO|int|null $m2mTokenTtlSeconds = null;
+    protected TrustedClientM2mTokenTtlSecondsVO|int|null $m2mTokenTtlSeconds = 3600;
     protected bool $m2mTokenTtlSecondsAssigned = false;
 
     public function getM2mTokenTtlSecondsOrDefault(TrustedClientM2mTokenTtlSecondsVO $m2mTokenTtlSeconds): TrustedClientM2mTokenTtlSecondsVO

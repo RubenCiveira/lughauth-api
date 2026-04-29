@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageUrgent
 
 trait MessageUrgentAttributeHolder
 {
-    protected MessageUrgentVO|bool|null $urgent = null;
+    protected MessageUrgentVO|bool|null $urgent = false;
     protected bool $urgentAssigned = false;
 
     public function getUrgentOrDefault(MessageUrgentVO $urgent): MessageUrgentVO

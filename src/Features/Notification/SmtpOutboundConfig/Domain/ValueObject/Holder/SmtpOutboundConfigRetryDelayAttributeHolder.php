@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigRetryDelayAttributeHolder
 {
-    protected SmtpOutboundConfigRetryDelayVO|int|null $retryDelay = null;
+    protected SmtpOutboundConfigRetryDelayVO|int|null $retryDelay = 30;
     protected bool $retryDelayAssigned = false;
 
     public function getRetryDelayOrDefault(SmtpOutboundConfigRetryDelayVO $retryDelay): SmtpOutboundConfigRetryDelayVO

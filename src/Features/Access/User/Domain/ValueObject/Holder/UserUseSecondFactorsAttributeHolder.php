@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserUseSecondFactorsVO
 
 trait UserUseSecondFactorsAttributeHolder
 {
-    protected UserUseSecondFactorsVO|bool|null $useSecondFactors = null;
+    protected UserUseSecondFactorsVO|bool|null $useSecondFactors = false;
     protected bool $useSecondFactorsAssigned = false;
 
     public function getUseSecondFactorsOrDefault(?UserUseSecondFactorsVO $useSecondFactors): ?UserUseSecondFactorsVO

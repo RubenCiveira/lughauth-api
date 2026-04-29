@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 
 trait UserApproveAttributeHolder
 {
-    protected UserApproveVO|UserApproveOptions|null $approve = null;
+    protected UserApproveVO|UserApproveOptions|null $approve = UserApproveOptions::ACCEPTED;
     protected bool $approveAssigned = false;
 
     public function getApproveOrDefault(?UserApproveVO $approve): ?UserApproveVO

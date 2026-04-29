@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAss
 
 trait TemplateAssetEnabledAttributeHolder
 {
-    protected TemplateAssetEnabledVO|bool|null $enabled = null;
+    protected TemplateAssetEnabledVO|bool|null $enabled = true;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(?TemplateAssetEnabledVO $enabled): ?TemplateAssetEnabledVO

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Domain\ValueObject\RelyingPartyEn
 
 trait RelyingPartyEnabledAttributeHolder
 {
-    protected RelyingPartyEnabledVO|bool|null $enabled = null;
+    protected RelyingPartyEnabledVO|bool|null $enabled = false;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(?RelyingPartyEnabledVO $enabled): ?RelyingPartyEnabledVO

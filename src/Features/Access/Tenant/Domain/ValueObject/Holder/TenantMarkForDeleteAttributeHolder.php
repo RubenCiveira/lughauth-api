@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantMarkForDeleteV
 
 trait TenantMarkForDeleteAttributeHolder
 {
-    protected TenantMarkForDeleteVO|bool|null $markForDelete = null;
+    protected TenantMarkForDeleteVO|bool|null $markForDelete = false;
     protected bool $markForDeleteAssigned = false;
 
     public function getMarkForDeleteOrDefault(TenantMarkForDeleteVO $markForDelete): TenantMarkForDeleteVO

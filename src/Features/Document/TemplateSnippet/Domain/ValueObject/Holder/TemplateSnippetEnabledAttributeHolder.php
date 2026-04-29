@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Document\TemplateSnippet\Domain\ValueObject\TemplateS
 
 trait TemplateSnippetEnabledAttributeHolder
 {
-    protected TemplateSnippetEnabledVO|bool|null $enabled = null;
+    protected TemplateSnippetEnabledVO|bool|null $enabled = true;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(?TemplateSnippetEnabledVO $enabled): ?TemplateSnippetEnabledVO

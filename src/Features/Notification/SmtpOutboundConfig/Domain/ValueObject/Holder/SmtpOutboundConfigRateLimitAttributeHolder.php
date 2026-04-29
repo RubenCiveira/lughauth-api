@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigRateLimitAttributeHolder
 {
-    protected SmtpOutboundConfigRateLimitVO|int|null $rateLimit = null;
+    protected SmtpOutboundConfigRateLimitVO|int|null $rateLimit = 10;
     protected bool $rateLimitAssigned = false;
 
     public function getRateLimitOrDefault(SmtpOutboundConfigRateLimitVO $rateLimit): SmtpOutboundConfigRateLimitVO

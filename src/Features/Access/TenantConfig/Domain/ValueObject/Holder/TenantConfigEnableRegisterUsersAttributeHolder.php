@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEn
 
 trait TenantConfigEnableRegisterUsersAttributeHolder
 {
-    protected TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null;
+    protected TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = true;
     protected bool $enableRegisterUsersAssigned = false;
 
     public function getEnableRegisterUsersOrDefault(?TenantConfigEnableRegisterUsersVO $enableRegisterUsers): ?TenantConfigEnableRegisterUsersVO

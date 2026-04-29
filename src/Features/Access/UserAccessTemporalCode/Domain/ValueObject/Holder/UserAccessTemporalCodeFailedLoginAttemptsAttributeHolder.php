@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObject\User
 
 trait UserAccessTemporalCodeFailedLoginAttemptsAttributeHolder
 {
-    protected UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts = null;
+    protected UserAccessTemporalCodeFailedLoginAttemptsVO|int|null $failedLoginAttempts = 0;
     protected bool $failedLoginAttemptsAssigned = false;
 
     public function getFailedLoginAttemptsOrDefault(?UserAccessTemporalCodeFailedLoginAttemptsVO $failedLoginAttempts): ?UserAccessTemporalCodeFailedLoginAttemptsVO

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 trait TrustedClientTokenEndpointAuthMethodAttributeHolder
 {
-    protected TrustedClientTokenEndpointAuthMethodVO|string|null $tokenEndpointAuthMethod = null;
+    protected TrustedClientTokenEndpointAuthMethodVO|string|null $tokenEndpointAuthMethod = 'client_secret_basic';
     protected bool $tokenEndpointAuthMethodAssigned = false;
 
     public function getTokenEndpointAuthMethodOrDefault(TrustedClientTokenEndpointAuthMethodVO $tokenEndpointAuthMethod): TrustedClientTokenEndpointAuthMethodVO

@@ -120,7 +120,7 @@ class TrustedClient extends TrustedClientRef
         TrustedClientPolicyUriVO|string|null $policyUri = null,
         TrustedClientTosUriVO|string|null $tosUri = null,
         TrustedClientGrantTypesJsonVO|string|null $grantTypesJson = null,
-        mixed $responseTypesJson = null,
+        TrustedClientResponseTypesJsonVO|string|null $responseTypesJson = null,
         TrustedClientDynamicallyRegisteredVO|bool|null $dynamicallyRegistered = null,
         TrustedClientRegisteredAtVO|\DateTimeImmutable|null $registeredAt = null,
         TrustedClientAllowedScopesM2mVO|string|null $allowedScopesM2m = null,
@@ -262,7 +262,6 @@ class TrustedClient extends TrustedClientRef
         $data['policyUri'] = $this->getPolicyUri();
         $data['tosUri'] = $this->getTosUri();
         $data['tokenEndpointAuthMethod'] = $this->getTokenEndpointAuthMethod();
-        $data['responseTypesJson'] = $this->getResponseTypesJson();
         $data['dynamicallyRegistered'] = $this->isDynamicallyRegistered();
         $data['registeredAt'] = $this->getRegisteredAt();
         $data['m2mTokenTtlSeconds'] = $this->getM2mTokenTtlSeconds();

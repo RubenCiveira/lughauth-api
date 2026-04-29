@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigMaxRetriesAttributeHolder
 {
-    protected SmtpOutboundConfigMaxRetriesVO|int|null $maxRetries = null;
+    protected SmtpOutboundConfigMaxRetriesVO|int|null $maxRetries = 1;
     protected bool $maxRetriesAssigned = false;
 
     public function getMaxRetriesOrDefault(SmtpOutboundConfigMaxRetriesVO $maxRetries): SmtpOutboundConfigMaxRetriesVO

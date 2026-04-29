@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeIsDefaultVO;
 
 trait ThemeIsDefaultAttributeHolder
 {
-    protected ThemeIsDefaultVO|bool|null $isDefault = null;
+    protected ThemeIsDefaultVO|bool|null $isDefault = false;
     protected bool $isDefaultAssigned = false;
 
     public function getIsDefaultOrDefault(?ThemeIsDefaultVO $isDefault): ?ThemeIsDefaultVO

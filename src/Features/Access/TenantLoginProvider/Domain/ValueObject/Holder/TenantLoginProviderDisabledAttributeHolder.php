@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 
 trait TenantLoginProviderDisabledAttributeHolder
 {
-    protected TenantLoginProviderDisabledVO|bool|null $disabled = null;
+    protected TenantLoginProviderDisabledVO|bool|null $disabled = false;
     protected bool $disabledAssigned = false;
 
     public function getDisabledOrDefault(?TenantLoginProviderDisabledVO $disabled): ?TenantLoginProviderDisabledVO

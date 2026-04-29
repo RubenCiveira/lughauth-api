@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 
 trait TrustedClientEnabledAttributeHolder
 {
-    protected TrustedClientEnabledVO|bool|null $enabled = null;
+    protected TrustedClientEnabledVO|bool|null $enabled = false;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(TrustedClientEnabledVO $enabled): TrustedClientEnabledVO

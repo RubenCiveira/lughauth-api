@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigFo
 
 trait TenantConfigForceMfaAttributeHolder
 {
-    protected TenantConfigForceMfaVO|bool|null $forceMfa = null;
+    protected TenantConfigForceMfaVO|bool|null $forceMfa = false;
     protected bool $forceMfaAssigned = false;
 
     public function getForceMfaOrDefault(TenantConfigForceMfaVO $forceMfa): TenantConfigForceMfaVO

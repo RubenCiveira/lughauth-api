@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ValueObject\ApiKeyClientEn
 
 trait ApiKeyClientEnabledAttributeHolder
 {
-    protected ApiKeyClientEnabledVO|bool|null $enabled = null;
+    protected ApiKeyClientEnabledVO|bool|null $enabled = false;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(ApiKeyClientEnabledVO $enabled): ApiKeyClientEnabledVO

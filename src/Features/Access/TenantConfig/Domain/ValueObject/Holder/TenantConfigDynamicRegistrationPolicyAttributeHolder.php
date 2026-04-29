@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigDynamicRegistr
 
 trait TenantConfigDynamicRegistrationPolicyAttributeHolder
 {
-    protected TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = null;
+    protected TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = TenantConfigDynamicRegistrationPolicyOptions::DISABLED;
     protected bool $dynamicRegistrationPolicyAssigned = false;
 
     public function getDynamicRegistrationPolicyOrDefault(?TenantConfigDynamicRegistrationPolicyVO $dynamicRegistrationPolicy): ?TenantConfigDynamicRegistrationPolicyVO

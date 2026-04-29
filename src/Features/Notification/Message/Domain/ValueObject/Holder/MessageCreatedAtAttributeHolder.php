@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Notification\Message\Domain\ValueObject\MessageCreate
 
 trait MessageCreatedAtAttributeHolder
 {
-    protected MessageCreatedAtVO|\DateTimeImmutable|null $createdAt = null;
+    protected MessageCreatedAtVO|\DateTimeImmutable|null $createdAt = new DateTimeImmutable('now');
     protected bool $createdAtAssigned = false;
 
     public function getCreatedAtOrDefault(MessageCreatedAtVO $createdAt): MessageCreatedAtVO

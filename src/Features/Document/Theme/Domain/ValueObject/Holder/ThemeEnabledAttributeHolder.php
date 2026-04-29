@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeEnabledVO;
 
 trait ThemeEnabledAttributeHolder
 {
-    protected ThemeEnabledVO|bool|null $enabled = null;
+    protected ThemeEnabledVO|bool|null $enabled = true;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(?ThemeEnabledVO $enabled): ?ThemeEnabledVO

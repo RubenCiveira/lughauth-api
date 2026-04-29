@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\ValueObject\TenantTerm
 
 trait TenantTermsOfUseEnabledAttributeHolder
 {
-    protected TenantTermsOfUseEnabledVO|bool|null $enabled = null;
+    protected TenantTermsOfUseEnabledVO|bool|null $enabled = false;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(TenantTermsOfUseEnabledVO $enabled): TenantTermsOfUseEnabledVO

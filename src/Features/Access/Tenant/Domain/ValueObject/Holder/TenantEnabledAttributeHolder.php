@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantEnabledVO;
 
 trait TenantEnabledAttributeHolder
 {
-    protected TenantEnabledVO|bool|null $enabled = null;
+    protected TenantEnabledVO|bool|null $enabled = false;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(TenantEnabledVO $enabled): TenantEnabledVO

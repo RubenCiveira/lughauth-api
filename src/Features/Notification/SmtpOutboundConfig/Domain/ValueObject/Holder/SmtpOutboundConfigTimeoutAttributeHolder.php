@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigTimeoutAttributeHolder
 {
-    protected SmtpOutboundConfigTimeoutVO|int|null $timeout = null;
+    protected SmtpOutboundConfigTimeoutVO|int|null $timeout = 30;
     protected bool $timeoutAssigned = false;
 
     public function getTimeoutOrDefault(SmtpOutboundConfigTimeoutVO $timeout): SmtpOutboundConfigTimeoutVO

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 
 trait UserEnabledAttributeHolder
 {
-    protected UserEnabledVO|bool|null $enabled = null;
+    protected UserEnabledVO|bool|null $enabled = true;
     protected bool $enabledAssigned = false;
 
     public function getEnabledOrDefault(?UserEnabledVO $enabled): ?UserEnabledVO

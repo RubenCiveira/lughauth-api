@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\ValueObject\TenantRootVO;
 
 trait TenantRootAttributeHolder
 {
-    protected TenantRootVO|bool|null $root = null;
+    protected TenantRootVO|bool|null $root = false;
     protected bool $rootAssigned = false;
 
     public function getRootOrDefault(?TenantRootVO $root): ?TenantRootVO

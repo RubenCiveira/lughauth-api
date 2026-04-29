@@ -143,7 +143,7 @@ class TrustedClientApiDTO
         description:"El response types json de trusted client",
         type: "string"
     )]
-    public mixed $responseTypesJson = null;
+    public ?string $responseTypesJson = null;
     #[OA\Property(
         property: "dynamicallyRegistered",
         title: "dynamically registered",
