@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\WebAuthnLoginForm;
 use Psr\Http\Message\ResponseInterface;
 
 final class OidcStepRouter
@@ -50,6 +51,7 @@ final class OidcStepRouter
         RecoverPassForm $recover,
         DelegateForm $delegate,
         RegisterUserForm $register,
+        WebAuthnLoginForm $webAuthnLogin,
         private readonly string $fallbackStep = StepName::LOGIN->value
     ) {
         $this->steps = [
@@ -62,6 +64,7 @@ final class OidcStepRouter
             StepName::NEW_PASS->value => $pass,
             StepName::REGISTER_USER->value => $register,
             StepName::DELEGATED_LOGIN->value => $delegate,
+            StepName::WEBAUTHN_LOGIN->value => $webAuthnLogin,
         ];
     }
 

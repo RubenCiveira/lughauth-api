@@ -16,4 +16,6 @@ enum StepName: string
     case NEW_PASS = 'new-pass';
     case REGISTER_USER = 'register-user';
     case DELEGATED_LOGIN = 'delegated-login';
+    case WEBAUTHN_LOGIN = 'webauthn-login';
+    case WEBAUTHN_REGISTER = 'webauthn-register';
 }

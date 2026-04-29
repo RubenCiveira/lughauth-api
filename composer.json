@@ -65,7 +65,9 @@
     "dragonmantank/cron-expression": "*",
     "symfony/lock": "*",
     "enqueue/amqp-lib": "*",
-    "salesforce/handlebars-php": "*"
+    "salesforce/handlebars-php": "*",
+    "web-auth/webauthn-framework": "^4.9",
+    "spomky-labs/cbor-php": "^3.0"
   },
   "require-dev": {
     "phpunit/phpunit": "*",

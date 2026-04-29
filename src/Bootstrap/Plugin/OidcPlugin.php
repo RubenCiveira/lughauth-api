@@ -55,6 +55,11 @@ use Civi\Lughauth\Features\Oidc\Par\Infrastructure\Driver\Rest\ParController;
 use Civi\Lughauth\Features\Oidc\Registration\Domain\Gateway\ClientRegistrationGateway;
 use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driven\ClientRegistrationAdapter;
 use Civi\Lughauth\Features\Oidc\Registration\Infrastructure\Driver\Rest\DynamicClientRegistrationController;
+use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
+use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Driven\WebAuthnCredentialSqlAdapter;
+use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
+use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Driven\WebAuthnChallengeSqlAdapter;
+use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Driver\Rest\WebAuthnController;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -78,6 +83,8 @@ class OidcPlugin extends MicroPlugin
         $def[TokenRevocationGateway::class] = \DI\autowire(TokenRevocationSqlAdapter::class);
         $def[ParRequestGateway::class] = \DI\autowire(ParRequestSqlAdapter::class);
         $def[ClientRegistrationGateway::class] = \DI\autowire(ClientRegistrationAdapter::class);
+        $def[WebAuthnCredentialGateway::class] = \DI\autowire(WebAuthnCredentialSqlAdapter::class);
+        $def[WebAuthnChallengeGateway::class] = \DI\autowire(WebAuthnChallengeSqlAdapter::class);
         return $def;
     }
 
@@ -108,6 +115,11 @@ class OidcPlugin extends MicroPlugin
             $group->post('/authorize', [AuthorizeHtml::class, 'formAuthorize']);
             $group->get('/check-session', [AuthorizeHtml::class, 'refresh']);
             $group->post('/check-session', [AuthorizeHtml::class, 'refresh']);
+
+            $group->post('/webauthn/register/begin', [WebAuthnController::class, 'registerBegin']);
+            $group->post('/webauthn/register/finish', [WebAuthnController::class, 'registerFinish']);
+            $group->post('/webauthn/authenticate/begin', [WebAuthnController::class, 'authenticateBegin']);
+            $group->post('/webauthn/authenticate/finish', [WebAuthnController::class, 'authenticateFinish']);
         });
     }
 }
