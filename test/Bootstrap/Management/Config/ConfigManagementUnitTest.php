@@ -4,12 +4,14 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Bootstrap\Management\Config\ConfigManagement;
 
 /**
  * Unit tests for {@see ConfigManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class ConfigManagementUnitTest extends TestCase
 {
     /**

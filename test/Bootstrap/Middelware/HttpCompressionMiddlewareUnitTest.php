@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Slim\Psr7\Response;
 use Slim\Psr7\Factory\StreamFactory;
 use Psr\Http\Message\ServerRequestInterface;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Bootstrap\Middleware\HttpCompressionMiddleware;
 /**
  * Unit tests for HttpCompressionMiddleware.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class HttpCompressionMiddlewareUnitTest extends TestCase
 {
     /**

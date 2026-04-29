@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/FormsTestCase.php';
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
@@ -18,6 +19,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 /**
  * Unit tests for {@see DelegateForm} step integration.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class DelegateFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateValidatesDelegatedLoginAndProceeds(): void

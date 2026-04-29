@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Monolog\Level;
 use Monolog\LogRecord;
 use Civi\Lughauth\Shared\Context;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Shared\Infrastructure\Log\TraceContextProcessor;
 /**
  * Unit tests for {@see TraceContextProcessor}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class TraceContextProcessorUnitTest extends TestCase
 {
     /**

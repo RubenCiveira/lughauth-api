@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use OpenTelemetry\SDK\Trace\SpanDataInterface;
 use OpenTelemetry\SDK\Trace\StatusDataInterface;
 use OpenTelemetry\SDK\Common\Attribute\AttributesInterface;
@@ -12,6 +13,7 @@ use Civi\Lughauth\Shared\Infrastructure\Log\SpanJsonGzipRotatingFileExporter;
 /**
  * Unit tests for {@see SpanJsonGzipRotatingFileExporter}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class SpanJsonGzipRotatingFileExporterUnitTest extends TestCase
 {
     /**

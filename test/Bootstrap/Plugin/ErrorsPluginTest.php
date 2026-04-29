@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace {
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Http\Message\ResponseInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Slim\Middleware\ErrorMiddleware;
@@ -16,6 +17,7 @@ namespace {
     /**
      * Unit tests for {@see ErrorsPlugin}.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class ErrorsPluginTest extends TestCase
     {
         /**

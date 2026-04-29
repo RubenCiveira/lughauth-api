@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Infrastructure\Event\EventBus;
 use Civi\Lughauth\Shared\Infrastructure\Event\EnqueuePublisher;
@@ -12,6 +13,7 @@ use Civi\Lughauth\Shared\Event\PublicEvent;
 /**
  * Unit tests for {@see EventBus}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class EventBusUnitTest extends TestCase
 {
     /**

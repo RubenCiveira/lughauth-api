@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\AppConfig;
@@ -14,6 +15,7 @@ use Civi\Lughauth\Shared\Security\Identity;
 /**
  * Unit tests for {@see Context}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class ContextUnitTest extends TestCase
 {
     /**

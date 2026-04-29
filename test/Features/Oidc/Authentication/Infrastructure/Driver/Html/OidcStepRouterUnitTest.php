@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Slim\Psr7\Response;
 use Slim\Psr7\Factory\ServerRequestFactory;
@@ -33,6 +34,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 /**
  * Unit tests for {@see OidcStepRouter}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class OidcStepRouterUnitTest extends TestCase
 {
     private array $serverBackup = [];

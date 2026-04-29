@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Security\AllowDecision;
@@ -14,6 +15,7 @@ use Civi\Lughauth\Shared\Security\Rbac\Handler;
 /**
  * Unit tests for AllowListener.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class AllowListenerUnitTest extends TestCase
 {
     /**

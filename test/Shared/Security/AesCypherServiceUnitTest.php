@@ -4,11 +4,13 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 
 /**
  * Unit tests for AesCypherService.
  */
+#[AllowMockObjectsWithoutExpectations]
 class AesCypherServiceUnitTest extends TestCase
 {
     /**

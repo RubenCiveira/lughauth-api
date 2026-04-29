@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Container\ContainerInterface;
 use Slim\Middleware\ErrorMiddleware;
 use Slim\Routing\RouteCollectorProxy;
@@ -12,6 +13,8 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Infrastructure\Scheduler\SchedulerManager;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class AggregatedMicroPluginUnitTest extends TestCase
 {

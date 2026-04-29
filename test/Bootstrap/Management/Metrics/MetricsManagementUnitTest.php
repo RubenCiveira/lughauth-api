@@ -4,12 +4,14 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Prometheus\CollectorRegistry;
 use Civi\Lughauth\Bootstrap\Management\Metrics\MetricsManagement;
 
 /**
  * Unit tests for {@see MetricsManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class MetricsManagementUnitTest extends TestCase
 {
     /**

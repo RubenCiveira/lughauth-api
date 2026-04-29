@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use OpenTelemetry\API\Trace\SpanInterface;
 use OpenTelemetry\Context\ScopeInterface;
 use Civi\Lughauth\Shared\Observability\SpanHolder;
@@ -11,6 +12,7 @@ use Civi\Lughauth\Shared\Observability\SpanHolder;
 /**
  * Unit tests for SpanHolder.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class SpanHolderUnitTest extends TestCase
 {
     /**

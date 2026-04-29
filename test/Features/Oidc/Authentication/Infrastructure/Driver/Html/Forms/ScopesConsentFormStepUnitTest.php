@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/FormsTestCase.php';
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
@@ -30,6 +31,7 @@ use Civi\Lughauth\Shared\Context;
 /**
  * Unit tests for {@see ScopesConsentForm} step integration.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class ScopesConsentFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateStoresApprovedScopesAndProceeds(): void

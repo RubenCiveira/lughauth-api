@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Slim\Interfaces\DispatcherInterface;
 use Slim\Interfaces\RouteParserInterface;
 use Slim\Routing\RouteContext;
@@ -14,6 +15,7 @@ use Civi\Lughauth\Shared\Infrastructure\View\AssetOptimizingTwigEnvironment;
 /**
  * Unit tests for {@see TwigBuilder}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class TwigBuilderUnitTest extends TestCase
 {
     /**

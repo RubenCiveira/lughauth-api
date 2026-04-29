@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/FormsTestCase.php';
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RecoverPassForm;
@@ -18,6 +19,7 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 /**
  * Unit tests for {@see RecoverPassForm} step integration.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class RecoverPassFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateValidatesChangeRequestAndProceeds(): void

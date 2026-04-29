@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Slim\Psr7\Response;
 use Slim\Interfaces\DispatcherInterface;
 use Slim\Interfaces\RouteInterface;
@@ -26,6 +27,7 @@ use Civi\Lughauth\Bootstrap\Middleware\Metrics\TimeWindowPolicy;
 /**
  * Unit tests for PrometheusMetricMiddleware.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class PrometheusMetricMiddlewareUnitTest extends TestCase
 {
     /**

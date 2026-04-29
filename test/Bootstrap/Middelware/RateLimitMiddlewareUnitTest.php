@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -18,6 +19,7 @@ use Civi\Lughauth\Bootstrap\Middleware\Rate\ConnectionResolverInterface;
 /**
  * Unit tests for RateLimitMiddleware.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class RateLimitMiddlewareUnitTest extends TestCase
 {
     /**

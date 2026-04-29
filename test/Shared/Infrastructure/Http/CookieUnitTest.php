@@ -4,8 +4,11 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class CookieUnitTest extends TestCase
 {

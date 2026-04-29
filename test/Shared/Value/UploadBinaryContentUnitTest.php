@@ -16,6 +16,7 @@ namespace Civi\Lughauth\Shared\Value {
 namespace {
 
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Message\UploadedFileInterface;
     use Civi\Lughauth\Shared\Value\UploadBinaryContent;
@@ -23,6 +24,7 @@ namespace {
     /**
      * Unit tests for UploadBinaryContent.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class UploadBinaryContentUnitTest extends TestCase
     {
         protected function tearDown(): void

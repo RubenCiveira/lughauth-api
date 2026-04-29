@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Civi\Lughauth\Shared\AppConfig;
@@ -14,6 +15,7 @@ use Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsFS;
 /**
  * Unit tests for {@see HistogramManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class HistogramManagementUnitTest extends TestCase
 {
     /**

@@ -4,10 +4,13 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserSecondFactorSeedVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class UserSecondFactorSeedVOUnitTest extends TestCase
 {

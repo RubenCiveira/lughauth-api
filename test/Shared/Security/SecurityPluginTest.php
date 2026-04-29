@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace {
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
     use Civi\Lughauth\Shared\Security\SecurityPlugin;
@@ -63,6 +64,7 @@ namespace {
     /**
      * Unit tests for {@see SecurityPlugin}.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class SecurityPluginTest extends TestCase
     {
         /**

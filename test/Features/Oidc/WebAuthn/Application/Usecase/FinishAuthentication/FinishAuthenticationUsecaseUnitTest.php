@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
@@ -14,6 +15,8 @@ use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnCredentialGatewa
 use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Exception\WebAuthnException;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Application\Usecase\FinishAuthentication\FinishAuthenticationUsecase;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Service\WebAuthnVerifier;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class FinishAuthenticationUsecaseUnitTest extends TestCase
 {

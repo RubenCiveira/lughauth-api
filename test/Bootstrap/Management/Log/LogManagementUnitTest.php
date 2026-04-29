@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/LogManagementGzOverrides.php';
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Bootstrap\Management\Log\LogManagement;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Bootstrap\Management\Log\LogManagement;
 /**
  * Unit tests for {@see LogManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class LogManagementUnitTest extends TestCase
 {
     /**

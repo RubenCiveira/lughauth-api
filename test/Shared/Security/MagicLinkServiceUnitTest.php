@@ -16,6 +16,7 @@ namespace Civi\Lughauth\Shared\Security {
 
 namespace {
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\SimpleCache\CacheInterface;
     use Psr\Http\Message\ServerRequestInterface;
     use Psr\Http\Message\UriInterface;
@@ -23,6 +24,8 @@ namespace {
     use Civi\Lughauth\Shared\Security\Identity;
     use Civi\Lughauth\Shared\Security\Connection;
     use Civi\Lughauth\Shared\AppConfig;
+
+    #[AllowMockObjectsWithoutExpectations]
 
     final class MagicLinkServiceUnitTest extends TestCase
     {

@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Slim\Psr7\Factory\StreamFactory;
@@ -12,6 +13,7 @@ use Civi\Lughauth\Bootstrap\Management\Collector\LogCollector;
 /**
  * Unit tests for {@see LogCollector}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class LogCollectorUnitTest extends TestCase
 {
     /**

@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Slim\Psr7\Response;
 use Slim\Psr7\Factory\ServerRequestFactory;
@@ -52,6 +53,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 /**
  * Integration tests for {@see AuthorizeHtml} step delegation.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 {
     private array $serverBackup = [];

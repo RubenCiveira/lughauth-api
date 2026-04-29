@@ -6,7 +6,10 @@ declare(strict_types=1);
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class UserAccessTemporalCodeUnitTest extends TestCase
 {

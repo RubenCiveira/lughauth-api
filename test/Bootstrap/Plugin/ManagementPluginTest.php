@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace {
     use Cron\CronExpression;
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
     use Civi\Lughauth\Bootstrap\MicroConfig;
@@ -92,6 +93,7 @@ namespace {
     /**
      * Unit tests for {@see ManagementPlugin}.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class ManagementPluginTest extends TestCase
     {
         /**

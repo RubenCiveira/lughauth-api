@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
@@ -14,6 +15,8 @@ use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway
 use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Application\Usecase\BeginRegistration\BeginRegistrationUsecase;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class BeginRegistrationUsecaseUnitTest extends TestCase
 {
@@ -43,8 +46,8 @@ final class BeginRegistrationUsecaseUnitTest extends TestCase
         $tenant = $this->buildTenant('tenant-uid', 'acme');
         $user = $this->buildUser('user-uid', 'tenant-uid', 'alice@acme.com', 'Alice');
 
-        $this->tenants->method('findOneByName')->with('acme')->willReturn($tenant);
-        $this->users->method('findOneByUid')->with('user-uid')->willReturn($user);
+        $this->tenants->expects($this->once())->method('findOneByName')->with('acme')->willReturn($tenant);
+        $this->users->expects($this->once())->method('findOneByUid')->with('user-uid')->willReturn($user);
         $this->challengeGateway->expects($this->once())->method('store');
         $this->credentialGateway->method('findByUser')->willReturn([]);
 

@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Slim\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Bootstrap\Middleware\CorsMiddleware;
 /**
  * Unit tests for CorsMiddleware.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class CorsMiddlewareUnitTest extends TestCase
 {
     /**

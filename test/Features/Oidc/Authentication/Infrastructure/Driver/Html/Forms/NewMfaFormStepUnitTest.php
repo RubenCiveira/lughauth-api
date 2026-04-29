@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/FormsTestCase.php';
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
@@ -18,6 +19,7 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 /**
  * Unit tests for {@see NewMfaForm} step integration.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class NewMfaFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateStoresNewMfaAndProceeds(): void

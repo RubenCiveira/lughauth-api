@@ -17,6 +17,7 @@ namespace Civi\Lughauth\Shared\Observability {
 
 namespace {
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use OpenTelemetry\API\Trace\SpanInterface;
     use OpenTelemetry\API\Trace\SpanBuilderInterface;
@@ -28,6 +29,7 @@ namespace {
     /**
      * Unit tests for TracerAwareTrait.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class TracerAwareTraitUnitTest extends TestCase
     {
         protected function setUp(): void

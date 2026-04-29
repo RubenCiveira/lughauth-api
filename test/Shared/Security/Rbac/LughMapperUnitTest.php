@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\Identity;
@@ -20,6 +21,7 @@ use Psr\SimpleCache\CacheInterface;
 /**
  * Unit tests for LughMapper.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class LughMapperUnitTest extends TestCase
 {
     /**

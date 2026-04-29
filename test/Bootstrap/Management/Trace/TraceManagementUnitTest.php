@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/TraceManagementGzOverrides.php';
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Bootstrap\Management\Trace\TraceManagement;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Bootstrap\Management\Trace\TraceManagement;
 /**
  * Unit tests for {@see TraceManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class TraceManagementUnitTest extends TestCase
 {
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/FormsTestCase.php';
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
@@ -19,6 +20,7 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 /**
  * Unit tests for {@see ConsentForm} step integration.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class ConsentFormStepUnitTest extends FormsTestCase
 {
     public function testAuthenticateStoresConsentAndProceeds(): void

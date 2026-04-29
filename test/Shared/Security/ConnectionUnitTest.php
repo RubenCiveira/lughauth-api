@@ -12,12 +12,14 @@ namespace Civi\Lughauth\Shared\Security {
 
 namespace {
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Civi\Lughauth\Shared\Security\Connection;
     use Civi\Lughauth\Shared\AppConfig;
 
     /**
      * Unit tests for Connection.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class ConnectionUnitTest extends TestCase
     {
         protected function setUp(): void

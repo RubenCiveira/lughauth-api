@@ -4,12 +4,14 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Bootstrap\Middleware\Rate\BaseBucketResolver;
 
 /**
  * Unit tests for BaseBucketResolver.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class BaseBucketResolverUnitTest extends TestCase
 {
     /**

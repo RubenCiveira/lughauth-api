@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Slim\Interfaces\RouteCollectorInterface;
 use Slim\Interfaces\RouteInterface;
 use Slim\App;
@@ -12,6 +13,7 @@ use Civi\Lughauth\Bootstrap\Management\Routes\RoutesManagement;
 /**
  * Unit tests for {@see RoutesManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class RoutesManagementUnitTest extends TestCase
 {
     /**

@@ -7,7 +7,10 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Features\Access\User\Domain\User;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class UserUnitTest extends TestCase
 {

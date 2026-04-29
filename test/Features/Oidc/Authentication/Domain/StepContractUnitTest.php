@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Slim\Psr7\Response;
 use Slim\Psr7\Factory\ServerRequestFactory;
@@ -21,6 +22,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 /**
  * Unit tests for step contract DTOs.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class StepContractUnitTest extends TestCase
 {
     private array $serverBackup = [];

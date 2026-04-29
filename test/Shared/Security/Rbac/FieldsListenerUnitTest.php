@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\FieldsAccess;
 use Civi\Lughauth\Shared\Security\Identity;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Shared\Security\Rbac\Handler;
 /**
  * Unit tests for FieldsListener.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class FieldsListenerUnitTest extends TestCase
 {
     /**

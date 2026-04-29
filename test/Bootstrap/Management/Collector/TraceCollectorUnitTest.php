@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use OpenTelemetry\SDK\Trace\SpanExporterInterface;
 use OpenTelemetry\SDK\Common\Future\CompletedFuture;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Bootstrap\Management\Collector\TraceCollector;
 /**
  * Unit tests for {@see TraceCollector}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class TraceCollectorUnitTest extends TestCase
 {
     /**

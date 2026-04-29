@@ -6,6 +6,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/EnqueueTestStubs.php';
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Event\PublicEvent;
 use Civi\Lughauth\Shared\Infrastructure\Event\EnqueuePublisher;
@@ -16,6 +17,7 @@ use Civi\Lughauth\Shared\Observability\TraceContext;
 /**
  * Unit tests for {@see EnqueuePublisher}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class EnqueuePublisherUnitTest extends TestCase
 {
     /**

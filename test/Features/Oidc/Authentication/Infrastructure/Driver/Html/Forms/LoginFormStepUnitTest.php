@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/FormsTestCase.php';
 
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Civi\Lughauth\Shared\AppConfig;
@@ -28,6 +29,7 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 /**
  * Unit tests for {@see LoginForm} step integration.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class LoginFormStepUnitTest extends FormsTestCase
 {
     /**

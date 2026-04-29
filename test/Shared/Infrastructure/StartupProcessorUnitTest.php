@@ -23,10 +23,13 @@ namespace Civi\Lughauth\Shared\Infrastructure {
 namespace {
 
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
     use Civi\Lughauth\Shared\Infrastructure\StartupProcess;
+
+    #[AllowMockObjectsWithoutExpectations]
 
     final class StartupProcessorUnitTest extends TestCase
     {

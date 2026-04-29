@@ -26,6 +26,7 @@ namespace Civi\Lughauth\Shared\Infrastructure\LongTask {
 
 namespace {
     use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
     use Psr\Container\ContainerInterface;
     use Civi\Lughauth\Shared\Context;
     use Civi\Lughauth\Shared\Infrastructure\LongTask\Runner;
@@ -42,6 +43,7 @@ namespace {
     /**
      * Unit tests for {@see Runner}.
      */
+    #[AllowMockObjectsWithoutExpectations]
     final class RunnerUnitTest extends TestCase
     {
         protected function setUp(): void

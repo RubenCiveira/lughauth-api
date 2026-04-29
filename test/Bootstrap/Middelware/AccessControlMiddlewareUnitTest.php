@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -24,6 +25,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 /**
  * Unit tests for AccessControlMiddleware.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class AccessControlMiddlewareUnitTest extends TestCase
 {
     /**

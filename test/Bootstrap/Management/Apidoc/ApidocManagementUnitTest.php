@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Slim\App;
 use Slim\Psr7\Response;
 use Psr\Http\Message\ServerRequestInterface;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Bootstrap\Management\Apidoc\ApidocManagement;
 /**
  * Unit tests for {@see ApidocManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class ApidocManagementUnitTest extends TestCase
 {
     /**

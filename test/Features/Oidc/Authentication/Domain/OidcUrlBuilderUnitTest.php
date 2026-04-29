@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
@@ -15,6 +16,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcUrlBuilder;
 /**
  * Unit tests for {@see OidcUrlBuilder}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class OidcUrlBuilderUnitTest extends TestCase
 {
     private array $serverBackup = [];

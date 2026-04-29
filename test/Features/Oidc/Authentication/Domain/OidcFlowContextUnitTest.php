@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use DI\ContainerBuilder;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Civi\Lughauth\Shared\AppConfig;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 /**
  * Unit tests for {@see OidcFlowContext}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class OidcFlowContextUnitTest extends TestCase
 {
     private array $serverBackup = [];

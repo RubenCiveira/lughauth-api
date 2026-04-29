@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditQueryService;
@@ -12,6 +13,7 @@ use Civi\Lughauth\Bootstrap\Management\History\HistoryManagement;
 /**
  * Unit tests for {@see HistoryManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class HistoryManagementUnitTest extends TestCase
 {
     /**

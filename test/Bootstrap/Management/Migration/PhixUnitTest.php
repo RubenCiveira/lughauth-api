@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
@@ -11,6 +12,7 @@ use Civi\Lughauth\Bootstrap\Management\Migration\Phix;
 /**
  * Unit tests for {@see Phix}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class PhixUnitTest extends TestCase
 {
     /**

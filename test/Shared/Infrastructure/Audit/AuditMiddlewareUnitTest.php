@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
@@ -15,6 +16,8 @@ use Civi\Lughauth\Shared\Security\Identity;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditChange;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditMiddleware;
+
+#[AllowMockObjectsWithoutExpectations]
 
 final class AuditMiddlewareUnitTest extends TestCase
 {
@@ -35,7 +38,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $context->method('getConnection')->willReturn($connection);
 
         $config = $this->createMock(AppConfig::class);
-        $config->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
+        $config->expects($this->once())->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
 
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
 
@@ -61,7 +64,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $config = $this->createMock(AppConfig::class);
-        $config->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
+        $config->expects($this->once())->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
 
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
 
@@ -85,7 +88,7 @@ final class AuditMiddlewareUnitTest extends TestCase
             VALUES ('c1', 'a1', 'User', '1', 'update', 0, '{}', NULL)");
 
         $config = $this->createMock(AppConfig::class);
-        $config->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
+        $config->expects($this->once())->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
 
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
@@ -118,7 +121,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $this->createAuditTables($pdo);
 
         $config = $this->createMock(AppConfig::class);
-        $config->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
+        $config->expects($this->once())->method('get')->with('app.audit.retention-weeks', 0)->willReturn(0);
 
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
@@ -175,7 +178,7 @@ final class AuditMiddlewareUnitTest extends TestCase
 
         $request = $this->createMock(ServerRequestInterface::class);
         $request->method('getMethod')->willReturn($method);
-        $request->method('getHeaderLine')->with('User-Agent')->willReturn($userAgent);
+        $request->method('getHeaderLine')->willReturn($userAgent);
         $request->method('getUri')->willReturn($uri);
 
         return $request;

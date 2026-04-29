@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
@@ -13,6 +14,7 @@ use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
 /**
  * Unit tests for {@see MigrationManagement}.
  */
+#[AllowMockObjectsWithoutExpectations]
 final class MigrationManagementUnitTest extends TestCase
 {
     /**
@@ -23,7 +25,7 @@ final class MigrationManagementUnitTest extends TestCase
         /* Arrange: register a provider and management handler. */
         $provider = $this->createProvider('db', ['status' => 'ok']);
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->with(Phix::class)->willReturn($provider);
+        $container->expects($this->once())->method('get')->with(Phix::class)->willReturn($provider);
         $logger = $this->createMock(LoggerInterface::class);
 
         $management = new MigrationManagement($container, $logger);
@@ -43,7 +45,7 @@ final class MigrationManagementUnitTest extends TestCase
         /* Arrange: create a management handler. */
         $provider = $this->createProvider('db', ['status' => 'ok']);
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->with(Phix::class)->willReturn($provider);
+        $container->expects($this->once())->method('get')->with(Phix::class)->willReturn($provider);
         $logger = $this->createMock(LoggerInterface::class);
 
         $management = new MigrationManagement($container, $logger);
@@ -64,7 +66,7 @@ final class MigrationManagementUnitTest extends TestCase
         $primary = $this->createProvider('db', ['status' => 'ok']);
         $secondary = $this->createProvider('cache', ['status' => 'warm']);
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->with(Phix::class)->willReturn($primary);
+        $container->expects($this->once())->method('get')->with(Phix::class)->willReturn($primary);
         $logger = $this->createMock(LoggerInterface::class);
 
         $management = new MigrationManagement($container, $logger);
@@ -88,7 +90,7 @@ final class MigrationManagementUnitTest extends TestCase
         /* Arrange: create a provider that throws and a logger expectation. */
         $provider = $this->createProvider('db', ['status' => 'ok'], true);
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->with(Phix::class)->willReturn($provider);
+        $container->expects($this->once())->method('get')->with(Phix::class)->willReturn($provider);
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->once())->method('critical');
 
@@ -110,7 +112,7 @@ final class MigrationManagementUnitTest extends TestCase
         /* Arrange: create a successful provider and logger expectation. */
         $provider = $this->createProvider('db', ['status' => 'ok']);
         $container = $this->createMock(ContainerInterface::class);
-        $container->method('get')->with(Phix::class)->willReturn($provider);
+        $container->expects($this->once())->method('get')->with(Phix::class)->willReturn($provider);
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->never())->method('critical');
 
