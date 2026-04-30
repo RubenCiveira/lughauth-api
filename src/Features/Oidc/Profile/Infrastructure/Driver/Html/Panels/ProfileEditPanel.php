@@ -9,7 +9,7 @@ use Civi\Lughauth\Features\Oidc\Profile\Domain\OidcProfile;
 
 class ProfileEditPanel
 {
-    public function render(?OidcProfile $profile, string $saveUrl, string $cancelUrl, ?string $error = null): string
+    public function render(?OidcProfile $profile, string $saveUrl, string $cancelUrl, ?string $error = null, array $t = []): string
     {
         $saveUrl = htmlspecialchars($saveUrl);
         $cancelUrl = htmlspecialchars($cancelUrl);
@@ -20,48 +20,48 @@ class ProfileEditPanel
         $v = static fn (?string $val): string => htmlspecialchars($val ?? '');
 
         return <<<HTML
-            <h1>Edit profile</h1>
+            <h1>{$t['title']}</h1>
             {$errorHtml}
             <form method="POST" action="{$saveUrl}" class="profile-edit-form">
-                <label>Given name
+                <label>{$t['givenName']}
                     <input type="text" name="givenName" value="{$v($profile?->givenName)}" />
                 </label>
-                <label>Family name
+                <label>{$t['familyName']}
                     <input type="text" name="familyName" value="{$v($profile?->familyName)}" />
                 </label>
-                <label>Middle name
+                <label>{$t['middleName']}
                     <input type="text" name="middleName" value="{$v($profile?->middleName)}" />
                 </label>
-                <label>Nickname
+                <label>{$t['nickname']}
                     <input type="text" name="nickname" value="{$v($profile?->nickname)}" />
                 </label>
-                <label>Preferred username
+                <label>{$t['preferredUsername']}
                     <input type="text" name="preferredUsername" value="{$v($profile?->preferredUsername)}" />
                 </label>
-                <label>Picture URL
+                <label>{$t['pictureUrl']}
                     <input type="url" name="pictureUrl" value="{$v($profile?->pictureUrl)}" />
                 </label>
-                <label>Website
+                <label>{$t['website']}
                     <input type="url" name="websiteUrl" value="{$v($profile?->websiteUrl)}" />
                 </label>
-                <label>Gender
+                <label>{$t['gender']}
                     <input type="text" name="gender" value="{$v($profile?->gender)}" />
                 </label>
-                <label>Birthdate
+                <label>{$t['birthdate']}
                     <input type="date" name="birthdate" value="{$v($profile?->birthdate)}" />
                 </label>
-                <label>Timezone
+                <label>{$t['timezone']}
                     <input type="text" name="zoneinfo" value="{$v($profile?->zoneinfo)}" placeholder="Europe/Madrid" />
                 </label>
-                <label>Locale
+                <label>{$t['locale']}
                     <input type="text" name="locale" value="{$v($profile?->locale)}" placeholder="es-ES" />
                 </label>
-                <label>Phone number
+                <label>{$t['phoneNumber']}
                     <input type="tel" name="phoneNumber" value="{$v($profile?->phoneNumber)}" />
                 </label>
                 <div class="profile-actions">
-                    <input class="primary-button" type="submit" value="Save" />
-                    <a class="secondary-button" href="{$cancelUrl}">Cancel</a>
+                    <input class="primary-button" type="submit" value="{$t['save']}" />
+                    <a class="secondary-button" href="{$cancelUrl}">{$t['cancel']}</a>
                 </div>
             </form>
             HTML;

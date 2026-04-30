@@ -66,9 +66,13 @@ use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsLis
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsHistoryController;
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsGrantController;
 use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\PasswordGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\MfaGateway;
 use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\ProfileGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\SessionsGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\MfaAdapter;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\PasswordAdapter;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\ProfileAdapter;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\SessionsAdapter;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\ProfileHtml;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Rest\ProfileMeController;
 
@@ -99,6 +103,8 @@ class OidcPlugin extends MicroPlugin
         $def[GdprConsentGateway::class] = \DI\autowire(GdprConsentAdapter::class);
         $def[ProfileGateway::class] = \DI\autowire(ProfileAdapter::class);
         $def[PasswordGateway::class] = \DI\autowire(PasswordAdapter::class);
+        $def[MfaGateway::class] = \DI\autowire(MfaAdapter::class);
+        $def[SessionsGateway::class] = \DI\autowire(SessionsAdapter::class);
         return $def;
     }
 
@@ -117,6 +123,10 @@ class OidcPlugin extends MicroPlugin
             $group->post('/me/edit', [ProfileHtml::class, 'save']);
             $group->get('/me/password', [ProfileHtml::class, 'changePassword']);
             $group->post('/me/password', [ProfileHtml::class, 'savePassword']);
+            $group->get('/me/mfa', [ProfileHtml::class, 'mfa']);
+            $group->post('/me/mfa', [ProfileHtml::class, 'saveMfa']);
+            $group->get('/me/sessions', [ProfileHtml::class, 'sessions']);
+            $group->post('/me/sessions/revoke/{sessionId}', [ProfileHtml::class, 'revokeSession']);
             $group->get('/jwks', [JwksController::class, 'get']);
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);

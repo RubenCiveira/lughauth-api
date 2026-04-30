@@ -9,8 +9,14 @@ use Civi\Lughauth\Features\Oidc\Profile\Domain\OidcProfile;
 
 class ProfileViewPanel
 {
-    public function render(?OidcProfile $profile, string $editUrl, string $changePasswordUrl): string
-    {
+    public function render(
+        ?OidcProfile $profile,
+        string $editUrl,
+        string $changePasswordUrl,
+        string $mfaUrl,
+        string $sessionsUrl,
+        array $t = [],
+    ): string {
         $givenName = htmlspecialchars($profile?->givenName ?? '');
         $familyName = htmlspecialchars($profile?->familyName ?? '');
         $nickname = htmlspecialchars($profile?->nickname ?? '');
@@ -33,29 +39,33 @@ class ProfileViewPanel
 
         $editUrl = htmlspecialchars($editUrl);
         $changePasswordUrl = htmlspecialchars($changePasswordUrl);
+        $mfaUrl = htmlspecialchars($mfaUrl);
+        $sessionsUrl = htmlspecialchars($sessionsUrl);
 
         return <<<HTML
-            <h1>My profile</h1>
+            <h1>{$t['title']}</h1>
             <div class="profile-view">
                 <div class="profile-header">
                     {$avatar}
                     <div class="profile-display-name">{$displayName}</div>
                 </div>
                 <dl class="profile-fields">
-                    <dt>Given name</dt><dd>{$givenName}</dd>
-                    <dt>Family name</dt><dd>{$familyName}</dd>
-                    <dt>Nickname</dt><dd>{$nickname}</dd>
-                    <dt>Username</dt><dd>{$preferredUsername}</dd>
-                    <dt>Phone</dt><dd>{$phoneNumber}</dd>
-                    <dt>Locale</dt><dd>{$locale}</dd>
-                    <dt>Timezone</dt><dd>{$zoneinfo}</dd>
-                    <dt>Birthdate</dt><dd>{$birthdate}</dd>
-                    <dt>Gender</dt><dd>{$gender}</dd>
-                    <dt>Website</dt><dd>{$websiteUrl}</dd>
+                    <dt>{$t['givenName']}</dt><dd>{$givenName}</dd>
+                    <dt>{$t['familyName']}</dt><dd>{$familyName}</dd>
+                    <dt>{$t['nickname']}</dt><dd>{$nickname}</dd>
+                    <dt>{$t['username']}</dt><dd>{$preferredUsername}</dd>
+                    <dt>{$t['phone']}</dt><dd>{$phoneNumber}</dd>
+                    <dt>{$t['locale']}</dt><dd>{$locale}</dd>
+                    <dt>{$t['timezone']}</dt><dd>{$zoneinfo}</dd>
+                    <dt>{$t['birthdate']}</dt><dd>{$birthdate}</dd>
+                    <dt>{$t['gender']}</dt><dd>{$gender}</dd>
+                    <dt>{$t['website']}</dt><dd>{$websiteUrl}</dd>
                 </dl>
                 <div class="profile-actions">
-                    <a class="primary-button" href="{$editUrl}">Edit profile</a>
-                    <a class="secondary-button" href="{$changePasswordUrl}">Change password</a>
+                    <a class="primary-button" href="{$editUrl}">{$t['editProfile']}</a>
+                    <a class="secondary-button" href="{$changePasswordUrl}">{$t['changePassword']}</a>
+                    <a class="secondary-button" href="{$mfaUrl}">{$t['configureMfa']}</a>
+                    <a class="secondary-button" href="{$sessionsUrl}">{$t['manageSessions']}</a>
                 </div>
             </div>
             HTML;

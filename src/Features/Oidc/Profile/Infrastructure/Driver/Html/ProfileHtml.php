@@ -10,6 +10,8 @@ use Psr\Http\Message\ServerRequestInterface;
 use Throwable;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue;
+use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
@@ -17,9 +19,13 @@ use Civi\Lughauth\Features\Oidc\Profile\Domain\OidcProfileData;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\PasswordGateway;
 use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\ProfileGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\MfaGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\SessionsGateway;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\ChangePasswordPanel;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\MfaPanel;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\ProfileEditPanel;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\ProfileViewPanel;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\SessionsPanel;
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 
 class ProfileHtml
@@ -33,10 +39,15 @@ class ProfileHtml
         private readonly SessionManager $sessions,
         private readonly ProfileGateway $gateway,
         private readonly PasswordGateway $passwordGateway,
+        private readonly MfaGateway $mfaGateway,
+        private readonly SessionsGateway $sessionsGateway,
+        private readonly MessageProvider $messages,
         private readonly DecorateHtml $decorator,
         private readonly ProfileViewPanel $viewPanel,
         private readonly ProfileEditPanel $editPanel,
         private readonly ChangePasswordPanel $changePasswordPanel,
+        private readonly MfaPanel $mfaPanel,
+        private readonly SessionsPanel $sessionsPanel,
     ) {
     }
 
@@ -51,11 +62,21 @@ class ProfileHtml
                 return $this->renderUnauthenticated($request, $response, $tenant);
             }
             $profile = $this->gateway->findByUser($session->userId);
+            $translator = $this->translatorFor($request, $profile?->locale ?? '');
             $editUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/edit';
             $changePasswordUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/password';
-            $html = '<div class="section-card">' . $this->viewPanel->render($profile, $editUrl, $changePasswordUrl) . '</div>';
+            $mfaUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
+            $sessionsUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions';
+            $html = '<div class="section-card">' . $this->viewPanel->render(
+                $profile,
+                $editUrl,
+                $changePasswordUrl,
+                $mfaUrl,
+                $sessionsUrl,
+                $this->viewTexts($translator)
+            ) . '</div>';
             $locale = $profile?->locale ?? '';
-            $response->getBody()->write($this->decorator->getFullPage($request, 'My profile', $html, $locale, 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), $html, $locale, 'full'));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -76,11 +97,12 @@ class ProfileHtml
                 return $this->renderUnauthenticated($request, $response, $tenant);
             }
             $profile = $this->gateway->findByUser($session->userId);
+            $translator = $this->translatorFor($request, $profile?->locale ?? '');
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/edit';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
-            $html = '<div class="section-card">' . $this->editPanel->render($profile, $saveUrl, $cancelUrl) . '</div>';
+            $html = '<div class="section-card">' . $this->editPanel->render($profile, $saveUrl, $cancelUrl, null, $this->editTexts($translator)) . '</div>';
             $locale = $profile?->locale ?? '';
-            $response->getBody()->write($this->decorator->getFullPage($request, 'Edit profile', $html, $locale, 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.edit.title'), $html, $locale, 'full'));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -112,10 +134,11 @@ class ProfileHtml
             if ($session !== null) {
                 $tenant = $args['tenant'];
                 $profile = $this->gateway->findByUser($session->userId);
+                $translator = $this->translatorFor($request, $profile?->locale ?? '');
                 $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/edit';
                 $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
-                $html = '<div class="section-card">' . $this->editPanel->render($profile, $saveUrl, $cancelUrl, $ex->getMessage()) . '</div>';
-                $response->getBody()->write($this->decorator->getFullPage($request, 'Edit profile', $html, '', 'full'));
+                $html = '<div class="section-card">' . $this->editPanel->render($profile, $saveUrl, $cancelUrl, $ex->getMessage(), $this->editTexts($translator)) . '</div>';
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.edit.title'), $html, '', 'full'));
                 return $response->withStatus(422);
             }
             throw $ex;
@@ -137,13 +160,14 @@ class ProfileHtml
 
     private function renderUnauthenticated(ServerRequestInterface $request, ResponseInterface $response, string $tenant): ResponseInterface
     {
+        $translator = $this->translatorFor($request);
         $loginUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize');
         $html = <<<HTML
-            <h1>Not authenticated</h1>
-            <p>You need to be logged in to view your profile.</p>
-            <p><a class="primary-button" href="{$loginUrl}">Go to login</a></p>
+            <h1>{$translator->get('profile.auth.title')}</h1>
+            <p>{$translator->get('profile.auth.help')}</p>
+            <p><a class="primary-button" href="{$loginUrl}">{$translator->get('profile.auth.login')}</a></p>
             HTML;
-        $response->getBody()->write($this->decorator->getFullPage($request, 'My profile', '<div class="section-card">' . $html . '</div>', '', 'full'));
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), '<div class="section-card">' . $html . '</div>', '', 'full'));
         return $response->withStatus(401);
     }
 
@@ -157,10 +181,11 @@ class ProfileHtml
             if ($session === null) {
                 return $this->renderUnauthenticated($request, $response, $tenant);
             }
+            $translator = $this->translatorFor($request);
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/password';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
-            $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, 'Change password', $html, '', 'full'));
+            $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, null, false, $this->passwordTexts($translator)) . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -188,28 +213,168 @@ class ProfileHtml
 
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/password';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+            $translator = $this->translatorFor($request);
 
             if ($newPassword !== $confirmPassword) {
                 $this->sql->close();
-                $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, 'New passwords do not match.') . '</div>';
-                $response->getBody()->write($this->decorator->getFullPage($request, 'Change password', $html, '', 'full'));
+                $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, $translator->get('profile.password.errorMismatch'), false, $this->passwordTexts($translator)) . '</div>';
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
                 return $response->withStatus(422);
             }
 
             $this->passwordGateway->changePassword($session->userId, $tenant, $currentPassword, $newPassword);
             $this->sql->commit();
 
-            $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, null, true) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, 'Change password', $html, '', 'full'));
+            $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, null, true, $this->passwordTexts($translator)) . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
             return $response;
         } catch (LoginException $ex) {
             $errorKey = $ex->auth->error ?? $ex->getMessage();
-            $error = $errorKey === 'wrong_old_pass' ? 'Current password is incorrect.' : 'Could not change password.';
+            $translator = $this->translatorFor($request);
+            $error = $errorKey === 'wrong_old_pass' ? $translator->get('error.wrong_old_pass') : $translator->get('profile.password.errorGeneric');
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $args['tenant'] . '/me/password';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $args['tenant'] . '/me';
-            $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, $error) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, 'Change password', $html, '', 'full'));
+            $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, $error, false, $this->passwordTexts($translator)) . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
             return $response->withStatus(422);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $this->sql->close();
+            $span->end();
+        }
+    }
+
+    public function mfa(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->logDebug("MFA page");
+        $span = $this->startSpan("MFA page");
+        try {
+            $tenant = $args['tenant'];
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $translator = $this->translatorFor($request);
+            $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
+            $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
+            $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
+            $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+            $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, null, false, $this->mfaTexts($translator)) . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full'));
+            return $response;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    public function saveMfa(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->logDebug("Save MFA settings");
+        $span = $this->startSpan("Save MFA settings");
+        $this->sql->begin();
+        try {
+            $tenant = $args['tenant'];
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $translator = $this->translatorFor($request);
+            $body = (array) ($request->getParsedBody() ?? []);
+            $action = (string) ($body['action'] ?? '');
+            if ($action === 'disable') {
+                $this->mfaGateway->disable($session->userId, $tenant);
+            } else {
+                $seed = (string) ($body['seed'] ?? '');
+                $otp = (string) ($body['otp'] ?? '');
+                $this->mfaGateway->enable($session->userId, $tenant, $seed, $otp);
+            }
+            $this->sql->commit();
+            $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
+            $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+            $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
+            $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
+            $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, null, true, $this->mfaTexts($translator)) . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full'));
+            return $response;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $tenant = $args['tenant'];
+            $session = isset($session) ? $session : null;
+            if ($session !== null) {
+                $translator = $this->translatorFor($request);
+                $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
+                $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+                $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
+                $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
+                $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, $ex->getMessage(), false, $this->mfaTexts($translator)) . '</div>';
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full'));
+                return $response->withStatus(422);
+            }
+            throw $ex;
+        } finally {
+            $this->sql->close();
+            $span->end();
+        }
+    }
+
+    public function sessions(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->logDebug("Sessions page");
+        $span = $this->startSpan("Sessions page");
+        try {
+            $tenant = $args['tenant'];
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $translator = $this->translatorFor($request);
+            $sessions = $this->sessionsGateway->listByUser($session->userId);
+            $revokeBaseUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions/revoke';
+            $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+            $currentSessionId = $this->currentSessionId($request, $tenant);
+            $html = $this->sessionsPanel->render($sessions, $revokeBaseUrl, $cancelUrl, $currentSessionId, $this->sessionsTexts($translator));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.sessions.title'), $html, '', 'full'));
+            return $response;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    public function revokeSession(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $this->logDebug("Revoke session");
+        $span = $this->startSpan("Revoke session");
+        $this->sql->begin();
+        try {
+            $tenant = $args['tenant'];
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $sessionId = (string) ($args['sessionId'] ?? '');
+            $currentSessionId = $this->currentSessionId($request, $tenant);
+            $sessions = $this->sessionsGateway->listByUser($session->userId);
+            $owned = false;
+            foreach ($sessions as $activeSession) {
+                if ($activeSession->sessionId === $sessionId) {
+                    $owned = true;
+                    break;
+                }
+            }
+            if ($owned && $sessionId !== '' && $sessionId !== $currentSessionId) {
+                $this->sessionsGateway->revoke($sessionId);
+            }
+            $this->sql->commit();
+            $url = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions';
+            return $response->withStatus(302)->withHeader('Location', $url);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -239,5 +404,122 @@ class ProfileHtml
             phoneNumberVerified: null,
             addressJson: null,
         );
+    }
+
+    private function translatorFor(ServerRequestInterface $request, string $profileLocale = ''): MessageCatalogue
+    {
+        $locale = $profileLocale !== '' ? $profileLocale : $this->resolveLocale($request);
+        return $this->messages->messages('forms', $locale, __DIR__ . '/../Translations');
+    }
+
+    private function resolveLocale(ServerRequestInterface $request): string
+    {
+        $header = (string) $request->getHeaderLine('Accept-Language');
+        if ($header === '') {
+            return '';
+        }
+        $first = trim(explode(',', $header)[0] ?? '');
+        return strtolower(trim(explode(';', $first)[0] ?? ''));
+    }
+
+    private function currentSessionId(ServerRequestInterface $request, string $tenant): ?string
+    {
+        $cookies = $request->getCookieParams();
+        $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null;
+        if (!is_string($sessionId) || $sessionId === '') {
+            return null;
+        }
+        return $sessionId;
+    }
+
+    private function viewTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title' => $t->get('profile.view.title'),
+            'givenName' => $t->get('profile.view.givenName'),
+            'familyName' => $t->get('profile.view.familyName'),
+            'nickname' => $t->get('profile.view.nickname'),
+            'username' => $t->get('profile.view.username'),
+            'phone' => $t->get('profile.view.phone'),
+            'locale' => $t->get('profile.view.locale'),
+            'timezone' => $t->get('profile.view.timezone'),
+            'birthdate' => $t->get('profile.view.birthdate'),
+            'gender' => $t->get('profile.view.gender'),
+            'website' => $t->get('profile.view.website'),
+            'editProfile' => $t->get('profile.view.editProfile'),
+            'changePassword' => $t->get('profile.view.changePassword'),
+            'configureMfa' => $t->get('profile.view.configureMfa'),
+            'manageSessions' => $t->get('profile.view.manageSessions'),
+        ];
+    }
+
+    private function editTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title' => $t->get('profile.edit.title'),
+            'givenName' => $t->get('profile.edit.givenName'),
+            'familyName' => $t->get('profile.edit.familyName'),
+            'middleName' => $t->get('profile.edit.middleName'),
+            'nickname' => $t->get('profile.edit.nickname'),
+            'preferredUsername' => $t->get('profile.edit.preferredUsername'),
+            'pictureUrl' => $t->get('profile.edit.pictureUrl'),
+            'website' => $t->get('profile.edit.website'),
+            'gender' => $t->get('profile.edit.gender'),
+            'birthdate' => $t->get('profile.edit.birthdate'),
+            'timezone' => $t->get('profile.edit.timezone'),
+            'locale' => $t->get('profile.edit.locale'),
+            'phoneNumber' => $t->get('profile.edit.phoneNumber'),
+            'save' => $t->get('profile.edit.save'),
+            'cancel' => $t->get('profile.edit.cancel'),
+        ];
+    }
+
+    private function passwordTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title' => $t->get('profile.password.title'),
+            'success' => $t->get('profile.password.success'),
+            'backToProfile' => $t->get('profile.password.backToProfile'),
+            'currentPassword' => $t->get('profile.password.currentPassword'),
+            'newPassword' => $t->get('profile.password.newPassword'),
+            'confirmPassword' => $t->get('profile.password.confirmPassword'),
+            'submit' => $t->get('profile.password.submit'),
+            'cancel' => $t->get('profile.password.cancel'),
+        ];
+    }
+
+    private function mfaTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title' => $t->get('profile.mfa.title'),
+            'success' => $t->get('profile.mfa.success'),
+            'enabledHelp' => $t->get('profile.mfa.enabledHelp'),
+            'disable' => $t->get('profile.mfa.disable'),
+            'backToProfile' => $t->get('profile.mfa.backToProfile'),
+            'help' => $t->get('profile.mfa.help'),
+            'secret' => $t->get('profile.mfa.secret'),
+            'otp' => $t->get('profile.mfa.otp'),
+            'enable' => $t->get('profile.mfa.enable'),
+            'cancel' => $t->get('profile.mfa.cancel'),
+        ];
+    }
+
+    private function sessionsTexts(MessageCatalogue $t): array
+    {
+        return [
+            'unknown' => $t->get('profile.sessions.unknown'),
+            'currentSession' => $t->get('profile.sessions.currentSession'),
+            'thisDevice' => $t->get('profile.sessions.thisDevice'),
+            'closeSession' => $t->get('profile.sessions.closeSession'),
+            'client' => $t->get('profile.sessions.client'),
+            'ip' => $t->get('profile.sessions.ip'),
+            'userAgent' => $t->get('profile.sessions.userAgent'),
+            'lastUsed' => $t->get('profile.sessions.lastUsed'),
+            'expires' => $t->get('profile.sessions.expires'),
+            'empty' => $t->get('profile.sessions.empty'),
+            'title' => $t->get('profile.sessions.title'),
+            'help' => $t->get('profile.sessions.help'),
+            'backToProfile' => $t->get('profile.sessions.backToProfile'),
+        ];
     }
 }

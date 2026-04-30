@@ -7,17 +7,17 @@ namespace Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels;
 
 class ChangePasswordPanel
 {
-    public function render(string $saveUrl, string $cancelUrl, ?string $error = null, bool $success = false): string
+    public function render(string $saveUrl, string $cancelUrl, ?string $error = null, bool $success = false, array $t = []): string
     {
         $saveUrl = htmlspecialchars($saveUrl);
         $cancelUrl = htmlspecialchars($cancelUrl);
 
         if ($success) {
             return <<<HTML
-                <h1>Change password</h1>
-                <p class="change-password-success">Password changed successfully.</p>
+                <h1>{$t['title']}</h1>
+                <p class="change-password-success">{$t['success']}</p>
                 <div class="profile-actions">
-                    <a class="secondary-button" href="{$cancelUrl}">Back to profile</a>
+                    <a class="secondary-button" href="{$cancelUrl}">{$t['backToProfile']}</a>
                 </div>
                 HTML;
         }
@@ -27,21 +27,21 @@ class ChangePasswordPanel
             : '';
 
         return <<<HTML
-            <h1>Change password</h1>
+            <h1>{$t['title']}</h1>
             {$errorHtml}
             <form method="POST" action="{$saveUrl}" class="change-password-form">
-                <label>Current password
+                <label>{$t['currentPassword']}
                     <input type="password" name="currentPassword" autocomplete="current-password" required />
                 </label>
-                <label>New password
+                <label>{$t['newPassword']}
                     <input type="password" name="newPassword" autocomplete="new-password" required />
                 </label>
-                <label>Confirm new password
+                <label>{$t['confirmPassword']}
                     <input type="password" name="confirmPassword" autocomplete="new-password" required />
                 </label>
                 <div class="profile-actions">
-                    <input class="primary-button" type="submit" value="Change password" />
-                    <a class="secondary-button" href="{$cancelUrl}">Cancel</a>
+                    <input class="primary-button" type="submit" value="{$t['submit']}" />
+                    <a class="secondary-button" href="{$cancelUrl}">{$t['cancel']}</a>
                 </div>
             </form>
             HTML;
