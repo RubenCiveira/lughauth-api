@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driven;
 
-use Civi\Lughauth\Features\Oidc\Consent\Domain\ScopePermission;
 use Civi\Lughauth\Features\Oidc\Consent\Domain\Gateway\ScopesConsentGateway;
 
 final class ScopesConsentAdapter implements ScopesConsentGateway
