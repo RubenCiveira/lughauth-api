@@ -16,7 +16,7 @@ class ProfileEditPanel
             ? '<p class="error">' . htmlspecialchars($error) . '</p>'
             : '';
 
-        $v = static fn(?string $val): string => htmlspecialchars($val ?? '');
+        $v = static fn (?string $val): string => htmlspecialchars($val ?? '');
 
         return <<<HTML
             <h1>Edit profile</h1>
