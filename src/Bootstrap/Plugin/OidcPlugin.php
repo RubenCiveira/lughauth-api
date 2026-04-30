@@ -60,6 +60,11 @@ use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Driven\WebAuthnCredentia
 use Civi\Lughauth\Features\Oidc\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Driven\WebAuthnChallengeSqlAdapter;
 use Civi\Lughauth\Features\Oidc\WebAuthn\Infrastructure\Driver\Rest\WebAuthnController;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Domain\Gateway\GdprConsentGateway;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Infrastructure\Driven\GdprConsentAdapter;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Infrastructure\Driver\Rest\MeConsentsListController;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Infrastructure\Driver\Rest\MeConsentsHistoryController;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Infrastructure\Driver\Rest\MeConsentsGrantController;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -85,12 +90,16 @@ class OidcPlugin extends MicroPlugin
         $def[ClientRegistrationGateway::class] = \DI\autowire(ClientRegistrationAdapter::class);
         $def[WebAuthnCredentialGateway::class] = \DI\autowire(WebAuthnCredentialSqlAdapter::class);
         $def[WebAuthnChallengeGateway::class] = \DI\autowire(WebAuthnChallengeSqlAdapter::class);
+        $def[GdprConsentGateway::class] = \DI\autowire(GdprConsentAdapter::class);
         return $def;
     }
 
     #[Override]
     public function registerRoutes(RouteCollectorProxy $collector): void
     {
+        $collector->get('/api/me/consents', [MeConsentsListController::class, 'list']);
+        $collector->get('/api/me/consents/history', [MeConsentsHistoryController::class, 'history']);
+        $collector->put('/api/me/consents/{purposeKey}', [MeConsentsGrantController::class, 'grant']);
         $collector->get('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
         $collector->group('/oauth/openid/{tenant}', function (RouteCollectorProxy $group) {
             $group->get('/jwks', [JwksController::class, 'get']);

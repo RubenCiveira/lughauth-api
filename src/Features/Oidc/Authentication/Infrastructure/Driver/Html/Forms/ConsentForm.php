@@ -17,6 +17,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
 use Civi\Lughauth\Features\Oidc\User\Domain\Consent;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Application\Usecase\GdprConsentUsecase;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Domain\GdprConsentPurposeItem;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 class ConsentForm implements StepForm
@@ -25,6 +27,7 @@ class ConsentForm implements StepForm
         private readonly MessageProvider $messages,
         private readonly AuthenticateUser $authenticator,
         private readonly ConsentUsecase $publicConsent,
+        private readonly GdprConsentUsecase $gdprConsent,
         private readonly DecorateHtml $decorator,
         private readonly HtmlSecurer $securer
     ) {
@@ -68,6 +71,9 @@ class ConsentForm implements StepForm
 
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
 
+        $pendingPurposes = $this->gdprConsent->pendingPurposes($tenant, $challenges->username ?? '');
+        $gdprBlock = $this->renderGdprBlock($pendingPurposes);
+
         $step = StepName::CONSENT->value;
         $response->getBody()->write(
             $this->decorator->getFullPage(
@@ -85,10 +91,11 @@ class ConsentForm implements StepForm
                                 {$pendingText}
                             </textarea>
                         </label>
-                        <label>Acept: 
+                        <label>Acept:
                             <input type="checkbox" name="accept" value="accept" />
                         </label>
                         <input type="hidden" name="consent" value="{$pending->id}" />
+                        {$gdprBlock}
                         <input class="primary-button" type="submit" value="{$send}" />
                     </form>
                     <form method="POST">
@@ -114,6 +121,9 @@ class ConsentForm implements StepForm
                 $input->authRequest->audiences,
                 new Consent(id: (string) ($input->body['consent'] ?? ''), text: (string) ($input->body['conditions'] ?? ''))
             );
+
+            $this->storeGdprDecisions($input);
+
             $csid = (string) ($input->body['csid'] ?? '');
             $auth = $this->authenticator->preAuthenticate(
                 $input->authRequest,
@@ -130,4 +140,80 @@ class ConsentForm implements StepForm
         throw new LoginException(auth: AuthenticationResult::consentRequired(), message: 'must_accept_condition');
     }
 
+    /**
+     * @param GdprConsentPurposeItem[] $purposes
+     */
+    private function renderGdprBlock(array $purposes): string
+    {
+        if (!$purposes) {
+            return '';
+        }
+
+        $items = '';
+        foreach ($purposes as $purpose) {
+            $key = htmlspecialchars($purpose->key, ENT_QUOTES);
+            $title = htmlspecialchars($purpose->title, ENT_QUOTES);
+            $description = htmlspecialchars($purpose->description, ENT_QUOTES);
+            $requiredMark = $purpose->required ? ' <span class="required-marker">*</span>' : '';
+            $items .= <<<HTML
+                <li class="scope-item">
+                    <label class="scope-label">
+                        <input type="checkbox" name="gdpr_purposes[]" value="{$key}" />
+                        <strong>{$title}{$requiredMark}</strong>
+                    </label>
+                    <details class="scope-description">
+                        <summary>Descripcion</summary>
+                        <p>{$description}</p>
+                    </details>
+                </li>
+                HTML;
+        }
+
+        return <<<HTML
+            <section class="gdpr-purposes">
+                <h3>Propósitos de tratamiento de datos (GDPR)</h3>
+                <ul class="scopes-list">
+                    {$items}
+                </ul>
+            </section>
+            HTML;
+    }
+
+    private function storeGdprDecisions(StepInput $input): void
+    {
+        $tenant = $input->context->tenant;
+        $username = $input->challenges->username ?? '';
+
+        $pendingPurposes = $this->gdprConsent->pendingPurposes($tenant, $username);
+        if (!$pendingPurposes) {
+            return;
+        }
+
+        $checkedKeys = $this->normalizeChecked($input->body['gdpr_purposes'] ?? []);
+
+        $decisions = [];
+        foreach ($pendingPurposes as $purpose) {
+            $decisions[$purpose->uid] = in_array($purpose->key, $checkedKeys, true);
+        }
+
+        $serverParams = $input->request->getServerParams();
+        $ipAddress = (string) ($serverParams['REMOTE_ADDR'] ?? '');
+        $userAgent = (string) ($input->request->getHeaderLine('User-Agent') ?? '');
+
+        $this->gdprConsent->storePurposeDecisions($tenant, $username, $decisions, $ipAddress, $userAgent);
+    }
+
+    /**
+     * @return string[]
+     */
+    private function normalizeChecked(mixed $values): array
+    {
+        if (is_string($values)) {
+            return [$values];
+        }
+        if (!is_array($values)) {
+            return [];
+        }
+        return array_values(array_filter(array_map('strval', $values)));
+    }
 }
