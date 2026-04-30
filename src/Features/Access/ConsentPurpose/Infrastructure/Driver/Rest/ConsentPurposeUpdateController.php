@@ -116,7 +116,10 @@ class ConsentPurposeUpdateController
             if (null !== $valueRequired) {
                 $value->required($valueRequired);
             }
-            $value->activationDate(ConsentPurposeActivationDateVO::tryFrom($body['activationDate'] ?? null, $errorsList));
+            $valueActivationDate = ConsentPurposeActivationDateVO::tryFrom($body['activationDate'] ?? null, $errorsList);
+            if (null !== $valueActivationDate) {
+                $value->activationDate($valueActivationDate);
+            }
             $value->version(ConsentPurposeVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();

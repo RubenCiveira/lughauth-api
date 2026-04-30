@@ -50,16 +50,6 @@ final class ConsentPurposeActivationDateVOUnitTest extends TestCase
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
     }
-    public function test_empty(): void
-    {
-        $ref = ConsentPurposeActivationDateVO::empty();
-        $this->assertNull($ref->value());
-    }
-    public function test_try_from_empty(): void
-    {
-        $ref = ConsentPurposeActivationDateVO::tryFrom(null, new ConstraintFailList());
-        $this->assertNull($ref->value());
-    }
     public function test_read_date_format(): void
     {
         $errors = new ConstraintFailList();

@@ -12,11 +12,7 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class ConsentPurposeActivationDateVO
 {
-    public static function empty(): ConsentPurposeActivationDateVO
-    {
-        return new ConsentPurposeActivationDateVO(null);
-    }
-    public static function from(ConsentPurposeActivationDateVO|\DateTimeImmutable|null $value): ConsentPurposeActivationDateVO
+    public static function from(ConsentPurposeActivationDateVO|\DateTimeImmutable $value): ConsentPurposeActivationDateVO
     {
         return self::fromUnsafe($value);
     }
@@ -25,8 +21,6 @@ class ConsentPurposeActivationDateVO
         if ($value instanceof ConsentPurposeActivationDateVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
-        } elseif (!$value) {
-            return new ConsentPurposeActivationDateVO($value);
         } elseif (is_string($value)) {
             if ($typed = self::readFromString($value)) {
                 return self::tryFrom($typed, $list);
@@ -76,10 +70,10 @@ class ConsentPurposeActivationDateVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly ?\DateTimeImmutable $activationDate
+        private readonly \DateTimeImmutable $activationDate
     ) {
     }
-    public function value(): ?\DateTimeImmutable
+    public function value(): \DateTimeImmutable
     {
         return $this->activationDate;
     }

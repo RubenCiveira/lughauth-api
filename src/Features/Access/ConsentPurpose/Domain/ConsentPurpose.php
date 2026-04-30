@@ -43,7 +43,7 @@ class ConsentPurpose extends ConsentPurposeRef
         ConsentPurposeTitleVO|string $title,
         ConsentPurposeDescriptionVO|string $description,
         ConsentPurposeRequiredVO|bool $required,
-        ConsentPurposeActivationDateVO|\DateTimeImmutable|null $activationDate = null,
+        ConsentPurposeActivationDateVO|\DateTimeImmutable $activationDate,
         ConsentPurposeVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
@@ -52,7 +52,7 @@ class ConsentPurpose extends ConsentPurposeRef
         $this->_title = ConsentPurposeTitleVO::from($title);
         $this->_description = ConsentPurposeDescriptionVO::from($description);
         $this->_required = ConsentPurposeRequiredVO::from($required);
-        $this->_activationDate = null === $activationDate ? ConsentPurposeActivationDateVO::empty() : ConsentPurposeActivationDateVO::from($activationDate);
+        $this->_activationDate = ConsentPurposeActivationDateVO::from($activationDate);
         $this->_version = null === $version ? ConsentPurposeVersionVO::empty() : ConsentPurposeVersionVO::from($version);
     }
     public function replace(ConsentPurposeAttributes $values): ConsentPurpose

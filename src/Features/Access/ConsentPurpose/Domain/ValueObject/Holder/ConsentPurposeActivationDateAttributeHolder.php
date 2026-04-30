@@ -13,15 +13,20 @@ trait ConsentPurposeActivationDateAttributeHolder
     protected ConsentPurposeActivationDateVO|\DateTimeImmutable|null $activationDate = null;
     protected bool $activationDateAssigned = false;
 
-    public function getActivationDateOrCurrent(?ConsentPurposeActivationDateVO $activationDate): ?ConsentPurposeActivationDateVO
+    public function getActivationDateOrCurrent(ConsentPurposeActivationDateVO $activationDate): ConsentPurposeActivationDateVO
     {
-        return $this->activationDateAssigned ? ($this->activationDate === null ? null : ConsentPurposeActivationDateVO::from($this->activationDate)) : $activationDate;
+        if ($this->activationDateAssigned) {
+            \assert(null !== $this->activationDate);
+            return ConsentPurposeActivationDateVO::from($this->activationDate);
+        } else {
+            return $activationDate;
+        }
     }
     public function activationDateTryBuildInitial(ConstraintFailList $error): ?ConsentPurposeActivationDateVO
     {
         return  ConsentPurposeActivationDateVO::tryFrom($this->activationDateAssigned ? $this->activationDate : null, $error);
     }
-    public function activationDate(ConsentPurposeActivationDateVO|\DateTimeImmutable|null $activationDate): static
+    public function activationDate(ConsentPurposeActivationDateVO|\DateTimeImmutable $activationDate): static
     {
         $this->activationDate = $activationDate;
         $this->activationDateAssigned = true;
@@ -38,6 +43,7 @@ trait ConsentPurposeActivationDateAttributeHolder
     public function writeActivationDateTo(mixed $att): void
     {
         if ($this->activationDateAssigned) {
+            \assert(null !== $this->activationDate);
             $att->activationDate($this->activationDate);
         }
     }
@@ -45,6 +51,7 @@ trait ConsentPurposeActivationDateAttributeHolder
     {
         if ($att->isActivationDateAssigned()) {
             $activationDate = $att->getActivationDate();
+            \assert(null !== $activationDate);
             $this->activationDate($activationDate);
         }
     }

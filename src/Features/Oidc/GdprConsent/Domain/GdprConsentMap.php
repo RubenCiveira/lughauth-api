@@ -8,7 +8,9 @@ namespace Civi\Lughauth\Features\Oidc\GdprConsent\Domain;
 final class GdprConsentMap
 {
     /** @param array<string, GdprConsentPurposeItem> $items */
-    private function __construct(private readonly array $items) {}
+    private function __construct(private readonly array $items)
+    {
+    }
 
     public static function build(GdprConsentPurposeItem ...$items): self
     {

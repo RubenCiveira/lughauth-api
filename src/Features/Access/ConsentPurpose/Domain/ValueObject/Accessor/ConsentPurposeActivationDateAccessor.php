@@ -9,20 +9,20 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ValueObject\ConsentPurpo
 
 trait ConsentPurposeActivationDateAccessor
 {
-    private ?ConsentPurposeActivationDateVO $_activationDate = null;
-    public function getActivationDate(): ?\DateTimeImmutable
+    private ConsentPurposeActivationDateVO $_activationDate;
+    public function getActivationDate(): \DateTimeImmutable
     {
-        return $this->_activationDate?->value();
+        return $this->_activationDate->value();
     }
-    public function activationDate(): ?ConsentPurposeActivationDateVO
+    public function activationDate(): ConsentPurposeActivationDateVO
     {
         return $this->_activationDate;
     }
     public function isActivationDateChanged(?self $original = null): bool
     {
-        return null !== $this->_activationDate && !$this->_activationDate->equals($original?->_activationDate);
+        return !$this->_activationDate->equals($original?->_activationDate);
     }
-    public function withActivationDate(ConsentPurposeActivationDateVO|\DateTimeImmutable|null $activationDate): self
+    public function withActivationDate(ConsentPurposeActivationDateVO|\DateTimeImmutable $activationDate): self
     {
         $copy = clone $this;
         $copy->_activationDate = ConsentPurposeActivationDateVO::from($activationDate);

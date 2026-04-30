@@ -57,6 +57,7 @@ class ConsentPurposeAttributes
         \assert($title !== null);
         \assert($description !== null);
         \assert($required !== null);
+        \assert($activationDate !== null);
         return new ConsentPurpose(
             uid: $uid,
             tenant: $tenant,

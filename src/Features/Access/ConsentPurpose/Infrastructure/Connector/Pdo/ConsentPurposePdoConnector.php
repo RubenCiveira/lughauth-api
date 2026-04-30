@@ -393,6 +393,9 @@ class ConsentPurposePdoConnector
                 throw ConstraintException::ofError('not-null', ['required'], [null]);
             }
             $activationDate = $row['activation_date'] ? new \DateTimeImmutable($row['activation_date']) : null;
+            if (null === $activationDate) {
+                throw ConstraintException::ofError('not-null', ['activationDate'], [null]);
+            }
             $version = $row['version'] ?? null;
             return new ConsentPurpose(
                 uid: $uid,

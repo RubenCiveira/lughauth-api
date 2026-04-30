@@ -15,6 +15,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\User\Domain\Consent;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ConsentUsecase;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Application\Usecase\GdprConsentUsecase;
+use Civi\Lughauth\Features\Oidc\GdprConsent\Domain\Gateway\GdprConsentGateway;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -41,10 +43,18 @@ final class ConsentFormStepUnitTest extends FormsTestCase
             ->method('storeAcceptedConsent')
             ->with('tenant1', 'user-1', ['client-123'], $this->isInstanceOf(Consent::class));
 
+        $gdprGateway = $this->createMock(GdprConsentGateway::class);
+        $gdprGateway->expects($this->once())
+            ->method('pendingPurposes')
+            ->with('tenant1', 'user-1')
+            ->willReturn([]);
+        $gdprConsent = new GdprConsentUsecase($gdprGateway);
+
         $form = new ConsentForm(
             $this->createMock(MessageProvider::class),
             $authenticator,
             $consent,
+            $gdprConsent,
             $this->createMock(DecorateHtml::class),
             $this->createMock(HtmlSecurer::class)
         );
