@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Domain;
 
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 
 /**
  * Builds OIDC Back-Channel Logout tokens (logout+jwt) per spec:

@@ -10,8 +10,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\StepForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\TermsAndGdprConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopeConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
@@ -42,8 +42,8 @@ final class OidcStepRouter
     ];
 
     public function __construct(
-        ConsentForm $conset,
-        ScopesConsentForm $scopesConsent,
+        TermsAndGdprConsentForm $conset,
+        ScopeConsentForm $scopesConsent,
         LoginForm $login,
         NewMfaForm $mfa,
         NewPassForm $pass,

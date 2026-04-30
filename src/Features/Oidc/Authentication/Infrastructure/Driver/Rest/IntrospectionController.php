@@ -7,9 +7,9 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Rest;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use OpenApi\Attributes as OA;
 
 class IntrospectionController

@@ -29,7 +29,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
-use Civi\Lughauth\Features\Oidc\Scopes\Application\Usecase\ScopesConsentUsecase;
+use Civi\Lughauth\Features\Oidc\Consent\Application\Usecase\ScopesConsentUsecase;
 
 class LoginAdapter implements LoginGateway
 {

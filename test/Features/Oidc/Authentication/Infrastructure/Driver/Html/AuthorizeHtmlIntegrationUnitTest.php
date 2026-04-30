@@ -19,8 +19,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\AuthorizeHtml;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\TermsAndGdprConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopeConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
@@ -39,7 +39,7 @@ use Civi\Lughauth\Features\Oidc\Par\Application\Usecase\ResolveParRequest\Resolv
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\RequestObjectValidator;
 use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Jose\Component\Core\AlgorithmManager;
@@ -106,7 +106,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->method('loadSession')
             ->willReturn(null);
 
-        $consentForm = $this->createMock(ConsentForm::class);
+        $consentForm = $this->createMock(TermsAndGdprConsentForm::class);
         $consentForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
 
         $loginForm = $this->createMock(LoginForm::class);
@@ -114,7 +114,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consentForm,
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $loginForm,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -219,8 +219,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             ->method('registerTemporalAuthCode')
             ->willReturn('temp-code');
 
-        $consentForm = $this->createMock(ConsentForm::class);
-        $scopesConsentForm = $this->createMock(ScopesConsentForm::class);
+        $consentForm = $this->createMock(TermsAndGdprConsentForm::class);
+        $scopesTermsAndGdprConsentForm = $this->createMock(ScopeConsentForm::class);
         $newMfaForm = $this->createMock(NewMfaForm::class);
         $newPassForm = $this->createMock(NewPassForm::class);
         $useMfaForm = $this->createMock(UseMfaForm::class);
@@ -231,7 +231,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consentForm,
-            $scopesConsentForm,
+            $scopesTermsAndGdprConsentForm,
             $loginForm,
             $newMfaForm,
             $newPassForm,
@@ -316,7 +316,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $sessions = $this->createMock(SessionManager::class);
         $sessions->expects($this->once())->method('loadSession')->willReturn(null);
 
-        $consentForm = $this->createMock(ConsentForm::class);
+        $consentForm = $this->createMock(TermsAndGdprConsentForm::class);
         $consentForm->method('render')->willReturn(StepResult::render(new Response(), new ChallengesState()));
 
         $loginForm = $this->createMock(LoginForm::class);
@@ -324,7 +324,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $router = new OidcStepRouter(
             $consentForm,
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $loginForm,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -392,8 +392,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(OidcCookieManager::class),
             new OidcUrlBuilder($context),
             new OidcStepRouter(
-                $this->createMock(ConsentForm::class),
-                $this->createMock(ScopesConsentForm::class),
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
                 $this->createMock(LoginForm::class),
                 $this->createMock(NewMfaForm::class),
                 $this->createMock(NewPassForm::class),

@@ -6,7 +6,7 @@ declare(strict_types=1);
 use Jose\Component\Core\JWKSet;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\LogoutToken;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 
 final class LogoutTokenUnitTest extends TestCase
 {

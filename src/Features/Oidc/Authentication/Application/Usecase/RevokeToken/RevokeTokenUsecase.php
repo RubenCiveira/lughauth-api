@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Application\Usecase\RevokeToken;
 
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenRevocationGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 
 class RevokeTokenUsecase
 {

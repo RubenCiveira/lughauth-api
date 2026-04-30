@@ -18,8 +18,8 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ConsentForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopesConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\TermsAndGdprConsentForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopeConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\LoginForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\NewPassForm;
@@ -60,11 +60,11 @@ final class OidcStepRouterUnitTest extends TestCase
     public function testResolveUsesExplicitStep(): void
     {
         $login = $this->createMock(LoginForm::class);
-        $consent = $this->createMock(ConsentForm::class);
+        $consent = $this->createMock(TermsAndGdprConsentForm::class);
 
         $router = new OidcStepRouter(
             $consent,
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $login,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -87,11 +87,11 @@ final class OidcStepRouterUnitTest extends TestCase
     public function testResolveUsesErrorMappingWhenNoStep(): void
     {
         $login = $this->createMock(LoginForm::class);
-        $consent = $this->createMock(ConsentForm::class);
+        $consent = $this->createMock(TermsAndGdprConsentForm::class);
 
         $router = new OidcStepRouter(
             $consent,
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $login,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -114,11 +114,11 @@ final class OidcStepRouterUnitTest extends TestCase
     public function testResolveFallsBackWhenNoMatch(): void
     {
         $login = $this->createMock(LoginForm::class);
-        $consent = $this->createMock(ConsentForm::class);
+        $consent = $this->createMock(TermsAndGdprConsentForm::class);
 
         $router = new OidcStepRouter(
             $consent,
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $login,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -146,8 +146,8 @@ final class OidcStepRouterUnitTest extends TestCase
             ->method('authenticate')
             ->willReturn(StepResult::proceed($authResponse, new ChallengesState(withMfa: false, session: false, username: 'user-1')));
         $router = new OidcStepRouter(
-            $this->createMock(ConsentForm::class),
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(TermsAndGdprConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $form,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),
@@ -208,8 +208,8 @@ final class OidcStepRouterUnitTest extends TestCase
             ->method('render')
             ->willReturn(StepResult::render(new Response(), new ChallengesState()));
         $router = new OidcStepRouter(
-            $this->createMock(ConsentForm::class),
-            $this->createMock(ScopesConsentForm::class),
+            $this->createMock(TermsAndGdprConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
             $form,
             $this->createMock(NewMfaForm::class),
             $this->createMock(NewPassForm::class),

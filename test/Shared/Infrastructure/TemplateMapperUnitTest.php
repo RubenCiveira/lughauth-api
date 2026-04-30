@@ -28,7 +28,18 @@ namespace Civi\Lughauth\Shared\Infrastructure {
         if (TemplateMapperTestHook::$forceMimeContentTypeFail) {
             return false;
         }
-        return \mime_content_type($filename);
+        $extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        return match ($extension) {
+            'html', 'htm' => 'text/html',
+            'css' => 'text/css',
+            'js' => 'application/javascript',
+            'json' => 'application/json',
+            'txt' => 'text/plain',
+            'svg' => 'image/svg+xml',
+            'png' => 'image/png',
+            'jpg', 'jpeg' => 'image/jpeg',
+            default => 'application/octet-stream',
+        };
     }
 
     function filemtime(string $filename): int|false

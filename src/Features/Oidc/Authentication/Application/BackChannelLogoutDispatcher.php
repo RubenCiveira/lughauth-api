@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\LogoutToken;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 
 /**
  * Dispatches OIDC Back-Channel Logout notifications (server-to-server) to all

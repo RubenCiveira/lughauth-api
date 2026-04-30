@@ -14,7 +14,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\TokenGranter\TokenGranterMediator;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\OAuthTokenException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ValueObject\PkceChallenge;

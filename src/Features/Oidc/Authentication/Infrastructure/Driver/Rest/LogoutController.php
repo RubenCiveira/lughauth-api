@@ -12,7 +12,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\BackChannelLogoutDisp
 use Civi\Lughauth\Features\Oidc\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;

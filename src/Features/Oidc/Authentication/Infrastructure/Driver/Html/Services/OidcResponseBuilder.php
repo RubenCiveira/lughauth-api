@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
-use Civi\Lughauth\Features\Oidc\Key\Domain\Gateway\TokenSigner;
+use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\Oidc\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
