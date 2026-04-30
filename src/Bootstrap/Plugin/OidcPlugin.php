@@ -65,7 +65,9 @@ use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driven\GdprConsentAdapter
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsListController;
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsHistoryController;
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsGrantController;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\PasswordGateway;
 use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\ProfileGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\PasswordAdapter;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\ProfileAdapter;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\ProfileHtml;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Rest\ProfileMeController;
@@ -96,6 +98,7 @@ class OidcPlugin extends MicroPlugin
         $def[WebAuthnChallengeGateway::class] = \DI\autowire(WebAuthnChallengeSqlAdapter::class);
         $def[GdprConsentGateway::class] = \DI\autowire(GdprConsentAdapter::class);
         $def[ProfileGateway::class] = \DI\autowire(ProfileAdapter::class);
+        $def[PasswordGateway::class] = \DI\autowire(PasswordAdapter::class);
         return $def;
     }
 
@@ -112,6 +115,8 @@ class OidcPlugin extends MicroPlugin
             $group->get('/me', [ProfileHtml::class, 'view']);
             $group->get('/me/edit', [ProfileHtml::class, 'edit']);
             $group->post('/me/edit', [ProfileHtml::class, 'save']);
+            $group->get('/me/password', [ProfileHtml::class, 'changePassword']);
+            $group->post('/me/password', [ProfileHtml::class, 'savePassword']);
             $group->get('/jwks', [JwksController::class, 'get']);
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);
