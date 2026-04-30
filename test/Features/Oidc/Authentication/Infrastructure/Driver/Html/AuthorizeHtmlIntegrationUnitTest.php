@@ -128,7 +128,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $cookies = $this->createMock(OidcCookieManager::class);
         $cookies->expects($this->once())
             ->method('clearSession')
-            ->willReturn(new Response());
+            ->willReturnCallback(static fn (ResponseInterface $response): ResponseInterface => $response);
 
         $authorize = new AuthorizeHtml(
             $context,
@@ -270,6 +270,82 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $this->assertSame(302, $response->getStatusCode());
         $this->assertStringContainsString('code=temp-code', $response->getHeaderLine('Location'));
         $this->assertStringContainsString('state=state-xyz', $response->getHeaderLine('Location'));
+    }
+
+    public function testRefreshWithInvalidCsidRedirectsToLogin(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('POST', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
+            ])
+            ->withParsedBody([
+                'csid' => 'invalid-csid'
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->expects($this->once())
+            ->method('publicClientData')
+            ->with('client-123', 'tenant1', 'https://client.example/callback', 'openid')
+            ->willReturn(new ClientData('client-123', ['code'], true));
+
+        $sessions = $this->createMock(SessionManager::class);
+        $sessions->expects($this->never())
+            ->method('loadSession')
+            ->willReturn(null);
+
+        $securer = $this->createMock(HtmlSecurer::class);
+        $securer->expects($this->once())
+            ->method('verifyToken')
+            ->with('invalid-csid')
+            ->willReturn(null);
+
+        $cookies = $this->createMock(OidcCookieManager::class);
+        $cookies->expects($this->once())
+            ->method('clearSession')
+            ->willReturnCallback(static fn (ResponseInterface $response): ResponseInterface => $response);
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $sessions,
+            $this->createMock(AuthenticateUser::class),
+            $securer,
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $cookies,
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
+                $this->createMock(LoginForm::class),
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class)
+            ),
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            $this->buildRequestObjectValidator()
+        );
+
+        $response = $authorize->refresh($request, new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertStringContainsString('/oauth/openid/tenant1/authorize', $response->getHeaderLine('Location'));
     }
 
     public function testAuthorizeWithRequestObjectUsesJwtParamsPrecedence(): void

@@ -107,7 +107,7 @@ class AuthorizeHtml
         $authRequest = $this->buildAuthRequest($flow, $client);
         $csid = $this->securer->verifyToken($body['csid']);
         if ($csid === null) {
-            throw new UnauthorizedException();
+            return $this->redirectToLogin($response, $flow, $authRequest);
         }
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
