@@ -14,7 +14,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
+use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Consent\Application\Usecase\ScopesConsentUsecase;
 use Civi\Lughauth\Features\Oidc\Consent\Domain\ScopePermission;

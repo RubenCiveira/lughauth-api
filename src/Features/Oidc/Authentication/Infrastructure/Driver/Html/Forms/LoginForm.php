@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\
 
 use Override;
 use Psr\Http\Message\ResponseInterface;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
+use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;

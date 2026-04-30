@@ -1,0 +1,26 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Civi\Lughauth\Features\Oidc\Profile\Domain;
+
+class OidcProfileData
+{
+    public function __construct(
+        public readonly ?string $givenName = null,
+        public readonly ?string $familyName = null,
+        public readonly ?string $middleName = null,
+        public readonly ?string $nickname = null,
+        public readonly ?string $preferredUsername = null,
+        public readonly ?string $pictureUrl = null,
+        public readonly ?string $websiteUrl = null,
+        public readonly ?string $gender = null,
+        public readonly ?string $birthdate = null,
+        public readonly ?string $zoneinfo = null,
+        public readonly ?string $locale = null,
+        public readonly ?string $phoneNumber = null,
+        public readonly ?bool $phoneNumberVerified = null,
+        public readonly ?string $addressJson = null,
+    ) {
+    }
+}

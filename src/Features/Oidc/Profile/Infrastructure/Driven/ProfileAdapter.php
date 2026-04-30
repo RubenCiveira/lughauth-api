@@ -1,0 +1,138 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven;
+
+use Override;
+use Ramsey\Uuid\Uuid;
+use Throwable;
+use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\UserProfile;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\UserProfileAttributes;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileReadGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileWriteGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileGivenNameVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileFamilyNameVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileMiddleNameVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileNicknameVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfilePreferredUsernameVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfilePictureUrlVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileWebsiteUrlVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileGenderVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileBirthdateVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileZoneinfoVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileLocaleVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfilePhoneNumberVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfilePhoneNumberVerifiedVO;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileAddressJsonVO;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\OidcProfile;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\OidcProfileData;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\ProfileGateway;
+
+class ProfileAdapter implements ProfileGateway
+{
+    use LoggerAwareTrait;
+    use TracerAwareTrait;
+
+    public function __construct(
+        private readonly UserProfileReadGateway $reader,
+        private readonly UserProfileWriteGateway $writer,
+    ) {
+    }
+
+    #[Override]
+    public function findByUser(string $userUid): ?OidcProfile
+    {
+        $this->logDebug("Find profile by user");
+        $span = $this->startSpan("Find profile by user");
+        try {
+            $profile = $this->reader->findOneByUser(new UserRef($userUid));
+            return $profile !== null ? $this->toOidcProfile($profile) : null;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    #[Override]
+    public function save(string $userUid, OidcProfileData $data): OidcProfile
+    {
+        $this->logDebug("Save profile for user");
+        $span = $this->startSpan("Save profile for user");
+        try {
+            $userRef = new UserRef($userUid);
+            $attributes = $this->toAttributes($data);
+            $existing = $this->writer->findOneForUpdateByUser($userRef);
+
+            if ($existing !== null) {
+                $modified = $existing->update($attributes);
+                $saved = $this->writer->update($existing, $modified);
+            } else {
+                $attributes->uid(Uuid::uuid4()->toString())->user($userRef);
+                $entity = UserProfile::create($attributes);
+                $saved = $this->writer->create($entity);
+            }
+
+            return $this->toOidcProfile($saved);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    private function toAttributes(OidcProfileData $data): UserProfileAttributes
+    {
+        $errors = new ConstraintFailList();
+        $att = new UserProfileAttributes();
+        $att->givenName(UserProfileGivenNameVO::tryFrom($data->givenName, $errors));
+        $att->familyName(UserProfileFamilyNameVO::tryFrom($data->familyName, $errors));
+        $att->middleName(UserProfileMiddleNameVO::tryFrom($data->middleName, $errors));
+        $att->nickname(UserProfileNicknameVO::tryFrom($data->nickname, $errors));
+        $att->preferredUsername(UserProfilePreferredUsernameVO::tryFrom($data->preferredUsername, $errors));
+        $att->pictureUrl(UserProfilePictureUrlVO::tryFrom($data->pictureUrl, $errors));
+        $att->websiteUrl(UserProfileWebsiteUrlVO::tryFrom($data->websiteUrl, $errors));
+        $att->gender(UserProfileGenderVO::tryFrom($data->gender, $errors));
+        $att->birthdate(UserProfileBirthdateVO::tryFrom($data->birthdate, $errors));
+        $att->zoneinfo(UserProfileZoneinfoVO::tryFrom($data->zoneinfo, $errors));
+        $att->locale(UserProfileLocaleVO::tryFrom($data->locale, $errors));
+        $att->phoneNumber(UserProfilePhoneNumberVO::tryFrom($data->phoneNumber, $errors));
+        $att->phoneNumberVerified(UserProfilePhoneNumberVerifiedVO::tryFrom($data->phoneNumberVerified, $errors));
+        $att->addressJson(UserProfileAddressJsonVO::tryFrom($data->addressJson, $errors));
+        if ($errors->hasErrors()) {
+            throw $errors->asConstraintException();
+        }
+        return $att;
+    }
+
+    private function toOidcProfile(UserProfile $profile): OidcProfile
+    {
+        return new OidcProfile(
+            uid: $profile->uid() ?? '',
+            userUid: $profile->getUser()->uid() ?? '',
+            givenName: $profile->getGivenName(),
+            familyName: $profile->getFamilyName(),
+            middleName: $profile->getMiddleName(),
+            nickname: $profile->getNickname(),
+            preferredUsername: $profile->getPreferredUsername(),
+            pictureUrl: $profile->getPictureUrl(),
+            websiteUrl: $profile->getWebsiteUrl(),
+            gender: $profile->getGender(),
+            birthdate: $profile->getBirthdate(),
+            zoneinfo: $profile->getZoneinfo(),
+            locale: $profile->getLocale(),
+            phoneNumber: $profile->getPhoneNumber(),
+            phoneNumberVerified: $profile->isPhoneNumberVerified(),
+            addressJson: $profile->getAddressJson(),
+            updatedAt: $profile->getUpdatedAt(),
+            version: $profile->getVersion(),
+        );
+    }
+}

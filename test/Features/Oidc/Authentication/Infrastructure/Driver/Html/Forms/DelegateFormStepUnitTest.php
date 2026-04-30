@@ -11,7 +11,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
+use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;

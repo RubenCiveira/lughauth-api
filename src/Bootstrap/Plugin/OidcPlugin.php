@@ -65,6 +65,10 @@ use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driven\GdprConsentAdapter
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsListController;
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsHistoryController;
 use Civi\Lughauth\Features\Oidc\Consent\Infrastructure\Driver\Rest\MeConsentsGrantController;
+use Civi\Lughauth\Features\Oidc\Profile\Domain\Gateway\ProfileGateway;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\ProfileAdapter;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\ProfileHtml;
+use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Rest\ProfileMeController;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -91,6 +95,7 @@ class OidcPlugin extends MicroPlugin
         $def[WebAuthnCredentialGateway::class] = \DI\autowire(WebAuthnCredentialSqlAdapter::class);
         $def[WebAuthnChallengeGateway::class] = \DI\autowire(WebAuthnChallengeSqlAdapter::class);
         $def[GdprConsentGateway::class] = \DI\autowire(GdprConsentAdapter::class);
+        $def[ProfileGateway::class] = \DI\autowire(ProfileAdapter::class);
         return $def;
     }
 
@@ -100,8 +105,13 @@ class OidcPlugin extends MicroPlugin
         $collector->get('/api/me/consents', [MeConsentsListController::class, 'list']);
         $collector->get('/api/me/consents/history', [MeConsentsHistoryController::class, 'history']);
         $collector->put('/api/me/consents/{purposeKey}', [MeConsentsGrantController::class, 'grant']);
+        $collector->get('/api/me/profile', [ProfileMeController::class, 'get']);
+        $collector->put('/api/me/profile', [ProfileMeController::class, 'put']);
         $collector->get('/oauth/openid/-/delegated/verify', [DelegatedController::class, 'verify']);
         $collector->group('/oauth/openid/{tenant}', function (RouteCollectorProxy $group) {
+            $group->get('/me', [ProfileHtml::class, 'view']);
+            $group->get('/me/edit', [ProfileHtml::class, 'edit']);
+            $group->post('/me/edit', [ProfileHtml::class, 'save']);
             $group->get('/jwks', [JwksController::class, 'get']);
             $group->get('/.well-known/openid-configuration', [OpenIdConfigurationController::class, 'get']);
             $group->post('/token', [TokenController::class, 'post']);

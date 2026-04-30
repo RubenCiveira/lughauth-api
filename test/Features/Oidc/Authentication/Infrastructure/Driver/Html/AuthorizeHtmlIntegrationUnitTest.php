@@ -29,7 +29,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\WebAuthnLoginForm;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
+use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcResponseBuilder;

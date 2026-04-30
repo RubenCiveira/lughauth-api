@@ -15,7 +15,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\ScopeConsentForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
-use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\DecorateHtml;
+use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Consent\Application\Usecase\ScopesConsentUsecase;
 use Civi\Lughauth\Features\Oidc\Consent\Domain\Gateway\ScopesConsentGateway;
