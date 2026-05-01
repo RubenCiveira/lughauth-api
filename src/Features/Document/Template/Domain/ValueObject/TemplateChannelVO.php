@@ -52,6 +52,9 @@ class TemplateChannelVO
         if (in_array($enumString, ['SMS', 'sms', 'sMS'])) {
             return TemplateChannelOptions::SMS;
         }
+        if (in_array($enumString, ['HTML', 'html', 'hTML'])) {
+            return TemplateChannelOptions::HTML;
+        }
         return null;
     }
     private static function fromUnsafe(mixed $value): TemplateChannelVO
