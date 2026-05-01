@@ -18,7 +18,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
 
@@ -37,8 +36,6 @@ final class ThemeUnitTest extends TestCase
         $this->assertTrue($one->isIsDefaultChanged());
         $this->assertEquals($one->isEnabled(), $other->isEnabled());
         $this->assertTrue($one->isEnabledChanged());
-        $this->assertEquals($one->getCustomCss(), $other->getCustomCss());
-        $this->assertTrue($one->isCustomCssChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -51,7 +48,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
         $other = new Theme(
@@ -60,7 +56,6 @@ final class ThemeUnitTest extends TestCase
             name: 'other',
             isDefault: false,
             enabled: false,
-            customCss: 'other',
             version: 2,
         );
 
@@ -77,8 +72,6 @@ final class ThemeUnitTest extends TestCase
         $this->assertTrue($one->isIsDefaultChanged($base));
         $this->assertEquals($one->isEnabled(), $other->isEnabled());
         $this->assertTrue($one->isEnabledChanged($base));
-        $this->assertEquals($one->getCustomCss(), $other->getCustomCss());
-        $this->assertTrue($one->isCustomCssChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
     }
@@ -91,7 +84,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
 
@@ -104,7 +96,6 @@ final class ThemeUnitTest extends TestCase
         $this->assertEquals('one', $json['name']);
         $this->assertEquals(true, $json['isDefault']);
         $this->assertEquals(true, $json['enabled']);
-        $this->assertEquals('one', $json['customCss']);
         $this->assertEquals(1, $json['version']);
     }
     public function test_create_store_values(): void
@@ -116,7 +107,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
 
@@ -133,8 +123,6 @@ final class ThemeUnitTest extends TestCase
         $this->assertTrue($one->isIsDefaultChanged());
         $this->assertEquals($one->isEnabled(), $other->isEnabled());
         $this->assertTrue($one->isEnabledChanged());
-        $this->assertEquals($one->getCustomCss(), $other->getCustomCss());
-        $this->assertTrue($one->isCustomCssChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
         $this->assertCount(0, $one->getTheEvents());
@@ -148,7 +136,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
         $other = new Theme(
@@ -157,7 +144,6 @@ final class ThemeUnitTest extends TestCase
             name: 'other',
             isDefault: false,
             enabled: false,
-            customCss: 'other',
             version: 2,
         );
 
@@ -174,8 +160,6 @@ final class ThemeUnitTest extends TestCase
         $this->assertTrue($one->isIsDefaultChanged($base));
         $this->assertEquals($one->isEnabled(), $other->isEnabled());
         $this->assertTrue($one->isEnabledChanged($base));
-        $this->assertEquals($one->getCustomCss(), $other->getCustomCss());
-        $this->assertTrue($one->isCustomCssChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged($base));
         $this->assertCount(0, $other->getTheEvents());
@@ -190,7 +174,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
 
@@ -207,8 +190,6 @@ final class ThemeUnitTest extends TestCase
         $this->assertTrue($one->isIsDefaultChanged());
         $this->assertEquals($one->isEnabled(), $other->isEnabled());
         $this->assertTrue($one->isEnabledChanged());
-        $this->assertEquals($one->getCustomCss(), $other->getCustomCss());
-        $this->assertTrue($one->isCustomCssChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
         $this->assertTrue($one->isVersionChanged());
     }
@@ -221,7 +202,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
         $sourceEnabled = false;
@@ -245,7 +225,6 @@ final class ThemeUnitTest extends TestCase
             name: 'one',
             isDefault: true,
             enabled: true,
-            customCss: 'one',
             version: 1,
         );
         $sourceEnabled = true;

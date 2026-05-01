@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven;
 
 use Override;
 use Throwable;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Connector\Pdo\ThemePdoConnector;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeSlide;
@@ -89,6 +90,20 @@ class ThemeReadRepositoryAdapter implements ThemeReadGateway
         $span = $this->startSpan("Count for Theme on adapter");
         try {
             return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByNameAndTenant(string $name, ?TenantRef $tenant): ?Theme
+    {
+        $this->logDebug("Find on by name tenant for Theme on adapter");
+        $span = $this->startSpan("Find on by name tenant for Theme on adapter");
+        try {
+            return $this->conn->retrieve(new ThemeFilter(nameAndTenant: ThemeFilter::nameAndTenantFilter(name: $name, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

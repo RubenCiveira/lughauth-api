@@ -16,7 +16,6 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Document\Template\Application\Usecase\List\TemplateListUsecase;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 class TemplateListController
 {
@@ -49,8 +48,6 @@ class TemplateListController
                 code: $params['code'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
-                theme: isset($params['theme']) ? new ThemeRef($params['theme']) : null,
-                themes: isset($params['themes']) ? explode(",", $params['themes']) : null,
             );
             $cursor = new TemplateCursor(
                 limit: (int)($params['limit'] ?? 100),
@@ -136,12 +133,11 @@ class TemplateListController
         $span = $this->startSpan("Map entity to output dto for Template");
         try {
             $tenant = $value->getTenant();
-            $theme = $value->getTheme();
             $dto = new TemplateApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
-            $dto->theme = $theme ? ['$ref' => $theme->uid()] : null;
+            $dto->theme = $value->getTheme();
             $dto->channel = $value->getChannel();
             $dto->enabled = $value->isEnabled();
             $dto->version = $value->getVersion();

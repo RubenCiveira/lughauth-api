@@ -9,9 +9,14 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 class ThemeFilter
 {
+    public static function nameAndTenantFilter(?string $name, ?TenantRef $tenant): array
+    {
+        return ['name' => $name, 'tenant' => $tenant];
+    }
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
+        private ?array $nameAndTenant = null,
         private ?string $name = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
@@ -36,6 +41,16 @@ class ThemeFilter
     {
         $copy = clone $this;
         $copy->search = $search;
+        return $copy;
+    }
+    public function nameAndTenant(): ?array
+    {
+        return $this->nameAndTenant;
+    }
+    public function withNameAndTenant(?string $name, ?TenantRef $tenant): self
+    {
+        $copy = clone $this;
+        $copy->nameAndTenant = ['name' => $name, 'tenant' => $tenant];
         return $copy;
     }
     public function name(): ?string

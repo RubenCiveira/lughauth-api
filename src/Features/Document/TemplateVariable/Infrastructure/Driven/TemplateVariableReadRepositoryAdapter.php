@@ -98,20 +98,6 @@ class TemplateVariableReadRepositoryAdapter implements TemplateVariableReadGatew
         }
     }
     #[Override]
-    public function findOneByCode(string $code): ?TemplateVariable
-    {
-        $this->logDebug("Find on by code for Template variable on adapter");
-        $span = $this->startSpan("Find on by code for Template variable on adapter");
-        try {
-            return $this->conn->retrieve(new TemplateVariableFilter(code: $code));
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
-    }
-    #[Override]
     public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable
     {
         $this->logDebug("Find on by code tenant for Template variable on adapter");

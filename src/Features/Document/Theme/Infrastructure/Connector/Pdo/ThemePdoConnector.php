@@ -10,6 +10,7 @@ use Closure;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlParam;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
+use Civi\Lughauth\Shared\Exception\NotUniqueException;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Shared\Exception\NotEmptyChildsException;
@@ -133,15 +134,19 @@ class ThemePdoConnector
         $this->logDebug("Execute insert sql query for Theme");
         $span = $this->startSpan("Execute insert sql query for Theme");
         try {
-            $this->db->execute('INSERT INTO "document_theme" ( "uid", "tenant", "name", "is_default", "enabled", "custom_css", "version") VALUES ( :uid, :tenant, :name, :isDefault, :enabled, :customCss, :version)', [
-                 new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                 new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
-                 new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
-                 new SqlParam(name: 'isDefault', value: $entity->isIsDefault(), type: SqlParam::BOOL),
-                 new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
-                 new SqlParam(name: 'customCss', value: $entity->getCustomCss(), type: SqlParam::STR),
-                 new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
-            ]);
+            try {
+                $this->db->execute('INSERT INTO "document_theme" ( "uid", "tenant", "name", "is_default", "enabled", "version") VALUES ( :uid, :tenant, :name, :isDefault, :enabled, :version)', [
+                     new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
+                     new SqlParam(name: 'isDefault', value: $entity->isIsDefault(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
+                ]);
+            } catch (NotUniqueException $ex) {
+                $this->checkDuplicates($entity, true);
+                throw $ex;
+            }
             $created = $entity->withVersion(0);
             if ($verify && !$verify($created)) {
                 $this->db->execute('DELETE FROM "document_theme" where "uid" = :uid', [
@@ -162,20 +167,24 @@ class ThemePdoConnector
         $this->logDebug("Execute update sql query for Theme");
         $span = $this->startSpan("Execute update sql query for Theme");
         try {
-            $result = $this->db->execute('UPDATE "document_theme" SET "tenant" = :tenant , "name" = :name , "is_default" = :isDefault , "enabled" = :enabled , "custom_css" = :customCss , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
-                 new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                 new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
-                 new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
-                 new SqlParam(name: 'isDefault', value: $update->isIsDefault(), type: SqlParam::BOOL),
-                 new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
-                 new SqlParam(name: 'customCss', value: $update->getCustomCss(), type: SqlParam::STR),
-                 new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
-                 new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
-            ]);
-            if (!$result && $this->db->exists('select "uid" from "document_theme" where "uid" = :uid', ['uid' => $update->uid() ])) {
-                throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
-            } elseif (!$result) {
-                throw new NotFoundException($update->uid() ?? 'no-id');
+            try {
+                $result = $this->db->execute('UPDATE "document_theme" SET "tenant" = :tenant , "name" = :name , "is_default" = :isDefault , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                     new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
+                     new SqlParam(name: 'isDefault', value: $update->isIsDefault(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
+                     new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
+                ]);
+                if (!$result && $this->db->exists('select "uid" from "document_theme" where "uid" = :uid', ['uid' => $update->uid() ])) {
+                    throw new OptimistLockException($update->uid() ?? 'no-id', "version: " . ($update->getVersion() ?? 0));
+                } elseif (!$result) {
+                    throw new NotFoundException($update->uid() ?? 'no-id');
+                }
+            } catch (NotUniqueException $ex) {
+                $this->checkDuplicates($update, false);
+                throw $ex;
             }
             return $update->withVersion(($update->getVersion() ?? 0) + 1);
         } catch (Throwable $ex) {
@@ -258,6 +267,22 @@ class ThemePdoConnector
             $span->end();
         }
     }
+    private function checkDuplicates(Theme $entity, bool $creation): void
+    {
+        $this->logDebug("Query to check duplicates for Theme");
+        $span = $this->startSpan("Query to check duplicates for Theme");
+        try {
+            $values = ['name' => $entity->getName(), 'tenant' => $entity->getTenant()?->uid(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "name", "tenant" from "document_theme" where "name" = :name and "tenant" = :tenant and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['name', 'tenant'], [$entity->getName(), $entity->getTenant()?->uid()]);
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     private function filter(?ThemeFilter $filter, ?ThemeCursor $sort, bool $count): array
     {
         $this->logDebug("Build query filter of Theme");
@@ -281,6 +306,12 @@ class ThemePdoConnector
                 if (null !== $filterSearch) {
                     $query .= ' and ( "document_theme"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
+                }
+                $filterNameAndTenant = $filter->nameAndTenant();
+                if (null !== $filterNameAndTenant) {
+                    $query .= ' and ( "document_theme"."name" = :nameTenantName and "document_theme"."tenant" = :nameTenantTenant)';
+                    $params[] = new SqlParam(name: 'nameTenantName', value: $filterNameAndTenant['name'], type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'nameTenantTenant', value: $filterNameAndTenant['tenant']->uid(), type: SqlParam::STR);
                 }
                 $filterName = $filter->name();
                 if (null !== $filterName) {
@@ -363,18 +394,13 @@ class ThemePdoConnector
             if (null === $uid) {
                 throw ConstraintException::ofError('not-null', ['uid'], [null]);
             }
-            $rawTenant = $row['tenant'] ?? null;
-            if (null === $rawTenant) {
-                throw ConstraintException::ofError('not-null', ['tenant'], [null]);
-            }
-            $tenant = new TenantRef(uid: $rawTenant);
+            $tenant = isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null;
             $name = $row['name'] ?? null;
             if (null === $name) {
                 throw ConstraintException::ofError('not-null', ['name'], [null]);
             }
             $isDefault = isset($row['is_default']) ? !! $row['is_default'] : null;
             $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;
-            $customCss = $row['custom_css'] ?? null;
             $version = $row['version'] ?? null;
             return new Theme(
                 uid: $uid,
@@ -382,7 +408,6 @@ class ThemePdoConnector
                 name: $name,
                 isDefault: $isDefault,
                 enabled: $enabled,
-                customCss: $customCss,
                 version: $version,
             );
         } catch (Throwable $ex) {

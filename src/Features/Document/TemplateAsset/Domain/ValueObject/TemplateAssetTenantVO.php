@@ -11,7 +11,11 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class TemplateAssetTenantVO
 {
-    public static function from(TemplateAssetTenantVO|TenantRef $value): TemplateAssetTenantVO
+    public static function empty(): TemplateAssetTenantVO
+    {
+        return new TemplateAssetTenantVO(null);
+    }
+    public static function from(TemplateAssetTenantVO|TenantRef|null $value): TemplateAssetTenantVO
     {
         return self::fromUnsafe($value);
     }
@@ -20,6 +24,8 @@ class TemplateAssetTenantVO
         if ($value instanceof TemplateAssetTenantVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
+        } elseif (!$value) {
+            return new TemplateAssetTenantVO($value);
         } elseif (is_a($value, TenantRef::class)) {
             return new TemplateAssetTenantVO($value);
         } else {
@@ -47,15 +53,15 @@ class TemplateAssetTenantVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly TenantRef $tenant
+        private readonly ?TenantRef $tenant
     ) {
     }
-    public function value(): TenantRef
+    public function value(): ?TenantRef
     {
         return $this->tenant;
     }
     public function equals(?TemplateAssetTenantVO $other): bool
     {
-        return $this->value()->uid() == $other?->value()?->uid();
+        return $this->value()?->uid() == $other?->value()?->uid();
     }
 }

@@ -25,7 +25,6 @@ use Civi\Lughauth\Features\Document\Template\Domain\Event\TemplateDeleteEvent;
 use Civi\Lughauth\Features\Document\Template\Domain\Event\TemplateEnableEvent;
 use Civi\Lughauth\Features\Document\Template\Domain\Event\TemplateDisableEvent;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 class Template extends TemplateRef
 {
@@ -42,7 +41,7 @@ class Template extends TemplateRef
         TemplateCodeVO|string $code,
         TemplateChannelVO|TemplateChannelOptions $channel,
         TemplateTenantVO|TenantRef|null $tenant = null,
-        TemplateThemeVO|ThemeRef|null $theme = null,
+        TemplateThemeVO|string|null $theme = null,
         TemplateEnabledVO|bool|null $enabled = null,
         TemplateVersionVO|int|null $version = null,
     ) {
@@ -114,10 +113,7 @@ class Template extends TemplateRef
         if (null !== $tenant) {
             $data['tenant'] = ['$ref' => $tenant->uid() ];
         }
-        $theme = $this->getTheme();
-        if (null !== $theme) {
-            $data['theme'] = ['$ref' => $theme->uid() ];
-        }
+        $data['theme'] = $this->getTheme();
         $data['channel'] = $this->getChannel();
         $data['enabled'] = $this->isEnabled();
         $data['version'] = $this->getVersion();

@@ -18,9 +18,19 @@ class TemplateAssetApiDTO
     )]
     public ?string $uid = null;
     #[OA\Property(
+        property: "template",
+        title: "template",
+        description:"El template de template asset",
+        type: "object",
+        properties: [
+          new OA\Property(property: "\$ref", type: "string")
+    ]
+    )]
+    public ?array $template = null;
+    #[OA\Property(
         property: "tenant",
         title: "tenant",
-        description:"El tenant de template asset",
+        description:"null = asset global del template. Valor = override por tenant (logo distinto por tenant en template global).",
         type: "object",
         properties: [
           new OA\Property(property: "\$ref", type: "string")
@@ -30,7 +40,7 @@ class TemplateAssetApiDTO
     #[OA\Property(
         property: "code",
         title: "code",
-        description:"logo, background...",
+        description:"logo, background, corporate.css...",
         type: "string"
     )]
     public ?string $code = null;

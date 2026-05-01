@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\Re
 
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionUidAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionTemplateAttributeHolder;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionLocaleAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionSubjectAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionContentHtmlAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionContentTextAttributeHolder;
@@ -17,6 +18,7 @@ class TemplateVersionRetrieveResult
 {
     use TemplateVersionUidAttributeHolder;
     use TemplateVersionTemplateAttributeHolder;
+    use TemplateVersionLocaleAttributeHolder;
     use TemplateVersionSubjectAttributeHolder;
     use TemplateVersionContentHtmlAttributeHolder;
     use TemplateVersionContentTextAttributeHolder;
@@ -25,6 +27,7 @@ class TemplateVersionRetrieveResult
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'template' => 'unsetTemplate',
+      'locale' => 'unsetLocale',
       'subject' => 'unsetSubject',
       'contentHtml' => 'unsetContentHtml',
       'contentText' => 'unsetContentText',
@@ -36,6 +39,7 @@ class TemplateVersionRetrieveResult
         if ($att) {
             $this->readUidFrom($att);
             $this->readTemplateFrom($att);
+            $this->readLocaleFrom($att);
             $this->readSubjectFrom($att);
             $this->readContentHtmlFrom($att);
             $this->readContentTextFrom($att);
@@ -47,6 +51,7 @@ class TemplateVersionRetrieveResult
         $att = new TemplateVersionAttributes();
         $this->writeUidTo($att);
         $this->writeTemplateTo($att);
+        $this->writeLocaleTo($att);
         $this->writeSubjectTo($att);
         $this->writeContentHtmlTo($att);
         $this->writeContentTextTo($att);
@@ -63,6 +68,7 @@ class TemplateVersionRetrieveResult
     {
         $this->withDefaultUid();
         $this->withDefaultTemplate();
+        $this->withDefaultLocale();
         $this->withDefaultSubject();
         $this->withDefaultContentHtml();
         $this->withDefaultContentText();

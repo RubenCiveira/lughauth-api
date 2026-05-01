@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionTemplateVO;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionLocaleVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionSubjectVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentHtmlVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentTextVO;
@@ -28,6 +29,17 @@ final class TemplateVersionAttributesUnitTest extends TestCase
         $value->unsetTemplate();
         $this->assertEquals(new TemplateRef('other'), $value->getTemplateOrCurrent(TemplateVersionTemplateVO::from($templateOtherValue))->value());
         $this->assertNotEquals(new TemplateRef('one'), $value->getTemplateOrCurrent(TemplateVersionTemplateVO::from($templateOtherValue))->value());
+        $localeOneValue = 'one';
+        $localeOtherValue = 'other';
+        $copy = $value->locale($localeOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getLocale());
+        $this->assertNotEquals('other', $value->getLocale());
+        $this->assertEquals('one', $value->getLocaleOrCurrent(TemplateVersionLocaleVO::from($localeOtherValue))->value());
+        $this->assertNotEquals('other', $value->getLocaleOrCurrent(TemplateVersionLocaleVO::from($localeOtherValue))->value());
+        $value->unsetLocale();
+        $this->assertEquals('other', $value->getLocaleOrCurrent(TemplateVersionLocaleVO::from($localeOtherValue))->value());
+        $this->assertNotEquals('one', $value->getLocaleOrCurrent(TemplateVersionLocaleVO::from($localeOtherValue))->value());
         $subjectOneValue = 'one';
         $subjectOtherValue = 'other';
         $copy = $value->subject($subjectOneValue);

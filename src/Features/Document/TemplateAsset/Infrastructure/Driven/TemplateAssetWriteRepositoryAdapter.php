@@ -13,6 +13,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Connector\Pdo\TemplateAssetPdoConnector;
@@ -218,12 +219,12 @@ class TemplateAssetWriteRepositoryAdapter implements TemplateAssetWriteGateway
         }
     }
     #[Override]
-    public function findOneForUpdateByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateAsset
+    public function findOneForUpdateByCodeAndTemplateAndTenant(string $code, TemplateRef $template, ?TenantRef $tenant): ?TemplateAsset
     {
-        $this->logDebug("Find on by code tenant for Template asset on adapter");
-        $span = $this->startSpan("Find on by code tenant for Template asset on adapter");
+        $this->logDebug("Find on by code template tenant for Template asset on adapter");
+        $span = $this->startSpan("Find on by code template tenant for Template asset on adapter");
         try {
-            return $this->conn->retrieveForUpdate(new TemplateAssetFilter(codeAndTenant: TemplateAssetFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
+            return $this->conn->retrieveForUpdate(new TemplateAssetFilter(codeAndTemplateAndTenant: TemplateAssetFilter::codeAndTemplateAndTenantFilter(code: $code, template: $template, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -10,7 +10,6 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeTenantA
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeNameAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeIsDefaultAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeCustomCssAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeVersionAttributeHolder;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 
@@ -21,7 +20,6 @@ class ThemeAttributes
     use ThemeNameAttributeHolder;
     use ThemeIsDefaultAttributeHolder;
     use ThemeEnabledAttributeHolder;
-    use ThemeCustomCssAttributeHolder;
     use ThemeVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -30,7 +28,6 @@ class ThemeAttributes
       'name' => 'unsetName',
       'isDefault' => 'unsetIsDefault',
       'enabled' => 'unsetEnabled',
-      'customCss' => 'unsetCustomCss',
       'version' => 'unsetVersion',
     ];
 
@@ -42,13 +39,11 @@ class ThemeAttributes
         $name = $this->nameTryBuildInitial($errors);
         $isDefault = $this->isDefaultTryBuildInitial($errors);
         $enabled = $this->enabledTryBuildInitial($errors);
-        $customCss = $this->customCssTryBuildInitial($errors);
         $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
             throw $errors->asConstraintException();
         }
         \assert($uid !== null);
-        \assert($tenant !== null);
         \assert($name !== null);
         return new Theme(
             uid: $uid,
@@ -56,7 +51,6 @@ class ThemeAttributes
             name: $name,
             isDefault: $isDefault,
             enabled: $enabled,
-            customCss: $customCss,
             version: $version,
         );
     }
@@ -69,7 +63,6 @@ class ThemeAttributes
         $this->withAssertedNameRules($value, $errorsList);
         $this->withAssertedIsDefaultRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
-        $this->withAssertedCustomCssRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
             throw $errorsList->asConstraintException();
@@ -89,7 +82,6 @@ class ThemeAttributes
         $this->withDefaultName();
         $this->withDefaultIsDefault();
         $this->withDefaultEnabled();
-        $this->withDefaultCustomCss();
         $this->withDefaultVersion();
         return $this;
     }

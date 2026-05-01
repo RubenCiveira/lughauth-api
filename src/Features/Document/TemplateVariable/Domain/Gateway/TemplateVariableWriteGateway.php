@@ -20,6 +20,5 @@ interface TemplateVariableWriteGateway
     public function retrieveForUpdate(TemplateVariableFilter $filter): ?TemplateVariable;
     public function existsForUpdate(TemplateVariableFilter $filter): bool;
     public function countForUpdate(?TemplateVariableFilter $filter = null): int;
-    public function findOneForUpdateByCode(string $code): ?TemplateVariable;
     public function findOneForUpdateByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable;
 }

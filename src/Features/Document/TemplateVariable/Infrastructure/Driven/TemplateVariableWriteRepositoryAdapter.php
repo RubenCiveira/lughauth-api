@@ -149,20 +149,6 @@ class TemplateVariableWriteRepositoryAdapter implements TemplateVariableWriteGat
         }
     }
     #[Override]
-    public function findOneForUpdateByCode(string $code): ?TemplateVariable
-    {
-        $this->logDebug("Find on by code for Template variable on adapter");
-        $span = $this->startSpan("Find on by code for Template variable on adapter");
-        try {
-            return $this->conn->retrieveForUpdate(new TemplateVariableFilter(code: $code));
-        } catch (Throwable $ex) {
-            $span->recordException($ex);
-            throw $ex;
-        } finally {
-            $span->end();
-        }
-    }
-    #[Override]
     public function findOneForUpdateByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable
     {
         $this->logDebug("Find on by code tenant for Template variable on adapter");

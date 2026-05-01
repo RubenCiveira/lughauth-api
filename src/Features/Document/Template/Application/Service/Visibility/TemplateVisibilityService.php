@@ -9,7 +9,6 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Iterator;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
-use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateAttributes;
@@ -31,8 +30,7 @@ class TemplateVisibilityService
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateReadGateway $readGateway,
         private readonly TemplateWriteGateway $writeGateway,
-        private readonly TenantVisibilityService $tenantVisibilityService,
-        private readonly ThemeVisibilityService $themeVisibilityService
+        private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }
 
@@ -246,10 +244,6 @@ class TemplateVisibilityService
             $tenant = $attributes->getTenant();
             if (null !== $tenant && !$this->tenantVisibilityService->checkVisibility($tenant)) {
                 throw new NotFoundException("Unknown Tenant " . ($tenant->uid() ?? 'no-id'));
-            }
-            $theme = $attributes->getTheme();
-            if (null !== $theme && !$this->themeVisibilityService->checkVisibility($theme)) {
-                throw new NotFoundException("Unknown Theme " . ($theme->uid() ?? 'no-id'));
             }
             return $attributes;
         } catch (Throwable $ex) {

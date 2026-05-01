@@ -10,7 +10,6 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeTenantA
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeNameAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeIsDefaultAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeEnabledAttributeHolder;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeCustomCssAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Holder\ThemeVersionAttributeHolder;
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeAttributes;
 
@@ -21,7 +20,6 @@ class ThemeDisableResult
     use ThemeNameAttributeHolder;
     use ThemeIsDefaultAttributeHolder;
     use ThemeEnabledAttributeHolder;
-    use ThemeCustomCssAttributeHolder;
     use ThemeVersionAttributeHolder;
 
     private const array UNSETS = [
@@ -30,7 +28,6 @@ class ThemeDisableResult
       'name' => 'unsetName',
       'isDefault' => 'unsetIsDefault',
       'enabled' => 'unsetEnabled',
-      'customCss' => 'unsetCustomCss',
       'version' => 'unsetVersion',
     ];
 
@@ -42,7 +39,6 @@ class ThemeDisableResult
             $this->readNameFrom($att);
             $this->readIsDefaultFrom($att);
             $this->readEnabledFrom($att);
-            $this->readCustomCssFrom($att);
             $this->readVersionFrom($att);
         }
     }
@@ -54,7 +50,6 @@ class ThemeDisableResult
         $this->writeNameTo($att);
         $this->writeIsDefaultTo($att);
         $this->writeEnabledTo($att);
-        $this->writeCustomCssTo($att);
         $this->writeVersionTo($att);
         return $att;
     }
@@ -71,7 +66,6 @@ class ThemeDisableResult
         $this->withDefaultName();
         $this->withDefaultIsDefault();
         $this->withDefaultEnabled();
-        $this->withDefaultCustomCss();
         $this->withDefaultVersion();
         return $this;
     }

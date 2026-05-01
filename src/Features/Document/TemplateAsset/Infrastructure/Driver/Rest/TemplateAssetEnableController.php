@@ -18,6 +18,7 @@ use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Enable\TemplateAssetEnableUsecase;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetFilter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driver\Batch\TemplateAssetTaskEnable;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
@@ -84,6 +85,8 @@ class TemplateAssetEnableController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 code: $params['code'] ?? null,
+                template: isset($params['template']) ? new TemplateRef($params['template']) : null,
+                templates: isset($params['templates']) ? explode(",", $params['templates']) : null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
@@ -128,9 +131,11 @@ class TemplateAssetEnableController
         $this->logDebug("Map entity to output dto for Template asset");
         $span = $this->startSpan("Map entity to output dto for Template asset");
         try {
+            $template = $value->getTemplate();
             $tenant = $value->getTenant();
             $dto = new TemplateAssetApiDTO();
             $dto->uid = $value->getUid();
+            $dto->template = $template ? ['$ref' => $template->uid()] : null;
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->code = $value->getCode();
             $dto->type = $value->getType();

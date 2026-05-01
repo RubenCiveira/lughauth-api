@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateCodeVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateTenantVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateThemeVO;
@@ -42,17 +41,17 @@ final class TemplateCreateParamsUnitTest extends TestCase
         $value->unsetTenant();
         $this->assertEquals(new TenantRef('other'), $value->getTenantOrCurrent(TemplateTenantVO::from($tenantOtherValue))->value());
         $this->assertNotEquals(new TenantRef('one'), $value->getTenantOrCurrent(TemplateTenantVO::from($tenantOtherValue))->value());
-        $themeOneValue = new ThemeRef('one');
-        $themeOtherValue = new ThemeRef('other');
+        $themeOneValue = 'one';
+        $themeOtherValue = 'other';
         $copy = $value->theme($themeOneValue);
         $this->assertSame($value, $copy);
-        $this->assertEquals(new ThemeRef('one'), $value->getTheme());
-        $this->assertNotEquals(new ThemeRef('other'), $value->getTheme());
-        $this->assertEquals(new ThemeRef('one'), $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
-        $this->assertNotEquals(new ThemeRef('other'), $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
+        $this->assertEquals('one', $value->getTheme());
+        $this->assertNotEquals('other', $value->getTheme());
+        $this->assertEquals('one', $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
+        $this->assertNotEquals('other', $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
         $value->unsetTheme();
-        $this->assertEquals(new ThemeRef('other'), $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
-        $this->assertNotEquals(new ThemeRef('one'), $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
+        $this->assertEquals('other', $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
+        $this->assertNotEquals('one', $value->getThemeOrCurrent(TemplateThemeVO::from($themeOtherValue))->value());
         $channelOneValue = TemplateChannelOptions::MAIL;
         $channelOtherValue = TemplateChannelOptions::SMS;
         $copy = $value->channel($channelOneValue);

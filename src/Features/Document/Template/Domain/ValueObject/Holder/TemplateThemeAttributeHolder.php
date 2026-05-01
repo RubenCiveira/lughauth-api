@@ -7,11 +7,10 @@ namespace Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Holder;
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateThemeVO;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 trait TemplateThemeAttributeHolder
 {
-    protected TemplateThemeVO|ThemeRef|null $theme = null;
+    protected TemplateThemeVO|string|null $theme = null;
     protected bool $themeAssigned = false;
 
     public function getThemeOrCurrent(?TemplateThemeVO $theme): ?TemplateThemeVO
@@ -22,13 +21,13 @@ trait TemplateThemeAttributeHolder
     {
         return  TemplateThemeVO::tryFrom($this->themeAssigned ? $this->theme : null, $error);
     }
-    public function theme(TemplateThemeVO|ThemeRef|null $theme): static
+    public function theme(TemplateThemeVO|string|null $theme): static
     {
         $this->theme = $theme;
         $this->themeAssigned = true;
         return $this;
     }
-    public function getTheme(): ?ThemeRef
+    public function getTheme(): ?string
     {
         return $this->theme instanceof TemplateThemeVO ? $this->theme->value() : $this->theme;
     }

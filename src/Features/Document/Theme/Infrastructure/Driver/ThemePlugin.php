@@ -89,7 +89,6 @@ class ThemePlugin extends MicroPlugin
             $handler->registerResourceAttribute("theme", "name", "MANAGE");
             $handler->registerResourceAttribute("theme", "isDefault", "MANAGE");
             $handler->registerResourceAttribute("theme", "enabled", "MANAGE");
-            $handler->registerResourceAttribute("theme", "customCss", "MANAGE");
             $handler->registerResourceAttribute("theme", "version", "MANAGE");
         }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
     }

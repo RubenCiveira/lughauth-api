@@ -68,6 +68,7 @@ class TemplateVersionRetrieveController
             $dto = new TemplateVersionApiDTO();
             $dto->uid = $value->getUid();
             $dto->template = $template ? ['$ref' => $template->uid()] : null;
+            $dto->locale = $value->getLocale();
             $dto->subject = $value->getSubject();
             $dto->contentHtml = $value->getContentHtml();
             $dto->contentText = $value->getContentText();

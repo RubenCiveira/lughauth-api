@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway;
 
 use Closure;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetRef;
@@ -24,5 +25,5 @@ interface TemplateAssetWriteGateway
     public function temporalStoreContent(BinaryContent $binary): string;
     public function readTemporalContent(string $key): BinaryContent;
     public function commitContent(string $key, ?string $original = null): string;
-    public function findOneForUpdateByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateAsset;
+    public function findOneForUpdateByCodeAndTemplateAndTenant(string $code, TemplateRef $template, ?TenantRef $tenant): ?TemplateAsset;
 }

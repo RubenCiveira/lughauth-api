@@ -47,4 +47,14 @@ final class ThemeTenantVOUnitTest extends TestCase
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
     }
+    public function test_empty(): void
+    {
+        $ref = ThemeTenantVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = ThemeTenantVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

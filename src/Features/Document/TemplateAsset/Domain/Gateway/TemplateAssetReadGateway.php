@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway;
 
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetRef;
@@ -18,5 +19,5 @@ interface TemplateAssetReadGateway
     public function exists(TemplateAssetFilter $filter): bool;
     public function count(?TemplateAssetFilter $filter = null): int;
     public function readContent(string $key): BinaryContent;
-    public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateAsset;
+    public function findOneByCodeAndTemplateAndTenant(string $code, TemplateRef $template, ?TenantRef $tenant): ?TemplateAsset;
 }

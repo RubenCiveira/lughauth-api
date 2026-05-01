@@ -73,6 +73,7 @@ class TemplateVersionPlugin extends MicroPlugin
             $handler->registerResourceAction("template-version", "delete", "WRITE");
 
             $handler->registerResourceAttribute("template-version", "template", "MANAGE");
+            $handler->registerResourceAttribute("template-version", "locale", "MANAGE");
             $handler->registerResourceAttribute("template-version", "subject", "MANAGE");
             $handler->registerResourceAttribute("template-version", "contentHtml", "MANAGE");
             $handler->registerResourceAttribute("template-version", "contentText", "MANAGE");

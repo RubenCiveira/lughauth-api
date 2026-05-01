@@ -17,6 +17,7 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\Update\T
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionUidVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionTemplateVO;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionLocaleVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionSubjectVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentHtmlVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentTextVO;
@@ -97,6 +98,7 @@ class TemplateVersionUpdateController
                     $value->template($valueTemplate);
                 }
             }
+            $value->locale(TemplateVersionLocaleVO::tryFrom($body['locale'] ?? null, $errorsList));
             $value->subject(TemplateVersionSubjectVO::tryFrom($body['subject'] ?? null, $errorsList));
             $valueContentHtml = TemplateVersionContentHtmlVO::tryFrom($body['contentHtml'] ?? null, $errorsList);
             if (null !== $valueContentHtml) {
@@ -124,6 +126,7 @@ class TemplateVersionUpdateController
             $dto = new TemplateVersionApiDTO();
             $dto->uid = $value->getUid();
             $dto->template = $template ? ['$ref' => $template->uid()] : null;
+            $dto->locale = $value->getLocale();
             $dto->subject = $value->getSubject();
             $dto->contentHtml = $value->getContentHtml();
             $dto->contentText = $value->getContentText();

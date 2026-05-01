@@ -5,9 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Document\Template\Domain\ValueObject;
 
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
+use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class TemplateThemeVO
 {
@@ -15,7 +15,7 @@ class TemplateThemeVO
     {
         return new TemplateThemeVO(null);
     }
-    public static function from(TemplateThemeVO|ThemeRef|null $value): TemplateThemeVO
+    public static function from(TemplateThemeVO|string|null $value): TemplateThemeVO
     {
         return self::fromUnsafe($value);
     }
@@ -26,12 +26,26 @@ class TemplateThemeVO
             return $value;
         } elseif (!$value) {
             return new TemplateThemeVO($value);
-        } elseif (is_a($value, ThemeRef::class)) {
-            return new TemplateThemeVO($value);
+        } elseif (is_string($value)) {
+            // If is a ValueObject, we need to append all the errors for the context
+            $valid = true;
+            foreach (self::rules() as $rule) {
+                if ($fail = $rule->check($value)) {
+                    $list->add(ConstraintFail::fromRuleFail('theme', $fail));
+                    $valid = false;
+                }
+            }
+            return $valid ? new TemplateThemeVO($value) : null;
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['theme'], [$value], ['ThemeRef']));
+            $list->add(new ConstraintFail('wrong_type', ['theme'], [$value], ['string']));
             return null;
         }
+    }
+    public static function rules(): array
+    {
+        return [
+          new Length(min: null, max: 250),
+        ];
     }
     private static function fromUnsafe(mixed $value): TemplateThemeVO
     {
@@ -53,15 +67,15 @@ class TemplateThemeVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly ?ThemeRef $theme
+        private readonly ?string $theme
     ) {
     }
-    public function value(): ?ThemeRef
+    public function value(): ?string
     {
         return $this->theme;
     }
     public function equals(?TemplateThemeVO $other): bool
     {
-        return $this->value()?->uid() == $other?->value()?->uid();
+        return $this->value() == $other?->value();
     }
 }

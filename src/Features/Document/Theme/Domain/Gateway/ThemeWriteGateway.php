@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Theme\Domain\Gateway;
 
 use Closure;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\Theme\Domain\Theme;
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
@@ -19,4 +20,5 @@ interface ThemeWriteGateway
     public function retrieveForUpdate(ThemeFilter $filter): ?Theme;
     public function existsForUpdate(ThemeFilter $filter): bool;
     public function countForUpdate(?ThemeFilter $filter = null): int;
+    public function findOneForUpdateByNameAndTenant(string $name, ?TenantRef $tenant): ?Theme;
 }

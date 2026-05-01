@@ -16,6 +16,5 @@ interface TemplateVariableReadGateway
     public function retrieve(TemplateVariableFilter $filter): ?TemplateVariable;
     public function exists(TemplateVariableFilter $filter): bool;
     public function count(?TemplateVariableFilter $filter = null): int;
-    public function findOneByCode(string $code): ?TemplateVariable;
     public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable;
 }

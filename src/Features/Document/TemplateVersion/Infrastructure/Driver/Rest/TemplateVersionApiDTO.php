@@ -28,9 +28,16 @@ class TemplateVersionApiDTO
     )]
     public ?array $template = null;
     #[OA\Property(
+        property: "locale",
+        title: "locale",
+        description:"BCP 47: es, en, fr... null = versión por defecto",
+        type: "string"
+    )]
+    public ?string $locale = null;
+    #[OA\Property(
         property: "subject",
         title: "subject",
-        description:"El subject de template version",
+        description:"Asunto del email. Ignorado en canal HTML/SMS.",
         type: "string"
     )]
     public ?string $subject = null;

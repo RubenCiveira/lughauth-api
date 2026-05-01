@@ -4,7 +4,6 @@
 declare(strict_types=1);
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
@@ -18,7 +17,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -49,7 +48,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -58,7 +57,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'other',
             code: 'other',
             tenant: new TenantRef('other'),
-            theme: new ThemeRef('other'),
+            theme: 'other',
             channel: TemplateChannelOptions::SMS,
             enabled: false,
             version: 2,
@@ -87,7 +86,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -100,7 +99,7 @@ final class TemplateUnitTest extends TestCase
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['code']);
         $this->assertEquals('one', $json['tenant']['$ref']);
-        $this->assertEquals('one', $json['theme']['$ref']);
+        $this->assertEquals('one', $json['theme']);
         $this->assertEquals(TemplateChannelOptions::MAIL, $json['channel']);
         $this->assertEquals(true, $json['enabled']);
         $this->assertEquals(1, $json['version']);
@@ -112,7 +111,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -142,7 +141,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -151,7 +150,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'other',
             code: 'other',
             tenant: new TenantRef('other'),
-            theme: new ThemeRef('other'),
+            theme: 'other',
             channel: TemplateChannelOptions::SMS,
             enabled: false,
             version: 2,
@@ -182,7 +181,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -211,7 +210,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,
@@ -235,7 +234,7 @@ final class TemplateUnitTest extends TestCase
             uid: 'one',
             code: 'one',
             tenant: new TenantRef('one'),
-            theme: new ThemeRef('one'),
+            theme: 'one',
             channel: TemplateChannelOptions::MAIL,
             enabled: true,
             version: 1,

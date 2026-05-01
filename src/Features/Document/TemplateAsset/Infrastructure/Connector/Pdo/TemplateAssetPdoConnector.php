@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetContentVO;
 
@@ -136,9 +137,10 @@ class TemplateAssetPdoConnector
         $span = $this->startSpan("Execute insert sql query for Template asset");
         try {
             try {
-                $this->db->execute('INSERT INTO "document_template_asset" ( "uid", "tenant", "code", "type", "content", "enabled", "version") VALUES ( :uid, :tenant, :code, :type, :content, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "document_template_asset" ( "uid", "template", "tenant", "code", "type", "content", "enabled", "version") VALUES ( :uid, :template, :tenant, :code, :type, :content, :enabled, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'template', value: $entity->getTemplate()->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'type', value: $entity->getType(), type: SqlParam::STR),
                      new SqlParam(name: 'content', value: $entity->getContent(), type: SqlParam::STR),
@@ -170,9 +172,10 @@ class TemplateAssetPdoConnector
         $span = $this->startSpan("Execute update sql query for Template asset");
         try {
             try {
-                $result = $this->db->execute('UPDATE "document_template_asset" SET "tenant" = :tenant , "code" = :code , "type" = :type , "content" = :content , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "document_template_asset" SET "template" = :template , "tenant" = :tenant , "code" = :code , "type" = :type , "content" = :content , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'template', value: $update->getTemplate()->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'type', value: $update->getType(), type: SqlParam::STR),
                      new SqlParam(name: 'content', value: $update->getContent(), type: SqlParam::STR),
@@ -275,9 +278,9 @@ class TemplateAssetPdoConnector
         $this->logDebug("Query to check duplicates for Template asset");
         $span = $this->startSpan("Query to check duplicates for Template asset");
         try {
-            $values = ['code' => $entity->getCode(), 'tenant' => $entity->getTenant()->uid(), 'uid' => $entity->uid()];
-            if ($this->db->exists('SELECT  "code", "tenant" from "document_template_asset" where "code" = :code and "tenant" = :tenant and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['code', 'tenant'], [$entity->getCode(), $entity->getTenant()->uid()]);
+            $values = ['code' => $entity->getCode(), 'template' => $entity->getTemplate()->uid(), 'tenant' => $entity->getTenant()?->uid(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "code", "template", "tenant" from "document_template_asset" where "code" = :code and "template" = :template and "tenant" = :tenant and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['code', 'template', 'tenant'], [$entity->getCode(), $entity->getTemplate()->uid(), $entity->getTenant()?->uid()]);
             }
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -310,16 +313,27 @@ class TemplateAssetPdoConnector
                     $query .= ' and ( "document_template_asset"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCodeAndTenant = $filter->codeAndTenant();
-                if (null !== $filterCodeAndTenant) {
-                    $query .= ' and ( "document_template_asset"."code" = :codeTenantCode and "document_template_asset"."tenant" = :codeTenantTenant)';
-                    $params[] = new SqlParam(name: 'codeTenantCode', value: $filterCodeAndTenant['code'], type: SqlParam::STR);
-                    $params[] = new SqlParam(name: 'codeTenantTenant', value: $filterCodeAndTenant['tenant']->uid(), type: SqlParam::STR);
+                $filterCodeAndTemplateAndTenant = $filter->codeAndTemplateAndTenant();
+                if (null !== $filterCodeAndTemplateAndTenant) {
+                    $query .= ' and ( "document_template_asset"."code" = :codeTemplateTenantCode and "document_template_asset"."template" = :codeTemplateTenantTemplate and "document_template_asset"."tenant" = :codeTemplateTenantTenant)';
+                    $params[] = new SqlParam(name: 'codeTemplateTenantCode', value: $filterCodeAndTemplateAndTenant['code'], type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'codeTemplateTenantTemplate', value: $filterCodeAndTemplateAndTenant['template']->uid(), type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'codeTemplateTenantTenant', value: $filterCodeAndTemplateAndTenant['tenant']->uid(), type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {
                     $query .= ' and "document_template_asset"."code" = :code ';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
+                }
+                $filterTemplate = $filter->template();
+                if (null !== $filterTemplate) {
+                    $query .= ' and "document_template_asset"."template" = :template ';
+                    $params[] = new SqlParam(name: 'template', value: $filterTemplate->uid(), type: SqlParam::STR);
+                }
+                $filterTemplates = $filter->templates();
+                if (null !== $filterTemplates) {
+                    $query .= ' and "document_template_asset"."template" in (:templates)  ';
+                    $params[] = new SqlParam(name: 'templates', value: $filterTemplates, type: SqlParam::STR);
                 }
                 $filterTenant = $filter->tenant();
                 if (null !== $filterTenant) {
@@ -397,11 +411,12 @@ class TemplateAssetPdoConnector
             if (null === $uid) {
                 throw ConstraintException::ofError('not-null', ['uid'], [null]);
             }
-            $rawTenant = $row['tenant'] ?? null;
-            if (null === $rawTenant) {
-                throw ConstraintException::ofError('not-null', ['tenant'], [null]);
+            $rawTemplate = $row['template'] ?? null;
+            if (null === $rawTemplate) {
+                throw ConstraintException::ofError('not-null', ['template'], [null]);
             }
-            $tenant = new TenantRef(uid: $rawTenant);
+            $template = new TemplateRef(uid: $rawTemplate);
+            $tenant = isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null;
             $code = $row['code'] ?? null;
             if (null === $code) {
                 throw ConstraintException::ofError('not-null', ['code'], [null]);
@@ -419,6 +434,7 @@ class TemplateAssetPdoConnector
             $version = $row['version'] ?? null;
             return new TemplateAsset(
                 uid: $uid,
+                template: $template,
                 tenant: $tenant,
                 code: $code,
                 type: $type,

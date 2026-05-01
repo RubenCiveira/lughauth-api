@@ -18,7 +18,6 @@ use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateCodeVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateTenantVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateThemeVO;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateChannelVO;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -88,9 +87,7 @@ class TemplateCreateController
             if (in_array('tenant', array_keys($body))) {
                 $value->tenant(TemplateTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
-            if (in_array('theme', array_keys($body))) {
-                $value->theme(TemplateThemeVO::tryFrom(isset($body['theme']['$ref']) ? new ThemeRef($body['theme']['$ref']) : null, $errorsList));
-            }
+            $value->theme(TemplateThemeVO::tryFrom($body['theme'] ?? null, $errorsList));
             $valueChannel = TemplateChannelVO::tryFrom(isset($body['channel']) ? strtoupper($body['channel']) : null, $errorsList);
             if (null !== $valueChannel) {
                 $value->channel($valueChannel);
@@ -113,12 +110,11 @@ class TemplateCreateController
         $span = $this->startSpan("Map entity to output dto for Template");
         try {
             $tenant = $value->getTenant();
-            $theme = $value->getTheme();
             $dto = new TemplateApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
-            $dto->theme = $theme ? ['$ref' => $theme->uid()] : null;
+            $dto->theme = $value->getTheme();
             $dto->channel = $value->getChannel();
             $dto->enabled = $value->isEnabled();
             $dto->version = $value->getVersion();

@@ -71,7 +71,6 @@ class ThemeRetrieveController
             $dto->name = $value->getName();
             $dto->isDefault = $value->isIsDefault();
             $dto->enabled = $value->isEnabled();
-            $dto->customCss = $value->getCustomCss();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

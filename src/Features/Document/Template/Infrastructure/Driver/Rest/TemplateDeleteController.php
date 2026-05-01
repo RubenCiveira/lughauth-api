@@ -19,7 +19,6 @@ use Civi\Lughauth\Features\Document\Template\Application\Usecase\Delete\Template
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateFilter;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driver\Batch\TemplateTaskDelete;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 class TemplateDeleteController
 {
@@ -80,8 +79,6 @@ class TemplateDeleteController
                 code: $params['code'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
-                theme: isset($params['theme']) ? new ThemeRef($params['theme']) : null,
-                themes: isset($params['themes']) ? explode(",", $params['themes']) : null,
             );
             $res = $this->runner->run(TemplateTaskDelete::class, ['filter' => $filter]);
             $encoded = json_encode($res);

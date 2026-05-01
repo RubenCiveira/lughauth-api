@@ -89,6 +89,7 @@ class TemplateAssetPlugin extends MicroPlugin
             $handler->registerResourceAction("template-asset", "enable", "WRITE");
             $handler->registerResourceAction("template-asset", "disable", "WRITE");
 
+            $handler->registerResourceAttribute("template-asset", "template", "MANAGE");
             $handler->registerResourceAttribute("template-asset", "tenant", "MANAGE");
             $handler->registerResourceAttribute("template-asset", "code", "MANAGE");
             $handler->registerResourceAttribute("template-asset", "type", "MANAGE");

@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\List\TemplateAssetListUsecase;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
@@ -50,6 +51,8 @@ class TemplateAssetListController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 code: $params['code'] ?? null,
+                template: isset($params['template']) ? new TemplateRef($params['template']) : null,
+                templates: isset($params['templates']) ? explode(",", $params['templates']) : null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
@@ -136,9 +139,11 @@ class TemplateAssetListController
         $this->logDebug("Map entity to output dto for Template asset");
         $span = $this->startSpan("Map entity to output dto for Template asset");
         try {
+            $template = $value->getTemplate();
             $tenant = $value->getTenant();
             $dto = new TemplateAssetApiDTO();
             $dto->uid = $value->getUid();
+            $dto->template = $template ? ['$ref' => $template->uid()] : null;
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->code = $value->getCode();
             $dto->type = $value->getType();

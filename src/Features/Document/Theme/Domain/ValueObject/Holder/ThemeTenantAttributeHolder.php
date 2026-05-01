@@ -14,20 +14,15 @@ trait ThemeTenantAttributeHolder
     protected ThemeTenantVO|TenantRef|null $tenant = null;
     protected bool $tenantAssigned = false;
 
-    public function getTenantOrCurrent(ThemeTenantVO $tenant): ThemeTenantVO
+    public function getTenantOrCurrent(?ThemeTenantVO $tenant): ?ThemeTenantVO
     {
-        if ($this->tenantAssigned) {
-            \assert(null !== $this->tenant);
-            return ThemeTenantVO::from($this->tenant);
-        } else {
-            return $tenant;
-        }
+        return $this->tenantAssigned ? ($this->tenant === null ? null : ThemeTenantVO::from($this->tenant)) : $tenant;
     }
     public function tenantTryBuildInitial(ConstraintFailList $error): ?ThemeTenantVO
     {
         return  ThemeTenantVO::tryFrom($this->tenantAssigned ? $this->tenant : null, $error);
     }
-    public function tenant(ThemeTenantVO|TenantRef $tenant): static
+    public function tenant(ThemeTenantVO|TenantRef|null $tenant): static
     {
         $this->tenant = $tenant;
         $this->tenantAssigned = true;
@@ -44,7 +39,6 @@ trait ThemeTenantAttributeHolder
     public function writeTenantTo(mixed $att): void
     {
         if ($this->tenantAssigned) {
-            \assert(null !== $this->tenant);
             $att->tenant($this->tenant);
         }
     }
@@ -52,7 +46,6 @@ trait ThemeTenantAttributeHolder
     {
         if ($att->isTenantAssigned()) {
             $tenant = $att->getTenant();
-            \assert(null !== $tenant);
             $this->tenant($tenant);
         }
     }

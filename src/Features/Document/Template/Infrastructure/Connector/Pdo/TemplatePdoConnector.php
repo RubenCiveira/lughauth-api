@@ -21,7 +21,6 @@ use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateChannelVO;
 
 class TemplatePdoConnector
@@ -141,7 +140,7 @@ class TemplatePdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'theme', value: $entity->getTheme()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'theme', value: $entity->getTheme(), type: SqlParam::STR),
                      new SqlParam(name: 'channel', value: $entity->getChannel()->value, type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $entity->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
@@ -175,7 +174,7 @@ class TemplatePdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'theme', value: $update->getTheme()?->uid(), type: SqlParam::STR),
+                     new SqlParam(name: 'theme', value: $update->getTheme(), type: SqlParam::STR),
                      new SqlParam(name: 'channel', value: $update->getChannel()->value, type: SqlParam::STR),
                      new SqlParam(name: 'enabled', value: $update->isEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
@@ -332,16 +331,6 @@ class TemplatePdoConnector
                     $query .= ' and "document_template"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                $filterTheme = $filter->theme();
-                if (null !== $filterTheme) {
-                    $query .= ' and "document_template"."theme" = :theme ';
-                    $params[] = new SqlParam(name: 'theme', value: $filterTheme->uid(), type: SqlParam::STR);
-                }
-                $filterThemes = $filter->themes();
-                if (null !== $filterThemes) {
-                    $query .= ' and "document_template"."theme" in (:themes)  ';
-                    $params[] = new SqlParam(name: 'themes', value: $filterThemes, type: SqlParam::STR);
-                }
                 $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
                 if (null !== $filterTenantTenantAccesible) {
                     $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "document_template"."tenant"';
@@ -413,7 +402,7 @@ class TemplatePdoConnector
                 throw ConstraintException::ofError('not-null', ['code'], [null]);
             }
             $tenant = isset($row['tenant']) ? new TenantRef(uid: $row['tenant']) : null;
-            $theme = isset($row['theme']) ? new ThemeRef(uid: $row['theme']) : null;
+            $theme = $row['theme'] ?? null;
             // throws validation exception if is null.
             $channel = TemplateChannelVO::fromString($row['channel'] ?? '');
             $enabled = isset($row['enabled']) ? !! $row['enabled'] : null;

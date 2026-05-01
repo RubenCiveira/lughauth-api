@@ -133,9 +133,10 @@ class TemplateVersionPdoConnector
         $this->logDebug("Execute insert sql query for Template version");
         $span = $this->startSpan("Execute insert sql query for Template version");
         try {
-            $this->db->execute('INSERT INTO "document_template_version" ( "uid", "template", "subject", "content_html", "content_text", "version") VALUES ( :uid, :template, :subject, :contentHtml, :contentText, :version)', [
+            $this->db->execute('INSERT INTO "document_template_version" ( "uid", "template", "locale", "subject", "content_html", "content_text", "version") VALUES ( :uid, :template, :locale, :subject, :contentHtml, :contentText, :version)', [
                  new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                  new SqlParam(name: 'template', value: $entity->getTemplate()->uid(), type: SqlParam::STR),
+                 new SqlParam(name: 'locale', value: $entity->getLocale(), type: SqlParam::STR),
                  new SqlParam(name: 'subject', value: $entity->getSubject(), type: SqlParam::STR),
                  new SqlParam(name: 'contentHtml', value: $entity->getContentHtml(), type: SqlParam::TEXT),
                  new SqlParam(name: 'contentText', value: $entity->getContentText(), type: SqlParam::TEXT),
@@ -161,9 +162,10 @@ class TemplateVersionPdoConnector
         $this->logDebug("Execute update sql query for Template version");
         $span = $this->startSpan("Execute update sql query for Template version");
         try {
-            $result = $this->db->execute('UPDATE "document_template_version" SET "template" = :template , "subject" = :subject , "content_html" = :contentHtml , "content_text" = :contentText , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+            $result = $this->db->execute('UPDATE "document_template_version" SET "template" = :template , "locale" = :locale , "subject" = :subject , "content_html" = :contentHtml , "content_text" = :contentText , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                  new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                  new SqlParam(name: 'template', value: $update->getTemplate()->uid(), type: SqlParam::STR),
+                 new SqlParam(name: 'locale', value: $update->getLocale(), type: SqlParam::STR),
                  new SqlParam(name: 'subject', value: $update->getSubject(), type: SqlParam::STR),
                  new SqlParam(name: 'contentHtml', value: $update->getContentHtml(), type: SqlParam::TEXT),
                  new SqlParam(name: 'contentText', value: $update->getContentText(), type: SqlParam::TEXT),
@@ -336,6 +338,7 @@ class TemplateVersionPdoConnector
                 throw ConstraintException::ofError('not-null', ['template'], [null]);
             }
             $template = new TemplateRef(uid: $rawTemplate);
+            $locale = $row['locale'] ?? null;
             $subject = $row['subject'] ?? null;
             $contentHtml = $row['content_html'] ?? null;
             if (null === $contentHtml) {
@@ -346,6 +349,7 @@ class TemplateVersionPdoConnector
             return new TemplateVersion(
                 uid: $uid,
                 template: $template,
+                locale: $locale,
                 subject: $subject,
                 contentHtml: $contentHtml,
                 contentText: $contentText,

@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visi
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Iterator;
 use Throwable;
+use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateVisibilityService;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetRef;
@@ -30,6 +31,7 @@ class TemplateAssetVisibilityService
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateAssetReadGateway $readGateway,
         private readonly TemplateAssetWriteGateway $writeGateway,
+        private readonly TemplateVisibilityService $templateVisibilityService,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }
@@ -241,6 +243,10 @@ class TemplateAssetVisibilityService
         $this->logDebug("Check visibility of parent references for Template asset");
         $span = $this->startSpan("Check visibility of parent references for  Template asset");
         try {
+            $template = $attributes->getTemplate();
+            if (null !== $template && !$this->templateVisibilityService->checkVisibility($template)) {
+                throw new NotFoundException("Unknown Template " . ($template->uid() ?? 'no-id'));
+            }
             $tenant = $attributes->getTenant();
             if (null !== $tenant && !$this->tenantVisibilityService->checkVisibility($tenant)) {
                 throw new NotFoundException("Unknown Tenant " . ($tenant->uid() ?? 'no-id'));

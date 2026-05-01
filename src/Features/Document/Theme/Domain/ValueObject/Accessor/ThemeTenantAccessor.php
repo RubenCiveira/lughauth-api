@@ -10,20 +10,20 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 trait ThemeTenantAccessor
 {
-    private ThemeTenantVO $_tenant;
-    public function getTenant(): TenantRef
+    private ?ThemeTenantVO $_tenant = null;
+    public function getTenant(): ?TenantRef
     {
-        return $this->_tenant->value();
+        return $this->_tenant?->value();
     }
-    public function tenant(): ThemeTenantVO
+    public function tenant(): ?ThemeTenantVO
     {
         return $this->_tenant;
     }
     public function isTenantChanged(?self $original = null): bool
     {
-        return !$this->_tenant->equals($original?->_tenant);
+        return null !== $this->_tenant && !$this->_tenant->equals($original?->_tenant);
     }
-    public function withTenant(ThemeTenantVO|TenantRef $tenant): self
+    public function withTenant(ThemeTenantVO|TenantRef|null $tenant): self
     {
         $copy = clone $this;
         $copy->_tenant = ThemeTenantVO::from($tenant);

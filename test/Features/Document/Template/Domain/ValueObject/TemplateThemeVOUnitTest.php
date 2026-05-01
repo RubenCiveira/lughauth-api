@@ -7,15 +7,14 @@ use PHPUnit\Framework\TestCase;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateThemeVO;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 final class TemplateThemeVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = new ThemeRef('one');
+        $value = 'one';
         $ref = TemplateThemeVO::from($value);
-        $this->assertEquals(new ThemeRef('one'), $ref->value());
+        $this->assertEquals('one', $ref->value());
         $other = TemplateThemeVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = TemplateThemeVO::from($ref);
@@ -24,7 +23,7 @@ final class TemplateThemeVOUnitTest extends TestCase
     public function test_asignation_invalid_type(): void
     {
         $errors = new ConstraintFailList();
-        $other = TemplateThemeVO::tryFrom('1', $errors);
+        $other = TemplateThemeVO::tryFrom(1, $errors);
         $this->assertNull($other);
         $this->assertTrue($errors->hasErrors());
     }
@@ -36,9 +35,9 @@ final class TemplateThemeVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = TemplateThemeVO::from(new ThemeRef('one'));
-        $same = TemplateThemeVO::from(new ThemeRef('one'));
-        $other = TemplateThemeVO::from(new ThemeRef('other'));
+        $one = TemplateThemeVO::from('one');
+        $same = TemplateThemeVO::from('one');
+        $other = TemplateThemeVO::from('other');
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);
@@ -56,5 +55,10 @@ final class TemplateThemeVOUnitTest extends TestCase
     {
         $ref = TemplateThemeVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
+    }
+    public function test_exception_on_wrong_value_1(): void
+    {
+        $this->expectException(ConstraintException::class);
+        TemplateThemeVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
     }
 }

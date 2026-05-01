@@ -14,8 +14,6 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeIsDefaultVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Accessor\ThemeIsDefaultAccessor;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeEnabledVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Accessor\ThemeEnabledAccessor;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeCustomCssVO;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Accessor\ThemeCustomCssAccessor;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeVersionVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\Accessor\ThemeVersionAccessor;
 use Civi\Lughauth\Features\Document\Theme\Domain\Event\ThemeCreateEvent;
@@ -31,25 +29,22 @@ class Theme extends ThemeRef
     use ThemeNameAccessor;
     use ThemeIsDefaultAccessor;
     use ThemeEnabledAccessor;
-    use ThemeCustomCssAccessor;
     use ThemeVersionAccessor;
     private array $recordedEvents = [];
 
     public function __construct(
         ThemeUidVO|string $uid,
-        ThemeTenantVO|TenantRef $tenant,
         ThemeNameVO|string $name,
+        ThemeTenantVO|TenantRef|null $tenant = null,
         ThemeIsDefaultVO|bool|null $isDefault = null,
         ThemeEnabledVO|bool|null $enabled = null,
-        ThemeCustomCssVO|string|null $customCss = null,
         ThemeVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
-        $this->_tenant = ThemeTenantVO::from($tenant);
+        $this->_tenant = null === $tenant ? ThemeTenantVO::empty() : ThemeTenantVO::from($tenant);
         $this->_name = ThemeNameVO::from($name);
         $this->_isDefault = null === $isDefault ? ThemeIsDefaultVO::empty() : ThemeIsDefaultVO::from($isDefault);
         $this->_enabled = null === $enabled ? ThemeEnabledVO::empty() : ThemeEnabledVO::from($enabled);
-        $this->_customCss = null === $customCss ? ThemeCustomCssVO::empty() : ThemeCustomCssVO::from($customCss);
         $this->_version = null === $version ? ThemeVersionVO::empty() : ThemeVersionVO::from($version);
     }
     public function replace(ThemeAttributes $values): Theme
@@ -59,7 +54,6 @@ class Theme extends ThemeRef
         $value->_name = $values->getNameOrCurrent($this->_name);
         $value->_isDefault = $values->getIsDefaultOrCurrent($this->_isDefault);
         $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
-        $value->_customCss = $values->getCustomCssOrCurrent($this->_customCss);
         $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
     }
@@ -103,11 +97,13 @@ class Theme extends ThemeRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
+        $tenant = $this->getTenant();
+        if (null !== $tenant) {
+            $data['tenant'] = ['$ref' => $tenant->uid() ];
+        }
         $data['name'] = $this->getName();
         $data['isDefault'] = $this->isIsDefault();
         $data['enabled'] = $this->isEnabled();
-        $data['customCss'] = $this->getCustomCss();
         $data['version'] = $this->getVersion();
         return $data;
     }
@@ -119,7 +115,6 @@ class Theme extends ThemeRef
           ->name($this->_name)
           ->isDefault($this->_isDefault)
           ->enabled($this->_enabled)
-          ->customCss($this->_customCss)
           ->version($this->_version);
     }
     public function getTheEvents(): array

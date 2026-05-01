@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Document\Theme\Domain\Gateway;
 
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\Theme\Domain\Theme;
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
@@ -15,4 +16,5 @@ interface ThemeReadGateway
     public function retrieve(ThemeFilter $filter): ?Theme;
     public function exists(ThemeFilter $filter): bool;
     public function count(?ThemeFilter $filter = null): int;
+    public function findOneByNameAndTenant(string $name, ?TenantRef $tenant): ?Theme;
 }

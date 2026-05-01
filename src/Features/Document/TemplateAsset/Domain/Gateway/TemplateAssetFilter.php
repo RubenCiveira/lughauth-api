@@ -5,19 +5,22 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway;
 
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 class TemplateAssetFilter
 {
-    public static function codeAndTenantFilter(?string $code, ?TenantRef $tenant): array
+    public static function codeAndTemplateAndTenantFilter(?string $code, ?TemplateRef $template, ?TenantRef $tenant): array
     {
-        return ['code' => $code, 'tenant' => $tenant];
+        return ['code' => $code, 'template' => $template, 'tenant' => $tenant];
     }
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        private ?array $codeAndTenant = null,
+        private ?array $codeAndTemplateAndTenant = null,
         private ?string $code = null,
+        private ?TemplateRef $template = null,
+        private ?array $templates = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
         private ?string $tenantTenantAccesible = null,
@@ -43,14 +46,14 @@ class TemplateAssetFilter
         $copy->search = $search;
         return $copy;
     }
-    public function codeAndTenant(): ?array
+    public function codeAndTemplateAndTenant(): ?array
     {
-        return $this->codeAndTenant;
+        return $this->codeAndTemplateAndTenant;
     }
-    public function withCodeAndTenant(?string $code, ?TenantRef $tenant): self
+    public function withCodeAndTemplateAndTenant(?string $code, ?TemplateRef $template, ?TenantRef $tenant): self
     {
         $copy = clone $this;
-        $copy->codeAndTenant = ['code' => $code, 'tenant' => $tenant];
+        $copy->codeAndTemplateAndTenant = ['code' => $code, 'template' => $template, 'tenant' => $tenant];
         return $copy;
     }
     public function code(): ?string
@@ -61,6 +64,26 @@ class TemplateAssetFilter
     {
         $copy = clone $this;
         $copy->code = $code;
+        return $copy;
+    }
+    public function template(): ?TemplateRef
+    {
+        return $this->template;
+    }
+    public function withTemplate(TemplateRef $template): self
+    {
+        $copy = clone $this;
+        $copy->template = $template;
+        return $copy;
+    }
+    public function templates(): ?array
+    {
+        return $this->templates;
+    }
+    public function withTemplates(array $templates): self
+    {
+        $copy = clone $this;
+        $copy->templates = $templates;
         return $copy;
     }
     public function tenant(): ?TenantRef

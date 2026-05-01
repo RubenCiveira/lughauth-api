@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Template\Domain\Gateway;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 class TemplateFilter
 {
@@ -21,8 +20,6 @@ class TemplateFilter
         private ?string $code = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
-        private ?ThemeRef $theme = null,
-        private ?array $themes = null,
         private ?string $tenantTenantAccesible = null,
     ) {
     }
@@ -84,26 +81,6 @@ class TemplateFilter
     {
         $copy = clone $this;
         $copy->tenants = $tenants;
-        return $copy;
-    }
-    public function theme(): ?ThemeRef
-    {
-        return $this->theme;
-    }
-    public function withTheme(ThemeRef $theme): self
-    {
-        $copy = clone $this;
-        $copy->theme = $theme;
-        return $copy;
-    }
-    public function themes(): ?array
-    {
-        return $this->themes;
-    }
-    public function withThemes(array $themes): self
-    {
-        $copy = clone $this;
-        $copy->themes = $themes;
         return $copy;
     }
     public function tenantTenantAccesible(): ?string

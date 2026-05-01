@@ -8,6 +8,8 @@ namespace Civi\Lughauth\Features\Document\TemplateVersion\Domain;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionUidVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionTemplateVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Accessor\TemplateVersionTemplateAccessor;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionLocaleVO;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Accessor\TemplateVersionLocaleAccessor;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionSubjectVO;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Accessor\TemplateVersionSubjectAccessor;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\TemplateVersionContentHtmlVO;
@@ -24,6 +26,7 @@ use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 class TemplateVersion extends TemplateVersionRef
 {
     use TemplateVersionTemplateAccessor;
+    use TemplateVersionLocaleAccessor;
     use TemplateVersionSubjectAccessor;
     use TemplateVersionContentHtmlAccessor;
     use TemplateVersionContentTextAccessor;
@@ -34,12 +37,14 @@ class TemplateVersion extends TemplateVersionRef
         TemplateVersionUidVO|string $uid,
         TemplateVersionTemplateVO|TemplateRef $template,
         TemplateVersionContentHtmlVO|string $contentHtml,
+        TemplateVersionLocaleVO|string|null $locale = null,
         TemplateVersionSubjectVO|string|null $subject = null,
         TemplateVersionContentTextVO|string|null $contentText = null,
         TemplateVersionVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
         $this->_template = TemplateVersionTemplateVO::from($template);
+        $this->_locale = null === $locale ? TemplateVersionLocaleVO::empty() : TemplateVersionLocaleVO::from($locale);
         $this->_subject = null === $subject ? TemplateVersionSubjectVO::empty() : TemplateVersionSubjectVO::from($subject);
         $this->_contentHtml = TemplateVersionContentHtmlVO::from($contentHtml);
         $this->_contentText = null === $contentText ? TemplateVersionContentTextVO::empty() : TemplateVersionContentTextVO::from($contentText);
@@ -49,6 +54,7 @@ class TemplateVersion extends TemplateVersionRef
     {
         $value = clone $this;
         $value->_template = $values->getTemplateOrCurrent($this->_template);
+        $value->_locale = $values->getLocaleOrCurrent($this->_locale);
         $value->_subject = $values->getSubjectOrCurrent($this->_subject);
         $value->_contentHtml = $values->getContentHtmlOrCurrent($this->_contentHtml);
         $value->_contentText = $values->getContentTextOrCurrent($this->_contentText);
@@ -82,6 +88,7 @@ class TemplateVersion extends TemplateVersionRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['template'] = [ '$ref' => $this->getTemplate()->uid() ];
+        $data['locale'] = $this->getLocale();
         $data['subject'] = $this->getSubject();
         $data['version'] = $this->getVersion();
         return $data;
@@ -91,6 +98,7 @@ class TemplateVersion extends TemplateVersionRef
         return (new TemplateVersionAttributes())
           ->uid($this->uid())
           ->template($this->_template)
+          ->locale($this->_locale)
           ->subject($this->_subject)
           ->contentHtml($this->_contentHtml)
           ->contentText($this->_contentText)

@@ -47,4 +47,14 @@ final class TemplateAssetTenantVOUnitTest extends TestCase
         $this->assertTrue($withSame);
         $this->assertFalse($withOther);
     }
+    public function test_empty(): void
+    {
+        $ref = TemplateAssetTenantVO::empty();
+        $this->assertNull($ref->value());
+    }
+    public function test_try_from_empty(): void
+    {
+        $ref = TemplateAssetTenantVO::tryFrom(null, new ConstraintFailList());
+        $this->assertNull($ref->value());
+    }
 }

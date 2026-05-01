@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Document\TemplateVersion\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionUidAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionTemplateAttributeHolder;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionLocaleAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionSubjectAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionContentHtmlAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\ValueObject\Holder\TemplateVersionContentTextAttributeHolder;
@@ -17,6 +18,7 @@ class TemplateVersionAttributes
 {
     use TemplateVersionUidAttributeHolder;
     use TemplateVersionTemplateAttributeHolder;
+    use TemplateVersionLocaleAttributeHolder;
     use TemplateVersionSubjectAttributeHolder;
     use TemplateVersionContentHtmlAttributeHolder;
     use TemplateVersionContentTextAttributeHolder;
@@ -25,6 +27,7 @@ class TemplateVersionAttributes
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'template' => 'unsetTemplate',
+      'locale' => 'unsetLocale',
       'subject' => 'unsetSubject',
       'contentHtml' => 'unsetContentHtml',
       'contentText' => 'unsetContentText',
@@ -36,6 +39,7 @@ class TemplateVersionAttributes
         $errors = new ConstraintFailList();
         $uid = $this->uidTryBuildInitial($errors);
         $template = $this->templateTryBuildInitial($errors);
+        $locale = $this->localeTryBuildInitial($errors);
         $subject = $this->subjectTryBuildInitial($errors);
         $contentHtml = $this->contentHtmlTryBuildInitial($errors);
         $contentText = $this->contentTextTryBuildInitial($errors);
@@ -49,6 +53,7 @@ class TemplateVersionAttributes
         return new TemplateVersion(
             uid: $uid,
             template: $template,
+            locale: $locale,
             subject: $subject,
             contentHtml: $contentHtml,
             contentText: $contentText,
@@ -61,6 +66,7 @@ class TemplateVersionAttributes
         $errorsList = new ConstraintFailList();
         $this->withAssertedUidRules($value, $errorsList);
         $this->withAssertedTemplateRules($value, $errorsList);
+        $this->withAssertedLocaleRules($value, $errorsList);
         $this->withAssertedSubjectRules($value, $errorsList);
         $this->withAssertedContentHtmlRules($value, $errorsList);
         $this->withAssertedContentTextRules($value, $errorsList);
@@ -80,6 +86,7 @@ class TemplateVersionAttributes
     {
         $this->withDefaultUid();
         $this->withDefaultTemplate();
+        $this->withDefaultLocale();
         $this->withDefaultSubject();
         $this->withDefaultContentHtml();
         $this->withDefaultContentText();

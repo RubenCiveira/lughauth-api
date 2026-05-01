@@ -19,7 +19,6 @@ use Civi\Lughauth\Features\Document\Template\Application\Usecase\Disable\Templat
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateFilter;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driver\Batch\TemplateTaskDisable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Template\Application\Usecase\Disable\TemplateDisableResult;
 
 class TemplateDisableController
@@ -83,8 +82,6 @@ class TemplateDisableController
                 code: $params['code'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
-                theme: isset($params['theme']) ? new ThemeRef($params['theme']) : null,
-                themes: isset($params['themes']) ? explode(",", $params['themes']) : null,
             );
             $res = $this->runner->run(TemplateTaskDisable::class, ['filter' => $filter]);
             $encoded = json_encode($res);
@@ -128,12 +125,11 @@ class TemplateDisableController
         $span = $this->startSpan("Map entity to output dto for Template");
         try {
             $tenant = $value->getTenant();
-            $theme = $value->getTheme();
             $dto = new TemplateApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
-            $dto->theme = $theme ? ['$ref' => $theme->uid()] : null;
+            $dto->theme = $value->getTheme();
             $dto->channel = $value->getChannel();
             $dto->enabled = $value->isEnabled();
             $dto->version = $value->getVersion();

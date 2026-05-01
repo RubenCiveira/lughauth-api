@@ -65,12 +65,11 @@ class TemplateRetrieveController
         $span = $this->startSpan("Map entity to output dto for Template");
         try {
             $tenant = $value->getTenant();
-            $theme = $value->getTheme();
             $dto = new TemplateApiDTO();
             $dto->uid = $value->getUid();
             $dto->code = $value->getCode();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
-            $dto->theme = $theme ? ['$ref' => $theme->uid()] : null;
+            $dto->theme = $value->getTheme();
             $dto->channel = $value->getChannel();
             $dto->enabled = $value->isEnabled();
             $dto->version = $value->getVersion();

@@ -6,12 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Template\Domain\ValueObject\Accessor;
 
 use Civi\Lughauth\Features\Document\Template\Domain\ValueObject\TemplateThemeVO;
-use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 
 trait TemplateThemeAccessor
 {
     private ?TemplateThemeVO $_theme = null;
-    public function getTheme(): ?ThemeRef
+    public function getTheme(): ?string
     {
         return $this->_theme?->value();
     }
@@ -23,7 +22,7 @@ trait TemplateThemeAccessor
     {
         return null !== $this->_theme && !$this->_theme->equals($original?->_theme);
     }
-    public function withTheme(TemplateThemeVO|ThemeRef|null $theme): self
+    public function withTheme(TemplateThemeVO|string|null $theme): self
     {
         $copy = clone $this;
         $copy->_theme = TemplateThemeVO::from($theme);

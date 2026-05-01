@@ -274,10 +274,6 @@ class TemplateVariablePdoConnector
         $this->logDebug("Query to check duplicates for Template variable");
         $span = $this->startSpan("Query to check duplicates for Template variable");
         try {
-            $values = ['code' => $entity->getCode(), 'uid' => $entity->uid()];
-            if ($this->db->exists('SELECT  "code" from "document_template_variable" where "code" = :code and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['code'], [$entity->getCode()]);
-            }
             $values = ['code' => $entity->getCode(), 'tenant' => $entity->getTenant()->uid(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "code", "tenant" from "document_template_variable" where "code" = :code and "tenant" = :tenant and "uid" != :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', ['code', 'tenant'], [$entity->getCode(), $entity->getTenant()->uid()]);
@@ -313,16 +309,16 @@ class TemplateVariablePdoConnector
                     $query .= ' and ( "document_template_variable"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCode = $filter->code();
-                if (null !== $filterCode) {
-                    $query .= ' and "document_template_variable"."code" = :code';
-                    $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
-                }
                 $filterCodeAndTenant = $filter->codeAndTenant();
                 if (null !== $filterCodeAndTenant) {
                     $query .= ' and ( "document_template_variable"."code" = :codeTenantCode and "document_template_variable"."tenant" = :codeTenantTenant)';
                     $params[] = new SqlParam(name: 'codeTenantCode', value: $filterCodeAndTenant['code'], type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'codeTenantTenant', value: $filterCodeAndTenant['tenant']->uid(), type: SqlParam::STR);
+                }
+                $filterCode = $filter->code();
+                if (null !== $filterCode) {
+                    $query .= ' and "document_template_variable"."code" = :code ';
+                    $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
                 $filterTenant = $filter->tenant();
                 if (null !== $filterTenant) {

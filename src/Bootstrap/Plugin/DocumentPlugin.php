@@ -8,11 +8,15 @@ namespace Civi\Lughauth\Bootstrap\Plugin;
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driver\RenderingPlugin;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driver\TemplatePlugin;
+use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driver\SnippetPlugin;
+use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Driver\ThemeVersionPlugin;
+use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driver\SnippetVersionPlugin;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driver\TemplateVersionPlugin;
+use Civi\Lughauth\Features\Document\SnippetAsset\Infrastructure\Driver\SnippetAssetPlugin;
 use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driver\TemplateVariablePlugin;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driver\ThemePlugin;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driver\TemplateAssetPlugin;
-use Civi\Lughauth\Features\Document\TemplateSnippet\Infrastructure\Driver\TemplateSnippetPlugin;
+use Civi\Lughauth\Features\Document\ThemeAsset\Infrastructure\Driver\ThemeAssetPlugin;
 
 class DocumentPlugin extends AggregatedMicroPlugin
 {
@@ -21,11 +25,15 @@ class DocumentPlugin extends AggregatedMicroPlugin
         parent::__construct([
           new RenderingPlugin(),
           new TemplatePlugin(),
+          new SnippetPlugin(),
+          new ThemeVersionPlugin(),
+          new SnippetVersionPlugin(),
           new TemplateVersionPlugin(),
+          new SnippetAssetPlugin(),
           new TemplateVariablePlugin(),
           new ThemePlugin(),
           new TemplateAssetPlugin(),
-          new TemplateSnippetPlugin(),
+          new ThemeAssetPlugin(),
 ]);
     }
 }

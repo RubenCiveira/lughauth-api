@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetUidAttributeHolder;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTemplateAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTenantAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetCodeAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTypeAttributeHolder;
@@ -17,6 +18,7 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 class TemplateAssetAttributes
 {
     use TemplateAssetUidAttributeHolder;
+    use TemplateAssetTemplateAttributeHolder;
     use TemplateAssetTenantAttributeHolder;
     use TemplateAssetCodeAttributeHolder;
     use TemplateAssetTypeAttributeHolder;
@@ -26,6 +28,7 @@ class TemplateAssetAttributes
 
     private const array UNSETS = [
       'uid' => 'unsetUid',
+      'template' => 'unsetTemplate',
       'tenant' => 'unsetTenant',
       'code' => 'unsetCode',
       'type' => 'unsetType',
@@ -38,6 +41,7 @@ class TemplateAssetAttributes
     {
         $errors = new ConstraintFailList();
         $uid = $this->uidTryBuildInitial($errors);
+        $template = $this->templateTryBuildInitial($errors);
         $tenant = $this->tenantTryBuildInitial($errors);
         $code = $this->codeTryBuildInitial($errors);
         $type = $this->typeTryBuildInitial($errors);
@@ -48,12 +52,13 @@ class TemplateAssetAttributes
             throw $errors->asConstraintException();
         }
         \assert($uid !== null);
-        \assert($tenant !== null);
+        \assert($template !== null);
         \assert($code !== null);
         \assert($type !== null);
         \assert($content !== null);
         return new TemplateAsset(
             uid: $uid,
+            template: $template,
             tenant: $tenant,
             code: $code,
             type: $type,
@@ -67,6 +72,7 @@ class TemplateAssetAttributes
         $value = new TemplateAssetAttributes();
         $errorsList = new ConstraintFailList();
         $this->withAssertedUidRules($value, $errorsList);
+        $this->withAssertedTemplateRules($value, $errorsList);
         $this->withAssertedTenantRules($value, $errorsList);
         $this->withAssertedCodeRules($value, $errorsList);
         $this->withAssertedTypeRules($value, $errorsList);
@@ -87,6 +93,7 @@ class TemplateAssetAttributes
     public function withDefaults(): TemplateAssetAttributes
     {
         $this->withDefaultUid();
+        $this->withDefaultTemplate();
         $this->withDefaultTenant();
         $this->withDefaultCode();
         $this->withDefaultType();

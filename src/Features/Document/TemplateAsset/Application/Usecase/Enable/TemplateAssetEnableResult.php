@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Enable;
 
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetUidAttributeHolder;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTemplateAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTenantAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetCodeAttributeHolder;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Holder\TemplateAssetTypeAttributeHolder;
@@ -17,6 +18,7 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes
 class TemplateAssetEnableResult
 {
     use TemplateAssetUidAttributeHolder;
+    use TemplateAssetTemplateAttributeHolder;
     use TemplateAssetTenantAttributeHolder;
     use TemplateAssetCodeAttributeHolder;
     use TemplateAssetTypeAttributeHolder;
@@ -26,6 +28,7 @@ class TemplateAssetEnableResult
 
     private const array UNSETS = [
       'uid' => 'unsetUid',
+      'template' => 'unsetTemplate',
       'tenant' => 'unsetTenant',
       'code' => 'unsetCode',
       'type' => 'unsetType',
@@ -38,6 +41,7 @@ class TemplateAssetEnableResult
     {
         if ($att) {
             $this->readUidFrom($att);
+            $this->readTemplateFrom($att);
             $this->readTenantFrom($att);
             $this->readCodeFrom($att);
             $this->readTypeFrom($att);
@@ -50,6 +54,7 @@ class TemplateAssetEnableResult
     {
         $att = new TemplateAssetAttributes();
         $this->writeUidTo($att);
+        $this->writeTemplateTo($att);
         $this->writeTenantTo($att);
         $this->writeCodeTo($att);
         $this->writeTypeTo($att);
@@ -67,6 +72,7 @@ class TemplateAssetEnableResult
     public function withDefaults(): TemplateAssetEnableResult
     {
         $this->withDefaultUid();
+        $this->withDefaultTemplate();
         $this->withDefaultTenant();
         $this->withDefaultCode();
         $this->withDefaultType();

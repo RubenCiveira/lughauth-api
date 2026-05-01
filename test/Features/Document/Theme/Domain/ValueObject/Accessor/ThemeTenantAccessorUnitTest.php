@@ -50,16 +50,18 @@ class ThemeTenantAccessorUnitTest extends TestCase
     public function testChangedTenant(): void
     {
         // Arrange
-        $holder = new ImplWithThemeTenantAccessorUnitTest()->withTenant(new TenantRef('one'));
+        $holder = new ImplWithThemeTenantAccessorUnitTest();
         $original = $holder->withTenant(new TenantRef('one'));
         $same = $holder->withTenant(new TenantRef('one'));
         $modified = $holder->withTenant(new TenantRef('other'));
 
         // Act
+        $unchanged = $holder->isTenantChanged();
         $withSame = $original->isTenantChanged($same);
         $withDiferent = $original->isTenantChanged($modified);
 
         // Assert
+        $this->assertFalse($unchanged);
         $this->assertFalse($withSame);
         $this->assertTrue($withDiferent);
     }

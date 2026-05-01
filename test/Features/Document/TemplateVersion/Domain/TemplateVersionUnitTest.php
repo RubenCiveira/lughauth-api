@@ -15,6 +15,7 @@ final class TemplateVersionUnitTest extends TestCase
         $one = new TemplateVersion(
             uid: 'one',
             template: new TemplateRef('one'),
+            locale: 'one',
             subject: 'one',
             contentHtml: 'one',
             contentText: 'one',
@@ -30,6 +31,8 @@ final class TemplateVersionUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTemplate(), $other->getTemplate());
         $this->assertTrue($one->isTemplateChanged());
+        $this->assertEquals($one->getLocale(), $other->getLocale());
+        $this->assertTrue($one->isLocaleChanged());
         $this->assertEquals($one->getSubject(), $other->getSubject());
         $this->assertTrue($one->isSubjectChanged());
         $this->assertEquals($one->getContentHtml(), $other->getContentHtml());
@@ -45,6 +48,7 @@ final class TemplateVersionUnitTest extends TestCase
         $base = new TemplateVersion(
             uid: 'one',
             template: new TemplateRef('one'),
+            locale: 'one',
             subject: 'one',
             contentHtml: 'one',
             contentText: 'one',
@@ -53,6 +57,7 @@ final class TemplateVersionUnitTest extends TestCase
         $other = new TemplateVersion(
             uid: 'other',
             template: new TemplateRef('other'),
+            locale: 'other',
             subject: 'other',
             contentHtml: 'other',
             contentText: 'other',
@@ -66,6 +71,8 @@ final class TemplateVersionUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getTemplate(), $other->getTemplate());
         $this->assertTrue($one->isTemplateChanged($base));
+        $this->assertEquals($one->getLocale(), $other->getLocale());
+        $this->assertTrue($one->isLocaleChanged($base));
         $this->assertEquals($one->getSubject(), $other->getSubject());
         $this->assertTrue($one->isSubjectChanged($base));
         $this->assertEquals($one->getContentHtml(), $other->getContentHtml());
@@ -81,6 +88,7 @@ final class TemplateVersionUnitTest extends TestCase
         $one = new TemplateVersion(
             uid: 'one',
             template: new TemplateRef('one'),
+            locale: 'one',
             subject: 'one',
             contentHtml: 'one',
             contentText: 'one',
@@ -93,6 +101,7 @@ final class TemplateVersionUnitTest extends TestCase
         // @Assert
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['template']['$ref']);
+        $this->assertEquals('one', $json['locale']);
         $this->assertEquals('one', $json['subject']);
         $this->assertEquals(1, $json['version']);
     }
@@ -102,6 +111,7 @@ final class TemplateVersionUnitTest extends TestCase
         $one = new TemplateVersion(
             uid: 'one',
             template: new TemplateRef('one'),
+            locale: 'one',
             subject: 'one',
             contentHtml: 'one',
             contentText: 'one',
@@ -115,6 +125,8 @@ final class TemplateVersionUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTemplate(), $other->getTemplate());
         $this->assertTrue($one->isTemplateChanged());
+        $this->assertEquals($one->getLocale(), $other->getLocale());
+        $this->assertTrue($one->isLocaleChanged());
         $this->assertEquals($one->getSubject(), $other->getSubject());
         $this->assertTrue($one->isSubjectChanged());
         $this->assertEquals($one->getContentHtml(), $other->getContentHtml());
@@ -131,6 +143,7 @@ final class TemplateVersionUnitTest extends TestCase
         $base = new TemplateVersion(
             uid: 'one',
             template: new TemplateRef('one'),
+            locale: 'one',
             subject: 'one',
             contentHtml: 'one',
             contentText: 'one',
@@ -139,6 +152,7 @@ final class TemplateVersionUnitTest extends TestCase
         $other = new TemplateVersion(
             uid: 'other',
             template: new TemplateRef('other'),
+            locale: 'other',
             subject: 'other',
             contentHtml: 'other',
             contentText: 'other',
@@ -152,6 +166,8 @@ final class TemplateVersionUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getTemplate(), $other->getTemplate());
         $this->assertTrue($one->isTemplateChanged($base));
+        $this->assertEquals($one->getLocale(), $other->getLocale());
+        $this->assertTrue($one->isLocaleChanged($base));
         $this->assertEquals($one->getSubject(), $other->getSubject());
         $this->assertTrue($one->isSubjectChanged($base));
         $this->assertEquals($one->getContentHtml(), $other->getContentHtml());
@@ -169,6 +185,7 @@ final class TemplateVersionUnitTest extends TestCase
         $one = new TemplateVersion(
             uid: 'one',
             template: new TemplateRef('one'),
+            locale: 'one',
             subject: 'one',
             contentHtml: 'one',
             contentText: 'one',
@@ -182,6 +199,8 @@ final class TemplateVersionUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getTemplate(), $other->getTemplate());
         $this->assertTrue($one->isTemplateChanged());
+        $this->assertEquals($one->getLocale(), $other->getLocale());
+        $this->assertTrue($one->isLocaleChanged());
         $this->assertEquals($one->getSubject(), $other->getSubject());
         $this->assertTrue($one->isSubjectChanged());
         $this->assertEquals($one->getContentHtml(), $other->getContentHtml());

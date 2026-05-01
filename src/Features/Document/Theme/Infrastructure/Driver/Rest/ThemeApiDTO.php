@@ -20,7 +20,7 @@ class ThemeApiDTO
     #[OA\Property(
         property: "tenant",
         title: "tenant",
-        description:"El tenant de theme",
+        description:"null = theme global fallback, valor = override por tenant",
         type: "object",
         properties: [
           new OA\Property(property: "\$ref", type: "string")
@@ -30,7 +30,7 @@ class ThemeApiDTO
     #[OA\Property(
         property: "name",
         title: "name",
-        description:"El name de theme",
+        description:"Nombre de resolución desde template.theme: full-window, index-page...",
         type: "string"
     )]
     public ?string $name = null;
@@ -48,13 +48,6 @@ class ThemeApiDTO
         type: "string"
     )]
     public ?bool $enabled = null;
-    #[OA\Property(
-        property: "customCss",
-        title: "custom css",
-        description:"El custom css de theme",
-        type: "string"
-    )]
-    public ?string $customCss = null;
     #[OA\Property(
         property: "version",
         title: "version",

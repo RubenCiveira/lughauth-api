@@ -16,8 +16,8 @@ class TemplateVariableFilter
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        public readonly ?string $code = null,
         private ?array $codeAndTenant = null,
+        private ?string $code = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
         private ?string $tenantTenantAccesible = null,
@@ -43,16 +43,6 @@ class TemplateVariableFilter
         $copy->search = $search;
         return $copy;
     }
-    public function code(): ?string
-    {
-        return $this->code;
-    }
-    public function withCode(?string $code): self
-    {
-        $copy = clone $this;
-        $copy->code = $code;
-        return $copy;
-    }
     public function codeAndTenant(): ?array
     {
         return $this->codeAndTenant;
@@ -61,6 +51,16 @@ class TemplateVariableFilter
     {
         $copy = clone $this;
         $copy->codeAndTenant = ['code' => $code, 'tenant' => $tenant];
+        return $copy;
+    }
+    public function code(): ?string
+    {
+        return $this->code;
+    }
+    public function withCode(string $code): self
+    {
+        $copy = clone $this;
+        $copy->code = $code;
         return $copy;
     }
     public function tenant(): ?TenantRef

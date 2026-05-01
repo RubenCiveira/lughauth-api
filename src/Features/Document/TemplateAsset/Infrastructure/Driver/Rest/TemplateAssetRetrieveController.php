@@ -95,9 +95,11 @@ class TemplateAssetRetrieveController
         $this->logDebug("Map entity to output dto for Template asset");
         $span = $this->startSpan("Map entity to output dto for Template asset");
         try {
+            $template = $value->getTemplate();
             $tenant = $value->getTenant();
             $dto = new TemplateAssetApiDTO();
             $dto->uid = $value->getUid();
+            $dto->template = $template ? ['$ref' => $template->uid()] : null;
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->code = $value->getCode();
             $dto->type = $value->getType();

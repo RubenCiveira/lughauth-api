@@ -11,7 +11,11 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class ThemeTenantVO
 {
-    public static function from(ThemeTenantVO|TenantRef $value): ThemeTenantVO
+    public static function empty(): ThemeTenantVO
+    {
+        return new ThemeTenantVO(null);
+    }
+    public static function from(ThemeTenantVO|TenantRef|null $value): ThemeTenantVO
     {
         return self::fromUnsafe($value);
     }
@@ -20,6 +24,8 @@ class ThemeTenantVO
         if ($value instanceof ThemeTenantVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
+        } elseif (!$value) {
+            return new ThemeTenantVO($value);
         } elseif (is_a($value, TenantRef::class)) {
             return new ThemeTenantVO($value);
         } else {
@@ -47,15 +53,15 @@ class ThemeTenantVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly TenantRef $tenant
+        private readonly ?TenantRef $tenant
     ) {
     }
-    public function value(): TenantRef
+    public function value(): ?TenantRef
     {
         return $this->tenant;
     }
     public function equals(?ThemeTenantVO $other): bool
     {
-        return $this->value()->uid() == $other?->value()?->uid();
+        return $this->value()?->uid() == $other?->value()?->uid();
     }
 }

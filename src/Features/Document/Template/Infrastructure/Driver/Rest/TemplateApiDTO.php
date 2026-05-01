@@ -21,14 +21,14 @@ class TemplateApiDTO
     #[OA\Property(
         property: "code",
         title: "code",
-        description:"LOGIN_MAGIC_LINK, RESET_PASSWORD...",
+        description:"LOGIN_MAGIC_LINK, RESET_PASSWORD, page.profile...",
         type: "string"
     )]
     public ?string $code = null;
     #[OA\Property(
         property: "tenant",
         title: "tenant",
-        description:"null = global, valor = override",
+        description:"null = global, valor = override por tenant",
         type: "object",
         properties: [
           new OA\Property(property: "\$ref", type: "string")
@@ -38,13 +38,10 @@ class TemplateApiDTO
     #[OA\Property(
         property: "theme",
         title: "theme",
-        description:"El theme de template",
-        type: "object",
-        properties: [
-          new OA\Property(property: "\$ref", type: "string")
-    ]
+        description:"Nombre del theme layout (full-window, index-page...). Resuelto contra el tenant activo en render time.",
+        type: "string"
     )]
-    public ?array $theme = null;
+    public ?string $theme = null;
     #[OA\Property(
         property: "channel",
         title: "channel",

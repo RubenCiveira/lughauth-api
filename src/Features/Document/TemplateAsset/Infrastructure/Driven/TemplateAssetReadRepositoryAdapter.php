@@ -11,6 +11,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Connector\Pdo\TemplateAssetPdoConnector;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
@@ -122,12 +123,12 @@ class TemplateAssetReadRepositoryAdapter implements TemplateAssetReadGateway
         }
     }
     #[Override]
-    public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateAsset
+    public function findOneByCodeAndTemplateAndTenant(string $code, TemplateRef $template, ?TenantRef $tenant): ?TemplateAsset
     {
-        $this->logDebug("Find on by code tenant for Template asset on adapter");
-        $span = $this->startSpan("Find on by code tenant for Template asset on adapter");
+        $this->logDebug("Find on by code template tenant for Template asset on adapter");
+        $span = $this->startSpan("Find on by code template tenant for Template asset on adapter");
         try {
-            return $this->conn->retrieve(new TemplateAssetFilter(codeAndTenant: TemplateAssetFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
+            return $this->conn->retrieve(new TemplateAssetFilter(codeAndTemplateAndTenant: TemplateAssetFilter::codeAndTemplateAndTenantFilter(code: $code, template: $template, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -14,6 +14,8 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Create\TemplateAssetCreateUsecase;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetUidVO;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetTemplateVO;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetTenantVO;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetCodeVO;
@@ -84,11 +86,14 @@ class TemplateAssetCreateController
             if (null !== $valueUid) {
                 $value->uid($valueUid);
             }
-            if (in_array('tenant', array_keys($body))) {
-                $valueTenant = TemplateAssetTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList);
-                if (null !== $valueTenant) {
-                    $value->tenant($valueTenant);
+            if (in_array('template', array_keys($body))) {
+                $valueTemplate = TemplateAssetTemplateVO::tryFrom(isset($body['template']['$ref']) ? new TemplateRef($body['template']['$ref']) : null, $errorsList);
+                if (null !== $valueTemplate) {
+                    $value->template($valueTemplate);
                 }
+            }
+            if (in_array('tenant', array_keys($body))) {
+                $value->tenant(TemplateAssetTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $valueCode = TemplateAssetCodeVO::tryFrom($body['code'] ?? null, $errorsList);
             if (null !== $valueCode) {
@@ -123,9 +128,11 @@ class TemplateAssetCreateController
         $this->logDebug("Map entity to output dto for Template asset");
         $span = $this->startSpan("Map entity to output dto for Template asset");
         try {
+            $template = $value->getTemplate();
             $tenant = $value->getTenant();
             $dto = new TemplateAssetApiDTO();
             $dto->uid = $value->getUid();
+            $dto->template = $template ? ['$ref' => $template->uid()] : null;
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->code = $value->getCode();
             $dto->type = $value->getType();

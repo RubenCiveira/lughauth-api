@@ -19,7 +19,6 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeNameVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeIsDefaultVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeEnabledVO;
-use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeCustomCssVO;
 use Civi\Lughauth\Features\Document\Theme\Domain\ValueObject\ThemeVersionVO;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Create\ThemeCreateParams;
@@ -82,10 +81,7 @@ class ThemeCreateController
                 $value->uid($valueUid);
             }
             if (in_array('tenant', array_keys($body))) {
-                $valueTenant = ThemeTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList);
-                if (null !== $valueTenant) {
-                    $value->tenant($valueTenant);
-                }
+                $value->tenant(ThemeTenantVO::tryFrom(isset($body['tenant']['$ref']) ? new TenantRef($body['tenant']['$ref']) : null, $errorsList));
             }
             $valueName = ThemeNameVO::tryFrom($body['name'] ?? null, $errorsList);
             if (null !== $valueName) {
@@ -93,7 +89,6 @@ class ThemeCreateController
             }
             $value->isDefault(ThemeIsDefaultVO::tryFrom($body['isDefault'] ?? null, $errorsList));
             $value->enabled(ThemeEnabledVO::tryFrom($body['enabled'] ?? null, $errorsList));
-            $value->customCss(ThemeCustomCssVO::tryFrom($body['customCss'] ?? null, $errorsList));
             $value->version(ThemeVersionVO::tryFrom($body['version'] ?? null, $errorsList));
             if ($errorsList->hasErrors()) {
                 throw $errorsList->asConstraintException();
@@ -118,7 +113,6 @@ class ThemeCreateController
             $dto->name = $value->getName();
             $dto->isDefault = $value->isIsDefault();
             $dto->enabled = $value->isEnabled();
-            $dto->customCss = $value->getCustomCss();
             $dto->version = $value->getVersion();
             return $dto;
         } catch (Throwable $ex) {

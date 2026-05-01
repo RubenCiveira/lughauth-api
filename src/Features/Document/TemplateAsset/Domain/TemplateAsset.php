@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Domain;
 
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetUidVO;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetTemplateVO;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Accessor\TemplateAssetTemplateAccessor;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetTenantVO;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\Accessor\TemplateAssetTenantAccessor;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetCodeVO;
@@ -24,12 +26,14 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Event\TemplateAssetUpda
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Event\TemplateAssetDeleteEvent;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Event\TemplateAssetEnableEvent;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Event\TemplateAssetDisableEvent;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStorageInterface;
 use Civi\Lughauth\Shared\Connector\FileStorage\FileStoreKey;
 
 class TemplateAsset extends TemplateAssetRef
 {
+    use TemplateAssetTemplateAccessor;
     use TemplateAssetTenantAccessor;
     use TemplateAssetCodeAccessor;
     use TemplateAssetTypeAccessor;
@@ -40,15 +44,17 @@ class TemplateAsset extends TemplateAssetRef
 
     public function __construct(
         TemplateAssetUidVO|string $uid,
-        TemplateAssetTenantVO|TenantRef $tenant,
+        TemplateAssetTemplateVO|TemplateRef $template,
         TemplateAssetCodeVO|string $code,
         TemplateAssetTypeVO|string $type,
         TemplateAssetContentVO|string $content,
+        TemplateAssetTenantVO|TenantRef|null $tenant = null,
         TemplateAssetEnabledVO|bool|null $enabled = null,
         TemplateAssetVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
-        $this->_tenant = TemplateAssetTenantVO::from($tenant);
+        $this->_template = TemplateAssetTemplateVO::from($template);
+        $this->_tenant = null === $tenant ? TemplateAssetTenantVO::empty() : TemplateAssetTenantVO::from($tenant);
         $this->_code = TemplateAssetCodeVO::from($code);
         $this->_type = TemplateAssetTypeVO::from($type);
         $this->_content = TemplateAssetContentVO::from($content);
@@ -58,6 +64,7 @@ class TemplateAsset extends TemplateAssetRef
     public function replace(TemplateAssetAttributes $values): TemplateAsset
     {
         $value = clone $this;
+        $value->_template = $values->getTemplateOrCurrent($this->_template);
         $value->_tenant = $values->getTenantOrCurrent($this->_tenant);
         $value->_code = $values->getCodeOrCurrent($this->_code);
         $value->_type = $values->getTypeOrCurrent($this->_type);
@@ -115,7 +122,11 @@ class TemplateAsset extends TemplateAssetRef
     {
         $data = [];
         $data['uid'] = $this->uid();
-        $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
+        $data['template'] = [ '$ref' => $this->getTemplate()->uid() ];
+        $tenant = $this->getTenant();
+        if (null !== $tenant) {
+            $data['tenant'] = ['$ref' => $tenant->uid() ];
+        }
         $data['code'] = $this->getCode();
         $data['type'] = $this->getType();
         $data['enabled'] = $this->isEnabled();
@@ -126,6 +137,7 @@ class TemplateAsset extends TemplateAssetRef
     {
         return (new TemplateAssetAttributes())
           ->uid($this->uid())
+          ->template($this->_template)
           ->tenant($this->_tenant)
           ->code($this->_code)
           ->type($this->_type)

@@ -18,6 +18,7 @@ use Civi\Lughauth\Shared\Infrastructure\LongTask\TaskKey;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Delete\TemplateAssetDeleteUsecase;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetFilter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driver\Batch\TemplateAssetTaskDelete;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
 class TemplateAssetDeleteController
@@ -77,6 +78,8 @@ class TemplateAssetDeleteController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 code: $params['code'] ?? null,
+                template: isset($params['template']) ? new TemplateRef($params['template']) : null,
+                templates: isset($params['templates']) ? explode(",", $params['templates']) : null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
