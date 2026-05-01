@@ -50,7 +50,7 @@ class TemplateApiDTO
         title: "channel",
         description:"El channel de template",
         type: "string",
-        enum: ["MAIL","SMS"]
+        enum: ["MAIL","SMS","HTML"]
     )]
     public ?TemplateChannelOptions $channel = null;
     #[OA\Property(
