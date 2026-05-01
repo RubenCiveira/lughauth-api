@@ -17,7 +17,6 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
 class InstallLoginTemplate
 {
     public function __construct(
-        private readonly InstallTemplateHtml $html,
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
     ) {
@@ -29,6 +28,7 @@ class InstallLoginTemplate
         $tpl->uid(Random::comb());
         $tpl->code('user.login');
         $tpl->channel(TemplateChannelOptions::MAIL);
+        $tpl->theme('corporate-mail');
         $tpl->enabled(true);
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
@@ -47,7 +47,7 @@ BODY;
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('New sign-in to your account');
-        $ver->contentHtml($this->html->layout($body));
+        $ver->contentHtml($body);
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

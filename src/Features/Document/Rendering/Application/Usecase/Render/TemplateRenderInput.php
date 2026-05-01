@@ -17,6 +17,7 @@ class TemplateRenderInput
     /**
      * @param array<string, string> $variables Call-site variables that override tenant-level defaults.
      *                                          Keys use dotted notation: "user.name", "login.link".
+     * @param string|null $locale BCP 47 locale tag (e.g. "es", "en-US"). Null means use the default version.
      */
     public function __construct(
         private readonly string $code,
@@ -24,6 +25,7 @@ class TemplateRenderInput
         private readonly ?TenantRef $tenant = null,
         private readonly array $variables = [],
         private readonly TemplateOutputFormat $outputFormat = TemplateOutputFormat::HTML,
+        private readonly ?string $locale = null,
     ) {
     }
 
@@ -55,5 +57,11 @@ class TemplateRenderInput
     public function outputFormat(): TemplateOutputFormat
     {
         return $this->outputFormat;
+    }
+
+    /** BCP 47 locale tag for version selection. Null resolves the default (locale-less) version. */
+    public function locale(): ?string
+    {
+        return $this->locale;
     }
 }
