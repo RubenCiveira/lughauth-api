@@ -6,6 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install;
 
 use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateAttributes;
@@ -13,16 +16,23 @@ use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\ValueObject\TemplateAssetContentVO;
 
 class InstallIndexPageTemplate
 {
+    private const string STYLE_DIR = __DIR__ . '/../../../../../Oidc/Theme/Themes/corporate/style/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
+        private readonly TemplateAssetWriteGateway $assetGateway,
     ) {
     }
 
-    public function install(): void
+    public function install(Tenant $tenant): void
     {
         $tpl = new TemplateAttributes();
         $tpl->uid(Random::comb());
@@ -34,18 +44,88 @@ class InstallIndexPageTemplate
 
         $layout = <<<'TWIG'
 <!DOCTYPE html>
-<html lang="{{ locale }}">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{{ title }}</title>
-  <link rel="stylesheet" href="{{ theme }}/style.css" />
-  <script src="{{ theme }}/main.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="icon" type="image/png" href="{{ assets_path }}/favicon.png">
+    <link rel="stylesheet" href="{{ assets_path }}/corporate.css">
 </head>
-<body class="oidc-page">
-  <main class="oidc-main">
-    {{ innerContent }}
-  </main>
+<body>
+    <div class="background-image">
+        <picture>
+            <source media="(max-width: 480px)" srcset="{{ assets_path }}/office_480x800.webp" type="image/webp">
+            <source media="(max-width: 768px)" srcset="{{ assets_path }}/office_768x1024.webp" type="image/webp">
+            <source media="(max-width: 1024px)" srcset="{{ assets_path }}/office_1024x768.webp" type="image/webp">
+            <source media="(max-width: 1440px)" srcset="{{ assets_path }}/office_1440x900.webp" type="image/webp">
+            <source media="(min-width: 1441px)" srcset="{{ assets_path }}/office_1920x1080.webp" type="image/webp">
+            <source media="(max-width: 480px)" srcset="{{ assets_path }}/office_480x800.jpeg">
+            <source media="(max-width: 768px)" srcset="{{ assets_path }}/office_768x1024.jpeg">
+            <source media="(max-width: 1024px)" srcset="{{ assets_path }}/office_1024x768.jpeg">
+            <source media="(max-width: 1440px)" srcset="{{ assets_path }}/office_1440x900.jpeg">
+            <img src="{{ assets_path }}/office_1920x1080.jpeg" alt="Corporate office background" class="bg-img" loading="lazy">
+        </picture>
+        <div class="background-overlay"></div>
+    </div>
+    <div class="main-container">
+        <div class="content-wrapper">
+            <div class="header">
+                <img src="{{ assets_path }}/logo.png" alt="Company Logo" class="company-logo" />
+            </div>
+            <div class="main-content">
+                <div class="image-panel">
+                    <div class="corporate-image">
+                        <img src="{{ assets_path }}/identity.png" alt="Corporate illustration" class="main-illustration" />
+                    </div>
+                    <div class="image-content">
+                        <h1>Stay connected and productive</h1>
+                        <p>Access your workspace from anywhere with secure, enterprise-grade authentication.</p>
+                    </div>
+                </div>
+                <div class="form-panel">
+                    <div class="form-container">
+                        <div class="form-content">
+                            <div class="loading"></div>
+                            <div class="in-form">
+                                {{ innerContent }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const formContent = document.querySelector('.form-content');
+            const loadingIndicator = document.querySelector('.loading');
+            formContent.classList.add('slide-in');
+            setTimeout(function() {
+                const forms = formContent.querySelectorAll('form');
+                forms.forEach(form => {
+                    function handleFormSubmit(event) {
+                        event.preventDefault();
+                        formContent.classList.add('slide-out');
+                        loadingIndicator.style.display = 'block';
+                        setTimeout(function() {
+                            form.removeEventListener('submit', handleFormSubmit);
+                            form.submit();
+                        }, 500);
+                    }
+                    const existingSubmitListener = form.onsubmit;
+                    if (existingSubmitListener) {
+                        form.addEventListener('submit', function(event) {
+                            existingSubmitListener.call(form, event);
+                            handleFormSubmit(event);
+                        });
+                    } else {
+                        form.addEventListener('submit', handleFormSubmit);
+                    }
+                });
+            }, 10);
+        });
+    </script>
 </body>
 </html>
 TWIG;
@@ -56,5 +136,37 @@ TWIG;
         $ver->subject('page.index');
         $ver->contentHtml($layout);
         $this->versions->create(TemplateVersion::create($ver));
+
+        $this->installAssets($tenant);
+    }
+
+    private function installAssets(Tenant $tenant): void
+    {
+        $tenantRef = new TenantRef($tenant->uid() ?? '');
+        $styleDir  = self::STYLE_DIR;
+
+        if (!is_dir($styleDir)) {
+            return;
+        }
+
+        foreach (glob($styleDir . '*') ?: [] as $filePath) {
+            if (!is_file($filePath)) {
+                continue;
+            }
+            $filename = basename($filePath);
+            $binary   = BinaryContent::fromFile($filePath);
+            $tempKey  = $this->assetGateway->temporalStoreContent($binary);
+
+            $attr = new TemplateAssetAttributes();
+            $attr->uid(Random::comb());
+            $attr->tenant($tenantRef);
+            $attr->code("page.index/{$filename}");
+            $attr->type($binary->mime);
+            $attr->content(TemplateAssetContentVO::fromTemporal($tempKey));
+            $attr->enabled(true);
+
+            $this->assetGateway->create(TemplateAsset::create($attr));
+            $this->assetGateway->commitContent($tempKey);
+        }
     }
 }

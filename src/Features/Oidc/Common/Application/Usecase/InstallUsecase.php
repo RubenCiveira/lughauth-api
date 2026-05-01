@@ -57,6 +57,7 @@ use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallAskFor
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallSendMagicLinkTemplate;
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallDelegateLoginTemplate;
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallIndexPageTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallFullPageTemplate;
 
 class InstallUsecase
 {
@@ -80,6 +81,7 @@ class InstallUsecase
         private readonly InstallSendMagicLinkTemplate $magicLinkTemplate,
         private readonly InstallDelegateLoginTemplate $delegateLoginTemplate,
         private readonly InstallIndexPageTemplate $indexPageTemplate,
+        private readonly InstallFullPageTemplate $fullPageTemplate,
     ) {
     }
 
@@ -218,6 +220,7 @@ class InstallUsecase
         $this->deleteTemplate->install();
         $this->magicLinkTemplate->install();
         $this->delegateLoginTemplate->install();
-        $this->indexPageTemplate->install();
+        $this->indexPageTemplate->install($createdTenant);
+        $this->fullPageTemplate->install($createdTenant);
     }
 }

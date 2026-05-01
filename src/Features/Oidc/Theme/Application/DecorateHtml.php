@@ -22,6 +22,8 @@ use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionFilter;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetFilter;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
 
 class DecorateHtml
 {
@@ -37,6 +39,7 @@ class DecorateHtml
         private readonly ThemeReadGateway $themeGateway,
         private readonly TemplateReadGateway $templateGateway,
         private readonly TemplateVersionReadGateway $templateVersionGateway,
+        private readonly TemplateAssetReadGateway $assetGateway,
     ) {
         $this->assetsPath = $config->get('oidc.theme.path', $context->getBaseUrl() . '/');
     }
@@ -145,6 +148,8 @@ class DecorateHtml
             return null;
         }
 
+        $assetsPath = $this->dumpDbTemplateAssets($template, $tenantRef);
+
         $loader = new TwigArrayLoader(['page' => $html]);
         $twig   = new TwigEnvironment($loader, ['autoescape' => false]);
         return $twig->render('page', [
@@ -152,7 +157,47 @@ class DecorateHtml
             'title'        => $title,
             'innerContent' => $innerContent,
             'locale'       => $locale,
+            'assets_path'  => $assetsPath,
         ]);
+    }
+
+    private function dumpDbTemplateAssets(string $template, ?TenantRef $tenantRef): string
+    {
+        $dirName   = "db-templates/page.{$template}";
+        $realPath  = realpath('.');
+        $assetsDir = ($realPath !== false ? $realPath : '.') . "/.assets/{$dirName}";
+
+        if (!is_dir($assetsDir)) {
+            mkdir($assetsDir, 0777, true);
+        }
+
+        $filter = new TemplateAssetFilter();
+        if ($tenantRef !== null) {
+            $filter = $filter->withTenant($tenantRef);
+        }
+
+        $prefix = "page.{$template}/";
+        $slide  = $this->assetGateway->list($filter);
+        foreach ($slide->values() as $asset) {
+            if (!str_starts_with($asset->getCode(), $prefix)) {
+                continue;
+            }
+            $filename = substr($asset->getCode(), strlen($prefix));
+            if ($filename === '' || str_contains($filename, '/') || str_contains($filename, '..')) {
+                continue;
+            }
+            $binary   = $this->assetGateway->readContent($asset->getContent());
+            if (!$binary->isStreamOpen()) {
+                continue;
+            }
+            $fp = fopen($assetsDir . '/' . $filename, 'wb');
+            if ($fp !== false) {
+                stream_copy_to_stream($binary->stream, $fp);
+                fclose($fp);
+            }
+        }
+
+        return "{$this->assetsPath}.assets/{$dirName}";
     }
 
     private function dumpTheme(string $srcDir, string $targetDir): void
