@@ -141,7 +141,9 @@ class WebAuthnLoginForm implements StepForm
                 </form>
                 {$webAuthnScript}
             HTML,
-            $locale
+            $locale,
+            'index',
+            $tenant
         ));
 
         return StepResult::render($response, $input->challenges);

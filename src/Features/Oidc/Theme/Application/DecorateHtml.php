@@ -7,33 +7,152 @@ namespace Civi\Lughauth\Features\Oidc\Theme\Application;
 
 use RecursiveIteratorIterator;
 use RecursiveDirectoryIterator;
+use Twig\Environment as TwigEnvironment;
+use Twig\Loader\ArrayLoader as TwigArrayLoader;
 use Psr\Http\Message\RequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\View\TwigBuilder;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeFilter;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateFilter;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionFilter;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
 
 class DecorateHtml
 {
+    private const string FALLBACK_THEME = 'corporate';
+
     private readonly string $assetsPath;
 
     public function __construct(
         AppConfig $config,
         Context $context,
-        private readonly TwigBuilder $builder
+        private readonly TwigBuilder $builder,
+        private readonly TenantReadGateway $tenantGateway,
+        private readonly ThemeReadGateway $themeGateway,
+        private readonly TemplateReadGateway $templateGateway,
+        private readonly TemplateVersionReadGateway $templateVersionGateway,
     ) {
         $this->assetsPath = $config->get('oidc.theme.path', $context->getBaseUrl() . '/');
     }
 
-    public function getFullPage(RequestInterface $request, string $title, string $innerContent, string $locale, string $template = 'index'): string
-    {
-        $usedTheme = 'corporate';
-        $srcDir = __DIR__ . "/../Themes/{$usedTheme}/";
-        $realPath = realpath('.');
+    public function getFullPage(
+        RequestInterface $request,
+        string $title,
+        string $innerContent,
+        string $locale,
+        string $template = 'index',
+        ?string $tenantDomain = null,
+    ): string {
+        $usedTheme = $this->resolveThemeName($tenantDomain);
+        $srcDir    = __DIR__ . "/../Themes/{$usedTheme}/";
+        $realPath  = realpath('.');
         $targetDir = ($realPath !== false ? $realPath : '.') . "/.assets/oidc/{$usedTheme}";
         $this->dumpTheme($srcDir, $targetDir);
         $theme = "{$this->assetsPath}.assets/oidc/{$usedTheme}";
+
+        $dbPage = $this->resolveDbPageTemplate($template, $tenantDomain, $theme, $title, $innerContent, $locale);
+        if ($dbPage !== null) {
+            return $dbPage;
+        }
+
         $callback = require $srcDir . "/{$template}.php";
         return $callback($theme, $title, $innerContent, $locale);
+    }
+
+    private function resolveThemeName(?string $tenantDomain): string
+    {
+        if (null === $tenantDomain) {
+            return self::FALLBACK_THEME;
+        }
+
+        $tenant = $this->tenantGateway->findOneByDomain($tenantDomain);
+        if (null === $tenant) {
+            return self::FALLBACK_THEME;
+        }
+
+        $slide  = $this->themeGateway->list((new ThemeFilter())->withTenant(new TenantRef($tenant->uid())));
+        $themes = $slide->values();
+
+        $candidate = null;
+        foreach ($themes as $theme) {
+            if (!$theme->isEnabled()) {
+                continue;
+            }
+            if ($theme->isIsDefault()) {
+                $candidate = $theme;
+                break;
+            }
+            if ($candidate === null) {
+                $candidate = $theme;
+            }
+        }
+
+        if (null === $candidate) {
+            return self::FALLBACK_THEME;
+        }
+
+        $name      = $candidate->getName();
+        $themePath = __DIR__ . "/../Themes/{$name}/";
+
+        return is_dir($themePath) ? $name : self::FALLBACK_THEME;
+    }
+
+    private function resolveDbPageTemplate(
+        string $template,
+        ?string $tenantDomain,
+        string $theme,
+        string $title,
+        string $innerContent,
+        string $locale,
+    ): ?string {
+        $code      = "page.{$template}";
+        $tenantRef = null;
+
+        if ($tenantDomain !== null) {
+            $tenant    = $this->tenantGateway->findOneByDomain($tenantDomain);
+            $tenantRef = $tenant !== null ? new TenantRef($tenant->uid()) : null;
+        }
+
+        $tpl = $tenantRef !== null
+            ? $this->templateGateway->findOneByCodeAndTenant($code, $tenantRef)
+            : null;
+
+        if ($tpl === null) {
+            $tpl = $this->templateGateway->retrieve((new TemplateFilter())->withCode($code));
+        }
+
+        if ($tpl === null || !$tpl->isEnabled()) {
+            return null;
+        }
+
+        $versions = $this->templateVersionGateway->list(
+            (new TemplateVersionFilter())->withTemplate(new TemplateRef($tpl->uid() ?? ''))
+        );
+        $candidates = $versions->values();
+        if (empty($candidates)) {
+            return null;
+        }
+
+        usort($candidates, static fn ($a, $b) => ($b->getVersion() ?? 0) <=> ($a->getVersion() ?? 0));
+        $html = $candidates[0]->getContentHtml() ?? '';
+        if ($html === '') {
+            return null;
+        }
+
+        $loader = new TwigArrayLoader(['page' => $html]);
+        $twig   = new TwigEnvironment($loader, ['autoescape' => false]);
+        return $twig->render('page', [
+            'theme'        => $theme,
+            'title'        => $title,
+            'innerContent' => $innerContent,
+            'locale'       => $locale,
+        ]);
     }
 
     private function dumpTheme(string $srcDir, string $targetDir): void
@@ -51,7 +170,7 @@ class DecorateHtml
 
         foreach ($iterator as $item) {
             $relativePath = substr($item->getPathname(), strlen($srcDir));
-            $destPath = $targetDir . DIRECTORY_SEPARATOR . $relativePath;
+            $destPath     = $targetDir . DIRECTORY_SEPARATOR . $relativePath;
 
             if ($item->isDir()) {
                 if (!is_dir($destPath)) {

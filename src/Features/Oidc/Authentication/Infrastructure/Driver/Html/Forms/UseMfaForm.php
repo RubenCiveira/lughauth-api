@@ -77,7 +77,9 @@ class UseMfaForm implements StepForm
                         {$backText}
                     </form>
                 HTML,
-            $locale
+            $locale,
+            'index',
+            $input->context->tenant
         ));
         return StepResult::render($response, $input->challenges);
     }

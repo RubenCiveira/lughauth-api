@@ -46,21 +46,21 @@ class DeviceVerificationHtml
         $tenant = $args['tenant'];
         $userCode = $this->normalizeUserCode((string) ($request->getQueryParams()['user_code'] ?? ''));
         if ($userCode === '') {
-            return $this->renderUserCodeForm($request, $response, null);
+            return $this->renderUserCodeForm($request, $response, null, $tenant);
         }
 
         $record = $this->deviceAuth->findByUserCode($tenant, $userCode);
         if (!$record) {
-            return $this->renderUserCodeForm($request, $response, 'Invalid user code');
+            return $this->renderUserCodeForm($request, $response, 'Invalid user code', $tenant);
         }
         if ($record->isExpired(new DateTimeImmutable())) {
-            return $this->renderUserCodeForm($request, $response, 'Expired user code');
+            return $this->renderUserCodeForm($request, $response, 'Expired user code', $tenant);
         }
         if ($record->status === DeviceAuthorizationStatus::APPROVED) {
-            return $this->renderMessage($request, $response, 'Device already approved');
+            return $this->renderMessage($request, $response, 'Device already approved', $tenant);
         }
         if ($record->status === DeviceAuthorizationStatus::DENIED) {
-            return $this->renderMessage($request, $response, 'Device access denied');
+            return $this->renderMessage($request, $response, 'Device access denied', $tenant);
         }
 
         $flow = $this->buildContext($request, $tenant, $record);
@@ -77,7 +77,7 @@ class DeviceVerificationHtml
         if ($queryCode === '') {
             $postCode = $this->normalizeUserCode((string) ($body['user_code'] ?? ''));
             if ($postCode === '') {
-                return $this->renderUserCodeForm($request, $response, 'User code is required');
+                return $this->renderUserCodeForm($request, $response, 'User code is required', $tenant);
             }
             $url = rtrim($this->context->getBaseUrl(), '/') . '/oauth/openid/' . $tenant . '/device/verify?user_code=' . urlencode($postCode);
             return $response->withStatus(302)->withHeader('Location', $url);
@@ -85,16 +85,16 @@ class DeviceVerificationHtml
 
         $record = $this->deviceAuth->findByUserCode($tenant, $queryCode);
         if (!$record) {
-            return $this->renderUserCodeForm($request, $response, 'Invalid user code');
+            return $this->renderUserCodeForm($request, $response, 'Invalid user code', $tenant);
         }
         if ($record->isExpired(new DateTimeImmutable())) {
-            return $this->renderUserCodeForm($request, $response, 'Expired user code');
+            return $this->renderUserCodeForm($request, $response, 'Expired user code', $tenant);
         }
         if ($record->status === DeviceAuthorizationStatus::APPROVED) {
-            return $this->renderMessage($request, $response, 'Device already approved');
+            return $this->renderMessage($request, $response, 'Device already approved', $tenant);
         }
         if ($record->status === DeviceAuthorizationStatus::DENIED) {
-            return $this->renderMessage($request, $response, 'Device access denied');
+            return $this->renderMessage($request, $response, 'Device access denied', $tenant);
         }
 
         $flow = $this->buildContext($request, $tenant, $record);
@@ -118,14 +118,14 @@ class DeviceVerificationHtml
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
                 $approved = $this->deviceAuth->approveByUserCode($tenant, $queryCode, $result->authResponse->asAuthenticationResult());
                 if (!$approved) {
-                    return $this->renderMessage($request, $response, 'Device approval failed');
+                    return $this->renderMessage($request, $response, 'Device approval failed', $tenant);
                 }
                 $cookie = $this->cookies->authenticatedSessionCookie(
                     $tenant,
                     $result->authResponse->sessionId,
                     $result->authResponse->sessionExpiration
                 );
-                return $cookie->attach($this->renderMessage($request, $response, 'Device approved. You can return to the CLI.'));
+                return $cookie->attach($this->renderMessage($request, $response, 'Device approved. You can return to the CLI.', $tenant));
             }
             if ($result->type === StepResult::TYPE_RENDER && $result->response) {
                 $cookie = $this->cookies->storePreSession($flow, $result->challenges);
@@ -140,7 +140,7 @@ class DeviceVerificationHtml
         }
     }
 
-    private function renderUserCodeForm(ServerRequestInterface $request, ResponseInterface $response, ?string $error): ResponseInterface
+    private function renderUserCodeForm(ServerRequestInterface $request, ResponseInterface $response, ?string $error, string $tenant = ''): ResponseInterface
     {
         $message = $error !== null && $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $html = <<<HTML
@@ -154,14 +154,14 @@ class DeviceVerificationHtml
                 <input class="primary-button" type="submit" value="Continue" />
             </form>
             HTML;
-        $response->getBody()->write($this->decorator->getFullPage($request, 'Device', $html, 'es'));
+        $response->getBody()->write($this->decorator->getFullPage($request, 'Device', $html, 'es', 'index', $tenant));
         return $response;
     }
 
-    private function renderMessage(ServerRequestInterface $request, ResponseInterface $response, string $message): ResponseInterface
+    private function renderMessage(ServerRequestInterface $request, ResponseInterface $response, string $message, string $tenant = ''): ResponseInterface
     {
         $html = '<h1>Device login</h1><p>' . $message . '</p>';
-        $response->getBody()->write($this->decorator->getFullPage($request, 'Device', $html, 'es'));
+        $response->getBody()->write($this->decorator->getFullPage($request, 'Device', $html, 'es', 'index', $tenant));
         return $response;
     }
 

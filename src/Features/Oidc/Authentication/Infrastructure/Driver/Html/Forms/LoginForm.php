@@ -113,7 +113,7 @@ class LoginForm implements StepForm
                     <form id="login" method="POST">
                         <input type="hidden" name="csid" id="sign" />
                         <input type="hidden" id="password" name="password" value="" />
-                        <label> {$username} 
+                        <label> {$username}
                             <input type="text" id="username" name="username" value="" />
                         </label>
                         <label> {$password}
@@ -125,7 +125,9 @@ class LoginForm implements StepForm
                     {$registerUser}
                     {$delegatedLogins}
                 HTML,
-                'es'
+                'es',
+                'index',
+                $tenant
             )
         );
         return StepResult::render($response, $input->challenges);

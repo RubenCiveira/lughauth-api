@@ -9,4 +9,5 @@ enum TemplateChannelOptions: string
 {
     case MAIL = 'mail';
     case SMS = 'sms';
+    case HTML = 'html';
 }

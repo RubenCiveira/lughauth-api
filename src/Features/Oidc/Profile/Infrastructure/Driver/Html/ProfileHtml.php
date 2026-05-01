@@ -76,7 +76,7 @@ class ProfileHtml
                 $this->viewTexts($translator)
             ) . '</div>';
             $locale = $profile?->locale ?? '';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), $html, $locale, 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), $html, $locale, 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -102,7 +102,7 @@ class ProfileHtml
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
             $html = '<div class="section-card">' . $this->editPanel->render($profile, $saveUrl, $cancelUrl, null, $this->editTexts($translator)) . '</div>';
             $locale = $profile?->locale ?? '';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.edit.title'), $html, $locale, 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.edit.title'), $html, $locale, 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -138,7 +138,7 @@ class ProfileHtml
                 $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/edit';
                 $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
                 $html = '<div class="section-card">' . $this->editPanel->render($profile, $saveUrl, $cancelUrl, $ex->getMessage(), $this->editTexts($translator)) . '</div>';
-                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.edit.title'), $html, '', 'full'));
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.edit.title'), $html, '', 'full', $tenant));
                 return $response->withStatus(422);
             }
             throw $ex;
@@ -167,7 +167,7 @@ class ProfileHtml
             <p>{$translator->get('profile.auth.help')}</p>
             <p><a class="primary-button" href="{$loginUrl}">{$translator->get('profile.auth.login')}</a></p>
             HTML;
-        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), '<div class="section-card">' . $html . '</div>', '', 'full'));
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), '<div class="section-card">' . $html . '</div>', '', 'full', $tenant));
         return $response->withStatus(401);
     }
 
@@ -185,7 +185,7 @@ class ProfileHtml
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/password';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
             $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, null, false, $this->passwordTexts($translator)) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -218,7 +218,7 @@ class ProfileHtml
             if ($newPassword !== $confirmPassword) {
                 $this->sql->close();
                 $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, $translator->get('profile.password.errorMismatch'), false, $this->passwordTexts($translator)) . '</div>';
-                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full', $tenant));
                 return $response->withStatus(422);
             }
 
@@ -226,7 +226,7 @@ class ProfileHtml
             $this->sql->commit();
 
             $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, null, true, $this->passwordTexts($translator)) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full', $tenant));
             return $response;
         } catch (LoginException $ex) {
             $errorKey = $ex->auth->error ?? $ex->getMessage();
@@ -235,7 +235,7 @@ class ProfileHtml
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $args['tenant'] . '/me/password';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $args['tenant'] . '/me';
             $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, $error, false, $this->passwordTexts($translator)) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full', $tenant));
             return $response->withStatus(422);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -262,7 +262,7 @@ class ProfileHtml
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
             $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, null, false, $this->mfaTexts($translator)) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -299,7 +299,7 @@ class ProfileHtml
             $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
             $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
             $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, null, true, $this->mfaTexts($translator)) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -312,7 +312,7 @@ class ProfileHtml
                 $enabled = $this->mfaGateway->isEnabled($session->userId, $tenant);
                 $setup = $enabled ? null : $this->mfaGateway->buildSetup($session->userId, $tenant);
                 $html = '<div class="section-card">' . $this->mfaPanel->render($enabled, $saveUrl, $cancelUrl, $setup, $ex->getMessage(), false, $this->mfaTexts($translator)) . '</div>';
-                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full'));
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.mfa.title'), $html, '', 'full', $tenant));
                 return $response->withStatus(422);
             }
             throw $ex;
@@ -338,7 +338,7 @@ class ProfileHtml
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
             $currentSessionId = $this->currentSessionId($request, $tenant);
             $html = $this->sessionsPanel->render($sessions, $revokeBaseUrl, $cancelUrl, $currentSessionId, $this->sessionsTexts($translator));
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.sessions.title'), $html, '', 'full'));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.sessions.title'), $html, '', 'full', $tenant));
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);

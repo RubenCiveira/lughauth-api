@@ -94,7 +94,9 @@ class NewMfaForm implements StepForm
                         {$backText}
                     </form>
                 HTML,
-            $locale
+            $locale,
+            'index',
+            $tenant
         ));
         return StepResult::render($response, $input->challenges);
     }

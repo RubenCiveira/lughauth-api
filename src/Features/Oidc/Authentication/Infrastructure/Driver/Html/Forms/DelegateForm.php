@@ -80,7 +80,9 @@ class DelegateForm implements StepForm
                         <input type="hidden" name="step" value="{$step}" />
                     </form>
                 HTML,
-                'es'
+                'es',
+                'index',
+                $input->context->tenant
             );
             $response->getBody()->write($html);
             return StepResult::render($response, $input->challenges);
@@ -98,7 +100,9 @@ class DelegateForm implements StepForm
                 $input->request,
                 'Delegated login',
                 "<h1>Tengo que definir el método de url para {$target->method}</h1>",
-                $input->context->locale
+                $input->context->locale,
+                'index',
+                $input->context->tenant
             )
         );
         return StepResult::render($response, $input->challenges);

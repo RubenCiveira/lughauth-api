@@ -363,7 +363,7 @@ class AuthorizeHtml
             . "<form id=\"refresh\" action=\"".$url."\" method=\"POST\">"
             . "<input type=\"hidden\" name=\"csid\" id=\"sign\" />"
             . "<input type=\"submit\" />"
-            . "</form>", $flow->locale));
+            . "</form>", $flow->locale, 'index', $flow->tenant));
         return $response;
     }
 }

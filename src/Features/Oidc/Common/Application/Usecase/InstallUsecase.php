@@ -46,6 +46,17 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigWriteGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfigAttributes;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallLoginTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallPasswordRecoverTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallUserRegisterTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallAskForDeleteTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallSendMagicLinkTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallDelegateLoginTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallIndexPageTemplate;
 
 class InstallUsecase
 {
@@ -61,6 +72,14 @@ class InstallUsecase
         private readonly UserRoleAssignamentWriteGateway $createUserRoleAssignament,
         private readonly UserGroupMembershipWriteGateway $createUserGroupMembership,
         private readonly ApiKeyClientWriteGateway $apiKeys,
+        private readonly SmtpOutboundConfigWriteGateway $createSmtp,
+        private readonly InstallLoginTemplate $loginTemplate,
+        private readonly InstallPasswordRecoverTemplate $recoverTemplate,
+        private readonly InstallUserRegisterTemplate $registerTemplate,
+        private readonly InstallAskForDeleteTemplate $deleteTemplate,
+        private readonly InstallSendMagicLinkTemplate $magicLinkTemplate,
+        private readonly InstallDelegateLoginTemplate $delegateLoginTemplate,
+        private readonly InstallIndexPageTemplate $indexPageTemplate,
     ) {
     }
 
@@ -178,6 +197,27 @@ class InstallUsecase
         $created = $this->apiKeys->create(ApiKeyClient::create($apiKey));
         $this->apiKeys->update($created, $created->enable());
 
-    }
+        $smtp = new SmtpOutboundConfigAttributes();
+        $smtp->uid(Random::comb());
+        $smtp->host('smtp.example.com');
+        $smtp->port(true);
+        $smtp->login('noreply@example.com');
+        $smtp->password(SmtpOutboundConfigPasswordVO::fromPlainText($this->cypher, 'change-me'));
+        $smtp->senderName('LughAuth');
+        $smtp->senderEmail('noreply@example.com');
+        $smtp->timeout(30);
+        $smtp->useTls(true);
+        $smtp->maxRetries(3);
+        $smtp->retryDelay(60);
+        $smtp->rateLimit(100);
+        $this->createSmtp->create(SmtpOutboundConfig::create($smtp));
 
+        $this->loginTemplate->install();
+        $this->recoverTemplate->install();
+        $this->registerTemplate->install();
+        $this->deleteTemplate->install();
+        $this->magicLinkTemplate->install();
+        $this->delegateLoginTemplate->install();
+        $this->indexPageTemplate->install();
+    }
 }

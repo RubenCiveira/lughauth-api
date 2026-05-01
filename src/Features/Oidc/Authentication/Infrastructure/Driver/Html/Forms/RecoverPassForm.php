@@ -138,7 +138,9 @@ class RecoverPassForm implements StepForm
                         {$backText}
                     </form>
                 HTML,
-            $locale
+            $locale,
+            'index',
+            $tenant
         ));
         return $response;
     }
@@ -196,9 +198,10 @@ class RecoverPassForm implements StepForm
                         <input type="hidden" name="step" value="" />
                         {$backText}
                     </form>
-                HTML
-            ,
-            $locale
+                HTML,
+            $locale,
+            'index',
+            $tenant
         ));
         return $response;
     }
@@ -244,7 +247,9 @@ class RecoverPassForm implements StepForm
                         {$backText}
                     </form>
                 HTML,
-            $locale
+            $locale,
+            'index',
+            $tenant
         ));
         return $response;
     }
