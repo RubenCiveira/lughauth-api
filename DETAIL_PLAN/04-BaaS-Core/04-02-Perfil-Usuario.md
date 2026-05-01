@@ -16,6 +16,26 @@ El usuario actual en `access_user` solo tiene `email`, `password`, `mfa_seed`,
 Sin estos campos, las aplicaciones deben mantener su propio perfil de usuario,
 duplicando datos y creando inconsistencias.
 
+Vamos a hacerlo siguiendo la filosofia para los contextos de oidc: la implementación
+operativa se mantiene dentro de oidc, y sólamente tendremos un adaptador que usará
+los gateways o casos de uso de los contextos de access para la persistencia de los datos. Access/Profile será el contexto maestro para registrar los datos. No se deberán hacer cambios en los contextos de Access, sólo en los de Oidc.
+
+Para ello necesitaremos un entrypoint para pintar la vista del perfil del usuario en
+html.
+
+Vamos a mover la clase DecorateHtml y los temas a un nuevo context Oidc/Theme para que
+tanto desde Authentication como desde el nuevo contexto Profile se puedan usar la misma
+lógica de personalización de la interfaz de usaurio.
+
+Crearemos un nuevo contexto en Oidc llamado Profile que expondrá un endpoint en 
+infraestructure/Driver/Html con la página mostrando el perfil del usaurio y un botón
+para ir a edición del perfile.
+
+Esa misma página de perfil también servirá como punto de entrada de la auto gestión del
+usuario (donde más adelante tendrémos el boton de cambio de contraseña, visualizado de
+las sessiones activas, los modos de mfa, etc...) con lo que usemos un enfoque similar
+al de Authentication de un contenedor y paneles.
+
 ---
 
 ## Qué implementar

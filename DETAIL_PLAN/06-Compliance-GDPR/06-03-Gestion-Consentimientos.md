@@ -23,6 +23,10 @@ GDPR Art. 7 requiere que el consentimiento para el procesamiento de datos person
 `access_user_accepted_termns_of_use` solo gestiona T&C pero no propósitos específicos
 de procesamiento de datos.
 
+Con esta issue vamos también ha hacer que se guarde ip_address y user_agent de la petición
+para la aceptación de user-accepted-termns-of-use y para la aceptación de user-consented-scopes
+en los adaptadores de oidc
+
 ---
 
 ## Qué implementar
