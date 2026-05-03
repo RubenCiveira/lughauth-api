@@ -85,10 +85,10 @@ class TemplateRenderUsecase
                 return new TemplateRenderResult(null);
             }
 
-            $variables              = $this->mergeVariables($input->tenant(), $input->variables());
-            [$snippets, $snippetUids] = $this->loadSnippets($input->tenant(), $input->locale());
+            $variables = $this->mergeVariables($input->tenant(), $input->variables());
+            $snippets  = $this->loadSnippets($input->tenant(), $input->locale());
 
-            $variables = $this->injectAssetPaths($variables, $template, $input, $snippetUids);
+            $variables = $this->injectAssetPaths($variables, $template, $input);
 
             $rendered = $this->renderGateway->render(new TemplateRenderRequest(
                 htmlContent: $version->getContentHtml(),
@@ -203,12 +203,15 @@ class TemplateRenderUsecase
      * Tenant-specific snippets override global ones. Each snippet resolves its best
      * SnippetVersion using BCP 47 locale negotiation.
      *
-     * @return array{array<string, string>, array<string, string>} [html_map, uid_map]
+     * Before returning, {{snippet_assets_path}} inside each snippet HTML is replaced with
+     * the public URL of that specific snippet's asset directory, so each snippet author
+     * can simply write {{snippet_assets_path}} without knowing their own code.
+     *
+     * @return array<string, string>
      */
     private function loadSnippets(?TenantRef $tenant, ?string $locale): array
     {
         $snippetMap = [];
-        $uidMap     = [];
 
         // Global snippets as baseline
         $global = $this->snippetGateway->list((new SnippetFilter())->withGlobal(true));
@@ -219,8 +222,7 @@ class TemplateRenderUsecase
             $html = $this->bestSnippetVersion($snippet, $locale);
             if ($html !== null) {
                 $code              = $snippet->getCode();
-                $snippetMap[$code] = $html;
-                $uidMap[$code]     = $snippet->uid() ?? '';
+                $snippetMap[$code] = $this->prebakeSnippetAssetsPath($html, $snippet->uid() ?? '');
             }
         }
 
@@ -234,13 +236,29 @@ class TemplateRenderUsecase
                 $html = $this->bestSnippetVersion($snippet, $locale);
                 if ($html !== null) {
                     $code              = $snippet->getCode();
-                    $snippetMap[$code] = $html;
-                    $uidMap[$code]     = $snippet->uid() ?? '';
+                    $snippetMap[$code] = $this->prebakeSnippetAssetsPath($html, $snippet->uid() ?? '');
                 }
             }
         }
 
-        return [$snippetMap, $uidMap];
+        return $snippetMap;
+    }
+
+    /**
+     * Replaces {{snippet_assets_path}} and {{{snippet_assets_path}}} in a snippet's
+     * HTML with the actual public URL for that snippet's asset directory.
+     * Done before the HTML becomes a Handlebars partial so each snippet resolves its
+     * own path without any context gymnastics.
+     */
+    private function prebakeSnippetAssetsPath(string $html, string $uid): string
+    {
+        if ($uid === '') {
+            return $html;
+        }
+        $path = $this->assetDumpService->snippetAssetsPath($uid);
+        $html = str_replace('{{{snippet_assets_path}}}', $path, $html);
+        $html = str_replace('{{snippet_assets_path}}', $path, $html);
+        return $html;
     }
 
     private function bestSnippetVersion(Snippet $snippet, ?string $locale): ?string
@@ -280,21 +298,24 @@ class TemplateRenderUsecase
 
     /**
      * Injects asset-directory path variables into the variable map:
-     *   - template_assets_path  → directory for this template's assets
-     *   - theme_assets_path     → directory for the associated theme's assets (empty string when no theme)
-     *   - snippet_assets_path   → nested map of { snippetCode: path } for each loaded snippet
+     *   - template_assets_path  → public URL of this template's asset directory
+     *   - theme_assets_path     → public URL of the associated theme's asset directory
+     *                             (empty string when no theme is declared)
+     *
+     * snippet_assets_path is intentionally NOT included here: it is pre-baked into each
+     * snippet's HTML string before it becomes a Handlebars partial (see prebakeSnippetAssetsPath).
+     * That way {{snippet_assets_path}} inside a snippet resolves to that snippet's own path
+     * without any per-snippet context injection.
      *
      * Call-site variables always take precedence over the injected values.
      *
-     * @param  array<string, mixed>  $variables   Already-merged variable map
-     * @param  array<string, string> $snippetUids code → uid map from loadSnippets()
-     * @return array<string, mixed>
+     * @param  array<string, string> $variables Already-merged variable map
+     * @return array<string, string>
      */
     private function injectAssetPaths(
         array $variables,
         Template $template,
         TemplateRenderInput $input,
-        array $snippetUids,
     ): array {
         $templateAssetsPath = $this->assetDumpService->templateAssetsPath(
             $template->uid() ?? '',
@@ -307,17 +328,9 @@ class TemplateRenderUsecase
             $themeAssetsPath = $this->themeRenderer->resolveThemeAssetsPath($themeName, $input->tenant()) ?? '';
         }
 
-        $snippetAssetPaths = [];
-        foreach ($snippetUids as $code => $uid) {
-            if ($uid !== '') {
-                $snippetAssetPaths[$code] = $this->assetDumpService->snippetAssetsPath($uid);
-            }
-        }
-
         return array_merge([
             'template_assets_path' => $templateAssetsPath,
             'theme_assets_path'    => $themeAssetsPath,
-            'snippet_assets_path'  => $snippetAssetPaths,
         ], $variables);
     }
 

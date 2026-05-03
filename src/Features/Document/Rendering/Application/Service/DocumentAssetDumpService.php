@@ -7,7 +7,9 @@ namespace Civi\Lughauth\Features\Document\Rendering\Application\Service;
 
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAsset;
+use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetFilter;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetReadGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
@@ -64,6 +66,21 @@ class DocumentAssetDumpService
     // -------------------------------------------------------------------------
     // File sync: theme assets
     // -------------------------------------------------------------------------
+
+    /**
+     * Writes all enabled assets for a theme to disk (and removes disabled ones).
+     * Called by ThemeRenderService on each render as a safety fallback until
+     * event-based listeners have been fully deployed.
+     */
+    public function syncThemeAssets(ThemeRef $theme): void
+    {
+        $slide = $this->themeAssetGateway->list(
+            (new ThemeAssetFilter())->withTheme($theme)
+        );
+        foreach ($slide->values() as $asset) {
+            $this->dumpThemeAsset($asset);
+        }
+    }
 
     public function dumpThemeAsset(ThemeAsset $asset): void
     {

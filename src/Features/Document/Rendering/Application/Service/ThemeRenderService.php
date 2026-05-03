@@ -18,6 +18,9 @@ use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionRead
 
 class ThemeRenderService
 {
+    /** @var array<string, Theme|null> In-request memo for resolveTheme() to avoid duplicate DB queries. */
+    private array $themeCache = [];
+
     public function __construct(
         private readonly ThemeReadGateway $themeGateway,
         private readonly ThemeVersionReadGateway $themeVersionGateway,
@@ -94,16 +97,25 @@ class ThemeRenderService
 
     private function resolveTheme(string $name, ?TenantRef $tenantRef): ?Theme
     {
+        $key = $name . '::' . ($tenantRef?->uid() ?? '');
+        if (array_key_exists($key, $this->themeCache)) {
+            return $this->themeCache[$key];
+        }
+
+        $theme = null;
         if ($tenantRef !== null) {
-            $theme = $this->themeGateway->findOneByNameAndTenant($name, $tenantRef);
-            if ($theme !== null && $theme->isEnabled()) {
-                return $theme;
+            $candidate = $this->themeGateway->findOneByNameAndTenant($name, $tenantRef);
+            if ($candidate !== null && $candidate->isEnabled()) {
+                $theme = $candidate;
             }
         }
 
-        $theme = $this->themeGateway->findOneByNameAndTenant($name, null);
+        if ($theme === null) {
+            $candidate = $this->themeGateway->findOneByNameAndTenant($name, null);
+            $theme     = ($candidate !== null && $candidate->isEnabled()) ? $candidate : null;
+        }
 
-        return ($theme !== null && $theme->isEnabled()) ? $theme : null;
+        return $this->themeCache[$key] = $theme;
     }
 
     private function bestVersion(Theme $theme, ThemeVersionChannelOptions $channel, ?string $locale): ?ThemeVersion
