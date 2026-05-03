@@ -311,7 +311,7 @@ class UserGroupMembershipPdoConnector
                 }
                 $filterForAllAudiences = $filter->forAllAudiences();
                 if (null !== $filterForAllAudiences) {
-                    $query .= ' and ("relying_party" is null and "trusted_client" is null)';
+                    $query .= ' and ("access_user_group_membership"."relying_party" is null and "access_user_group_membership"."trusted_client" is null)';
                 }
                 $filterUser = $filter->user();
                 if (null !== $filterUser) {

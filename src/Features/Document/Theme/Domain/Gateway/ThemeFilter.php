@@ -17,6 +17,7 @@ class ThemeFilter
         private ?array $uids = null,
         private ?string $search = null,
         private ?array $nameAndTenant = null,
+        private ?bool $global = null,
         private ?string $name = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
@@ -51,6 +52,16 @@ class ThemeFilter
     {
         $copy = clone $this;
         $copy->nameAndTenant = ['name' => $name, 'tenant' => $tenant];
+        return $copy;
+    }
+    public function global(): ?bool
+    {
+        return $this->global;
+    }
+    public function withGlobal(bool $global): self
+    {
+        $copy = clone $this;
+        $copy->global = $global;
         return $copy;
     }
     public function name(): ?string

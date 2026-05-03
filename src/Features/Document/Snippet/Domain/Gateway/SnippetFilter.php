@@ -17,6 +17,7 @@ class SnippetFilter
         private ?array $uids = null,
         private ?string $search = null,
         private ?array $codeAndTenant = null,
+        private ?bool $global = null,
         private ?string $code = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
@@ -51,6 +52,16 @@ class SnippetFilter
     {
         $copy = clone $this;
         $copy->codeAndTenant = ['code' => $code, 'tenant' => $tenant];
+        return $copy;
+    }
+    public function global(): ?bool
+    {
+        return $this->global;
+    }
+    public function withGlobal(bool $global): self
+    {
+        $copy = clone $this;
+        $copy->global = $global;
         return $copy;
     }
     public function code(): ?string

@@ -340,7 +340,7 @@ class UserPdoConnector
                 }
                 $filterNameOrEmail = $filter->nameOrEmail();
                 if (null !== $filterNameOrEmail) {
-                    $query .= ' and ("email" = :emailNameOrEmail or "name" = :nameNameOrEmail)';
+                    $query .= ' and ("access_user"."email" = :emailNameOrEmail or "access_user"."name" = :nameNameOrEmail)';
                     $params[] = new SqlParam(name: 'emailNameOrEmail', value: $filterNameOrEmail, type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'nameNameOrEmail', value: $filterNameOrEmail, type: SqlParam::STR);
                 }

@@ -103,7 +103,13 @@ class TemplateReadRepositoryAdapter implements TemplateReadGateway
         $this->logDebug("Find on by code tenant for Template on adapter");
         $span = $this->startSpan("Find on by code tenant for Template on adapter");
         try {
-            return $this->conn->retrieve(new TemplateFilter(codeAndTenant: TemplateFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
+            if ($tenant !== null) {
+                return $this->conn->retrieve(new TemplateFilter(codeAndTenant: TemplateFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
+            }
+
+            return $this->conn->retrieve((new TemplateFilter())
+                ->withCode($code)
+                ->withGlobal(true));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -11,7 +11,6 @@ use Civi\Lughauth\Features\Document\Rendering\Domain\RenderedTemplate;
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateRenderRequest;
 use Civi\Lughauth\Features\Document\Rendering\Domain\Gateway\TemplateRenderGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateFilter;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
@@ -116,29 +115,18 @@ class TemplateRenderUsecase
      */
     private function resolveTemplate(string $code, TemplateChannelOptions $channel, ?TenantRef $tenant): ?Template
     {
-        $slide      = $this->templateGateway->list((new TemplateFilter())->withCode($code));
-        $candidates = $slide->values();
-
         if (null !== $tenant) {
-            foreach ($candidates as $candidate) {
-                if (
-                    $candidate->getChannel() === $channel
-                    && $candidate->isEnabled()
-                    && $candidate->getTenant()?->uid() === $tenant->uid()
-                ) {
-                    return $candidate;
-                }
+            $tenantMatch = $this->templateGateway->findOneByCodeAndTenant($code, $tenant);
+            if ($tenantMatch !== null && $tenantMatch->isEnabled() && $tenantMatch->getChannel() === $channel) {
+                return $tenantMatch;
             }
         }
 
-        foreach ($candidates as $candidate) {
-            if (
-                $candidate->getChannel() === $channel
-                && $candidate->isEnabled()
-                && null === $candidate->getTenant()
-            ) {
-                return $candidate;
-            }
+
+
+        $globalMatch = $this->templateGateway->findOneByCodeAndTenant($code, null);
+        if ($globalMatch !== null && $globalMatch->isEnabled() && $globalMatch->getChannel() === $channel) {
+            return $globalMatch;
         }
 
         return null;
@@ -216,9 +204,9 @@ class TemplateRenderUsecase
         $snippetMap = [];
 
         // Global snippets as baseline
-        $global = $this->snippetGateway->list(new SnippetFilter());
+        $global = $this->snippetGateway->list((new SnippetFilter())->withGlobal(true));
         foreach ($global->values() as $snippet) {
-            if (!$snippet->isEnabled() || $snippet->getTenant() !== null) {
+            if (!$snippet->isEnabled()) {
                 continue;
             }
             $html = $this->bestSnippetVersion($snippet, $locale);

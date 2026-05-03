@@ -311,6 +311,10 @@ class SnippetPdoConnector
                     $params[] = new SqlParam(name: 'codeTenantCode', value: $filterCodeAndTenant['code'], type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'codeTenantTenant', value: $filterCodeAndTenant['tenant']->uid(), type: SqlParam::STR);
                 }
+                $filterGlobal = $filter->global();
+                if (null !== $filterGlobal) {
+                    $query .= ' and "tenant" is null ';
+                }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {
                     $query .= ' and "document_snippet"."code" = :code ';

@@ -48,8 +48,8 @@ class TrustedClientListController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 code: $params['code'] ?? null,
-                withBackChannelUrl: $params['with-back-channel-url'] ?? null,
-                withFrontChannelUrl: $params['with-front-channel-url'] ?? null,
+                withBackChannelUrl: $params['with-back-channel-url'] ? !!$params['with-back-channel-url'] : null,
+                withFrontChannelUrl: $params['with-front-channel-url'] ? !!$params['with-front-channel-url'] : null,
             );
             $cursor = new TrustedClientCursor(
                 limit: (int)($params['limit'] ?? 100),

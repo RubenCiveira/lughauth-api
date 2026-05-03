@@ -71,7 +71,7 @@ class HandlebarsTemplateRenderAdapter implements TemplateRenderGateway
      */
     private function buildEngine(array $snippets): Handlebars
     {
-        $partialsLoader = new class($snippets) implements Loader {
+        $partialsLoader = new class ($snippets) implements Loader {
             /** @param array<string, string> $snippets */
             public function __construct(private readonly array $snippets)
             {

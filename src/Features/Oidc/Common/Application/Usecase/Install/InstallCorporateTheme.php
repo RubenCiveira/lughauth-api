@@ -204,7 +204,7 @@ HANDLEBARS;
             $attr->theme($theme);
             $attr->code($filename);
             $attr->type($binary->mime);
-            $attr->content( ThemeAssetContentVO::fromTemporal($tempKey) );
+            $attr->content(ThemeAssetContentVO::fromTemporal($tempKey));
             $attr->enabled(true);
 
             $this->assets->create(ThemeAsset::create($attr));
