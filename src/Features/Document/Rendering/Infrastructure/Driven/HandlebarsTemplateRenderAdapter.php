@@ -7,8 +7,8 @@ namespace Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driven;
 
 use Override;
 use Handlebars\Handlebars;
+use Handlebars\Loader;
 use Handlebars\Loader\StringLoader;
-use Handlebars\Loader\ArrayLoader;
 use Civi\Lughauth\Features\Document\Rendering\Domain\RenderedAsset;
 use Civi\Lughauth\Features\Document\Rendering\Domain\RenderedTemplate;
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateOutputFormat;
@@ -71,9 +71,21 @@ class HandlebarsTemplateRenderAdapter implements TemplateRenderGateway
      */
     private function buildEngine(array $snippets): Handlebars
     {
+        $partialsLoader = new class($snippets) implements Loader {
+            /** @param array<string, string> $snippets */
+            public function __construct(private readonly array $snippets)
+            {
+            }
+
+            public function load($name): string
+            {
+                return $this->snippets[(string) $name] ?? '';
+            }
+        };
+
         return new Handlebars([
             'loader'          => new StringLoader(),
-            'partials_loader' => new ArrayLoader($snippets),
+            'partials_loader' => $partialsLoader,
         ]);
     }
 

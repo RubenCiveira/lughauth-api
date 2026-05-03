@@ -57,7 +57,7 @@ class DecorateHtml
             ],
             outputFormat: TemplateOutputFormat::HTML,
             locale: $locale !== '' ? $locale : null,
-        ))->value();
+        ))->rendered();
 
         if ($rendered !== null) {
             return $rendered->htmlContent();
