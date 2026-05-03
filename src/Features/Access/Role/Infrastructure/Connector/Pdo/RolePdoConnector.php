@@ -310,7 +310,7 @@ class RolePdoConnector
                 $filterRelyingPartyAndName = $filter->relyingPartyAndName();
                 if (null !== $filterRelyingPartyAndName) {
                     $query .= ' and ( "access_role"."relying_party" = :relyingPartyNameRelyingParty and "access_role"."name" = :relyingPartyNameName)';
-                    $params[] = new SqlParam(name: 'relyingPartyNameRelyingParty', value: $filterRelyingPartyAndName['relyingParty']->uid(), type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'relyingPartyNameRelyingParty', value: $filterRelyingPartyAndName['relyingParty'] ? $filterRelyingPartyAndName['relyingParty']->uid() : null, type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'relyingPartyNameName', value: $filterRelyingPartyAndName['name'], type: SqlParam::STR);
                 }
                 $filterName = $filter->name();

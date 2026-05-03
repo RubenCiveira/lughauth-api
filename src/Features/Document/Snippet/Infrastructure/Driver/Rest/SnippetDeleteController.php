@@ -63,6 +63,7 @@ class SnippetDeleteController
             throw $ex;
         } finally {
             $this->sql->close();
+            ;
             $span->end();
         }
     }

@@ -63,6 +63,7 @@ class TemplateDeleteController
             throw $ex;
         } finally {
             $this->sql->close();
+            ;
             $span->end();
         }
     }

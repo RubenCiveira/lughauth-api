@@ -103,13 +103,7 @@ class SnippetReadRepositoryAdapter implements SnippetReadGateway
         $this->logDebug("Find on by code tenant for Snippet on adapter");
         $span = $this->startSpan("Find on by code tenant for Snippet on adapter");
         try {
-            if ($tenant !== null) {
-                return $this->conn->retrieve(new SnippetFilter(codeAndTenant: SnippetFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
-            }
-
-            return $this->conn->retrieve((new SnippetFilter())
-                ->withCode($code)
-                ->withGlobal(true));
+            return $this->conn->retrieve(new SnippetFilter(codeAndTenant: SnippetFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

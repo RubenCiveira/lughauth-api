@@ -103,13 +103,7 @@ class ThemeReadRepositoryAdapter implements ThemeReadGateway
         $this->logDebug("Find on by name tenant for Theme on adapter");
         $span = $this->startSpan("Find on by name tenant for Theme on adapter");
         try {
-            if ($tenant !== null) {
-                return $this->conn->retrieve(new ThemeFilter(nameAndTenant: ThemeFilter::nameAndTenantFilter(name: $name, tenant: $tenant)));
-            }
-
-            return $this->conn->retrieve((new ThemeFilter())
-                ->withName($name)
-                ->withGlobal(true));
+            return $this->conn->retrieve(new ThemeFilter(nameAndTenant: ThemeFilter::nameAndTenantFilter(name: $name, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

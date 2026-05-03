@@ -62,6 +62,7 @@ class TrustedClientDeleteController
             throw $ex;
         } finally {
             $this->sql->close();
+            ;
             $span->end();
         }
     }

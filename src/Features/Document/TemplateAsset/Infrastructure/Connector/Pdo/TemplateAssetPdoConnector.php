@@ -318,7 +318,7 @@ class TemplateAssetPdoConnector
                     $query .= ' and ( "document_template_asset"."code" = :codeTemplateTenantCode and "document_template_asset"."template" = :codeTemplateTenantTemplate and "document_template_asset"."tenant" = :codeTemplateTenantTenant)';
                     $params[] = new SqlParam(name: 'codeTemplateTenantCode', value: $filterCodeAndTemplateAndTenant['code'], type: SqlParam::STR);
                     $params[] = new SqlParam(name: 'codeTemplateTenantTemplate', value: $filterCodeAndTemplateAndTenant['template']->uid(), type: SqlParam::STR);
-                    $params[] = new SqlParam(name: 'codeTemplateTenantTenant', value: $filterCodeAndTemplateAndTenant['tenant']->uid(), type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'codeTemplateTenantTenant', value: $filterCodeAndTemplateAndTenant['tenant'] ? $filterCodeAndTemplateAndTenant['tenant']->uid() : null, type: SqlParam::STR);
                 }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {

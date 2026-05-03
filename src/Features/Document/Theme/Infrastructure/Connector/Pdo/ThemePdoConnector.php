@@ -311,7 +311,7 @@ class ThemePdoConnector
                 if (null !== $filterNameAndTenant) {
                     $query .= ' and ( "document_theme"."name" = :nameTenantName and "document_theme"."tenant" = :nameTenantTenant)';
                     $params[] = new SqlParam(name: 'nameTenantName', value: $filterNameAndTenant['name'], type: SqlParam::STR);
-                    $params[] = new SqlParam(name: 'nameTenantTenant', value: $filterNameAndTenant['tenant']->uid(), type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'nameTenantTenant', value: $filterNameAndTenant['tenant'] ? $filterNameAndTenant['tenant']->uid() : null, type: SqlParam::STR);
                 }
                 $filterGlobal = $filter->global();
                 if (null !== $filterGlobal) {
