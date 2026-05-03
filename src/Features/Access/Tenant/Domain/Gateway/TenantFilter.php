@@ -39,6 +39,14 @@ class TenantFilter
     {
         return $this->name;
     }
+    public function isNameAssigned(): bool
+    {
+        return null !== $this->name;
+    }
+    public function unsetName(): void
+    {
+        $this->name = null;
+    }
     public function withName(?string $name): self
     {
         $copy = clone $this;
@@ -49,6 +57,14 @@ class TenantFilter
     {
         return $this->domain;
     }
+    public function isDomainAssigned(): bool
+    {
+        return null !== $this->domain;
+    }
+    public function unsetDomain(): void
+    {
+        $this->domain = null;
+    }
     public function withDomain(?string $domain): self
     {
         $copy = clone $this;
@@ -58,6 +74,14 @@ class TenantFilter
     public function tenantAccesible(): ?string
     {
         return $this->tenantAccesible;
+    }
+    public function isTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->tenantAccesible;
+    }
+    public function unsetTenantAccesible(): void
+    {
+        $this->tenantAccesible = null;
     }
     public function withTenantAccesible(string $tenantAccesible): self
     {

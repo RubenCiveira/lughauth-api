@@ -335,8 +335,8 @@ class UserProfilePdoConnector
                     $query .= ' and ( "access_user_profile"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterUser = $filter->user();
-                if (null !== $filterUser) {
+                if ($filter->isUserAssigned()) {
+                    $filterUser = $filter->user();
                     $query .= ' and "access_user_profile"."user" = :user';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }

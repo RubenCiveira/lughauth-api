@@ -41,6 +41,14 @@ class ThemeVersionFilter
     {
         return $this->theme;
     }
+    public function isThemeAssigned(): bool
+    {
+        return null !== $this->theme;
+    }
+    public function unsetTheme(): void
+    {
+        $this->theme = null;
+    }
     public function withTheme(ThemeRef $theme): self
     {
         $copy = clone $this;
@@ -51,6 +59,14 @@ class ThemeVersionFilter
     {
         return $this->themes;
     }
+    public function isThemesAssigned(): bool
+    {
+        return null !== $this->themes;
+    }
+    public function unsetThemes(): void
+    {
+        $this->themes = null;
+    }
     public function withThemes(array $themes): self
     {
         $copy = clone $this;
@@ -60,6 +76,14 @@ class ThemeVersionFilter
     public function themeTenantTenantAccesible(): ?string
     {
         return $this->themeTenantTenantAccesible;
+    }
+    public function isThemeTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->themeTenantTenantAccesible;
+    }
+    public function unsetThemeTenantTenantAccesible(): void
+    {
+        $this->themeTenantTenantAccesible = null;
     }
     public function withThemeTenantTenantAccesible(string $themeTenantTenantAccesible): self
     {

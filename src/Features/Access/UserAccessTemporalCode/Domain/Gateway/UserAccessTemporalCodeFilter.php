@@ -43,6 +43,14 @@ class UserAccessTemporalCodeFilter
     {
         return $this->user;
     }
+    public function isUserAssigned(): bool
+    {
+        return null !== $this->user;
+    }
+    public function unsetUser(): void
+    {
+        $this->user = null;
+    }
     public function withUser(?UserRef $user): self
     {
         $copy = clone $this;
@@ -52,6 +60,14 @@ class UserAccessTemporalCodeFilter
     public function registerCode(): ?string
     {
         return $this->registerCode;
+    }
+    public function isRegisterCodeAssigned(): bool
+    {
+        return null !== $this->registerCode;
+    }
+    public function unsetRegisterCode(): void
+    {
+        $this->registerCode = null;
     }
     public function withRegisterCode(?string $registerCode): self
     {
@@ -63,6 +79,14 @@ class UserAccessTemporalCodeFilter
     {
         return $this->recoveryCode;
     }
+    public function isRecoveryCodeAssigned(): bool
+    {
+        return null !== $this->recoveryCode;
+    }
+    public function unsetRecoveryCode(): void
+    {
+        $this->recoveryCode = null;
+    }
     public function withRecoveryCode(?string $recoveryCode): self
     {
         $copy = clone $this;
@@ -73,6 +97,14 @@ class UserAccessTemporalCodeFilter
     {
         return $this->users;
     }
+    public function isUsersAssigned(): bool
+    {
+        return null !== $this->users;
+    }
+    public function unsetUsers(): void
+    {
+        $this->users = null;
+    }
     public function withUsers(array $users): self
     {
         $copy = clone $this;
@@ -82,6 +114,14 @@ class UserAccessTemporalCodeFilter
     public function userTenantTenantAccesible(): ?string
     {
         return $this->userTenantTenantAccesible;
+    }
+    public function isUserTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->userTenantTenantAccesible;
+    }
+    public function unsetUserTenantTenantAccesible(): void
+    {
+        $this->userTenantTenantAccesible = null;
     }
     public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {

@@ -309,11 +309,14 @@ class TemplateVariablePdoConnector
                     $query .= ' and ( "document_template_variable"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCodeAndTenant = $filter->codeAndTenant();
-                if (null !== $filterCodeAndTenant) {
-                    $query .= ' and ( "document_template_variable"."code" = :codeTenantCode and "document_template_variable"."tenant" = :codeTenantTenant)';
+                if ($filter->isCodeAndTenantAssigned()) {
+                    $filterCodeAndTenant = $filter->codeAndTenant();
+                    $codeAndTenantParts = [];
+                    $codeAndTenantParts[] = ' "document_template_variable"."code" = :codeTenantCode';
                     $params[] = new SqlParam(name: 'codeTenantCode', value: $filterCodeAndTenant['code'], type: SqlParam::STR);
+                    $codeAndTenantParts[] = ' "document_template_variable"."tenant" = :codeTenantTenant';
                     $params[] = new SqlParam(name: 'codeTenantTenant', value: $filterCodeAndTenant['tenant']->uid(), type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $codeAndTenantParts) . ')';
                 }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {

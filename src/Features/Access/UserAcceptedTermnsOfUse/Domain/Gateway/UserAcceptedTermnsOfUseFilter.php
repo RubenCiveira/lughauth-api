@@ -49,6 +49,14 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->userAndConditions;
     }
+    public function isUserAndConditionsAssigned(): bool
+    {
+        return null !== $this->userAndConditions;
+    }
+    public function unsetUserAndConditions(): void
+    {
+        $this->userAndConditions = null;
+    }
     public function withUserAndConditions(?UserRef $user, ?TenantTermsOfUseRef $conditions): self
     {
         $copy = clone $this;
@@ -58,6 +66,14 @@ class UserAcceptedTermnsOfUseFilter
     public function user(): ?UserRef
     {
         return $this->user;
+    }
+    public function isUserAssigned(): bool
+    {
+        return null !== $this->user;
+    }
+    public function unsetUser(): void
+    {
+        $this->user = null;
     }
     public function withUser(UserRef $user): self
     {
@@ -69,6 +85,14 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->users;
     }
+    public function isUsersAssigned(): bool
+    {
+        return null !== $this->users;
+    }
+    public function unsetUsers(): void
+    {
+        $this->users = null;
+    }
     public function withUsers(array $users): self
     {
         $copy = clone $this;
@@ -78,6 +102,14 @@ class UserAcceptedTermnsOfUseFilter
     public function conditions(): ?TenantTermsOfUseRef
     {
         return $this->conditions;
+    }
+    public function isConditionsAssigned(): bool
+    {
+        return null !== $this->conditions;
+    }
+    public function unsetConditions(): void
+    {
+        $this->conditions = null;
     }
     public function withConditions(TenantTermsOfUseRef $conditions): self
     {
@@ -89,6 +121,14 @@ class UserAcceptedTermnsOfUseFilter
     {
         return $this->conditionss;
     }
+    public function isConditionssAssigned(): bool
+    {
+        return null !== $this->conditionss;
+    }
+    public function unsetConditionss(): void
+    {
+        $this->conditionss = null;
+    }
     public function withConditionss(array $conditionss): self
     {
         $copy = clone $this;
@@ -98,6 +138,14 @@ class UserAcceptedTermnsOfUseFilter
     public function userTenantTenantAccesible(): ?string
     {
         return $this->userTenantTenantAccesible;
+    }
+    public function isUserTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->userTenantTenantAccesible;
+    }
+    public function unsetUserTenantTenantAccesible(): void
+    {
+        $this->userTenantTenantAccesible = null;
     }
     public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {

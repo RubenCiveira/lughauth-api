@@ -48,6 +48,14 @@ class UserGroupMembershipFilter
     {
         return $this->forAllAudiences;
     }
+    public function isForAllAudiencesAssigned(): bool
+    {
+        return null !== $this->forAllAudiences;
+    }
+    public function unsetForAllAudiences(): void
+    {
+        $this->forAllAudiences = null;
+    }
     public function withForAllAudiences(bool $forAllAudiences): self
     {
         $copy = clone $this;
@@ -57,6 +65,14 @@ class UserGroupMembershipFilter
     public function user(): ?UserRef
     {
         return $this->user;
+    }
+    public function isUserAssigned(): bool
+    {
+        return null !== $this->user;
+    }
+    public function unsetUser(): void
+    {
+        $this->user = null;
     }
     public function withUser(UserRef $user): self
     {
@@ -68,6 +84,14 @@ class UserGroupMembershipFilter
     {
         return $this->users;
     }
+    public function isUsersAssigned(): bool
+    {
+        return null !== $this->users;
+    }
+    public function unsetUsers(): void
+    {
+        $this->users = null;
+    }
     public function withUsers(array $users): self
     {
         $copy = clone $this;
@@ -77,6 +101,14 @@ class UserGroupMembershipFilter
     public function relyingParty(): ?RelyingPartyRef
     {
         return $this->relyingParty;
+    }
+    public function isRelyingPartyAssigned(): bool
+    {
+        return null !== $this->relyingParty;
+    }
+    public function unsetRelyingParty(): void
+    {
+        $this->relyingParty = null;
     }
     public function withRelyingParty(RelyingPartyRef $relyingParty): self
     {
@@ -88,6 +120,14 @@ class UserGroupMembershipFilter
     {
         return $this->relyingPartys;
     }
+    public function isRelyingPartysAssigned(): bool
+    {
+        return null !== $this->relyingPartys;
+    }
+    public function unsetRelyingPartys(): void
+    {
+        $this->relyingPartys = null;
+    }
     public function withRelyingPartys(array $relyingPartys): self
     {
         $copy = clone $this;
@@ -97,6 +137,14 @@ class UserGroupMembershipFilter
     public function trustedClient(): ?TrustedClientRef
     {
         return $this->trustedClient;
+    }
+    public function isTrustedClientAssigned(): bool
+    {
+        return null !== $this->trustedClient;
+    }
+    public function unsetTrustedClient(): void
+    {
+        $this->trustedClient = null;
     }
     public function withTrustedClient(TrustedClientRef $trustedClient): self
     {
@@ -108,6 +156,14 @@ class UserGroupMembershipFilter
     {
         return $this->trustedClients;
     }
+    public function isTrustedClientsAssigned(): bool
+    {
+        return null !== $this->trustedClients;
+    }
+    public function unsetTrustedClients(): void
+    {
+        $this->trustedClients = null;
+    }
     public function withTrustedClients(array $trustedClients): self
     {
         $copy = clone $this;
@@ -117,6 +173,14 @@ class UserGroupMembershipFilter
     public function userTenantTenantAccesible(): ?string
     {
         return $this->userTenantTenantAccesible;
+    }
+    public function isUserTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->userTenantTenantAccesible;
+    }
+    public function unsetUserTenantTenantAccesible(): void
+    {
+        $this->userTenantTenantAccesible = null;
     }
     public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {

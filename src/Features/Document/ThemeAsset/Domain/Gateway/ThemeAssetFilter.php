@@ -47,6 +47,14 @@ class ThemeAssetFilter
     {
         return $this->codeAndTheme;
     }
+    public function isCodeAndThemeAssigned(): bool
+    {
+        return null !== $this->codeAndTheme;
+    }
+    public function unsetCodeAndTheme(): void
+    {
+        $this->codeAndTheme = null;
+    }
     public function withCodeAndTheme(?string $code, ?ThemeRef $theme): self
     {
         $copy = clone $this;
@@ -56,6 +64,14 @@ class ThemeAssetFilter
     public function code(): ?string
     {
         return $this->code;
+    }
+    public function isCodeAssigned(): bool
+    {
+        return null !== $this->code;
+    }
+    public function unsetCode(): void
+    {
+        $this->code = null;
     }
     public function withCode(string $code): self
     {
@@ -67,6 +83,14 @@ class ThemeAssetFilter
     {
         return $this->theme;
     }
+    public function isThemeAssigned(): bool
+    {
+        return null !== $this->theme;
+    }
+    public function unsetTheme(): void
+    {
+        $this->theme = null;
+    }
     public function withTheme(ThemeRef $theme): self
     {
         $copy = clone $this;
@@ -77,6 +101,14 @@ class ThemeAssetFilter
     {
         return $this->themes;
     }
+    public function isThemesAssigned(): bool
+    {
+        return null !== $this->themes;
+    }
+    public function unsetThemes(): void
+    {
+        $this->themes = null;
+    }
     public function withThemes(array $themes): self
     {
         $copy = clone $this;
@@ -86,6 +118,14 @@ class ThemeAssetFilter
     public function themeTenantTenantAccesible(): ?string
     {
         return $this->themeTenantTenantAccesible;
+    }
+    public function isThemeTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->themeTenantTenantAccesible;
+    }
+    public function unsetThemeTenantTenantAccesible(): void
+    {
+        $this->themeTenantTenantAccesible = null;
     }
     public function withThemeTenantTenantAccesible(string $themeTenantTenantAccesible): self
     {

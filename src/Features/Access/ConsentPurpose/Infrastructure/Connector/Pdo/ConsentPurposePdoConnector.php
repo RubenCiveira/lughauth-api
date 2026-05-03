@@ -316,11 +316,14 @@ class ConsentPurposePdoConnector
                     $query .= ' and ( "access_consent_purpose"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterTenantAndTitle = $filter->tenantAndTitle();
-                if (null !== $filterTenantAndTitle) {
-                    $query .= ' and ( "access_consent_purpose"."tenant" = :tenantTitleTenant and "access_consent_purpose"."title" = :tenantTitleTitle)';
+                if ($filter->isTenantAndTitleAssigned()) {
+                    $filterTenantAndTitle = $filter->tenantAndTitle();
+                    $tenantAndTitleParts = [];
+                    $tenantAndTitleParts[] = ' "access_consent_purpose"."tenant" = :tenantTitleTenant';
                     $params[] = new SqlParam(name: 'tenantTitleTenant', value: $filterTenantAndTitle['tenant']->uid(), type: SqlParam::STR);
+                    $tenantAndTitleParts[] = ' "access_consent_purpose"."title" = :tenantTitleTitle';
                     $params[] = new SqlParam(name: 'tenantTitleTitle', value: $filterTenantAndTitle['title'], type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $tenantAndTitleParts) . ')';
                 }
                 $filterTenant = $filter->tenant();
                 if (null !== $filterTenant) {

@@ -332,11 +332,14 @@ class UserPdoConnector
                     $query .= ' and ( "access_user"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterTenantAndName = $filter->tenantAndName();
-                if (null !== $filterTenantAndName) {
-                    $query .= ' and ( "access_user"."tenant" = :tenantNameTenant and "access_user"."name" = :tenantNameName)';
+                if ($filter->isTenantAndNameAssigned()) {
+                    $filterTenantAndName = $filter->tenantAndName();
+                    $tenantAndNameParts = [];
+                    $tenantAndNameParts[] = ' "access_user"."tenant" = :tenantNameTenant';
                     $params[] = new SqlParam(name: 'tenantNameTenant', value: $filterTenantAndName['tenant']->uid(), type: SqlParam::STR);
+                    $tenantAndNameParts[] = ' "access_user"."name" = :tenantNameName';
                     $params[] = new SqlParam(name: 'tenantNameName', value: $filterTenantAndName['name'], type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $tenantAndNameParts) . ')';
                 }
                 $filterNameOrEmail = $filter->nameOrEmail();
                 if (null !== $filterNameOrEmail) {

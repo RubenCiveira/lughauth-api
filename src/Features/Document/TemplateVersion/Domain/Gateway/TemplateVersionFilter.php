@@ -41,6 +41,14 @@ class TemplateVersionFilter
     {
         return $this->template;
     }
+    public function isTemplateAssigned(): bool
+    {
+        return null !== $this->template;
+    }
+    public function unsetTemplate(): void
+    {
+        $this->template = null;
+    }
     public function withTemplate(TemplateRef $template): self
     {
         $copy = clone $this;
@@ -51,6 +59,14 @@ class TemplateVersionFilter
     {
         return $this->templates;
     }
+    public function isTemplatesAssigned(): bool
+    {
+        return null !== $this->templates;
+    }
+    public function unsetTemplates(): void
+    {
+        $this->templates = null;
+    }
     public function withTemplates(array $templates): self
     {
         $copy = clone $this;
@@ -60,6 +76,14 @@ class TemplateVersionFilter
     public function templateTenantTenantAccesible(): ?string
     {
         return $this->templateTenantTenantAccesible;
+    }
+    public function isTemplateTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->templateTenantTenantAccesible;
+    }
+    public function unsetTemplateTenantTenantAccesible(): void
+    {
+        $this->templateTenantTenantAccesible = null;
     }
     public function withTemplateTenantTenantAccesible(string $templateTenantTenantAccesible): self
     {

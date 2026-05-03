@@ -46,6 +46,14 @@ class RoleFilter
     {
         return $this->relyingPartyAndName;
     }
+    public function isRelyingPartyAndNameAssigned(): bool
+    {
+        return null !== $this->relyingPartyAndName;
+    }
+    public function unsetRelyingPartyAndName(): void
+    {
+        $this->relyingPartyAndName = null;
+    }
     public function withRelyingPartyAndName(?RelyingPartyRef $relyingParty, ?string $name): self
     {
         $copy = clone $this;
@@ -55,6 +63,14 @@ class RoleFilter
     public function name(): ?string
     {
         return $this->name;
+    }
+    public function isNameAssigned(): bool
+    {
+        return null !== $this->name;
+    }
+    public function unsetName(): void
+    {
+        $this->name = null;
     }
     public function withName(string $name): self
     {
@@ -66,6 +82,14 @@ class RoleFilter
     {
         return $this->relyingParty;
     }
+    public function isRelyingPartyAssigned(): bool
+    {
+        return null !== $this->relyingParty;
+    }
+    public function unsetRelyingParty(): void
+    {
+        $this->relyingParty = null;
+    }
     public function withRelyingParty(RelyingPartyRef $relyingParty): self
     {
         $copy = clone $this;
@@ -75,6 +99,14 @@ class RoleFilter
     public function relyingPartys(): ?array
     {
         return $this->relyingPartys;
+    }
+    public function isRelyingPartysAssigned(): bool
+    {
+        return null !== $this->relyingPartys;
+    }
+    public function unsetRelyingPartys(): void
+    {
+        $this->relyingPartys = null;
     }
     public function withRelyingPartys(array $relyingPartys): self
     {

@@ -39,6 +39,14 @@ class TrustedClientFilter
     {
         return $this->code;
     }
+    public function isCodeAssigned(): bool
+    {
+        return null !== $this->code;
+    }
+    public function unsetCode(): void
+    {
+        $this->code = null;
+    }
     public function withCode(?string $code): self
     {
         $copy = clone $this;
@@ -49,6 +57,14 @@ class TrustedClientFilter
     {
         return $this->withBackChannelUrl;
     }
+    public function isWithBackChannelUrlAssigned(): bool
+    {
+        return null !== $this->withBackChannelUrl;
+    }
+    public function unsetWithBackChannelUrl(): void
+    {
+        $this->withBackChannelUrl = null;
+    }
     public function withWithBackChannelUrl(bool $withBackChannelUrl): self
     {
         $copy = clone $this;
@@ -58,6 +74,14 @@ class TrustedClientFilter
     public function withFrontChannelUrl(): ?bool
     {
         return $this->withFrontChannelUrl;
+    }
+    public function isWithFrontChannelUrlAssigned(): bool
+    {
+        return null !== $this->withFrontChannelUrl;
+    }
+    public function unsetWithFrontChannelUrl(): void
+    {
+        $this->withFrontChannelUrl = null;
     }
     public function withWithFrontChannelUrl(bool $withFrontChannelUrl): self
     {

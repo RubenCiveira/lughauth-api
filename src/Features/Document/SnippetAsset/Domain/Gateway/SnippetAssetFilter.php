@@ -47,6 +47,14 @@ class SnippetAssetFilter
     {
         return $this->codeAndSnippet;
     }
+    public function isCodeAndSnippetAssigned(): bool
+    {
+        return null !== $this->codeAndSnippet;
+    }
+    public function unsetCodeAndSnippet(): void
+    {
+        $this->codeAndSnippet = null;
+    }
     public function withCodeAndSnippet(?string $code, ?SnippetRef $snippet): self
     {
         $copy = clone $this;
@@ -56,6 +64,14 @@ class SnippetAssetFilter
     public function code(): ?string
     {
         return $this->code;
+    }
+    public function isCodeAssigned(): bool
+    {
+        return null !== $this->code;
+    }
+    public function unsetCode(): void
+    {
+        $this->code = null;
     }
     public function withCode(string $code): self
     {
@@ -67,6 +83,14 @@ class SnippetAssetFilter
     {
         return $this->snippet;
     }
+    public function isSnippetAssigned(): bool
+    {
+        return null !== $this->snippet;
+    }
+    public function unsetSnippet(): void
+    {
+        $this->snippet = null;
+    }
     public function withSnippet(SnippetRef $snippet): self
     {
         $copy = clone $this;
@@ -77,6 +101,14 @@ class SnippetAssetFilter
     {
         return $this->snippets;
     }
+    public function isSnippetsAssigned(): bool
+    {
+        return null !== $this->snippets;
+    }
+    public function unsetSnippets(): void
+    {
+        $this->snippets = null;
+    }
     public function withSnippets(array $snippets): self
     {
         $copy = clone $this;
@@ -86,6 +118,14 @@ class SnippetAssetFilter
     public function snippetTenantTenantAccesible(): ?string
     {
         return $this->snippetTenantTenantAccesible;
+    }
+    public function isSnippetTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->snippetTenantTenantAccesible;
+    }
+    public function unsetSnippetTenantTenantAccesible(): void
+    {
+        $this->snippetTenantTenantAccesible = null;
     }
     public function withSnippetTenantTenantAccesible(string $snippetTenantTenantAccesible): self
     {

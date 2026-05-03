@@ -334,11 +334,14 @@ class TenantLoginProviderPdoConnector
                     $query .= ' and ( "access_tenant_login_provider"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterTenantAndName = $filter->tenantAndName();
-                if (null !== $filterTenantAndName) {
-                    $query .= ' and ( "access_tenant_login_provider"."tenant" = :tenantNameTenant and "access_tenant_login_provider"."name" = :tenantNameName)';
+                if ($filter->isTenantAndNameAssigned()) {
+                    $filterTenantAndName = $filter->tenantAndName();
+                    $tenantAndNameParts = [];
+                    $tenantAndNameParts[] = ' "access_tenant_login_provider"."tenant" = :tenantNameTenant';
                     $params[] = new SqlParam(name: 'tenantNameTenant', value: $filterTenantAndName['tenant']->uid(), type: SqlParam::STR);
+                    $tenantAndNameParts[] = ' "access_tenant_login_provider"."name" = :tenantNameName';
                     $params[] = new SqlParam(name: 'tenantNameName', value: $filterTenantAndName['name'], type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $tenantAndNameParts) . ')';
                 }
                 $filterName = $filter->name();
                 if (null !== $filterName) {

@@ -326,8 +326,8 @@ class SmtpOutboundConfigPdoConnector
                     $query .= ' and ( "notification_smtp_outbound_config"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterTenant = $filter->tenant();
-                if (null !== $filterTenant) {
+                if ($filter->isTenantAssigned()) {
+                    $filterTenant = $filter->tenant();
                     $query .= ' and "notification_smtp_outbound_config"."tenant" = :tenant';
                     $params[] = new SqlParam(name: 'tenant', value: $filterTenant->uid(), type: SqlParam::STR);
                 }

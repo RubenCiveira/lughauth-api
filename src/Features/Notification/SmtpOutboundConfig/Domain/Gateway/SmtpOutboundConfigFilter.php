@@ -42,6 +42,14 @@ class SmtpOutboundConfigFilter
     {
         return $this->tenant;
     }
+    public function isTenantAssigned(): bool
+    {
+        return null !== $this->tenant;
+    }
+    public function unsetTenant(): void
+    {
+        $this->tenant = null;
+    }
     public function withTenant(?TenantRef $tenant): self
     {
         $copy = clone $this;
@@ -51,6 +59,14 @@ class SmtpOutboundConfigFilter
     public function globalOnly(): ?bool
     {
         return $this->globalOnly;
+    }
+    public function isGlobalOnlyAssigned(): bool
+    {
+        return null !== $this->globalOnly;
+    }
+    public function unsetGlobalOnly(): void
+    {
+        $this->globalOnly = null;
     }
     public function withGlobalOnly(bool $globalOnly): self
     {
@@ -62,6 +78,14 @@ class SmtpOutboundConfigFilter
     {
         return $this->tenants;
     }
+    public function isTenantsAssigned(): bool
+    {
+        return null !== $this->tenants;
+    }
+    public function unsetTenants(): void
+    {
+        $this->tenants = null;
+    }
     public function withTenants(array $tenants): self
     {
         $copy = clone $this;
@@ -71,6 +95,14 @@ class SmtpOutboundConfigFilter
     public function tenantTenantAccesible(): ?string
     {
         return $this->tenantTenantAccesible;
+    }
+    public function isTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->tenantTenantAccesible;
+    }
+    public function unsetTenantTenantAccesible(): void
+    {
+        $this->tenantTenantAccesible = null;
     }
     public function withTenantTenantAccesible(string $tenantTenantAccesible): self
     {

@@ -312,13 +312,13 @@ class RelyingPartyPdoConnector
                     $query .= ' and ( "access_relying_party"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCode = $filter->code();
-                if (null !== $filterCode) {
+                if ($filter->isCodeAssigned()) {
+                    $filterCode = $filter->code();
                     $query .= ' and "access_relying_party"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
-                $filterApiKey = $filter->apiKey();
-                if (null !== $filterApiKey) {
+                if ($filter->isApiKeyAssigned()) {
+                    $filterApiKey = $filter->apiKey();
                     $query .= ' and "access_relying_party"."api_key" = :apiKey';
                     $params[] = new SqlParam(name: 'apiKey', value: $filterApiKey, type: SqlParam::STR);
                 }

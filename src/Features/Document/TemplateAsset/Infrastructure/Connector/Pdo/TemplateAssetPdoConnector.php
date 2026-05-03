@@ -313,12 +313,19 @@ class TemplateAssetPdoConnector
                     $query .= ' and ( "document_template_asset"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCodeAndTemplateAndTenant = $filter->codeAndTemplateAndTenant();
-                if (null !== $filterCodeAndTemplateAndTenant) {
-                    $query .= ' and ( "document_template_asset"."code" = :codeTemplateTenantCode and "document_template_asset"."template" = :codeTemplateTenantTemplate and "document_template_asset"."tenant" = :codeTemplateTenantTenant)';
+                if ($filter->isCodeAndTemplateAndTenantAssigned()) {
+                    $filterCodeAndTemplateAndTenant = $filter->codeAndTemplateAndTenant();
+                    $codeAndTemplateAndTenantParts = [];
+                    $codeAndTemplateAndTenantParts[] = ' "document_template_asset"."code" = :codeTemplateTenantCode';
                     $params[] = new SqlParam(name: 'codeTemplateTenantCode', value: $filterCodeAndTemplateAndTenant['code'], type: SqlParam::STR);
+                    $codeAndTemplateAndTenantParts[] = ' "document_template_asset"."template" = :codeTemplateTenantTemplate';
                     $params[] = new SqlParam(name: 'codeTemplateTenantTemplate', value: $filterCodeAndTemplateAndTenant['template']->uid(), type: SqlParam::STR);
-                    $params[] = new SqlParam(name: 'codeTemplateTenantTenant', value: $filterCodeAndTemplateAndTenant['tenant'] ? $filterCodeAndTemplateAndTenant['tenant']->uid() : null, type: SqlParam::STR);
+                    if (null === $filterCodeAndTemplateAndTenant['tenant']) {
+                        $codeAndTemplateAndTenantParts[] = ' "document_template_asset"."tenant" is null';
+                    } else {
+                        $codeAndTemplateAndTenantParts[] = ' "document_template_asset"."tenant" = :codeTemplateTenantTenant';
+                        $params[] = new SqlParam(name: 'codeTemplateTenantTenant', value: $filterCodeAndTemplateAndTenant['tenant']->uid(), type: SqlParam::STR);
+                    }          $query .= ' and ( ' . implode(' and ', $codeAndTemplateAndTenantParts) . ')';
                 }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {

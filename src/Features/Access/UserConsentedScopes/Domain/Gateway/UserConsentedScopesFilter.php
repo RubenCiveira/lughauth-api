@@ -44,6 +44,14 @@ class UserConsentedScopesFilter
     {
         return $this->user;
     }
+    public function isUserAssigned(): bool
+    {
+        return null !== $this->user;
+    }
+    public function unsetUser(): void
+    {
+        $this->user = null;
+    }
     public function withUser(UserRef $user): self
     {
         $copy = clone $this;
@@ -53,6 +61,14 @@ class UserConsentedScopesFilter
     public function users(): ?array
     {
         return $this->users;
+    }
+    public function isUsersAssigned(): bool
+    {
+        return null !== $this->users;
+    }
+    public function unsetUsers(): void
+    {
+        $this->users = null;
     }
     public function withUsers(array $users): self
     {
@@ -64,6 +80,14 @@ class UserConsentedScopesFilter
     {
         return $this->trustedClient;
     }
+    public function isTrustedClientAssigned(): bool
+    {
+        return null !== $this->trustedClient;
+    }
+    public function unsetTrustedClient(): void
+    {
+        $this->trustedClient = null;
+    }
     public function withTrustedClient(TrustedClientRef $trustedClient): self
     {
         $copy = clone $this;
@@ -74,6 +98,14 @@ class UserConsentedScopesFilter
     {
         return $this->trustedClients;
     }
+    public function isTrustedClientsAssigned(): bool
+    {
+        return null !== $this->trustedClients;
+    }
+    public function unsetTrustedClients(): void
+    {
+        $this->trustedClients = null;
+    }
     public function withTrustedClients(array $trustedClients): self
     {
         $copy = clone $this;
@@ -83,6 +115,14 @@ class UserConsentedScopesFilter
     public function userTenantTenantAccesible(): ?string
     {
         return $this->userTenantTenantAccesible;
+    }
+    public function isUserTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->userTenantTenantAccesible;
+    }
+    public function unsetUserTenantTenantAccesible(): void
+    {
+        $this->userTenantTenantAccesible = null;
     }
     public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {

@@ -48,6 +48,14 @@ class ThemeFilter
     {
         return $this->nameAndTenant;
     }
+    public function isNameAndTenantAssigned(): bool
+    {
+        return null !== $this->nameAndTenant;
+    }
+    public function unsetNameAndTenant(): void
+    {
+        $this->nameAndTenant = null;
+    }
     public function withNameAndTenant(?string $name, ?TenantRef $tenant): self
     {
         $copy = clone $this;
@@ -57,6 +65,14 @@ class ThemeFilter
     public function global(): ?bool
     {
         return $this->global;
+    }
+    public function isGlobalAssigned(): bool
+    {
+        return null !== $this->global;
+    }
+    public function unsetGlobal(): void
+    {
+        $this->global = null;
     }
     public function withGlobal(bool $global): self
     {
@@ -68,6 +84,14 @@ class ThemeFilter
     {
         return $this->name;
     }
+    public function isNameAssigned(): bool
+    {
+        return null !== $this->name;
+    }
+    public function unsetName(): void
+    {
+        $this->name = null;
+    }
     public function withName(string $name): self
     {
         $copy = clone $this;
@@ -77,6 +101,14 @@ class ThemeFilter
     public function tenant(): ?TenantRef
     {
         return $this->tenant;
+    }
+    public function isTenantAssigned(): bool
+    {
+        return null !== $this->tenant;
+    }
+    public function unsetTenant(): void
+    {
+        $this->tenant = null;
     }
     public function withTenant(TenantRef $tenant): self
     {
@@ -88,6 +120,14 @@ class ThemeFilter
     {
         return $this->tenants;
     }
+    public function isTenantsAssigned(): bool
+    {
+        return null !== $this->tenants;
+    }
+    public function unsetTenants(): void
+    {
+        $this->tenants = null;
+    }
     public function withTenants(array $tenants): self
     {
         $copy = clone $this;
@@ -97,6 +137,14 @@ class ThemeFilter
     public function tenantTenantAccesible(): ?string
     {
         return $this->tenantTenantAccesible;
+    }
+    public function isTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->tenantTenantAccesible;
+    }
+    public function unsetTenantTenantAccesible(): void
+    {
+        $this->tenantTenantAccesible = null;
     }
     public function withTenantTenantAccesible(string $tenantTenantAccesible): self
     {

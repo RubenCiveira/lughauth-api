@@ -307,11 +307,17 @@ class RolePdoConnector
                     $query .= ' and ( "access_role"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterRelyingPartyAndName = $filter->relyingPartyAndName();
-                if (null !== $filterRelyingPartyAndName) {
-                    $query .= ' and ( "access_role"."relying_party" = :relyingPartyNameRelyingParty and "access_role"."name" = :relyingPartyNameName)';
-                    $params[] = new SqlParam(name: 'relyingPartyNameRelyingParty', value: $filterRelyingPartyAndName['relyingParty'] ? $filterRelyingPartyAndName['relyingParty']->uid() : null, type: SqlParam::STR);
+                if ($filter->isRelyingPartyAndNameAssigned()) {
+                    $filterRelyingPartyAndName = $filter->relyingPartyAndName();
+                    $relyingPartyAndNameParts = [];
+                    if (null === $filterRelyingPartyAndName['relyingParty']) {
+                        $relyingPartyAndNameParts[] = ' "access_role"."relying_party" is null';
+                    } else {
+                        $relyingPartyAndNameParts[] = ' "access_role"."relying_party" = :relyingPartyNameRelyingParty';
+                        $params[] = new SqlParam(name: 'relyingPartyNameRelyingParty', value: $filterRelyingPartyAndName['relyingParty']->uid(), type: SqlParam::STR);
+                    }          $relyingPartyAndNameParts[] = ' "access_role"."name" = :relyingPartyNameName';
                     $params[] = new SqlParam(name: 'relyingPartyNameName', value: $filterRelyingPartyAndName['name'], type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $relyingPartyAndNameParts) . ')';
                 }
                 $filterName = $filter->name();
                 if (null !== $filterName) {

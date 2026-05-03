@@ -305,11 +305,17 @@ class SnippetPdoConnector
                     $query .= ' and ( "document_snippet"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCodeAndTenant = $filter->codeAndTenant();
-                if (null !== $filterCodeAndTenant) {
-                    $query .= ' and ( "document_snippet"."code" = :codeTenantCode and "document_snippet"."tenant" = :codeTenantTenant)';
+                if ($filter->isCodeAndTenantAssigned()) {
+                    $filterCodeAndTenant = $filter->codeAndTenant();
+                    $codeAndTenantParts = [];
+                    $codeAndTenantParts[] = ' "document_snippet"."code" = :codeTenantCode';
                     $params[] = new SqlParam(name: 'codeTenantCode', value: $filterCodeAndTenant['code'], type: SqlParam::STR);
-                    $params[] = new SqlParam(name: 'codeTenantTenant', value: $filterCodeAndTenant['tenant'] ? $filterCodeAndTenant['tenant']->uid() : null, type: SqlParam::STR);
+                    if (null === $filterCodeAndTenant['tenant']) {
+                        $codeAndTenantParts[] = ' "document_snippet"."tenant" is null';
+                    } else {
+                        $codeAndTenantParts[] = ' "document_snippet"."tenant" = :codeTenantTenant';
+                        $params[] = new SqlParam(name: 'codeTenantTenant', value: $filterCodeAndTenant['tenant']->uid(), type: SqlParam::STR);
+                    }          $query .= ' and ( ' . implode(' and ', $codeAndTenantParts) . ')';
                 }
                 $filterGlobal = $filter->global();
                 if (null !== $filterGlobal) {

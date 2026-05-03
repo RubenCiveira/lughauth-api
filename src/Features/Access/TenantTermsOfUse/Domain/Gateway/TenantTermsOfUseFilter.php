@@ -44,6 +44,14 @@ class TenantTermsOfUseFilter
     {
         return $this->tenant;
     }
+    public function isTenantAssigned(): bool
+    {
+        return null !== $this->tenant;
+    }
+    public function unsetTenant(): void
+    {
+        $this->tenant = null;
+    }
     public function withTenant(TenantRef $tenant): self
     {
         $copy = clone $this;
@@ -53,6 +61,14 @@ class TenantTermsOfUseFilter
     public function tenants(): ?array
     {
         return $this->tenants;
+    }
+    public function isTenantsAssigned(): bool
+    {
+        return null !== $this->tenants;
+    }
+    public function unsetTenants(): void
+    {
+        $this->tenants = null;
     }
     public function withTenants(array $tenants): self
     {
@@ -64,6 +80,14 @@ class TenantTermsOfUseFilter
     {
         return $this->relyingParty;
     }
+    public function isRelyingPartyAssigned(): bool
+    {
+        return null !== $this->relyingParty;
+    }
+    public function unsetRelyingParty(): void
+    {
+        $this->relyingParty = null;
+    }
     public function withRelyingParty(RelyingPartyRef $relyingParty): self
     {
         $copy = clone $this;
@@ -74,6 +98,14 @@ class TenantTermsOfUseFilter
     {
         return $this->relyingPartys;
     }
+    public function isRelyingPartysAssigned(): bool
+    {
+        return null !== $this->relyingPartys;
+    }
+    public function unsetRelyingPartys(): void
+    {
+        $this->relyingPartys = null;
+    }
     public function withRelyingPartys(array $relyingPartys): self
     {
         $copy = clone $this;
@@ -83,6 +115,14 @@ class TenantTermsOfUseFilter
     public function tenantTenantAccesible(): ?string
     {
         return $this->tenantTenantAccesible;
+    }
+    public function isTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->tenantTenantAccesible;
+    }
+    public function unsetTenantTenantAccesible(): void
+    {
+        $this->tenantTenantAccesible = null;
     }
     public function withTenantTenantAccesible(string $tenantTenantAccesible): self
     {

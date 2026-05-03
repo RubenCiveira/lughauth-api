@@ -41,6 +41,14 @@ class UserProfileFilter
     {
         return $this->user;
     }
+    public function isUserAssigned(): bool
+    {
+        return null !== $this->user;
+    }
+    public function unsetUser(): void
+    {
+        $this->user = null;
+    }
     public function withUser(?UserRef $user): self
     {
         $copy = clone $this;
@@ -51,6 +59,14 @@ class UserProfileFilter
     {
         return $this->users;
     }
+    public function isUsersAssigned(): bool
+    {
+        return null !== $this->users;
+    }
+    public function unsetUsers(): void
+    {
+        $this->users = null;
+    }
     public function withUsers(array $users): self
     {
         $copy = clone $this;
@@ -60,6 +76,14 @@ class UserProfileFilter
     public function userTenantTenantAccesible(): ?string
     {
         return $this->userTenantTenantAccesible;
+    }
+    public function isUserTenantTenantAccesibleAssigned(): bool
+    {
+        return null !== $this->userTenantTenantAccesible;
+    }
+    public function unsetUserTenantTenantAccesible(): void
+    {
+        $this->userTenantTenantAccesible = null;
     }
     public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
     {

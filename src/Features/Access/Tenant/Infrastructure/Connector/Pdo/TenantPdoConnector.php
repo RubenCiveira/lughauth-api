@@ -318,13 +318,13 @@ class TenantPdoConnector
                     $query .= ' and ( "access_tenant"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterName = $filter->name();
-                if (null !== $filterName) {
+                if ($filter->isNameAssigned()) {
+                    $filterName = $filter->name();
                     $query .= ' and "access_tenant"."name" = :name';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
-                $filterDomain = $filter->domain();
-                if (null !== $filterDomain) {
+                if ($filter->isDomainAssigned()) {
+                    $filterDomain = $filter->domain();
                     $query .= ' and "access_tenant"."domain" = :domain';
                     $params[] = new SqlParam(name: 'domain', value: $filterDomain, type: SqlParam::STR);
                 }

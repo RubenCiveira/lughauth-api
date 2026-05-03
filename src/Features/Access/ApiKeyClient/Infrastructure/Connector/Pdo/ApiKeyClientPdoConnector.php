@@ -314,13 +314,13 @@ class ApiKeyClientPdoConnector
                     $query .= ' and ( "access_api_key_client"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCode = $filter->code();
-                if (null !== $filterCode) {
+                if ($filter->isCodeAssigned()) {
+                    $filterCode = $filter->code();
                     $query .= ' and "access_api_key_client"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }
-                $filterKey = $filter->key();
-                if (null !== $filterKey) {
+                if ($filter->isKeyAssigned()) {
+                    $filterKey = $filter->key();
                     $query .= ' and "access_api_key_client"."key" = :key';
                     $params[] = new SqlParam(name: 'key', value: $filterKey, type: SqlParam::STR);
                 }

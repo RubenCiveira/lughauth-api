@@ -38,6 +38,14 @@ class RelyingPartyFilter
     {
         return $this->code;
     }
+    public function isCodeAssigned(): bool
+    {
+        return null !== $this->code;
+    }
+    public function unsetCode(): void
+    {
+        $this->code = null;
+    }
     public function withCode(?string $code): self
     {
         $copy = clone $this;
@@ -47,6 +55,14 @@ class RelyingPartyFilter
     public function apiKey(): ?string
     {
         return $this->apiKey;
+    }
+    public function isApiKeyAssigned(): bool
+    {
+        return null !== $this->apiKey;
+    }
+    public function unsetApiKey(): void
+    {
+        $this->apiKey = null;
     }
     public function withApiKey(?string $apiKey): self
     {

@@ -329,16 +329,19 @@ class UserWebauthnCredentialPdoConnector
                     $query .= ' and ( "access_user_webauthn_credential"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterAutenticator = $filter->autenticator();
-                if (null !== $filterAutenticator) {
+                if ($filter->isAutenticatorAssigned()) {
+                    $filterAutenticator = $filter->autenticator();
                     $query .= ' and "access_user_webauthn_credential"."autenticator" = :autenticator';
                     $params[] = new SqlParam(name: 'autenticator', value: $filterAutenticator, type: SqlParam::STR);
                 }
-                $filterUserAndName = $filter->userAndName();
-                if (null !== $filterUserAndName) {
-                    $query .= ' and ( "access_user_webauthn_credential"."user" = :userNameUser and "access_user_webauthn_credential"."name" = :userNameName)';
+                if ($filter->isUserAndNameAssigned()) {
+                    $filterUserAndName = $filter->userAndName();
+                    $userAndNameParts = [];
+                    $userAndNameParts[] = ' "access_user_webauthn_credential"."user" = :userNameUser';
                     $params[] = new SqlParam(name: 'userNameUser', value: $filterUserAndName['user']->uid(), type: SqlParam::STR);
+                    $userAndNameParts[] = ' "access_user_webauthn_credential"."name" = :userNameName';
                     $params[] = new SqlParam(name: 'userNameName', value: $filterUserAndName['name'], type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $userAndNameParts) . ')';
                 }
                 $filterUser = $filter->user();
                 if (null !== $filterUser) {

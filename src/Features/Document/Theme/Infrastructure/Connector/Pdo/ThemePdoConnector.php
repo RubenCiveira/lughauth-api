@@ -307,11 +307,17 @@ class ThemePdoConnector
                     $query .= ' and ( "document_theme"."name" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterNameAndTenant = $filter->nameAndTenant();
-                if (null !== $filterNameAndTenant) {
-                    $query .= ' and ( "document_theme"."name" = :nameTenantName and "document_theme"."tenant" = :nameTenantTenant)';
+                if ($filter->isNameAndTenantAssigned()) {
+                    $filterNameAndTenant = $filter->nameAndTenant();
+                    $nameAndTenantParts = [];
+                    $nameAndTenantParts[] = ' "document_theme"."name" = :nameTenantName';
                     $params[] = new SqlParam(name: 'nameTenantName', value: $filterNameAndTenant['name'], type: SqlParam::STR);
-                    $params[] = new SqlParam(name: 'nameTenantTenant', value: $filterNameAndTenant['tenant'] ? $filterNameAndTenant['tenant']->uid() : null, type: SqlParam::STR);
+                    if (null === $filterNameAndTenant['tenant']) {
+                        $nameAndTenantParts[] = ' "document_theme"."tenant" is null';
+                    } else {
+                        $nameAndTenantParts[] = ' "document_theme"."tenant" = :nameTenantTenant';
+                        $params[] = new SqlParam(name: 'nameTenantTenant', value: $filterNameAndTenant['tenant']->uid(), type: SqlParam::STR);
+                    }          $query .= ' and ( ' . implode(' and ', $nameAndTenantParts) . ')';
                 }
                 $filterGlobal = $filter->global();
                 if (null !== $filterGlobal) {

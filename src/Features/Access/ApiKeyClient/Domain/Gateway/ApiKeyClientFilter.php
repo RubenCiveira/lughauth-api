@@ -38,6 +38,14 @@ class ApiKeyClientFilter
     {
         return $this->code;
     }
+    public function isCodeAssigned(): bool
+    {
+        return null !== $this->code;
+    }
+    public function unsetCode(): void
+    {
+        $this->code = null;
+    }
     public function withCode(?string $code): self
     {
         $copy = clone $this;
@@ -47,6 +55,14 @@ class ApiKeyClientFilter
     public function key(): ?string
     {
         return $this->key;
+    }
+    public function isKeyAssigned(): bool
+    {
+        return null !== $this->key;
+    }
+    public function unsetKey(): void
+    {
+        $this->key = null;
     }
     public function withKey(?string $key): self
     {

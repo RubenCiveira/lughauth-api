@@ -332,18 +332,18 @@ class UserAccessTemporalCodePdoConnector
                     $query .= ' and ( "access_user_access_temporal_code"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterUser = $filter->user();
-                if (null !== $filterUser) {
+                if ($filter->isUserAssigned()) {
+                    $filterUser = $filter->user();
                     $query .= ' and "access_user_access_temporal_code"."user" = :user';
                     $params[] = new SqlParam(name: 'user', value: $filterUser->uid(), type: SqlParam::STR);
                 }
-                $filterRegisterCode = $filter->registerCode();
-                if (null !== $filterRegisterCode) {
+                if ($filter->isRegisterCodeAssigned()) {
+                    $filterRegisterCode = $filter->registerCode();
                     $query .= ' and "access_user_access_temporal_code"."register_code" = :registerCode';
                     $params[] = new SqlParam(name: 'registerCode', value: $filterRegisterCode, type: SqlParam::STR);
                 }
-                $filterRecoveryCode = $filter->recoveryCode();
-                if (null !== $filterRecoveryCode) {
+                if ($filter->isRecoveryCodeAssigned()) {
+                    $filterRecoveryCode = $filter->recoveryCode();
                     $query .= ' and "access_user_access_temporal_code"."recovery_code" = :recoveryCode';
                     $params[] = new SqlParam(name: 'recoveryCode', value: $filterRecoveryCode, type: SqlParam::STR);
                 }

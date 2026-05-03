@@ -310,11 +310,14 @@ class SnippetAssetPdoConnector
                     $query .= ' and ( "document_snippet_asset"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCodeAndSnippet = $filter->codeAndSnippet();
-                if (null !== $filterCodeAndSnippet) {
-                    $query .= ' and ( "document_snippet_asset"."code" = :codeSnippetCode and "document_snippet_asset"."snippet" = :codeSnippetSnippet)';
+                if ($filter->isCodeAndSnippetAssigned()) {
+                    $filterCodeAndSnippet = $filter->codeAndSnippet();
+                    $codeAndSnippetParts = [];
+                    $codeAndSnippetParts[] = ' "document_snippet_asset"."code" = :codeSnippetCode';
                     $params[] = new SqlParam(name: 'codeSnippetCode', value: $filterCodeAndSnippet['code'], type: SqlParam::STR);
+                    $codeAndSnippetParts[] = ' "document_snippet_asset"."snippet" = :codeSnippetSnippet';
                     $params[] = new SqlParam(name: 'codeSnippetSnippet', value: $filterCodeAndSnippet['snippet']->uid(), type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $codeAndSnippetParts) . ')';
                 }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {

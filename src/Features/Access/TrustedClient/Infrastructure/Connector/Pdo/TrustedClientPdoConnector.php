@@ -365,8 +365,8 @@ class TrustedClientPdoConnector
                     $query .= ' and ( "access_trusted_client"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCode = $filter->code();
-                if (null !== $filterCode) {
+                if ($filter->isCodeAssigned()) {
+                    $filterCode = $filter->code();
                     $query .= ' and "access_trusted_client"."code" = :code';
                     $params[] = new SqlParam(name: 'code', value: $filterCode, type: SqlParam::STR);
                 }

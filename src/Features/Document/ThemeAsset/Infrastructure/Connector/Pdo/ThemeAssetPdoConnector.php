@@ -310,11 +310,14 @@ class ThemeAssetPdoConnector
                     $query .= ' and ( "document_theme_asset"."code" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterCodeAndTheme = $filter->codeAndTheme();
-                if (null !== $filterCodeAndTheme) {
-                    $query .= ' and ( "document_theme_asset"."code" = :codeThemeCode and "document_theme_asset"."theme" = :codeThemeTheme)';
+                if ($filter->isCodeAndThemeAssigned()) {
+                    $filterCodeAndTheme = $filter->codeAndTheme();
+                    $codeAndThemeParts = [];
+                    $codeAndThemeParts[] = ' "document_theme_asset"."code" = :codeThemeCode';
                     $params[] = new SqlParam(name: 'codeThemeCode', value: $filterCodeAndTheme['code'], type: SqlParam::STR);
+                    $codeAndThemeParts[] = ' "document_theme_asset"."theme" = :codeThemeTheme';
                     $params[] = new SqlParam(name: 'codeThemeTheme', value: $filterCodeAndTheme['theme']->uid(), type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $codeAndThemeParts) . ')';
                 }
                 $filterCode = $filter->code();
                 if (null !== $filterCode) {

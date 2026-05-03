@@ -314,11 +314,14 @@ class UserAcceptedTermnsOfUsePdoConnector
                     $query .= ' and ( "access_user_accepted_termns_of_use"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                $filterUserAndConditions = $filter->userAndConditions();
-                if (null !== $filterUserAndConditions) {
-                    $query .= ' and ( "access_user_accepted_termns_of_use"."user" = :userConditionsUser and "access_user_accepted_termns_of_use"."conditions" = :userConditionsConditions)';
+                if ($filter->isUserAndConditionsAssigned()) {
+                    $filterUserAndConditions = $filter->userAndConditions();
+                    $userAndConditionsParts = [];
+                    $userAndConditionsParts[] = ' "access_user_accepted_termns_of_use"."user" = :userConditionsUser';
                     $params[] = new SqlParam(name: 'userConditionsUser', value: $filterUserAndConditions['user']->uid(), type: SqlParam::STR);
+                    $userAndConditionsParts[] = ' "access_user_accepted_termns_of_use"."conditions" = :userConditionsConditions';
                     $params[] = new SqlParam(name: 'userConditionsConditions', value: $filterUserAndConditions['conditions']->uid(), type: SqlParam::STR);
+                    $query .= ' and ( ' . implode(' and ', $userAndConditionsParts) . ')';
                 }
                 $filterUser = $filter->user();
                 if (null !== $filterUser) {
