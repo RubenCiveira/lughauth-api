@@ -1,0 +1,292 @@
+# OIDC Module — Domain Model
+
+The domain model maps directly onto the data structures defined in the OIDC/OAuth2 specifications. RFC and spec references are included for each key concept.
+
+---
+
+## Core Value Objects
+
+### `AuthenticationRequest`
+
+Carries the validated context of an OAuth authorization request into the authentication pipeline. Corresponds to the validated parameters of **RFC 6749 §4.1.1** + **OIDC Core §3.1.2.1**.
+
+| Field | Type | RFC/Spec | Notes |
+|-------|------|---------|-------|
+| `client` | `ClientData` | — | The resolved OAuth client |
+| `scope` | `string` | RFC 6749 §3.3 | Space-delimited scope string |
+| `redirect` | `string` | RFC 6749 §3.1.2 | Validated redirect URI |
+| `responseType` | `?string` | RFC 6749 §3.1.1 | `"code"`, `"token"`, `"id_token"`, or combinations |
+| `audiences` | `string[]` | Custom | Extra audiences beyond the client itself |
+
+### `AuthenticationResult`
+
+The outcome of any authentication or authorization attempt. Either `valid=true` with user claims, or `valid=false` with an error code that drives the next browser step. On success, the fields align with the standard claims of **OIDC Core §5.1**.
+
+| Field | Type | RFC/Spec | Notes |
+|-------|------|---------|-------|
+| `valid` | `bool` | — | Whether authentication succeeded |
+| `id` | `?string` | RFC 7519 `sub` | Subject identifier |
+| `error` | `?string` | — | Error constant (see table below) |
+| `errorMessage` | `?string` | RFC 6749 `error_description` | Human-readable detail |
+| `tenant` | `?string` | Custom | Tenant name |
+| `tenantName` | `?string` | Custom | Tenant display name |
+| `scope` | `?string` | RFC 6749 §3.3 | Granted scope string |
+| `audiences` | `?string[]` | RFC 7519 `aud` | Token audiences |
+| `roles` | `mixed` | Custom | User roles |
+| `groups` | `?array` | Custom | User groups |
+| `name` | `?string` | OIDC §5.1 `name` | Display name (profile scope) |
+| `email` | `?string` | OIDC §5.1 `email` | Email address (email scope) |
+
+**Error constants and their semantic meaning:**
+
+| Constant | Triggers next step |
+|----------|-------------------|
+| `ERR_CONSENT_REQUIRED` | Terms & GDPR consent form |
+| `ERR_SCOPES_CONSENT_REQUIRED` | Scope consent form |
+| `ERR_MFA_REQUIRED` | Use-MFA form (TOTP verification) |
+| `ERR_NEW_MFA_REQUIRED` | New-MFA setup form (first-time TOTP configuration) |
+| `ERR_NEW_PASSWORD_REQUIRED` | New password form (temporary password must be changed) |
+| `ERR_WAITING_PASSCHANGE_CODE` | Recover password form (email code sent) |
+| `ERR_WAITING_USER_VERIFY` | Register user form (email verification code sent) |
+| `ERR_UNKNOW_USER` | Login form (re-render with error) |
+| `ERR_WRONG_CREDENTIAL` | Login form (re-render with error) |
+| `ERR_NOT_ALLOWED_ACCESS` | Login form (account blocked or not approved) |
+
+### `ChallengesState`
+
+An immutable accumulator of the challenges the user has passed during the current authorization flow. Travels between HTTP requests as a signed JWT cookie (`PRE_SESSION_ID`). There is no equivalent in the RFCs — this is an application-level construct for stateless multi-step flows.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `withMfa` | `bool` | User has completed MFA in this flow |
+| `session` | `bool` | Authentication was loaded from an existing session |
+| `username` | `?string` | Username captured after the login step |
+| `extra` | `array` | Extensible payload for custom challenges |
+
+Serialization: `toArray()` / `fromArray()` for cookie storage. Versioned (`v: 1`).
+
+### `ClientData`
+
+The resolved configuration of an OAuth client. Corresponds to the registered client metadata of **RFC 6749 §2** and **RFC 7591 §2** (dynamic registration).
+
+| Field | Type | RFC/Spec | Notes |
+|-------|------|---------|-------|
+| `id` | `string` | RFC 6749 §2.2 `client_id` | Client identifier |
+| `grants` | `string[]` | RFC 6749 §2 `grant_types` | Allowed grant type values |
+| `secretLogin` | `bool` | Custom | Whether `password` grant is permitted |
+| `allowedScopesM2m` | `string[]` | Custom | Scopes available for `client_credentials` |
+| `m2mTokenTtlSeconds` | `int` | Custom | TTL for M2M access tokens (default 3600 s) |
+| `requestObjectSigningAlg` | `?string` | RFC 7591 `request_object_signing_alg` | Expected alg for signed request objects |
+| `jwksUri` | `?string` | RFC 7591 `jwks_uri` | Remote JWKS URI for request object verification |
+| `jwksJson` | `?string` | RFC 7591 `jwks` | Inline JWKS JSON |
+
+### `SessionInfo`
+
+A persisted authentication session, linked to a user-agent via a signed cookie. The concept of server-side sessions is described in **OIDC Session Management 1.0**.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `csid` | `string` | Client Session ID — short-lived HMAC token |
+| `withMfa` | `bool` | Session was established with MFA |
+| `issuer` | `string` | Token issuer URL (`{baseUrl}/oauth/openid/{tenant}`) |
+| `userId` | `string` | Authenticated subject (`sub`) |
+| `clientId` | `string` | OAuth client that initiated the session |
+
+### `TemporalAuthCode`
+
+A one-time, short-lived authorization code record. RFC 6749 §4.1.2 requires authorization codes to be short-lived (≤ 10 min) and single-use. Implementation uses 3 minutes.
+
+| Field | Type | RFC/Spec | Notes |
+|-------|------|---------|-------|
+| `data` | `AuthenticationResult` | — | User claims at time of authorization |
+| `client` | `ClientData` | RFC 6749 §4.1.2 | `client_id` bound to this code |
+| `nonce` | `?string` | OIDC Core `nonce` | OIDC nonce for ID Token binding |
+| `request` | `AuthenticationRequest` | — | Original authorization request |
+| `codeChallenge` | `?string` | RFC 7636 §4.4 | PKCE challenge bound to this code |
+| `codeChallengeMethod` | `?string` | RFC 7636 §4.4 | `"S256"` or `"plain"` |
+
+### `StepResult`
+
+The discriminated output of a form step execution.
+
+| Type constant | Field set | Meaning |
+|--------------|-----------|---------|
+| `TYPE_RENDER` | `response` | Step produced HTML — stay on current page |
+| `TYPE_PROCEED` | `authResponse` | Authentication succeeded — build redirect response |
+
+### `PublicLoginAuthResponse`
+
+Produced by `AuthenticateUser` when authentication is complete. Contains the data needed to issue tokens per **RFC 6749 §5.1** and **OIDC Core §3.1.3.3**.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `tenant` | `string` | Tenant name |
+| `authData` | `array` | Claims for the access token (`sub`, `iss`, `aud`, `scope`, `roles`, `groups`, …) |
+| `authExpiration` | `DateInterval` | Access token lifetime |
+| `idData` | `array` | Extra claims for the `id_token` |
+| `idExpiration` | `DateInterval` | ID token lifetime |
+| `sessionId` | `string` | Session identifier |
+| `sessionExpiration` | `DateInterval` | Session lifetime |
+
+---
+
+## Enumerations
+
+### `StepName`
+
+The steps of the browser authorization state machine:
+
+| Value | Description |
+|-------|-------------|
+| `login` | Username + password form |
+| `consent` | Terms of use acceptance |
+| `scopes-consent` | OAuth scope permissions (OIDC Core §3.1.2.4) |
+| `mfa` | OTP verification |
+| `build-mfa` | First-time TOTP setup |
+| `new-pass` | Forced password change |
+| `recover-pass` | Password recovery (email code) |
+| `register-user` | New user self-registration |
+| `delegated-login` | Federated login (social/SAML) |
+| `webauthn` | WebAuthn/FIDO2 authentication |
+
+---
+
+## Domain Exceptions
+
+| Exception | Module | HTTP Status | Usage |
+|-----------|--------|------------|-------|
+| `OAuthTokenException` | Authentication | 400/401 | Wraps RFC 6749 §5.2 token errors |
+| `ParException` | Par | 400/401 | Wraps RFC 9126 §2.3 PAR errors |
+| `DeviceAuthorizationException` | Device | 400/428 | Wraps RFC 8628 §3.5 device errors |
+| `WebAuthnException` | WebAuthn | 400 | WebAuthn registration/authentication failures |
+| `LoginException` | Authentication | — | Internal signal from step forms to the authorize orchestrator; carries an `AuthenticationResult` |
+
+---
+
+## PAR Domain
+
+### `ParRequest`
+
+**RFC 9126 §2**
+
+| Field | Type | RFC/Spec | Notes |
+|-------|------|---------|-------|
+| `requestUri` | `string` | RFC 9126 §2.2 | `urn:ietf:params:oauth:request_uri:{random}` |
+| `tenant` | `string` | Custom | Tenant scope |
+| `clientId` | `string` | RFC 9126 §2.2 | Client bound to this request URI |
+| `authParams` | `array` | RFC 9126 §2 | Stored authorization parameters |
+| `expiresAt` | `DateTimeImmutable` | RFC 9126 §2.2 | Expiry (5–600 s; implementation: 60 s) |
+| `used` | `bool` | RFC 9126 §4 | Whether the `request_uri` has been consumed |
+
+---
+
+## Device Domain
+
+### `DeviceAuthorization`
+
+**RFC 8628 §3.2**
+
+| Field | Type | RFC/Spec | Notes |
+|-------|------|---------|-------|
+| `deviceCode` | `string` | RFC 8628 §3.2 `device_code` | Opaque; MUST NOT be shown to user |
+| `userCode` | `string` | RFC 8628 §3.2 `user_code` | Short code displayed to user |
+| `verificationUri` | `string` | RFC 8628 §3.2 `verification_uri` | Short, memorable URI |
+| `expiresAt` | `DateTimeImmutable` | RFC 8628 §3.2 `expires_in` | Both codes expire at this time |
+| `interval` | `int` | RFC 8628 §3.2 `interval` | Minimum polling interval in seconds (default: 5) |
+| `tenant` | `string` | Custom | Tenant scope |
+| `clientId` | `string` | RFC 8628 §3.1 `client_id` | Requesting client |
+| `scope` | `string` | RFC 6749 §3.3 | Requested scope |
+| `status` | `DeviceAuthorizationStatus` | — | `PENDING`, `APPROVED`, `DENIED`, `EXPIRED` |
+| `authResult` | `?AuthenticationResult` | — | Set after user approval |
+
+---
+
+## Token Security Domain
+
+### `KeyPair`
+
+**RFC 7517, RFC 7518 §6.3**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `kid` | `string` | Key ID (RFC 7517 `kid`) |
+| `alg` | `string` | `"RS256"` (RFC 7518) |
+| `keyUse` | `string` | `"sig"` (RFC 7517 `use`) |
+| `privateKey` | `string` | PEM-encoded private key |
+| `publicKey` | `string` | PEM-encoded public key |
+
+**RFC 7518 §3 key size requirement:** RSA keys MUST be ≥ 2048 bits. Implementation uses 4096-bit keys.
+
+### `KeyConfig`
+
+Default RSA key rotation configuration:
+- TTL: 7 days per key
+- Future keys pre-generated: 3 ahead of current
+
+---
+
+## Consent Domain
+
+### `TermsOfUseAcceptance`
+
+Records a user's acceptance of terms of use for a set of audiences.
+
+### `ScopePermission`
+
+Describes a scope that requires user consent. Corresponds to the scope consent concept of **OIDC Core §3.1.2.4**.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `scope` | `string` | The scope identifier (e.g., `"email"`, `"profile"`) |
+| `required` | `bool` | Whether the scope is mandatory (cannot be declined) |
+| `label` | `?string` | Display label |
+| `description` | `?string` | Description shown in the consent UI |
+
+---
+
+## DelegateLogin Domain
+
+### `DelegatedLoginProvider` (interface)
+
+The contract for any federated identity provider. Provider-agnostic by design — implementations may target OAuth 2.0 providers (Google, GitHub, Microsoft, Apple) or SAML2 identity providers.
+
+| Method | Returns | Notes |
+|--------|---------|-------|
+| `info()` | `DelegatedProviderDescription` | Provider metadata (id, name, logo, `automatic`) |
+| `delegatedUrl(redirect, state)` | `DelegatedLoginEndpoint` | URL + params for redirecting user to provider |
+| `authorize(redirect, request)` | `?DelegatedUserData` | Validates callback and extracts user identity |
+
+### `DelegatedUserData`
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `code` | `string` | Provider-internal user identifier |
+| `name` | `string` | Display name |
+| `email` | `string` | Email address |
+
+---
+
+## WebAuthn Domain
+
+**W3C WebAuthn Level 2 / FIDO2**
+
+### `WebAuthnChallenge`
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `challengeId` | `string` | Unique challenge identifier |
+| `challenge` | `string` | Cryptographic challenge bytes (base64url) |
+| `userId` | `string` | Associated user (for registration flows) |
+| `type` | `string` | `"registration"` or `"authentication"` |
+| `expiresAt` | `DateTimeImmutable` | Expiry (typically 5 minutes) |
+
+### `WebAuthnCredential`
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `credentialId` | `string` | FIDO credential ID |
+| `userId` | `string` | Owning user |
+| `tenant` | `string` | Tenant scope |
+| `publicKey` | `string` | Serialized public key |
+| `counter` | `int` | Use counter (replay attack protection — WebAuthn §6.1) |
+| `createdAt` | `DateTimeImmutable` | Registration time |

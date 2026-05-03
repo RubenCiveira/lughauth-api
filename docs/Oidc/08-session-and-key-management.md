@@ -1,0 +1,182 @@
+# OIDC Module — Session & Key Management
+
+---
+
+## Session Lifecycle
+
+**OIDC Session Management 1.0**
+
+An authenticated session persists the result of a successful authorization flow, enabling:
+- Silent re-authentication (`check-session`) without re-entering credentials.
+- Cross-client SSO within the same tenant (all clients share the same session cookie domain).
+
+### Session creation
+
+After a successful authorization step:
+
+1. `AuthenticateUser::saveIt` calls `SessionStoreGateway::saveSession` with:
+   - `state`: a new cryptographically random, globally unique session token.
+   - `clientDetails`: the OAuth client that initiated the flow.
+   - `issuer`: the tenant issuer URL (`{baseUrl}/oauth/openid/{tenant}`).
+   - `challenges`: the final `ChallengesState` (includes `withMfa`).
+   - `validationData`: the `AuthenticationResult` with user claims.
+   - `csid`: the Client Session ID from the successful POST.
+   - `expiration`: session TTL.
+2. The session token is written to the `AUTH_SESSION_ID_{tenant}` HTTP-only cookie.
+
+### Session loading
+
+On `GET /authorize`:
+- `SessionManager::loadSession` reads the cookie and calls `SessionStoreGateway::loadSession`.
+- Returns `null` if the cookie is missing, token not found, or the session has expired.
+
+### Session re-authentication (`check-session`)
+
+`POST /check-session` (OIDC Session Management — silent re-auth endpoint):
+
+1. Load session from cookie.
+2. Verify CSID: `session.csid` MUST match the CSID from the pre-session cookie.
+3. On mismatch: clear all cookies, redirect to `/authorize` (`login_required`).
+4. On match: `AuthenticateUser::sessionAuthenticated(sessionInfo, request)` → issue new tokens.
+
+### Session rotation
+
+`SessionStoreGateway::updateSession(newState, oldState)` atomically replaces the session token after successful token issuance. This prevents replay of the previous session cookie.
+
+### Session termination (`GET /logout`)
+
+**OIDC RP-Initiated Logout 1.0**
+
+1. Load session from cookie.
+2. `SessionStoreGateway::deleteSession`.
+3. Clear `AUTH_SESSION_ID_{tenant}` and `PRE_SESSION_ID` cookies.
+4. Redirect to `post_logout_redirect_uri` (if provided and registered for the client) or to a confirmation page.
+
+---
+
+## `SessionStoreGateway` Implementation Requirements
+
+| Requirement | Detail |
+|-------------|--------|
+| Expiry enforcement | `loadSession` MUST return `null` for expired records |
+| Cleanup | Expired sessions SHOULD be pruned periodically to prevent unbounded growth |
+| Atomicity | `updateSession` MUST atomically swap old→new to prevent token replay |
+| Isolation | Sessions are per-tenant; tokens from one tenant MUST NOT resolve in another |
+| Uniqueness | Session token MUST be globally unique and cryptographically random |
+
+---
+
+## Temporal Keys
+
+The `TemporalKeysGateway` manages two categories of short-lived cryptographic material:
+
+### 1. Symmetric Keys (HS256 + AES)
+
+Used for:
+- CSID HMAC signing (browser-side CSRF tokens).
+- AES password encryption (client-side password obfuscation, defense-in-depth).
+
+**Rotation policy:**
+- Keys rotate every **1 hour**.
+- Both `current` and `old` keys are retained simultaneously during the rotation window.
+- `verifyToken` and `verifyCypher` MUST try `current` first, then fall back to `old`, so tokens generated just before a rotation remain valid.
+- `currentKey()` always returns the latest key for use by `HtmlSecurer` in page generation.
+
+**`TemporalKeysGateway` contract for symmetric keys:**
+
+| Method | Behaviour |
+|--------|-----------|
+| `currentKey()` | Returns current key material |
+| `encrypt(token)` | AES-encrypts with current key |
+| `verifyCypher(token)` | AES-decrypts; try current then old key |
+| `verifyToken(token)` | HMAC-verifies; try current then old key |
+
+### 2. One-Time Authorization Codes
+
+**RFC 6749 §4.1.2** — Authorization codes MUST be short-lived and single-use. The code MUST be bound to `client_id` and, if provided, `redirect_uri`.
+
+**Properties:**
+- TTL: **3 minutes** (RFC 6749 recommends ≤ 10 min).
+- One-time: `retrieveTemporalAuthCode` MUST delete the record atomically on first retrieval.
+- Uniqueness: code identifiers MUST be cryptographically random and unpredictable.
+
+**`TemporalKeysGateway` contract for auth codes:**
+
+| Method | Behaviour |
+|--------|-----------|
+| `registerTemporalAuthCode(code)` | Store; return opaque code string |
+| `retrieveTemporalAuthCode(code)` | Retrieve and atomically delete; return `null` if missing, expired, or already used |
+
+---
+
+## RSA Key Pair Management
+
+**RFC 7518 §3, RFC 7517 §5**
+
+The `TokenSigner` port depends on `TokenStoreGateway` for key pair persistence.
+
+### Key properties
+
+| Property | Value | RFC/Spec |
+|----------|-------|---------|
+| Algorithm | RS256 (RSASSA-PKCS1-v1_5 + SHA-256) | RFC 7518 §3, RECOMMENDED |
+| Minimum key size | **2048 bits** (implementation uses 4096 bits) | RFC 7518 §3, MUST |
+| TTL per key | 7 days | — |
+| Pre-generated future keys | 3 | — |
+
+### Rotation logic
+
+Evaluated by the `TokenSigner` implementation before each signing operation:
+
+```
+if nextKeysExpiration(tenant) < now + (futureCount * ttl):
+    generate and store new key pairs up to futureCount ahead
+```
+
+This ensures the JWKS always contains enough future keys that token verification continues working during the full rotation window.
+
+### Key persistence (`TokenStoreGateway`)
+
+| Method | Purpose |
+|--------|---------|
+| `currentKey(tenant)` | Returns the key pair currently active for signing |
+| `nextKeysExpiration(tenant)` | Returns the expiry of the farthest-future stored key |
+| `listKeys(tenant)` | Returns all keys whose validity window is still active |
+| `saveKey(tenant, pair, since, ttl)` | Persists a key pair with its validity window |
+
+**Retention rule:** Keys MUST be retained until `since + ttl` has passed, to allow verification of tokens signed with them. The implementation SHOULD clean up only keys where `since + ttl < now`.
+
+### JWKS Publication
+
+**RFC 7517 §5** — Public keys are exposed via `GET /{tenant}/jwks`:
+
+```json
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "use": "sig",
+      "alg": "RS256",
+      "kid": "key-id-1",
+      "n": "<Base64urlUInt — RSA modulus>",
+      "e": "AQAB"
+    }
+  ]
+}
+```
+
+RSA public key parameters per **RFC 7518 §6.3.1**:
+- `n` — RSA modulus, encoded as Base64urlUInt.
+- `e` — Public exponent, encoded as Base64urlUInt (typically `AQAB` = 65537).
+
+`listKeys` MUST return all keys that are still valid for verification, so clients can validate tokens signed with any key in the current rotation window. Response is cached with a 1-hour ETag.
+
+---
+
+## Tenant Isolation
+
+All session and key data is scoped to a `tenant` identifier:
+- Session tokens are not explicitly tenant-tagged in the token value itself, but keys are tenant-specific — tokens signed by tenant A's key will not validate against tenant B's JWKS.
+- `TokenStoreGateway` and `TemporalKeysGateway` receive the tenant identifier in every call.
+- The `AUTH_SESSION_ID_{tenant}` cookie name is per-tenant, preventing cross-tenant session confusion when multiple tenants share a domain.
+- Session storage implementations MUST partition by tenant to prevent cross-tenant session fixation.

@@ -1,0 +1,116 @@
+# OIDC Module — Overview
+
+## Purpose
+
+The `Features/Oidc` module implements a complete, multi-tenant OpenID Connect / OAuth 2.0 authorization server. It handles the full authentication lifecycle: browser-based authorization flows, token issuance, session management, token verification, and user consent.
+
+The module is structured as an independent bounded context. Its only external dependencies are a set of **gateway interfaces** (ports) that any host application must implement. No concrete storage, user directory, or infrastructure is assumed.
+
+## Architecture
+
+The module follows **Hexagonal Architecture** (Ports & Adapters):
+
+- **Domain layer** — entities, value objects, port interfaces, domain exceptions. No framework dependencies.
+- **Application layer** — use cases and application services. Depend only on domain types and port interfaces.
+- **Infrastructure layer** — HTTP drivers (REST controllers, HTML form controllers) and driven adapters (implementations of port interfaces). This layer is host-specific and is not part of the portable core.
+
+```
+┌─────────────────────────────────────────────┐
+│               Infrastructure                │
+│  ┌──────────────┐     ┌───────────────────┐ │
+│  │ HTTP Drivers │     │  Driven Adapters  │ │
+│  │ (REST, HTML) │     │ (implement ports) │ │
+│  └──────┬───────┘     └────────┬──────────┘ │
+│         │                      │            │
+│  ┌──────▼──────────────────────▼──────────┐ │
+│  │              Application               │ │
+│  │          (use cases, services)         │ │
+│  └──────────────────┬─────────────────────┘ │
+│                     │                       │
+│  ┌──────────────────▼─────────────────────┐ │
+│  │                Domain                  │ │
+│  │  (entities, VOs, port interfaces)      │ │
+│  └────────────────────────────────────────┘ │
+└─────────────────────────────────────────────┘
+```
+
+## Submodules
+
+| Submodule | Responsibility |
+|-----------|---------------|
+| `Authentication` | Orchestrates the browser-facing authorization flow: `/authorize` HTML forms, `/token` endpoint, `/userinfo`, `/logout`. The central coordination point. |
+| `Client` | Resolves and validates OAuth clients: secret-based, public, and API-key clients. |
+| `Consent` | Manages terms-of-use and scope permissions. Tracks what users have consented to per tenant and client. |
+| `User` | Authentication credentials, user registration, password recovery, and password change flows. |
+| `Session` | Persists authenticated sessions and manages short-lived symmetric keys and one-time authorization codes. |
+| `TokenSecurity` | JWT signing and verification (RS256). Key rotation, JWKS endpoint. |
+| `Mfa` | TOTP-based multi-factor authentication (setup and verification). |
+| `DelegateLogin` | Federated / social login. Provider-agnostic interface with concrete providers supplied by the host. |
+| `Profile` | User profile read/update, active session listing, MFA management for logged-in users. |
+| `Par` | Pushed Authorization Requests (RFC 9126). Allows confidential clients to push authorization parameters server-to-server before redirecting the user. |
+| `Device` | Device Authorization Grant (RFC 8628). Enables input-constrained devices to obtain tokens. |
+| `Theme` | Wraps form HTML content in a complete themed page. Themes are interchangeable. |
+| `Common` | Shared installation use cases, OpenID Connect Discovery endpoint (`.well-known/openid-configuration`). |
+| `WebAuthn` | FIDO2/WebAuthn credential registration and authentication. |
+
+## HTTP Endpoints Summary
+
+All per-tenant endpoints follow the pattern `/oauth/openid/{tenant}/…`
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET | `/{tenant}/.well-known/openid-configuration` | OpenID Connect Discovery |
+| GET | `/{tenant}/jwks` | JSON Web Key Set |
+| GET/POST | `/{tenant}/authorize` | Authorization endpoint (browser) |
+| GET/POST | `/{tenant}/check-session` | Session refresh (silent re-auth) |
+| POST | `/{tenant}/token` | Token endpoint |
+| GET | `/{tenant}/userinfo` | UserInfo endpoint |
+| POST | `/{tenant}/introspect` | Token introspection |
+| GET | `/{tenant}/logout` | Logout |
+| POST | `/{tenant}/revoke` | Token revocation |
+| POST | `/{tenant}/par` | Pushed Authorization Request |
+| POST | `/{tenant}/device` | Device Authorization Request |
+| GET/POST | `/{tenant}/device/verify` | Device code verification (browser) |
+| POST | `/{tenant}/register` | Dynamic Client Registration (RFC 7591) |
+| GET/PUT/DELETE | `/{tenant}/register/{client_id}` | Dynamic Client Management |
+| POST | `/{tenant}/api-key/validate` | API Key validation |
+| POST | `/{tenant}/webauthn/register/begin` | Begin WebAuthn credential registration |
+| POST | `/{tenant}/webauthn/register/finish` | Finish WebAuthn credential registration |
+| POST | `/{tenant}/webauthn/authenticate/begin` | Begin WebAuthn authentication |
+| POST | `/{tenant}/webauthn/authenticate/finish` | Finish WebAuthn authentication |
+| GET | `/oauth/openid/-/delegated/verify` | Federated login callback (tenant-agnostic) |
+
+## Tenant Model
+
+Every endpoint is scoped to a `tenant` path parameter. A tenant is an isolated identity realm: its own clients, users, sessions, signing keys, consent records, and configuration. The module supports unlimited tenants in a single deployment.
+
+## Port Interface Summary
+
+The portable core relies on exactly these port interfaces — any implementation must provide all of them:
+
+| Port | Submodule | Purpose |
+|------|-----------|---------|
+| `ClientStoreGateway` | Client | OAuth client resolution and validation |
+| `ApiKeyStoreGateway` | Client | API key lookup |
+| `DynamicClientGateway` | Client | Dynamic client CRUD (RFC 7591) |
+| `LoginGateway` | User | Credential validation and user data loading |
+| `RegisterUserGateway` | User | User self-registration |
+| `ChangePasswordGateway` | User | Password recovery and forced change |
+| `TermsOfUseConsentGateway` | Consent | Terms of use acceptance tracking |
+| `ScopesConsentGateway` | Consent | OAuth scope permission tracking |
+| `GdprConsentGateway` | Consent | GDPR consent purposes |
+| `SessionStoreGateway` | Session | Authenticated session persistence |
+| `TemporalKeysGateway` | Session | Short-lived symmetric keys and one-time authorization codes |
+| `TokenSigner` | TokenSecurity | JWT signing, verification, JWKS |
+| `TokenStoreGateway` | TokenSecurity | Token key-pair persistence |
+| `TokenRevocationGateway` | TokenSecurity | Token revocation list |
+| `UserMfaGateway` | Mfa | TOTP configuration and verification |
+| `DelegateLoginGateway` | DelegateLogin | Federated provider integration |
+| `ParRequestGateway` | Par | Pushed Authorization Request storage |
+| `DeviceAuthorizationGateway` | Device | Device authorization state storage |
+| `WebAuthnCredentialGateway` | WebAuthn | WebAuthn credential persistence |
+| `WebAuthnChallengeGateway` | WebAuthn | WebAuthn challenge persistence |
+| `ProfileGateway` | Profile | User profile read/write |
+| `PasswordGateway` | Profile | Password management for profile UI |
+| `MfaGateway` | Profile | MFA management for profile UI |
+| `SessionsGateway` | Profile | Active session listing for profile UI |
