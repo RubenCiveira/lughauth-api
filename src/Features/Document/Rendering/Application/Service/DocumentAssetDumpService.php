@@ -39,8 +39,10 @@ class DocumentAssetDumpService
         private readonly SnippetAssetReadGateway $snippetAssetGateway,
     ) {
         $this->assetsBase = $config->get('oidc.theme.path', $context->getBaseUrl() . '/');
-        $realPath         = realpath('.');
-        $this->localRoot  = ($realPath !== false ? $realPath : '.') . '/.assets';
+        $projectRoot      = realpath(__DIR__ . '/../../../../../..');
+        $publicPath       = $projectRoot !== false ? $projectRoot . '/public' : __DIR__ . '/../../../../../../public';
+        $this->localRoot  = $publicPath . '/.assets';
+        $this->ensureDir($this->localRoot);
     }
 
     // -------------------------------------------------------------------------
@@ -49,17 +51,26 @@ class DocumentAssetDumpService
 
     public function themeAssetsPath(string $themeUid): string
     {
+        if ($themeUid !== '') {
+            $this->ensureDir($this->localRoot . '/themes/' . $themeUid);
+        }
         return "{$this->assetsBase}.assets/themes/{$themeUid}";
     }
 
     public function templateAssetsPath(string $templateUid, ?string $tenantUid = null): string
     {
         $sub = $tenantUid !== null ? "{$templateUid}/{$tenantUid}" : $templateUid;
+        if ($sub !== '') {
+            $this->ensureDir($this->localRoot . '/templates/' . $sub);
+        }
         return "{$this->assetsBase}.assets/templates/{$sub}";
     }
 
     public function snippetAssetsPath(string $snippetUid): string
     {
+        if ($snippetUid !== '') {
+            $this->ensureDir($this->localRoot . '/snippets/' . $snippetUid);
+        }
         return "{$this->assetsBase}.assets/snippets/{$snippetUid}";
     }
 
@@ -74,6 +85,10 @@ class DocumentAssetDumpService
      */
     public function syncThemeAssets(ThemeRef $theme): void
     {
+        if ($theme->uid() !== '') {
+            $this->ensureDir($this->localRoot . '/themes/' . $theme->uid());
+        }
+
         $slide = $this->themeAssetGateway->list(
             (new ThemeAssetFilter())->withTheme($theme)
         );
@@ -166,9 +181,7 @@ class DocumentAssetDumpService
         if ($code === '' || str_contains($code, '/') || str_contains($code, '..')) {
             return;
         }
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
+        $this->ensureDir($dir);
         $binary = $reader();
         if (!$binary->isStreamOpen()) {
             return;
@@ -188,6 +201,13 @@ class DocumentAssetDumpService
         $path = $dir . '/' . $code;
         if (is_file($path)) {
             unlink($path);
+        }
+    }
+
+    private function ensureDir(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            mkdir($dir, 0777, true);
         }
     }
 }

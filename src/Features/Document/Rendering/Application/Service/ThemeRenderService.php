@@ -61,6 +61,7 @@ class ThemeRenderService
             return null;
         }
 
+        $this->assetDumpService->syncThemeAssets($theme);
         $assetsPath = $this->assetDumpService->themeAssetsPath($theme->uid() ?? '');
 
         $vars = array_merge($extraVars, [
@@ -92,6 +93,7 @@ class ThemeRenderService
         if ($theme === null) {
             return null;
         }
+        $this->assetDumpService->syncThemeAssets($theme);
         return $this->assetDumpService->themeAssetsPath($theme->uid() ?? '');
     }
 

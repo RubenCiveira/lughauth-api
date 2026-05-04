@@ -83,8 +83,9 @@ class DecorateHtml
         string $locale,
     ): string {
         $srcDir    = __DIR__ . "/../Themes/" . self::FALLBACK_THEME . "/";
-        $realPath  = realpath('.');
-        $targetDir = ($realPath !== false ? $realPath : '.') . "/.assets/oidc/" . self::FALLBACK_THEME;
+        $projectRoot = realpath(__DIR__ . '/../../../../../..');
+        $publicPath = $projectRoot !== false ? $projectRoot . '/public' : __DIR__ . '/../../../../../../public';
+        $targetDir = $publicPath . "/.assets/oidc/" . self::FALLBACK_THEME;
         $this->dumpTheme($srcDir, $targetDir);
         $theme = "{$this->assetsPath}.assets/oidc/" . self::FALLBACK_THEME;
 

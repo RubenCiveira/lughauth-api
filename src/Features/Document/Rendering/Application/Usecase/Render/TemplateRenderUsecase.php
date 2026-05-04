@@ -128,8 +128,6 @@ class TemplateRenderUsecase
             }
         }
 
-
-
         $globalMatch = $this->templateGateway->findOneByCodeAndTenant($code, null);
         if ($globalMatch !== null && $globalMatch->isEnabled() && $globalMatch->getChannel() === $channel) {
             return $globalMatch;
@@ -319,7 +317,7 @@ class TemplateRenderUsecase
     ): array {
         $templateAssetsPath = $this->assetDumpService->templateAssetsPath(
             $template->uid() ?? '',
-            $input->tenant()?->uid(),
+            $template->getTenant()?->uid(),
         );
 
         $themeAssetsPath = '';
