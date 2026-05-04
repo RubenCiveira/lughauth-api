@@ -9,6 +9,12 @@ use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Document\Rendering\Domain\Gateway\TemplateRenderGateway;
 use Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driven\HandlebarsTemplateRenderAdapter;
+use Civi\Lughauth\Features\Document\TemplateAsset\Application\Listener\TemplateAssetDiskSyncListener;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Event\TemplateAssetEvent;
+use Civi\Lughauth\Features\Document\SnippetAsset\Application\Listener\SnippetAssetDiskSyncListener;
+use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Event\SnippetAssetEvent;
+use Civi\Lughauth\Features\Document\ThemeAsset\Application\Listener\ThemeAssetDiskSyncListener;
+use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Event\ThemeAssetEvent;
 
 class RenderingPlugin extends MicroPlugin
 {
@@ -17,6 +23,14 @@ class RenderingPlugin extends MicroPlugin
     {
         $def[TemplateRenderGateway::class] = \DI\autowire(HandlebarsTemplateRenderAdapter::class);
         return $def;
+    }
+
+    #[Override]
+    public function registerEvents(EventListenersRegistrarInterface $listener): void
+    {
+        $listener->registerListener(SnippetAssetEvent::class, SnippetAssetDiskSyncListener::class);
+        $listener->registerListener(TemplateAssetEvent::class, TemplateAssetDiskSyncListener::class);
+        $listener->registerListener(ThemeAssetEvent::class, ThemeAssetDiskSyncListener::class);
     }
 
 }
