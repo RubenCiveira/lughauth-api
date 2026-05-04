@@ -107,7 +107,7 @@ final class AuditMiddlewareUnitTest extends TestCase
 
         $this->assertSame(0, (int) $pdo->query('SELECT COUNT(*) FROM _audit_action')->fetchColumn());
 
-        $files = glob(__DIR__ . '/../../../../var/audit/audit-*.json.gz');
+        $files = glob(__DIR__ . '/../../../../../var/audit/audit-*.json.gz');
         $this->assertNotEmpty($files);
 
         foreach ($files as $file) {
