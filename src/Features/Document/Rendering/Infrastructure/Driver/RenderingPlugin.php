@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driver;
 
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
+use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Rendering\Domain\Gateway\TemplateRenderGateway;
 use Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driven\HandlebarsTemplateRenderAdapter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Listener\TemplateAssetDiskSyncListener;
