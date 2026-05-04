@@ -10,22 +10,57 @@ use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
 
+/**
+ * Holds the runtime context for a single request or process invocation.
+ *
+ * The context aggregates the three primary concerns needed across the application:
+ * the authenticated {@see Identity} of the caller, the network {@see Connection} metadata,
+ * and the application {@see AppConfig}. Both identity and connection are lazily defaulted to
+ * anonymous / local values when {@see setSecurityContext()} has not been called, so handlers
+ * can always read them safely without null-checks.
+ *
+ * The context also exposes helpers to derive URL information from the current server
+ * environment and to build a fresh DI container snapshot via {@see detachedContainer()}.
+ */
 class Context
 {
     private ?Identity $identity = null;
     private ?Connection $connection = null;
 
+    /**
+     * Creates a new application context.
+     *
+     * @param ContainerBuilder $builder DI container builder used to create detached containers.
+     * @param AppConfig        $config  Application configuration providing instance metadata.
+     */
     public function __construct(private readonly ContainerBuilder $builder, private readonly AppConfig $config)
     {
 
     }
 
+    /**
+     * Establishes the security context for the current request.
+     *
+     * Must be called by authentication middleware before any handler that relies
+     * on identity or connection data. Calling it replaces any previously set values.
+     *
+     * @param Connection $connection Resolved network connection metadata.
+     * @param Identity   $identity   Authenticated (or anonymous) user identity.
+     */
     public function setSecurityContext(Connection $connection, Identity $identity): void
     {
         $this->identity = $identity;
         $this->connection = $connection;
     }
 
+    /**
+     * Returns the identity associated with the current request.
+     *
+     * Falls back to {@see Identity::anonymous()} when no security context has been set,
+     * ensuring callers never receive a null value.
+     *
+     * @return Identity The current (possibly anonymous) identity.
+     */
     public function getIdentity(): Identity
     {
         if ($this->identity == null) {
@@ -34,6 +69,14 @@ class Context
         return $this->identity;
     }
 
+    /**
+     * Returns the connection metadata for the current request.
+     *
+     * Falls back to a synthetic remote HTTP connection at security level 0 when no
+     * security context has been set, ensuring callers never receive a null value.
+     *
+     * @return Connection The current (possibly default) connection descriptor.
+     */
     public function getConnection(): Connection
     {
         if ($this->connection == null) {
@@ -42,11 +85,29 @@ class Context
         return $this->connection;
     }
 
+    /**
+     * Builds and returns a fresh, independent DI container snapshot.
+     *
+     * Each call to this method compiles a new container from the builder's current
+     * definitions. Useful for background tasks or sub-processes that need isolated
+     * dependency graphs without sharing state with the main request container.
+     *
+     * @return ContainerInterface A newly built container instance.
+     */
     public function detachedContainer(): ContainerInterface
     {
         return $this->builder->build();
     }
 
+    /**
+     * Resolves the application base URL from the current server environment.
+     *
+     * Detects the scheme (http/https), host, and script base path from PHP superglobals.
+     * The returned URL has no trailing slash and can be used as a prefix when building
+     * absolute links or redirect targets.
+     *
+     * @return string Base URL (e.g. `https://example.com/api`).
+     */
     public function getBaseUrl(): string
     {
         $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -56,6 +117,14 @@ class Context
         return rtrim($scheme . '://' . $host . $basePath, '/');
     }
 
+    /**
+     * Resolves the current request path relative to the application base path.
+     *
+     * Strips the base path prefix and query string from `REQUEST_URI`, normalising
+     * the result so it always starts with a `/`. Returns `/` for the root path.
+     *
+     * @return string Current path (e.g. `/users/42`).
+     */
     public function getCurrentPath(): string
     {
         $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
@@ -69,6 +138,16 @@ class Context
         return '/' . ltrim($path, '/');
     }
 
+    /**
+     * Returns OpenTelemetry resource attributes describing this service instance.
+     *
+     * The map uses the standard OTel semantic convention keys (`service.name`,
+     * `service.namespace`, `service.version`, `service.instance.id`,
+     * `deployment.environment`) and reads values from the application configuration,
+     * falling back to sensible defaults when keys are absent.
+     *
+     * @return array<string, string> Map of OTel resource attribute keys to their values.
+     */
     public function getInstanceData(): array
     {
         $pid = getmypid();

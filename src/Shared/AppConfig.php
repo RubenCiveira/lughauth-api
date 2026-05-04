@@ -8,6 +8,17 @@ namespace Civi\Lughauth\Shared;
 use Dotenv\Dotenv;
 use Symfony\Component\Yaml\Yaml;
 
+/**
+ * Central configuration loader for the application.
+ *
+ * Merges settings from two sources in priority order: environment variables (.env file
+ * loaded via Dotenv) take precedence over YAML file entries (config/application.yaml).
+ * YAML keys are flattened using dot-notation (e.g. `app.db.host`), and env variable names
+ * are derived by uppercasing and replacing dots/dashes with underscores.
+ * Sensitive values such as secrets, passwords and keys are automatically masked when
+ * retrieved through {@see all()}, making the configuration safe to expose in management
+ * endpoints without leaking credentials.
+ */
 class AppConfig
 {
     public readonly bool $develop;
@@ -15,6 +26,14 @@ class AppConfig
     public readonly string $managementEndpoint;
     private readonly ?array $conf;
 
+    /**
+     * Loads configuration from the given base path.
+     *
+     * If a `.env` file is found it is loaded immutably into the PHP environment.
+     * If `config/application.yaml` exists it is parsed and flattened into dot-notation keys.
+     *
+     * @param string $path Absolute path to the application root directory.
+     */
     public function __construct(string $path = __DIR__ . '/../..')
     {
         if (file_exists($path . '/.env')) {
@@ -30,18 +49,48 @@ class AppConfig
         $this->managementEndpoint = '/management';
     }
 
+    /**
+     * Retrieves a configuration value by its dot-notation key.
+     *
+     * The environment variable equivalent is looked up first (uppercased, dots/dashes
+     * replaced by underscores). If absent, the YAML configuration is checked, then the
+     * provided default is returned.
+     *
+     * @param string $name Dot-notation configuration key (e.g. `app.db.host`).
+     * @param mixed  $def  Default value returned when the key is not found.
+     * @return mixed The resolved configuration value.
+     */
     public function get(string $name, mixed $def = null): mixed
     {
         $envName = strtoupper(str_replace('-', '_', str_replace(".", "_", $name)));
         return $_ENV[$envName] ?? $this->conf[$name] ?? $def;
     }
 
+    /**
+     * Checks whether a configuration flag is enabled.
+     *
+     * A value is considered disabled only when it is exactly `"false"`, `"0"`, or
+     * `"disabled"` (case-insensitive). Any other non-empty value is treated as enabled.
+     *
+     * @param string $name Dot-notation key for the boolean flag.
+     * @param bool   $def  Default state when the key is absent.
+     * @return bool True if the flag is enabled, false otherwise.
+     */
     public function is(string $name, bool $def = false): bool
     {
         $val = $this->get($name, $def ? 'enabled' : 'disabled');
         return 'false' !== $val && '0' !== $val && 'disabled' !== $val;
     }
 
+    /**
+     * Returns all configuration entries suitable for a management endpoint.
+     *
+     * Merges environment variables and YAML entries into a single map keyed by
+     * dot-notation names. Values matching sensitive patterns (secret, pass, key) are
+     * partially masked to avoid credential exposure.
+     *
+     * @return array<string, array{value: string}> Map of config keys to their (possibly masked) values.
+     */
     public function all(): array
     {
         $all = [];
