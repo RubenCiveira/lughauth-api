@@ -202,6 +202,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
                 email: $res['data']['email'] ?? null,
                 error: $res['data']['error'] ?? null,
                 tenant: $res['data']['tenant'] ?? null,
+                tenancyMode: $res['data']['tenancyMode'] ?? null,
                 tenantName: $res['data']['tenantName'] ?? null,
                 scope: $res['data']['scope'] ?? null,
                 audiences: $res['data']['audiences'] ?? [],

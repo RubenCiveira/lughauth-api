@@ -59,6 +59,7 @@ class LoginAdapter implements LoginGateway
         $username = $challenges->username ?? '';
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUserSubjet($theTenant, $username);
+        $root = $theTenant->isRoot();
         return new AuthenticationResult(
             valid: true,
             id: $theUser->uid(),
@@ -70,6 +71,7 @@ class LoginAdapter implements LoginGateway
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theUser),
             groups: $this->loadGroups($client, $theUser),
+            tenancyMode: $root ? 'global' : 'tenant',
         );
     }
 
@@ -82,6 +84,7 @@ class LoginAdapter implements LoginGateway
         $username = $challenges->username ?? '';
         $theTenant = $this->users->checkTenant($tenant, $username);
         $theUser = $this->users->checkUser($theTenant, $username);
+        $root = $theTenant->isRoot();
         return new AuthenticationResult(
             valid: true,
             id: $theUser->uid(),
@@ -93,6 +96,7 @@ class LoginAdapter implements LoginGateway
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theUser),
             groups: $this->loadGroups($client, $theUser),
+            tenancyMode: $root ? 'global' : 'tenant',
         );
     }
 
@@ -121,6 +125,7 @@ class LoginAdapter implements LoginGateway
         if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
             return $scopes;
         }
+        $root = $theTenant->isRoot();
         $this->markLoginOk($theUser);
         return new AuthenticationResult(
             valid: true,
@@ -133,6 +138,7 @@ class LoginAdapter implements LoginGateway
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theUser),
             groups: $this->loadGroups($client, $theUser),
+            tenancyMode: $root ? 'global' : 'tenant',
         );
     }
 

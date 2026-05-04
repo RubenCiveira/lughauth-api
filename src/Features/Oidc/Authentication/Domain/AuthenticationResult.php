@@ -71,7 +71,8 @@ class AuthenticationResult
         public readonly mixed $roles = null,
         public readonly ?array $groups = null,
         public readonly ?string $name = null,
-        public readonly ?string $email = null
+        public readonly ?string $email = null,
+        public readonly ?string $tenancyMode = null
     ) {
     }
 

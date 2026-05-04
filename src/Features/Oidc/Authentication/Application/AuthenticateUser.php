@@ -107,6 +107,7 @@ class AuthenticateUser
             'email' => $validation->email ?? $validation->id,
             'tenant' => $validation->tenant,
             'tenant-name' => $validation->tenantName,
+            'tenancy-mode' => $validation->tenancyMode,
             'scope' => $validation->scope,
             'roles' => $validation->roles,
             'groups' => $validation->groups

@@ -30,6 +30,7 @@ class PublicLoginAuthResponse
             email: $this->authData['email'],
             tenant: $this->authData['tenant'],
             tenantName: $this->authData['tenant-name'],
+            tenancyMode: $this->authData['tenancy-mode'],
             scope: $this->authData['scope'],
             audiences: $this->authData['aud'],
             roles: $this->authData['roles'],
