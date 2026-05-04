@@ -38,6 +38,7 @@ use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\RequestObjectValidator;
 use Civi\Lughauth\Features\Oidc\Par\Domain\Gateway\ParRequestGateway;
+use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\Oidc\Session\Domain\Gateway\TemporalKeysGateway;
@@ -189,19 +190,20 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $authResponse = new PublicLoginAuthResponse(
             tenant: 'tenant1',
-            authData: [
-                'aud' => ['client-123'],
-                'azp' => 'client-123',
-                'iss' => 'https://example.com/oauth/openid/tenant1',
-                'sub' => 'user-1',
-                'name' => 'User 1',
-                'email' => 'user@example.com',
-                'tenant' => 'tenant1',
-                'tenant-name' => 'Tenant 1',
-                'scope' => 'openid',
-                'roles' => [],
-                'groups' => []
-            ],
+            auth: new AuthenticationResult(
+                valid: true,
+                id: 'user-1',
+                name: 'User 1',
+                email: 'user@example.com',
+                tenant: 'tenant1',
+                tenantName: 'Tenant 1',
+                scope: 'openid',
+                audiences: ['client-123'],
+                roles: [],
+                groups: []
+            ),
+            issuer: 'https://example.com/oauth/openid/tenant1',
+            clientId: 'client-123',
             authExpiration: new \DateInterval('PT10M'),
             idData: [],
             idExpiration: new \DateInterval('PT10M'),

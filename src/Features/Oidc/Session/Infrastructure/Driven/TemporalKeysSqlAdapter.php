@@ -195,20 +195,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         $stmt->execute();
         if ($row = $stmt->fetch()) {
             $res = json_decode($row[0], true);
-            $data = new AuthenticationResult(
-                valid: $res['data']['valid'] ?? false,
-                id: $res['data']['id'] ?? null,
-                name: $res['data']['name'] ?? null,
-                email: $res['data']['email'] ?? null,
-                error: $res['data']['error'] ?? null,
-                tenant: $res['data']['tenant'] ?? null,
-                tenancyMode: $res['data']['tenancyMode'] ?? null,
-                tenantName: $res['data']['tenantName'] ?? null,
-                scope: $res['data']['scope'] ?? null,
-                audiences: $res['data']['audiences'] ?? [],
-                roles: $res['data']['roles'] ?? null,
-                groups: $res['data']['groups'] ?? null
-            );
+            $data = AuthenticationResult::deserialize($res['data'] ?? []);
             $client = new ClientData(
                 id: $res['client']['id'] ?? '-',
                 grants: $res['client']['grants'] ?? [],

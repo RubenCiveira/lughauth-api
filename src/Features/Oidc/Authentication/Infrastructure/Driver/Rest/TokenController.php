@@ -199,7 +199,9 @@ class TokenController
             'roles' => $auth->roles ?? [],
             'groups' => $auth->groups ?? []
         ];
-        $detail['tenancy'] = 'mode:' . $auth->tenancyMode;
+        if( 'global' == $auth->tenancyMode ) {
+            $detail['tenancy'] = 'global';
+        }
         if ($grant === 'client_credentials') {
             $detail['client_id'] = $client->id;
             $detail['token_use'] = 'client_credentials';

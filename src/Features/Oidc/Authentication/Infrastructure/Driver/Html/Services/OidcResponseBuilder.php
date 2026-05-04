@@ -42,7 +42,7 @@ class OidcResponseBuilder
         if ($hasCode) {
             $location .= '?state=' . $flow->state;
             $data = new TemporalAuthCode(
-                data: $auth->asAuthenticationResult(),
+                data: $auth->auth,
                 client: $client,
                 nonce: $flow->nonce,
                 request: $authRequest,
@@ -58,9 +58,9 @@ class OidcResponseBuilder
         $hasAccess = $this->hasResponse($flow->responseType, 'token');
         $accessToken = null;
         if ($hasId) {
-            $idData = array_merge($auth->authData, $auth->idData);
+            $idData = array_merge($auth->accessTokenClaims(), $auth->idData);
             if ($hasAccess) {
-                $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
+                $accessToken = $this->keys->sign($auth->tenant, $auth->accessTokenClaims(), $auth->authExpiration);
                 $idData['at_hash'] = AuthenticateUser::generateHash($accessToken);
             }
             $location .= '&id_token=' . $this->keys->sign($auth->tenant, $idData, $auth->idExpiration);
@@ -69,7 +69,7 @@ class OidcResponseBuilder
             $now = new \DateTimeImmutable();
             $until = $now->add($auth->authExpiration);
             if ($accessToken === null) {
-                $accessToken = $this->keys->sign($auth->tenant, $auth->authData, $auth->authExpiration);
+                $accessToken = $this->keys->sign($auth->tenant, $auth->accessTokenClaims(), $auth->authExpiration);
             }
             $location .= '&access_token=' . $accessToken;
             $location .= '&expires_in=' . ($until->getTimestamp() - $now->getTimestamp());

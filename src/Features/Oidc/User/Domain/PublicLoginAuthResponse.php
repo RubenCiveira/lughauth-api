@@ -12,7 +12,9 @@ class PublicLoginAuthResponse
 {
     public function __construct(
         public readonly string $tenant,
-        public readonly array $authData,
+        public readonly AuthenticationResult $auth,
+        public readonly string $issuer,
+        public readonly string $clientId,
         public readonly DateInterval $authExpiration,
         public readonly array $idData,
         public readonly DateInterval $idExpiration,
@@ -21,21 +23,9 @@ class PublicLoginAuthResponse
     ) {
     }
 
-    public function asAuthenticationResult(): AuthenticationResult
+    public function accessTokenClaims(): array
     {
-        return new AuthenticationResult(
-            valid: true,
-            id: $this->authData['sub'],
-            name: $this->authData['name'],
-            email: $this->authData['email'],
-            tenant: $this->authData['tenant'],
-            tenantName: $this->authData['tenant-name'],
-            tenancyMode: $this->authData['tenancy-mode'],
-            scope: $this->authData['scope'],
-            audiences: $this->authData['aud'],
-            roles: $this->authData['roles'],
-            groups: $this->authData['groups']
-        );
+        return $this->auth->toJwtUserClaims($this->issuer, $this->clientId);
     }
 
 }

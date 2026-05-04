@@ -98,20 +98,6 @@ class AuthenticateUser
             throw new LoginException($validation, $validation->error ?? '', 401, null, $challenges);
         }
         $session = Uuid::uuid4()->toString();
-        $authData = [
-            'aud' => $this->tokenAudiences($request->client->id, $validation->audiences ?? []),
-            'azp' => $request->client->id,
-            'iss' => $issuer,
-            'sub' => $validation->id,
-            'name' => $validation->name ?? $validation->id,
-            'email' => $validation->email ?? $validation->id,
-            'tenant' => $validation->tenant,
-            'tenant-name' => $validation->tenantName,
-            'tenancy-mode' => $validation->tenancyMode,
-            'scope' => $validation->scope,
-            'roles' => $validation->roles,
-            'groups' => $validation->groups
-        ];
         $idData = [
             'typ' => 'ID',
             'nonce' => $nonce,
@@ -125,23 +111,15 @@ class AuthenticateUser
 
         return new PublicLoginAuthResponse(
             tenant: $validation->tenant ?? '',
-            authData: $authData,
+            auth: $validation,
+            issuer: $issuer,
+            clientId: $request->client->id,
             authExpiration: new DateInterval("PT10M"),
             idData: $idData,
             idExpiration: new DateInterval("PT10M"),
             sessionId: $sessionId,
             sessionExpiration: $sessionExpiration
         );
-    }
-
-    /**
-     * @return (mixed|string)[]
-     *
-     * @psalm-return non-empty-list<mixed|string>
-     */
-    private function tokenAudiences(string $clientId, array $audiences): array
-    {
-        return array_values(array_unique([$clientId, ...$audiences]));
     }
 
     public static function generateHash(string $value): string

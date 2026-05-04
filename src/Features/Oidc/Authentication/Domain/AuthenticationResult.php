@@ -76,4 +76,61 @@ class AuthenticationResult
     ) {
     }
 
+    public function toJwtUserClaims(string $issuer, string $clientId): array
+    {
+        $audiences = array_values(array_unique([$clientId, ...($this->auth->audiences ?? [])]));
+        return [
+            'aud' => $audiences,
+            'azp' => $clientId,
+            'iss' => $issuer,
+            'sub' => $this->id,
+            'name' => $this->name ?? $this->id,
+            'email' => $this->email ?? $this->id,
+            'tenant' => $this->tenant,
+            'tenant-name' => $this->tenantName,
+            'tenancy-mode' => $this->tenancyMode,
+            'scope' => $this->scope,
+            'roles' => $this->roles,
+            'groups' => $this->groups,
+        ];
+    }
+
+    public function serialize(): array
+    {
+        return [
+            'valid' => $this->valid,
+            'id' => $this->id,
+            'error' => $this->error,
+            'errorMessage' => $this->errorMessage,
+            'tenant' => $this->tenant,
+            'tenantName' => $this->tenantName,
+            'tenancyMode' => $this->tenancyMode,
+            'scope' => $this->scope,
+            'audiences' => $this->audiences,
+            'roles' => $this->roles,
+            'groups' => $this->groups,
+            'name' => $this->name,
+            'email' => $this->email,
+        ];
+    }
+
+    public static function deserialize(array $data): self
+    {
+        return new self(
+            valid: $data['valid'] ?? false,
+            id: $data['id'] ?? null,
+            error: $data['error'] ?? null,
+            errorMessage: $data['errorMessage'] ?? null,
+            tenant: $data['tenant'] ?? null,
+            tenantName: $data['tenantName'] ?? null,
+            tenancyMode: $data['tenancyMode'] ?? null,
+            scope: $data['scope'] ?? null,
+            audiences: $data['audiences'] ?? [],
+            roles: $data['roles'] ?? null,
+            groups: $data['groups'] ?? null,
+            name: $data['name'] ?? null,
+            email: $data['email'] ?? null,
+        );
+    }
+
 }

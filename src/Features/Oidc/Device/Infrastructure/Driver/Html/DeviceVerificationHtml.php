@@ -116,7 +116,7 @@ class DeviceVerificationHtml
             }
             $result = $this->executeStep($input, $response, null, $step, $csid);
             if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
-                $approved = $this->deviceAuth->approveByUserCode($tenant, $queryCode, $result->authResponse->asAuthenticationResult());
+                $approved = $this->deviceAuth->approveByUserCode($tenant, $queryCode, $result->authResponse->auth);
                 if (!$approved) {
                     return $this->renderMessage($request, $response, 'Device approval failed', $tenant);
                 }
