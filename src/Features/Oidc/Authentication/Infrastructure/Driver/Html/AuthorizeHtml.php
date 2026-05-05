@@ -30,10 +30,13 @@ use Civi\Lughauth\Features\Oidc\Client\Domain\ClientData;
 use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\Par\Application\Usecase\ResolveParRequest\ResolveParRequestUsecase;
 use Civi\Lughauth\Features\Oidc\Par\Domain\Exception\ParException;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use OpenApi\Attributes as OA;
 
 class AuthorizeHtml
 {
+    use LoggerAwareTrait;
+
     public function __construct(
         private readonly Context $context,
         private readonly ClientStoreGateway $clients,
@@ -77,6 +80,14 @@ class AuthorizeHtml
     {
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
+        $this->logDebug('OIDC authorize enter', [
+            'tenant' => $tenant,
+            'clientId' => $flow->clientId,
+            'prompt' => $flow->prompt,
+            'sessionId' => (string) ($flow->sessionId ?? ''),
+            'state' => $flow->state,
+            'nonce' => $flow->nonce,
+        ]);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $pkceError = $this->requirePkce($flow, $response);
         if ($pkceError !== null) {
@@ -84,6 +95,11 @@ class AuthorizeHtml
         }
         $authRequest = $this->buildAuthRequest($flow, $client);
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
+        $this->logDebug('OIDC authorize session lookup', [
+            'tenant' => $tenant,
+            'sessionId' => (string) ($flow->sessionId ?? ''),
+            'sessionFound' => $sess ? 'true' : 'false',
+        ]);
         if ($sess) {
             return $this->cisdPage($request, $response, $flow, $authRequest);
         } elseif ("none" === $flow->prompt) {
@@ -99,6 +115,15 @@ class AuthorizeHtml
         $body = (array) ($request->getParsedBody() ?? []);
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
+        $this->logDebug('OIDC check-session enter', [
+            'tenant' => $tenant,
+            'clientId' => $flow->clientId,
+            'prompt' => $flow->prompt,
+            'sessionId' => (string) ($flow->sessionId ?? ''),
+            'hasCsid' => isset($body['csid']) ? 'true' : 'false',
+            'state' => $flow->state,
+            'nonce' => $flow->nonce,
+        ]);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
         $pkceError = $this->requirePkce($flow, $response);
         if ($pkceError !== null) {
@@ -107,21 +132,40 @@ class AuthorizeHtml
         $authRequest = $this->buildAuthRequest($flow, $client);
         $csid = $this->securer->verifyToken($body['csid']);
         if ($csid === null) {
+            $this->logWarning('OIDC check-session invalid csid', [
+                'tenant' => $tenant,
+                'sessionId' => (string) ($flow->sessionId ?? ''),
+            ]);
             return $this->redirectToLogin($response, $flow, $authRequest);
         }
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
         if ($sess) {
-            if ($csid !== $sess->csid) {
-                return $this->redirectToLogin($response, $flow, $authRequest);
-            }
+            $this->logDebug('OIDC check-session session loaded', [
+                'tenant' => $tenant,
+                'sessionId' => (string) ($flow->sessionId ?? ''),
+                'sessionUserId' => $sess->userId,
+                'sessionClientId' => $sess->clientId,
+            ]);
             $challenges = (new ChallengesState())
                 ->withUsername($sess->userId)
                 ->withMfa($sess->withMfa)
                 ->withSession(true);
-            // auth-csid
-            $auth = $this->authenticator->sessionAuthenticated($authRequest, $challenges, $tenant, $flow->issuer, $csid, $flow->state, $flow->nonce);
+            $auth = $this->authenticator->sessionAuthenticated(
+                $authRequest,
+                $challenges,
+                $tenant,
+                $flow->issuer,
+                $sess->csid,
+                (string) ($flow->sessionId ?? ''),
+                $flow->state,
+                $flow->nonce
+            );
             return $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response);
         } else {
+            $this->logWarning('OIDC check-session missing session', [
+                'tenant' => $tenant,
+                'sessionId' => (string) ($flow->sessionId ?? ''),
+            ]);
             return $this->redirectToLogin($response, $flow, $authRequest);
         }
     }
@@ -264,6 +308,11 @@ class AuthorizeHtml
 
     private function redirectError(string $tenant, string $redirect, string $error, ResponseInterface $response): ResponseInterface
     {
+        $this->logWarning('OIDC redirect error', [
+            'tenant' => $tenant,
+            'redirect' => $redirect,
+            'error' => $error,
+        ]);
         $response = $response->withStatus(302)->withHeader('Location', $redirect . '#error=' . urlencode($error));
         return $this->cookies->clearSession($response, $tenant);
     }
@@ -327,6 +376,12 @@ class AuthorizeHtml
         OidcFlowContext $flow,
         AuthenticationRequest $authRequest
     ): ResponseInterface {
+        $this->logDebug('OIDC redirectToLogin', [
+            'tenant' => $flow->tenant,
+            'clientId' => $flow->clientId,
+            'prompt' => $flow->prompt,
+            'sessionId' => (string) ($flow->sessionId ?? ''),
+        ]);
         if ($flow->prompt === 'none') {
             return $this->redirectError($flow->tenant, $flow->redirect, 'Only refresh from same device', $response);
         } else {
@@ -357,7 +412,11 @@ class AuthorizeHtml
             $flow->tenant,
             $flow->state,
             $flow->nonce,
-            ['prompt' => $flow->prompt]
+            [
+                'prompt' => $flow->prompt,
+                'code_challenge' => $flow->codeChallenge,
+                'code_challenge_method' => $flow->codeChallengeMethod,
+            ]
         );
         $response->getBody()->write($this->decorator->getFullPage($request, 'Mfa', $js . "<h1>Verifiy login source...</h1>"
             . "<form id=\"refresh\" action=\"".$url."\" method=\"POST\">"

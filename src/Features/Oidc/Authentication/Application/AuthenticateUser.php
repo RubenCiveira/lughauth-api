@@ -31,6 +31,7 @@ class AuthenticateUser
         string $tenant,
         string $issuer,
         string $csid,
+        string $sessionId,
         string $state,
         string $nonce
     ): PublicLoginAuthResponse {
@@ -42,7 +43,8 @@ class AuthenticateUser
             $csid,
             $state,
             $nonce,
-            false
+            false,
+            $sessionId
         );
     }
 
@@ -63,7 +65,8 @@ class AuthenticateUser
             $csid,
             $state,
             $nonce,
-            false
+            false,
+            null
         );
     }
 
@@ -86,7 +89,8 @@ class AuthenticateUser
             $csid,
             $state,
             $nonce,
-            true
+            true,
+            null
         );
     }
 
@@ -98,18 +102,25 @@ class AuthenticateUser
         string $csid,
         string $state,
         string $nonce,
-        bool $emitLoginEvent
+        bool $emitLoginEvent,
+        ?string $activeSessionId
     ): PublicLoginAuthResponse {
         if (!$validation->valid) {
             throw new LoginException($validation, $validation->error ?? '', 401, null, $challenges);
         }
 
-        $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid);
-        if ($existingSessionId !== null && $existingSessionId !== '') {
-            return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $existingSessionId);
+        if ($challenges->session && $activeSessionId !== null && $activeSessionId !== '') {
+            return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $activeSessionId);
         }
 
-        if ($emitLoginEvent && !$challenges->session) {
+        if (!$challenges->session) {
+            $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid);
+            if ($existingSessionId !== null && $existingSessionId !== '') {
+                return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $existingSessionId);
+            }
+        }
+
+        if ($emitLoginEvent) {
             $this->dispatcher->dispatch($validation);
         }
 
