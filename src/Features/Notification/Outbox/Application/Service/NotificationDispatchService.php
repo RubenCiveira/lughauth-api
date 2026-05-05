@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Notification\Outbox\Application\Service;
 
 use DateTimeImmutable;
 use Throwable;
+use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageFilter;
@@ -37,6 +38,7 @@ class NotificationDispatchService
     private const int DEFAULT_MAX_RETRIES   = 3;
     private const int DISPATCH_RATE         = 10;
     private const int RETENTION_HOURS       = 168; // 7 days
+    private const int LOCK_TTL_SECONDS      = 120;
 
 
     public function __construct(
@@ -108,7 +110,12 @@ class NotificationDispatchService
     private function isPending(Message $message, DateTimeImmutable $now): bool
     {
         $sendAt = $message->getSendAt();
-        return null === $sendAt || $sendAt <= $now;
+        if (!(null === $sendAt || $sendAt <= $now)) {
+            return false;
+        }
+
+        $lockAt = $message->getLockAt();
+        return null === $lockAt || $lockAt <= $now->modify('-' . self::LOCK_TTL_SECONDS . ' seconds');
     }
 
     // ---------------------------------------------------------------------------
@@ -121,19 +128,24 @@ class NotificationDispatchService
      */
     private function dispatchMessage(Message $message): void
     {
-        $smtpConfig = $this->resolveSmtpConfig($message);
+        $claimed = $this->claimForDispatch($message);
+        if ($claimed === null) {
+            return;
+        }
+
+        $smtpConfig = $this->resolveSmtpConfig($claimed);
         $maxRetries = $smtpConfig?->getMaxRetries() ?? self::DEFAULT_MAX_RETRIES;
 
-        if ($message->getRetries() >= $maxRetries) {
+        if ($claimed->getRetries() >= $maxRetries) {
             $this->logWarning(
                 "Message uid={uid} exceeded max retries ({max}), skipping",
-                ['uid' => $message->uid(), 'max' => $maxRetries]
+                ['uid' => $claimed->uid(), 'max' => $maxRetries]
             );
             return;
         }
 
         try {
-            $mail = $this->buildMail($message);
+            $mail = $this->buildMail($claimed);
 
             if (null !== $smtpConfig) {
                 $this->mailSender->sendWithConfig($smtpConfig, $mail);
@@ -141,14 +153,24 @@ class NotificationDispatchService
                 $this->mailSender->send($mail);
             }
 
-            $this->messageWriter->delete($message);
-            $this->logDebug("Dispatched message uid={uid}", ['uid' => $message->uid()]);
+            $this->messageWriter->delete($claimed);
+            $this->logDebug("Dispatched message uid={uid}", ['uid' => $claimed->uid()]);
         } catch (Throwable $ex) {
             $this->logWarning(
                 "Failed to dispatch message uid={uid}, incrementing retries",
-                ['uid' => $message->uid()]
+                ['uid' => $claimed->uid(), 'error' => $ex->getMessage()]
             );
-            $this->incrementRetries($message);
+            $this->incrementRetries($claimed);
+        }
+    }
+
+    private function claimForDispatch(Message $message): ?Message
+    {
+        try {
+            $claimed = $message->withLockAt(new DateTimeImmutable('now'));
+            return $this->messageWriter->update($message, $claimed);
+        } catch (OptimistLockException) {
+            return null;
         }
     }
 

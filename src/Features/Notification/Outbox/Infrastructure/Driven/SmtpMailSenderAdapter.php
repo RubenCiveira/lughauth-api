@@ -63,7 +63,7 @@ class SmtpMailSenderAdapter implements SmtpMailSenderGateway
         $mailer = $this->buildBaseMailer();
 
         $mailer->Host     = $config->getHost();
-        $mailer->Port     = $config->isUseTls() ? 465 : 587;
+        $mailer->Port     = 587;
         $mailer->Username = $config->getLogin();
         $mailer->Password = $config->getPlainPassword($this->cypher);
         $mailer->SMTPAuth = true;
