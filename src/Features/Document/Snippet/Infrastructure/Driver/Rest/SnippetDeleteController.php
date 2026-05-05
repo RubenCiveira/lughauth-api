@@ -76,7 +76,7 @@ class SnippetDeleteController
             $filter = new SnippetFilter(
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
-                global: $params['global'] ? !!$params['global'] : null,
+                global: isset($params['global']) ? filter_var($params['global'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
                 code: $params['code'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
