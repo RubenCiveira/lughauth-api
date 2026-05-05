@@ -22,8 +22,7 @@ class LoginUsecase
         AuthenticationRequest $client,
         ChallengesState $challenges
     ): AuthenticationResult {
-        $result = $this->gateway->fillPreLoadById($tenant, $client, $challenges);
-        return $result;
+        return $this->gateway->fillPreLoadById($tenant, $client, $challenges);
     }
 
     public function fillPreAuthenticated(
@@ -31,8 +30,7 @@ class LoginUsecase
         AuthenticationRequest $client,
         ChallengesState $challenges
     ): AuthenticationResult {
-        $result = $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
-        return $result;
+        return $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
     }
 
     public function validatedUserData(
@@ -41,7 +39,6 @@ class LoginUsecase
         string $password,
         AuthenticationRequest $client
     ): AuthenticationResult {
-        $result = $this->gateway->validatedUserData($tenant, $username, $password, $client);
-        return $result;
+        return $this->gateway->validatedUserData($tenant, $username, $password, $client);
     }
 }

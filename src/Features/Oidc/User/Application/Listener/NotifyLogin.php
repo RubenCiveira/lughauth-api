@@ -23,8 +23,7 @@ class NotifyLogin
         private readonly EnqueueNotificationUsecase $enqueue,
         private readonly AppConfig $config,
         private readonly Context $context,
-    )
-    {
+    ) {
 
     }
     public function __invoke(AuthenticationResult $auth)
