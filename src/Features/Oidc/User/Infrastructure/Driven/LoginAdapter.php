@@ -67,7 +67,7 @@ class LoginAdapter implements LoginGateway
             email: $theUser->getEmail(),
             tenant: $theTenant->uid(),
             tenantName: $theTenant->getName(),
-            scope: $client->scope,
+            scope: $this->loadScopes($theTenant, $client->scope),
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theUser),
             groups: $this->loadGroups($client, $theUser),
@@ -92,7 +92,7 @@ class LoginAdapter implements LoginGateway
             email: $theUser->getEmail(),
             tenant: $theTenant->uid(),
             tenantName: $theTenant->getName(),
-            scope: $client->scope,
+            scope: $this->loadScopes($theTenant, $client->scope),
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theUser),
             groups: $this->loadGroups($client, $theUser),
@@ -134,7 +134,7 @@ class LoginAdapter implements LoginGateway
             email: $theUser->getEmail(),
             tenant: $theTenant->uid(),
             tenantName: $theTenant->getName(),
-            scope: $client->scope,
+            scope: $this->loadScopes($theTenant, $client->scope),
             audiences: $client->audiences,
             roles: $this->loadRoles($client, $theUser),
             groups: $this->loadGroups($client, $theUser),
@@ -228,6 +228,12 @@ class LoginAdapter implements LoginGateway
         } else {
             $this->users->updateCode($code->markLoginOk());
         }
+    }
+
+    private function loadScopes(Tenant $tenant, string $scope): string
+    {
+        $scopes = array_diff(explode(' ', $scope), ['platform:global_access']);
+        return implode(' ', $tenant->isRoot() ? ['platform:global_access', ...$scopes] : $scopes);
     }
 
     /**

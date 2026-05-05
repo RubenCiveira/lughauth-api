@@ -82,9 +82,33 @@ class Identity
      * @param string $scope The scope to check.
      * @return bool Always returns false (not yet implemented).
      */
-    public function hasScope(string $scope): bool
+    public function hasScope(string $scopeName): bool
     {
-        return $this->scope !== null && in_array($scope, explode(' ', $this->scope), true);
+        if (null === $this->scope) {
+            return false;
+        }
+        $scope = strtolower($scopeName);
+        $scopes = strtolower($this->scope);
+        return in_array($scope, explode(' ', $scopes), true);
+    }
+
+    /**
+     * Checks if the identity has at least one of the given scope.
+     *
+     * @param string ...$scopes One or more roles to check.
+     * @return bool True if any of the roles match; false otherwise.
+     */
+    public function hasAnyScope(string ...$scopes): bool
+    {
+        if (null === $this->scope) {
+            return false;
+        }
+        foreach ($scopes as $scope) {
+            if ($this->hasScope($scope)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -112,14 +136,16 @@ class Identity
      * @param string $role The role to check.
      * @return bool True if the role is present; false otherwise.
      */
-    public function hasRole(string $role): bool
+    public function hasRole(string $roleName): bool
     {
         if (null === $this->roles || empty($this->roles)) {
             return false;
         }
+        $role = strtolower($roleName);
+        $roles = array_map(fn ($item) => strtolower($item), $this->roles);
 
         // Match exact
-        if (in_array($role, $this->roles, true)) {
+        if (in_array($role, $roles, true)) {
             return true;
         }
 
@@ -127,7 +153,7 @@ class Identity
         if (str_ends_with($role, ':*')) {
             $prefix = substr($role, 0, -1); // keep trailing ":" (e.g. "platform:")
 
-            foreach ($this->roles as $r) {
+            foreach ($roles as $r) {
                 if (str_starts_with($r, $prefix)) {
                     return true;
                 }
