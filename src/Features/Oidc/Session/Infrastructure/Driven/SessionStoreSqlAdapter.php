@@ -48,6 +48,18 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     }
 
     #[Override]
+    public function findActiveSessionIdByCsid(string $csid): ?string
+    {
+        $now = new \DateTime();
+        $stmt = $this->pdo->prepare('SELECT session FROM _oauth_session WHERE csid = :csid AND expiration > :now ORDER BY expiration DESC LIMIT 1');
+        $stmt->bindValue('csid', $csid, PDO::PARAM_STR);
+        $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
+        $stmt->execute();
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return is_array($row) && isset($row['session']) ? (string) $row['session'] : null;
+    }
+
+    #[Override]
     public function saveSession(
         string $state,
         ClientData $clientDetails,

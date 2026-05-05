@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\Authentication\Application;
 
 use DateInterval;
 use Ramsey\Uuid\Uuid;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
@@ -18,6 +19,7 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 class AuthenticateUser
 {
     public function __construct(
+        private readonly EventDispatcherInterface $dispatcher,
         private readonly LoginGateway $loginRepository,
         private readonly SessionStoreGateway $sessionStore
     ) {
@@ -39,7 +41,8 @@ class AuthenticateUser
             $issuer,
             $csid,
             $state,
-            $nonce
+            $nonce,
+            false
         );
     }
 
@@ -59,7 +62,8 @@ class AuthenticateUser
             $issuer,
             $csid,
             $state,
-            $nonce
+            $nonce,
+            false
         );
     }
 
@@ -81,7 +85,8 @@ class AuthenticateUser
             $issuer,
             $csid,
             $state,
-            $nonce
+            $nonce,
+            true
         );
     }
 
@@ -92,22 +97,45 @@ class AuthenticateUser
         string $issuer,
         string $csid,
         string $state,
-        string $nonce
+        string $nonce,
+        bool $emitLoginEvent
     ): PublicLoginAuthResponse {
         if (!$validation->valid) {
             throw new LoginException($validation, $validation->error ?? '', 401, null, $challenges);
         }
-        $session = Uuid::uuid4()->toString();
-        $idData = [
-            'typ' => 'ID',
-            'nonce' => $nonce,
-            'session_state' => $session,
-            's_hash' => self::generateHash($state),
-        ];
+
+        $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid);
+        if ($existingSessionId !== null && $existingSessionId !== '') {
+            return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $existingSessionId);
+        }
+
+        if ($emitLoginEvent && !$challenges->session) {
+            $this->dispatcher->dispatch($validation);
+        }
+
         $sessionId = Uuid::uuid4()->toString();
         $sessionExpiration = new DateInterval("P15D");
 
         $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration);
+
+        return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $sessionId);
+    }
+
+    private function buildResponse(
+        AuthenticationResult $validation,
+        AuthenticationRequest $request,
+        string $issuer,
+        string $state,
+        string $nonce,
+        string $sessionId
+    ): PublicLoginAuthResponse {
+        $idData = [
+            'typ' => 'ID',
+            'nonce' => $nonce,
+            'session_state' => $sessionId,
+            's_hash' => self::generateHash($state),
+        ];
+        $sessionExpiration = new DateInterval("P15D");
 
         return new PublicLoginAuthResponse(
             tenant: $validation->tenant ?? '',

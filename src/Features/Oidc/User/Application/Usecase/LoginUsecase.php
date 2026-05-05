@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Application\Usecase;
 
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
@@ -14,7 +13,6 @@ use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\LoginGateway;
 class LoginUsecase
 {
     public function __construct(
-        private readonly EventDispatcherInterface $dispacher,
         private readonly LoginGateway $gateway
     ) {
     }
@@ -25,9 +23,6 @@ class LoginUsecase
         ChallengesState $challenges
     ): AuthenticationResult {
         $result = $this->gateway->fillPreLoadById($tenant, $client, $challenges);
-        if ($result->valid && !$challenges->session) {
-            $this->dispacher->dispatch($result);
-        }
         return $result;
     }
 
@@ -37,9 +32,6 @@ class LoginUsecase
         ChallengesState $challenges
     ): AuthenticationResult {
         $result = $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
-        if ($result->valid && !$challenges->session) {
-            $this->dispacher->dispatch($result);
-        }
         return $result;
     }
 
@@ -50,9 +42,6 @@ class LoginUsecase
         AuthenticationRequest $client
     ): AuthenticationResult {
         $result = $this->gateway->validatedUserData($tenant, $username, $password, $client);
-        if ($result->valid) {
-            $this->dispacher->dispatch($result);
-        }
         return $result;
     }
 }

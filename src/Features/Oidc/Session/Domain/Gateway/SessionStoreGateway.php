@@ -14,6 +14,8 @@ interface SessionStoreGateway
 {
     public function loadSession(string $state): ?SessionInfo;
 
+    public function findActiveSessionIdByCsid(string $csid): ?string;
+
     public function saveSession(
         string $state,
         ClientData $clientDetails,

@@ -5,27 +5,59 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Application\Listener;
 
-use Civi\Lughauth\Features\Notification\Message\Domain\Message;
-use Civi\Lughauth\Features\Notification\Message\Application\Usecase\SendMessage;
+use Throwable;
+use Civi\Lughauth\Shared\AppConfig;
+use Civi\Lughauth\Shared\Context;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
+use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\EnqueueNotificationCommand;
+use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\EnqueueNotificationUsecase;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
 class NotifyLogin
 {
-    public function __construct(private readonly SendMessage $sender)
+    use LoggerAwareTrait;
+
+    public function __construct(
+        private readonly EnqueueNotificationUsecase $enqueue,
+        private readonly AppConfig $config,
+        private readonly Context $context,
+    )
     {
 
     }
     public function __invoke(AuthenticationResult $auth)
     {
-        /*
-        $message = new Message(
-            targetName: 'Ruben Civeira',
-            targetAddress: 'rubenciveira@gmail.com',
-            subject: 'Hola ' . ($auth->id ?? ''),
-            txtContent: 'Como estas',
-            htmlContent: '<h1>Como estas</h1>'
-        );
-        $this->sender->send($message);
-        */
+        if (!$auth->valid) {
+            return;
+        }
+
+        $recipient = 'rubenciveira@gmail.com';
+        // trim((string) $this->config->get('oidc.notify.login.to', (string) $this->config->get('mailer.from.email', '')));
+        if ($recipient === '') {
+            return;
+        }
+
+        $tenant = $auth->tenant ? new TenantRef($auth->tenant) : null;
+        $userName = $auth->name ?? $auth->email ?? $auth->id ?? 'unknown';
+        $ip = $this->context->getConnection()->source;
+        $date = (new \DateTimeImmutable())->format(DATE_ATOM);
+
+        try {
+            $this->enqueue->enqueue(new EnqueueNotificationCommand(
+                templateCode: 'user.login',
+                channel: TemplateChannelOptions::MAIL,
+                recipient: $recipient,
+                tenant: $tenant,
+                variables: [
+                    'user' => ['name' => $userName],
+                    'login' => ['ip' => $ip, 'date' => $date],
+                ],
+                urgent: true,
+            ));
+        } catch (Throwable $ex) {
+            $this->logError('Unable to enqueue login notification: ' . $ex->getMessage());
+        }
     }
 }
