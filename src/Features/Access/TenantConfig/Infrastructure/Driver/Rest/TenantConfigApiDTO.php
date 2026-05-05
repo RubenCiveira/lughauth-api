@@ -95,7 +95,7 @@ class TenantConfigApiDTO
     #[OA\Property(
         property: "registerdEmail",
         title: "registerd email",
-        description:"El registerd email de tenant config",
+        description:"Email send when a user register",
         type: "string"
     )]
     public ?string $registerdEmail = null;
