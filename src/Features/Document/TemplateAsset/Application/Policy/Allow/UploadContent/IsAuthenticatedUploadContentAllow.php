@@ -26,7 +26,7 @@ class IsAuthenticatedUploadContentAllow
         try {
             $userContext = $this->context->getIdentity();
             if ($proposal->isAllowed()) {
-                if (! !$userContext->anonymous) {
+                if ($userContext->anonymous) {
                     $proposal->deny('Disabled if not IsAuthenticatedUploadContent');
                 }
             }

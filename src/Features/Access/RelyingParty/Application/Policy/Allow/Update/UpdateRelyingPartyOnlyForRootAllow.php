@@ -26,7 +26,7 @@ class UpdateRelyingPartyOnlyForRootAllow
         try {
             $userContext = $this->context->getIdentity();
             if ($proposal->isAllowed()) {
-                if (! $userContext->hasAnyRole('platform:admin')) {
+                if (!$userContext->hasAnyScope('platform:global_access') || !$userContext->hasAnyRole('admin')) {
                     $proposal->deny('Disabled if not UpdateRelyingPartyOnlyForRoot');
                 }
             }

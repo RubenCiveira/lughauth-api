@@ -67,18 +67,18 @@ class ApiKeyClientPlugin extends MicroPlugin
     {
         $listener->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
         $listener->registerListener(ApiKeyClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, UpdateApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
         $listener->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientListAllowDecision::class, IsAuthenticatedListAllow::class);
         $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, DeleteApiKeyClientOnlyForRootAllow::class);
         $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $listener->registerListener(ApiKeyClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
         $listener->registerListener(ApiKeyClientEnableAllowDecision::class, EnableApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
         $listener->registerListener(ApiKeyClientDisableAllowDecision::class, DisableApiKeyClientOnlyForRootAllow::class);
+        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

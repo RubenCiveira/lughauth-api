@@ -67,18 +67,18 @@ class TrustedClientPlugin extends MicroPlugin
     {
         $listener->registerListener(TrustedClientCreateAllowDecision::class, CreateTrustedClientOnlyForRootAllow::class);
         $listener->registerListener(TrustedClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $listener->registerListener(TrustedClientUpdateAllowDecision::class, UpdateTrustedClientOnlyForRootAllow::class);
-        $listener->registerListener(TrustedClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(TrustedClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $listener->registerListener(TrustedClientRetrieveAllowDecision::class, RetrieveTrustedClientOnlyForRootAllow::class);
-        $listener->registerListener(TrustedClientListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(TrustedClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
         $listener->registerListener(TrustedClientListAllowDecision::class, ListTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientListAllowDecision::class, IsAuthenticatedListAllow::class);
         $listener->registerListener(TrustedClientDeleteAllowDecision::class, DeleteTrustedClientOnlyForRootAllow::class);
         $listener->registerListener(TrustedClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $listener->registerListener(TrustedClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
         $listener->registerListener(TrustedClientEnableAllowDecision::class, EnableTrustedClientOnlyForRootAllow::class);
-        $listener->registerListener(TrustedClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
         $listener->registerListener(TrustedClientDisableAllowDecision::class, DisableTrustedClientOnlyForRootAllow::class);
+        $listener->registerListener(TrustedClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

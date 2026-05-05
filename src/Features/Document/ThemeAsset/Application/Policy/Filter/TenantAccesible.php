@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible Theme asset");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:*')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $themeTenantTenantAccesible = $userContext->tenant;
                 if (!$userContext->anonymous && null !== $themeTenantTenantAccesible) {
                     $event->themeAssetFilter = $event->themeAssetFilter->withThemeTenantTenantAccesible($themeTenantTenantAccesible);

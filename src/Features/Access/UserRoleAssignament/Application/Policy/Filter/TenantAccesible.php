@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible User role assignament");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:*')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $userTenantTenantAccesible = $userContext->tenant;
                 if (!$userContext->anonymous && null !== $userTenantTenantAccesible) {
                     $event->userRoleAssignamentFilter = $event->userRoleAssignamentFilter->withUserTenantTenantAccesible($userTenantTenantAccesible);

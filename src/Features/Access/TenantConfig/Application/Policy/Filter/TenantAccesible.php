@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible Tenant config");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:*')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $tenantTenantAccesible = $userContext->tenant;
                 if (!$userContext->anonymous && null !== $tenantTenantAccesible) {
                     $event->tenantConfigFilter = $event->tenantConfigFilter->withTenantTenantAccesible($tenantTenantAccesible);

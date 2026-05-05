@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible User group membership");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:*')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $userTenantTenantAccesible = $userContext->tenant;
                 if (!$userContext->anonymous && null !== $userTenantTenantAccesible) {
                     $event->userGroupMembershipFilter = $event->userGroupMembershipFilter->withUserTenantTenantAccesible($userTenantTenantAccesible);

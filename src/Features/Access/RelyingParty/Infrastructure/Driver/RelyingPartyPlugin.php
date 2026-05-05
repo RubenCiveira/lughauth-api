@@ -67,18 +67,18 @@ class RelyingPartyPlugin extends MicroPlugin
     {
         $listener->registerListener(RelyingPartyCreateAllowDecision::class, CreateRelyingPartyOnlyForRootAllow::class);
         $listener->registerListener(RelyingPartyCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(RelyingPartyUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $listener->registerListener(RelyingPartyUpdateAllowDecision::class, UpdateRelyingPartyOnlyForRootAllow::class);
-        $listener->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
+        $listener->registerListener(RelyingPartyUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
         $listener->registerListener(RelyingPartyRetrieveAllowDecision::class, RetrieveRelyingPartyOnlyForRootAllow::class);
-        $listener->registerListener(RelyingPartyListAllowDecision::class, IsAuthenticatedListAllow::class);
+        $listener->registerListener(RelyingPartyRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
         $listener->registerListener(RelyingPartyListAllowDecision::class, ListRelyingPartyOnlyForRootAllow::class);
+        $listener->registerListener(RelyingPartyListAllowDecision::class, IsAuthenticatedListAllow::class);
         $listener->registerListener(RelyingPartyDeleteAllowDecision::class, DeleteRelyingPartyOnlyForRootAllow::class);
         $listener->registerListener(RelyingPartyDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
         $listener->registerListener(RelyingPartyEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
         $listener->registerListener(RelyingPartyEnableAllowDecision::class, EnableRelyingPartyOnlyForRootAllow::class);
-        $listener->registerListener(RelyingPartyDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
         $listener->registerListener(RelyingPartyDisableAllowDecision::class, DisableRelyingPartyOnlyForRootAllow::class);
+        $listener->registerListener(RelyingPartyDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

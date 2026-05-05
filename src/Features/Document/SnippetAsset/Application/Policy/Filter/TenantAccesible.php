@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible Snippet asset");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:*')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $snippetTenantTenantAccesible = $userContext->tenant;
                 if (!$userContext->anonymous && null !== $snippetTenantTenantAccesible) {
                     $event->snippetAssetFilter = $event->snippetAssetFilter->withSnippetTenantTenantAccesible($snippetTenantTenantAccesible);

@@ -25,7 +25,7 @@ class FixTenantExcludingRoot
         $span = $this->startSpan("Check FixTenantExcludingRoot Tenant config");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:admin')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $event->withAll(['tenant']);
             }
             return $event;

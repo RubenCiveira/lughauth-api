@@ -26,7 +26,7 @@ class TenantAccesible
         $span = $this->startSpan("Check TenantAccesible Template version");
         try {
             $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyRole('platform:*')) {
+            if (!$userContext->hasAnyScope('platform:global_access')) {
                 $templateTenantTenantAccesible = $userContext->tenant;
                 if (!$userContext->anonymous && null !== $templateTenantTenantAccesible) {
                     $event->templateVersionFilter = $event->templateVersionFilter->withTemplateTenantTenantAccesible($templateTenantTenantAccesible);
