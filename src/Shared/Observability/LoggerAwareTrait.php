@@ -6,6 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Shared\Observability;
 
 use DI\Attribute\Inject;
+use Monolog\Logger as MonologLogger;
+use Monolog\LogRecord;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -33,7 +35,15 @@ trait LoggerAwareTrait
     #[Inject]
     public function setLoggerFromContainer(ContainerInterface $container): void
     {
-        $this->logger = $container->has(LoggerInterface::class) ? $container->get(LoggerInterface::class) : null;
+        $base = $container->has(LoggerInterface::class) ? $container->get(LoggerInterface::class) : null;
+        if ($base instanceof MonologLogger) {
+            $source = static::class;
+            $child = $base->withName($base->getName());
+            $child->pushProcessor(static fn(LogRecord $r) => $r->with(extra: [...$r->extra, 'source' => $source]));
+            $this->logger = $child;
+        } else {
+            $this->logger = $base;
+        }
     }
 
     /**

@@ -45,6 +45,7 @@ class LogManagement implements ManagementInterface
         return function (ServerRequestInterface $request): array {
             $params = $request->getQueryParams();
             $search = $params['search'] ?? null;
+            $source = $params['source'] ?? null;
             $traceId = $params['trace-id'] ?? null;
             $spanId = $params['span-id'] ?? null;
             $level = $params['level'] ?? null;
@@ -100,6 +101,10 @@ class LogManagement implements ManagementInterface
                         continue;
                     }
                     if ($environment !== null && ($record['extra']['service']['deployment.environment']) !== $environment) {
+                        continue;
+                    }
+                    // Filtrado por source (prefijo de namespace/clase)
+                    if ($source !== null && stripos($record['extra']['source'] ?? '', $source) === false) {
                         continue;
                     }
                     // Filtrado por trace/span

@@ -23,7 +23,7 @@ class TraceManagement implements ManagementInterface
         /** @var AppConfig Application configuration. */
         private readonly AppConfig $config,
         /** @var string Path to the trace storage directory. */
-        private readonly string $path = __DIR__ . '/../../../var/trace'
+        private readonly string $path = __DIR__ . '/../../../../var/trace'
     ) {
     }
 
