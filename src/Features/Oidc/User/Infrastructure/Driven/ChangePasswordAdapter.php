@@ -6,20 +6,27 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
 use Override;
+use Throwable;
 use DateInterval;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ChangePasswordGateway;
 
 class ChangePasswordAdapter implements ChangePasswordGateway
 {
+    use LoggerAwareTrait;
+    use TracerAwareTrait;
+
     public function __construct(
         private readonly UserLoaderAdapter $users,
         private readonly TenantConfigReadGateway $configs,
@@ -33,48 +40,107 @@ class ChangePasswordAdapter implements ChangePasswordGateway
     #[Override]
     public function requestForChange(string $url, string $tenant, string $username): void
     {
-        $verify = md5($this->randomizer->comb());
+        $this->logDebug('OIDC change-password request-for-change start', ['tenant' => $tenant, 'username' => $username]);
+        $span = $this->startSpan('oidc.change_password.request_for_change', ['tenant' => $tenant]);
         try {
+            $verify = md5($this->randomizer->comb());
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUserNameOrEmail($theTenant, $username);
             $code = $this->users->userCodeForUpdate($theUser);
             $this->users->updateCode($code->generatePasswordRecover(str_ends_with($url, '=') ? $url . $verify : $url, $verify, new DateTimeImmutable()->add(new DateInterval("P1D"))));
-        } catch (LoginException $_le) {
-            // User or tenant dont exists...
+            $this->logInfo('OIDC change-password recovery code generated', ['tenant' => $tenant]);
+        } catch (LoginException $le) {
+            $this->logDebug('OIDC change-password request-for-change user not found', ['tenant' => $tenant, 'error' => $le->auth->error ?? '']);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC change-password request-for-change error', ['tenant' => $tenant, 'error' => $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
         }
     }
+
     #[Override]
     public function allowRecover(string $tenant): bool
     {
-        $theTenant = $this->users->checkTenant($tenant, '-');
-        $conf = $this->configs->findOneByTenant($theTenant);
-        return ($conf && $conf->isAllowRecoverPass());
+        $this->logDebug('OIDC change-password allow-recover check', ['tenant' => $tenant]);
+        $span = $this->startSpan('oidc.change_password.allow_recover', ['tenant' => $tenant]);
+        try {
+            $theTenant = $this->users->checkTenant($tenant, '-');
+            $conf = $this->configs->findOneByTenant($theTenant);
+            $allowed = ($conf && $conf->isAllowRecoverPass());
+            $this->logDebug('OIDC change-password allow-recover result', ['tenant' => $tenant, 'allowed' => $allowed ? 'true' : 'false']);
+            return $allowed;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC change-password allow-recover error', ['tenant' => $tenant, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
+
     #[Override]
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string
     {
-        $theTenant = $this->users->checkTenant($tenant, $code);
-        [$user, $userCode] = $this->users->checkUserByRecoveryCode($theTenant, $code);
-        if ($code !== $userCode->getRecoveryCode()) {
-            return null;
+        $this->logDebug('OIDC change-password validate-change-request start', ['tenant' => $tenant]);
+        $span = $this->startSpan('oidc.change_password.validate_change_request', ['tenant' => $tenant]);
+        try {
+            $theTenant = $this->users->checkTenant($tenant, $code);
+            [$user, $userCode] = $this->users->checkUserByRecoveryCode($theTenant, $code);
+            if ($code !== $userCode->getRecoveryCode()) {
+                $this->logWarning('OIDC change-password recovery code mismatch', ['tenant' => $tenant]);
+                return null;
+            }
+            $this->codes->update($userCode, $userCode->resetPasswordRecover());
+            $this->repository->update($user, $user->changePassword($this->cypher, $newPass));
+            $this->logInfo('OIDC change-password via recovery code ok', ['tenant' => $tenant, 'username' => $user->getName()]);
+            return $user->getName();
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC change-password validate-change-request error', ['tenant' => $tenant, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
         }
-        $this->codes->update($userCode, $userCode->resetPasswordRecover());
-        $this->repository->update($user, $user->changePassword($this->cypher, $newPass));
-        return $user->getName();
     }
 
-    /**
-     * @return true
-     */
     #[Override]
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool
     {
-        $theTenant = $this->users->checkTenant($tenant, $username);
-        $theUser = $this->users->checkUser($theTenant, $username);
-        if ($oldPass !== $theUser->getPlainPassword($this->cypher)) {
-            throw new LoginException(AuthenticationResult::newPasswordRequired('wrong_old_pass'));
+        $this->logDebug('OIDC change-password force-update start', ['tenant' => $tenant, 'username' => $username]);
+        $span = $this->startSpan('oidc.change_password.force_update', ['tenant' => $tenant]);
+        try {
+            $theTenant = $this->users->checkTenant($tenant, $username);
+            $theUser = $this->users->checkUser($theTenant, $username);
+            $currentPass = $theUser->getPlainPassword($this->cypher);
+            if ($oldPass !== $currentPass) {
+                if ($newPass === $currentPass) {
+                    $this->logInfo('OIDC change-password force-update idempotent retry', ['tenant' => $tenant, 'username' => $username]);
+                    return true;
+                }
+                $this->logWarning('OIDC change-password force-update wrong old password', ['tenant' => $tenant, 'username' => $username]);
+                throw new LoginException(AuthenticationResult::newPasswordRequired('wrong_old_pass'));
+            }
+            $changed = $theUser->changePassword($this->cypher, $newPass);
+            try {
+                $result = !!$this->repository->update($theUser, $changed);
+                $this->logInfo('OIDC change-password force-update ok', ['tenant' => $tenant, 'username' => $username]);
+                return $result;
+            } catch (OptimistLockException) {
+                $fresh = $this->users->checkUser($theTenant, $username);
+                if ($newPass === $fresh->getPlainPassword($this->cypher)) {
+                    $this->logInfo('OIDC change-password force-update concurrent ok', ['tenant' => $tenant, 'username' => $username]);
+                    return true;
+                }
+                throw new LoginException(AuthenticationResult::newPasswordRequired('wrong_old_pass'));
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC change-password force-update error', ['tenant' => $tenant, 'username' => $username, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
         }
-        $changed = $theUser->changePassword($this->cypher, $newPass);
-        return !!$this->repository->update($theUser, $changed);
     }
 }

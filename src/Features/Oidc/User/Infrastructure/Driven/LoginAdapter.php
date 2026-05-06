@@ -6,10 +6,12 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\User\Infrastructure\Driven;
 
 use Override;
+use Throwable;
 use DateInterval;
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
@@ -34,6 +36,7 @@ use Civi\Lughauth\Features\Oidc\Consent\Application\Usecase\ScopesConsentUsecase
 class LoginAdapter implements LoginGateway
 {
     use LoggerAwareTrait;
+    use TracerAwareTrait;
 
     public function __construct(
         private readonly AesCypherService $cypher,
@@ -57,22 +60,32 @@ class LoginAdapter implements LoginGateway
         ChallengesState $challenges
     ): AuthenticationResult {
         $username = $challenges->username ?? '';
-        $theTenant = $this->users->checkTenant($tenant, $username);
-        $theUser = $this->users->checkUserSubjet($theTenant, $username);
-        $root = $theTenant->isRoot();
-        return new AuthenticationResult(
-            valid: true,
-            id: $theUser->uid(),
-            name: $theUser->getName(),
-            email: $theUser->getEmail(),
-            tenant: $theTenant->uid(),
-            tenantName: $theTenant->getName(),
-            scope: $this->loadScopes($theTenant, $client->scope),
-            audiences: $client->audiences,
-            roles: $this->loadRoles($client, $theUser),
-            groups: $this->loadGroups($client, $theUser),
-            tenancyMode: $root ? 'global' : 'tenant',
-        );
+        $this->logDebug('OIDC login fill-pre-load-by-id', ['tenant' => $tenant, 'username' => $username]);
+        $span = $this->startSpan('oidc.login.fill_pre_load_by_id', ['tenant' => $tenant]);
+        try {
+            $theTenant = $this->users->checkTenant($tenant, $username);
+            $theUser = $this->users->checkUserSubjet($theTenant, $username);
+            $root = $theTenant->isRoot();
+            return new AuthenticationResult(
+                valid: true,
+                id: $theUser->uid(),
+                name: $theUser->getName(),
+                email: $theUser->getEmail(),
+                tenant: $theTenant->uid(),
+                tenantName: $theTenant->getName(),
+                scope: $this->loadScopes($theTenant, $client->scope),
+                audiences: $client->audiences,
+                roles: $this->loadRoles($client, $theUser),
+                groups: $this->loadGroups($client, $theUser),
+                tenancyMode: $root ? 'global' : 'tenant',
+            );
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC login fill-pre-load-by-id error', ['tenant' => $tenant, 'username' => $username, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
 
     #[Override]
@@ -82,22 +95,32 @@ class LoginAdapter implements LoginGateway
         ChallengesState $challenges
     ): AuthenticationResult {
         $username = $challenges->username ?? '';
-        $theTenant = $this->users->checkTenant($tenant, $username);
-        $theUser = $this->users->checkUser($theTenant, $username);
-        $root = $theTenant->isRoot();
-        return new AuthenticationResult(
-            valid: true,
-            id: $theUser->uid(),
-            name: $theUser->getName(),
-            email: $theUser->getEmail(),
-            tenant: $theTenant->uid(),
-            tenantName: $theTenant->getName(),
-            scope: $this->loadScopes($theTenant, $client->scope),
-            audiences: $client->audiences,
-            roles: $this->loadRoles($client, $theUser),
-            groups: $this->loadGroups($client, $theUser),
-            tenancyMode: $root ? 'global' : 'tenant',
-        );
+        $this->logDebug('OIDC login fill-pre-authenticated', ['tenant' => $tenant, 'username' => $username]);
+        $span = $this->startSpan('oidc.login.fill_pre_authenticated', ['tenant' => $tenant]);
+        try {
+            $theTenant = $this->users->checkTenant($tenant, $username);
+            $theUser = $this->users->checkUser($theTenant, $username);
+            $root = $theTenant->isRoot();
+            return new AuthenticationResult(
+                valid: true,
+                id: $theUser->uid(),
+                name: $theUser->getName(),
+                email: $theUser->getEmail(),
+                tenant: $theTenant->uid(),
+                tenantName: $theTenant->getName(),
+                scope: $this->loadScopes($theTenant, $client->scope),
+                audiences: $client->audiences,
+                roles: $this->loadRoles($client, $theUser),
+                groups: $this->loadGroups($client, $theUser),
+                tenancyMode: $root ? 'global' : 'tenant',
+            );
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC login fill-pre-authenticated error', ['tenant' => $tenant, 'username' => $username, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
 
     #[Override]
@@ -107,39 +130,55 @@ class LoginAdapter implements LoginGateway
         string $password,
         AuthenticationRequest $client
     ): AuthenticationResult {
-        $theTenant = $this->users->checkTenant($tenant, $username);
-        $theUser = $this->users->checkUser($theTenant, $username);
-        $this->checkPassword($theTenant, $theUser, $password);
-        if ($temp = $this->checkTemporalPassword($theTenant, $theUser)) {
-            return $temp;
+        $this->logDebug('OIDC login validate-credentials start', ['tenant' => $tenant, 'username' => $username]);
+        $span = $this->startSpan('oidc.login.validate_credentials', ['tenant' => $tenant]);
+        try {
+            $theTenant = $this->users->checkTenant($tenant, $username);
+            $theUser = $this->users->checkUser($theTenant, $username);
+            $this->checkPassword($theTenant, $theUser, $password);
+            if ($temp = $this->checkTemporalPassword($theTenant, $theUser)) {
+                $this->logInfo('OIDC login requires password change', ['tenant' => $tenant, 'username' => $username]);
+                return $temp;
+            }
+            if ($reqMfa = $this->checkMfaConfigurationRequired($theTenant, $theUser)) {
+                $this->logInfo('OIDC login requires MFA setup', ['tenant' => $tenant, 'username' => $username]);
+                return $reqMfa;
+            }
+            if ($mfa = $this->checkMfa($theTenant, $theUser)) {
+                $this->logInfo('OIDC login requires MFA verification', ['tenant' => $tenant, 'username' => $username]);
+                return $mfa;
+            }
+            if ($terms = $this->checkTerms($theTenant, $theUser, $client->audiences)) {
+                $this->logInfo('OIDC login requires terms acceptance', ['tenant' => $tenant, 'username' => $username]);
+                return $terms;
+            }
+            if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
+                $this->logInfo('OIDC login requires scopes consent', ['tenant' => $tenant, 'username' => $username]);
+                return $scopes;
+            }
+            $root = $theTenant->isRoot();
+            $this->markLoginOk($theUser);
+            $this->logInfo('OIDC login credentials validated ok', ['tenant' => $tenant, 'username' => $username]);
+            return new AuthenticationResult(
+                valid: true,
+                id: $theUser->uid(),
+                name: $theUser->getName(),
+                email: $theUser->getEmail(),
+                tenant: $theTenant->uid(),
+                tenantName: $theTenant->getName(),
+                scope: $this->loadScopes($theTenant, $client->scope),
+                audiences: $client->audiences,
+                roles: $this->loadRoles($client, $theUser),
+                groups: $this->loadGroups($client, $theUser),
+                tenancyMode: $root ? 'global' : 'tenant',
+            );
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC login validate-credentials error', ['tenant' => $tenant, 'username' => $username, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
         }
-        if ($reqMfa = $this->checkMfaConfigurationRequired($theTenant, $theUser)) {
-            return $reqMfa;
-        }
-        if ($mfa = $this->checkMfa($theTenant, $theUser)) {
-            return $mfa;
-        }
-        if ($terms = $this->checkTerms($theTenant, $theUser, $client->audiences)) {
-            return $terms;
-        }
-        if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
-            return $scopes;
-        }
-        $root = $theTenant->isRoot();
-        $this->markLoginOk($theUser);
-        return new AuthenticationResult(
-            valid: true,
-            id: $theUser->uid(),
-            name: $theUser->getName(),
-            email: $theUser->getEmail(),
-            tenant: $theTenant->uid(),
-            tenantName: $theTenant->getName(),
-            scope: $this->loadScopes($theTenant, $client->scope),
-            audiences: $client->audiences,
-            roles: $this->loadRoles($client, $theUser),
-            groups: $this->loadGroups($client, $theUser),
-            tenancyMode: $root ? 'global' : 'tenant',
-        );
     }
 
     /**

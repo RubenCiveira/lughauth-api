@@ -427,8 +427,7 @@ class AuthorizeHtml
         AuthenticationRequest $authRequest
     ): ResponseInterface {
         $js = $this->securer->configureScripts([
-            $this->securer->addSign("sign"),
-            $this->securer->autoSubmit("refresh")
+            $this->securer->addSignAndSend("sign", "refresh"),
         ]);
         $url = $this->urlBuilder->checkSessionUrl(
             $authRequest,
@@ -444,7 +443,7 @@ class AuthorizeHtml
         $response->getBody()->write($this->decorator->getFullPage($request, 'Mfa', $js . "<h1>Verifiy login source...</h1>"
             . "<form id=\"refresh\" action=\"".$url."\" method=\"POST\">"
             . "<input type=\"hidden\" name=\"csid\" id=\"sign\" />"
-            . "<input type=\"submit\" />"
+            . "<input type=\"submit\" style=\"display:none\" />"
             . "</form>", $flow->locale, 'index', $flow->tenant));
         return $response;
     }

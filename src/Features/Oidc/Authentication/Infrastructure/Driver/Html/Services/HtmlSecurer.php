@@ -73,12 +73,15 @@ class HtmlSecurer
                 . "document.getElementById('"
                 . $field['to'] . "').value = encryptedPassword" . $uid . ";";
         }
-        return new Snipped(code: "document.getElementById('" . $form
+        return new Snipped(code: "(function(){ let _submitting = false;"
+            . "document.getElementById('" . $form
             . "').addEventListener('submit', async function(event) {"
             . "event.preventDefault();"
+            . "if (_submitting) return; _submitting = true;"
+            . "event.target.querySelectorAll('[type=submit]').forEach(function(b){b.disabled=true;});"
             . $group
             . 'event.target.submit();'
-            . " });", dependecies: ["oauth.min.js"]);
+            . " });})();", dependecies: ["oauth.min.js"]);
     }
 
     public function configureScripts(array $spnippeds): string
@@ -103,17 +106,23 @@ class HtmlSecurer
             }
         }
         return "" . $imp. "<script>"
-            . "document.addEventListener('DOMContentLoaded', async function(event) {" . $code . "});"
+            . "document.addEventListener('DOMContentLoaded', function(event) {" . $code . "});"
             . "</script>";
     }
 
     private function addSignCode(string $name, bool $send, string $form): Snipped
     {
         $secret = $this->keys->currentKey();
+        $submit = $send ? "document.getElementById(\"" . $form . "\").submit();" : "";
         return new Snipped(
-            code: ""
-                . "  document.getElementById(\"" . $name . "\").value = await signToken('".$secret."');"
-                . ($send ? "document.getElementById(\"" . $form . "\").submit();" : ""),
+            code: "(async function(){"
+                . "const _signEl=document.getElementById(\"" . $name . "\");"
+                . "const _signForm=_signEl?_signEl.closest('form'):null;"
+                . "if(_signForm){_signForm.querySelectorAll('[type=submit]').forEach(function(b){b.disabled=true;});}"
+                . "_signEl.value=await signToken('".$secret."');"
+                . "if(_signForm){_signForm.querySelectorAll('[type=submit]').forEach(function(b){b.disabled=false;});}"
+                . $submit
+                . "})();",
             dependecies: ["jsrsasign-jwths-min.js", "oauth.min.js"]
         );
     }

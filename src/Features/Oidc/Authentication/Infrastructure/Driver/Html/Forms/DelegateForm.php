@@ -65,8 +65,7 @@ class DelegateForm implements StepForm
         $route = '/oauth/openid/-/delegated/verify';
         if (isset($params['provider-data']) && isset($params['provider'])) {
             $js = $this->securer->configureScripts([
-                $this->securer->addSign("sign"),
-                $this->securer->autoSubmit("login")
+                $this->securer->addSignAndSend("sign", "login"),
             ]);
             $step = StepName::DELEGATED_LOGIN->value;
             $html = $this->decorator->getFullPage(

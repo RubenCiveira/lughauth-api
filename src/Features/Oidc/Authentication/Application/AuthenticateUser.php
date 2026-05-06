@@ -5,9 +5,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\Authentication\Application;
 
+use Throwable;
 use DateInterval;
 use Ramsey\Uuid\Uuid;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
+use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\ChallengesState;
@@ -18,6 +21,9 @@ use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 
 class AuthenticateUser
 {
+    use LoggerAwareTrait;
+    use TracerAwareTrait;
+
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly LoginGateway $loginRepository,
@@ -35,17 +41,29 @@ class AuthenticateUser
         string $state,
         string $nonce
     ): PublicLoginAuthResponse {
-        return $this->saveIt(
-            $this->loginRepository->fillPreLoadById($tenant, $request, $challenges),
-            $request,
-            $challenges,
-            $issuer,
-            $csid,
-            $state,
-            $nonce,
-            false,
-            $sessionId
-        );
+        $this->logDebug('OIDC session-authenticated start', ['tenant' => $tenant, 'sessionId' => $sessionId]);
+        $span = $this->startSpan('oidc.session_authenticated', ['tenant' => $tenant]);
+        try {
+            $result = $this->saveIt(
+                $this->loginRepository->fillPreLoadById($tenant, $request, $challenges),
+                $request,
+                $challenges,
+                $issuer,
+                $csid,
+                $state,
+                $nonce,
+                false,
+                $sessionId
+            );
+            $this->logInfo('OIDC session-authenticated ok', ['tenant' => $tenant, 'userId' => $result->auth->id ?? '']);
+            return $result;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC session-authenticated error', ['tenant' => $tenant, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
 
     public function preAuthenticate(
@@ -57,17 +75,29 @@ class AuthenticateUser
         string $state,
         string $nonce
     ): PublicLoginAuthResponse {
-        return $this->saveIt(
-            $this->loginRepository->fillPreAuthenticated($tenant, $request, $challenges),
-            $request,
-            $challenges,
-            $issuer,
-            $csid,
-            $state,
-            $nonce,
-            false,
-            null
-        );
+        $this->logDebug('OIDC pre-authenticate start', ['tenant' => $tenant]);
+        $span = $this->startSpan('oidc.pre_authenticate', ['tenant' => $tenant]);
+        try {
+            $result = $this->saveIt(
+                $this->loginRepository->fillPreAuthenticated($tenant, $request, $challenges),
+                $request,
+                $challenges,
+                $issuer,
+                $csid,
+                $state,
+                $nonce,
+                false,
+                null
+            );
+            $this->logInfo('OIDC pre-authenticate ok', ['tenant' => $tenant, 'userId' => $result->auth->id ?? '']);
+            return $result;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC pre-authenticate error', ['tenant' => $tenant, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
 
     public function authenticate(
@@ -81,17 +111,29 @@ class AuthenticateUser
         string $state,
         string $nonce
     ): PublicLoginAuthResponse {
-        return $this->saveIt(
-            $this->loginRepository->validatedUserData($tenant, $username, $password, $request),
-            $request,
-            $challenges,
-            $issuer,
-            $csid,
-            $state,
-            $nonce,
-            true,
-            null
-        );
+        $this->logDebug('OIDC authenticate start', ['tenant' => $tenant, 'username' => $username]);
+        $span = $this->startSpan('oidc.authenticate', ['tenant' => $tenant]);
+        try {
+            $result = $this->saveIt(
+                $this->loginRepository->validatedUserData($tenant, $username, $password, $request),
+                $request,
+                $challenges,
+                $issuer,
+                $csid,
+                $state,
+                $nonce,
+                true,
+                null
+            );
+            $this->logInfo('OIDC authenticate ok', ['tenant' => $tenant, 'userId' => $result->auth->id ?? '']);
+            return $result;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            $this->logWarning('OIDC authenticate error', ['tenant' => $tenant, 'username' => $username, 'error' => $ex instanceof LoginException ? ($ex->auth->error ?? '') : $ex->getMessage()]);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
     }
 
     private function saveIt(
@@ -110,23 +152,27 @@ class AuthenticateUser
         }
 
         if ($challenges->session && $activeSessionId !== null && $activeSessionId !== '') {
+            $this->logDebug('OIDC saveIt reusing active session', ['sessionId' => $activeSessionId]);
             return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $activeSessionId);
         }
 
         if (!$challenges->session) {
             $existingSessionId = $this->sessionStore->findActiveSessionIdByCsid($csid);
             if ($existingSessionId !== null && $existingSessionId !== '') {
+                $this->logDebug('OIDC saveIt reusing csid session', ['existingSessionId' => $existingSessionId]);
                 return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $existingSessionId);
             }
         }
 
         if ($emitLoginEvent) {
+            $this->logDebug('OIDC saveIt dispatching login event', ['userId' => $validation->id ?? '']);
             $this->dispatcher->dispatch($validation);
         }
 
         $sessionId = Uuid::uuid4()->toString();
         $sessionExpiration = new DateInterval("P15D");
 
+        $this->logDebug('OIDC saveIt creating new session', ['sessionId' => $sessionId, 'userId' => $validation->id ?? '']);
         $this->sessionStore->saveSession($sessionId, $request->client, $issuer, $challenges, $validation, $csid, $sessionExpiration);
 
         return $this->buildResponse($validation, $request, $issuer, $state, $nonce, $sessionId);
