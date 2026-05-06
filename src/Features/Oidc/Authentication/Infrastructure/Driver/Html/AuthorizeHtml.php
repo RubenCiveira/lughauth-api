@@ -106,7 +106,14 @@ class AuthorizeHtml
             return $this->redirectError($tenant, $flow->redirect, 'No session', $response);
         } else {
             $input = $this->buildStepInput($flow, $request, $authRequest, new ChallengesState(), []);
-            return $this->renderStep(null, null, $input, $response, null, $input->challenges);
+            try {
+                return $this->renderStep(null, null, $input, $response, null, $input->challenges);
+            } catch (LoginException $ex) {
+                if ($ex->auth->error === AuthenticationResult::ERR_UNKNOW_USER) {
+                    return $this->renderNotFound($tenant, $flow->locale, $request, $response);
+                }
+                throw $ex;
+            }
         }
     }
 
@@ -395,6 +402,22 @@ class AuthorizeHtml
             $response = $response->withStatus(302)->withHeader('Location', $url);
             return $this->cookies->clearSession($response, $flow->tenant);
         }
+    }
+
+    private function renderNotFound(string $tenant, string $locale, RequestInterface $request, ResponseInterface $response): ResponseInterface
+    {
+        $this->logWarning('OIDC tenant not found', ['tenant' => $tenant]);
+        $response->getBody()->write(
+            $this->decorator->getFullPage(
+                $request,
+                'Not Found',
+                '<div class="error-page"><h1>404</h1><p>Tenant not found or not available.</p></div>',
+                $locale,
+                'index',
+                null
+            )
+        );
+        return $response->withStatus(404);
     }
 
     private function cisdPage(
