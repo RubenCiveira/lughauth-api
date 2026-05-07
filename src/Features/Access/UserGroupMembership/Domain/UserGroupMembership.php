@@ -92,6 +92,7 @@ class UserGroupMembership extends UserGroupMembershipRef
         if (null !== $trustedClient) {
             $data['trustedClient'] = ['$ref' => $trustedClient->uid() ];
         }
+        $data['groups'] = $this->getGroups();
         $data['version'] = $this->getVersion();
         return $data;
     }

@@ -90,6 +90,8 @@ class ThemeVersion extends ThemeVersionRef
         $data['theme'] = [ '$ref' => $this->getTheme()->uid() ];
         $data['channel'] = $this->getChannel();
         $data['locale'] = $this->getLocale();
+        $data['contentHtml'] = $this->getContentHtml();
+        $data['contentText'] = $this->getContentText();
         $data['version'] = $this->getVersion();
         return $data;
     }

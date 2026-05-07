@@ -150,9 +150,11 @@ class UserWebauthnCredential extends UserWebauthnCredentialRef
         $data['user'] = [ '$ref' => $this->getUser()->uid() ];
         $data['autenticator'] = $this->getAutenticator();
         $data['name'] = $this->getName();
+        $data['publicKey'] = $this->getPublicKey();
         $data['signCount'] = $this->getSignCount();
         $data['aaguid'] = $this->getAaguid();
         $data['deviceName'] = $this->getDeviceName();
+        $data['transportsJson'] = $this->getTransportsJson();
         $data['createdAt'] = $this->getCreatedAt();
         $data['lastUsedAt'] = $this->getLastUsedAt();
         $data['enabled'] = $this->isEnabled();

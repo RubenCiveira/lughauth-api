@@ -262,10 +262,15 @@ class TrustedClient extends TrustedClientRef
         $data['policyUri'] = $this->getPolicyUri();
         $data['tosUri'] = $this->getTosUri();
         $data['tokenEndpointAuthMethod'] = $this->getTokenEndpointAuthMethod();
+        $data['grantTypesJson'] = $this->getGrantTypesJson();
+        $data['responseTypesJson'] = $this->getResponseTypesJson();
         $data['dynamicallyRegistered'] = $this->isDynamicallyRegistered();
         $data['registeredAt'] = $this->getRegisteredAt();
+        $data['allowedScopesM2m'] = $this->getAllowedScopesM2m();
         $data['m2mTokenTtlSeconds'] = $this->getM2mTokenTtlSeconds();
         $data['requestObjectSigningAlg'] = $this->getRequestObjectSigningAlg();
+        $data['jwksUri'] = $this->getJwksUri();
+        $data['jwksJson'] = $this->getJwksJson();
         $data['version'] = $this->getVersion();
         return $data;
     }

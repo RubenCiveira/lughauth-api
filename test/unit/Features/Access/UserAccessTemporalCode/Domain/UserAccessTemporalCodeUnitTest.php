@@ -135,7 +135,6 @@ final class UserAccessTemporalCodeUnitTest extends TestCase
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['tempSecondFactorSeedExpiration']);
         $this->assertEquals(1, $json['failedLoginAttempts']);
         $this->assertEquals('one', $json['registerCode']);
-        $this->assertEquals('one', $json['registerCodeUrl']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['registerCodeExpiration']);
         $this->assertEquals('one', $json['recoveryCode']);
         $this->assertEquals((new \DateTimeImmutable('1980-08-20T14:32:45.123Z')), $json['recoveryCodeExpiration']);

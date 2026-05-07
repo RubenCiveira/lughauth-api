@@ -56,9 +56,4 @@ final class UserAccessTemporalCodeRegisterCodeUrlVOUnitTest extends TestCase
         $ref = UserAccessTemporalCodeRegisterCodeUrlVO::tryFrom(null, new ConstraintFailList());
         $this->assertNull($ref->value());
     }
-    public function test_exception_on_wrong_value_1(): void
-    {
-        $this->expectException(ConstraintException::class);
-        UserAccessTemporalCodeRegisterCodeUrlVO::from('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus in consectetur purus, sit amet rutrum mi. Vestibulum finibus velit ac ligula feugiat, fermentum mattis justo pretium. Nullam blandit nibh nec tortor ultricies, sit amet pretium tellus ullamcorper. Nulla eu bibendum quam, sed vestibulum est. Nunc vitae imperdiet turpis, vel maximus massa. Mauris vel egestas odio. Sed malesuada a lorem non rhoncus. In sagittis scelerisque risus nec consectetur. In est neque, efficitur ut blandit ut, accumsan vitae sem.');
-    }
 }

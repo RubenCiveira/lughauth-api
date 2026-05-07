@@ -90,6 +90,8 @@ class SnippetVersion extends SnippetVersionRef
         $data['snippet'] = [ '$ref' => $this->getSnippet()->uid() ];
         $data['locale'] = $this->getLocale();
         $data['subject'] = $this->getSubject();
+        $data['contentHtml'] = $this->getContentHtml();
+        $data['contentText'] = $this->getContentText();
         $data['version'] = $this->getVersion();
         return $data;
     }

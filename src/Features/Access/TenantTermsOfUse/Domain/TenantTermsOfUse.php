@@ -132,6 +132,7 @@ class TenantTermsOfUse extends TenantTermsOfUseRef
         if (null !== $relyingParty) {
             $data['relyingParty'] = ['$ref' => $relyingParty->uid() ];
         }
+        $data['text'] = $this->getText();
         $data['enabled'] = $this->isEnabled();
         $data['activationDate'] = $this->getActivationDate();
         $data['version'] = $this->getVersion();

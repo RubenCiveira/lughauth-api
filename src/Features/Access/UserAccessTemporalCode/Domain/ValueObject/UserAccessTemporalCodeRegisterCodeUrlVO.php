@@ -7,7 +7,6 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\ValueObjec
 
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
-use Civi\Lughauth\Shared\Value\Validation\Rule\Length;
 
 class UserAccessTemporalCodeRegisterCodeUrlVO
 {
@@ -27,25 +26,11 @@ class UserAccessTemporalCodeRegisterCodeUrlVO
         } elseif (!$value) {
             return new UserAccessTemporalCodeRegisterCodeUrlVO($value);
         } elseif (is_string($value)) {
-            // If is a ValueObject, we need to append all the errors for the context
-            $valid = true;
-            foreach (self::rules() as $rule) {
-                if ($fail = $rule->check($value)) {
-                    $list->add(ConstraintFail::fromRuleFail('registerCodeUrl', $fail));
-                    $valid = false;
-                }
-            }
-            return $valid ? new UserAccessTemporalCodeRegisterCodeUrlVO($value) : null;
+            return new UserAccessTemporalCodeRegisterCodeUrlVO($value);
         } else {
             $list->add(new ConstraintFail('wrong_type', ['registerCodeUrl'], [$value], ['string']));
             return null;
         }
-    }
-    public static function rules(): array
-    {
-        return [
-          new Length(min: null, max: 65535),
-        ];
     }
     private static function fromUnsafe(mixed $value): UserAccessTemporalCodeRegisterCodeUrlVO
     {

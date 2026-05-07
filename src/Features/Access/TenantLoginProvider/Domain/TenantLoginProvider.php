@@ -191,6 +191,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $data['directAccess'] = $this->isDirectAccess();
         $data['publicKey'] = $this->getPublicKey();
         $data['privateKey'] = $this->getPrivateKey();
+        $data['certificate'] = $this->getCertificate();
         $data['samlIdpMetadataUrl'] = $this->getSamlIdpMetadataUrl();
         $data['samlIdpEntityId'] = $this->getSamlIdpEntityId();
         $data['samlIdpSsoUrl'] = $this->getSamlIdpSsoUrl();

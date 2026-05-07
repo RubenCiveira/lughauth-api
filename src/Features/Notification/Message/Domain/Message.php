@@ -122,6 +122,7 @@ class Message extends MessageRef
             $data['tenant'] = ['$ref' => $tenant->uid() ];
         }
         $data['urgent'] = $this->isUrgent();
+        $data['content'] = $this->getContent();
         $data['retries'] = $this->getRetries();
         $data['createdAt'] = $this->getCreatedAt();
         $data['sendAt'] = $this->getSendAt();

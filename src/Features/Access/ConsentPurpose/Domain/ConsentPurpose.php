@@ -96,6 +96,7 @@ class ConsentPurpose extends ConsentPurposeRef
         $data['tenant'] = [ '$ref' => $this->getTenant()->uid() ];
         $data['key'] = $this->getKey();
         $data['title'] = $this->getTitle();
+        $data['description'] = $this->getDescription();
         $data['required'] = $this->isRequired();
         $data['activationDate'] = $this->getActivationDate();
         $data['version'] = $this->getVersion();

@@ -172,6 +172,7 @@ class UserProfile extends UserProfileRef
         $data['locale'] = $this->getLocale();
         $data['phoneNumber'] = $this->getPhoneNumber();
         $data['phoneNumberVerified'] = $this->isPhoneNumberVerified();
+        $data['addressJson'] = $this->getAddressJson();
         $data['updatedAt'] = $this->getUpdatedAt();
         $data['version'] = $this->getVersion();
         return $data;

@@ -156,7 +156,12 @@ class TenantConfig extends TenantConfigRef
         $data['webauthnEnabled'] = $this->isWebauthnEnabled();
         $data['webauthnRpId'] = $this->getWebauthnRpId();
         $data['webauthnRpName'] = $this->getWebauthnRpName();
+        $data['wellcomeEmail'] = $this->getWellcomeEmail();
+        $data['registerdEmail'] = $this->getRegisterdEmail();
+        $data['disabledUserEmail'] = $this->getDisabledUserEmail();
+        $data['enabledUserEmail'] = $this->getEnabledUserEmail();
         $data['allowRecoverPass'] = $this->isAllowRecoverPass();
+        $data['recoverPassEmail'] = $this->getRecoverPassEmail();
         $data['version'] = $this->getVersion();
         return $data;
     }
