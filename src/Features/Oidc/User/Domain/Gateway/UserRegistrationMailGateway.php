@@ -5,16 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
-use DateTimeImmutable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
-interface PasswordRecoveryMailGateway
+interface UserRegistrationMailGateway
 {
-    public function sendPasswordRecovery(
+    public function sendRegistrationVerification(
         string $toEmail,
         string $userName,
         TenantRef $tenant,
-        string $recoveryUrl,
-        DateTimeImmutable $expiresAt
+        string $activateUrl,
     ): void;
 }

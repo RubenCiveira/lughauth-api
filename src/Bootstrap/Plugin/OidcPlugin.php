@@ -76,6 +76,7 @@ use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driven\SessionsAdapter;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\ProfileHtml;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Rest\ProfileMeController;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\PasswordRecoveryMailGateway;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\UserRegistrationMailGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\OidcMailAdapter;
 
 class OidcPlugin extends MicroPlugin
@@ -108,6 +109,7 @@ class OidcPlugin extends MicroPlugin
         $def[MfaGateway::class] = \DI\autowire(MfaAdapter::class);
         $def[SessionsGateway::class] = \DI\autowire(SessionsAdapter::class);
         $def[PasswordRecoveryMailGateway::class] = \DI\autowire(OidcMailAdapter::class);
+        $def[UserRegistrationMailGateway::class] = \DI\autowire(OidcMailAdapter::class);
         return $def;
     }
 

@@ -44,7 +44,7 @@ class UserAccessTemporalCodeRegisterCodeUrlVO
     public static function rules(): array
     {
         return [
-          new Length(min: null, max: 250),
+          new Length(min: null, max: 65535),
         ];
     }
     private static function fromUnsafe(mixed $value): UserAccessTemporalCodeRegisterCodeUrlVO

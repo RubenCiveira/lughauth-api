@@ -20,8 +20,10 @@ use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcc
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserGateway;
+use Civi\Lughauth\Features\Oidc\User\Domain\RegistrationNotificationData;
 
 class RegisterUserAdapter implements RegisterUserGateway
 {
@@ -56,58 +58,64 @@ class RegisterUserAdapter implements RegisterUserGateway
         return $first !== null ? $first->getText() : '';
     }
 
-    /**
-     * @return void
-     */
     #[Override]
-    public function requestForRegister(string $url, string $tenant, string $email, string $password): void
+    public function requestForRegister(string $url, string $tenant, string $email, string $password): ?RegistrationNotificationData
     {
         $theTenant = $this->users->checkTenant($tenant, '-');
         $conf = $this->configs->findOneByTenant($theTenant);
+        if (!$conf || !$conf->isAllowRegister()) {
+            return null;
+        }
         try {
-            if ($conf && $conf->isAllowRegister()) {
-                $theTenant = $this->users->checkTenant($tenant, '-');
-                $termsList = $this->users->loadTenantTerms($theTenant, []);
-                $terms = $termsList[0] ?? null;
-                $theUser = $this->repository->create(User::register(
-                    uid:  $this->randomizer->comb(),
-                    name: $email,
-                    email: $email,
-                    cypher: $this->cypher,
-                    password: $password,
-                    tenant: $theTenant
-                ));
-                if ($terms !== null) {
-                    $acepted = new UserAcceptedTermnsOfUseAttributes();
-                    $acepted->uid(Random::comb());
-                    $acepted->user($theUser);
-                    $acepted->conditions($terms);
-                    $acepted->acceptDate(new DateTimeImmutable());
-                    $this->writerUserTerms->create(UserAcceptedTermnsOfUse::create($acepted));
-                }
-                $code = $this->users->userCodeForUpdate($theUser);
-                $verify = md5($this->randomizer->comb());
-                $this->users->updateCode($code->generatedRegisterVerification($verify, str_ends_with($url, '=') ? $url . $verify : $url, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+            $termsList = $this->users->loadTenantTerms($theTenant, []);
+            $terms = $termsList[0] ?? null;
+            $theUser = $this->repository->create(User::register(
+                uid:  $this->randomizer->comb(),
+                name: $email,
+                email: $email,
+                cypher: $this->cypher,
+                password: $password,
+                tenant: $theTenant
+            ));
+            if ($terms !== null) {
+                $acepted = new UserAcceptedTermnsOfUseAttributes();
+                $acepted->uid(Random::comb());
+                $acepted->user($theUser);
+                $acepted->conditions($terms);
+                $acepted->acceptDate(new DateTimeImmutable());
+                $this->writerUserTerms->create(UserAcceptedTermnsOfUse::create($acepted));
             }
+            $verify = md5($this->randomizer->comb());
+            $activateUrl = str_ends_with($url, '=') ? $url . $verify : $url;
+            $code = $this->users->userCodeForUpdate($theUser);
+            $this->users->updateCode($code->generatedRegisterVerification($verify, $activateUrl, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+            return new RegistrationNotificationData(
+                email: $email,
+                name: $email,
+                tenant: new TenantRef($theTenant->uid()),
+                activateUrl: $activateUrl,
+            );
         } catch (ConstraintException $ex) {
-            // Noting to do on a not-unique
             if (!$ex->includeViolationCode('not-unique')) {
                 throw $ex;
-            } else {
-                $theUser = $this->repository->findOneForUpdateByTenantAndName($theTenant, $email);
-                if ($theUser === null) {
-                    return;
-                }
-                if ($theUser->getApprove() == UserApproveOptions::UNVERIFIED) {
-                    $att = $theUser->toAttributes();
-                    $att->password(UserPasswordVO::fromPlainText($this->cypher, $password));
-                    $updated = $this->repository->update($theUser, $theUser->replace($att));
-                    $code = $this->users->userCodeForUpdate($updated);
-                    $verify = md5($this->randomizer->comb());
-                    // str_ends_with($url, '=') ? $url . $verify : $url
-                    $this->users->updateCode($code->generatedRegisterVerification($verify, 'every', new DateTimeImmutable()->add(new DateInterval("P1D"))));
-                }
             }
+            $theUser = $this->repository->findOneForUpdateByTenantAndName($theTenant, $email);
+            if ($theUser === null || $theUser->getApprove() !== UserApproveOptions::UNVERIFIED) {
+                return null;
+            }
+            $att = $theUser->toAttributes();
+            $att->password(UserPasswordVO::fromPlainText($this->cypher, $password));
+            $updated = $this->repository->update($theUser, $theUser->replace($att));
+            $verify = md5($this->randomizer->comb());
+            $activateUrl = str_ends_with($url, '=') ? $url . $verify : $url;
+            $code = $this->users->userCodeForUpdate($updated);
+            $this->users->updateCode($code->generatedRegisterVerification($verify, $activateUrl, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+            return new RegistrationNotificationData(
+                email: $email,
+                name: $theUser->getName() ?? $email,
+                tenant: new TenantRef($theTenant->uid()),
+                activateUrl: $activateUrl,
+            );
         }
     }
 

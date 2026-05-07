@@ -6,11 +6,14 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Oidc\User\Application\Usecase;
 
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\RegisterUserGateway;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\UserRegistrationMailGateway;
 
 class RegisterUserUsecase
 {
-    public function __construct(private readonly RegisterUserGateway $gateway)
-    {
+    public function __construct(
+        private readonly RegisterUserGateway $gateway,
+        private readonly UserRegistrationMailGateway $mailer,
+    ) {
     }
 
     public function allowRegister(string $tenant): bool
@@ -25,7 +28,16 @@ class RegisterUserUsecase
 
     public function requestForRegister(string $url, string $tenant, string $email, string $password): void
     {
-        $this->gateway->requestForRegister($url, $tenant, $email, $password);
+        $data = $this->gateway->requestForRegister($url, $tenant, $email, $password);
+        if ($data === null) {
+            return;
+        }
+        $this->mailer->sendRegistrationVerification(
+            toEmail: $data->email,
+            userName: $data->name,
+            tenant: $data->tenant,
+            activateUrl: $data->activateUrl,
+        );
     }
 
     public function verifyRegister(string $tenant, string $code): ?string

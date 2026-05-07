@@ -12,12 +12,33 @@ use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\EnqueueNotificationCommand;
 use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\EnqueueNotificationUsecase;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\PasswordRecoveryMailGateway;
+use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\UserRegistrationMailGateway;
 
-class OidcMailAdapter implements PasswordRecoveryMailGateway
+class OidcMailAdapter implements PasswordRecoveryMailGateway, UserRegistrationMailGateway
 {
     public function __construct(
         private readonly EnqueueNotificationUsecase $enqueue,
     ) {
+    }
+
+    #[Override]
+    public function sendRegistrationVerification(
+        string $toEmail,
+        string $userName,
+        TenantRef $tenant,
+        string $activateUrl,
+    ): void {
+        $this->enqueue->enqueue(new EnqueueNotificationCommand(
+            templateCode: 'user.register',
+            channel: TemplateChannelOptions::MAIL,
+            recipient: $toEmail,
+            tenant: $tenant,
+            variables: [
+                'user'     => ['name' => $userName],
+                'activate' => ['url' => $activateUrl],
+            ],
+            urgent: true,
+        ));
     }
 
     #[Override]
