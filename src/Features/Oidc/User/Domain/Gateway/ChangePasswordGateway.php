@@ -5,9 +5,11 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\User\Domain\Gateway;
 
+use Civi\Lughauth\Features\Oidc\User\Domain\RecoveryNotificationData;
+
 interface ChangePasswordGateway
 {
-    public function requestForChange(string $url, string $tenant, string $username): void;
+    public function requestForChange(string $url, string $tenant, string $username): ?RecoveryNotificationData;
 
     public function allowRecover(string $tenant): bool;
 

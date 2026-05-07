@@ -16,11 +16,13 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Features\Oidc\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\ChangePasswordGateway;
+use Civi\Lughauth\Features\Oidc\User\Domain\RecoveryNotificationData;
 
 class ChangePasswordAdapter implements ChangePasswordGateway
 {
@@ -38,7 +40,7 @@ class ChangePasswordAdapter implements ChangePasswordGateway
     }
 
     #[Override]
-    public function requestForChange(string $url, string $tenant, string $username): void
+    public function requestForChange(string $url, string $tenant, string $username): ?RecoveryNotificationData
     {
         $this->logDebug('OIDC change-password request-for-change start', ['tenant' => $tenant, 'username' => $username]);
         $span = $this->startSpan('oidc.change_password.request_for_change', ['tenant' => $tenant]);
@@ -46,11 +48,25 @@ class ChangePasswordAdapter implements ChangePasswordGateway
             $verify = md5($this->randomizer->comb());
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUserNameOrEmail($theTenant, $username);
+            $expiresAt = new DateTimeImmutable()->add(new DateInterval("P1D"));
+            $recoveryUrl = str_ends_with($url, '=') ? $url . $verify : $url;
             $code = $this->users->userCodeForUpdate($theUser);
-            $this->users->updateCode($code->generatePasswordRecover(str_ends_with($url, '=') ? $url . $verify : $url, $verify, new DateTimeImmutable()->add(new DateInterval("P1D"))));
+            $this->users->updateCode($code->generatePasswordRecover($recoveryUrl, $verify, $expiresAt));
             $this->logInfo('OIDC change-password recovery code generated', ['tenant' => $tenant]);
+            $email = $theUser->getEmail();
+            if ($email === null || $email === '') {
+                return null;
+            }
+            return new RecoveryNotificationData(
+                email: $email,
+                name: $theUser->getName() ?? $email,
+                tenant: new TenantRef($theTenant->uid()),
+                recoveryUrl: $recoveryUrl,
+                expiresAt: $expiresAt,
+            );
         } catch (LoginException $le) {
             $this->logDebug('OIDC change-password request-for-change user not found', ['tenant' => $tenant, 'error' => $le->auth->error ?? '']);
+            return null;
         } catch (Throwable $ex) {
             $span->recordException($ex);
             $this->logWarning('OIDC change-password request-for-change error', ['tenant' => $tenant, 'error' => $ex->getMessage()]);
