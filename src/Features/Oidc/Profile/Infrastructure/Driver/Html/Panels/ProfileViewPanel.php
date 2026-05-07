@@ -16,12 +16,12 @@ class ProfileViewPanel
         string $mfaUrl,
         string $sessionsUrl,
         array $t = [],
+        ?string $inviteUrl = null,
     ): string {
         $givenName = htmlspecialchars($profile?->givenName ?? '');
         $familyName = htmlspecialchars($profile?->familyName ?? '');
         $nickname = htmlspecialchars($profile?->nickname ?? '');
         $preferredUsername = htmlspecialchars($profile?->preferredUsername ?? '');
-        $email = '';
         $pictureUrl = htmlspecialchars($profile?->pictureUrl ?? '');
         $websiteUrl = htmlspecialchars($profile?->websiteUrl ?? '');
         $phoneNumber = htmlspecialchars($profile?->phoneNumber ?? '');
@@ -41,6 +41,9 @@ class ProfileViewPanel
         $changePasswordUrl = htmlspecialchars($changePasswordUrl);
         $mfaUrl = htmlspecialchars($mfaUrl);
         $sessionsUrl = htmlspecialchars($sessionsUrl);
+        $inviteBtn = $inviteUrl !== null
+            ? '<a class="secondary-button" href="' . htmlspecialchars($inviteUrl) . '">' . ($t['inviteUser'] ?? 'Invite a user') . '</a>'
+            : '';
 
         return <<<HTML
             <h1>{$t['title']}</h1>
@@ -66,6 +69,7 @@ class ProfileViewPanel
                     <a class="secondary-button" href="{$changePasswordUrl}">{$t['changePassword']}</a>
                     <a class="secondary-button" href="{$mfaUrl}">{$t['configureMfa']}</a>
                     <a class="secondary-button" href="{$sessionsUrl}">{$t['manageSessions']}</a>
+                    {$inviteBtn}
                 </div>
             </div>
             HTML;

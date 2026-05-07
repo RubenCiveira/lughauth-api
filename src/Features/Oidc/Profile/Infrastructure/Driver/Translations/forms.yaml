@@ -21,6 +21,7 @@ profile:
     changePassword: Change password
     configureMfa: Configure MFA
     manageSessions: Manage sessions
+    inviteUser: Invite a user
   edit:
     title: Edit profile
     givenName: Given name
@@ -72,6 +73,14 @@ profile:
     lastUsed: Last used
     expires: Expires
     empty: No active sessions found.
+    backToProfile: Back to profile
+  invite:
+    title: Invite a user
+    help: Enter the email address of the person you want to invite.
+    email: Email address
+    submit: Send invitation
+    cancel: Cancel
+    success: Invitation sent successfully.
     backToProfile: Back to profile
 error:
   wrong_old_pass: Current password is incorrect.

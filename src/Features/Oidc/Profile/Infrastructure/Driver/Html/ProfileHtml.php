@@ -27,6 +27,10 @@ use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\Profil
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\ProfileViewPanel;
 use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\SessionsPanel;
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Application\Usecase\Create\InvitationCreateParams;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Application\Usecase\Create\InvitationCreateUsecase;
 
 class ProfileHtml
 {
@@ -48,6 +52,9 @@ class ProfileHtml
         private readonly ChangePasswordPanel $changePasswordPanel,
         private readonly MfaPanel $mfaPanel,
         private readonly SessionsPanel $sessionsPanel,
+        private readonly InvitationCreateUsecase $inviteUsecase,
+        private readonly TenantReadGateway $tenantGateway,
+        private readonly UserReadGateway $userGateway,
     ) {
     }
 
@@ -67,13 +74,15 @@ class ProfileHtml
             $changePasswordUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/password';
             $mfaUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
             $sessionsUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions';
+            $inviteUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/invite';
             $html = '<div class="section-card">' . $this->viewPanel->render(
                 $profile,
                 $editUrl,
                 $changePasswordUrl,
                 $mfaUrl,
                 $sessionsUrl,
-                $this->viewTexts($translator)
+                $this->viewTexts($translator),
+                $inviteUrl,
             ) . '</div>';
             $locale = $profile?->locale ?? '';
             $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), $html, $locale, 'full', $tenant));
@@ -116,9 +125,9 @@ class ProfileHtml
     {
         $this->logDebug("Profile save");
         $span = $this->startSpan("Profile save");
+        $tenant = $args['tenant'];
         $this->sql->begin();
         try {
-            $tenant = $args['tenant'];
             $session = $this->loadSession($request, $tenant);
             if ($session === null) {
                 return $this->renderUnauthenticated($request, $response, $tenant);
@@ -132,7 +141,6 @@ class ProfileHtml
             $span->recordException($ex);
             $session = isset($session) ? $session : null;
             if ($session !== null) {
-                $tenant = $args['tenant'];
                 $profile = $this->gateway->findByUser($session->userId);
                 $translator = $this->translatorFor($request, $profile?->locale ?? '');
                 $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/edit';
@@ -146,6 +154,96 @@ class ProfileHtml
             $this->sql->close();
             $span->end();
         }
+    }
+
+    public function invite(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $html = '<div class="section-card">' . $this->buildInviteForm($tenant, null, $translator) . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.invite.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    public function sendInvite(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $this->sql->begin();
+        try {
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $body = (array) ($request->getParsedBody() ?? []);
+            $email = trim((string) ($body['email'] ?? ''));
+            $translator = $this->translatorFor($request);
+
+            if ($email === '') {
+                $this->sql->close();
+                $html = '<div class="section-card">' . $this->buildInviteForm($tenant, $translator->get('profile.invite.email') . ' is required.', $translator) . '</div>';
+                $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.invite.title'), $html, '', 'full', $tenant));
+                return $response->withStatus(422);
+            }
+
+            $tenantEntity = $this->tenantGateway->findOneByDomain($tenant);
+            if ($tenantEntity === null) {
+                throw new \DomainException('Tenant not found.');
+            }
+            $tenantId = $tenantEntity->uid() ?? '';
+
+            $inviter = $this->userGateway->findOneByUid($session->userId);
+            $inviterEmail = $inviter?->getEmail() ?? '';
+
+            $params = new InvitationCreateParams(
+                tenantName: $tenant,
+                tenantId: $tenantId,
+                email: $email,
+                invitedByUserUid: $session->userId,
+                invitedByEmail: $inviterEmail,
+                baseUrl: $this->context->getBaseUrl(),
+            );
+            $this->inviteUsecase->create($params);
+            $this->sql->commit();
+
+            $backUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me');
+            $successMsg = htmlspecialchars($translator->get('profile.invite.success'));
+            $backLabel = htmlspecialchars($translator->get('profile.invite.backToProfile'));
+            $html = '<div class="section-card"><p class="success">' . $successMsg . '</p><p><a class="secondary-button" href="' . $backUrl . '">' . $backLabel . '</a></p></div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.invite.title'), $html, '', 'full', $tenant));
+            return $response;
+        } catch (\DomainException $ex) {
+            $translator = $this->translatorFor($request);
+            $html = '<div class="section-card">' . $this->buildInviteForm($tenant, $ex->getMessage(), $translator) . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.invite.title'), $html, '', 'full', $tenant));
+            return $response->withStatus(422);
+        } catch (Throwable $ex) {
+            throw $ex;
+        } finally {
+            $this->sql->close();
+        }
+    }
+
+    private function buildInviteForm(string $tenant, ?string $error, \Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue $t): string
+    {
+        $action = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/invite');
+        $cancelUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me');
+        $errorHtml = $error !== null ? '<p class="error">' . htmlspecialchars($error) . '</p>' : '';
+        return <<<HTML
+            <h1>{$t->get('profile.invite.title')}</h1>
+            <p>{$t->get('profile.invite.help')}</p>
+            {$errorHtml}
+            <form method="POST" action="{$action}">
+                <label>{$t->get('profile.invite.email')}
+                    <input type="email" name="email" required autocomplete="email" />
+                </label>
+                <input class="primary-button" type="submit" value="{$t->get('profile.invite.submit')}" />
+                <a class="secondary-button" href="{$cancelUrl}">{$t->get('profile.invite.cancel')}</a>
+            </form>
+            HTML;
     }
 
     private function loadSession(ServerRequestInterface $request, string $tenant): ?\Civi\Lughauth\Features\Oidc\Session\Domain\SessionInfo
@@ -235,7 +333,7 @@ class ProfileHtml
             $saveUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $args['tenant'] . '/me/password';
             $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $args['tenant'] . '/me';
             $html = '<div class="section-card">' . $this->changePasswordPanel->render($saveUrl, $cancelUrl, $error, false, $this->passwordTexts($translator)) . '</div>';
-            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full', $tenant));
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.password.title'), $html, '', 'full', $args['tenant']));
             return $response->withStatus(422);
         } catch (Throwable $ex) {
             $span->recordException($ex);
@@ -276,9 +374,9 @@ class ProfileHtml
     {
         $this->logDebug("Save MFA settings");
         $span = $this->startSpan("Save MFA settings");
+        $tenant = $args['tenant'];
         $this->sql->begin();
         try {
-            $tenant = $args['tenant'];
             $session = $this->loadSession($request, $tenant);
             if ($session === null) {
                 return $this->renderUnauthenticated($request, $response, $tenant);
@@ -303,7 +401,6 @@ class ProfileHtml
             return $response;
         } catch (Throwable $ex) {
             $span->recordException($ex);
-            $tenant = $args['tenant'];
             $session = isset($session) ? $session : null;
             if ($session !== null) {
                 $translator = $this->translatorFor($request);
@@ -414,7 +511,7 @@ class ProfileHtml
 
     private function resolveLocale(ServerRequestInterface $request): string
     {
-        $header = (string) $request->getHeaderLine('Accept-Language');
+        $header = $request->getHeaderLine('Accept-Language');
         if ($header === '') {
             return '';
         }
@@ -450,6 +547,7 @@ class ProfileHtml
             'changePassword' => $t->get('profile.view.changePassword'),
             'configureMfa' => $t->get('profile.view.configureMfa'),
             'manageSessions' => $t->get('profile.view.manageSessions'),
+            'inviteUser' => $t->get('profile.view.inviteUser'),
         ];
     }
 

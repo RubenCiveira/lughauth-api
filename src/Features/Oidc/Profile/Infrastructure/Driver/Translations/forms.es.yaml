@@ -21,6 +21,7 @@ profile:
     changePassword: Cambiar contrasena
     configureMfa: Configurar MFA
     manageSessions: Gestionar sesiones
+    inviteUser: Invitar usuario
   edit:
     title: Editar perfil
     givenName: Nombre
@@ -72,6 +73,14 @@ profile:
     lastUsed: Ultimo uso
     expires: Expira
     empty: No hay sesiones activas.
+    backToProfile: Volver al perfil
+  invite:
+    title: Invitar usuario
+    help: Introduce el email de la persona que deseas invitar.
+    email: Correo electronico
+    submit: Enviar invitacion
+    cancel: Cancelar
+    success: Invitacion enviada correctamente.
     backToProfile: Volver al perfil
 error:
   wrong_old_pass: La contrasena actual es incorrecta.

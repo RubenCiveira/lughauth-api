@@ -19,6 +19,7 @@ use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driver\UserProfileP
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driver\ConsentPurposePlugin;
+use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driver\UserInvitationPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Infrastructure\Driver\UserConsentedScopesPlugin;
@@ -43,6 +44,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new TrustedClientPlugin(),
           new TenantConfigPlugin(),
           new ConsentPurposePlugin(),
+          new UserInvitationPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
           new UserConsentedScopesPlugin(),

@@ -78,6 +78,24 @@ use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Rest\ProfileMeCont
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\PasswordRecoveryMailGateway;
 use Civi\Lughauth\Features\Oidc\User\Domain\Gateway\UserRegistrationMailGateway;
 use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driven\OidcMailAdapter;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driven\MagicLinkSqlAdapter;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkMailGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driven\MagicLinkMailAdapter;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driven\MagicLinkCodeAdapter;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Rest\MagicLinkRequestController;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Html\MagicLinkVerifyHtml;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Html\InvitationAcceptHtml;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\InvitationCreateController;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\InvitationCancelController;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\InvitationResendController;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationCodeGateway;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationQueryAdapter;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationMailAdapter;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationCodeAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -110,6 +128,12 @@ class OidcPlugin extends MicroPlugin
         $def[SessionsGateway::class] = \DI\autowire(SessionsAdapter::class);
         $def[PasswordRecoveryMailGateway::class] = \DI\autowire(OidcMailAdapter::class);
         $def[UserRegistrationMailGateway::class] = \DI\autowire(OidcMailAdapter::class);
+        $def[MagicLinkGateway::class] = \DI\autowire(MagicLinkSqlAdapter::class);
+        $def[MagicLinkMailGateway::class] = \DI\autowire(MagicLinkMailAdapter::class);
+        $def[MagicLinkCodeGateway::class] = \DI\autowire(MagicLinkCodeAdapter::class);
+        $def[UserInvitationQueryGateway::class] = \DI\autowire(UserInvitationQueryAdapter::class);
+        $def[UserInvitationMailGateway::class] = \DI\autowire(UserInvitationMailAdapter::class);
+        $def[UserInvitationCodeGateway::class] = \DI\autowire(UserInvitationCodeAdapter::class);
         return $def;
     }
 
@@ -159,6 +183,21 @@ class OidcPlugin extends MicroPlugin
             $group->post('/webauthn/register/finish', [WebAuthnController::class, 'registerFinish']);
             $group->post('/webauthn/authenticate/begin', [WebAuthnController::class, 'authenticateBegin']);
             $group->post('/webauthn/authenticate/finish', [WebAuthnController::class, 'authenticateFinish']);
+
+            $group->post('/magic-link/request', [MagicLinkRequestController::class, 'request']);
+            $group->get('/magic-link/verify', [MagicLinkVerifyHtml::class, 'verify']);
+
+            $group->get('/me/invite', [ProfileHtml::class, 'invite']);
+            $group->post('/me/invite', [ProfileHtml::class, 'sendInvite']);
+
+            $group->get('/invitation/accept', [InvitationAcceptHtml::class, 'form']);
+            $group->post('/invitation/accept', [InvitationAcceptHtml::class, 'accept']);
+        });
+
+        $collector->group('/api/access/invitations', function (RouteCollectorProxy $group) {
+            $group->post('', [InvitationCreateController::class, 'create']);
+            $group->delete('/{uid}', [InvitationCancelController::class, 'cancel']);
+            $group->post('/{uid}/resend', [InvitationResendController::class, 'resend']);
         });
     }
 }

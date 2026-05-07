@@ -58,6 +58,7 @@ use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallSendMa
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallDelegateLoginTemplate;
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallIndexPageTemplate;
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallFullPageTemplate;
+use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallInvitationTemplate;
 use Civi\Lughauth\Features\Oidc\Common\Application\Usecase\Install\InstallCorporateTheme;
 
 class InstallUsecase
@@ -83,6 +84,7 @@ class InstallUsecase
         private readonly InstallDelegateLoginTemplate $delegateLoginTemplate,
         private readonly InstallIndexPageTemplate $indexPageTemplate,
         private readonly InstallFullPageTemplate $fullPageTemplate,
+        private readonly InstallInvitationTemplate $invitationTemplate,
         private readonly InstallCorporateTheme $corporateTheme,
     ) {
     }
@@ -225,5 +227,6 @@ class InstallUsecase
         $this->delegateLoginTemplate->install();
         $this->indexPageTemplate->install();
         $this->fullPageTemplate->install();
+        $this->invitationTemplate->install();
     }
 }
