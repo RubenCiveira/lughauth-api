@@ -39,12 +39,17 @@ class RecoverPassForm implements StepForm
         $body = $input->body ?? [];
         if (isset($body['user'])) {
             $user = $body['user'];
+            $pkce = array_filter([
+                'code_challenge' => $input->context->codeChallenge ?? '',
+                'code_challenge_method' => $input->context->codeChallengeMethod ?? '',
+            ]);
             $url = $this->urlBuilder->recoverPassUrl(
                 $input->authRequest,
                 $input->context->tenant,
                 $input->context->state,
                 $input->context->nonce,
-                '&_use_code='
+                '&_use_code=',
+                $pkce
             );
             $this->changePassword->requestForChange($url, $input->context->tenant, $user);
             throw new LoginException(AuthenticationResult::waitNewpass($url));

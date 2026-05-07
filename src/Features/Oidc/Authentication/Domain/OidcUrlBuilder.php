@@ -57,14 +57,15 @@ final class OidcUrlBuilder
         string $tenant,
         string $state,
         string $nonce,
-        string $suffix = ''
+        string $suffix = '',
+        array $extra = []
     ): string {
         return $this->authorizeUrl(
             $client,
             $tenant,
             $state,
             $nonce,
-            ['step' => StepName::REGISTER_USER->value, 'verify_send' => 'true'],
+            array_merge(['step' => StepName::REGISTER_USER->value, 'verify_send' => 'true'], $extra),
             $suffix
         );
     }
@@ -74,14 +75,15 @@ final class OidcUrlBuilder
         string $tenant,
         string $state,
         string $nonce,
-        string $suffix = ''
+        string $suffix = '',
+        array $extra = []
     ): string {
         return $this->authorizeUrl(
             $client,
             $tenant,
             $state,
             $nonce,
-            ['step' => StepName::RECOVER_PASS->value, 'recover_send' => 'true'],
+            array_merge(['step' => StepName::RECOVER_PASS->value, 'recover_send' => 'true'], $extra),
             $suffix
         );
     }
