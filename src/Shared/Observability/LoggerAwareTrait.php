@@ -39,7 +39,7 @@ trait LoggerAwareTrait
         if ($base instanceof MonologLogger) {
             $source = static::class;
             $child = $base->withName($base->getName());
-            $child->pushProcessor(static fn(LogRecord $r) => $r->with(extra: [...$r->extra, 'source' => $source]));
+            $child->pushProcessor(static fn (LogRecord $r) => $r->with(extra: [...$r->extra, 'source' => $source]));
             $this->logger = $child;
         } else {
             $this->logger = $base;
