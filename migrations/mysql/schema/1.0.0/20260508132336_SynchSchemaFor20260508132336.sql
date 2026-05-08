@@ -115,7 +115,7 @@ CREATE TABLE access_user_consented_scopes (uid VARCHAR(255) NOT NULL, version IN
 CREATE TABLE access_user_group_membership (uid VARCHAR(255) NOT NULL, version INT NOT NULL, `groups` LONGTEXT NULL, relying_party VARCHAR(255) NULL, trusted_client VARCHAR(255) NULL, user VARCHAR(255) NOT NULL, CONSTRAINT PK_ACCESS_USER_GROUP_MEMBERSHIP PRIMARY KEY (uid));
 
 -- changeset auto.generated:1825492372-39
-CREATE TABLE access_user_invitation (uid VARCHAR(255) NOT NULL, version INT NOT NULL, accepted_at timestamp DEFAULT NULL NULL, created_at timestamp NOT NULL, email VARCHAR(255) NOT NULL, expired_at timestamp NOT NULL, metadata_json LONGTEXT NULL, roles VARCHAR(255) NULL, status VARCHAR(255) NULL, token_hash VARCHAR(255) NOT NULL, accepted_by VARCHAR(255) NULL, invited_by VARCHAR(255) NOT NULL, tenant VARCHAR(255) NOT NULL, CONSTRAINT PK_ACCESS_USER_INVITATION PRIMARY KEY (uid));
+CREATE TABLE access_user_invitation (uid VARCHAR(255) NOT NULL, version INT NOT NULL, accepted_at timestamp DEFAULT NULL NULL, created_at timestamp NOT NULL, email VARCHAR(255) NOT NULL, expired_at timestamp NOT NULL, metadata_json LONGTEXT NULL, roles VARCHAR(255) NULL, status VARCHAR(255) NULL, token_hash VARCHAR(255) NOT NULL, accepted_by VARCHAR(255) NULL, invited_by VARCHAR(255) NOT NULL, tenant VARCHAR(255) NOT NULL, CONSTRAINT PK_ACCESS_USER_INVITATION PRIMARY KEY (uid), UNIQUE (token_hash));
 
 -- changeset auto.generated:1825492372-40
 CREATE TABLE access_user_profile (uid VARCHAR(255) NOT NULL, version INT NOT NULL, address_json LONGTEXT NULL, birthdate VARCHAR(255) NULL, family_name VARCHAR(255) NULL, gender VARCHAR(255) NULL, given_name VARCHAR(255) NULL, locale VARCHAR(255) NULL, middle_name VARCHAR(255) NULL, nickname VARCHAR(255) NULL, phone_number VARCHAR(255) NULL, phone_number_verified BIT DEFAULT 0 NULL, picture_url VARCHAR(255) NULL, preferred_username VARCHAR(255) NULL, updated_at VARCHAR(255) NULL, website_url VARCHAR(255) NULL, zoneinfo VARCHAR(255) NULL, user VARCHAR(255) NOT NULL, CONSTRAINT PK_ACCESS_USER_PROFILE PRIMARY KEY (uid), UNIQUE (user));
@@ -271,305 +271,314 @@ CREATE INDEX FL_USER_GROUP_MEMBERSHIP_USERS ON access_user_group_membership(user
 CREATE INDEX FL_USER_INVITATION_ACCEPTED_BYS ON access_user_invitation(accepted_by);
 
 -- changeset auto.generated:1825492372-91
-CREATE INDEX FL_USER_INVITATION_INVITED_BYS ON access_user_invitation(invited_by);
+CREATE INDEX FL_USER_INVITATION_EMAIL ON access_user_invitation(email);
 
 -- changeset auto.generated:1825492372-92
-CREATE INDEX FL_USER_INVITATION_TENANT ON access_user_invitation(tenant);
+CREATE INDEX FL_USER_INVITATION_INVITED_BYS ON access_user_invitation(invited_by);
 
 -- changeset auto.generated:1825492372-93
-CREATE INDEX FL_USER_NAME ON access_user(name);
+CREATE INDEX FL_USER_INVITATION_STATUS ON access_user_invitation(status);
 
 -- changeset auto.generated:1825492372-94
-CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_RELYING_PARTY ON access_user_role_assignament(relying_party);
+CREATE INDEX FL_USER_INVITATION_TENANT ON access_user_invitation(tenant);
 
 -- changeset auto.generated:1825492372-95
-CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_ROLE_ROLE ON access_user_role_assignament_role(`role`);
+CREATE INDEX FL_USER_NAME ON access_user(name);
 
 -- changeset auto.generated:1825492372-96
-CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_ROLE_USER_ROLE_ASSIGNAMENTS ON access_user_role_assignament_role(user_role_assignament);
+CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_RELYING_PARTY ON access_user_role_assignament(relying_party);
 
 -- changeset auto.generated:1825492372-97
-CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_TRUSTED_CLIENT ON access_user_role_assignament(trusted_client);
+CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_ROLE_ROLE ON access_user_role_assignament_role(`role`);
 
 -- changeset auto.generated:1825492372-98
-CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_USERS ON access_user_role_assignament(user);
+CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_ROLE_USER_ROLE_ASSIGNAMENTS ON access_user_role_assignament_role(user_role_assignament);
 
 -- changeset auto.generated:1825492372-99
-CREATE INDEX FL_USER_TENANT ON access_user(tenant);
+CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_TRUSTED_CLIENT ON access_user_role_assignament(trusted_client);
 
 -- changeset auto.generated:1825492372-100
-CREATE INDEX FL_USER_WEBAUTHN_CREDENTIAL_USER ON access_user_webauthn_credential(user);
+CREATE INDEX FL_USER_ROLE_ASSIGNAMENT_USERS ON access_user_role_assignament(user);
 
 -- changeset auto.generated:1825492372-101
-CREATE INDEX ST_ROLE_NAME_DESC ON access_role(name DESC);
+CREATE INDEX FL_USER_TENANT ON access_user(tenant);
 
 -- changeset auto.generated:1825492372-102
-CREATE INDEX ST_SNIPPET_ASSET_CODE_ASC ON document_snippet_asset(code);
+CREATE INDEX FL_USER_WEBAUTHN_CREDENTIAL_USER ON access_user_webauthn_credential(user);
 
 -- changeset auto.generated:1825492372-103
-CREATE INDEX ST_SNIPPET_ASSET_CODE_DESC ON document_snippet_asset(code DESC);
+CREATE INDEX ST_ROLE_NAME_DESC ON access_role(name DESC);
 
 -- changeset auto.generated:1825492372-104
-CREATE INDEX ST_SNIPPET_CODE_ASC ON document_snippet(code);
+CREATE INDEX ST_SNIPPET_ASSET_CODE_ASC ON document_snippet_asset(code);
 
 -- changeset auto.generated:1825492372-105
-CREATE INDEX ST_SNIPPET_CODE_DESC ON document_snippet(code DESC);
+CREATE INDEX ST_SNIPPET_ASSET_CODE_DESC ON document_snippet_asset(code DESC);
 
 -- changeset auto.generated:1825492372-106
-CREATE INDEX ST_TEMPLATE_ASSET_CODE_DESC ON document_template_asset(code DESC);
+CREATE INDEX ST_SNIPPET_CODE_ASC ON document_snippet(code);
 
 -- changeset auto.generated:1825492372-107
-CREATE INDEX ST_TEMPLATE_CODE_DESC ON document_template(code DESC);
+CREATE INDEX ST_SNIPPET_CODE_DESC ON document_snippet(code DESC);
 
 -- changeset auto.generated:1825492372-108
-CREATE INDEX ST_TEMPLATE_VARIABLE_CODE_ASC ON document_template_variable(code);
+CREATE INDEX ST_TEMPLATE_ASSET_CODE_DESC ON document_template_asset(code DESC);
 
 -- changeset auto.generated:1825492372-109
-CREATE INDEX ST_TEMPLATE_VARIABLE_CODE_DESC ON document_template_variable(code DESC);
+CREATE INDEX ST_TEMPLATE_CODE_DESC ON document_template(code DESC);
 
 -- changeset auto.generated:1825492372-110
-CREATE INDEX ST_TENANT_LOGIN_PROVIDER_NAME_DESC ON access_tenant_login_provider(name DESC);
+CREATE INDEX ST_TEMPLATE_VARIABLE_CODE_ASC ON document_template_variable(code);
 
 -- changeset auto.generated:1825492372-111
-CREATE INDEX ST_THEME_ASSET_CODE_DESC ON document_theme_asset(code DESC);
+CREATE INDEX ST_TEMPLATE_VARIABLE_CODE_DESC ON document_template_variable(code DESC);
 
 -- changeset auto.generated:1825492372-112
-CREATE INDEX ST_THEME_NAME_ASC ON document_theme(name);
+CREATE INDEX ST_TENANT_LOGIN_PROVIDER_NAME_DESC ON access_tenant_login_provider(name DESC);
 
 -- changeset auto.generated:1825492372-113
-CREATE INDEX ST_THEME_NAME_DESC ON document_theme(name DESC);
+CREATE INDEX ST_THEME_ASSET_CODE_DESC ON document_theme_asset(code DESC);
 
 -- changeset auto.generated:1825492372-114
-CREATE INDEX ST_USER_NAME_DESC ON access_user(name DESC);
+CREATE INDEX ST_THEME_NAME_ASC ON document_theme(name);
 
 -- changeset auto.generated:1825492372-115
-CREATE UNIQUE INDEX UK_CONSENT_PURPOSE_TENANT_TITLE ON access_consent_purpose(tenant, title);
+CREATE INDEX ST_THEME_NAME_DESC ON document_theme(name DESC);
 
 -- changeset auto.generated:1825492372-116
-CREATE UNIQUE INDEX UK_ROLE_RELYING_PARTY_NAME ON access_role(relying_party, name);
+CREATE INDEX ST_USER_INVITATION_CREATED_AT_DESC ON access_user_invitation(created_at DESC);
 
 -- changeset auto.generated:1825492372-117
-CREATE UNIQUE INDEX UK_SNIPPET_ASSET_CODE_SNIPPET ON document_snippet_asset(code, snippet);
+CREATE INDEX ST_USER_NAME_DESC ON access_user(name DESC);
 
 -- changeset auto.generated:1825492372-118
-CREATE UNIQUE INDEX UK_SNIPPET_CODE_TENANT ON document_snippet(code, tenant);
+CREATE UNIQUE INDEX UK_CONSENT_PURPOSE_TENANT_TITLE ON access_consent_purpose(tenant, title);
 
 -- changeset auto.generated:1825492372-119
-CREATE UNIQUE INDEX UK_TEMPLATE_ASSET_CODE_TEMPLATE_TENANT ON document_template_asset(code, template, tenant);
+CREATE UNIQUE INDEX UK_ROLE_RELYING_PARTY_NAME ON access_role(relying_party, name);
 
 -- changeset auto.generated:1825492372-120
-CREATE UNIQUE INDEX UK_TEMPLATE_CODE_TENANT ON document_template(code, tenant);
+CREATE UNIQUE INDEX UK_SNIPPET_ASSET_CODE_SNIPPET ON document_snippet_asset(code, snippet);
 
 -- changeset auto.generated:1825492372-121
-CREATE UNIQUE INDEX UK_TEMPLATE_VARIABLE_CODE_TENANT ON document_template_variable(code, tenant);
+CREATE UNIQUE INDEX UK_SNIPPET_CODE_TENANT ON document_snippet(code, tenant);
 
 -- changeset auto.generated:1825492372-122
-CREATE UNIQUE INDEX UK_TENANT_LOGIN_PROVIDER_TENANT_NAME ON access_tenant_login_provider(tenant, name);
+CREATE UNIQUE INDEX UK_TEMPLATE_ASSET_CODE_TEMPLATE_TENANT ON document_template_asset(code, template, tenant);
 
 -- changeset auto.generated:1825492372-123
-CREATE UNIQUE INDEX UK_THEME_ASSET_CODE_THEME ON document_theme_asset(code, theme);
+CREATE UNIQUE INDEX UK_TEMPLATE_CODE_TENANT ON document_template(code, tenant);
 
 -- changeset auto.generated:1825492372-124
-CREATE UNIQUE INDEX UK_THEME_NAME_TENANT ON document_theme(name, tenant);
+CREATE UNIQUE INDEX UK_TEMPLATE_VARIABLE_CODE_TENANT ON document_template_variable(code, tenant);
 
 -- changeset auto.generated:1825492372-125
-CREATE UNIQUE INDEX UK_USER_ACCEPTED_TERMNS_OF_USE_USER_CONDITIONS ON access_user_accepted_termns_of_use(user, conditions);
+CREATE UNIQUE INDEX UK_TENANT_LOGIN_PROVIDER_TENANT_NAME ON access_tenant_login_provider(tenant, name);
 
 -- changeset auto.generated:1825492372-126
-CREATE UNIQUE INDEX UK_USER_ROLE_ASSIGNAMENT_ROLE_ROLE_USER_ROLE_ASSIGNAMENT ON access_user_role_assignament_role(`role`, user_role_assignament);
+CREATE UNIQUE INDEX UK_THEME_ASSET_CODE_THEME ON document_theme_asset(code, theme);
 
 -- changeset auto.generated:1825492372-127
-CREATE UNIQUE INDEX UK_USER_TENANT_NAME ON access_user(tenant, name);
+CREATE UNIQUE INDEX UK_THEME_NAME_TENANT ON document_theme(name, tenant);
 
 -- changeset auto.generated:1825492372-128
-CREATE UNIQUE INDEX UK_USER_WEBAUTHN_CREDENTIAL_USER_NAME ON access_user_webauthn_credential(user, name);
+CREATE UNIQUE INDEX UK_USER_ACCEPTED_TERMNS_OF_USE_USER_CONDITIONS ON access_user_accepted_termns_of_use(user, conditions);
 
 -- changeset auto.generated:1825492372-129
-CREATE INDEX fk_audit_change_action ON _audit_change(action_id);
+CREATE UNIQUE INDEX UK_USER_ROLE_ASSIGNAMENT_ROLE_ROLE_USER_ROLE_ASSIGNAMENT ON access_user_role_assignament_role(`role`, user_role_assignament);
 
 -- changeset auto.generated:1825492372-130
-CREATE INDEX idx_audit_action_actor ON _audit_action(actor_id);
+CREATE UNIQUE INDEX UK_USER_TENANT_NAME ON access_user(tenant, name);
 
 -- changeset auto.generated:1825492372-131
-CREATE INDEX idx_audit_action_occurred_at ON _audit_action(occurred_at);
+CREATE UNIQUE INDEX UK_USER_WEBAUTHN_CREDENTIAL_USER_NAME ON access_user_webauthn_credential(user, name);
 
 -- changeset auto.generated:1825492372-132
-CREATE INDEX idx_audit_change_target ON _audit_change(target_type, target_id);
+CREATE INDEX fk_audit_change_action ON _audit_change(action_id);
 
 -- changeset auto.generated:1825492372-133
-CREATE INDEX idx_challenge_expires ON _oauth_webauthn_challenge(expires_at);
+CREATE INDEX idx_audit_action_actor ON _audit_action(actor_id);
 
 -- changeset auto.generated:1825492372-134
-CREATE INDEX idx_device_client ON _oauth_device_codes(client_id);
+CREATE INDEX idx_audit_action_occurred_at ON _audit_action(occurred_at);
 
 -- changeset auto.generated:1825492372-135
-CREATE INDEX idx_device_expires ON _oauth_device_codes(expires_at);
+CREATE INDEX idx_audit_change_target ON _audit_change(target_type, target_id);
 
 -- changeset auto.generated:1825492372-136
-CREATE INDEX idx_device_status ON _oauth_device_codes(status);
+CREATE INDEX idx_challenge_expires ON _oauth_webauthn_challenge(expires_at);
 
 -- changeset auto.generated:1825492372-137
-CREATE INDEX idx_entity_changelog_ordering ON _entity_changelog(changed_at, entity_id);
+CREATE INDEX idx_device_client ON _oauth_device_codes(client_id);
 
 -- changeset auto.generated:1825492372-138
-CREATE INDEX idx_entity_changelog_type ON _entity_changelog(entity_type);
+CREATE INDEX idx_device_expires ON _oauth_device_codes(expires_at);
 
 -- changeset auto.generated:1825492372-139
-CREATE INDEX idx_magic_link_expires ON _oauth_magic_link(expires_at);
+CREATE INDEX idx_device_status ON _oauth_device_codes(status);
 
 -- changeset auto.generated:1825492372-140
-CREATE INDEX idx_name ON _prometheus__summaries(name);
+CREATE INDEX idx_entity_changelog_ordering ON _entity_changelog(changed_at, entity_id);
 
 -- changeset auto.generated:1825492372-141
-CREATE INDEX idx_par_expires ON _oauth_par_request(expires_at);
+CREATE INDEX idx_entity_changelog_type ON _entity_changelog(entity_type);
 
 -- changeset auto.generated:1825492372-142
-CREATE INDEX idx_par_tenant ON _oauth_par_request(tenant_id);
+CREATE INDEX idx_magic_link_expires ON _oauth_magic_link(expires_at);
 
 -- changeset auto.generated:1825492372-143
-CREATE INDEX idx_published_at ON _output_queue_pending_events(published_at);
+CREATE INDEX idx_name ON _prometheus__summaries(name);
 
 -- changeset auto.generated:1825492372-144
-CREATE INDEX idx_revoked_expires ON _oauth_revoked_jti(expires_at);
+CREATE INDEX idx_par_expires ON _oauth_par_request(expires_at);
 
 -- changeset auto.generated:1825492372-145
-CREATE INDEX idx_revoked_tenant ON _oauth_revoked_jti(tenant_id);
+CREATE INDEX idx_par_tenant ON _oauth_par_request(tenant_id);
 
 -- changeset auto.generated:1825492372-146
-CREATE INDEX idx_session_jti ON _oauth_session(jti);
+CREATE INDEX idx_published_at ON _output_queue_pending_events(published_at);
 
 -- changeset auto.generated:1825492372-147
-CREATE INDEX idx_session_refresh_jti ON _oauth_session(refresh_jti);
+CREATE INDEX idx_revoked_expires ON _oauth_revoked_jti(expires_at);
 
 -- changeset auto.generated:1825492372-148
-CREATE INDEX idx_status_next_retry ON _output_queue_pending_events(status, next_retry);
+CREATE INDEX idx_revoked_tenant ON _oauth_revoked_jti(tenant_id);
 
 -- changeset auto.generated:1825492372-149
-CREATE UNIQUE INDEX uq_device_user_code ON _oauth_device_codes(tenant, user_code);
+CREATE INDEX idx_session_jti ON _oauth_session(jti);
 
 -- changeset auto.generated:1825492372-150
-ALTER TABLE access_consent_purpose ADD CONSTRAINT FK_ACCESS_CONSENT_PURPOSE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+CREATE INDEX idx_session_refresh_jti ON _oauth_session(refresh_jti);
 
 -- changeset auto.generated:1825492372-151
-ALTER TABLE access_role ADD CONSTRAINT FK_ACCESS_ROLE_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+CREATE INDEX idx_status_next_retry ON _output_queue_pending_events(status, next_retry);
 
 -- changeset auto.generated:1825492372-152
-ALTER TABLE access_tenant_config ADD CONSTRAINT FK_ACCESS_TENANT_CONFIG_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+CREATE UNIQUE INDEX uq_device_user_code ON _oauth_device_codes(tenant, user_code);
 
 -- changeset auto.generated:1825492372-153
-ALTER TABLE access_tenant_login_provider ADD CONSTRAINT FK_ACCESS_TENANT_LOGIN_PROVIDER_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_consent_purpose ADD CONSTRAINT FK_ACCESS_CONSENT_PURPOSE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-154
-ALTER TABLE access_tenant_terms_of_use ADD CONSTRAINT FK_ACCESS_TENANT_TERMS_OF_USE_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_role ADD CONSTRAINT FK_ACCESS_ROLE_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-155
-ALTER TABLE access_tenant_terms_of_use ADD CONSTRAINT FK_ACCESS_TENANT_TERMS_OF_USE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_tenant_config ADD CONSTRAINT FK_ACCESS_TENANT_CONFIG_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-156
-ALTER TABLE access_trusted_client_allowed_redirect ADD CONSTRAINT FK_ACCESS_TRUSTED_CLIENT_ALLOWED_REDIRECT_CLIENT FOREIGN KEY (client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_tenant_login_provider ADD CONSTRAINT FK_ACCESS_TENANT_LOGIN_PROVIDER_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-157
-ALTER TABLE access_user_accepted_termns_of_use ADD CONSTRAINT FK_ACCESS_USER_ACCEPTED_TERMNS_OF_USE_CONDITIONS FOREIGN KEY (conditions) REFERENCES access_tenant_terms_of_use (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_tenant_terms_of_use ADD CONSTRAINT FK_ACCESS_TENANT_TERMS_OF_USE_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-158
-ALTER TABLE access_user_accepted_termns_of_use ADD CONSTRAINT FK_ACCESS_USER_ACCEPTED_TERMNS_OF_USE_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_tenant_terms_of_use ADD CONSTRAINT FK_ACCESS_TENANT_TERMS_OF_USE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-159
-ALTER TABLE access_user_access_temporal_code ADD CONSTRAINT FK_ACCESS_USER_ACCESS_TEMPORAL_CODE_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_trusted_client_allowed_redirect ADD CONSTRAINT FK_ACCESS_TRUSTED_CLIENT_ALLOWED_REDIRECT_CLIENT FOREIGN KEY (client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-160
-ALTER TABLE access_user_consented_scopes ADD CONSTRAINT FK_ACCESS_USER_CONSENTED_SCOPES_TRUSTED_CLIENT FOREIGN KEY (trusted_client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_accepted_termns_of_use ADD CONSTRAINT FK_ACCESS_USER_ACCEPTED_TERMNS_OF_USE_CONDITIONS FOREIGN KEY (conditions) REFERENCES access_tenant_terms_of_use (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-161
-ALTER TABLE access_user_consented_scopes ADD CONSTRAINT FK_ACCESS_USER_CONSENTED_SCOPES_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_accepted_termns_of_use ADD CONSTRAINT FK_ACCESS_USER_ACCEPTED_TERMNS_OF_USE_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-162
-ALTER TABLE access_user_consent_purposes ADD CONSTRAINT FK_ACCESS_USER_CONSENT_PURPOSES_CONSENT_PURPOSE FOREIGN KEY (consent_purpose) REFERENCES access_consent_purpose (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_access_temporal_code ADD CONSTRAINT FK_ACCESS_USER_ACCESS_TEMPORAL_CODE_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-163
-ALTER TABLE access_user_consent_purposes ADD CONSTRAINT FK_ACCESS_USER_CONSENT_PURPOSES_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_consented_scopes ADD CONSTRAINT FK_ACCESS_USER_CONSENTED_SCOPES_TRUSTED_CLIENT FOREIGN KEY (trusted_client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-164
-ALTER TABLE access_user_group_membership ADD CONSTRAINT FK_ACCESS_USER_GROUP_MEMBERSHIP_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_consented_scopes ADD CONSTRAINT FK_ACCESS_USER_CONSENTED_SCOPES_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-165
-ALTER TABLE access_user_group_membership ADD CONSTRAINT FK_ACCESS_USER_GROUP_MEMBERSHIP_TRUSTED_CLIENT FOREIGN KEY (trusted_client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_consent_purposes ADD CONSTRAINT FK_ACCESS_USER_CONSENT_PURPOSES_CONSENT_PURPOSE FOREIGN KEY (consent_purpose) REFERENCES access_consent_purpose (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-166
-ALTER TABLE access_user_group_membership ADD CONSTRAINT FK_ACCESS_USER_GROUP_MEMBERSHIP_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_consent_purposes ADD CONSTRAINT FK_ACCESS_USER_CONSENT_PURPOSES_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-167
-ALTER TABLE access_user_invitation ADD CONSTRAINT FK_ACCESS_USER_INVITATION_ACCEPTED_BY FOREIGN KEY (accepted_by) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_group_membership ADD CONSTRAINT FK_ACCESS_USER_GROUP_MEMBERSHIP_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-168
-ALTER TABLE access_user_invitation ADD CONSTRAINT FK_ACCESS_USER_INVITATION_INVITED_BY FOREIGN KEY (invited_by) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_group_membership ADD CONSTRAINT FK_ACCESS_USER_GROUP_MEMBERSHIP_TRUSTED_CLIENT FOREIGN KEY (trusted_client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-169
-ALTER TABLE access_user_invitation ADD CONSTRAINT FK_ACCESS_USER_INVITATION_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_group_membership ADD CONSTRAINT FK_ACCESS_USER_GROUP_MEMBERSHIP_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-170
-ALTER TABLE access_user_profile ADD CONSTRAINT FK_ACCESS_USER_PROFILE_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_invitation ADD CONSTRAINT FK_ACCESS_USER_INVITATION_ACCEPTED_BY FOREIGN KEY (accepted_by) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-171
-ALTER TABLE access_user_role_assignament ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_invitation ADD CONSTRAINT FK_ACCESS_USER_INVITATION_INVITED_BY FOREIGN KEY (invited_by) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-172
-ALTER TABLE access_user_role_assignament_role ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_ROLE_ROLE FOREIGN KEY (`role`) REFERENCES access_role (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_invitation ADD CONSTRAINT FK_ACCESS_USER_INVITATION_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-173
-ALTER TABLE access_user_role_assignament_role ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_ROLE_USER_ROLE_ASSIGNAMENT FOREIGN KEY (user_role_assignament) REFERENCES access_user_role_assignament (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_profile ADD CONSTRAINT FK_ACCESS_USER_PROFILE_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-174
-ALTER TABLE access_user_role_assignament ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_TRUSTED_CLIENT FOREIGN KEY (trusted_client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_role_assignament ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_RELYING_PARTY FOREIGN KEY (relying_party) REFERENCES access_relying_party (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-175
-ALTER TABLE access_user_role_assignament ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_role_assignament_role ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_ROLE_ROLE FOREIGN KEY (`role`) REFERENCES access_role (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-176
-ALTER TABLE access_user ADD CONSTRAINT FK_ACCESS_USER_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_role_assignament_role ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_ROLE_USER_ROLE_ASSIGNAMENT FOREIGN KEY (user_role_assignament) REFERENCES access_user_role_assignament (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-177
-ALTER TABLE access_user_webauthn_credential ADD CONSTRAINT FK_ACCESS_USER_WEBAUTHN_CREDENTIAL_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_role_assignament ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_TRUSTED_CLIENT FOREIGN KEY (trusted_client) REFERENCES access_trusted_client (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-178
-ALTER TABLE document_snippet_asset ADD CONSTRAINT FK_DOCUMENT_SNIPPET_ASSET_SNIPPET FOREIGN KEY (snippet) REFERENCES document_snippet (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_role_assignament ADD CONSTRAINT FK_ACCESS_USER_ROLE_ASSIGNAMENT_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-179
-ALTER TABLE document_snippet ADD CONSTRAINT FK_DOCUMENT_SNIPPET_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user ADD CONSTRAINT FK_ACCESS_USER_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-180
-ALTER TABLE document_snippet_version ADD CONSTRAINT FK_DOCUMENT_SNIPPET_VERSION_SNIPPET FOREIGN KEY (snippet) REFERENCES document_snippet (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE access_user_webauthn_credential ADD CONSTRAINT FK_ACCESS_USER_WEBAUTHN_CREDENTIAL_USER FOREIGN KEY (user) REFERENCES access_user (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-181
-ALTER TABLE document_template_asset ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_ASSET_TEMPLATE FOREIGN KEY (template) REFERENCES document_template (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_snippet_asset ADD CONSTRAINT FK_DOCUMENT_SNIPPET_ASSET_SNIPPET FOREIGN KEY (snippet) REFERENCES document_snippet (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-182
-ALTER TABLE document_template_asset ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_ASSET_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_snippet ADD CONSTRAINT FK_DOCUMENT_SNIPPET_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-183
-ALTER TABLE document_template ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_snippet_version ADD CONSTRAINT FK_DOCUMENT_SNIPPET_VERSION_SNIPPET FOREIGN KEY (snippet) REFERENCES document_snippet (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-184
-ALTER TABLE document_template_variable ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_VARIABLE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_template_asset ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_ASSET_TEMPLATE FOREIGN KEY (template) REFERENCES document_template (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-185
-ALTER TABLE document_template_version ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_VERSION_TEMPLATE FOREIGN KEY (template) REFERENCES document_template (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_template_asset ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_ASSET_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-186
-ALTER TABLE document_theme_asset ADD CONSTRAINT FK_DOCUMENT_THEME_ASSET_THEME FOREIGN KEY (theme) REFERENCES document_theme (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_template ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-187
-ALTER TABLE document_theme ADD CONSTRAINT FK_DOCUMENT_THEME_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_template_variable ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_VARIABLE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-188
-ALTER TABLE document_theme_version ADD CONSTRAINT FK_DOCUMENT_THEME_VERSION_THEME FOREIGN KEY (theme) REFERENCES document_theme (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_template_version ADD CONSTRAINT FK_DOCUMENT_TEMPLATE_VERSION_TEMPLATE FOREIGN KEY (template) REFERENCES document_template (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-189
-ALTER TABLE notification_message ADD CONSTRAINT FK_NOTIFICATION_MESSAGE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_theme_asset ADD CONSTRAINT FK_DOCUMENT_THEME_ASSET_THEME FOREIGN KEY (theme) REFERENCES document_theme (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-190
-ALTER TABLE notification_smtp_outbound_config ADD CONSTRAINT FK_NOTIFICATION_SMTP_OUTBOUND_CONFIG_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+ALTER TABLE document_theme ADD CONSTRAINT FK_DOCUMENT_THEME_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
 
 -- changeset auto.generated:1825492372-191
+ALTER TABLE document_theme_version ADD CONSTRAINT FK_DOCUMENT_THEME_VERSION_THEME FOREIGN KEY (theme) REFERENCES document_theme (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+-- changeset auto.generated:1825492372-192
+ALTER TABLE notification_message ADD CONSTRAINT FK_NOTIFICATION_MESSAGE_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+-- changeset auto.generated:1825492372-193
+ALTER TABLE notification_smtp_outbound_config ADD CONSTRAINT FK_NOTIFICATION_SMTP_OUTBOUND_CONFIG_TENANT FOREIGN KEY (tenant) REFERENCES access_tenant (uid) ON UPDATE RESTRICT ON DELETE RESTRICT;
+
+-- changeset auto.generated:1825492372-194
 ALTER TABLE _audit_change ADD CONSTRAINT fk_audit_change_action FOREIGN KEY (action_id) REFERENCES _audit_action (id) ON UPDATE RESTRICT ON DELETE CASCADE;
 

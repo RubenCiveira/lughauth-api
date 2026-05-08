@@ -205,14 +205,14 @@ class InstallUsecase
 
         $smtp = new SmtpOutboundConfigAttributes();
         $smtp->uid(Random::comb());
-        $smtp->host('smtp.example.com');
+        $smtp->host($_ENV['MAILER_HOST'] ?? 'smtp.example.com');
         $smtp->port(true);
-        $smtp->login('noreply@example.com');
-        $smtp->password(SmtpOutboundConfigPasswordVO::fromPlainText($this->cypher, 'change-me'));
-        $smtp->senderName('LughAuth');
-        $smtp->senderEmail('noreply@example.com');
+        $smtp->login($_ENV['MAILER_USERNAME'] ?? 'noreply@example.com');
+        $smtp->password(SmtpOutboundConfigPasswordVO::fromPlainText($this->cypher, $_ENV['MAILER_PASSWORD'] ?? 'change-me'));
+        $smtp->senderName($_ENV['MAILER_FROM_NAME'] ?? 'LughAuth');
+        $smtp->senderEmail($_ENV['MAILER_FROM_EMAIL'] ?? 'noreply@example.com');
         $smtp->timeout(30);
-        $smtp->useTls(true);
+        $smtp->useTls(filter_var($_ENV['MAILER_START_TLS'] ?? true, FILTER_VALIDATE_BOOLEAN));
         $smtp->maxRetries(3);
         $smtp->retryDelay(60);
         $smtp->rateLimit(100);
