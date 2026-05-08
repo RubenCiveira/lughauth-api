@@ -20,4 +20,5 @@ interface UserInvitationWriteGateway
     public function existsForUpdate(UserInvitationFilter $filter): bool;
     public function countForUpdate(?UserInvitationFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?UserInvitation;
+    public function findOneForUpdateByTokenHash(string $tokenHash): ?UserInvitation;
 }

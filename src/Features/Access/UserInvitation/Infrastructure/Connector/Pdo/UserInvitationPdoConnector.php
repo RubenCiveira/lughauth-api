@@ -292,6 +292,10 @@ class UserInvitationPdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_user_invitation" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
+            $values = ['tokenHash' => $entity->getTokenHash(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "token_hash" from "access_user_invitation" where "token_hash" = :tokenHash and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['tokenHash'], [$entity->getTokenHash()]);
+            }
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -322,6 +326,21 @@ class UserInvitationPdoConnector
                 if (null !== $filterSearch) {
                     $query .= ' and ( "access_user_invitation"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
+                }
+                if ($filter->isTokenHashAssigned()) {
+                    $filterTokenHash = $filter->tokenHash();
+                    $query .= ' and "access_user_invitation"."token_hash" = :tokenHash';
+                    $params[] = new SqlParam(name: 'tokenHash', value: $filterTokenHash, type: SqlParam::STR);
+                }
+                $filterStatus = $filter->status();
+                if (null !== $filterStatus) {
+                    $query .= ' and "access_user_invitation"."status" = :status ';
+                    $params[] = new SqlParam(name: 'status', value: $filterStatus->value, type: SqlParam::STR);
+                }
+                $filterEmail = $filter->email();
+                if (null !== $filterEmail) {
+                    $query .= ' and "access_user_invitation"."email" = :email ';
+                    $params[] = new SqlParam(name: 'email', value: $filterEmail, type: SqlParam::STR);
                 }
                 $filterTenant = $filter->tenant();
                 if (null !== $filterTenant) {
@@ -365,12 +384,28 @@ class UserInvitationPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $sortSinceUid = $sort->sinceUid();
-                if (null !== $sortSinceUid) {
-                    $query .= ' and  "uid" < :sinceUid';
-                    $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
+                $sortOrder = $sort->order();
+                if (null !== $sortOrder) {
+                    $equals = '';
+                    foreach ($sortOrder as $ord) {
+                        if ($ord === 'createdAtDesc') {
+                            $sortSinceCreatedAt = $sort->sinceCreatedAt();
+                            if (null !== $sortSinceCreatedAt) {
+                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "user-invitation"."created_at" < :sinceCreatedAt';
+                                $equals .= ' and "user-invitation"."created_at" = :sinceCreatedAt';
+                                $params[] = new SqlParam(name: 'sinceCreatedAt', value: $sortSinceCreatedAt, type: SqlParam::STR);
+                            }
+                            $order .= ', "access_user_invitation"."created_at" desc';
+                        }
+                    }
+                } else {
+                    $sortSinceUid = $sort->sinceUid();
+                    if (null !== $sortSinceUid) {
+                        $query .= ' and  "access_user_invitation"."uid" < :sinceUid';
+                        $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
+                    }
+                    $order = ', "access_user_invitation"."uid" desc';
                 }
-                $order = ', "access_user_invitation"."uid" desc';
             }
             return [
               'query' => 'SELECT '.($count ? ' count("access_user_invitation".*) as count ' : '"access_user_invitation".*').' FROM "access_user_invitation"'

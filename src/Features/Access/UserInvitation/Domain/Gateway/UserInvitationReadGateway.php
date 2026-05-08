@@ -16,4 +16,5 @@ interface UserInvitationReadGateway
     public function exists(UserInvitationFilter $filter): bool;
     public function count(?UserInvitationFilter $filter = null): int;
     public function findOneByUid(string $uid): ?UserInvitation;
+    public function findOneByTokenHash(string $tokenHash): ?UserInvitation;
 }

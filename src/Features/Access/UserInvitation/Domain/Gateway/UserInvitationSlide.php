@@ -28,6 +28,7 @@ class UserInvitationSlide extends \ArrayIterator
         $this->nextCursor = new UserInvitationCursor(
             limit: null === $cursor ? 1000 : $cursor->limit(),
             sinceUid: null == $last ? null : $last->uid(),
+            sinceCreatedAt: null === $last ? null : $last->getCreatedAt(),
         );
     }
     public function cursor(): ?UserInvitationCursor

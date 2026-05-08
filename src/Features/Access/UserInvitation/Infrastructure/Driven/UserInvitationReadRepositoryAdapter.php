@@ -110,4 +110,18 @@ class UserInvitationReadRepositoryAdapter implements UserInvitationReadGateway
             $span->end();
         }
     }
+    #[Override]
+    public function findOneByTokenHash(string $tokenHash): ?UserInvitation
+    {
+        $this->logDebug("Find on by token hash for User invitation on adapter");
+        $span = $this->startSpan("Find on by token hash for User invitation on adapter");
+        try {
+            return $this->conn->retrieve(new UserInvitationFilter(tokenHash: $tokenHash));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
 }

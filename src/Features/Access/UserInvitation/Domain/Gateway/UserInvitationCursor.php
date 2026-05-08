@@ -9,15 +9,20 @@ use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitation;
 
 class UserInvitationCursor
 {
+    public const string CREATED_AT_DESC = '-created-at';
+
     public function __construct(
         private int $limit,
         private ?string $sinceUid = null,
+        private ?\DateTimeImmutable $sinceCreatedAt = null,
+        private ?array $order = null,
     ) {
     }
     public function next(UserInvitation $userInvitation, ?int $size): UserInvitationCursor
     {
         $next = clone $this;
         $next->sinceUid = $userInvitation->uid();
+        $next->sinceCreatedAt = $userInvitation->getCreatedAt();
         $next->limit = $size ?? $this->limit;
         return $next;
     }
@@ -28,5 +33,13 @@ class UserInvitationCursor
     public function sinceUid(): ?string
     {
         return $this->sinceUid;
+    }
+    public function sinceCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->sinceCreatedAt;
+    }
+    public function order(): ?array
+    {
+        return $this->order;
     }
 }

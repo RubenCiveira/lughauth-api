@@ -161,6 +161,20 @@ class UserInvitationWriteRepositoryAdapter implements UserInvitationWriteGateway
             $span->end();
         }
     }
+    #[Override]
+    public function findOneForUpdateByTokenHash(string $tokenHash): ?UserInvitation
+    {
+        $this->logDebug("Find on by token hash for User invitation on adapter");
+        $span = $this->startSpan("Find on by token hash for User invitation on adapter");
+        try {
+            return $this->conn->retrieveForUpdate(new UserInvitationFilter(tokenHash: $tokenHash));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
     private function dispatch(UserInvitation $entity): void
     {
         $this->logDebug("Count for User invitation on adapter ");

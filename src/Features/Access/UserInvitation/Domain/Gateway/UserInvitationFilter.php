@@ -5,6 +5,7 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway;
 
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 
@@ -13,6 +14,9 @@ class UserInvitationFilter
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
+        public readonly ?string $tokenHash = null,
+        private ?UserInvitationStatusOptions $status = null,
+        private ?string $email = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
         private ?UserRef $invitedBy = null,
@@ -40,6 +44,60 @@ class UserInvitationFilter
     {
         $copy = clone $this;
         $copy->search = $search;
+        return $copy;
+    }
+    public function tokenHash(): ?string
+    {
+        return $this->tokenHash;
+    }
+    public function isTokenHashAssigned(): bool
+    {
+        return null !== $this->tokenHash;
+    }
+    public function unsetTokenHash(): void
+    {
+        $this->tokenHash = null;
+    }
+    public function withTokenHash(?string $tokenHash): self
+    {
+        $copy = clone $this;
+        $copy->tokenHash = $tokenHash;
+        return $copy;
+    }
+    public function status(): ?UserInvitationStatusOptions
+    {
+        return $this->status;
+    }
+    public function isStatusAssigned(): bool
+    {
+        return null !== $this->status;
+    }
+    public function unsetStatus(): void
+    {
+        $this->status = null;
+    }
+    public function withStatus(UserInvitationStatusOptions $status): self
+    {
+        $copy = clone $this;
+        $copy->status = $status;
+        return $copy;
+    }
+    public function email(): ?string
+    {
+        return $this->email;
+    }
+    public function isEmailAssigned(): bool
+    {
+        return null !== $this->email;
+    }
+    public function unsetEmail(): void
+    {
+        $this->email = null;
+    }
+    public function withEmail(string $email): self
+    {
+        $copy = clone $this;
+        $copy->email = $email;
         return $copy;
     }
     public function tenant(): ?TenantRef

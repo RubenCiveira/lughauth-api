@@ -5,85 +5,43 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven;
 
-use PDO;
 use Override;
-use DateTimeImmutable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitation;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
-use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationAttributes;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationFilter;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCursor;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationReadGateway;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 
 class UserInvitationQueryAdapter implements UserInvitationQueryGateway
 {
     public function __construct(
-        private readonly PDO $pdo,
+        private readonly UserInvitationReadGateway $readGateway,
     ) {
     }
 
     #[Override]
     public function findByTokenHash(string $tokenHash, string $tenantId): ?UserInvitation
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT * FROM access_user_invitation
-             WHERE token_hash = :token_hash AND tenant_id = :tenant_id
-             LIMIT 1'
+        return $this->readGateway->retrieve(
+            (new UserInvitationFilter())
+                ->withTokenHash($tokenHash)
+                ->withTenant(new TenantRef($tenantId))
         );
-        $stmt->execute(['token_hash' => $tokenHash, 'tenant_id' => $tenantId]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return is_array($row) ? $this->hydrate($row) : null;
     }
 
     #[Override]
     public function findPendingByEmail(string $email, string $tenantId): ?UserInvitation
     {
-        $stmt = $this->pdo->prepare(
-            'SELECT * FROM access_user_invitation
-             WHERE email = :email AND tenant_id = :tenant_id AND status = :status
-             ORDER BY created_at DESC
-             LIMIT 1'
+        $slide = $this->readGateway->list(
+            (new UserInvitationFilter())
+                ->withEmail($email)
+                ->withTenant(new TenantRef($tenantId))
+                ->withStatus(UserInvitationStatusOptions::PENDING),
+            new UserInvitationCursor(1, order: [UserInvitationCursor::CREATED_AT_DESC])
         );
-        $stmt->execute([
-            'email'     => $email,
-            'tenant_id' => $tenantId,
-            'status'    => UserInvitationStatusOptions::PENDING->value,
-        ]);
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return is_array($row) ? $this->hydrate($row) : null;
-    }
 
-    /**
-     * @param array<string, mixed> $row
-     */
-    private function hydrate(array $row): UserInvitation
-    {
-        $attrs = new UserInvitationAttributes();
-        $attrs->uid((string) $row['uid']);
-        $attrs->tenant(new TenantRef((string) $row['tenant_id']));
-        $attrs->email((string) $row['email']);
-        $attrs->invitedBy(new UserRef((string) $row['invited_by']));
-        $attrs->tokenHash((string) $row['token_hash']);
-        $attrs->status(UserInvitationStatusOptions::from((string) $row['status']));
-        $attrs->createdAt(new DateTimeImmutable((string) $row['created_at']));
-        $attrs->expiredAt(new DateTimeImmutable((string) $row['expired_at']));
-
-        if (isset($row['roles']) && $row['roles'] !== null && $row['roles'] !== '') {
-            $attrs->roles((string) $row['roles']);
-        }
-        if (isset($row['metadata_json']) && $row['metadata_json'] !== null) {
-            $attrs->metadataJson((string) $row['metadata_json']);
-        }
-        if (isset($row['accepted_at']) && $row['accepted_at'] !== null) {
-            $attrs->acceptedAt(new DateTimeImmutable((string) $row['accepted_at']));
-        }
-        if (isset($row['accepted_by']) && $row['accepted_by'] !== null) {
-            $attrs->acceptedBy(new UserRef((string) $row['accepted_by']));
-        }
-        if (isset($row['version']) && $row['version'] !== null) {
-            $attrs->version((int) $row['version']);
-        }
-
-        return UserInvitation::create($attrs);
+        return $slide->values()[0] ?? null;
     }
 }
