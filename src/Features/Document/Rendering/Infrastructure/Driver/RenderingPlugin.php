@@ -10,11 +10,11 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Rendering\Domain\Gateway\TemplateRenderGateway;
 use Civi\Lughauth\Features\Document\Rendering\Infrastructure\Driven\HandlebarsTemplateRenderAdapter;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Listener\TemplateAssetDiskSyncListener;
+use Civi\Lughauth\Features\Document\Rendering\Application\Listener\TemplateAssetDiskSyncListener;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Event\TemplateAssetEvent;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Listener\SnippetAssetDiskSyncListener;
+use Civi\Lughauth\Features\Document\Rendering\Application\Listener\SnippetAssetDiskSyncListener;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Event\SnippetAssetEvent;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Listener\ThemeAssetDiskSyncListener;
+use Civi\Lughauth\Features\Document\Rendering\Application\Listener\ThemeAssetDiskSyncListener;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Event\ThemeAssetEvent;
 
 class RenderingPlugin extends MicroPlugin
