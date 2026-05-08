@@ -11,6 +11,8 @@ interface ClientStoreGateway
 {
     public function clientData(string $clientId, string $clientSecret): ?ClientData;
 
+    public function findEnabledClient(string $clientId): ?ClientData;
+
     public function preValidatedClient(string $clientId): ?ClientData;
 
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData;

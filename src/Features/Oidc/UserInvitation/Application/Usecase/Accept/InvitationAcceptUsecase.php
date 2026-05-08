@@ -16,21 +16,21 @@ use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationWriteGateway;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
-use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationCodeGateway;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationSessionGateway;
 
 class InvitationAcceptUsecase
 {
     public function __construct(
         private readonly UserInvitationWriteGateway $writeGateway,
         private readonly UserInvitationQueryGateway $queryGateway,
-        private readonly UserInvitationCodeGateway $codeGateway,
+        private readonly UserInvitationSessionGateway $sessionGateway,
         private readonly TenantReadGateway $tenants,
         private readonly UserWriteGateway $userWriter,
         private readonly AesCypherService $cypher,
     ) {
     }
 
-    public function accept(InvitationAcceptParams $params): string
+    public function accept(InvitationAcceptParams $params): InvitationAcceptResult
     {
         $tokenHash = hash('sha256', $params->rawToken);
         $tenant    = $this->tenants->findOneByName($params->tenantName);
@@ -69,20 +69,22 @@ class InvitationAcceptUsecase
             throw new \DomainException('User creation failed.');
         }
 
+        $email = $invitation->getEmail();
+
         $attrs = $invitation->toAttributes()
             ->status(UserInvitationStatusOptions::ACCEPTED)
             ->acceptedAt(new DateTimeImmutable())
             ->acceptedBy(new UserRef($userUid));
         $this->writeGateway->update($invitation, $invitation->update($attrs));
 
-        $authCode = $this->codeGateway->createAuthCode(
+        $session = $this->sessionGateway->createSession(
             userUid: $userUid,
+            email: $email,
+            tenantUid: $tenantUid,
+            tenantName: $params->tenantName,
             clientId: $params->clientId,
-            scope: $params->scope,
-            redirectUri: $params->redirectUri,
-            tenant: $params->tenantName,
         );
 
-        return $params->redirectUri . '?code=' . urlencode($authCode);
+        return new InvitationAcceptResult(email: $email, session: $session);
     }
 }

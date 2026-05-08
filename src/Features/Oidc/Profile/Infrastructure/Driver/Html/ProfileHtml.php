@@ -200,7 +200,7 @@ class ProfileHtml
             $inviter = $this->userGateway->findOneByUid($session->userId);
             $inviterEmail = $inviter?->getEmail() ?? '';
 
-            $clientId    = $this->context->getConnection()->application;
+            $clientId    = $session->clientId;
             $redirectUri = $clientId !== '' ? ($this->clientStore->defaultRedirectUri($clientId) ?? '') : '';
 
             $params = new InvitationCreateParams(

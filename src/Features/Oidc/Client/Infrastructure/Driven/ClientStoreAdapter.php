@@ -48,6 +48,21 @@ class ClientStoreAdapter implements ClientStoreGateway
     }
 
     #[Override]
+    public function findEnabledClient(string $clientId): ?ClientData
+    {
+        $existent = $this->clients->findOneByCode($clientId);
+        if ($existent === null) {
+            $this->inexistent($clientId);
+            return null;
+        }
+        if (!$existent->isEnabled()) {
+            $this->notEnabled($clientId);
+            return null;
+        }
+        return $this->mapClientData($existent);
+    }
+
+    #[Override]
     public function preValidatedClient(string $clientId): ?ClientData
     {
         $existent = $this->clients->findOneByCode($clientId);

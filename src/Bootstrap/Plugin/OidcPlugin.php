@@ -92,10 +92,10 @@ use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\Invita
 use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\InvitationResendController;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
-use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationCodeGateway;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Domain\Gateway\UserInvitationSessionGateway;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationQueryAdapter;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationMailAdapter;
-use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationCodeAdapter;
+use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driven\UserInvitationSessionAdapter;
 
 class OidcPlugin extends MicroPlugin
 {
@@ -133,7 +133,7 @@ class OidcPlugin extends MicroPlugin
         $def[MagicLinkCodeGateway::class] = \DI\autowire(MagicLinkCodeAdapter::class);
         $def[UserInvitationQueryGateway::class] = \DI\autowire(UserInvitationQueryAdapter::class);
         $def[UserInvitationMailGateway::class] = \DI\autowire(UserInvitationMailAdapter::class);
-        $def[UserInvitationCodeGateway::class] = \DI\autowire(UserInvitationCodeAdapter::class);
+        $def[UserInvitationSessionGateway::class] = \DI\autowire(UserInvitationSessionAdapter::class);
         return $def;
     }
 

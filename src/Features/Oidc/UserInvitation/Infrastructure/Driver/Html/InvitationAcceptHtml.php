@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Html;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Application\Usecase\Accept\InvitationAcceptParams;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Application\Usecase\Accept\InvitationAcceptUsecase;
@@ -16,6 +17,7 @@ class InvitationAcceptHtml
     public function __construct(
         private readonly InvitationAcceptUsecase $usecase,
         private readonly DecorateHtml $decorator,
+        private readonly OidcCookieManager $cookies,
     ) {
     }
 
@@ -60,8 +62,12 @@ class InvitationAcceptHtml
                 clientId: $clientId,
                 redirectUri: $redirectUri,
             );
-            $redirectUrl = $this->usecase->accept($params);
-            return $response->withStatus(302)->withHeader('Location', $redirectUrl);
+            $result = $this->usecase->accept($params);
+            $response = $this->renderSuccess($request, $response, $tenant, $result->email, $redirectUri);
+            if ($result->session !== null) {
+                $response = $this->cookies->authenticatedSessionCookie($tenant, $result->session->sessionId, $result->session->expiration)->attach($response);
+            }
+            return $response;
         } catch (\DomainException $e) {
             return $this->renderError($request, $response, $tenant, $e->getMessage());
         }
@@ -89,6 +95,29 @@ class InvitationAcceptHtml
                 <input class="primary-button" type="submit" value="Activate account" />
             </form>
             HTML;
+    }
+
+    private function renderSuccess(ServerRequestInterface $request, ResponseInterface $response, string $tenant, string $email, string $redirectUri): ResponseInterface
+    {
+        $parsed = parse_url($redirectUri);
+        $appUrl = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '')
+            . (isset($parsed['port']) ? ':' . $parsed['port'] : '');
+        $appUrlEsc = htmlspecialchars($appUrl !== '://' ? $appUrl : '');
+
+        $buttonHtml = $appUrlEsc !== ''
+            ? '<a class="primary-button" href="' . $appUrlEsc . '">Login now</a>'
+            : '';
+
+        $emailEsc = htmlspecialchars($email);
+        $html = '<h1>Account activated</h1>'
+            . '<p>Your account has been created successfully.</p>'
+            . '<p>Use <strong>' . $emailEsc . '</strong> as your username to log in.</p>'
+            . $buttonHtml;
+
+        $response->getBody()->write(
+            $this->decorator->getFullPage($request, 'Account activated', $html, 'en', 'index', $tenant)
+        );
+        return $response;
     }
 
     private function renderError(ServerRequestInterface $request, ResponseInterface $response, string $tenant, string $message): ResponseInterface

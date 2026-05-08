@@ -13,7 +13,6 @@ final class InvitationAcceptParams
         public readonly string $password,
         public readonly string $clientId,
         public readonly string $redirectUri,
-        public readonly string $scope = 'openid email profile',
     ) {
     }
 }
