@@ -21,6 +21,7 @@ use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ValueObject\ThemeAssetCont
 
 class InstallCorporateTheme
 {
+    // FIXME: no debería ser un __DIR__ . '/assets'
     private const string STYLE_DIR = __DIR__ . '/../../../../../Oidc/Theme/Themes/corporate/style/';
 
     public function __construct(
@@ -33,6 +34,7 @@ class InstallCorporateTheme
     public function install(): void
     {
         $this->installCorporateHtml();
+        $this->installCorporateFullHtml();
         $this->installCorporateMail();
     }
 
@@ -156,6 +158,43 @@ HANDLEBARS;
 
         $this->createVersion($theme, ThemeVersionChannelOptions::MAIL, $layout);
         // Mail theme has no binary assets
+    }
+
+    private function installCorporateFullHtml(): void
+    {
+        $theme = $this->createTheme('corporate-full');
+
+        $layout = <<<'HANDLEBARS'
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+    <link rel="icon" type="image/png" href="{{theme_assets_path}}/favicon.png">
+    <link rel="stylesheet" href="{{theme_assets_path}}/corporate.css">
+    <link rel="stylesheet" href="{{theme_assets_path}}/full.css">
+    <link rel="stylesheet" href="{{theme_assets_path}}/profile.css">
+</head>
+<body class="full-window">
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="app-logo" href="/">
+                <img src="{{theme_assets_path}}/logo.png" alt="Company Logo" />
+            </a>
+        </div>
+    </header>
+    <main class="app-main">
+        <div class="app-content">
+            {{{slot_content}}}
+        </div>
+    </main>
+</body>
+</html>
+HANDLEBARS;
+
+        $this->createVersion($theme, ThemeVersionChannelOptions::HTML, $layout);
+        $this->installAssets($theme);
     }
 
     // -------------------------------------------------------------------------

@@ -28,30 +28,13 @@ class InstallFullPageTemplate
         $tpl->uid(Random::comb());
         $tpl->code('page.full');
         $tpl->channel(TemplateChannelOptions::HTML);
-        $tpl->theme('corporate');
+        $tpl->theme('corporate-full');
         $tpl->enabled(true);
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $layout = <<<'HANDLEBARS'
-<div class="main-content">
-    <div class="image-panel">
-        <div class="corporate-image">
-            <img src="{{theme_assets_path}}/identity.png" alt="Corporate illustration" class="main-illustration" />
-        </div>
-    </div>
-    <div class="form-panel">
-        <div class="form-container">
-            <div class="form-content">
-                <div class="loading"></div>
-                <div class="in-form">
-                    {{{innerContent}}}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-HANDLEBARS;
+        $layout = '{{{innerContent}}}';
+
 
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
