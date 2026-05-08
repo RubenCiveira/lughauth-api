@@ -14,7 +14,7 @@ class UserInvitationFilter
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        public readonly ?string $tokenHash = null,
+        private ?string $tokenHash = null,
         private ?UserInvitationStatusOptions $status = null,
         private ?string $email = null,
         private ?TenantRef $tenant = null,

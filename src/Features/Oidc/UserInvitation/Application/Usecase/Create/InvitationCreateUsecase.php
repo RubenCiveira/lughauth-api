@@ -55,7 +55,9 @@ class InvitationCreateUsecase
         $invitation = $this->writeGateway->create(UserInvitation::create($attrs));
 
         $acceptUrl = rtrim($params->baseUrl, '/') . '/oauth/openid/' . urlencode($params->tenantName)
-            . '/invitation/accept?token=' . urlencode($rawToken);
+            . '/invitation/accept?token=' . urlencode($rawToken)
+            . ($params->clientId !== '' ? '&client_id=' . urlencode($params->clientId) : '')
+            . ($params->redirectUri !== '' ? '&redirect_uri=' . urlencode($params->redirectUri) : '');
 
         $this->mailer->sendInvitation(
             toEmail: $params->email,

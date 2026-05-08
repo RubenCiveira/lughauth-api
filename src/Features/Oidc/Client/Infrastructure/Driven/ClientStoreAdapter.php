@@ -118,6 +118,23 @@ class ClientStoreAdapter implements ClientStoreGateway
         }
     }
 
+    #[Override]
+    public function defaultRedirectUri(string $clientId): ?string
+    {
+        $client = $this->clients->findOneByCode($clientId);
+        if ($client === null || !$client->isEnabled()) {
+            return null;
+        }
+        $redirects = $client->getAllowedRedirects() ?? [];
+        foreach ($redirects as $redirect) {
+            $url = $redirect?->getUrl() ?? '';
+            if ($url !== '') {
+                return $url;
+            }
+        }
+        return null;
+    }
+
     private function mapClientData(mixed $trustedClient): ClientData
     {
         $grants = ['password'];

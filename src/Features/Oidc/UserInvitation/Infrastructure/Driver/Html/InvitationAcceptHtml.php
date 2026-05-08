@@ -21,14 +21,17 @@ class InvitationAcceptHtml
 
     public function form(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $tenant   = $args['tenant'];
-        $rawToken = (string) ($request->getQueryParams()['token'] ?? '');
+        $tenant      = $args['tenant'];
+        $query       = $request->getQueryParams();
+        $rawToken    = (string) ($query['token'] ?? '');
+        $clientId    = (string) ($query['client_id'] ?? '');
+        $redirectUri = (string) ($query['redirect_uri'] ?? '');
 
         if ($rawToken === '') {
             return $this->renderError($request, $response, $tenant, 'Invalid invitation link.');
         }
 
-        $html = $this->buildForm($rawToken, $tenant);
+        $html = $this->buildForm($rawToken, $tenant, $clientId, $redirectUri);
         $response->getBody()->write(
             $this->decorator->getFullPage($request, 'Accept invitation', $html, 'en', 'index', $tenant)
         );
@@ -64,15 +67,19 @@ class InvitationAcceptHtml
         }
     }
 
-    private function buildForm(string $rawToken, string $tenant): string
+    private function buildForm(string $rawToken, string $tenant, string $clientId, string $redirectUri): string
     {
-        $token  = htmlspecialchars($rawToken);
-        $action = '/oauth/openid/' . htmlspecialchars($tenant) . '/invitation/accept';
+        $token       = htmlspecialchars($rawToken);
+        $clientIdVal = htmlspecialchars($clientId);
+        $redirectVal = htmlspecialchars($redirectUri);
+        $action      = './accept';
         return <<<HTML
             <h1>Accept invitation</h1>
             <p>Create your password to activate your account.</p>
             <form method="POST" action="{$action}">
                 <input type="hidden" name="token" value="{$token}" />
+                <input type="hidden" name="client_id" value="{$clientIdVal}" />
+                <input type="hidden" name="redirect_uri" value="{$redirectVal}" />
                 <label>Password
                     <input type="password" name="password" required autocomplete="new-password" />
                 </label>

@@ -29,6 +29,7 @@ use Civi\Lughauth\Features\Oidc\Profile\Infrastructure\Driver\Html\Panels\Sessio
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Application\Usecase\Create\InvitationCreateParams;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Application\Usecase\Create\InvitationCreateUsecase;
 
@@ -55,6 +56,7 @@ class ProfileHtml
         private readonly InvitationCreateUsecase $inviteUsecase,
         private readonly TenantReadGateway $tenantGateway,
         private readonly UserReadGateway $userGateway,
+        private readonly ClientStoreGateway $clientStore,
     ) {
     }
 
@@ -198,6 +200,9 @@ class ProfileHtml
             $inviter = $this->userGateway->findOneByUid($session->userId);
             $inviterEmail = $inviter?->getEmail() ?? '';
 
+            $clientId    = $this->context->getConnection()->application;
+            $redirectUri = $clientId !== '' ? ($this->clientStore->defaultRedirectUri($clientId) ?? '') : '';
+
             $params = new InvitationCreateParams(
                 tenantName: $tenant,
                 tenantId: $tenantId,
@@ -205,6 +210,8 @@ class ProfileHtml
                 invitedByUserUid: $session->userId,
                 invitedByEmail: $inviterEmail,
                 baseUrl: $this->context->getBaseUrl(),
+                clientId: $clientId,
+                redirectUri: $redirectUri,
             );
             $this->inviteUsecase->create($params);
             $this->sql->commit();

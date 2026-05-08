@@ -48,6 +48,8 @@ class SmtpMailSenderAdapter implements SmtpMailSenderGateway
             $mailer->SMTPAuth = true;
         }
 
+        $mailer->Timeout = (int) $this->config->get('mailer.timeout', '30');
+
         $mailer->setFrom(
             $this->config->get('mailer.from.email', 'info@localhost'),
             $this->config->get('mailer.from.name', 'info'),
@@ -72,7 +74,7 @@ class SmtpMailSenderAdapter implements SmtpMailSenderGateway
             $mailer->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         }
 
-        if (null !== $config->getTimeout()) {
+        if (0 !== $config->getTimeout()) {
             $mailer->Timeout = $config->getTimeout();
         }
 

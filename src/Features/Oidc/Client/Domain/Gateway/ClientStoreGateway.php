@@ -14,4 +14,6 @@ interface ClientStoreGateway
     public function preValidatedClient(string $clientId): ?ClientData;
 
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData;
+
+    public function defaultRedirectUri(string $clientId): ?string;
 }

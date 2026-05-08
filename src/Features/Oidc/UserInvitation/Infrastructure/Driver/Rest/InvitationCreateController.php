@@ -40,6 +40,8 @@ class InvitationCreateController
             baseUrl: $this->context->getBaseUrl(),
             roles: ($body['roles'] ?? null) !== null ? (string) $body['roles'] : null,
             metadataJson: ($body['metadata'] ?? null) !== null ? (string) json_encode($body['metadata']) : null,
+            clientId: (string) ($body['client_id'] ?? ''),
+            redirectUri: (string) ($body['redirect_uri'] ?? ''),
         );
 
         $result  = $this->usecase->create($params);

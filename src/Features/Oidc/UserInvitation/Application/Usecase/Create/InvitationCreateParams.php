@@ -16,6 +16,8 @@ final class InvitationCreateParams
         public readonly string $baseUrl,
         public readonly ?string $roles = null,
         public readonly ?string $metadataJson = null,
+        public readonly string $clientId = '',
+        public readonly string $redirectUri = '',
     ) {
     }
 }
