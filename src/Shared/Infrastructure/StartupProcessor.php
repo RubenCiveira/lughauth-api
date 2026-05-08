@@ -116,6 +116,7 @@ class StartupProcessor
         foreach ($keys as $key) {
             $executors[$key] = [...$this->executors[$key]];
         }
+        set_time_limit(0);
         foreach ($executors as $execs) {
             foreach ($execs as $process) {
                 try {

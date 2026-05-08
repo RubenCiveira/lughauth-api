@@ -95,8 +95,7 @@ class EnqueuePublisher
         if (!$result) {
             throw new Exception('Unable to store event');
         }
-        $this->sendEvents();
-        // register_shutdown_function([$this, 'sendEvents']);
+        register_shutdown_function([$this, 'sendEvents']);
     }
 
     /**
@@ -153,6 +152,10 @@ class EnqueuePublisher
         $entityType = $data['event_type'];
         $factory = new AmqpConnectionFactory([
             'dsn' => $this->dns, // %2f = "/" vhost por defecto
+            'connection_timeout' => 3,
+            'read_timeout' => 3,
+            'write_timeout' => 3,
+            'channel_rpc_timeout' => 3.,
         ]);
         $context = $factory->createContext();
         /** @psalm-suppress PossiblyNullArgument */
