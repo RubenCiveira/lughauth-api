@@ -89,13 +89,23 @@ class Phix implements MigrationInterface
         }
     }
 
+    protected function discoverMigrationPaths(string $adapter): array
+    {
+        $base = realpath(__DIR__ . '/../../../../migrations/' . $adapter . '/schema');
+        if ($base === false) {
+            return [];
+        }
+        $dirs = glob($base . '/*', GLOB_ONLYDIR);
+        return ($dirs !== false && $dirs !== []) ? $dirs : [$base];
+    }
+
     protected function build(): Manager
     {
         $pg = $this->parse();
         $of = $pg['adapter']; // mysql
         $configArray = [
             'paths' => [
-                'migrations' => realpath(__DIR__ . '/../../../../migrations/' . $of . '/schema'),
+                'migrations' => $this->discoverMigrationPaths($of),
                 'seed' => realpath(__DIR__ . '/../../../../migrations/' . $of . '/data'),
             ],
             'environments' => [
