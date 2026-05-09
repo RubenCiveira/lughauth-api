@@ -62,7 +62,7 @@ class RequestMagicLinkUsecase
 
         $magicLink = MagicLink::create(
             uid: Random::comb(),
-            tenantId: $tenantUid,
+            tenantId: $tenantName,
             userUid: $userUid,
             clientId: $clientId,
             tokenHash: $tokenHash,
