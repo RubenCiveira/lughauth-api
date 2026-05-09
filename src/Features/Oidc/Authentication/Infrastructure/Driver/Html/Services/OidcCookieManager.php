@@ -67,6 +67,7 @@ class OidcCookieManager
 
     public function cookiePath(string $tenant): string
     {
-        return $this->base . '/openid/' . $tenant . '/';
+        $basePath = rtrim((string) (parse_url($this->base, PHP_URL_PATH) ?? '/oauth'), '/');
+        return $basePath . '/openid/' . $tenant . '/';
     }
 }
