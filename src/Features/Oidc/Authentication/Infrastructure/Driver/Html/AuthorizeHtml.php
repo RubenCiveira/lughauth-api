@@ -157,17 +157,22 @@ class AuthorizeHtml
                 ->withUsername($sess->userId)
                 ->withMfa($sess->withMfa)
                 ->withSession(true);
-            $auth = $this->authenticator->sessionAuthenticated(
-                $authRequest,
-                $challenges,
-                $tenant,
-                $flow->issuer,
-                $sess->csid,
-                (string) ($flow->sessionId ?? ''),
-                $flow->state,
-                $flow->nonce
-            );
-            return $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response);
+            $input = $this->buildStepInput($flow, $request, $authRequest, $challenges, $body);
+            try {
+                $auth = $this->authenticator->sessionAuthenticated(
+                    $authRequest,
+                    $challenges,
+                    $tenant,
+                    $flow->issuer,
+                    $sess->csid,
+                    $flow->sessionId ?? '',
+                    $flow->state,
+                    $flow->nonce
+                );
+                return $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response);
+            } catch (LoginException $ex) {
+                return $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null, $ex->challenges ?? $challenges);
+            }
         } else {
             $this->logWarning('OIDC check-session missing session', [
                 'tenant' => $tenant,
