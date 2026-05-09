@@ -27,6 +27,16 @@ class InMemoryClientStore implements ClientStoreGateway
         return $entry['data'];
     }
 
+    public function findEnabledClient(string $clientId): ?ClientData
+    {
+        return $this->clients[$clientId]['data'] ?? null;
+    }
+
+    public function defaultRedirectUri(string $clientId): ?string
+    {
+        return null;
+    }
+
     public function preValidatedClient(string $clientId): ?ClientData
     {
         return $this->clients[$clientId]['data'] ?? null;

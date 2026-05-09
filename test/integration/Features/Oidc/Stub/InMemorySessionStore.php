@@ -21,6 +21,16 @@ class InMemorySessionStore implements SessionStoreGateway
         return $this->sessions[$state] ?? null;
     }
 
+    public function findActiveSessionIdByCsid(string $csid): ?string
+    {
+        foreach ($this->sessions as $state => $session) {
+            if ($session->csid === $csid) {
+                return $state;
+            }
+        }
+        return null;
+    }
+
     public function saveSession(
         string $state,
         ClientData $clientDetails,
