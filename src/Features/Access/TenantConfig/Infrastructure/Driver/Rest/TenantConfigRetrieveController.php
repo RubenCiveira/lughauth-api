@@ -73,6 +73,7 @@ class TenantConfigRetrieveController
             $dto->dynamicRegistrationPolicy = $value->getDynamicRegistrationPolicy();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
+            $dto->magicLinkEnabled = $value->isMagicLinkEnabled();
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();

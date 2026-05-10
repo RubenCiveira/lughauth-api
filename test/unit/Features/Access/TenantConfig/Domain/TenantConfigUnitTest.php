@@ -21,6 +21,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            magicLinkEnabled: true,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -52,6 +53,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
+        $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
+        $this->assertTrue($one->isMagicLinkEnabledChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -84,6 +87,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            magicLinkEnabled: true,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -103,6 +107,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::TOKEN_REQUIRED,
             allowRegister: false,
             enableRegisterUsers: false,
+            magicLinkEnabled: false,
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
@@ -132,6 +137,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
+        $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
+        $this->assertTrue($one->isMagicLinkEnabledChanged($base));
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged($base));
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -164,6 +171,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            magicLinkEnabled: true,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -187,6 +195,7 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertEquals(TenantConfigDynamicRegistrationPolicyOptions::OPEN, $json['dynamicRegistrationPolicy']);
         $this->assertEquals(true, $json['allowRegister']);
         $this->assertEquals(true, $json['enableRegisterUsers']);
+        $this->assertEquals(true, $json['magicLinkEnabled']);
         $this->assertEquals(true, $json['webauthnEnabled']);
         $this->assertEquals('one', $json['webauthnRpId']);
         $this->assertEquals('one', $json['webauthnRpName']);
@@ -204,6 +213,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            magicLinkEnabled: true,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -233,6 +243,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
+        $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
+        $this->assertTrue($one->isMagicLinkEnabledChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -266,6 +278,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            magicLinkEnabled: true,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -285,6 +298,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::TOKEN_REQUIRED,
             allowRegister: false,
             enableRegisterUsers: false,
+            magicLinkEnabled: false,
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
@@ -314,6 +328,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged($base));
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
+        $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
+        $this->assertTrue($one->isMagicLinkEnabledChanged($base));
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged($base));
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -348,6 +364,7 @@ final class TenantConfigUnitTest extends TestCase
             dynamicRegistrationPolicy: TenantConfigDynamicRegistrationPolicyOptions::OPEN,
             allowRegister: true,
             enableRegisterUsers: true,
+            magicLinkEnabled: true,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -377,6 +394,8 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isAllowRegisterChanged());
         $this->assertEquals($one->isEnableRegisterUsers(), $other->isEnableRegisterUsers());
         $this->assertTrue($one->isEnableRegisterUsersChanged());
+        $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
+        $this->assertTrue($one->isMagicLinkEnabledChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());

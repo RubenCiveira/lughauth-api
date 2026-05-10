@@ -11,6 +11,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDy
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigDynamicRegistrationPolicyOptions;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpNameVO;
@@ -95,6 +96,17 @@ final class TenantConfigCreateParamsUnitTest extends TestCase
         $value->unsetEnableRegisterUsers();
         $this->assertEquals(false, $value->getEnableRegisterUsersOrCurrent(TenantConfigEnableRegisterUsersVO::from($enableRegisterUsersOtherValue))->value());
         $this->assertNotEquals(true, $value->getEnableRegisterUsersOrCurrent(TenantConfigEnableRegisterUsersVO::from($enableRegisterUsersOtherValue))->value());
+        $magicLinkEnabledOneValue = true;
+        $magicLinkEnabledOtherValue = false;
+        $copy = $value->magicLinkEnabled($magicLinkEnabledOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals(true, $value->isMagicLinkEnabled());
+        $this->assertNotEquals(false, $value->isMagicLinkEnabled());
+        $this->assertEquals(true, $value->getMagicLinkEnabledOrCurrent(TenantConfigMagicLinkEnabledVO::from($magicLinkEnabledOtherValue))->value());
+        $this->assertNotEquals(false, $value->getMagicLinkEnabledOrCurrent(TenantConfigMagicLinkEnabledVO::from($magicLinkEnabledOtherValue))->value());
+        $value->unsetMagicLinkEnabled();
+        $this->assertEquals(false, $value->getMagicLinkEnabledOrCurrent(TenantConfigMagicLinkEnabledVO::from($magicLinkEnabledOtherValue))->value());
+        $this->assertNotEquals(true, $value->getMagicLinkEnabledOrCurrent(TenantConfigMagicLinkEnabledVO::from($magicLinkEnabledOtherValue))->value());
         $webauthnEnabledOneValue = true;
         $webauthnEnabledOtherValue = false;
         $copy = $value->webauthnEnabled($webauthnEnabledOneValue);

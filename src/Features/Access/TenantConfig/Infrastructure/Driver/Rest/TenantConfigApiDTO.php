@@ -65,6 +65,13 @@ class TenantConfigApiDTO
     )]
     public ?bool $enableRegisterUsers = null;
     #[OA\Property(
+        property: "magicLinkEnabled",
+        title: "magic link enabled",
+        description:"El magic link enabled de tenant config",
+        type: "string"
+    )]
+    public ?bool $magicLinkEnabled = null;
+    #[OA\Property(
         property: "webauthnEnabled",
         title: "webauthn enabled",
         description:"El webauthn enabled de tenant config",

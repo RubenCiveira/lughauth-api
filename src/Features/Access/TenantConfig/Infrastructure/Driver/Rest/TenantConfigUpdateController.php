@@ -22,6 +22,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigFo
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDynamicRegistrationPolicyVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpNameVO;
@@ -116,6 +117,7 @@ class TenantConfigUpdateController
             $value->dynamicRegistrationPolicy(TenantConfigDynamicRegistrationPolicyVO::tryFrom(isset($body['dynamicRegistrationPolicy']) ? strtoupper($body['dynamicRegistrationPolicy']) : null, $errorsList));
             $value->allowRegister(TenantConfigAllowRegisterVO::tryFrom($body['allowRegister'] ?? null, $errorsList));
             $value->enableRegisterUsers(TenantConfigEnableRegisterUsersVO::tryFrom($body['enableRegisterUsers'] ?? null, $errorsList));
+            $value->magicLinkEnabled(TenantConfigMagicLinkEnabledVO::tryFrom($body['magicLinkEnabled'] ?? null, $errorsList));
             $value->webauthnEnabled(TenantConfigWebauthnEnabledVO::tryFrom($body['webauthnEnabled'] ?? null, $errorsList));
             $value->webauthnRpId(TenantConfigWebauthnRpIdVO::tryFrom($body['webauthnRpId'] ?? null, $errorsList));
             $value->webauthnRpName(TenantConfigWebauthnRpNameVO::tryFrom($body['webauthnRpName'] ?? null, $errorsList));
@@ -151,6 +153,7 @@ class TenantConfigUpdateController
             $dto->dynamicRegistrationPolicy = $value->getDynamicRegistrationPolicy();
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
+            $dto->magicLinkEnabled = $value->isMagicLinkEnabled();
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();

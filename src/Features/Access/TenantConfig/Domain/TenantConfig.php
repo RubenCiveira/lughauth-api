@@ -18,6 +18,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAl
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigAllowRegisterAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigEnableRegisterUsersAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkEnabledVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigMagicLinkEnabledAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWebauthnEnabledAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
@@ -51,6 +53,7 @@ class TenantConfig extends TenantConfigRef
     use TenantConfigDynamicRegistrationPolicyAccessor;
     use TenantConfigAllowRegisterAccessor;
     use TenantConfigEnableRegisterUsersAccessor;
+    use TenantConfigMagicLinkEnabledAccessor;
     use TenantConfigWebauthnEnabledAccessor;
     use TenantConfigWebauthnRpIdAccessor;
     use TenantConfigWebauthnRpNameAccessor;
@@ -71,6 +74,7 @@ class TenantConfig extends TenantConfigRef
         TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = null,
         TenantConfigAllowRegisterVO|bool|null $allowRegister = null,
         TenantConfigEnableRegisterUsersVO|bool|null $enableRegisterUsers = null,
+        TenantConfigMagicLinkEnabledVO|bool|null $magicLinkEnabled = null,
         TenantConfigWebauthnEnabledVO|bool|null $webauthnEnabled = null,
         TenantConfigWebauthnRpIdVO|string|null $webauthnRpId = null,
         TenantConfigWebauthnRpNameVO|string|null $webauthnRpName = null,
@@ -89,6 +93,7 @@ class TenantConfig extends TenantConfigRef
         $this->_dynamicRegistrationPolicy = null === $dynamicRegistrationPolicy ? TenantConfigDynamicRegistrationPolicyVO::empty() : TenantConfigDynamicRegistrationPolicyVO::from($dynamicRegistrationPolicy);
         $this->_allowRegister = null === $allowRegister ? TenantConfigAllowRegisterVO::empty() : TenantConfigAllowRegisterVO::from($allowRegister);
         $this->_enableRegisterUsers = null === $enableRegisterUsers ? TenantConfigEnableRegisterUsersVO::empty() : TenantConfigEnableRegisterUsersVO::from($enableRegisterUsers);
+        $this->_magicLinkEnabled = null === $magicLinkEnabled ? TenantConfigMagicLinkEnabledVO::empty() : TenantConfigMagicLinkEnabledVO::from($magicLinkEnabled);
         $this->_webauthnEnabled = null === $webauthnEnabled ? TenantConfigWebauthnEnabledVO::empty() : TenantConfigWebauthnEnabledVO::from($webauthnEnabled);
         $this->_webauthnRpId = null === $webauthnRpId ? TenantConfigWebauthnRpIdVO::empty() : TenantConfigWebauthnRpIdVO::from($webauthnRpId);
         $this->_webauthnRpName = null === $webauthnRpName ? TenantConfigWebauthnRpNameVO::empty() : TenantConfigWebauthnRpNameVO::from($webauthnRpName);
@@ -109,6 +114,7 @@ class TenantConfig extends TenantConfigRef
         $value->_dynamicRegistrationPolicy = $values->getDynamicRegistrationPolicyOrCurrent($this->_dynamicRegistrationPolicy);
         $value->_allowRegister = $values->getAllowRegisterOrCurrent($this->_allowRegister);
         $value->_enableRegisterUsers = $values->getEnableRegisterUsersOrCurrent($this->_enableRegisterUsers);
+        $value->_magicLinkEnabled = $values->getMagicLinkEnabledOrCurrent($this->_magicLinkEnabled);
         $value->_webauthnEnabled = $values->getWebauthnEnabledOrCurrent($this->_webauthnEnabled);
         $value->_webauthnRpId = $values->getWebauthnRpIdOrCurrent($this->_webauthnRpId);
         $value->_webauthnRpName = $values->getWebauthnRpNameOrCurrent($this->_webauthnRpName);
@@ -153,6 +159,7 @@ class TenantConfig extends TenantConfigRef
         $data['dynamicRegistrationPolicy'] = $this->getDynamicRegistrationPolicy();
         $data['allowRegister'] = $this->isAllowRegister();
         $data['enableRegisterUsers'] = $this->isEnableRegisterUsers();
+        $data['magicLinkEnabled'] = $this->isMagicLinkEnabled();
         $data['webauthnEnabled'] = $this->isWebauthnEnabled();
         $data['webauthnRpId'] = $this->getWebauthnRpId();
         $data['webauthnRpName'] = $this->getWebauthnRpName();
@@ -175,6 +182,7 @@ class TenantConfig extends TenantConfigRef
           ->dynamicRegistrationPolicy($this->_dynamicRegistrationPolicy)
           ->allowRegister($this->_allowRegister)
           ->enableRegisterUsers($this->_enableRegisterUsers)
+          ->magicLinkEnabled($this->_magicLinkEnabled)
           ->webauthnEnabled($this->_webauthnEnabled)
           ->webauthnRpId($this->_webauthnRpId)
           ->webauthnRpName($this->_webauthnRpName)

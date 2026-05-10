@@ -12,6 +12,7 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDynamicRegistrationPolicyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigMagicLinkEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpNameAttributeHolder;
@@ -33,6 +34,7 @@ class TenantConfigAttributes
     use TenantConfigDynamicRegistrationPolicyAttributeHolder;
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
+    use TenantConfigMagicLinkEnabledAttributeHolder;
     use TenantConfigWebauthnEnabledAttributeHolder;
     use TenantConfigWebauthnRpIdAttributeHolder;
     use TenantConfigWebauthnRpNameAttributeHolder;
@@ -52,6 +54,7 @@ class TenantConfigAttributes
       'dynamicRegistrationPolicy' => 'unsetDynamicRegistrationPolicy',
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
+      'magicLinkEnabled' => 'unsetMagicLinkEnabled',
       'webauthnEnabled' => 'unsetWebauthnEnabled',
       'webauthnRpId' => 'unsetWebauthnRpId',
       'webauthnRpName' => 'unsetWebauthnRpName',
@@ -74,6 +77,7 @@ class TenantConfigAttributes
         $dynamicRegistrationPolicy = $this->dynamicRegistrationPolicyTryBuildInitial($errors);
         $allowRegister = $this->allowRegisterTryBuildInitial($errors);
         $enableRegisterUsers = $this->enableRegisterUsersTryBuildInitial($errors);
+        $magicLinkEnabled = $this->magicLinkEnabledTryBuildInitial($errors);
         $webauthnEnabled = $this->webauthnEnabledTryBuildInitial($errors);
         $webauthnRpId = $this->webauthnRpIdTryBuildInitial($errors);
         $webauthnRpName = $this->webauthnRpNameTryBuildInitial($errors);
@@ -98,6 +102,7 @@ class TenantConfigAttributes
             dynamicRegistrationPolicy: $dynamicRegistrationPolicy,
             allowRegister: $allowRegister,
             enableRegisterUsers: $enableRegisterUsers,
+            magicLinkEnabled: $magicLinkEnabled,
             webauthnEnabled: $webauthnEnabled,
             webauthnRpId: $webauthnRpId,
             webauthnRpName: $webauthnRpName,
@@ -121,6 +126,7 @@ class TenantConfigAttributes
         $this->withAssertedDynamicRegistrationPolicyRules($value, $errorsList);
         $this->withAssertedAllowRegisterRules($value, $errorsList);
         $this->withAssertedEnableRegisterUsersRules($value, $errorsList);
+        $this->withAssertedMagicLinkEnabledRules($value, $errorsList);
         $this->withAssertedWebauthnEnabledRules($value, $errorsList);
         $this->withAssertedWebauthnRpIdRules($value, $errorsList);
         $this->withAssertedWebauthnRpNameRules($value, $errorsList);
@@ -151,6 +157,7 @@ class TenantConfigAttributes
         $this->withDefaultDynamicRegistrationPolicy();
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
+        $this->withDefaultMagicLinkEnabled();
         $this->withDefaultWebauthnEnabled();
         $this->withDefaultWebauthnRpId();
         $this->withDefaultWebauthnRpName();
