@@ -17,7 +17,12 @@ class AuthenticationResult
     public const string ERR_UNKNOW_USER = 'UNKNOW_USER';
     public const string ERR_WRONG_CREDENTIAL = 'WRONG_CREDENTIAL';
     public const string ERR_NOT_ALLOWED_ACCESS = 'NOT_ALLOWED_ACCESS';
+    public const string ERR_MAGIC_LINK_SENT = 'MAGIC_LINK_SENT';
 
+    public static function waitMagicLink(): AuthenticationResult
+    {
+        return new AuthenticationResult(valid: false, error: self::ERR_MAGIC_LINK_SENT);
+    }
     public static function waitNewpass(string $url, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_PASSCHANGE_CODE, errorMessage: $detail);

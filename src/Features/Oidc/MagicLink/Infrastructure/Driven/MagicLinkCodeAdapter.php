@@ -30,6 +30,7 @@ class MagicLinkCodeAdapter implements MagicLinkCodeGateway
         string $scope,
         string $redirectUri,
         string $tenant,
+        string $nonce = '',
     ): string {
         $client = $this->clientStore->preValidatedClient($clientId);
         if ($client === null) {
@@ -50,7 +51,7 @@ class MagicLinkCodeAdapter implements MagicLinkCodeGateway
         $temporalCode = new TemporalAuthCode(
             data: $authResult,
             client: $client,
-            nonce: '',
+            nonce: $nonce,
             request: $authRequest,
         );
 

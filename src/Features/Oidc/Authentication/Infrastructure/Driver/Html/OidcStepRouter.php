@@ -20,6 +20,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\DelegateForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\WebAuthnLoginForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\MagicLinkLoginForm;
 use Psr\Http\Message\ResponseInterface;
 
 final class OidcStepRouter
@@ -39,6 +40,7 @@ final class OidcStepRouter
         AuthenticationResult::ERR_UNKNOW_USER => StepName::LOGIN->value,
         AuthenticationResult::ERR_WRONG_CREDENTIAL => StepName::LOGIN->value,
         AuthenticationResult::ERR_NOT_ALLOWED_ACCESS => StepName::LOGIN->value,
+        AuthenticationResult::ERR_MAGIC_LINK_SENT => StepName::MAGIC_LINK->value,
     ];
 
     public function __construct(
@@ -52,6 +54,7 @@ final class OidcStepRouter
         DelegateForm $delegate,
         RegisterUserForm $register,
         WebAuthnLoginForm $webAuthnLogin,
+        MagicLinkLoginForm $magicLinkLogin,
         private readonly string $fallbackStep = StepName::LOGIN->value
     ) {
         $this->steps = [
@@ -65,6 +68,7 @@ final class OidcStepRouter
             StepName::REGISTER_USER->value => $register,
             StepName::DELEGATED_LOGIN->value => $delegate,
             StepName::WEBAUTHN_LOGIN->value => $webAuthnLogin,
+            StepName::MAGIC_LINK->value => $magicLinkLogin,
         ];
     }
 

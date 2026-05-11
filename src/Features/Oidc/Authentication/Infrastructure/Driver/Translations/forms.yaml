@@ -9,6 +9,8 @@ login:
   recover-label: aqui
   register-text: Si no tienes usuarios, puedes registrarte {0}
   register-label: aqui
+  magic-link-text: "¿Prefiere acceder sin contraseña? Pulse {0}"
+  magic-link-label: aqui
   enter: Identificarse
 
 recover:
@@ -129,3 +131,17 @@ error:
   unable_to_change: Ha habido un error al intentar cambiar la contraseña.
   wrong_auth_code: El código otp no es válido, vuelva a intentarlo.
   missing_scopes_consent: Debe aprobar los permisos obligatorios.
+
+magic-link:
+  ask:
+    title: "Acceder con enlace al email"
+    help: "Introduzca su correo electrónico y recibirá un enlace para acceder directamente."
+    email: "Correo electrónico"
+    send: "Enviar enlace de acceso"
+    back-text: "Pulse {0} para volver a la pantalla de login"
+    back-label: aqui
+  sent:
+    title: "Enlace enviado"
+    help: "Si su correo está registrado, recibirá un enlace de acceso en breve. El enlace caduca en 15 minutos."
+    back-text: "Pulse {0} para volver a la pantalla de login"
+    back-label: aqui

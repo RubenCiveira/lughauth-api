@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Oidc\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Oidc\MagicLink\Domain\MagicLink;
 use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkGateway;
 use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkMailGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
 
 class RequestMagicLinkUsecase
 {
@@ -23,8 +24,14 @@ class RequestMagicLinkUsecase
         private readonly ClientStoreGateway $clients,
         private readonly MagicLinkGateway $gateway,
         private readonly MagicLinkMailGateway $mailer,
+        private readonly MagicLinkEnabledGateway $enabled,
         private readonly string $baseUrl,
     ) {
+    }
+
+    public function isEnabled(string $tenantName): bool
+    {
+        return $this->enabled->isEnabled($tenantName);
     }
 
     public function request(
@@ -34,7 +41,12 @@ class RequestMagicLinkUsecase
         string $tenantName,
         string $scope = 'openid email',
         ?string $state = null,
+        string $nonce = '',
     ): void {
+        if (!$this->enabled->isEnabled($tenantName)) {
+            return;
+        }
+
         $tenant = $this->tenants->findOneByName($tenantName);
         if ($tenant === null || !$tenant->isEnabled()) {
             return;
@@ -70,6 +82,7 @@ class RequestMagicLinkUsecase
             scope: $scope,
             state: $state,
             expiresAt: $expiresAt,
+            nonce: $nonce,
         );
 
         $this->gateway->store($magicLink);

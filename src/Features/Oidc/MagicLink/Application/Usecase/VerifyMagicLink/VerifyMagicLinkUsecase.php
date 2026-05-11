@@ -5,23 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\Oidc\MagicLink\Application\Usecase\VerifyMagicLink;
 
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkGateway;
 use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkSessionGateway;
 
 class VerifyMagicLinkUsecase
 {
     public function __construct(
         private readonly MagicLinkGateway $gateway,
         private readonly MagicLinkCodeGateway $codeGateway,
+        private readonly MagicLinkEnabledGateway $enabled,
+        private readonly MagicLinkSessionGateway $sessionGateway,
+        private readonly TenantReadGateway $tenants,
+        private readonly UserReadGateway $users,
     ) {
     }
 
     /**
-     * Returns the redirect URL (with authorization code) on success.
-     * Throws \DomainException on invalid/expired/used token.
+     * Returns a MagicLinkVerifyResult with the redirect URL and session on success.
+     * Throws \DomainException on invalid/expired/used token or disabled feature.
      */
-    public function verify(string $rawToken, string $clientId, string $tenantId): string
+    public function verify(string $rawToken, string $clientId, string $tenantId): MagicLinkVerifyResult
     {
+        if (!$this->enabled->isEnabled($tenantId)) {
+            throw new \DomainException('invalid_grant');
+        }
+
         $tokenHash = hash('sha256', $rawToken);
         $magicLink = $this->gateway->findByHash($tokenHash, $tenantId);
 
@@ -41,6 +53,7 @@ class VerifyMagicLinkUsecase
             scope: $magicLink->scope,
             redirectUri: $magicLink->redirectUri,
             tenant: $tenantId,
+            nonce: $magicLink->nonce,
         );
 
         $redirectUrl = $magicLink->redirectUri . '?code=' . urlencode($authCode);
@@ -48,6 +61,23 @@ class VerifyMagicLinkUsecase
             $redirectUrl .= '&state=' . urlencode($magicLink->state);
         }
 
-        return $redirectUrl;
+        $tenant = $this->tenants->findOneByName($tenantId);
+        $tenantUid = $tenant?->uid() ?? '';
+
+        $user = $this->users->findOneByUid($magicLink->userUid);
+        $email = $user?->getName() ?? $magicLink->userUid;
+
+        $session = $this->sessionGateway->createSession(
+            userUid: $magicLink->userUid,
+            email: $email,
+            tenantUid: $tenantUid,
+            tenantName: $tenantId,
+            clientId: $clientId,
+        );
+
+        return new MagicLinkVerifyResult(
+            redirectUrl: $redirectUrl,
+            session: $session,
+        );
     }
 }

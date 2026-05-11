@@ -18,6 +18,7 @@ final class MagicLink
         public readonly string $redirectUri,
         public readonly string $scope,
         public readonly ?string $state,
+        public readonly string $nonce,
         public readonly DateTimeImmutable $createdAt,
         public readonly DateTimeImmutable $expiresAt,
         public readonly ?DateTimeImmutable $usedAt = null,
@@ -34,6 +35,7 @@ final class MagicLink
         string $scope,
         ?string $state,
         DateTimeImmutable $expiresAt,
+        string $nonce = '',
     ): self {
         return new self(
             uid: $uid,
@@ -44,6 +46,7 @@ final class MagicLink
             redirectUri: $redirectUri,
             scope: $scope,
             state: $state,
+            nonce: $nonce,
             createdAt: new DateTimeImmutable(),
             expiresAt: $expiresAt,
         );

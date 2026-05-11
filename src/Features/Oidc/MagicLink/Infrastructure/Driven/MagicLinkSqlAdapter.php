@@ -23,9 +23,9 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
     {
         $stmt = $this->pdo->prepare(
             'INSERT INTO _oauth_magic_link
-                (uid, tenant_id, user_uid, client_id, token_hash, redirect_uri, scope, state, created_at, expires_at)
+                (uid, tenant_id, user_uid, client_id, token_hash, redirect_uri, scope, state, nonce, created_at, expires_at)
              VALUES
-                (:uid, :tenant_id, :user_uid, :client_id, :token_hash, :redirect_uri, :scope, :state, :created_at, :expires_at)'
+                (:uid, :tenant_id, :user_uid, :client_id, :token_hash, :redirect_uri, :scope, :state, :nonce, :created_at, :expires_at)'
         );
         $stmt->execute([
             'uid'          => $magicLink->uid,
@@ -36,6 +36,7 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
             'redirect_uri' => $magicLink->redirectUri,
             'scope'        => $magicLink->scope,
             'state'        => $magicLink->state,
+            'nonce'        => $magicLink->nonce !== '' ? $magicLink->nonce : null,
             'created_at'   => $magicLink->createdAt->format('Y-m-d H:i:s'),
             'expires_at'   => $magicLink->expiresAt->format('Y-m-d H:i:s'),
         ]);
@@ -45,7 +46,7 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
     public function findByHash(string $tokenHash, string $tenantId): ?MagicLink
     {
         $stmt = $this->pdo->prepare(
-            'SELECT uid, tenant_id, user_uid, client_id, token_hash, redirect_uri, scope, state,
+            'SELECT uid, tenant_id, user_uid, client_id, token_hash, redirect_uri, scope, state, nonce,
                     created_at, expires_at, used_at
              FROM _oauth_magic_link
              WHERE token_hash = :token_hash AND tenant_id = :tenant_id
@@ -85,6 +86,7 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
             redirectUri: (string) $row['redirect_uri'],
             scope:       (string) $row['scope'],
             state:       isset($row['state']) && $row['state'] !== '' ? (string) $row['state'] : null,
+            nonce:       isset($row['nonce']) && $row['nonce'] !== null ? (string) $row['nonce'] : '',
             createdAt:   new DateTimeImmutable((string) $row['created_at']),
             expiresAt:   new DateTimeImmutable((string) $row['expires_at']),
             usedAt:      isset($row['used_at']) && $row['used_at'] !== null

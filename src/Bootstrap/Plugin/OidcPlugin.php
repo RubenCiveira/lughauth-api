@@ -86,6 +86,12 @@ use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
 use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driven\MagicLinkCodeAdapter;
 use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Rest\MagicLinkRequestController;
 use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Html\MagicLinkVerifyHtml;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driven\MagicLinkEnabledAdapter;
+use Civi\Lughauth\Features\Oidc\MagicLink\Domain\Gateway\MagicLinkSessionGateway;
+use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driven\MagicLinkSessionAdapter;
+use Civi\Lughauth\Features\Oidc\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
+use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Html\InvitationAcceptHtml;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\InvitationCreateController;
 use Civi\Lughauth\Features\Oidc\UserInvitation\Infrastructure\Driver\Rest\InvitationCancelController;
@@ -131,6 +137,10 @@ class OidcPlugin extends MicroPlugin
         $def[MagicLinkGateway::class] = \DI\autowire(MagicLinkSqlAdapter::class);
         $def[MagicLinkMailGateway::class] = \DI\autowire(MagicLinkMailAdapter::class);
         $def[MagicLinkCodeGateway::class] = \DI\autowire(MagicLinkCodeAdapter::class);
+        $def[MagicLinkEnabledGateway::class] = \DI\autowire(MagicLinkEnabledAdapter::class);
+        $def[MagicLinkSessionGateway::class] = \DI\autowire(MagicLinkSessionAdapter::class);
+        $def[RequestMagicLinkUsecase::class] = \DI\autowire()
+            ->constructorParameter('baseUrl', \DI\factory(fn(Context $ctx): string => $ctx->getBaseUrl()));
         $def[UserInvitationQueryGateway::class] = \DI\autowire(UserInvitationQueryAdapter::class);
         $def[UserInvitationMailGateway::class] = \DI\autowire(UserInvitationMailAdapter::class);
         $def[UserInvitationSessionGateway::class] = \DI\autowire(UserInvitationSessionAdapter::class);

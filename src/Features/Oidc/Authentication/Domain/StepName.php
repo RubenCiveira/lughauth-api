@@ -18,4 +18,5 @@ enum StepName: string
     case DELEGATED_LOGIN = 'delegated-login';
     case WEBAUTHN_LOGIN = 'webauthn-login';
     case WEBAUTHN_REGISTER = 'webauthn-register';
+    case MAGIC_LINK = 'magic-link';
 }

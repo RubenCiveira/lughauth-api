@@ -20,8 +20,10 @@ use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Html\MagicLinkVe
 use Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Rest\MagicLinkRequestController;
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Tests\integration\Features\Oidc\OidcIntegrationTestCase;
+use Tests\integration\Features\Oidc\Stub\InMemoryMagicLinkEnabledGateway;
 use Tests\integration\Features\Oidc\Stub\InMemoryMagicLinkGateway;
 use Tests\integration\Features\Oidc\Stub\InMemoryMagicLinkMailGateway;
+use Tests\integration\Features\Oidc\Stub\InMemoryMagicLinkSessionGateway;
 
 class MagicLinkIntegrationTest extends OidcIntegrationTestCase
 {
@@ -31,6 +33,7 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
 
     private InMemoryMagicLinkGateway $magicLinkGateway;
     private InMemoryMagicLinkMailGateway $mailGateway;
+    private InMemoryMagicLinkEnabledGateway $enabledGateway;
     private MagicLinkRequestController $requestController;
     private MagicLinkVerifyHtml $verifyController;
 
@@ -46,6 +49,8 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
 
         $this->magicLinkGateway = new InMemoryMagicLinkGateway();
         $this->mailGateway = new InMemoryMagicLinkMailGateway();
+        $this->enabledGateway = new InMemoryMagicLinkEnabledGateway();
+        $this->enabledGateway->enable(self::TENANT);
 
         $user = $this->createStub(User::class);
         $user->method('uid')->willReturn(self::USER_ID);
@@ -58,6 +63,7 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
 
         $this->userGateway = $this->createStub(UserReadGateway::class);
         $this->userGateway->method('findOneByTenantAndName')->willReturn($user);
+        $this->userGateway->method('findOneByUid')->willReturn($user);
 
         $this->tenantGateway = $this->createStub(TenantReadGateway::class);
         $this->tenantGateway->method('findOneByName')->willReturn($tenant);
@@ -68,6 +74,7 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
             clients: $this->clientStore,
             gateway: $this->magicLinkGateway,
             mailer: $this->mailGateway,
+            enabled: $this->enabledGateway,
             baseUrl: self::BASE_URL,
         );
 
@@ -80,13 +87,22 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
         $verifyUsecase = new VerifyMagicLinkUsecase(
             gateway: $this->magicLinkGateway,
             codeGateway: $codeGateway,
+            enabled: $this->enabledGateway,
+            sessionGateway: new InMemoryMagicLinkSessionGateway(),
+            tenants: $this->tenantGateway,
+            users: $this->userGateway,
         );
 
         $decorator = $this->createStub(DecorateHtml::class);
         $decorator->method('getFullPage')->willReturn('<html>error</html>');
 
+        $cookies = $this->createStub(\Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager::class);
+        $cookies->method('authenticatedSessionCookie')->willReturn(
+            new \Civi\Lughauth\Shared\Infrastructure\Http\Cookie(name: 'AUTH_SESSION_ID_TENANT1', value: 'session-id', expiration: new \DateInterval('P15D'))
+        );
+
         $this->requestController = new MagicLinkRequestController($requestUsecase);
-        $this->verifyController = new MagicLinkVerifyHtml($verifyUsecase, $decorator);
+        $this->verifyController = new MagicLinkVerifyHtml($verifyUsecase, $decorator, $cookies);
     }
 
     // --- REQUEST endpoint ---
@@ -136,6 +152,7 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
             clients: $this->clientStore,
             gateway: $this->magicLinkGateway,
             mailer: $this->mailGateway,
+            enabled: $this->enabledGateway,
             baseUrl: self::BASE_URL,
         );
         $controller = new MagicLinkRequestController($requestUsecase);
@@ -295,6 +312,56 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
         $this->assertSame(302, $getResponse->getStatusCode());
         $location = $getResponse->getHeaderLine('Location');
         $this->assertStringStartsWith(self::REDIRECT_URI . '?code=', $location);
+    }
+
+    // --- Enabled flag ---
+
+    public function testRequestReturns202ButSendsNoEmailWhenDisabled(): void
+    {
+        $this->enabledGateway->disable(self::TENANT);
+
+        $request = $this->makeRequest('POST', '/oauth/openid/tenant1/magic-link/request', [
+            'email' => self::USER_EMAIL,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => self::REDIRECT_URI,
+        ]);
+
+        $response = $this->requestController->request($request, new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(202, $response->getStatusCode());
+        $this->assertSame(0, $this->mailGateway->count());
+        $this->assertNull($this->magicLinkGateway->last());
+    }
+
+    public function testVerifyReturns400WhenDisabled(): void
+    {
+        $rawToken = $this->storeMagicLink();
+        $this->enabledGateway->disable(self::TENANT);
+
+        $request = $this->makeRequest('GET', '/oauth/openid/tenant1/magic-link/verify');
+        $request = $request->withQueryParams(['token' => $rawToken, 'client_id' => self::CLIENT_ID]);
+
+        $response = $this->verifyController->verify($request, new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(400, $response->getStatusCode());
+    }
+
+    public function testIsEnabledReflectsFlag(): void
+    {
+        $requestUsecase = new \Civi\Lughauth\Features\Oidc\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase(
+            users: $this->userGateway,
+            tenants: $this->tenantGateway,
+            clients: $this->clientStore,
+            gateway: $this->magicLinkGateway,
+            mailer: $this->mailGateway,
+            enabled: $this->enabledGateway,
+            baseUrl: self::BASE_URL,
+        );
+
+        $this->assertTrue($requestUsecase->isEnabled(self::TENANT));
+
+        $this->enabledGateway->disable(self::TENANT);
+        $this->assertFalse($requestUsecase->isEnabled(self::TENANT));
     }
 
     // --- Helpers ---

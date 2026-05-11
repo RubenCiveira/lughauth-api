@@ -13,5 +13,6 @@ interface MagicLinkCodeGateway
         string $scope,
         string $redirectUri,
         string $tenant,
+        string $nonce = '',
     ): string;
 }

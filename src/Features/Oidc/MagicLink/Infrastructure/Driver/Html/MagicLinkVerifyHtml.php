@@ -7,6 +7,7 @@ namespace Civi\Lughauth\Features\Oidc\MagicLink\Infrastructure\Driver\Html;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
 use Civi\Lughauth\Features\Oidc\MagicLink\Application\Usecase\VerifyMagicLink\VerifyMagicLinkUsecase;
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 
@@ -15,6 +16,7 @@ class MagicLinkVerifyHtml
     public function __construct(
         private readonly VerifyMagicLinkUsecase $usecase,
         private readonly DecorateHtml $decorator,
+        private readonly OidcCookieManager $cookies,
     ) {
     }
 
@@ -30,8 +32,14 @@ class MagicLinkVerifyHtml
         }
 
         try {
-            $redirectUrl = $this->usecase->verify($rawToken, $clientId, $tenant);
-            return $response->withStatus(302)->withHeader('Location', $redirectUrl);
+            $result = $this->usecase->verify($rawToken, $clientId, $tenant);
+            $response = $response->withStatus(302)->withHeader('Location', $result->redirectUrl);
+            if ($result->session !== null) {
+                $response = $this->cookies
+                    ->authenticatedSessionCookie($tenant, $result->session->sessionId, $result->session->expiration)
+                    ->attach($response);
+            }
+            return $response;
         } catch (\DomainException) {
             return $this->renderError($request, $response, $tenant, 'This link is invalid, expired, or has already been used.');
         }

@@ -18,6 +18,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
+use Civi\Lughauth\Features\Oidc\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 class LoginForm implements StepForm
@@ -30,6 +31,7 @@ class LoginForm implements StepForm
         private readonly DelegateLogin $delegated,
         private readonly ChangePasswordUsecase $changePassword,
         private readonly RegisterUserUsecase $registerUser,
+        private readonly RequestMagicLinkUsecase $magicLink,
     ) {
     }
 
@@ -61,6 +63,9 @@ class LoginForm implements StepForm
         ]);
         $registerText = $translator->get("login.register-text", [
              "<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("login.register-label") . "\"/>"
+        ]);
+        $magicLinkText = $translator->get("login.magic-link-text", [
+             "<input class=\"inline\" type=\"submit\" value=\"" . $translator->get("login.magic-link-label") . "\"/>"
         ]);
         $enter = $translator->get("login.enter");
 
@@ -98,6 +103,16 @@ class LoginForm implements StepForm
                 </form>
                 HTML;
         }
+        $magicLinkButton = "";
+        if ($this->magicLink->isEnabled($tenant)) {
+            $magicLinkStep = StepName::MAGIC_LINK->value;
+            $magicLinkButton .= <<<HTML
+                <form method="POST">
+                    <input type="hidden" name="step" value="{$magicLinkStep}" />
+                    {$magicLinkText}
+                </form>
+                HTML;
+        }
 
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
         $delegatedLogins = $delegatedLogins !== '' ? "<div class=\"social-login-buttons\">{$delegatedLogins}</div>" : '';
@@ -123,6 +138,7 @@ class LoginForm implements StepForm
                     </form>
                     {$recoverPass}
                     {$registerUser}
+                    {$magicLinkButton}
                     {$delegatedLogins}
                 HTML,
                 'es',

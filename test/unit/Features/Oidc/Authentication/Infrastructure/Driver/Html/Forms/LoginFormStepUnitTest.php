@@ -24,6 +24,7 @@ use Civi\Lughauth\Features\Oidc\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Features\Oidc\User\Domain\PublicLoginAuthResponse;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\ChangePasswordUsecase;
 use Civi\Lughauth\Features\Oidc\User\Application\Usecase\RegisterUserUsecase;
+use Civi\Lughauth\Features\Oidc\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -105,7 +106,8 @@ final class LoginFormStepUnitTest extends FormsTestCase
             $securer,
             $this->createMock(DelegateLogin::class),
             $this->createMock(ChangePasswordUsecase::class),
-            $this->createMock(RegisterUserUsecase::class)
+            $this->createMock(RegisterUserUsecase::class),
+            $this->createMock(RequestMagicLinkUsecase::class),
         );
 
         $result = $form->authenticate($input);

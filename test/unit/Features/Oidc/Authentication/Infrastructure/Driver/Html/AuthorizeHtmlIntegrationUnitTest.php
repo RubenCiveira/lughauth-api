@@ -29,6 +29,7 @@ use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\UseMfaForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\RegisterUserForm;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\WebAuthnLoginForm;
+use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Forms\MagicLinkLoginForm;
 use Civi\Lughauth\Features\Oidc\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\Oidc\Authentication\Infrastructure\Driver\Html\Services\OidcCookieManager;
@@ -123,7 +124,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            $this->createMock(WebAuthnLoginForm::class)
+            $this->createMock(WebAuthnLoginForm::class),
+            $this->createMock(MagicLinkLoginForm::class)
         );
 
         $cookies = $this->createMock(OidcCookieManager::class);
@@ -230,6 +232,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
         $delegateForm = $this->createMock(DelegateForm::class);
         $registerForm = $this->createMock(RegisterUserForm::class);
         $webAuthnForm = $this->createMock(WebAuthnLoginForm::class);
+        $magicLinkForm = $this->createMock(MagicLinkLoginForm::class);
 
         $router = new OidcStepRouter(
             $consentForm,
@@ -241,7 +244,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $recoverForm,
             $delegateForm,
             $registerForm,
-            $webAuthnForm
+            $webAuthnForm,
+            $magicLinkForm
         );
 
         $cookies = new OidcCookieManager($context, $this->createMock(TokenSigner::class));
@@ -338,7 +342,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(RecoverPassForm::class),
                 $this->createMock(DelegateForm::class),
                 $this->createMock(RegisterUserForm::class),
-                $this->createMock(WebAuthnLoginForm::class)
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
             ),
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
             $this->buildRequestObjectValidator()
@@ -410,7 +415,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
             $this->createMock(RecoverPassForm::class),
             $this->createMock(DelegateForm::class),
             $this->createMock(RegisterUserForm::class),
-            $this->createMock(WebAuthnLoginForm::class)
+            $this->createMock(WebAuthnLoginForm::class),
+            $this->createMock(MagicLinkLoginForm::class)
         );
 
         $cookies = $this->createMock(OidcCookieManager::class);
@@ -479,7 +485,8 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
                 $this->createMock(RecoverPassForm::class),
                 $this->createMock(DelegateForm::class),
                 $this->createMock(RegisterUserForm::class),
-                $this->createMock(WebAuthnLoginForm::class)
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
             ),
             new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
             $this->buildRequestObjectValidator()
