@@ -15,9 +15,22 @@ namespace Civi\Lughauth\Features\OAuth\DelegateLogin\Domain;
  */
 interface DelegatedLoginProvider
 {
+    /**
+     * Returns the human-readable metadata for this provider such as display name
+     * and logo URL, used to render the social-login button on the login page.
+     */
     public function info(): DelegatedProviderDescription;
 
+    /**
+     * Builds the provider authorization URL that the browser should be redirected to,
+     * embedding the given redirect URI and opaque state token for CSRF protection.
+     */
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint;
 
+    /**
+     * Processes the provider callback payload (authorization code or SAML response),
+     * exchanges credentials with the provider, and returns normalized user data on
+     * success, or null when the response is invalid or verification fails.
+     */
     public function authorize(string $redirect, array $request): ?DelegatedUserData;
 }

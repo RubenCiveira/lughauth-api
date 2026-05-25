@@ -5,12 +5,42 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\DelegateLogin\Domain;
 
+/**
+ * Value object that describes how the browser should reach a federated identity provider.
+ *
+ * The method field dictates whether the redirect is a plain GET (most OAuth/OIDC flows)
+ * or a POST (SAML 2.0 HTTP-POST binding). When method is POST, params contains the form
+ * fields that must be submitted. The url field always holds the provider endpoint to
+ * which the client should be directed, ensuring the application layer never needs to
+ * hard-code provider-specific routing logic outside of the provider implementations.
+ */
 class DelegatedLoginEndpoint
 {
+    /**
+     * The HTTP method (GET or POST) that must be used when initiating the provider redirect.
+     * Determines whether the client performs a simple redirect or a form submission.
+     */
+    public readonly string $method;
+
+    /**
+     * The full URL of the identity provider's authorization or SSO endpoint.
+     * For GET flows all parameters are already encoded in the query string.
+     */
+    public readonly string $url;
+
+    /**
+     * Additional form parameters required when method is POST (e.g. SAML HTTP-POST binding).
+     * Empty for GET-based flows where all parameters are embedded in the URL.
+     */
+    public readonly array $params;
+
     public function __construct(
-        public readonly string $method,
-        public readonly string $url,
-        public readonly array $params = []
+        string $method,
+        string $url,
+        array $params = []
     ) {
+        $this->method = $method;
+        $this->url = $url;
+        $this->params = $params;
     }
 }

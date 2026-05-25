@@ -7,13 +7,52 @@ namespace Civi\Lughauth\Features\OAuth\Client\Application\Usecase\RegisterClient
 
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 
+/**
+ * Immutable value object that carries all input parameters required by the RegisterClientUsecase.
+ *
+ * The tenant name is used to look up the registration policy for the target tenant, determining
+ * whether open registration, token-gated registration, or no registration at all is permitted.
+ * The issuer string is used to build the registration_client_uri returned in the RFC 7591 response.
+ * The optional initialAccessToken is only required when the tenant policy is set to "token-required".
+ *
+ * This DTO is constructed by the REST controller and passed directly into the use case, keeping the
+ * application layer free of HTTP-specific concerns.
+ */
 final class RegisterClientParams
 {
+    /**
+     * The tenant name identifying which tenant's registration policy will be evaluated.
+     * Determines whether open or token-gated registration applies.
+     */
+    public readonly string $tenant;
+
+    /**
+     * The OAuth issuer base URL used to construct the registration_client_uri in the response.
+     * Typically formatted as the base URL followed by "/openid/{tenant}".
+     */
+    public readonly string $issuer;
+
+    /**
+     * The RFC 7591 client registration metadata submitted by the relying party.
+     * Contains redirect URIs, grant types, token endpoint auth method, and optional metadata.
+     */
+    public readonly DynamicClientRequest $request;
+
+    /**
+     * Optional bearer token required when the tenant's dynamic registration policy is "token-required".
+     * If absent but required, the use case will throw a DynamicClientException.
+     */
+    public readonly ?string $initialAccessToken;
+
     public function __construct(
-        public readonly string $tenant,
-        public readonly string $issuer,
-        public readonly DynamicClientRequest $request,
-        public readonly ?string $initialAccessToken = null,
+        string $tenant,
+        string $issuer,
+        DynamicClientRequest $request,
+        ?string $initialAccessToken = null,
     ) {
+        $this->tenant = $tenant;
+        $this->issuer = $issuer;
+        $this->request = $request;
+        $this->initialAccessToken = $initialAccessToken;
     }
 }

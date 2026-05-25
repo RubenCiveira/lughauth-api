@@ -12,6 +12,16 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkSessionGateway;
 
+/**
+ * Application use case that validates a magic-link token and exchanges it for an OAuth authorization code.
+ *
+ * Performs a multi-step verification pipeline: feature-flag check, hash lookup, expiry and single-use
+ * invariant enforcement, and client-id binding. On success the token is marked as used, a short-lived
+ * authorization code is created via the MagicLinkCodeGateway, and a browser session is optionally
+ * established via the MagicLinkSessionGateway. Any failure raises a \DomainException with
+ * the OAuth error code 'invalid_grant', ensuring the caller never reveals the specific reason
+ * for rejection to the end user.
+ */
 class VerifyMagicLinkUsecase
 {
     public function __construct(
@@ -25,8 +35,9 @@ class VerifyMagicLinkUsecase
     }
 
     /**
-     * Returns a MagicLinkVerifyResult with the redirect URL and session on success.
-     * Throws \DomainException on invalid/expired/used token or disabled feature.
+     * Verifies a raw magic-link token, marks it used, creates an authorization code, and returns
+     * the redirect URL and session. Throws \DomainException with code 'invalid_grant' on any
+     * failure including disabled feature, missing or expired token, or client-id mismatch.
      */
     public function verify(string $rawToken, string $clientId, string $tenantId): MagicLinkVerifyResult
     {

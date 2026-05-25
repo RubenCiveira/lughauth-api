@@ -7,16 +7,76 @@ namespace Civi\Lughauth\Features\OAuth\Client\Application\Usecase\RegisterClient
 
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 
+/**
+ * Immutable value object representing the successful outcome of a dynamic client registration.
+ *
+ * This DTO is produced by RegisterClientUsecase and contains all fields required to construct
+ * the RFC 7591 registration response body. The clientSecret is returned only once at registration
+ * time; it is never stored in plain text afterward.
+ *
+ * clientSecretExpiresAt is intentionally set to 0 to indicate that the secret does not expire,
+ * as recommended by RFC 7591 for non-expiring credentials. The registrationAccessToken is a
+ * random bearer token the client must present for subsequent RFC 7592 management operations.
+ */
 final class RegisterClientResult
 {
+    /**
+     * The newly assigned client identifier (UUID) for the registered OAuth client.
+     * This value is returned to the registrant and used as the client_id in all future requests.
+     */
+    public readonly string $clientId;
+
+    /**
+     * The plain-text client secret generated at registration time.
+     * This is the only moment it is available in clear; it must be stored securely by the client.
+     */
+    public readonly string $clientSecret;
+
+    /**
+     * Unix timestamp (seconds since epoch) indicating when the client identifier was issued.
+     * Corresponds to the client_id_issued_at field in the RFC 7591 response.
+     */
+    public readonly int $clientIdIssuedAt;
+
+    /**
+     * Unix timestamp indicating when the client secret expires; 0 means the secret never expires.
+     * Corresponds to the client_secret_expires_at field in the RFC 7591 response.
+     */
+    public readonly int $clientSecretExpiresAt;
+
+    /**
+     * Opaque bearer token the client must use to authenticate RFC 7592 management operations.
+     * Returned once and stored as a SHA-256 hash in the persistence layer.
+     */
+    public readonly string $registrationAccessToken;
+
+    /**
+     * The fully qualified URI where the client can perform RFC 7592 read/update/delete operations.
+     * Constructed from the issuer URL and the newly assigned client ID.
+     */
+    public readonly string $registrationClientUri;
+
+    /**
+     * A copy of the DynamicClientRequest submitted by the registrant, included in the response
+     * so callers can confirm exactly what metadata was accepted during registration.
+     */
+    public readonly DynamicClientRequest $request;
+
     public function __construct(
-        public readonly string $clientId,
-        public readonly string $clientSecret,
-        public readonly int $clientIdIssuedAt,
-        public readonly int $clientSecretExpiresAt,
-        public readonly string $registrationAccessToken,
-        public readonly string $registrationClientUri,
-        public readonly DynamicClientRequest $request,
+        string $clientId,
+        string $clientSecret,
+        int $clientIdIssuedAt,
+        int $clientSecretExpiresAt,
+        string $registrationAccessToken,
+        string $registrationClientUri,
+        DynamicClientRequest $request,
     ) {
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
+        $this->clientIdIssuedAt = $clientIdIssuedAt;
+        $this->clientSecretExpiresAt = $clientSecretExpiresAt;
+        $this->registrationAccessToken = $registrationAccessToken;
+        $this->registrationClientUri = $registrationClientUri;
+        $this->request = $request;
     }
 }

@@ -564,6 +564,93 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     }
 
     /**
+     * Ensures the magic link token branch calls verifyAuth with the embedded token.
+     */
+    public function testInvokeMagicLinkWithTokenCallsVerifyAuth(): void
+    {
+        /*
+         * Arrange: seed cache so verifyAuth exits immediately via the cached path.
+         */
+        $token = 'cachedmagictoken';
+        $cache = new ArrayCache([
+            "verify_access_{$token}" => $this->cachedIdentityJson(Identity::AUTH_SCOPE_BOTH)
+        ]);
+
+        $magicLinkService = $this->createMock(MagicLinkService::class);
+        $magicLinkService->method('consume')->willReturn([
+            'token' => "Bearer {$token}",
+            'identity' => null,
+            'connection' => null,
+        ]);
+
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())->method('setSecurityContext');
+
+        $middleware = $this->middleware(
+            ['security.jwt.verify.publickey.location' => 'http://jwks'],
+            $cache,
+            $context,
+            null,
+            $magicLinkService
+        );
+
+        /*
+         * Act: handle a request with no Bearer token but a magic link with token.
+         */
+        $response = $middleware($this->request(''), $this->handler());
+
+        /*
+         * Assert: verify the response succeeds.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * Ensures the magic link identity branch falls back to remoteHttp when connection is null.
+     */
+    public function testInvokeMagicLinkIdentityUsesRemoteHttpWhenConnectionNull(): void
+    {
+        /*
+         * Arrange: magic link returns identity but no Connection object.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $identity = new Identity(anonymous: false, id: 'user', name: 'User', issuer: 'iss');
+
+        $magicLinkService = $this->createMock(MagicLinkService::class);
+        $magicLinkService->method('consume')->willReturn([
+            'token' => null,
+            'identity' => $identity,
+            'connection' => null,
+        ]);
+
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())
+            ->method('setSecurityContext')
+            ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $identity);
+
+        $middleware = $this->middleware(
+            ['security.jwt.verify.publickey.location' => 'http://jwks'],
+            null,
+            $context,
+            null,
+            $magicLinkService
+        );
+
+        /*
+         * Act: handle a request — connection is null so Connection::remoteHttp is used.
+         */
+        $response = $middleware($this->request(''), $this->handler());
+
+        /*
+         * Assert: verify the response succeeds.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
      * Ensures the magic link identity branch sets the security context directly.
      */
     public function testInvokeSetsContextFromMagicLinkIdentity(): void

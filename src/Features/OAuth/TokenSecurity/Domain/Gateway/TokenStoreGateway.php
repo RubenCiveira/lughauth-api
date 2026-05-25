@@ -7,10 +7,29 @@ namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
 
+/**
+ * Domain port for persisting and retrieving JWT signing key pairs per tenant.
+ *
+ * Implementations back the key rotation strategy: keys are stored with an explicit
+ * validity window (since / expiration) and the signer pre-generates future keys so
+ * that JWKS consumers can cache public keys without observing gaps. The store is
+ * responsible for durability; the signer layer drives the rotation schedule by
+ * calling saveKey whenever the lookahead window falls short of the configured
+ * number of future keys. Tenant isolation is enforced by the tenant parameter
+ * present on every method.
+ */
 interface TokenStoreGateway
 {
+    /**
+     * Returns the key pair that is currently active (its validity window covers now).
+     * Returns null if no active key exists, triggering key generation by the signer.
+     */
     public function currentKey(string $tenant): ?KeyPair;
 
+    /**
+     * Returns the expiration timestamp of the latest key stored for the tenant.
+     * Used by the signer to decide whether new future keys need to be generated.
+     */
     public function nextKeysExpiration(string $tenant): \DateTimeImmutable;
 
     /**
@@ -18,5 +37,9 @@ interface TokenStoreGateway
     */
     public function listKeys(string $tenant): array;
 
+    /**
+     * Persists a newly generated key pair with its validity window for the tenant.
+     * The effective expiration is computed as start + caducidad by the implementation.
+     */
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void;
 }

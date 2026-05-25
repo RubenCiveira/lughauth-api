@@ -5,16 +5,72 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\DelegateLogin\Domain;
 
+/**
+ * Normalized user identity payload returned by a federated identity provider after successful authentication.
+ *
+ * Each DelegatedLoginProvider implementation translates its provider-specific token
+ * or SAML assertion into this common structure, decoupling downstream user-provisioning
+ * logic from the details of any particular external identity system. All optional
+ * profile fields may be absent depending on the scopes granted by the provider or
+ * the information the end-user has chosen to share. The emailVerified flag should
+ * be treated as authoritative only when the provider explicitly confirms it; otherwise
+ * it defaults to false and additional verification may be required.
+ */
 class DelegatedUserData
 {
+    /**
+     * The unique subject identifier assigned by the external identity provider (e.g. Google "sub" claim).
+     * Stable across sessions for the same user at the same provider.
+     */
+    public readonly string $providerUserId;
+
+    /**
+     * The email address of the user as provided by the identity provider.
+     * Used as the primary login name within the tenant user store.
+     */
+    public readonly string $email;
+
+    /**
+     * Full display name of the user as provided by the identity provider, or null if not available.
+     */
+    public readonly ?string $name;
+
+    /**
+     * Given (first) name of the user as provided by the identity provider, or null if not available.
+     */
+    public readonly ?string $givenName;
+
+    /**
+     * Family (last) name of the user as provided by the identity provider, or null if not available.
+     */
+    public readonly ?string $familyName;
+
+    /**
+     * URL of the user's profile picture provided by the identity provider, or null if not available.
+     */
+    public readonly ?string $pictureUrl;
+
+    /**
+     * Indicates whether the identity provider has verified ownership of the email address.
+     * Defaults to false when the provider does not explicitly confirm email verification.
+     */
+    public readonly bool $emailVerified;
+
     public function __construct(
-        public readonly string $providerUserId,
-        public readonly string $email,
-        public readonly ?string $name = null,
-        public readonly ?string $givenName = null,
-        public readonly ?string $familyName = null,
-        public readonly ?string $pictureUrl = null,
-        public readonly bool $emailVerified = false,
+        string $providerUserId,
+        string $email,
+        ?string $name = null,
+        ?string $givenName = null,
+        ?string $familyName = null,
+        ?string $pictureUrl = null,
+        bool $emailVerified = false,
     ) {
+        $this->providerUserId = $providerUserId;
+        $this->email = $email;
+        $this->name = $name;
+        $this->givenName = $givenName;
+        $this->familyName = $familyName;
+        $this->pictureUrl = $pictureUrl;
+        $this->emailVerified = $emailVerified;
     }
 }

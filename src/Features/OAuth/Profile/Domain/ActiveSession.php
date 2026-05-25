@@ -5,8 +5,26 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Profile\Domain;
 
+/**
+ * Represents a single active OAuth session belonging to a user.
+ *
+ * Instances of this class are read-only snapshots returned by the SessionsGateway
+ * when listing the sessions currently associated with a user account.  Each session
+ * corresponds to a row in the _oauth_session table and captures the metadata that
+ * is relevant to displaying session information on the profile management page.
+ *
+ * The expiration field holds the datetime until which the session is considered valid.
+ * Sessions whose expiration has passed are never returned by the gateway and are
+ * therefore never represented by this class.
+ */
 class ActiveSession
 {
+    /**
+     * Constructs an ActiveSession snapshot.
+     *
+     * All fields are immutable once the object is created; mutations must go
+     * through the SessionsGateway (e.g. revoke) rather than through this value object.
+     */
     public function __construct(
         public readonly string $sessionId,
         public readonly string $clientId,

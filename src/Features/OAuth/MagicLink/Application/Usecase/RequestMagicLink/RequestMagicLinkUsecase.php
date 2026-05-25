@@ -16,6 +16,16 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkMailGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
 
+/**
+ * Application use case responsible for initiating a passwordless magic-link login flow.
+ *
+ * Validates that the tenant, user, and OAuth client are all active and eligible before
+ * generating a one-time token. The raw token is sent to the user's email address only;
+ * only the SHA-256 hash is ever persisted, ensuring the token cannot be recovered from the
+ * database. If any precondition fails the method returns silently to avoid leaking information
+ * about whether the email address exists in the system.
+ * The generated verification URL embeds the raw token and is valid for 15 minutes from creation.
+ */
 class RequestMagicLinkUsecase
 {
     public function __construct(
@@ -29,11 +39,21 @@ class RequestMagicLinkUsecase
     ) {
     }
 
+    /**
+     * Checks whether the magic-link feature is enabled for the given tenant.
+     * Delegates to the MagicLinkEnabledGateway so the decision may come from tenant configuration.
+     */
     public function isEnabled(string $tenantName): bool
     {
         return $this->enabled->isEnabled($tenantName);
     }
 
+    /**
+     * Generates a magic-link token for the specified user and sends it by email.
+     * All validations (tenant enabled, user exists and is active, valid OAuth client) are
+     * performed silently: if any check fails, the method returns without error to prevent
+     * enumeration of valid email addresses or tenant names.
+     */
     public function request(
         string $email,
         string $clientId,

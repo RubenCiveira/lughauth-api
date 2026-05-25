@@ -5,7 +5,26 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway;
 
+/**
+ * Domain port for user password self-service change operations.
+ *
+ * Defines the contract that the profile feature relies on to allow an authenticated
+ * user to update their own password.  The implementation must verify the old password
+ * before persisting the new one, ensuring that a session hijacker without knowledge
+ * of the current password cannot silently change credentials.
+ *
+ * Implementations live in the Infrastructure/Driven layer and are injected by the
+ * DI container.  The profile HTML controller and REST controller both consume this
+ * gateway through the application service layer.
+ */
 interface PasswordGateway
 {
+    /**
+     * Attempts to change the password for the given user within the specified tenant.
+     *
+     * Validates oldPass against the currently stored credential; if it matches the
+     * new password is encrypted and persisted.  Returns true on success and false
+     * (or throws) when validation or persistence fails.
+     */
     public function changePassword(string $userUid, string $tenant, string $oldPass, string $newPass): bool;
 }

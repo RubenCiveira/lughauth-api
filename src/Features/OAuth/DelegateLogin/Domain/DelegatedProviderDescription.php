@@ -5,13 +5,48 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\DelegateLogin\Domain;
 
+/**
+ * Immutable value object that carries display metadata about a federated identity provider.
+ *
+ * Instances are returned by DelegatedLoginProvider::info() and aggregated by
+ * DelegateLoginGateway::providers() to build the list of available social-login
+ * options rendered on the tenant login page. The automatic flag indicates that
+ * the provider should trigger the redirect without requiring explicit user interaction,
+ * which is useful for enterprise SSO configurations where only one provider is active.
+ */
 class DelegatedProviderDescription
 {
+    /**
+     * The unique string identifier of this provider as stored in the tenant configuration.
+     * Used to look up the concrete DelegatedLoginProvider implementation at runtime.
+     */
+    public readonly string $id;
+
+    /**
+     * The human-readable display name shown on the login button, e.g. "Google" or "Microsoft".
+     */
+    public readonly string $name;
+
+    /**
+     * Absolute URL to the provider logo image displayed on the social-login button.
+     */
+    public readonly string $logo;
+
+    /**
+     * When true the authentication flow should redirect the user to this provider automatically
+     * without displaying a provider selection screen.
+     */
+    public readonly bool $automatic;
+
     public function __construct(
-        public readonly string $id,
-        public readonly string $name,
-        public readonly string $logo,
-        public readonly bool $automatic = false
+        string $id,
+        string $name,
+        string $logo,
+        bool $automatic = false
     ) {
+        $this->id = $id;
+        $this->name = $name;
+        $this->logo = $logo;
+        $this->automatic = $automatic;
     }
 }

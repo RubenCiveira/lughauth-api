@@ -9,6 +9,17 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 
+/**
+ * Application use case responsible for retrieving the current configuration of a dynamically
+ * registered OAuth 2.0 client as specified by RFC 7592 (Dynamic Client Registration Management).
+ *
+ * The read operation is protected by the registration access token that was issued when the
+ * client was originally created. Presenting an invalid or mismatched token results in a
+ * DynamicClientException with error code "invalid_token", which maps to HTTP 401.
+ *
+ * The returned DynamicClientData value object is a read-only snapshot of the client's
+ * registered metadata and can be serialized directly into the RFC 7592 response body.
+ */
 final class ReadDynamicClientUsecase
 {
     public function __construct(
@@ -16,6 +27,10 @@ final class ReadDynamicClientUsecase
     ) {
     }
 
+    /**
+     * Retrieves the registered metadata for the dynamic client identified by the given client ID.
+     * Validates ownership via the registration access token and throws on failure or not found.
+     */
     public function read(string $clientId, string $registrationAccessToken): DynamicClientData
     {
         $data = $this->gateway->findByClientIdAndToken($clientId, $registrationAccessToken);

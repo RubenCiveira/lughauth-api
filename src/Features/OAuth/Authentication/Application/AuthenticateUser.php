@@ -19,6 +19,20 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 
+/**
+ * Core application service that drives the user authentication process during an OIDC authorization flow.
+ *
+ * Provides three entry points: standard credential-based authentication, pre-authentication for
+ * flows where the user identity is already known (e.g., after MFA or consent steps), and
+ * session-resumed authentication where a valid server-side session already exists.
+ *
+ * Each entry point verifies credentials or session validity through the LoginGateway, then persists
+ * a new or reused session via the SessionStoreGateway and returns a PublicLoginAuthResponse containing
+ * the session ID, authorization code data, and identity claims needed to build the OIDC redirect.
+ *
+ * Observability is provided through structured logging and distributed tracing spans attached to each
+ * authentication attempt.
+ */
 class AuthenticateUser
 {
     use LoggerAwareTrait;
@@ -31,6 +45,10 @@ class AuthenticateUser
     ) {
     }
 
+    /**
+     * Resumes authentication from an existing server-side session identified by the provided session ID.
+     * Skips credential validation and reuses the existing session when the challenges state confirms an active session.
+     */
     public function sessionAuthenticated(
         AuthenticationRequest $request,
         ChallengesState $challenges,

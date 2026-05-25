@@ -5,13 +5,43 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain;
 
+/**
+ * Immutable value object representing an asymmetric cryptographic key pair used for JWT signing.
+ *
+ * Holds both the private key (for signing) and the public key (for verification/JWKS export).
+ * The kid (Key ID) uniquely identifies the pair in a JWKS document, enabling clients to select
+ * the correct verification key when multiple keys are simultaneously valid during rotation.
+ * Both keys are stored as PEM-encoded strings and must never be logged or serialized into
+ * responses other than through the JWKS endpoint (which exposes only the public key components).
+ * The alg and keyUse fields follow the JWK specification (RFC 7517) naming conventions.
+ */
 class KeyPair
 {
     public function __construct(
+        /**
+         * Unique identifier for this key, referenced in JWT headers and JWKS documents.
+         * Allows clients to select the correct verification key during key rotation overlap.
+         */
         public readonly string $kid,
+        /**
+         * Algorithm identifier (e.g. "RS256") as defined in JWA (RFC 7518).
+         * Must match the algorithm used to sign tokens referencing this key's kid.
+         */
         public readonly string $alg,
+        /**
+         * Intended use of the key: "sig" for signing or "enc" for encryption.
+         * All keys in this bounded context use "sig" exclusively.
+         */
         public readonly string $keyUse,
+        /**
+         * PEM-encoded RSA private key used exclusively for signing new JWTs.
+         * Must be kept secret and never exposed outside the signing infrastructure.
+         */
         public readonly string $privateKey,
+        /**
+         * PEM-encoded RSA public key distributed via the JWKS endpoint for token verification.
+         * Safe to expose publicly; contains no sensitive material.
+         */
         public readonly string $publicKey
     ) {
     }

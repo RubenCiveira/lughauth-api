@@ -12,11 +12,24 @@ use DateInterval;
  *
  * `ttl` defines how long a key remains valid after creation (default: 7 days).
  * `futures` is the number of upcoming keys pre-generated so clients can cache
- * the JWKS without a gap when the active key rolls over.
+ * the JWKS without a gap when the active key rolls over. Together these two
+ * values determine the total lookahead window: futures * ttl. Increasing
+ * `futures` allows clients with longer cache TTLs to keep working without
+ * fetching the JWKS again, at the cost of storing more keys in the database.
  */
 class KeyConfig
 {
+    /**
+     * How long each signing key remains valid before it must be rotated.
+     * Defaults to 7 days; adjust based on the token lifetimes issued by the system.
+     */
     public readonly DateInterval $ttl;
+
+    /**
+     * Number of future keys to pre-generate beyond the currently active one.
+     * A higher value gives clients more time to refresh their JWKS cache before
+     * a key becomes invalid, reducing the risk of verification failures during rollover.
+     */
     public readonly int $futures;
 
     public function __construct()

@@ -20,6 +20,17 @@ use Jose\Component\Signature\JWSBuilder;
 use Jose\Component\Signature\JWSVerifier;
 use Ramsey\Uuid\Uuid;
 
+/**
+ * TokenSigner implementation backed by the web-token/jwt-framework (JOSE) library.
+ *
+ * Produces and verifies RS256 compact-serialized JWTs using RSA 4096-bit key pairs
+ * that are lazily rotated on every operation. Before each sign or key-listing call,
+ * the adapter inspects the current key coverage window and generates as many future
+ * keys as needed to satisfy the KeyConfig lookahead (futures * ttl). This on-demand
+ * rotation avoids the need for a separate cron job while guaranteeing that JWKS
+ * consumers always find a valid key. Private keys are generated via PHP's openssl
+ * extension and stored through the injected TokenStoreGateway.
+ */
 class JoseTokenSigner implements TokenSigner
 {
     public function __construct(
@@ -28,6 +39,11 @@ class JoseTokenSigner implements TokenSigner
     ) {
     }
 
+    /**
+     * Signs the payload as a compact RS256 JWT, injecting standard time claims automatically.
+     * Triggers key rotation checks before signing to ensure an active key is always available.
+     * Throws NoActiveKeyException if, after rotation, no current key can be found.
+     */
     #[Override]
     public function sign(string $tenant, array $data, \DateInterval $expiration): string
     {
@@ -70,6 +86,10 @@ class JoseTokenSigner implements TokenSigner
         return $serializer->serialize($token, 0);
     }
 
+    /**
+     * Builds and returns the JWKS containing all currently valid public keys for the tenant.
+     * Triggers key rotation if necessary so the set always covers the full lookahead window.
+     */
     #[Override]
     public function keysAsJwks(string $tenant): JWKSet
     {
@@ -86,12 +106,20 @@ class JoseTokenSigner implements TokenSigner
         return new JWKSet($keys);
     }
 
+    /**
+     * Signs a keypass token by wrapping the given data under a "keypass" top-level claim.
+     * This nesting distinguishes internal session tokens from standard access/ID tokens.
+     */
     #[Override]
     public function signKeypass(string $tenant, array $data, \DateInterval $expiration): string
     {
         return $this->sign($tenant, ['keypass' => $data], $expiration);
     }
 
+    /**
+     * Verifies an RS256 JWT signature and enforces the nbf/exp time window.
+     * Returns the decoded payload claims on success, or null if verification fails for any reason.
+     */
     #[Override]
     public function verifyTokenPayload(string $tenant, string $token): ?array
     {
@@ -120,6 +148,10 @@ class JoseTokenSigner implements TokenSigner
         return $payload;
     }
 
+    /**
+     * Unwraps a verified keypass token and returns the inner "keypass" claim value.
+     * Returns null if the token is invalid, expired, or lacks the keypass claim.
+     */
     #[Override]
     public function verifiedKeypass(string $tenant, string $token): mixed
     {
@@ -127,6 +159,11 @@ class JoseTokenSigner implements TokenSigner
         return $payload['keypass'] ?? null;
     }
 
+    /**
+     * Verifies an RS256 JWT signature without checking time claims (nbf/exp).
+     * Returns the raw payload array or null if the signature is invalid.
+     * Intended exclusively for revocation flows that must parse already-expired tokens.
+     */
     #[Override]
     public function parseSignedPayload(string $tenant, string $token): ?array
     {

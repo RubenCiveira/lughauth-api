@@ -33,6 +33,18 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Infrastructure\Provider\Saml2Prov
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderSourceOptions;
 
+/**
+ * Infrastructure adapter that implements DelegateLoginGateway by wiring together
+ * tenant-provider configuration, user persistence, and the concrete provider implementations.
+ *
+ * This class reads the TenantLoginProvider records from the database, translates each
+ * enabled record into the matching DelegatedLoginProvider instance (Google, GitHub, Microsoft,
+ * Apple, or SAML 2.0), and handles just-in-time user provisioning when a social-login user
+ * is seen for the first time. It also fills the pre-authentication challenge state so the
+ * session management layer can issue the OIDC tokens after a successful external assertion.
+ * Provider credentials (client IDs, secrets, private keys) are retrieved from the tenant
+ * configuration and passed directly to the individual provider constructors.
+ */
 class DelegateLoginAdapter implements DelegateLoginGateway
 {
     public function __construct(
@@ -46,6 +58,11 @@ class DelegateLoginAdapter implements DelegateLoginGateway
     ) {
     }
 
+    /**
+     * Looks up or just-in-time provisions the user identified by the provider assertion within
+     * the given tenant, fills the pre-authentication challenge state, and returns a populated
+     * AuthenticationResult ready for the OIDC token issuance pipeline.
+     */
     #[Override]
     public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user, string $providerId): AuthenticationResult
     {
@@ -88,10 +105,16 @@ class DelegateLoginAdapter implements DelegateLoginGateway
             groups: ['group-1']
         );
     }
+
     /**
      * @return DelegatedLoginProvider[]
      *
      * @psalm-return list{0?: DelegatedLoginProvider,...}
+     */
+    /**
+     * Returns all active DelegatedLoginProvider instances configured for the tenant by reading
+     * the TenantLoginProvider records and instantiating the corresponding provider class for
+     * each enabled entry.
      */
     #[Override]
     public function providers(string $tenant): array
@@ -113,6 +136,11 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         }
         return $providers;
     }
+
+    /**
+     * Resolves a single DelegatedLoginProvider by tenant and provider ID, throwing
+     * NotFoundException when the provider is absent or disabled.
+     */
     #[Override]
     public function getProvider(string $tenant, string $id): DelegatedLoginProvider
     {

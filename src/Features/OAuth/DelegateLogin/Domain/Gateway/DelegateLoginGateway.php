@@ -10,11 +10,33 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedUserData;
 
+/**
+ * Port (outbound) that abstracts persistence and provider-resolution operations for delegated login.
+ *
+ * Implementations are responsible for loading the concrete DelegatedLoginProvider
+ * registered for a tenant and provider ID, retrieving the full list of active providers
+ * for the tenant login page, and persisting (or just-in-time provisioning) the user
+ * identified by the provider callback, ultimately producing an AuthenticationResult
+ * that can be handed back to the OIDC authorization flow. This interface decouples
+ * the application service from any specific storage technology or provider registry.
+ */
 interface DelegateLoginGateway
 {
+    /**
+     * Persists or provisions the user represented by the provider user data within the given
+     * tenant context and returns an AuthenticationResult that completes the OIDC flow.
+     */
     public function save(string $tenant, AuthenticationRequest $client, DelegatedUserData $user, string $providerId): AuthenticationResult;
 
+    /**
+     * Returns the list of active DelegatedLoginProvider instances configured for the given tenant.
+     * Disabled or unrecognised providers are excluded from the result.
+     */
     public function providers(string $tenant): array;
 
+    /**
+     * Resolves and returns the DelegatedLoginProvider registered under the given ID for the tenant.
+     * Throws NotFoundException when the provider does not exist or is disabled.
+     */
     public function getProvider(string $tenant, string $id): DelegatedLoginProvider;
 }

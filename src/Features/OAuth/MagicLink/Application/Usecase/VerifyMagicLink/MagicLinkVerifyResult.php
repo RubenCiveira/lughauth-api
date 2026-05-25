@@ -7,11 +7,34 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\VerifyMagic
 
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLinkSession;
 
+/**
+ * Value object returned by VerifyMagicLinkUsecase upon successful token verification.
+ *
+ * Carries the OAuth redirect URL the HTTP layer must issue as a 302 response, and
+ * optionally a newly-created browser session so the handler can set a session cookie.
+ * When the session property is null, no persistent session was established (e.g. the
+ * client was not found or session creation was skipped), but the authorization code flow
+ * still proceeds normally via the redirect URL.
+ */
 final class MagicLinkVerifyResult
 {
+    /**
+     * The fully-qualified redirect URL with the authorization code and optional state appended.
+     * The HTTP handler must issue a 302 redirect to this URL without any further modifications.
+     */
+    public readonly string $redirectUrl;
+
+    /**
+     * The browser session created after successful verification, or null if no session was established.
+     * When present, the HTTP handler should attach the session identifier as a secure cookie.
+     */
+    public readonly ?MagicLinkSession $session;
+
     public function __construct(
-        public readonly string $redirectUrl,
-        public readonly ?MagicLinkSession $session,
+        string $redirectUrl,
+        ?MagicLinkSession $session,
     ) {
+        $this->redirectUrl = $redirectUrl;
+        $this->session = $session;
     }
 }

@@ -7,13 +7,50 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
 
+/**
+ * Domain port for managing Multi-Factor Authentication (MFA / TOTP) for user profiles.
+ *
+ * This gateway abstracts the infrastructure details of reading and writing second-factor
+ * seeds so that the profile domain layer remains free of any concrete TOTP library
+ * or storage mechanism.  Implementations are expected to live in the Infrastructure
+ * layer and be injected via the DI container.
+ *
+ * All methods are scoped to a combination of user UID and tenant, allowing the same
+ * platform to host multiple tenants where each tenant has its own MFA configuration.
+ */
 interface MfaGateway
 {
+    /**
+     * Checks whether MFA (second factor) is currently enabled for the given user.
+     *
+     * Returns true when the user has an active TOTP seed stored and the second-factor
+     * flag is switched on; returns false otherwise.
+     */
     public function isEnabled(string $userUid, string $tenant): bool;
 
+    /**
+     * Builds the setup payload needed to enrol the user in MFA.
+     *
+     * Generates a fresh TOTP seed, optionally produces a QR-code image, and returns
+     * both values wrapped in a MfaSetup object so the UI layer can present the setup
+     * wizard to the user.
+     */
     public function buildSetup(string $userUid, string $tenant): MfaSetup;
 
+    /**
+     * Enables MFA for the user after verifying the supplied one-time password.
+     *
+     * Validates the given OTP against the provided seed and, if correct, persists the
+     * seed so that subsequent logins will require a second factor.  Throws an exception
+     * when the OTP is invalid.
+     */
     public function enable(string $userUid, string $tenant, string $seed, string $otp): void;
 
+    /**
+     * Disables MFA for the user by clearing the stored second-factor seed.
+     *
+     * After this call the user will no longer be challenged for a TOTP code during
+     * the authentication flow unless re-enrolled via buildSetup / enable.
+     */
     public function disable(string $userUid, string $tenant): void;
 }

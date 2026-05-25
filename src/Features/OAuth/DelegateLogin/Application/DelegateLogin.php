@@ -14,6 +14,18 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\Gateway\DelegateLoginGateway;
 
+/**
+ * Application service that orchestrates the delegated (federated) login flow.
+ *
+ * This service acts as the primary entry point for all operations related to
+ * third-party identity provider authentication, covering OAuth 2.0 / OIDC social
+ * logins as well as SAML 2.0 federations. It retrieves the list of configured
+ * providers for a tenant, builds the provider-specific redirect URL including
+ * a signed state parameter that carries the tenant and original request context,
+ * handles the inbound callback by forwarding the raw provider data to the
+ * gateway for validation and user-provisioning, and finally redirects the browser
+ * back to the correct tenant-scoped URL after a successful cross-origin callback.
+ */
 class DelegateLogin
 {
     public function __construct(
@@ -22,11 +34,21 @@ class DelegateLogin
     ) {
     }
 
+    /**
+     * Returns the list of active delegated login providers configured for the given tenant.
+     * Each entry is a DelegatedLoginProvider instance ready to generate a redirect URL.
+     */
     public function providers(string $tenant): array
     {
         return $this->delegate->providers($tenant);
     }
 
+    /**
+     * Handles the OAuth callback that arrives at the shared (root) redirect URI and
+     * forwards the browser to the tenant-scoped verification route with all query
+     * parameters re-encoded in the state.
+     * Returns a 302 redirect response pointing at the correct tenant path.
+     */
     public function redirectToTenant(string $directory, string $path, ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         $params = $request->getQueryParams();
@@ -48,6 +70,11 @@ class DelegateLogin
         return $response->withHeader('Location', $finalUrl)->withStatus(302);
     }
 
+    /**
+     * Processes the provider callback for a specific tenant and provider, extracts and
+     * validates the user claims, then delegates user lookup or just-in-time provisioning
+     * to the gateway, returning an AuthenticationResult on success or null on failure.
+     */
     public function validateRedirection(string $route, string $providerId, string $data, string $tenant, AuthenticationRequest $request): ?AuthenticationResult
     {
         $info = json_decode(base64_decode($data), true);
@@ -56,6 +83,11 @@ class DelegateLogin
         return  $clientData ? $this->delegate->save($tenant, $request, $clientData, $providerId) : null;
     }
 
+    /**
+     * Builds the provider-specific authorization endpoint descriptor for the given tenant
+     * and provider, embedding a base64-encoded state that contains tenant, provider ID,
+     * and any additional caller-supplied data so the callback can reconstruct context.
+     */
     public function getTargetEndpoint(string $route, string $tenant, string $providerId, array $data): DelegatedLoginEndpoint
     {
         $provider =  $this->delegate->getProvider($tenant, $providerId);
