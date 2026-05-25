@@ -7,6 +7,12 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
+/**
+ * Captures the parameters of an incoming authorization request.
+ *
+ * Passed into the authentication pipeline to validate the client,
+ * resolve the required auth steps, and build the final redirect response.
+ */
 class AuthenticationRequest
 {
     public function __construct(

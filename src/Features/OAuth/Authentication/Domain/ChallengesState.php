@@ -5,6 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
+/**
+ * Immutable snapshot of pending authentication steps for an in-progress authorization flow.
+ *
+ * Serialised into the session (`toArray`) at the end of each step and deserialised
+ * (`fromArray`) at the start of the next. The `v` version field allows migration
+ * between serialisation formats without invalidating existing sessions.
+ */
 final class ChallengesState
 {
     public const VERSION = 1;

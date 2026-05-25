@@ -6,6 +6,15 @@ namespace Civi\Lughauth\Features\OAuth\Oidc\Domain;
 
 use Civi\Lughauth\Features\OAuth\Oidc\Domain\MtlsEndpointAliases;
 
+/**
+ * The complete OIDC Discovery Document for a tenant (OpenID Connect Discovery §3).
+ *
+ * Built per-tenant via `forTenant()`, which derives all endpoint URLs from the
+ * base OAuth URL and tenant identifier. `toArray()` returns the JSON-serialisable
+ * representation served at `/.well-known/openid-configuration`.
+ * Contributors (via `DiscoveryContributorGateway`) may extend the document
+ * with additional fields after construction.
+ */
 final class OpenIdConfiguration
 {
     public function __construct(

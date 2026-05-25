@@ -5,6 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
+/**
+ * Immutable snapshot of an OAuth 2.0 client's registered configuration.
+ *
+ * Read from the client store on every authorization or token request.
+ * `secretLogin` controls whether the client may use the direct login endpoint
+ * instead of the standard browser-redirect flow.
+ * `requestObjectSigningAlg`, `jwksUri`, and `jwksJson` are only relevant for
+ * clients that send signed request objects (JAR / RFC 9101).
+ */
 class ClientData
 {
     public function __construct(

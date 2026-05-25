@@ -7,6 +7,13 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain;
 
 use DateTimeImmutable;
 
+/**
+ * Aggregate root for a passwordless magic-link authentication request.
+ *
+ * Only the hash of the raw token is stored; the plaintext token travels
+ * exclusively in the email link. Call `isValid()` before accepting a
+ * verification attempt — it gates both expiry and single-use invariants.
+ */
 final class MagicLink
 {
     public function __construct(

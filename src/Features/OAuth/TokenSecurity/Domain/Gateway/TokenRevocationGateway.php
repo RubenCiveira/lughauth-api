@@ -5,11 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway;
 
+/**
+ * Domain port for tracking and querying revoked JWT token identifiers (JTIs).
+ *
+ * Implementations persist a denylist of JTIs so that tokens can be invalidated
+ * before their natural expiry time, covering use cases such as user logout,
+ * password change, and administrative revocation. Each entry is scoped to a
+ * tenant to keep multi-tenant data isolated and to allow efficient lookups.
+ * The cleanup method should be invoked periodically (e.g. via a scheduled job)
+ * to remove entries whose original token has already expired, preventing
+ * unbounded growth of the revocation store.
+ */
 interface TokenRevocationGateway
 {
+    /**
+     * Records a token JTI as revoked so future verification attempts will fail.
+     * The entry is automatically eligible for removal once expiresAt has passed.
+     * Duplicate inserts for the same JTI must be silently ignored.
+     */
     public function revokeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): void;
 
+    /**
+     * Checks whether the given JTI has been explicitly revoked for the tenant.
+     * Returns true if the token should be rejected regardless of its time claims.
+     */
     public function isRevoked(string $jti, string $tenantId): bool;
 
+    /**
+     * Removes all revocation records whose corresponding token has already expired.
+     * This housekeeping operation prevents the revocation table from growing indefinitely.
+     */
     public function cleanup(): void;
 }

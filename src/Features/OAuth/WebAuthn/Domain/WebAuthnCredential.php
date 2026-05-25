@@ -7,6 +7,14 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain;
 
 use DateTimeImmutable;
 
+/**
+ * A stored FIDO2 passkey credential bound to a specific user.
+ *
+ * `signCount` is updated on every successful assertion via `withUpdatedSignCount()`
+ * to detect cloned authenticators (a replayed sign count indicates credential cloning).
+ * Disabled credentials (`enabled = false`) are rejected at assertion time without
+ * being deleted, preserving audit history.
+ */
 final class WebAuthnCredential
 {
     public function __construct(

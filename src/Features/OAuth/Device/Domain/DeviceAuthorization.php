@@ -8,6 +8,14 @@ namespace Civi\Lughauth\Features\OAuth\Device\Domain;
 use DateTimeImmutable;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
+/**
+ * Tracks the state of an OAuth 2.0 Device Authorization Grant request (RFC 8628).
+ *
+ * The `userCode` is a short, human-typeable string presented on the device.
+ * `status` transitions from `PENDING` to `APPROVED` or `DENIED` after the
+ * user acts on the verification URI. The token endpoint polls `isExpired()`
+ * and `expiresIn()` to enforce the expiry and return the correct error codes.
+ */
 final class DeviceAuthorization
 {
     public function __construct(

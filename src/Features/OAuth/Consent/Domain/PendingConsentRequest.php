@@ -4,6 +4,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Domain;
 
+/**
+ * A queued consent item awaiting user action in the authorization flow.
+ *
+ * Created when the consent orchestrator detects that the user has not yet
+ * approved the requested scopes for a given client. `scopeList()` returns
+ * the individual scope strings so the UI can render per-scope consent items.
+ */
 final class PendingConsentRequest
 {
     public function __construct(

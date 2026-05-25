@@ -5,6 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\DelegateLogin\Domain;
 
+/**
+ * Plugin contract for federated identity providers (OAuth 2.0, OIDC, SAML 2.0).
+ *
+ * Implementations handle provider-specific OAuth flows while exposing a uniform
+ * interface to the DelegateLogin application service.
+ * `delegatedUrl` builds the provider redirect; `authorize` processes the callback
+ * and returns normalized user data, or null if the assertion cannot be verified.
+ */
 interface DelegatedLoginProvider
 {
     public function info(): DelegatedProviderDescription;

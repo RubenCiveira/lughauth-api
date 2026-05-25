@@ -8,6 +8,18 @@ namespace Civi\Lughauth\Features\OAuth\Client\Application\Usecase\DeleteDynamicC
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 
+/**
+ * Application use case responsible for deleting a dynamically registered OAuth 2.0 client.
+ *
+ * This use case implements the deletion endpoint defined in RFC 7592 (OAuth 2.0 Dynamic
+ * Client Registration Management Protocol). The caller must supply both the client identifier
+ * and the registration access token that was issued at registration time; the token is used
+ * to authenticate and authorize the management operation.
+ *
+ * If the gateway reports that no client was deleted (e.g. the token is wrong, expired, or the
+ * client does not exist), a DynamicClientException with an "invalid_token" error is raised so
+ * that the REST layer can return the appropriate 401 response to the caller.
+ */
 final class DeleteDynamicClientUsecase
 {
     public function __construct(
@@ -15,6 +27,10 @@ final class DeleteDynamicClientUsecase
     ) {
     }
 
+    /**
+     * Attempts to permanently remove the dynamic client identified by the given client ID.
+     * Validates ownership via the registration access token and throws on failure.
+     */
     public function delete(string $clientId, string $registrationAccessToken): void
     {
         $deleted = $this->gateway->delete($clientId, $registrationAccessToken);

@@ -5,6 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Session\Domain;
 
+/**
+ * Snapshot of an active OAuth session stored between authorization steps.
+ *
+ * `csid` is a stable cross-session identifier used to look up the user's
+ * existing session without exposing the internal session state token.
+ * `withMfa` is set to true only after a successful MFA step, and may be
+ * required by certain clients before token issuance.
+ */
 class SessionInfo
 {
     public function __construct(

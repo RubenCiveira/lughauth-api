@@ -9,6 +9,13 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
+/**
+ * Short-lived bundle of authorization parameters issued after a successful authentication.
+ *
+ * Stored under the `code` returned to the client in the authorization code flow.
+ * Consumed once by the token endpoint, which verifies the PKCE challenge before
+ * exchanging it for access and ID tokens.
+ */
 class TemporalAuthCode
 {
     public function __construct(

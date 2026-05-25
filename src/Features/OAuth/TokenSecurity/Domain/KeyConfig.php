@@ -7,6 +7,13 @@ namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain;
 
 use DateInterval;
 
+/**
+ * Immutable configuration for the JWT signing key rotation policy.
+ *
+ * `ttl` defines how long a key remains valid after creation (default: 7 days).
+ * `futures` is the number of upcoming keys pre-generated so clients can cache
+ * the JWKS without a gap when the active key rolls over.
+ */
 class KeyConfig
 {
     public readonly DateInterval $ttl;

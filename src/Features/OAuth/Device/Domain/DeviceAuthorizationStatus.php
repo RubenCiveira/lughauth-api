@@ -5,6 +5,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Device\Domain;
 
+/**
+ * Terminal and transient states for a Device Authorization Grant request (RFC 8628).
+ *
+ * A `DeviceAuthorization` starts in PENDING and transitions once: to APPROVED
+ * after the user confirms on the verification URI, or to DENIED if they reject it.
+ */
 final class DeviceAuthorizationStatus
 {
     public const string PENDING = 'pending';

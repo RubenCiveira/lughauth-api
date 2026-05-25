@@ -5,6 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
+/**
+ * Outcome of a single authentication or credential-verification step.
+ *
+ * When `valid` is false, the `error` constant identifies the required next action
+ * (MFA, consent, password change, etc.). Named constructors on this class model
+ * each possible failure mode so call sites remain readable.
+ *
+ * Serialisable to/from array for session storage across HTTP redirects.
+ */
 class AuthenticationResult
 {
     public const string ERR_MFA_REQUIRED = 'MFA_REQUIRED';

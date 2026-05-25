@@ -7,6 +7,12 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLink;
 
+/**
+ * Port for persisting and retrieving MagicLink aggregates.
+ *
+ * Lookup is always by token hash, never by raw token.
+ * `markUsed` must be idempotent: calling it on an already-used link is a no-op.
+ */
 interface MagicLinkGateway
 {
     public function store(MagicLink $magicLink): void;

@@ -5,6 +5,14 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Par\Domain;
 
+/**
+ * Aggregate root for a Pushed Authorization Request (RFC 9126).
+ *
+ * Created via `create()`, which generates a cryptographically random `request_uri`
+ * in `urn:ietf:params:oauth:request_uri:…` format and sets a 60-second expiry.
+ * Single-use: once resolved by the authorization endpoint `usedAt` is set and
+ * subsequent lookups must be rejected.
+ */
 final class ParRequest
 {
     public function __construct(

@@ -10,6 +10,13 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 
+/**
+ * Port for storing and retrieving OAuth authorization sessions.
+ *
+ * Each session is keyed by an opaque `state` string generated per request.
+ * `csid` is a stable cross-session identifier that survives state rotation
+ * and allows the user's existing browser session to be looked up.
+ */
 interface SessionStoreGateway
 {
     public function loadSession(string $state): ?SessionInfo;

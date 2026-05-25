@@ -7,6 +7,15 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain;
 
 use DateTimeImmutable;
 
+/**
+ * Tracks a pending FIDO2/WebAuthn challenge (registration or authentication).
+ *
+ * Challenges are short-lived; call `isExpired()` before accepting an assertion.
+ * `markVerified()` returns a new immutable instance — it never mutates in place —
+ * so the gateway must persist the returned copy to record a successful verification.
+ * The `verifiedUserUid` set on verification must match the claimed identity
+ * before the Authentication context accepts the WebAuthn step as complete.
+ */
 final class WebAuthnChallenge
 {
     public function __construct(

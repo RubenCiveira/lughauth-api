@@ -5,6 +5,16 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Exception;
 
+/**
+ * Thrown when no active signing key is available for a given tenant.
+ *
+ * This exception signals that the key rotation process has not yet populated a
+ * valid key for the requested tenant, or all existing keys have expired without
+ * a replacement being generated. Callers should treat this as a transient
+ * infrastructure problem and respond with a 503 Service Unavailable rather than
+ * a 4xx client error. The TokenSigner implementation triggers key generation
+ * on demand, so this exception should only occur in edge-case bootstrap scenarios.
+ */
 class NoActiveKeyException extends \RuntimeException
 {
 }

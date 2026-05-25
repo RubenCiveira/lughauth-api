@@ -5,6 +5,12 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
+/**
+ * M2M (machine-to-machine) API key credential for the `client_credentials` grant.
+ *
+ * `scopes` defines the maximum set of scopes the key may request; the token
+ * endpoint will intersect this list with `ClientData::allowedScopesM2m` before issuance.
+ */
 class ApiKeyData
 {
     public function __construct(

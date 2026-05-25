@@ -5,6 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Domain;
 
+/**
+ * Represents a single OAuth scope presented to the user during the consent step.
+ *
+ * `required` marks scopes that cannot be declined; the consent UI should render
+ * these as pre-checked and read-only. `displayLabel()` provides a human-readable
+ * fallback derived from the scope string when no explicit label is configured.
+ */
 final class ScopePermission
 {
     public function __construct(

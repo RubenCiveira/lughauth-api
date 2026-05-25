@@ -5,6 +5,13 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Profile\Domain;
 
+/**
+ * User profile entity holding OIDC standard claims (OpenID Connect Core §5.1).
+ *
+ * `version` enables optimistic concurrency: updates must include the current
+ * version and are rejected by the gateway if it no longer matches, preventing
+ * lost-update races from concurrent profile edits.
+ */
 class OidcProfile
 {
     public function __construct(

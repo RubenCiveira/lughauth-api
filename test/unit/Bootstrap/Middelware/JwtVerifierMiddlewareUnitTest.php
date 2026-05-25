@@ -563,7 +563,294 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $this->assertTrue($cache->has('jwks.verify.publickey'));
     }
 
-    private function middleware(array $configOverrides = [], ?CacheInterface $cache = null, ?Context $context = null, ?ClientInterface $client = null): JwtVerifierMiddleware
+    /**
+     * Ensures the magic link identity branch sets the security context directly.
+     */
+    public function testInvokeSetsContextFromMagicLinkIdentity(): void
+    {
+        /*
+         * Arrange: build a magic link service that returns an Identity directly.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $identity = new Identity(anonymous: false, id: 'user', name: 'User', issuer: 'iss');
+        $connection = new \Civi\Lughauth\Shared\Security\Connection(
+            level: 0,
+            remote: true,
+            startTime: new \DateTime(),
+            application: 'app',
+            callback: '/',
+            source: '127.0.0.1',
+            target: 'host',
+            locale: 'en'
+        );
+
+        $magicLinkService = $this->createMock(MagicLinkService::class);
+        $magicLinkService->method('consume')->willReturn([
+            'token' => null,
+            'identity' => $identity,
+            'connection' => $connection,
+        ]);
+
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())
+            ->method('setSecurityContext')
+            ->with($connection, $identity);
+
+        $middleware = $this->middleware(
+            ['security.jwt.verify.publickey.location' => 'http://jwks'],
+            null,
+            $context,
+            null,
+            $magicLinkService
+        );
+
+        /*
+         * Act: handle a request with no Bearer token.
+         */
+        $response = $middleware($this->request(''), $this->handler());
+
+        /*
+         * Assert: verify the response succeeds.
+         */
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
+    /**
+     * Ensures JWKS key rotation is handled by fetching fresh keys and retrying.
+     */
+    public function testVerifyAuthJwksRefreshSuccessFlow(): void
+    {
+        /*
+         * Arrange: sign with key1 but seed cache with key2 (wrong), fresh fetch returns key1.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $now = time();
+        $key1 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $key2 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k2']);
+
+        $wrongJwks = json_encode(['keys' => [$key2->jsonSerialize()]], JSON_THROW_ON_ERROR);
+        $correctJwks = json_encode(['keys' => [$key1->jsonSerialize()]], JSON_THROW_ON_ERROR);
+
+        $token = $this->jwt([
+            'sub' => 'user',
+            'name' => 'User',
+            'email' => 'user@example.com',
+            'iss' => 'issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 10,
+            'exp' => $now + 1000,
+            'tenant' => 'main',
+        ], $key1);
+
+        $cache = new ArrayCache(['jwks.verify.publickey' => $wrongJwks]);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getBody')->willReturn($this->stream($correctJwks));
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('sendRequest')->willReturn($response);
+
+        $context = $this->createMock(Context::class);
+        $context->expects($this->once())
+            ->method('setSecurityContext')
+            ->with($this->isInstanceOf(\Civi\Lughauth\Shared\Security\Connection::class), $this->isInstanceOf(Identity::class));
+
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+            'security.jwt.verify.issuer' => 'issuer',
+            'security.jwt.verify.audiences' => 'aud1',
+        ], $cache, $context, $client);
+
+        /*
+         * Act: handle the request — signature fails on stale JWKS, succeeds after refresh.
+         */
+        $result = $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify the request succeeds.
+         */
+        $this->assertSame(200, $result->getStatusCode());
+    }
+
+    /**
+     * Ensures verifyToken exceptions inside the main verify flow propagate as unauthorized.
+     */
+    public function testVerifyAuthVerifyTokenThrowsInFlow(): void
+    {
+        /*
+         * Arrange: create a valid-signature token but mismatched issuer.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $now = time();
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $jwks = json_encode(['keys' => [$key->jsonSerialize()]], JSON_THROW_ON_ERROR);
+
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'wrong-issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 10,
+            'exp' => $now + 1000,
+        ], $key);
+
+        $cache = new ArrayCache(['jwks.verify.publickey' => $jwks]);
+
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+            'security.jwt.verify.issuer' => 'expected-issuer',
+        ], $cache);
+
+        /*
+         * Act: handle the request and expect an unauthorized exception.
+         */
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify the exception comes from verifyToken rejection.
+         */
+    }
+
+    /**
+     * Ensures a JsonException from malformed cached JWKS raises an unauthorized exception.
+     */
+    public function testVerifyAuthJsonExceptionFromInvalidJwks(): void
+    {
+        /*
+         * Arrange: seed cache with invalid JSON as the JWKS payload.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $now = time();
+        $key = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 10,
+            'exp' => $now + 1000,
+        ], $key);
+
+        $cache = new ArrayCache(['jwks.verify.publickey' => '{not-valid-json{{']);
+
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+        ], $cache);
+
+        /*
+         * Act: handle the request and expect an unauthorized exception.
+         */
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify the JWKS parse failure translates to unauthorized.
+         */
+    }
+
+    /**
+     * Ensures getJwks throws a RuntimeException when the JWKS URL is empty.
+     */
+    public function testGetJwksThrowsWhenUrlEmpty(): void
+    {
+        /*
+         * Arrange: create middleware with an empty JWKS URL.
+         */
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => '']);
+        $method = new ReflectionMethod($middleware, 'getJwks');
+
+        /*
+         * Act: invoke getJwks with an empty URL.
+         */
+        $this->expectException(\RuntimeException::class);
+        $method->invoke($middleware);
+
+        /*
+         * Assert: verify a RuntimeException is thrown.
+         */
+    }
+
+    /**
+     * Ensures fetchAndCacheJwks throws a RuntimeException when the JWKS URL is empty.
+     */
+    public function testFetchAndCacheJwksThrowsWhenUrlEmpty(): void
+    {
+        /*
+         * Arrange: create middleware with an empty JWKS URL.
+         */
+        $middleware = $this->middleware(['security.jwt.verify.publickey.location' => '']);
+        $method = new ReflectionMethod($middleware, 'fetchAndCacheJwks');
+
+        /*
+         * Act: invoke fetchAndCacheJwks with an empty URL.
+         */
+        $this->expectException(\RuntimeException::class);
+        $method->invoke($middleware);
+
+        /*
+         * Assert: verify a RuntimeException is thrown.
+         */
+    }
+
+    /**
+     * Ensures extractRoles returns an empty array when no roles path is configured.
+     */
+    public function testExtractRolesReturnsEmptyWhenNoPath(): void
+    {
+        /*
+         * Arrange: create middleware without a roles path.
+         */
+        $middleware = $this->middleware([]);
+        $method = new ReflectionMethod($middleware, 'extractRoles');
+
+        /*
+         * Act: invoke extractRoles with an arbitrary payload.
+         */
+        $result = $method->invoke($middleware, (object) ['realm_access' => ['roles' => ['admin']]]);
+
+        /*
+         * Assert: verify an empty array is returned.
+         */
+        $this->assertSame([], $result);
+    }
+
+    /**
+     * Ensures extractRoles skips empty path segments from a leading slash.
+     */
+    public function testExtractRolesSkipsEmptySegments(): void
+    {
+        /*
+         * Arrange: configure a leading-slash roles path that yields empty segments.
+         */
+        $middleware = $this->middleware(['security.jwt.verify.path.roles' => '/realm_access/roles']);
+        $method = new ReflectionMethod($middleware, 'extractRoles');
+
+        /*
+         * Act: invoke extractRoles with a matching payload.
+         */
+        $result = $method->invoke($middleware, (object) ['realm_access' => (object) ['roles' => ['admin', 'user']]]);
+
+        /*
+         * Assert: verify roles are correctly extracted despite the leading slash.
+         */
+        $this->assertSame(['admin', 'user'], $result);
+    }
+
+    private function middleware(array $configOverrides = [], ?CacheInterface $cache = null, ?Context $context = null, ?ClientInterface $client = null, ?MagicLinkService $magicLinkService = null): JwtVerifierMiddleware
     {
         $config = new class ($configOverrides) extends AppConfig {
             public function __construct(private readonly array $overrides)
@@ -586,7 +873,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $request->method('withHeader')->willReturnSelf();
         $requestFactory->method('createRequest')->willReturn($request);
         $client = $client ?? $this->createMock(ClientInterface::class);
-        $magicLinkService = $this->createMock(MagicLinkService::class);
+        $magicLinkService = $magicLinkService ?? $this->createMock(MagicLinkService::class);
 
         return new JwtVerifierMiddleware($config, $context, $cache, $requestFactory, $client, $magicLinkService);
     }
