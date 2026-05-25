@@ -16,6 +16,18 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedProviderDescription;
 
+/**
+ * DelegatedLoginProvider implementation for Microsoft identity platform (Azure AD / Entra ID).
+ *
+ * Supports both single-tenant (specific Azure AD directory) and multi-tenant ("common")
+ * configurations through the tenantId constructor parameter. The provider follows the
+ * standard OAuth 2.0 authorization code flow with the Microsoft v2.0 endpoints, exchanging
+ * the code for an id_token (OIDC) and extracting user identity from its claims. Email is
+ * resolved first from the "email" claim and then from "preferred_username" to handle
+ * work/school accounts where the primary SMTP address is exposed differently. The JWT
+ * payload is decoded without signature verification since the token was received directly
+ * from a TLS-secured token endpoint.
+ */
 class MicrosoftOAuthProvider implements DelegatedLoginProvider
 {
     private readonly string $assetsPath;
@@ -32,6 +44,10 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
 
+    /**
+     * Returns the display metadata for the Microsoft provider including the Microsoft logo
+     * asset path used to render the "Sign in with Microsoft" button on the login page.
+     */
     #[Override]
     public function info(): DelegatedProviderDescription
     {
@@ -42,6 +58,10 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
         );
     }
 
+    /**
+     * Builds the Microsoft v2.0 authorization URL for the configured tenant, requesting
+     * the openid, email, profile, and User.Read scopes, and embedding the state for CSRF protection.
+     */
     #[Override]
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint
     {
@@ -57,6 +77,11 @@ class MicrosoftOAuthProvider implements DelegatedLoginProvider
         return new DelegatedLoginEndpoint('GET', $url);
     }
 
+    /**
+     * Exchanges the authorization code with the Microsoft v2.0 token endpoint, decodes the
+     * returned id_token JWT, extracts user identity claims, and returns normalized DelegatedUserData.
+     * Returns null when the code is missing, the token endpoint fails, or email cannot be determined.
+     */
     #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {

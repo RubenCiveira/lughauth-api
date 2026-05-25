@@ -16,6 +16,16 @@ use League\OAuth2\Client\Provider\Google;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
 
+/**
+ * DelegatedLoginProvider implementation for Google Sign-In using the league/oauth2-google package.
+ *
+ * This provider delegates all OAuth 2.0 protocol details to the League OAuth 2.0 client library,
+ * which handles PKCE, state generation, and token exchange transparently. The authorization URL
+ * construction requires an active PHP session because the League library stores its own internal
+ * state in the session; this class ensures the session is started if it is not already active.
+ * After a successful token exchange the Google UserInfo claims (sub, name, email, email_verified)
+ * are mapped to DelegatedUserData and returned to the application layer for user provisioning.
+ */
 class GoogleOAuthProvider implements DelegatedLoginProvider
 {
     private readonly string $assetsPath;
@@ -29,6 +39,11 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
     ) {
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
+
+    /**
+     * Returns the display metadata for the Google provider including the Google logo asset path
+     * used to render the "Sign in with Google" button on the tenant login page.
+     */
     #[Override]
     public function info(): DelegatedProviderDescription
     {
@@ -38,6 +53,11 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
             logo: $this->assetsPath . '/socials/google.png'
         );
     }
+
+    /**
+     * Builds the Google authorization URL via the League provider, starting a PHP session if
+     * required, and embeds the supplied redirect URI and state parameter for CSRF protection.
+     */
     #[Override]
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint
     {
@@ -55,6 +75,11 @@ class GoogleOAuthProvider implements DelegatedLoginProvider
         ]));
     }
 
+    /**
+     * Exchanges the authorization code for an access token using the League Google provider,
+     * retrieves the resource owner (UserInfo), and maps the claims to DelegatedUserData.
+     * Returns null when the code is absent or if the identity provider raises an exception.
+     */
     #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {

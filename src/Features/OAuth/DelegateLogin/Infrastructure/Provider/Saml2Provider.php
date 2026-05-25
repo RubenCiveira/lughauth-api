@@ -13,6 +13,17 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedProviderDescription;
 
+/**
+ * DelegatedLoginProvider implementation for SAML 2.0 HTTP-Redirect / HTTP-POST federation.
+ *
+ * This provider builds a minimal SAML 2.0 AuthnRequest XML, deflates and base64-encodes it
+ * following the HTTP-Redirect binding specification, and appends the RelayState parameter
+ * to carry the original OAuth state through the identity provider round-trip. On callback,
+ * it decodes the base64-encoded SAMLResponse POST parameter, parses the assertion XML using
+ * SimpleXML, extracts standard SAML attributes (email/mail, name/displayName) and the
+ * NameID subject, and maps them to DelegatedUserData. This implementation performs no
+ * signature validation; a production deployment should add XML signature verification.
+ */
 class Saml2Provider implements DelegatedLoginProvider
 {
     private readonly string $assetsPath;
@@ -28,6 +39,10 @@ class Saml2Provider implements DelegatedLoginProvider
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
 
+    /**
+     * Returns the display metadata for this SAML provider using the configured name and
+     * the generic SAML logo asset so the login page can render the enterprise SSO button.
+     */
     #[Override]
     public function info(): DelegatedProviderDescription
     {
@@ -38,6 +53,11 @@ class Saml2Provider implements DelegatedLoginProvider
         );
     }
 
+    /**
+     * Generates a SAML 2.0 AuthnRequest XML document, compresses and encodes it for the
+     * HTTP-Redirect binding, and returns a DelegatedLoginEndpoint pointing at the IdP SSO URL
+     * with the SAMLRequest and RelayState query parameters appended.
+     */
     #[Override]
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint
     {
@@ -52,6 +72,11 @@ class Saml2Provider implements DelegatedLoginProvider
         return new DelegatedLoginEndpoint('GET', $url);
     }
 
+    /**
+     * Decodes and parses the SAMLResponse from the identity provider, extracts the NameID
+     * and SAML attributes, and maps email and display name to normalized DelegatedUserData.
+     * Returns null when the response is absent, malformed, or contains no usable email address.
+     */
     #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {
