@@ -14,7 +14,9 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
     {
         $revoked = null;
         $signer = $this->makeSigner(null);
-        $revocation = $this->makeRevocation(function () use (&$revoked) { $revoked = true; });
+        $revocation = $this->makeRevocation(function () use (&$revoked) {
+            $revoked = true;
+        });
 
         $usecase = new RevokeTokenUsecase($revocation, $signer);
         $usecase->revoke('bad-token', 'client', 'tenant');
@@ -26,7 +28,9 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
     {
         $revoked = null;
         $signer = $this->makeSigner(['sub' => 'u1', 'azp' => 'client']);
-        $revocation = $this->makeRevocation(function () use (&$revoked) { $revoked = true; });
+        $revocation = $this->makeRevocation(function () use (&$revoked) {
+            $revoked = true;
+        });
 
         $usecase = new RevokeTokenUsecase($revocation, $signer);
         $usecase->revoke('token', 'client', 'tenant');
@@ -38,7 +42,9 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
     {
         $revoked = null;
         $signer = $this->makeSigner(['jti' => 'jti-1', 'azp' => 'other-client']);
-        $revocation = $this->makeRevocation(function () use (&$revoked) { $revoked = true; });
+        $revocation = $this->makeRevocation(function () use (&$revoked) {
+            $revoked = true;
+        });
 
         $usecase = new RevokeTokenUsecase($revocation, $signer);
         $usecase->revoke('token', 'my-client', 'tenant');
@@ -50,7 +56,9 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
     {
         $revokedType = null;
         $signer = $this->makeSigner(['jti' => 'jti-1', 'azp' => 'client', 'exp' => time() + 3600]);
-        $revocation = $this->makeRevocation(function (string $jti, string $t, string $type) use (&$revokedType) { $revokedType = $type; });
+        $revocation = $this->makeRevocation(function (string $jti, string $t, string $type) use (&$revokedType) {
+            $revokedType = $type;
+        });
 
         $usecase = new RevokeTokenUsecase($revocation, $signer);
         $usecase->revoke('token', 'client', 'tenant');
@@ -62,7 +70,9 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
     {
         $revokedType = null;
         $signer = $this->makeSigner(['jti' => 'jti-1', 'azp' => 'client', 'scope' => ['openid', 'refresh']]);
-        $revocation = $this->makeRevocation(function (string $jti, string $t, string $type) use (&$revokedType) { $revokedType = $type; });
+        $revocation = $this->makeRevocation(function (string $jti, string $t, string $type) use (&$revokedType) {
+            $revokedType = $type;
+        });
 
         $usecase = new RevokeTokenUsecase($revocation, $signer);
         $usecase->revoke('token', 'client', 'tenant');
@@ -72,27 +82,56 @@ final class RevokeTokenUsecaseUnitTest extends TestCase
 
     private function makeSigner(?array $payload): TokenSigner
     {
-        return new class($payload) implements TokenSigner {
-            public function __construct(private ?array $payload) {}
-            public function sign(string $t, array $d, \DateInterval $e): string { return 'tok'; }
-            public function keysAsJwks(string $t): \Jose\Component\Core\JWKSet { return new \Jose\Component\Core\JWKSet([]); }
-            public function signKeypass(string $t, array $d, \DateInterval $e): string { return ''; }
-            public function verifyTokenPayload(string $t, string $tok): ?array { return null; }
-            public function verifiedKeypass(string $t, string $tok): mixed { return null; }
-            public function parseSignedPayload(string $t, string $tok): ?array { return $this->payload; }
+        return new class ($payload) implements TokenSigner {
+            public function __construct(private ?array $payload)
+            {
+            }
+            public function sign(string $t, array $d, \DateInterval $e): string
+            {
+                return 'tok';
+            }
+            public function keysAsJwks(string $t): \Jose\Component\Core\JWKSet
+            {
+                return new \Jose\Component\Core\JWKSet([]);
+            }
+            public function signKeypass(string $t, array $d, \DateInterval $e): string
+            {
+                return '';
+            }
+            public function verifyTokenPayload(string $t, string $tok): ?array
+            {
+                return null;
+            }
+            public function verifiedKeypass(string $t, string $tok): mixed
+            {
+                return null;
+            }
+            public function parseSignedPayload(string $t, string $tok): ?array
+            {
+                return $this->payload;
+            }
         };
     }
 
     private function makeRevocation(?callable $onRevoke = null): TokenRevocationGateway
     {
-        return new class($onRevoke) implements TokenRevocationGateway {
-            public function __construct(private $onRevoke) {}
+        return new class ($onRevoke) implements TokenRevocationGateway {
+            public function __construct(private $onRevoke)
+            {
+            }
             public function revokeJti(string $j, string $t, string $type, \DateTimeImmutable $e): void
             {
-                if ($this->onRevoke) { ($this->onRevoke)($j, $t, $type); }
+                if ($this->onRevoke) {
+                    ($this->onRevoke)($j, $t, $type);
+                }
             }
-            public function isRevoked(string $j, string $t): bool { return false; }
-            public function cleanup(): void {}
+            public function isRevoked(string $j, string $t): bool
+            {
+                return false;
+            }
+            public function cleanup(): void
+            {
+            }
         };
     }
 }

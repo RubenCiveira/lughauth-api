@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Oidc\Domain;
 
-use Civi\Lughauth\Features\OAuth\Oidc\Domain\MtlsEndpointAliases;
-
 /**
  * The complete OIDC Discovery Document for a tenant (OpenID Connect Discovery §3).
  *

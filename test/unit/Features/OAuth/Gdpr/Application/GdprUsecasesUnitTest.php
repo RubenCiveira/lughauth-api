@@ -30,9 +30,14 @@ final class GdprUsecasesUnitTest extends TestCase
     public function test_export_usecase_returns_result_with_package(): void
     {
         $section = new GdprSubjectData('profile', ['name' => 'Alice']);
-        $gateway = new class($section) implements GdprDataExportGateway {
-            public function __construct(private GdprSubjectData $section) {}
-            public function exportForSubject(string $subjectId, string $tenant): array { return [$this->section]; }
+        $gateway = new class ($section) implements GdprDataExportGateway {
+            public function __construct(private GdprSubjectData $section)
+            {
+            }
+            public function exportForSubject(string $subjectId, string $tenant): array
+            {
+                return [$this->section];
+            }
         };
 
         $usecase = new ExportUserDataUsecase($gateway);
@@ -60,7 +65,7 @@ final class GdprUsecasesUnitTest extends TestCase
     public function test_delete_usecase_delegates_to_gateway(): void
     {
         $deleted = null;
-        $gateway = new class($deleted) implements GdprDataDeleteGateway {
+        $gateway = new class ($deleted) implements GdprDataDeleteGateway {
             public ?array $deleted = null;
             public function deleteForSubject(string $subjectId, string $tenant): void
             {

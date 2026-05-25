@@ -154,7 +154,9 @@ final class DeviceDomainUnitTest extends TestCase
     public function test_create_authorization_returns_authorization_with_correct_fields(): void
     {
         $created = null;
-        $gateway = $this->makeGateway(onCreate: function (DeviceAuthorization $a) use (&$created) { $created = $a; });
+        $gateway = $this->makeGateway(onCreate: function (DeviceAuthorization $a) use (&$created) {
+            $created = $a;
+        });
         $client = new ClientData('my-client', [DeviceAuthorizationGrantType::DEVICE_CODE], false);
         $service = new DeviceAuthorizationService($gateway);
 
@@ -247,7 +249,10 @@ final class DeviceDomainUnitTest extends TestCase
         $approvedCode = null;
         $gateway = $this->makeGateway(
             byUserCode: $pending,
-            onApprove: function (string $code) use (&$approvedCode) { $approvedCode = $code; return true; }
+            onApprove: function (string $code) use (&$approvedCode) {
+                $approvedCode = $code;
+                return true;
+            }
         );
         $service = new DeviceAuthorizationService($gateway);
         $auth = new AuthenticationResult(valid: true, id: 'u1', tenant: 't');
@@ -380,24 +385,45 @@ final class DeviceDomainUnitTest extends TestCase
         ?callable $onCreate = null,
         ?callable $onApprove = null
     ): DeviceAuthorizationGateway {
-        return new class($byDeviceCode, $byUserCode, $onCreate, $onApprove) implements DeviceAuthorizationGateway {
+        return new class ($byDeviceCode, $byUserCode, $onCreate, $onApprove) implements DeviceAuthorizationGateway {
             public function __construct(
                 private ?DeviceAuthorization $byDeviceCode,
                 private ?DeviceAuthorization $byUserCode,
                 private $onCreate,
                 private $onApprove
-            ) {}
-            public function create(DeviceAuthorization $a): void { if ($this->onCreate) { ($this->onCreate)($a); } }
-            public function findByDeviceCode(string $c): ?DeviceAuthorization { return $this->byDeviceCode; }
-            public function findByUserCode(string $t, string $c): ?DeviceAuthorization { return $this->byUserCode; }
+            ) {
+            }
+            public function create(DeviceAuthorization $a): void
+            {
+                if ($this->onCreate) {
+                    ($this->onCreate)($a);
+                }
+            }
+            public function findByDeviceCode(string $c): ?DeviceAuthorization
+            {
+                return $this->byDeviceCode;
+            }
+            public function findByUserCode(string $t, string $c): ?DeviceAuthorization
+            {
+                return $this->byUserCode;
+            }
             public function approve(string $c, AuthenticationResult $a): bool
             {
-                if ($this->onApprove) { return ($this->onApprove)($c, $a); }
+                if ($this->onApprove) {
+                    return ($this->onApprove)($c, $a);
+                }
                 return true;
             }
-            public function deny(string $c): bool { return true; }
-            public function touchPoll(string $c, DateTimeImmutable $n): void {}
-            public function consume(string $c): void {}
+            public function deny(string $c): bool
+            {
+                return true;
+            }
+            public function touchPoll(string $c, DateTimeImmutable $n): void
+            {
+            }
+            public function consume(string $c): void
+            {
+            }
         };
     }
 }

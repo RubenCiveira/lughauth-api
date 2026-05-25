@@ -43,9 +43,9 @@ final class OAuthCleanupScheduler
     private function tasks(): array
     {
         return [
-            'sessions' => fn() => $this->sessions->purgeExpired(),
-            'token_revocations' => fn() => $this->revocations->cleanup(),
-            'webauthn_challenges' => fn() => $this->webAuthnChallenges->purgeExpired(),
+            'sessions' => fn () => $this->sessions->purgeExpired(),
+            'token_revocations' => fn () => $this->revocations->cleanup(),
+            'webauthn_challenges' => fn () => $this->webAuthnChallenges->purgeExpired(),
         ];
     }
 }

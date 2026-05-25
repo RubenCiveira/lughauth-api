@@ -23,7 +23,7 @@ final class GdprDataPackage
             'exported_at' => $this->exportedAt->format(\DateTimeInterface::ATOM),
             'data' => array_reduce(
                 $this->sections,
-                static fn(array $carry, GdprSubjectData $s) => array_merge($carry, [$s->context => $s->data]),
+                static fn (array $carry, GdprSubjectData $s) => array_merge($carry, [$s->context => $s->data]),
                 [],
             ),
         ];

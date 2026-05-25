@@ -62,13 +62,13 @@ final class GdprDomainUnitTest extends TestCase
 
     public function test_export_aggregates_all_contributors(): void
     {
-        $c1 = new class() implements GdprDataExportGateway {
+        $c1 = new class () implements GdprDataExportGateway {
             public function exportForSubject(string $subjectId, string $tenant): array
             {
                 return [new GdprSubjectData('profile', ['name' => 'Alice'])];
             }
         };
-        $c2 = new class() implements GdprDataExportGateway {
+        $c2 = new class () implements GdprDataExportGateway {
             public function exportForSubject(string $subjectId, string $tenant): array
             {
                 return [new GdprSubjectData('activity', ['logins' => 10])];
@@ -92,13 +92,23 @@ final class GdprDomainUnitTest extends TestCase
     public function test_delete_calls_all_contributors(): void
     {
         $called = [];
-        $c1 = new class($called) implements GdprDataDeleteGateway {
-            public function __construct(private array &$called) {}
-            public function deleteForSubject(string $subjectId, string $tenant): void { $this->called[] = 'c1'; }
+        $c1 = new class ($called) implements GdprDataDeleteGateway {
+            public function __construct(private array &$called)
+            {
+            }
+            public function deleteForSubject(string $subjectId, string $tenant): void
+            {
+                $this->called[] = 'c1';
+            }
         };
-        $c2 = new class($called) implements GdprDataDeleteGateway {
-            public function __construct(private array &$called) {}
-            public function deleteForSubject(string $subjectId, string $tenant): void { $this->called[] = 'c2'; }
+        $c2 = new class ($called) implements GdprDataDeleteGateway {
+            public function __construct(private array &$called)
+            {
+            }
+            public function deleteForSubject(string $subjectId, string $tenant): void
+            {
+                $this->called[] = 'c2';
+            }
         };
 
         $adapter = new GdprDataAdapter(deleteContributors: [$c1, $c2]);

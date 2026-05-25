@@ -265,13 +265,14 @@ final class ClientApplicationUnitTest extends TestCase
         ?DynamicClientData $updateResult = null,
         bool $deleteResult = true,
     ): DynamicClientGateway {
-        return new class($policy, $findResult, $updateResult, $deleteResult) implements DynamicClientGateway {
+        return new class ($policy, $findResult, $updateResult, $deleteResult) implements DynamicClientGateway {
             public function __construct(
                 private string $policy,
                 private ?DynamicClientData $findResult,
                 private ?DynamicClientData $updateResult,
                 private bool $deleteResult,
-            ) {}
+            ) {
+            }
 
             public function create(string $clientId, string $clientSecret, string $registrationAccessToken, DynamicClientRequest $request): array
             {

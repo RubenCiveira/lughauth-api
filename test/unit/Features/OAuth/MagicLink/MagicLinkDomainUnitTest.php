@@ -196,51 +196,110 @@ final class MagicLinkDomainUnitTest extends TestCase
 
     private function buildVerifyUsecase(bool $enabled, ?MagicLink $magicLink = null): VerifyMagicLinkUsecase
     {
-        $gateway = new class($magicLink) implements MagicLinkGateway {
-            public function __construct(private ?MagicLink $ml) {}
-            public function store(MagicLink $magicLink): void {}
-            public function findByHash(string $tokenHash, string $tenantId): ?MagicLink { return $this->ml; }
-            public function markUsed(string $uid): void {}
+        $gateway = new class ($magicLink) implements MagicLinkGateway {
+            public function __construct(private ?MagicLink $ml)
+            {
+            }
+            public function store(MagicLink $magicLink): void
+            {
+            }
+            public function findByHash(string $tokenHash, string $tenantId): ?MagicLink
+            {
+                return $this->ml;
+            }
+            public function markUsed(string $uid): void
+            {
+            }
         };
 
-        $codeGateway = new class() implements MagicLinkCodeGateway {
+        $codeGateway = new class () implements MagicLinkCodeGateway {
             public function createAuthCode(string $userUid, string $clientId, string $scope, string $redirectUri, string $tenant, string $nonce = ''): string
             {
                 return 'auth-code-test';
             }
         };
 
-        $enabledGateway = new class($enabled) implements MagicLinkEnabledGateway {
-            public function __construct(private bool $enabled) {}
-            public function isEnabled(string $tenantName): bool { return $this->enabled; }
+        $enabledGateway = new class ($enabled) implements MagicLinkEnabledGateway {
+            public function __construct(private bool $enabled)
+            {
+            }
+            public function isEnabled(string $tenantName): bool
+            {
+                return $this->enabled;
+            }
         };
 
-        $sessionGateway = new class() implements MagicLinkSessionGateway {
+        $sessionGateway = new class () implements MagicLinkSessionGateway {
             public function createSession(string $userUid, string $email, string $tenantUid, string $tenantName, string $clientId): ?MagicLinkSession
             {
                 return new MagicLinkSession('sess-123', new DateInterval('PT1H'));
             }
         };
 
-        $tenants = new class() implements TenantReadGateway {
-            public function resolve(\Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $ref): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant { return null; }
-            public function list(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter = null, ?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor $cursor = null): \Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide { throw new \RuntimeException('not used'); }
-            public function retrieve(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant { return null; }
-            public function exists(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter): bool { return false; }
-            public function count(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter = null): int { return 0; }
-            public function findOneByUid(string $uid): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant { return null; }
-            public function findOneByName(string $name): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant { return null; }
-            public function findOneByDomain(string $domain): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant { return null; }
+        $tenants = new class () implements TenantReadGateway {
+            public function resolve(\Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $ref): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant
+            {
+                return null;
+            }
+            public function list(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter = null, ?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor $cursor = null): \Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide
+            {
+                throw new \RuntimeException('not used');
+            }
+            public function retrieve(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant
+            {
+                return null;
+            }
+            public function exists(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter): bool
+            {
+                return false;
+            }
+            public function count(?\Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter $filter = null): int
+            {
+                return 0;
+            }
+            public function findOneByUid(string $uid): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant
+            {
+                return null;
+            }
+            public function findOneByName(string $name): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant
+            {
+                return null;
+            }
+            public function findOneByDomain(string $domain): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant
+            {
+                return null;
+            }
         };
 
-        $users = new class() implements UserReadGateway {
-            public function resolve(\Civi\Lughauth\Features\Access\User\Domain\UserRef $ref): ?\Civi\Lughauth\Features\Access\User\Domain\User { return null; }
-            public function list(?\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter = null, ?\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor $cursor = null): \Civi\Lughauth\Features\Access\User\Domain\Gateway\UserSlide { throw new \RuntimeException('not used'); }
-            public function retrieve(\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter): ?\Civi\Lughauth\Features\Access\User\Domain\User { return null; }
-            public function exists(\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter): bool { return false; }
-            public function count(?\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter = null): int { return 0; }
-            public function findOneByUid(string $uid): ?\Civi\Lughauth\Features\Access\User\Domain\User { return null; }
-            public function findOneByTenantAndName(\Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $tenant, string $name): ?\Civi\Lughauth\Features\Access\User\Domain\User { return null; }
+        $users = new class () implements UserReadGateway {
+            public function resolve(\Civi\Lughauth\Features\Access\User\Domain\UserRef $ref): ?\Civi\Lughauth\Features\Access\User\Domain\User
+            {
+                return null;
+            }
+            public function list(?\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter = null, ?\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor $cursor = null): \Civi\Lughauth\Features\Access\User\Domain\Gateway\UserSlide
+            {
+                throw new \RuntimeException('not used');
+            }
+            public function retrieve(\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter): ?\Civi\Lughauth\Features\Access\User\Domain\User
+            {
+                return null;
+            }
+            public function exists(\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter): bool
+            {
+                return false;
+            }
+            public function count(?\Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter $filter = null): int
+            {
+                return 0;
+            }
+            public function findOneByUid(string $uid): ?\Civi\Lughauth\Features\Access\User\Domain\User
+            {
+                return null;
+            }
+            public function findOneByTenantAndName(\Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $tenant, string $name): ?\Civi\Lughauth\Features\Access\User\Domain\User
+            {
+                return null;
+            }
         };
 
         return new VerifyMagicLinkUsecase($gateway, $codeGateway, $enabledGateway, $sessionGateway, $tenants, $users);

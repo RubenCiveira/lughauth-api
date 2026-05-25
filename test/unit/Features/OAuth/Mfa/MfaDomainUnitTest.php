@@ -35,12 +35,25 @@ final class MfaDomainUnitTest extends TestCase
     public function test_user_mfa_configuration_for_new_mfa_delegates(): void
     {
         $expected = new PublicLoginMfaBuildResponse('seed-xyz', 'msg', 'img', 'url');
-        $gateway = new class($expected) implements UserMfaGateway {
-            public function __construct(private PublicLoginMfaBuildResponse $r) {}
-            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse { return $this->r; }
-            public function verifyOtp(string $tenant, string $username, string $otp): bool { return false; }
-            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool { return false; }
-            public function storeSeed(string $tenant, string $username, string $seed): void {}
+        $gateway = new class ($expected) implements UserMfaGateway {
+            public function __construct(private PublicLoginMfaBuildResponse $r)
+            {
+            }
+            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
+            {
+                return $this->r;
+            }
+            public function verifyOtp(string $tenant, string $username, string $otp): bool
+            {
+                return false;
+            }
+            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
+            {
+                return false;
+            }
+            public function storeSeed(string $tenant, string $username, string $seed): void
+            {
+            }
         };
 
         $usecase = new UserMfa($gateway);
@@ -50,11 +63,22 @@ final class MfaDomainUnitTest extends TestCase
 
     public function test_user_mfa_verify_otp_delegates(): void
     {
-        $gateway = new class() implements UserMfaGateway {
-            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse { return new PublicLoginMfaBuildResponse('s'); }
-            public function verifyOtp(string $tenant, string $username, string $otp): bool { return $otp === '123456'; }
-            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool { return false; }
-            public function storeSeed(string $tenant, string $username, string $seed): void {}
+        $gateway = new class () implements UserMfaGateway {
+            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
+            {
+                return new PublicLoginMfaBuildResponse('s');
+            }
+            public function verifyOtp(string $tenant, string $username, string $otp): bool
+            {
+                return $otp === '123456';
+            }
+            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
+            {
+                return false;
+            }
+            public function storeSeed(string $tenant, string $username, string $seed): void
+            {
+            }
         };
 
         $usecase = new UserMfa($gateway);
@@ -64,11 +88,22 @@ final class MfaDomainUnitTest extends TestCase
 
     public function test_user_mfa_verify_new_opt_delegates(): void
     {
-        $gateway = new class() implements UserMfaGateway {
-            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse { return new PublicLoginMfaBuildResponse('s'); }
-            public function verifyOtp(string $tenant, string $username, string $otp): bool { return false; }
-            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool { return $seed === 'seed' && $otp === '654321'; }
-            public function storeSeed(string $tenant, string $username, string $seed): void {}
+        $gateway = new class () implements UserMfaGateway {
+            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
+            {
+                return new PublicLoginMfaBuildResponse('s');
+            }
+            public function verifyOtp(string $tenant, string $username, string $otp): bool
+            {
+                return false;
+            }
+            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
+            {
+                return $seed === 'seed' && $otp === '654321';
+            }
+            public function storeSeed(string $tenant, string $username, string $seed): void
+            {
+            }
         };
 
         $usecase = new UserMfa($gateway);
@@ -79,12 +114,24 @@ final class MfaDomainUnitTest extends TestCase
     public function test_user_mfa_store_seed_delegates(): void
     {
         $stored = null;
-        $gateway = new class($stored) implements UserMfaGateway {
+        $gateway = new class ($stored) implements UserMfaGateway {
             public ?string $stored = null;
-            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse { return new PublicLoginMfaBuildResponse('s'); }
-            public function verifyOtp(string $tenant, string $username, string $otp): bool { return false; }
-            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool { return false; }
-            public function storeSeed(string $tenant, string $username, string $seed): void { $this->stored = $seed; }
+            public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
+            {
+                return new PublicLoginMfaBuildResponse('s');
+            }
+            public function verifyOtp(string $tenant, string $username, string $otp): bool
+            {
+                return false;
+            }
+            public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
+            {
+                return false;
+            }
+            public function storeSeed(string $tenant, string $username, string $seed): void
+            {
+                $this->stored = $seed;
+            }
         };
 
         $usecase = new UserMfa($gateway);

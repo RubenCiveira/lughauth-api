@@ -29,7 +29,9 @@ final class UserUsecasesUnitTest extends TestCase
     {
         $mailSent = false;
         $gateway = $this->makeChangePasswordGateway(requestResult: null);
-        $mailer = $this->makeRecoveryMailer(function () use (&$mailSent) { $mailSent = true; });
+        $mailer = $this->makeRecoveryMailer(function () use (&$mailSent) {
+            $mailSent = true;
+        });
         $usecase = new ChangePasswordUsecase($gateway, $mailer);
 
         $usecase->requestForChange('https://auth', 'tenant', 'alice@example.com');
@@ -48,7 +50,9 @@ final class UserUsecasesUnitTest extends TestCase
             expiresAt: new DateTimeImmutable('+1 hour'),
         );
         $gateway = $this->makeChangePasswordGateway(requestResult: $data);
-        $mailer = $this->makeRecoveryMailer(function () use (&$mailSent) { $mailSent = true; });
+        $mailer = $this->makeRecoveryMailer(function () use (&$mailSent) {
+            $mailSent = true;
+        });
         $usecase = new ChangePasswordUsecase($gateway, $mailer);
 
         $usecase->requestForChange('https://auth', 'tenant', 'alice@example.com');
@@ -93,7 +97,9 @@ final class UserUsecasesUnitTest extends TestCase
     {
         $mailSent = false;
         $gateway = $this->makeRegisterUserGateway(requestResult: null);
-        $mailer = $this->makeRegistrationMailer(function () use (&$mailSent) { $mailSent = true; });
+        $mailer = $this->makeRegistrationMailer(function () use (&$mailSent) {
+            $mailSent = true;
+        });
         $usecase = new RegisterUserUsecase($gateway, $mailer);
 
         $usecase->requestForRegister('https://auth', 'tenant', 'bob@example.com', 'pass');
@@ -111,7 +117,9 @@ final class UserUsecasesUnitTest extends TestCase
             activateUrl: 'https://auth/activate?token=xyz',
         );
         $gateway = $this->makeRegisterUserGateway(requestResult: $data);
-        $mailer = $this->makeRegistrationMailer(function () use (&$mailSent) { $mailSent = true; });
+        $mailer = $this->makeRegistrationMailer(function () use (&$mailSent) {
+            $mailSent = true;
+        });
         $usecase = new RegisterUserUsecase($gateway, $mailer);
 
         $usecase->requestForRegister('https://auth', 'tenant', 'bob@example.com', 'pass');
@@ -134,27 +142,44 @@ final class UserUsecasesUnitTest extends TestCase
         ?string $validateResult = null,
         bool $forceUpdateResult = false,
     ): ChangePasswordGateway {
-        return new class($allowRecover, $requestResult, $validateResult, $forceUpdateResult) implements ChangePasswordGateway {
+        return new class ($allowRecover, $requestResult, $validateResult, $forceUpdateResult) implements ChangePasswordGateway {
             public function __construct(
                 private bool $allowRecover,
                 private ?RecoveryNotificationData $requestResult,
                 private ?string $validateResult,
                 private bool $forceUpdateResult,
-            ) {}
-            public function requestForChange(string $url, string $tenant, string $username): ?RecoveryNotificationData { return $this->requestResult; }
-            public function allowRecover(string $tenant): bool { return $this->allowRecover; }
-            public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string { return $this->validateResult; }
-            public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool { return $this->forceUpdateResult; }
+            ) {
+            }
+            public function requestForChange(string $url, string $tenant, string $username): ?RecoveryNotificationData
+            {
+                return $this->requestResult;
+            }
+            public function allowRecover(string $tenant): bool
+            {
+                return $this->allowRecover;
+            }
+            public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string
+            {
+                return $this->validateResult;
+            }
+            public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool
+            {
+                return $this->forceUpdateResult;
+            }
         };
     }
 
     private function makeRecoveryMailer(?callable $onSend = null): PasswordRecoveryMailGateway
     {
-        return new class($onSend) implements PasswordRecoveryMailGateway {
-            public function __construct(private $onSend) {}
+        return new class ($onSend) implements PasswordRecoveryMailGateway {
+            public function __construct(private $onSend)
+            {
+            }
             public function sendPasswordRecovery(string $toEmail, string $userName, \Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $tenant, string $recoveryUrl, \DateTimeImmutable $expiresAt): void
             {
-                if ($this->onSend) { ($this->onSend)(); }
+                if ($this->onSend) {
+                    ($this->onSend)();
+                }
             }
         };
     }
@@ -165,27 +190,44 @@ final class UserUsecasesUnitTest extends TestCase
         ?RegistrationNotificationData $requestResult = null,
         ?string $verifyResult = null,
     ): RegisterUserGateway {
-        return new class($allowRegister, $registerConsent, $requestResult, $verifyResult) implements RegisterUserGateway {
+        return new class ($allowRegister, $registerConsent, $requestResult, $verifyResult) implements RegisterUserGateway {
             public function __construct(
                 private bool $allowRegister,
                 private ?string $registerConsent,
                 private ?RegistrationNotificationData $requestResult,
                 private ?string $verifyResult,
-            ) {}
-            public function allowRegister(string $tenant): bool { return $this->allowRegister; }
-            public function getRegisterConsent(string $tenant): ?string { return $this->registerConsent; }
-            public function requestForRegister(string $url, string $tenant, string $email, string $password): ?RegistrationNotificationData { return $this->requestResult; }
-            public function verifyRegister(string $tenant, string $code): ?string { return $this->verifyResult; }
+            ) {
+            }
+            public function allowRegister(string $tenant): bool
+            {
+                return $this->allowRegister;
+            }
+            public function getRegisterConsent(string $tenant): ?string
+            {
+                return $this->registerConsent;
+            }
+            public function requestForRegister(string $url, string $tenant, string $email, string $password): ?RegistrationNotificationData
+            {
+                return $this->requestResult;
+            }
+            public function verifyRegister(string $tenant, string $code): ?string
+            {
+                return $this->verifyResult;
+            }
         };
     }
 
     private function makeRegistrationMailer(?callable $onSend = null): UserRegistrationMailGateway
     {
-        return new class($onSend) implements UserRegistrationMailGateway {
-            public function __construct(private $onSend) {}
+        return new class ($onSend) implements UserRegistrationMailGateway {
+            public function __construct(private $onSend)
+            {
+            }
             public function sendRegistrationVerification(string $toEmail, string $userName, \Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $tenant, string $activateUrl): void
             {
-                if ($this->onSend) { ($this->onSend)(); }
+                if ($this->onSend) {
+                    ($this->onSend)();
+                }
             }
         };
     }

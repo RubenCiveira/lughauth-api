@@ -16,6 +16,17 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedUserData;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 
+/**
+ * DelegatedLoginProvider implementation for GitHub OAuth 2.0 social login.
+ *
+ * GitHub does not support OIDC, so this provider uses its own OAuth flow: it builds
+ * a redirect to the GitHub authorization endpoint, exchanges the callback code for an
+ * access token, and then calls the GitHub REST API to retrieve the authenticated user's
+ * profile and email address. Because GitHub users may keep their primary email private,
+ * the provider falls back to the /user/emails endpoint to find a verified primary address
+ * when the main profile endpoint does not expose one. The resulting user data is normalised
+ * into DelegatedUserData using the GitHub numeric user ID as the stable providerUserId.
+ */
 class GitHubOAuthProvider implements DelegatedLoginProvider
 {
     private const AUTH_URL = 'https://github.com/login/oauth/authorize';
@@ -36,6 +47,10 @@ class GitHubOAuthProvider implements DelegatedLoginProvider
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
 
+    /**
+     * Returns the display metadata for the GitHub provider, including the logo asset path
+     * used to render the "Sign in with GitHub" button on the login page.
+     */
     #[Override]
     public function info(): DelegatedProviderDescription
     {
@@ -46,6 +61,10 @@ class GitHubOAuthProvider implements DelegatedLoginProvider
         );
     }
 
+    /**
+     * Builds the GitHub authorization URL with the required scopes for reading the user
+     * profile and email, embedding the given redirect URI and state for CSRF protection.
+     */
     #[Override]
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint
     {
@@ -59,6 +78,11 @@ class GitHubOAuthProvider implements DelegatedLoginProvider
         return new DelegatedLoginEndpoint('GET', $url);
     }
 
+    /**
+     * Exchanges the GitHub authorization code for an access token, retrieves the user
+     * profile and primary email from the GitHub API, and returns normalized DelegatedUserData.
+     * Returns null if any step fails or no verified primary email can be determined.
+     */
     #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {

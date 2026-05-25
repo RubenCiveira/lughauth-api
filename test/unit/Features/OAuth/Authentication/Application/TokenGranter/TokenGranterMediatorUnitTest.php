@@ -59,8 +59,10 @@ final class TokenGranterMediatorUnitTest extends TestCase
 
     private function buildMediator(): TokenGranterMediator
     {
-        $loginUsecase = new class() extends LoginUsecase {
-            public function __construct() {}
+        $loginUsecase = new class () extends LoginUsecase {
+            public function __construct()
+            {
+            }
             public function validatedUserData(string $t, string $u, string $p, AuthenticationRequest $r): AuthenticationResult
             {
                 return new AuthenticationResult(valid: true, id: 'u1', tenant: $t);
@@ -71,29 +73,72 @@ final class TokenGranterMediatorUnitTest extends TestCase
             }
         };
 
-        $signer = new class() implements TokenSigner {
-            public function sign(string $t, array $d, \DateInterval $e): string { return 'tok'; }
-            public function keysAsJwks(string $t): \Jose\Component\Core\JWKSet { return new \Jose\Component\Core\JWKSet([]); }
-            public function signKeypass(string $t, array $d, \DateInterval $e): string { return ''; }
-            public function verifyTokenPayload(string $t, string $tok): ?array { return null; }
-            public function verifiedKeypass(string $t, string $tok): mixed { return null; }
-            public function parseSignedPayload(string $t, string $tok): ?array { return null; }
+        $signer = new class () implements TokenSigner {
+            public function sign(string $t, array $d, \DateInterval $e): string
+            {
+                return 'tok';
+            }
+            public function keysAsJwks(string $t): \Jose\Component\Core\JWKSet
+            {
+                return new \Jose\Component\Core\JWKSet([]);
+            }
+            public function signKeypass(string $t, array $d, \DateInterval $e): string
+            {
+                return '';
+            }
+            public function verifyTokenPayload(string $t, string $tok): ?array
+            {
+                return null;
+            }
+            public function verifiedKeypass(string $t, string $tok): mixed
+            {
+                return null;
+            }
+            public function parseSignedPayload(string $t, string $tok): ?array
+            {
+                return null;
+            }
         };
 
-        $revocations = new class() implements TokenRevocationGateway {
-            public function revokeJti(string $j, string $t, string $type, \DateTimeImmutable $e): void {}
-            public function isRevoked(string $j, string $t): bool { return false; }
-            public function cleanup(): void {}
+        $revocations = new class () implements TokenRevocationGateway {
+            public function revokeJti(string $j, string $t, string $type, \DateTimeImmutable $e): void
+            {
+            }
+            public function isRevoked(string $j, string $t): bool
+            {
+                return false;
+            }
+            public function cleanup(): void
+            {
+            }
         };
 
-        $deviceGateway = new class() implements DeviceAuthorizationGateway {
-            public function create(\Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization $a): void {}
-            public function findByDeviceCode(string $c): ?\Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization { return null; }
-            public function findByUserCode(string $t, string $c): ?\Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization { return null; }
-            public function approve(string $c, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $a): bool { return false; }
-            public function deny(string $c): bool { return false; }
-            public function touchPoll(string $c, \DateTimeImmutable $n): void {}
-            public function consume(string $c): void {}
+        $deviceGateway = new class () implements DeviceAuthorizationGateway {
+            public function create(\Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization $a): void
+            {
+            }
+            public function findByDeviceCode(string $c): ?\Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization
+            {
+                return null;
+            }
+            public function findByUserCode(string $t, string $c): ?\Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization
+            {
+                return null;
+            }
+            public function approve(string $c, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $a): bool
+            {
+                return false;
+            }
+            public function deny(string $c): bool
+            {
+                return false;
+            }
+            public function touchPoll(string $c, \DateTimeImmutable $n): void
+            {
+            }
+            public function consume(string $c): void
+            {
+            }
         };
 
         return new TokenGranterMediator(

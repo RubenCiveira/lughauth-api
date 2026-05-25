@@ -14,9 +14,9 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
 {
     public function test_run_succeeds_when_all_tasks_ok(): void
     {
-        $sessions = $this->makeSessionStore(purgeExpired: fn() => null);
-        $revocations = $this->makeRevocationGateway(cleanup: fn() => null);
-        $challenges = $this->makeChallengeGateway(purgeExpired: fn() => null);
+        $sessions = $this->makeSessionStore(purgeExpired: fn () => null);
+        $revocations = $this->makeRevocationGateway(cleanup: fn () => null);
+        $challenges = $this->makeChallengeGateway(purgeExpired: fn () => null);
 
         $scheduler = new OAuthCleanupScheduler($sessions, $revocations, $challenges);
         $result = $scheduler->run();
@@ -29,9 +29,9 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
 
     public function test_run_captures_errors_from_each_task(): void
     {
-        $sessions = $this->makeSessionStore(purgeExpired: fn() => throw new \RuntimeException('db down'));
-        $revocations = $this->makeRevocationGateway(cleanup: fn() => null);
-        $challenges = $this->makeChallengeGateway(purgeExpired: fn() => throw new \RuntimeException('redis down'));
+        $sessions = $this->makeSessionStore(purgeExpired: fn () => throw new \RuntimeException('db down'));
+        $revocations = $this->makeRevocationGateway(cleanup: fn () => null);
+        $challenges = $this->makeChallengeGateway(purgeExpired: fn () => throw new \RuntimeException('redis down'));
 
         $scheduler = new OAuthCleanupScheduler($sessions, $revocations, $challenges);
         $result = $scheduler->run();
@@ -57,35 +57,74 @@ final class OAuthCleanupSchedulerUnitTest extends TestCase
 
     private function makeSessionStore(callable $purgeExpired): SessionStoreGateway
     {
-        return new class($purgeExpired) implements SessionStoreGateway {
-            public function __construct(private $purge) {}
-            public function loadSession(string $state): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo { return null; }
-            public function findActiveSessionIdByCsid(string $csid): ?string { return null; }
-            public function saveSession(string $state, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void {}
-            public function updateSession(string $newState, string $oldState): void {}
-            public function deleteSession(string $state): void {}
-            public function purgeExpired(): void { ($this->purge)(); }
+        return new class ($purgeExpired) implements SessionStoreGateway {
+            public function __construct(private $purge)
+            {
+            }
+            public function loadSession(string $state): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
+            {
+                return null;
+            }
+            public function findActiveSessionIdByCsid(string $csid): ?string
+            {
+                return null;
+            }
+            public function saveSession(string $state, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void
+            {
+            }
+            public function updateSession(string $newState, string $oldState): void
+            {
+            }
+            public function deleteSession(string $state): void
+            {
+            }
+            public function purgeExpired(): void
+            {
+                ($this->purge)();
+            }
         };
     }
 
     private function makeRevocationGateway(callable $cleanup): TokenRevocationGateway
     {
-        return new class($cleanup) implements TokenRevocationGateway {
-            public function __construct(private $clean) {}
-            public function revokeJti(string $jti, string $tenant, string $tokenType, \DateTimeImmutable $expiry): void {}
-            public function isRevoked(string $jti, string $tenant): bool { return false; }
-            public function cleanup(): void { ($this->clean)(); }
+        return new class ($cleanup) implements TokenRevocationGateway {
+            public function __construct(private $clean)
+            {
+            }
+            public function revokeJti(string $jti, string $tenant, string $tokenType, \DateTimeImmutable $expiry): void
+            {
+            }
+            public function isRevoked(string $jti, string $tenant): bool
+            {
+                return false;
+            }
+            public function cleanup(): void
+            {
+                ($this->clean)();
+            }
         };
     }
 
     private function makeChallengeGateway(callable $purgeExpired): WebAuthnChallengeGateway
     {
-        return new class($purgeExpired) implements WebAuthnChallengeGateway {
-            public function __construct(private $purge) {}
-            public function store(\Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge $c): void {}
-            public function findById(string $challengeId, string $tenantId): ?\Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge { return null; }
-            public function markVerified(\Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge $c): void {}
-            public function purgeExpired(): void { ($this->purge)(); }
+        return new class ($purgeExpired) implements WebAuthnChallengeGateway {
+            public function __construct(private $purge)
+            {
+            }
+            public function store(\Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge $c): void
+            {
+            }
+            public function findById(string $challengeId, string $tenantId): ?\Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge
+            {
+                return null;
+            }
+            public function markVerified(\Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge $c): void
+            {
+            }
+            public function purgeExpired(): void
+            {
+                ($this->purge)();
+            }
         };
     }
 }

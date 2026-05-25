@@ -73,14 +73,33 @@ final class AuthenticationDomainExtraUnitTest extends TestCase
     public function test_logout_token_builds_with_correct_claims(): void
     {
         $capturedClaims = null;
-        $signer = new class($capturedClaims) implements TokenSigner {
+        $signer = new class ($capturedClaims) implements TokenSigner {
             public ?array $claims = null;
-            public function sign(string $t, array $d, \DateInterval $e): string { $this->claims = $d; return 'logout-jwt'; }
-            public function keysAsJwks(string $t): \Jose\Component\Core\JWKSet { return new \Jose\Component\Core\JWKSet([]); }
-            public function signKeypass(string $t, array $d, \DateInterval $e): string { return ''; }
-            public function verifyTokenPayload(string $t, string $tok): ?array { return null; }
-            public function verifiedKeypass(string $t, string $tok): mixed { return null; }
-            public function parseSignedPayload(string $t, string $tok): ?array { return null; }
+            public function sign(string $t, array $d, \DateInterval $e): string
+            {
+                $this->claims = $d;
+                return 'logout-jwt';
+            }
+            public function keysAsJwks(string $t): \Jose\Component\Core\JWKSet
+            {
+                return new \Jose\Component\Core\JWKSet([]);
+            }
+            public function signKeypass(string $t, array $d, \DateInterval $e): string
+            {
+                return '';
+            }
+            public function verifyTokenPayload(string $t, string $tok): ?array
+            {
+                return null;
+            }
+            public function verifiedKeypass(string $t, string $tok): mixed
+            {
+                return null;
+            }
+            public function parseSignedPayload(string $t, string $tok): ?array
+            {
+                return null;
+            }
         };
 
         $token = LogoutToken::build($signer, 'tenant', 'https://iss', 'user-1', 'client-1', 'sess-1');

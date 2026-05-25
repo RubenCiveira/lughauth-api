@@ -25,10 +25,17 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_gdpr_pending_purposes_delegates_to_gateway(): void
     {
         $item = new GdprConsentPurposeItem('uid-1', 'analytics', 'Analytics', 'We track usage', false);
-        $gateway = new class($item) implements GdprConsentGateway {
-            public function __construct(private GdprConsentPurposeItem $item) {}
-            public function pendingPurposes(string $tenant, string $username): array { return [$this->item]; }
-            public function storePurposeDecisions(string $tenant, string $username, array $d, string $ip, string $ua): void {}
+        $gateway = new class ($item) implements GdprConsentGateway {
+            public function __construct(private GdprConsentPurposeItem $item)
+            {
+            }
+            public function pendingPurposes(string $tenant, string $username): array
+            {
+                return [$this->item];
+            }
+            public function storePurposeDecisions(string $tenant, string $username, array $d, string $ip, string $ua): void
+            {
+            }
         };
 
         $usecase = new GdprConsentUsecase($gateway);
@@ -41,9 +48,12 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_gdpr_store_purpose_decisions_delegates_to_gateway(): void
     {
         $captured = null;
-        $gateway = new class($captured) implements GdprConsentGateway {
+        $gateway = new class ($captured) implements GdprConsentGateway {
             public mixed $captured = null;
-            public function pendingPurposes(string $tenant, string $username): array { return []; }
+            public function pendingPurposes(string $tenant, string $username): array
+            {
+                return [];
+            }
             public function storePurposeDecisions(string $tenant, string $username, array $d, string $ip, string $ua): void
             {
                 $this->captured = ['tenant' => $tenant, 'username' => $username, 'decisions' => $d];
@@ -82,13 +92,17 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_scopes_pending_scopes_delegates_to_gateway(): void
     {
         $sp = new ScopePermission('api:read', false, 'Read');
-        $gateway = new class($sp) implements ScopesConsentGateway {
-            public function __construct(private ScopePermission $sp) {}
+        $gateway = new class ($sp) implements ScopesConsentGateway {
+            public function __construct(private ScopePermission $sp)
+            {
+            }
             public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array
             {
                 return [$this->sp];
             }
-            public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void {}
+            public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
+            {
+            }
         };
 
         $usecase = new ScopesConsentUsecase($gateway);
@@ -101,9 +115,12 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_scopes_store_accepted_scopes_normalizes_before_storing(): void
     {
         $storedScopes = null;
-        $gateway = new class($storedScopes) implements ScopesConsentGateway {
+        $gateway = new class ($storedScopes) implements ScopesConsentGateway {
             public ?array $stored = null;
-            public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array { return []; }
+            public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array
+            {
+                return [];
+            }
             public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
             {
                 $this->stored = $approvedScopes;
@@ -121,10 +138,17 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_terms_get_pending_consent_delegates_to_gateway(): void
     {
         $tos = new TermsOfUseAcceptance('tos-1', 'Please accept these terms.');
-        $gateway = new class($tos) implements TermsOfUseConsentGateway {
-            public function __construct(private TermsOfUseAcceptance $tos) {}
-            public function getPendingConsent(string $tenant, string $username, array $audiences): array { return [$this->tos]; }
-            public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void {}
+        $gateway = new class ($tos) implements TermsOfUseConsentGateway {
+            public function __construct(private TermsOfUseAcceptance $tos)
+            {
+            }
+            public function getPendingConsent(string $tenant, string $username, array $audiences): array
+            {
+                return [$this->tos];
+            }
+            public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void
+            {
+            }
         };
 
         $usecase = new TermsOfUseConsentUsecase($gateway);
@@ -137,9 +161,12 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_terms_store_accepted_consent_delegates_to_gateway(): void
     {
         $captured = null;
-        $gateway = new class($captured) implements TermsOfUseConsentGateway {
+        $gateway = new class ($captured) implements TermsOfUseConsentGateway {
             public ?TermsOfUseAcceptance $captured = null;
-            public function getPendingConsent(string $tenant, string $username, array $audiences): array { return []; }
+            public function getPendingConsent(string $tenant, string $username, array $audiences): array
+            {
+                return [];
+            }
             public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void
             {
                 $this->captured = $consent;
@@ -158,7 +185,9 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_enqueue_does_nothing_when_no_pending_scopes(): void
     {
         $enqueued = false;
-        $queue = $this->makeQueue(onEnqueue: function () use (&$enqueued) { $enqueued = true; });
+        $queue = $this->makeQueue(onEnqueue: function () use (&$enqueued) {
+            $enqueued = true;
+        });
         $scopes = $this->makeScopesGateway(pending: []);
 
         $service = new ConsentOrchestrationService($queue, $scopes);
@@ -170,7 +199,9 @@ final class ConsentUsecasesUnitTest extends TestCase
     public function test_enqueue_stores_request_when_scopes_pending(): void
     {
         $enqueued = null;
-        $queue = $this->makeQueue(onEnqueue: function (PendingConsentRequest $r) use (&$enqueued) { $enqueued = $r; });
+        $queue = $this->makeQueue(onEnqueue: function (PendingConsentRequest $r) use (&$enqueued) {
+            $enqueued = $r;
+        });
         $scopes = $this->makeScopesGateway(pending: [new ScopePermission('profile', false)]);
 
         $service = new ConsentOrchestrationService($queue, $scopes);
@@ -211,20 +242,39 @@ final class ConsentUsecasesUnitTest extends TestCase
         $removedClient = null;
         $pending = PendingConsentRequest::create('u', 't', 'next-client', 'https://cb', 'openid');
 
-        $queue = new class([$pending], function (string $uid, string $t, string $c) use (&$removedClient) {
+        $queue = new class ([$pending], function (string $uid, string $t, string $c) use (&$removedClient) {
             $removedClient = $c;
         }) implements ConsentQueueGateway {
-            public function __construct(private array $list, private $onRemove) {}
-            public function enqueue(PendingConsentRequest $r): void {}
-            public function dequeueNext(string $userId, string $tenant): ?PendingConsentRequest { return $this->list[0] ?? null; }
-            public function listPending(string $userId, string $tenant): array { return $this->list; }
-            public function remove(string $userId, string $tenant, string $clientId): void { ($this->onRemove)($userId, $tenant, $clientId); }
+            public function __construct(private array $list, private $onRemove)
+            {
+            }
+            public function enqueue(PendingConsentRequest $r): void
+            {
+            }
+            public function dequeueNext(string $userId, string $tenant): ?PendingConsentRequest
+            {
+                return $this->list[0] ?? null;
+            }
+            public function listPending(string $userId, string $tenant): array
+            {
+                return $this->list;
+            }
+            public function remove(string $userId, string $tenant, string $clientId): void
+            {
+                ($this->onRemove)($userId, $tenant, $clientId);
+            }
         };
 
-        $scopes = new class($storedScopes) implements ScopesConsentGateway {
+        $scopes = new class ($storedScopes) implements ScopesConsentGateway {
             public ?array $stored = null;
-            public function pendingScopes(string $t, string $u, string $c, array $r): array { return []; }
-            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void { $this->stored = $a; }
+            public function pendingScopes(string $t, string $u, string $c, array $r): array
+            {
+                return [];
+            }
+            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void
+            {
+                $this->stored = $a;
+            }
         };
 
         $service = new ConsentOrchestrationService($queue, $scopes);
@@ -239,29 +289,56 @@ final class ConsentUsecasesUnitTest extends TestCase
 
     private function makeEmptyScopesGateway(): ScopesConsentGateway
     {
-        return new class() implements ScopesConsentGateway {
-            public function pendingScopes(string $t, string $u, string $c, array $r): array { return []; }
-            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void {}
+        return new class () implements ScopesConsentGateway {
+            public function pendingScopes(string $t, string $u, string $c, array $r): array
+            {
+                return [];
+            }
+            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void
+            {
+            }
         };
     }
 
     private function makeScopesGateway(array $pending = []): ScopesConsentGateway
     {
-        return new class($pending) implements ScopesConsentGateway {
-            public function __construct(private array $pending) {}
-            public function pendingScopes(string $t, string $u, string $c, array $r): array { return $this->pending; }
-            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void {}
+        return new class ($pending) implements ScopesConsentGateway {
+            public function __construct(private array $pending)
+            {
+            }
+            public function pendingScopes(string $t, string $u, string $c, array $r): array
+            {
+                return $this->pending;
+            }
+            public function storeAcceptedScopes(string $t, string $u, string $c, array $a): void
+            {
+            }
         };
     }
 
     private function makeQueue(array $list = [], ?callable $onEnqueue = null): ConsentQueueGateway
     {
-        return new class($list, $onEnqueue) implements ConsentQueueGateway {
-            public function __construct(private array $list, private $onEnqueue) {}
-            public function enqueue(PendingConsentRequest $r): void { if ($this->onEnqueue) { ($this->onEnqueue)($r); } }
-            public function dequeueNext(string $userId, string $tenant): ?PendingConsentRequest { return $this->list[0] ?? null; }
-            public function listPending(string $userId, string $tenant): array { return $this->list; }
-            public function remove(string $userId, string $tenant, string $clientId): void {}
+        return new class ($list, $onEnqueue) implements ConsentQueueGateway {
+            public function __construct(private array $list, private $onEnqueue)
+            {
+            }
+            public function enqueue(PendingConsentRequest $r): void
+            {
+                if ($this->onEnqueue) {
+                    ($this->onEnqueue)($r);
+                }
+            }
+            public function dequeueNext(string $userId, string $tenant): ?PendingConsentRequest
+            {
+                return $this->list[0] ?? null;
+            }
+            public function listPending(string $userId, string $tenant): array
+            {
+                return $this->list;
+            }
+            public function remove(string $userId, string $tenant, string $clientId): void
+            {
+            }
         };
     }
 }

@@ -16,6 +16,17 @@ use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginEndpoint;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedLoginProvider;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Domain\DelegatedProviderDescription;
 
+/**
+ * DelegatedLoginProvider implementation for Sign in with Apple (OAuth 2.0 / OIDC with ES256 client secret).
+ *
+ * Apple's authorization flow differs from standard OAuth in several ways: the client secret
+ * is a short-lived JWT signed with an EC private key using the ES256 algorithm, the token
+ * endpoint always returns an id_token (OIDC), and user profile data is only provided on the
+ * very first authorization. This class generates the client-secret JWT on each token exchange,
+ * verifies the nonce embedded in the id_token to prevent replay attacks, and maps the Apple
+ * claims to the normalized DelegatedUserData structure expected by the rest of the system.
+ * The authorization endpoint uses the form_post response mode as required by Apple.
+ */
 class AppleOAuthProvider implements DelegatedLoginProvider
 {
     private const AUTH_URL = 'https://appleid.apple.com/auth/authorize';
@@ -35,6 +46,10 @@ class AppleOAuthProvider implements DelegatedLoginProvider
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
 
+    /**
+     * Returns the display metadata for the Apple provider including the logo asset path
+     * so the login page can render the "Sign in with Apple" button.
+     */
     #[Override]
     public function info(): DelegatedProviderDescription
     {
@@ -45,6 +60,10 @@ class AppleOAuthProvider implements DelegatedLoginProvider
         );
     }
 
+    /**
+     * Builds the Apple authorization URL using the form_post response mode required by Apple,
+     * embedding a SHA-256 nonce derived from the state to allow replay protection on callback.
+     */
     #[Override]
     public function delegeatedUrl(string $redirect, string $state): DelegatedLoginEndpoint
     {
@@ -61,6 +80,11 @@ class AppleOAuthProvider implements DelegatedLoginProvider
         return new DelegatedLoginEndpoint('GET', $url);
     }
 
+    /**
+     * Exchanges the authorization code for an id_token at the Apple token endpoint, verifies the
+     * nonce claim, extracts user profile data from the id_token claims and the optional user JSON
+     * payload present only on the first authorization, then returns normalized DelegatedUserData.
+     */
     #[Override]
     public function authorize(string $redirect, array $request): ?DelegatedUserData
     {

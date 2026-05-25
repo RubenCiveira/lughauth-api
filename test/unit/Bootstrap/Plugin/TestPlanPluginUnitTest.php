@@ -7,6 +7,7 @@ declare(strict_types=1);
  * PlanTenantPlugin is a feature class that may not yet be implemented.
  * This stub allows Bootstrap coverage tests to load TestPlanPlugin.
  */
+
 namespace Civi\Lughauth\Features\Test\Plan\PlanTenant\Infrastructure\Driver {
     use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 
@@ -20,7 +21,6 @@ namespace Civi\Lughauth\Features\Test\Plan\PlanTenant\Infrastructure\Driver {
 namespace {
     use PHPUnit\Framework\TestCase;
     use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
-    use Slim\Routing\RouteCollectorProxy;
     use Civi\Lughauth\Bootstrap\Plugin\TestPlanPlugin;
     use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 

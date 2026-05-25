@@ -14,7 +14,9 @@ final class SessionManagerUnitTest extends TestCase
     {
         $deleted = null;
         $store = $this->makeStore(
-            onDelete: function (string $state) use (&$deleted) { $deleted = $state; }
+            onDelete: function (string $state) use (&$deleted) {
+                $deleted = $state;
+            }
         );
 
         $manager = new SessionManager($store);
@@ -42,14 +44,33 @@ final class SessionManagerUnitTest extends TestCase
 
     private function makeStore(?SessionInfo $session = null, ?callable $onDelete = null): SessionStoreGateway
     {
-        return new class($session, $onDelete) implements SessionStoreGateway {
-            public function __construct(private ?SessionInfo $session, private $onDelete) {}
-            public function loadSession(string $state): ?SessionInfo { return $this->session; }
-            public function findActiveSessionIdByCsid(string $csid): ?string { return null; }
-            public function saveSession(string $s, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void {}
-            public function updateSession(string $n, string $o): void {}
-            public function deleteSession(string $state): void { if ($this->onDelete) { ($this->onDelete)($state); } }
-            public function purgeExpired(): void {}
+        return new class ($session, $onDelete) implements SessionStoreGateway {
+            public function __construct(private ?SessionInfo $session, private $onDelete)
+            {
+            }
+            public function loadSession(string $state): ?SessionInfo
+            {
+                return $this->session;
+            }
+            public function findActiveSessionIdByCsid(string $csid): ?string
+            {
+                return null;
+            }
+            public function saveSession(string $s, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void
+            {
+            }
+            public function updateSession(string $n, string $o): void
+            {
+            }
+            public function deleteSession(string $state): void
+            {
+                if ($this->onDelete) {
+                    ($this->onDelete)($state);
+                }
+            }
+            public function purgeExpired(): void
+            {
+            }
         };
     }
 }

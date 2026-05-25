@@ -39,7 +39,7 @@ class UserSessionController
 
         $sessions = $this->sessions->listByUser($identity->id);
 
-        $payload = array_map(static fn($s) => [
+        $payload = array_map(static fn ($s) => [
             'session_id' => $s->sessionId,
             'client_id' => $s->clientId,
             'client_name' => $s->clientName,

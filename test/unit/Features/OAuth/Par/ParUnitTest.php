@@ -146,7 +146,9 @@ final class ParUnitTest extends TestCase
         $stored = null;
         $client = new ClientData('c', ['authorization_code'], false);
         $clients = $this->makeClientStore($client);
-        $gateway = $this->makeParGateway(onStore: function (ParRequest $r) use (&$stored) { $stored = $r; });
+        $gateway = $this->makeParGateway(onStore: function (ParRequest $r) use (&$stored) {
+            $stored = $r;
+        });
         $usecase = new PushAuthorizationUsecase($clients, $gateway);
 
         $result = $usecase->push(new PushAuthorizationParams('tenant', 'c', 'secret', [
@@ -204,7 +206,9 @@ final class ParUnitTest extends TestCase
         $r = new ParRequest('urn:test', 'tenant', 'c', ['a' => 'b'], new DateTimeImmutable('+60 seconds'));
         $gateway = $this->makeParGateway(
             byUri: $r,
-            onMarkUsed: function (string $uri) use (&$markedUri) { $markedUri = $uri; }
+            onMarkUsed: function (string $uri) use (&$markedUri) {
+                $markedUri = $uri;
+            }
         );
         $usecase = new ResolveParRequestUsecase($gateway);
 
@@ -218,23 +222,55 @@ final class ParUnitTest extends TestCase
 
     private function makeClientStore(?ClientData $client): ClientStoreGateway
     {
-        return new class($client) implements ClientStoreGateway {
-            public function __construct(private ?ClientData $client) {}
-            public function clientData(string $clientId, string $clientSecret): ?ClientData { return $this->client; }
-            public function findEnabledClient(string $clientId): ?ClientData { return null; }
-            public function preValidatedClient(string $clientId): ?ClientData { return null; }
-            public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData { return null; }
-            public function defaultRedirectUri(string $clientId): ?string { return null; }
+        return new class ($client) implements ClientStoreGateway {
+            public function __construct(private ?ClientData $client)
+            {
+            }
+            public function clientData(string $clientId, string $clientSecret): ?ClientData
+            {
+                return $this->client;
+            }
+            public function findEnabledClient(string $clientId): ?ClientData
+            {
+                return null;
+            }
+            public function preValidatedClient(string $clientId): ?ClientData
+            {
+                return null;
+            }
+            public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
+            {
+                return null;
+            }
+            public function defaultRedirectUri(string $clientId): ?string
+            {
+                return null;
+            }
         };
     }
 
     private function makeParGateway(?ParRequest $byUri = null, ?callable $onStore = null, ?callable $onMarkUsed = null): ParRequestGateway
     {
-        return new class($byUri, $onStore, $onMarkUsed) implements ParRequestGateway {
-            public function __construct(private ?ParRequest $byUri, private $onStore, private $onMarkUsed) {}
-            public function store(ParRequest $r): void { if ($this->onStore) { ($this->onStore)($r); } }
-            public function findByUri(string $requestUri, string $tenant): ?ParRequest { return $this->byUri; }
-            public function markUsed(string $requestUri, string $tenant): void { if ($this->onMarkUsed) { ($this->onMarkUsed)($requestUri, $tenant); } }
+        return new class ($byUri, $onStore, $onMarkUsed) implements ParRequestGateway {
+            public function __construct(private ?ParRequest $byUri, private $onStore, private $onMarkUsed)
+            {
+            }
+            public function store(ParRequest $r): void
+            {
+                if ($this->onStore) {
+                    ($this->onStore)($r);
+                }
+            }
+            public function findByUri(string $requestUri, string $tenant): ?ParRequest
+            {
+                return $this->byUri;
+            }
+            public function markUsed(string $requestUri, string $tenant): void
+            {
+                if ($this->onMarkUsed) {
+                    ($this->onMarkUsed)($requestUri, $tenant);
+                }
+            }
         };
     }
 }

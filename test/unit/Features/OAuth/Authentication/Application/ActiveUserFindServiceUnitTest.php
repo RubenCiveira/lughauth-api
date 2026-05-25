@@ -12,14 +12,30 @@ final class ActiveUserFindServiceUnitTest extends TestCase
 {
     private function makeStore(?SessionInfo $info, ?string $csidToSessionId = null): SessionStoreGateway
     {
-        return new class($info, $csidToSessionId) implements SessionStoreGateway {
-            public function __construct(private ?SessionInfo $info, private ?string $csidSessionId) {}
-            public function loadSession(string $state): ?SessionInfo { return $this->info; }
-            public function findActiveSessionIdByCsid(string $csid): ?string { return $this->csidSessionId; }
-            public function saveSession(string $s, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void {}
-            public function updateSession(string $n, string $o): void {}
-            public function deleteSession(string $s): void {}
-            public function purgeExpired(): void {}
+        return new class ($info, $csidToSessionId) implements SessionStoreGateway {
+            public function __construct(private ?SessionInfo $info, private ?string $csidSessionId)
+            {
+            }
+            public function loadSession(string $state): ?SessionInfo
+            {
+                return $this->info;
+            }
+            public function findActiveSessionIdByCsid(string $csid): ?string
+            {
+                return $this->csidSessionId;
+            }
+            public function saveSession(string $s, \Civi\Lughauth\Features\OAuth\Client\Domain\ClientData $c, string $iss, \Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState $k, \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult $v, string $csid, \DateInterval $exp): void
+            {
+            }
+            public function updateSession(string $n, string $o): void
+            {
+            }
+            public function deleteSession(string $s): void
+            {
+            }
+            public function purgeExpired(): void
+            {
+            }
         };
     }
 
