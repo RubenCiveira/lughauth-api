@@ -22,6 +22,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: true,
             enableRegisterUsers: true,
             magicLinkEnabled: true,
+            requireEmailVerification: true,
+            invitationExpiryDays: 1,
+            magicLinkExpiryMinutes: 1,
+            sessionSsoTtlSeconds: 1,
+            refreshTokenTtlSeconds: 1,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -55,6 +60,16 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isEnableRegisterUsersChanged());
         $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
         $this->assertTrue($one->isMagicLinkEnabledChanged());
+        $this->assertEquals($one->isRequireEmailVerification(), $other->isRequireEmailVerification());
+        $this->assertTrue($one->isRequireEmailVerificationChanged());
+        $this->assertEquals($one->getInvitationExpiryDays(), $other->getInvitationExpiryDays());
+        $this->assertTrue($one->isInvitationExpiryDaysChanged());
+        $this->assertEquals($one->getMagicLinkExpiryMinutes(), $other->getMagicLinkExpiryMinutes());
+        $this->assertTrue($one->isMagicLinkExpiryMinutesChanged());
+        $this->assertEquals($one->getSessionSsoTtlSeconds(), $other->getSessionSsoTtlSeconds());
+        $this->assertTrue($one->isSessionSsoTtlSecondsChanged());
+        $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
+        $this->assertTrue($one->isRefreshTokenTtlSecondsChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -88,6 +103,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: true,
             enableRegisterUsers: true,
             magicLinkEnabled: true,
+            requireEmailVerification: true,
+            invitationExpiryDays: 1,
+            magicLinkExpiryMinutes: 1,
+            sessionSsoTtlSeconds: 1,
+            refreshTokenTtlSeconds: 1,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -108,6 +128,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: false,
             enableRegisterUsers: false,
             magicLinkEnabled: false,
+            requireEmailVerification: false,
+            invitationExpiryDays: 2,
+            magicLinkExpiryMinutes: 2,
+            sessionSsoTtlSeconds: 2,
+            refreshTokenTtlSeconds: 2,
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
@@ -139,6 +164,16 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
         $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
         $this->assertTrue($one->isMagicLinkEnabledChanged($base));
+        $this->assertEquals($one->isRequireEmailVerification(), $other->isRequireEmailVerification());
+        $this->assertTrue($one->isRequireEmailVerificationChanged($base));
+        $this->assertEquals($one->getInvitationExpiryDays(), $other->getInvitationExpiryDays());
+        $this->assertTrue($one->isInvitationExpiryDaysChanged($base));
+        $this->assertEquals($one->getMagicLinkExpiryMinutes(), $other->getMagicLinkExpiryMinutes());
+        $this->assertTrue($one->isMagicLinkExpiryMinutesChanged($base));
+        $this->assertEquals($one->getSessionSsoTtlSeconds(), $other->getSessionSsoTtlSeconds());
+        $this->assertTrue($one->isSessionSsoTtlSecondsChanged($base));
+        $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
+        $this->assertTrue($one->isRefreshTokenTtlSecondsChanged($base));
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged($base));
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -172,6 +207,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: true,
             enableRegisterUsers: true,
             magicLinkEnabled: true,
+            requireEmailVerification: true,
+            invitationExpiryDays: 1,
+            magicLinkExpiryMinutes: 1,
+            sessionSsoTtlSeconds: 1,
+            refreshTokenTtlSeconds: 1,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -196,6 +236,11 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertEquals(true, $json['allowRegister']);
         $this->assertEquals(true, $json['enableRegisterUsers']);
         $this->assertEquals(true, $json['magicLinkEnabled']);
+        $this->assertEquals(true, $json['requireEmailVerification']);
+        $this->assertEquals(1, $json['invitationExpiryDays']);
+        $this->assertEquals(1, $json['magicLinkExpiryMinutes']);
+        $this->assertEquals(1, $json['sessionSsoTtlSeconds']);
+        $this->assertEquals(1, $json['refreshTokenTtlSeconds']);
         $this->assertEquals(true, $json['webauthnEnabled']);
         $this->assertEquals('one', $json['webauthnRpId']);
         $this->assertEquals('one', $json['webauthnRpName']);
@@ -214,6 +259,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: true,
             enableRegisterUsers: true,
             magicLinkEnabled: true,
+            requireEmailVerification: true,
+            invitationExpiryDays: 1,
+            magicLinkExpiryMinutes: 1,
+            sessionSsoTtlSeconds: 1,
+            refreshTokenTtlSeconds: 1,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -245,6 +295,16 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isEnableRegisterUsersChanged());
         $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
         $this->assertTrue($one->isMagicLinkEnabledChanged());
+        $this->assertEquals($one->isRequireEmailVerification(), $other->isRequireEmailVerification());
+        $this->assertTrue($one->isRequireEmailVerificationChanged());
+        $this->assertEquals($one->getInvitationExpiryDays(), $other->getInvitationExpiryDays());
+        $this->assertTrue($one->isInvitationExpiryDaysChanged());
+        $this->assertEquals($one->getMagicLinkExpiryMinutes(), $other->getMagicLinkExpiryMinutes());
+        $this->assertTrue($one->isMagicLinkExpiryMinutesChanged());
+        $this->assertEquals($one->getSessionSsoTtlSeconds(), $other->getSessionSsoTtlSeconds());
+        $this->assertTrue($one->isSessionSsoTtlSecondsChanged());
+        $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
+        $this->assertTrue($one->isRefreshTokenTtlSecondsChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -279,6 +339,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: true,
             enableRegisterUsers: true,
             magicLinkEnabled: true,
+            requireEmailVerification: true,
+            invitationExpiryDays: 1,
+            magicLinkExpiryMinutes: 1,
+            sessionSsoTtlSeconds: 1,
+            refreshTokenTtlSeconds: 1,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -299,6 +364,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: false,
             enableRegisterUsers: false,
             magicLinkEnabled: false,
+            requireEmailVerification: false,
+            invitationExpiryDays: 2,
+            magicLinkExpiryMinutes: 2,
+            sessionSsoTtlSeconds: 2,
+            refreshTokenTtlSeconds: 2,
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
@@ -330,6 +400,16 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isEnableRegisterUsersChanged($base));
         $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
         $this->assertTrue($one->isMagicLinkEnabledChanged($base));
+        $this->assertEquals($one->isRequireEmailVerification(), $other->isRequireEmailVerification());
+        $this->assertTrue($one->isRequireEmailVerificationChanged($base));
+        $this->assertEquals($one->getInvitationExpiryDays(), $other->getInvitationExpiryDays());
+        $this->assertTrue($one->isInvitationExpiryDaysChanged($base));
+        $this->assertEquals($one->getMagicLinkExpiryMinutes(), $other->getMagicLinkExpiryMinutes());
+        $this->assertTrue($one->isMagicLinkExpiryMinutesChanged($base));
+        $this->assertEquals($one->getSessionSsoTtlSeconds(), $other->getSessionSsoTtlSeconds());
+        $this->assertTrue($one->isSessionSsoTtlSecondsChanged($base));
+        $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
+        $this->assertTrue($one->isRefreshTokenTtlSecondsChanged($base));
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged($base));
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());
@@ -365,6 +445,11 @@ final class TenantConfigUnitTest extends TestCase
             allowRegister: true,
             enableRegisterUsers: true,
             magicLinkEnabled: true,
+            requireEmailVerification: true,
+            invitationExpiryDays: 1,
+            magicLinkExpiryMinutes: 1,
+            sessionSsoTtlSeconds: 1,
+            refreshTokenTtlSeconds: 1,
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
@@ -396,6 +481,16 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isEnableRegisterUsersChanged());
         $this->assertEquals($one->isMagicLinkEnabled(), $other->isMagicLinkEnabled());
         $this->assertTrue($one->isMagicLinkEnabledChanged());
+        $this->assertEquals($one->isRequireEmailVerification(), $other->isRequireEmailVerification());
+        $this->assertTrue($one->isRequireEmailVerificationChanged());
+        $this->assertEquals($one->getInvitationExpiryDays(), $other->getInvitationExpiryDays());
+        $this->assertTrue($one->isInvitationExpiryDaysChanged());
+        $this->assertEquals($one->getMagicLinkExpiryMinutes(), $other->getMagicLinkExpiryMinutes());
+        $this->assertTrue($one->isMagicLinkExpiryMinutesChanged());
+        $this->assertEquals($one->getSessionSsoTtlSeconds(), $other->getSessionSsoTtlSeconds());
+        $this->assertTrue($one->isSessionSsoTtlSecondsChanged());
+        $this->assertEquals($one->getRefreshTokenTtlSeconds(), $other->getRefreshTokenTtlSeconds());
+        $this->assertTrue($one->isRefreshTokenTtlSecondsChanged());
         $this->assertEquals($one->isWebauthnEnabled(), $other->isWebauthnEnabled());
         $this->assertTrue($one->isWebauthnEnabledChanged());
         $this->assertEquals($one->getWebauthnRpId(), $other->getWebauthnRpId());

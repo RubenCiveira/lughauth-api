@@ -21,7 +21,7 @@ namespace {
     {
         public array $listeners = [];
 
-        public function registerListener(string $eventType, string $listenerClass): void
+        public function registerListener(string $eventType, string $listenerClass, ?string $method = null): void
         {
             $this->listeners[] = [$eventType, $listenerClass];
         }

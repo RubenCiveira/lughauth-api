@@ -24,6 +24,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -55,6 +56,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
+        $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
+        $this->assertTrue($one->isOidcDiscoveryUrlChanged());
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
         $this->assertTrue($one->isSamlIdpMetadataUrlChanged());
         $this->assertEquals($one->getSamlIdpEntityId(), $other->getSamlIdpEntityId());
@@ -82,6 +85,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -100,6 +104,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'other',
             certificate: 'other',
             metadata: 'store://obin',
+            oidcDiscoveryUrl: 'other',
             samlIdpMetadataUrl: 'other',
             samlIdpEntityId: 'other',
             samlIdpSsoUrl: 'other',
@@ -129,6 +134,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged($base));
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged($base));
+        $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
+        $this->assertTrue($one->isOidcDiscoveryUrlChanged($base));
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
         $this->assertTrue($one->isSamlIdpMetadataUrlChanged($base));
         $this->assertEquals($one->getSamlIdpEntityId(), $other->getSamlIdpEntityId());
@@ -156,6 +163,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -176,6 +184,7 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertEquals(true, $json['directAccess']);
         $this->assertEquals('one', $json['publicKey']);
         $this->assertEquals('one', $json['privateKey']);
+        $this->assertEquals('one', $json['oidcDiscoveryUrl']);
         $this->assertEquals('one', $json['samlIdpMetadataUrl']);
         $this->assertEquals('one', $json['samlIdpEntityId']);
         $this->assertEquals('one', $json['samlIdpSsoUrl']);
@@ -196,6 +205,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -225,6 +235,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
+        $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
+        $this->assertTrue($one->isOidcDiscoveryUrlChanged());
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
         $this->assertTrue($one->isSamlIdpMetadataUrlChanged());
         $this->assertEquals($one->getSamlIdpEntityId(), $other->getSamlIdpEntityId());
@@ -253,6 +265,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -271,6 +284,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'other',
             certificate: 'other',
             metadata: 'store://obin',
+            oidcDiscoveryUrl: 'other',
             samlIdpMetadataUrl: 'other',
             samlIdpEntityId: 'other',
             samlIdpSsoUrl: 'other',
@@ -300,6 +314,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged($base));
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged($base));
+        $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
+        $this->assertTrue($one->isOidcDiscoveryUrlChanged($base));
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
         $this->assertTrue($one->isSamlIdpMetadataUrlChanged($base));
         $this->assertEquals($one->getSamlIdpEntityId(), $other->getSamlIdpEntityId());
@@ -329,6 +345,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -358,6 +375,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isCertificateChanged());
         $this->assertEquals($one->getMetadata(), $other->getMetadata());
         $this->assertTrue($one->isMetadataChanged());
+        $this->assertEquals($one->getOidcDiscoveryUrl(), $other->getOidcDiscoveryUrl());
+        $this->assertTrue($one->isOidcDiscoveryUrlChanged());
         $this->assertEquals($one->getSamlIdpMetadataUrl(), $other->getSamlIdpMetadataUrl());
         $this->assertTrue($one->isSamlIdpMetadataUrlChanged());
         $this->assertEquals($one->getSamlIdpEntityId(), $other->getSamlIdpEntityId());
@@ -385,6 +404,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
@@ -418,6 +438,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             privateKey: 'one',
             certificate: 'one',
             metadata: 'store://bin',
+            oidcDiscoveryUrl: 'one',
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',

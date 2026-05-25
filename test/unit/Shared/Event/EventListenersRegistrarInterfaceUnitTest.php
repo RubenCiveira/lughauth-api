@@ -23,9 +23,9 @@ final class EventListenersRegistrarInterfaceUnitTest extends TestCase
             /** @var array<int, array{0: string, 1: string}> */
             public array $registered = [];
 
-            public function registerListener(string $event, string $type): void
+            public function registerListener(string $event, string $type, ?string $method = null): void
             {
-                $this->registered[] = [$event, $type];
+                $this->registered[] = [$event, $type, $method];
             }
         };
 
@@ -37,6 +37,6 @@ final class EventListenersRegistrarInterfaceUnitTest extends TestCase
         /*
          * Assert: verify the registration was stored.
          */
-        $this->assertSame([['user.registered', 'handler']], $registrar->registered);
+        $this->assertSame([['user.registered', 'handler', null]], $registrar->registered);
     }
 }

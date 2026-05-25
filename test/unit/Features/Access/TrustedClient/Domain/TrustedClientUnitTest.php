@@ -27,6 +27,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -68,6 +70,10 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
+        $this->assertEquals($one->isIsResourceServer(), $other->isIsResourceServer());
+        $this->assertTrue($one->isIsResourceServerChanged());
+        $this->assertEquals($one->isRequirePkce(), $other->isRequirePkce());
+        $this->assertTrue($one->isRequirePkceChanged());
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
         $this->assertTrue($one->isBackChannelLogoutUriChanged());
         $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
@@ -125,6 +131,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -159,6 +167,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(2)
             )),
             secretOauth: 'cyphered://ocyphered',
+            isResourceServer: false,
+            requirePkce: false,
             backChannelLogoutUri: 'other',
             backChannelLogoutSessionRequired: false,
             frontChannelLogoutUri: 'other',
@@ -198,6 +208,10 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedRedirectsChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
+        $this->assertEquals($one->isIsResourceServer(), $other->isIsResourceServer());
+        $this->assertTrue($one->isIsResourceServerChanged($base));
+        $this->assertEquals($one->isRequirePkce(), $other->isRequirePkce());
+        $this->assertTrue($one->isRequirePkceChanged($base));
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
         $this->assertTrue($one->isBackChannelLogoutUriChanged($base));
         $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
@@ -255,6 +269,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -291,6 +307,8 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertEquals('one', $json['allowedRedirects'][0]['url']);
         $this->assertEquals(1, $json['allowedRedirects'][0]['version']);
         $this->assertCount(1, $json['allowedRedirects']);
+        $this->assertEquals(true, $json['isResourceServer']);
+        $this->assertEquals(true, $json['requirePkce']);
         $this->assertEquals('one', $json['backChannelLogoutUri']);
         $this->assertEquals(true, $json['backChannelLogoutSessionRequired']);
         $this->assertEquals('one', $json['frontChannelLogoutUri']);
@@ -323,6 +341,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -362,6 +382,10 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
+        $this->assertEquals($one->isIsResourceServer(), $other->isIsResourceServer());
+        $this->assertTrue($one->isIsResourceServerChanged());
+        $this->assertEquals($one->isRequirePkce(), $other->isRequirePkce());
+        $this->assertTrue($one->isRequirePkceChanged());
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
         $this->assertTrue($one->isBackChannelLogoutUriChanged());
         $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
@@ -420,6 +444,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -454,6 +480,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(2)
             )),
             secretOauth: 'cyphered://ocyphered',
+            isResourceServer: false,
+            requirePkce: false,
             backChannelLogoutUri: 'other',
             backChannelLogoutSessionRequired: false,
             frontChannelLogoutUri: 'other',
@@ -493,6 +521,10 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedRedirectsChanged($base));
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged($base));
+        $this->assertEquals($one->isIsResourceServer(), $other->isIsResourceServer());
+        $this->assertTrue($one->isIsResourceServerChanged($base));
+        $this->assertEquals($one->isRequirePkce(), $other->isRequirePkce());
+        $this->assertTrue($one->isRequirePkceChanged($base));
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
         $this->assertTrue($one->isBackChannelLogoutUriChanged($base));
         $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
@@ -552,6 +584,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -591,6 +625,10 @@ final class TrustedClientUnitTest extends TestCase
         $this->assertTrue($one->isAllowedRedirectsChanged());
         $this->assertEquals($one->getSecretOauth(), $other->getSecretOauth());
         $this->assertTrue($one->isSecretOauthChanged());
+        $this->assertEquals($one->isIsResourceServer(), $other->isIsResourceServer());
+        $this->assertTrue($one->isIsResourceServerChanged());
+        $this->assertEquals($one->isRequirePkce(), $other->isRequirePkce());
+        $this->assertTrue($one->isRequirePkceChanged());
         $this->assertEquals($one->getBackChannelLogoutUri(), $other->getBackChannelLogoutUri());
         $this->assertTrue($one->isBackChannelLogoutUriChanged());
         $this->assertEquals($one->isBackChannelLogoutSessionRequired(), $other->isBackChannelLogoutSessionRequired());
@@ -648,6 +686,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',
@@ -697,6 +737,8 @@ final class TrustedClientUnitTest extends TestCase
                 TrustedClientAllowedRedirectsVersionVO::from(1)
             )),
             secretOauth: 'cyphered://cypher',
+            isResourceServer: true,
+            requirePkce: true,
             backChannelLogoutUri: 'one',
             backChannelLogoutSessionRequired: true,
             frontChannelLogoutUri: 'one',

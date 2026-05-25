@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderPrivateKeyVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderCertificateVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcDiscoveryUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpMetadataUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpEntityIdVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpSsoUrlVO;
@@ -127,6 +128,17 @@ final class TenantLoginProviderCreateParamsUnitTest extends TestCase
         $value->unsetMetadata();
         $this->assertEquals('obin', $value->getMetadataOrCurrent(TenantLoginProviderMetadataVO::from($metadataOtherValue))->value());
         $this->assertNotEquals('bin', $value->getMetadataOrCurrent(TenantLoginProviderMetadataVO::from($metadataOtherValue))->value());
+        $oidcDiscoveryUrlOneValue = 'one';
+        $oidcDiscoveryUrlOtherValue = 'other';
+        $copy = $value->oidcDiscoveryUrl($oidcDiscoveryUrlOneValue);
+        $this->assertSame($value, $copy);
+        $this->assertEquals('one', $value->getOidcDiscoveryUrl());
+        $this->assertNotEquals('other', $value->getOidcDiscoveryUrl());
+        $this->assertEquals('one', $value->getOidcDiscoveryUrlOrCurrent(TenantLoginProviderOidcDiscoveryUrlVO::from($oidcDiscoveryUrlOtherValue))->value());
+        $this->assertNotEquals('other', $value->getOidcDiscoveryUrlOrCurrent(TenantLoginProviderOidcDiscoveryUrlVO::from($oidcDiscoveryUrlOtherValue))->value());
+        $value->unsetOidcDiscoveryUrl();
+        $this->assertEquals('other', $value->getOidcDiscoveryUrlOrCurrent(TenantLoginProviderOidcDiscoveryUrlVO::from($oidcDiscoveryUrlOtherValue))->value());
+        $this->assertNotEquals('one', $value->getOidcDiscoveryUrlOrCurrent(TenantLoginProviderOidcDiscoveryUrlVO::from($oidcDiscoveryUrlOtherValue))->value());
         $samlIdpMetadataUrlOneValue = 'one';
         $samlIdpMetadataUrlOtherValue = 'other';
         $copy = $value->samlIdpMetadataUrl($samlIdpMetadataUrlOneValue);

@@ -414,4 +414,34 @@ class IdentityUnitTest extends TestCase
          */
         $this->assertFalse($hasRole);
     }
+
+    /**
+     * Ensures hasAnyScope returns true when at least one scope matches.
+     */
+    public function testHasAnyScopeReturnsTrue(): void
+    {
+        $identity = new Identity(anonymous: false, scope: 'read write');
+
+        $this->assertTrue($identity->hasAnyScope('delete', 'read'));
+    }
+
+    /**
+     * Ensures hasAnyScope returns false when no scope matches.
+     */
+    public function testHasAnyScopeReturnsFalse(): void
+    {
+        $identity = new Identity(anonymous: false, scope: 'read write');
+
+        $this->assertFalse($identity->hasAnyScope('delete', 'admin'));
+    }
+
+    /**
+     * Ensures hasAnyScope returns false when scope is null.
+     */
+    public function testHasAnyScopeReturnsFalseWhenNull(): void
+    {
+        $identity = new Identity(anonymous: false, scope: null);
+
+        $this->assertFalse($identity->hasAnyScope('read'));
+    }
 }

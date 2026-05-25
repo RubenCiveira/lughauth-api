@@ -14,6 +14,8 @@ namespace Civi\Lughauth\Shared\Observability {
 }
 
 namespace {
+    use Monolog\Handler\TestHandler;
+    use Monolog\Logger as MonologLogger;
     use PHPUnit\Framework\TestCase;
     use Psr\Container\ContainerInterface;
     use Psr\Log\LoggerInterface;
@@ -161,6 +163,47 @@ namespace {
             /*
              * Assert: confirm each logger method was invoked.
              */
+        }
+
+        /**
+         * Ensures a MonologLogger from the container is wrapped with a source processor.
+         */
+        public function testSetLoggerFromContainerWithMonologLoggerAddsSourceProcessor(): void
+        {
+            /*
+             * Arrange: create a real MonologLogger with a test handler.
+             */
+            $handler = new TestHandler();
+            $monolog = new MonologLogger('app', [$handler]);
+
+            $service = new class () {
+                use LoggerAwareTrait;
+
+                public function getLogger(): ?LoggerInterface
+                {
+                    return $this->logger;
+                }
+            };
+
+            $container = $this->createMock(ContainerInterface::class);
+            $container->method('has')->with(LoggerInterface::class)->willReturn(true);
+            $container->method('get')->with(LoggerInterface::class)->willReturn($monolog);
+
+            /*
+             * Act: resolve the logger from the container.
+             */
+            $service->setLoggerFromContainer($container);
+
+            /*
+             * Assert: the stored logger is a MonologLogger with source injected on log.
+             */
+            $logger = $service->getLogger();
+            $this->assertInstanceOf(MonologLogger::class, $logger);
+
+            $service->logInfo('hello');
+            $records = $handler->getRecords();
+            $this->assertNotEmpty($records);
+            $this->assertArrayHasKey('source', $records[0]['extra']);
         }
 
         /**

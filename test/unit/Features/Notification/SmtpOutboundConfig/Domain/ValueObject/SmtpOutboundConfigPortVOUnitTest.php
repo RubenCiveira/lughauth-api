@@ -12,9 +12,9 @@ final class SmtpOutboundConfigPortVOUnitTest extends TestCase
 {
     public function test_asignation_keep_value(): void
     {
-        $value = true;
+        $value = 1;
         $ref = SmtpOutboundConfigPortVO::from($value);
-        $this->assertEquals(true, $ref->value());
+        $this->assertEquals(1, $ref->value());
         $other = SmtpOutboundConfigPortVO::tryFrom($ref, new ConstraintFailList());
         $this->assertSame($other, $ref);
         $more = SmtpOutboundConfigPortVO::from($ref);
@@ -35,9 +35,9 @@ final class SmtpOutboundConfigPortVOUnitTest extends TestCase
     }
     public function test_equals(): void
     {
-        $one = SmtpOutboundConfigPortVO::from(true);
-        $same = SmtpOutboundConfigPortVO::from(true);
-        $other = SmtpOutboundConfigPortVO::from(false);
+        $one = SmtpOutboundConfigPortVO::from(1);
+        $same = SmtpOutboundConfigPortVO::from(1);
+        $other = SmtpOutboundConfigPortVO::from(2);
         $withEmpty = $one->equals(null);
         $withSame = $one->equals($same);
         $withOther = $one->equals($other);

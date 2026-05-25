@@ -238,6 +238,51 @@ final class PhixUnitTest extends TestCase
         $this->assertArrayNotHasKey('keyonly', $data);
     }
 
+    /**
+     * Ensures discoverMigrationPaths returns empty array when adapter has no directory.
+     */
+    public function testDiscoverMigrationPathsReturnsEmptyForUnknownAdapter(): void
+    {
+        /* Arrange: create an exposer with a nonexistent adapter. */
+        $phix = new PhixExposer($this->config('nonexistent_adapter:host=localhost;dbname=db'));
+
+        /* Act: discover migration paths. */
+        $paths = $phix->exposedDiscoverMigrationPaths('nonexistent_adapter_zzz');
+
+        /* Assert: empty array returned when the directory does not exist. */
+        $this->assertSame([], $paths);
+    }
+
+    /**
+     * Ensures discoverMigrationPaths returns paths when the adapter directory exists.
+     */
+    public function testDiscoverMigrationPathsReturnsPathsForMysql(): void
+    {
+        /* Arrange: create an exposer with mysql adapter. */
+        $phix = new PhixExposer($this->config('mysql:host=localhost;dbname=db'));
+
+        /* Act: discover migration paths. */
+        $paths = $phix->exposedDiscoverMigrationPaths('mysql');
+
+        /* Assert: at least one path is returned when migrations directory exists. */
+        $this->assertIsArray($paths);
+    }
+
+    /**
+     * Ensures build returns a Phinx Manager instance.
+     */
+    public function testBuildReturnsManager(): void
+    {
+        /* Arrange: create an exposer with a valid mysql DSN. */
+        $phix = new PhixExposer($this->config('mysql:host=localhost;dbname=testdb'));
+
+        /* Act: build the manager. */
+        $manager = $phix->exposedBuild();
+
+        /* Assert: a Manager instance is returned without connecting to the DB. */
+        $this->assertInstanceOf(\Phinx\Migration\Manager::class, $manager);
+    }
+
     private function config(string $dsn): AppConfig
     {
         return new class ($dsn) extends AppConfig {
@@ -342,6 +387,27 @@ final class TestablePhix extends Phix
     protected function build(): \Phinx\Migration\Manager
     {
         return $this->manager;
+    }
+}
+
+/**
+ * Exposes protected Phix methods for testing.
+ */
+final class PhixExposer extends Phix
+{
+    public function __construct(AppConfig $config)
+    {
+        parent::__construct($config);
+    }
+
+    public function exposedDiscoverMigrationPaths(string $adapter): array
+    {
+        return $this->discoverMigrationPaths($adapter);
+    }
+
+    public function exposedBuild(): \Phinx\Migration\Manager
+    {
+        return $this->build();
     }
 }
 

@@ -16,7 +16,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             host: 'one',
-            port: true,
+            port: 1,
             login: 'one',
             password: 'cyphered://cypher',
             senderName: 'one',
@@ -40,7 +40,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged());
         $this->assertEquals($one->getHost(), $other->getHost());
         $this->assertTrue($one->isHostChanged());
-        $this->assertEquals($one->isPort(), $other->isPort());
+        $this->assertEquals($one->getPort(), $other->getPort());
         $this->assertTrue($one->isPortChanged());
         $this->assertEquals($one->getLogin(), $other->getLogin());
         $this->assertTrue($one->isLoginChanged());
@@ -70,7 +70,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             host: 'one',
-            port: true,
+            port: 1,
             login: 'one',
             password: 'cyphered://cypher',
             senderName: 'one',
@@ -86,7 +86,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'other',
             tenant: new TenantRef('other'),
             host: 'other',
-            port: false,
+            port: 2,
             login: 'other',
             password: 'cyphered://ocyphered',
             senderName: 'other',
@@ -108,7 +108,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged($base));
         $this->assertEquals($one->getHost(), $other->getHost());
         $this->assertTrue($one->isHostChanged($base));
-        $this->assertEquals($one->isPort(), $other->isPort());
+        $this->assertEquals($one->getPort(), $other->getPort());
         $this->assertTrue($one->isPortChanged($base));
         $this->assertEquals($one->getLogin(), $other->getLogin());
         $this->assertTrue($one->isLoginChanged($base));
@@ -138,7 +138,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             host: 'one',
-            port: true,
+            port: 1,
             login: 'one',
             password: 'cyphered://cypher',
             senderName: 'one',
@@ -158,7 +158,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['tenant']['$ref']);
         $this->assertEquals('one', $json['host']);
-        $this->assertEquals(true, $json['port']);
+        $this->assertEquals(1, $json['port']);
         $this->assertEquals('one', $json['login']);
         $this->assertEquals('one', $json['senderName']);
         $this->assertEquals('one', $json['senderEmail']);
@@ -176,7 +176,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             host: 'one',
-            port: true,
+            port: 1,
             login: 'one',
             password: 'cyphered://cypher',
             senderName: 'one',
@@ -198,7 +198,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged());
         $this->assertEquals($one->getHost(), $other->getHost());
         $this->assertTrue($one->isHostChanged());
-        $this->assertEquals($one->isPort(), $other->isPort());
+        $this->assertEquals($one->getPort(), $other->getPort());
         $this->assertTrue($one->isPortChanged());
         $this->assertEquals($one->getLogin(), $other->getLogin());
         $this->assertTrue($one->isLoginChanged());
@@ -229,7 +229,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             host: 'one',
-            port: true,
+            port: 1,
             login: 'one',
             password: 'cyphered://cypher',
             senderName: 'one',
@@ -245,7 +245,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'other',
             tenant: new TenantRef('other'),
             host: 'other',
-            port: false,
+            port: 2,
             login: 'other',
             password: 'cyphered://ocyphered',
             senderName: 'other',
@@ -267,7 +267,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged($base));
         $this->assertEquals($one->getHost(), $other->getHost());
         $this->assertTrue($one->isHostChanged($base));
-        $this->assertEquals($one->isPort(), $other->isPort());
+        $this->assertEquals($one->getPort(), $other->getPort());
         $this->assertTrue($one->isPortChanged($base));
         $this->assertEquals($one->getLogin(), $other->getLogin());
         $this->assertTrue($one->isLoginChanged($base));
@@ -299,7 +299,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
             uid: 'one',
             tenant: new TenantRef('one'),
             host: 'one',
-            port: true,
+            port: 1,
             login: 'one',
             password: 'cyphered://cypher',
             senderName: 'one',
@@ -321,7 +321,7 @@ final class SmtpOutboundConfigUnitTest extends TestCase
         $this->assertTrue($one->isTenantChanged());
         $this->assertEquals($one->getHost(), $other->getHost());
         $this->assertTrue($one->isHostChanged());
-        $this->assertEquals($one->isPort(), $other->isPort());
+        $this->assertEquals($one->getPort(), $other->getPort());
         $this->assertTrue($one->isPortChanged());
         $this->assertEquals($one->getLogin(), $other->getLogin());
         $this->assertTrue($one->isLoginChanged());

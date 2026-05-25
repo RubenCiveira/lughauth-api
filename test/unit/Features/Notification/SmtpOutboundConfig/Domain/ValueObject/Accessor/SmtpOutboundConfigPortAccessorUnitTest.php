@@ -24,11 +24,11 @@ class SmtpOutboundConfigPortAccessorUnitTest extends TestCase
         $holder = new ImplWithSmtpOutboundConfigPortAccessorUnitTest();
 
         // Act
-        $result = $holder->withPort(true);
+        $result = $holder->withPort(1);
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals(true, $result->isPort());
+        $this->assertEquals(1, $result->getPort());
     }
     /**
      * Asserts that withport has access to the value object
@@ -40,19 +40,19 @@ class SmtpOutboundConfigPortAccessorUnitTest extends TestCase
         $holder = new ImplWithSmtpOutboundConfigPortAccessorUnitTest();
 
         // Act
-        $result = $holder->withPort(true);
+        $result = $holder->withPort(1);
 
         // Assert
         $this->assertNotSame($holder, $result);
-        $this->assertEquals(true, $result->port()->value());
+        $this->assertEquals(1, $result->port()->value());
     }
     public function testChangedPort(): void
     {
         // Arrange
-        $holder = new ImplWithSmtpOutboundConfigPortAccessorUnitTest()->withPort(true);
-        $original = $holder->withPort(true);
-        $same = $holder->withPort(true);
-        $modified = $holder->withPort(false);
+        $holder = new ImplWithSmtpOutboundConfigPortAccessorUnitTest()->withPort(1);
+        $original = $holder->withPort(1);
+        $same = $holder->withPort(1);
+        $modified = $holder->withPort(2);
 
         // Act
         $withSame = $original->isPortChanged($same);

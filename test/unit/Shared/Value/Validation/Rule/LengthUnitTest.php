@@ -30,4 +30,31 @@ final class LengthUnitTest extends TestCase
             $this->assertEquals(['min' => 2, 'max' => 4], $result->expectedValues);
         }
     }
+
+    public function testMinOnlyBranchAllowsLongValues(): void
+    {
+        $rule = new Length(3, null);
+
+        $this->assertNull($rule->check('abc'));
+        $this->assertNull($rule->check('abcdef'));
+        $this->assertInstanceOf(RuleFail::class, $rule->check('ab'));
+    }
+
+    public function testMaxOnlyBranchRejectsLongValues(): void
+    {
+        $rule = new Length(null, 4);
+
+        $this->assertNull($rule->check('abc'));
+        $this->assertNull($rule->check(''));
+        $this->assertInstanceOf(RuleFail::class, $rule->check('abcde'));
+    }
+
+    public function testDefaultBranchAlwaysValid(): void
+    {
+        $rule = new Length(null, null);
+
+        $this->assertNull($rule->check(''));
+        $this->assertNull($rule->check('anything'));
+        $this->assertNull($rule->check([]));
+    }
 }

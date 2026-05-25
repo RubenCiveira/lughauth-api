@@ -17,7 +17,7 @@ class SmtpOutboundConfigPortAttributeHolderUnitTest extends TestCase
 {
     /**
      * Asserts that the code attribute is not assigned by default
-     * and that isPort returns null on a freshly created holder.
+     * and that getPort returns null on a freshly created holder.
      */
     public function testPortNotAssignedByDefault(): void
     {
@@ -26,7 +26,7 @@ class SmtpOutboundConfigPortAttributeHolderUnitTest extends TestCase
 
         // Assert
         $this->assertFalse($holder->isPortAssigned());
-        $this->assertNull($holder->isPort());
+        $this->assertNull($holder->getPort());
     }
 }
 class ImplWithSmtpOutboundConfigPortAttributeHolderUnitTest

@@ -131,6 +131,34 @@ final class EnqueuePublisherUnitTest extends TestCase
     }
 
     /**
+     * Ensures send successfully publishes to AMQP and marks the event as published.
+     */
+    public function testSendEventsPublishesSuccessfully(): void
+    {
+        /* Arrange: configure a publisher with a working FakeAmqpContext. */
+        $config = $this->createConfig('amqp://test');
+        $template = new FakeSqlTemplate([
+            ['event_id' => 'e1', 'retries' => 0, 'event_type' => 'user.created'],
+        ]);
+
+        $capturedContext = null;
+        FakeAmqpConnectionFactory::$contextFactory = function () use (&$capturedContext) {
+            $capturedContext = new FakeAmqpContext();
+            return $capturedContext;
+        };
+
+        $publisher = new EnqueuePublisher($config, $template, $this->createTraceContext());
+
+        /* Act: send pending events via the AMQP context. */
+        $publisher->sendEvents();
+
+        /* Assert: verify the event was marked as published after a successful send. */
+        $publishedParam = $this->findParamInSets($template->executeParams, 'published');
+        $this->assertNotNull($publishedParam);
+        $this->assertNotNull($capturedContext);
+    }
+
+    /**
      * Ensures send exits early when json_encode fails.
      */
     public function testSendSkipsWhenJsonEncodeFails(): void

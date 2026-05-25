@@ -188,6 +188,47 @@ final class LogManagementUnitTest extends TestCase
     }
 
     /**
+     * Ensures the source filter matches log entries case-insensitively.
+     */
+    public function testGetFiltersBySource(): void
+    {
+        /* Arrange: create log entries with different source values. */
+        $dir = $this->createLogDir();
+        $this->writeLog($dir . '/app-2024.jsonl', [
+            [
+                'message' => 'hit',
+                'level' => 200,
+                'level_name' => 'INFO',
+                'datetime' => '2024-01-01 00:00:00',
+                'extra' => [
+                    'service' => ['service.name' => 'svc'],
+                    'source' => 'MyNamespace\\MyController',
+                ]
+            ],
+            [
+                'message' => 'miss',
+                'level' => 200,
+                'level_name' => 'INFO',
+                'datetime' => '2024-01-01 00:00:00',
+                'extra' => [
+                    'service' => ['service.name' => 'svc'],
+                    'source' => 'OtherNamespace\\OtherClass',
+                ]
+            ],
+        ]);
+
+        $management = new LogManagement($this->config('app'), $dir);
+        $request = $this->request(['source' => 'mycontroller']);
+
+        /* Act: execute the log query handler with a source filter. */
+        $result = ($management->get())($request);
+
+        /* Assert: only the matching source entry is returned. */
+        $this->assertCount(1, $result);
+        $this->assertSame('hit', $result[0]['message']);
+    }
+
+    /**
      * Ensures name and write handler are exposed as expected.
      */
     public function testNameAndSet(): void
