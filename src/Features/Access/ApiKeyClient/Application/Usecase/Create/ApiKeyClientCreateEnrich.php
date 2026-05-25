@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientEnrichForUpdate;
 
-class ApiKeyClientCreateEnrich
+class ApiKeyClientCreateEnrich extends ApiKeyClientEnrichForUpdate
 {
     public function __construct(public readonly ApiKeyClientCreateParams $input, private ApiKeyClientAttributes $result)
     {

@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes;
+use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetEnrichForUpdate;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 
-class TemplateAssetUpdateEnrich
+class TemplateAssetUpdateEnrich extends TemplateAssetEnrichForUpdate
 {
     public function __construct(
         public readonly TemplateAssetUpdateParams $input,

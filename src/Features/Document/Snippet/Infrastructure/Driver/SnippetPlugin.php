@@ -25,20 +25,6 @@ use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\Snipp
 use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Create\SnippetCreateAllowDecision;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Update\SnippetUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Retrieve\SnippetRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\List\SnippetListAllowDecision;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Delete\SnippetDeleteAllowDecision;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Enable\SnippetEnableAllowDecision;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Disable\SnippetDisableAllowDecision;
 use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetReadGateway;
@@ -64,13 +50,6 @@ class SnippetPlugin extends MicroPlugin
     {
         $listener->registerListener(SnippetRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(SnippetCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(SnippetCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(SnippetUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(SnippetRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(SnippetListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(SnippetDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(SnippetEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(SnippetDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -352,11 +352,11 @@ class UserRoleAssignamentPdoConnector
                     $query .= ' and "access_user_role_assignament"."trusted_client" in (:trustedClients)  ';
                     $params[] = new SqlParam(name: 'trustedClients', value: $filterTrustedClients, type: SqlParam::STR);
                 }
-                $filterUserTenantTenantAccesible = $filter->userTenantTenantAccesible();
-                if (null !== $filterUserTenantTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_user" as "userTenantTenantAccesibleUser" ON "userTenantTenantAccesibleUser"."uid" = "access_user_role_assignament"."user" LEFT JOIN "access_tenant" as "userTenantTenantAccesibleTenant" ON "userTenantTenantAccesibleTenant"."uid" = "userTenantTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantTenantAccesibleTenant"."uid" = :userTenantTenantAccesible';
-                    $params[] = new SqlParam(name: 'userTenantTenantAccesible', value: $filterUserTenantTenantAccesible, type: SqlParam::STR);
+                $filterUserTenantAccesible = $filter->userTenantAccesible();
+                if (null !== $filterUserTenantAccesible) {
+                    $join .= ' LEFT JOIN "access_user" as "userTenantAccesibleUser" ON "userTenantAccesibleUser"."uid" = "access_user_role_assignament"."user" LEFT JOIN "access_tenant" as "userTenantAccesibleTenant" ON "userTenantAccesibleTenant"."uid" = "userTenantAccesibleUser"."tenant"';
+                    $query .= ' and "userTenantAccesibleTenant"."uid" = :userTenantAccesible';
+                    $params[] = new SqlParam(name: 'userTenantAccesible', value: $filterUserTenantAccesible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

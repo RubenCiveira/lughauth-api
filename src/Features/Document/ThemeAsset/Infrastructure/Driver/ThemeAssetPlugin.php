@@ -24,22 +24,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\ThemeAsset\Application\Service\Visibility\ThemeAssetRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Create\ThemeAssetCreateAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Update\ThemeAssetUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Retrieve\ThemeAssetRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\List\ThemeAssetListAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Delete\ThemeAssetDeleteAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Enable\ThemeAssetEnableAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Disable\ThemeAssetDisableAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Allow\UploadContent\IsAuthenticatedUploadContentAllow;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\UploadContent\ThemeAssetUploadContentAllowDecision;
 use Civi\Lughauth\Features\Document\ThemeAsset\Infrastructure\Driven\ThemeAssetReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\ThemeAsset\Infrastructure\Driven\ThemeAssetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetReadGateway;
@@ -64,14 +48,6 @@ class ThemeAssetPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(ThemeAssetRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(ThemeAssetCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(ThemeAssetUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(ThemeAssetRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(ThemeAssetListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(ThemeAssetDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(ThemeAssetEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(ThemeAssetDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $listener->registerListener(ThemeAssetUploadContentAllowDecision::class, IsAuthenticatedUploadContentAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

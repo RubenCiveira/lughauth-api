@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\ThemeAsset\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAssetAttributes;
+use Civi\Lughauth\Features\Document\ThemeAsset\Application\Service\Visibility\ThemeAssetEnrichForUpdate;
 
-class ThemeAssetCreateEnrich
+class ThemeAssetCreateEnrich extends ThemeAssetEnrichForUpdate
 {
     public function __construct(public readonly ThemeAssetCreateParams $input, private ThemeAssetAttributes $result)
     {

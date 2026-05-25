@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\UserRoleAssignamentAttributes;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Service\Visibility\UserRoleAssignamentEnrichForUpdate;
 
-class UserRoleAssignamentCreateEnrich
+class UserRoleAssignamentCreateEnrich extends UserRoleAssignamentEnrichForUpdate
 {
     public function __construct(public readonly UserRoleAssignamentCreateParams $input, private UserRoleAssignamentAttributes $result)
     {

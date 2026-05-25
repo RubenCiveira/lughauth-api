@@ -21,16 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Service\Visibility\TemplateVersionRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\Create\TemplateVersionCreateAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\Update\TemplateVersionUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\Retrieve\TemplateVersionRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\List\TemplateVersionListAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Usecase\Delete\TemplateVersionDeleteAllowDecision;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
@@ -55,11 +45,6 @@ class TemplateVersionPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(TemplateVersionRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(TemplateVersionCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TemplateVersionUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TemplateVersionRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TemplateVersionListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TemplateVersionDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

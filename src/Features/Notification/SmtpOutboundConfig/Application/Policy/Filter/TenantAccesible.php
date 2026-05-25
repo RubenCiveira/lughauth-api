@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Filter;
 
 use Throwable;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -25,14 +24,9 @@ class TenantAccesible
         $this->logDebug("Check TenantAccesible Smtp outbound config");
         $span = $this->startSpan("Check TenantAccesible Smtp outbound config");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
-                $tenantTenantAccesible = $userContext->tenant;
-                if (!$userContext->anonymous && null !== $tenantTenantAccesible) {
-                    $event->smtpOutboundConfigFilter = $event->smtpOutboundConfigFilter->withTenantTenantAccesible($tenantTenantAccesible);
-                } else {
-                    throw new UnauthorizedException('The claim tenant is required');
-                }
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
+                $event->with($event->smtpOutboundConfigFilter->withTenantAccesible($identity->tenant));
             }
             return $event;
         } catch (Throwable $ex) {

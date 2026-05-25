@@ -21,16 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\Create\UserGroupMembershipCreateAllowDecision;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\Update\UserGroupMembershipUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\Retrieve\UserGroupMembershipRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\List\UserGroupMembershipListAllowDecision;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\Delete\UserGroupMembershipDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
@@ -55,11 +45,6 @@ class UserGroupMembershipPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(UserGroupMembershipRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(UserGroupMembershipCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(UserGroupMembershipUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(UserGroupMembershipRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(UserGroupMembershipListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(UserGroupMembershipDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -20,6 +20,16 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEn
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigEnableRegisterUsersAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigMagicLinkEnabledAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRequireEmailVerificationVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRequireEmailVerificationAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInvitationExpiryDaysVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigInvitationExpiryDaysAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkExpiryMinutesVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigMagicLinkExpiryMinutesAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigSessionSsoTtlSecondsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigSessionSsoTtlSecondsAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRefreshTokenTtlSecondsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRefreshTokenTtlSecondsAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWebauthnEnabledAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
@@ -54,6 +64,11 @@ class TenantConfig extends TenantConfigRef
     use TenantConfigAllowRegisterAccessor;
     use TenantConfigEnableRegisterUsersAccessor;
     use TenantConfigMagicLinkEnabledAccessor;
+    use TenantConfigRequireEmailVerificationAccessor;
+    use TenantConfigInvitationExpiryDaysAccessor;
+    use TenantConfigMagicLinkExpiryMinutesAccessor;
+    use TenantConfigSessionSsoTtlSecondsAccessor;
+    use TenantConfigRefreshTokenTtlSecondsAccessor;
     use TenantConfigWebauthnEnabledAccessor;
     use TenantConfigWebauthnRpIdAccessor;
     use TenantConfigWebauthnRpNameAccessor;
@@ -70,6 +85,11 @@ class TenantConfig extends TenantConfigRef
         TenantConfigUidVO|string $uid,
         TenantConfigTenantVO|TenantRef $tenant,
         TenantConfigForceMfaVO|bool $forceMfa,
+        TenantConfigRequireEmailVerificationVO|bool $requireEmailVerification,
+        TenantConfigInvitationExpiryDaysVO|int $invitationExpiryDays,
+        TenantConfigMagicLinkExpiryMinutesVO|int $magicLinkExpiryMinutes,
+        TenantConfigSessionSsoTtlSecondsVO|int $sessionSsoTtlSeconds,
+        TenantConfigRefreshTokenTtlSecondsVO|int $refreshTokenTtlSeconds,
         TenantConfigInnerLabelVO|string|null $innerLabel = null,
         TenantConfigDynamicRegistrationPolicyVO|TenantConfigDynamicRegistrationPolicyOptions|null $dynamicRegistrationPolicy = null,
         TenantConfigAllowRegisterVO|bool|null $allowRegister = null,
@@ -94,6 +114,11 @@ class TenantConfig extends TenantConfigRef
         $this->_allowRegister = null === $allowRegister ? TenantConfigAllowRegisterVO::empty() : TenantConfigAllowRegisterVO::from($allowRegister);
         $this->_enableRegisterUsers = null === $enableRegisterUsers ? TenantConfigEnableRegisterUsersVO::empty() : TenantConfigEnableRegisterUsersVO::from($enableRegisterUsers);
         $this->_magicLinkEnabled = null === $magicLinkEnabled ? TenantConfigMagicLinkEnabledVO::empty() : TenantConfigMagicLinkEnabledVO::from($magicLinkEnabled);
+        $this->_requireEmailVerification = TenantConfigRequireEmailVerificationVO::from($requireEmailVerification);
+        $this->_invitationExpiryDays = TenantConfigInvitationExpiryDaysVO::from($invitationExpiryDays);
+        $this->_magicLinkExpiryMinutes = TenantConfigMagicLinkExpiryMinutesVO::from($magicLinkExpiryMinutes);
+        $this->_sessionSsoTtlSeconds = TenantConfigSessionSsoTtlSecondsVO::from($sessionSsoTtlSeconds);
+        $this->_refreshTokenTtlSeconds = TenantConfigRefreshTokenTtlSecondsVO::from($refreshTokenTtlSeconds);
         $this->_webauthnEnabled = null === $webauthnEnabled ? TenantConfigWebauthnEnabledVO::empty() : TenantConfigWebauthnEnabledVO::from($webauthnEnabled);
         $this->_webauthnRpId = null === $webauthnRpId ? TenantConfigWebauthnRpIdVO::empty() : TenantConfigWebauthnRpIdVO::from($webauthnRpId);
         $this->_webauthnRpName = null === $webauthnRpName ? TenantConfigWebauthnRpNameVO::empty() : TenantConfigWebauthnRpNameVO::from($webauthnRpName);
@@ -115,6 +140,11 @@ class TenantConfig extends TenantConfigRef
         $value->_allowRegister = $values->getAllowRegisterOrCurrent($this->_allowRegister);
         $value->_enableRegisterUsers = $values->getEnableRegisterUsersOrCurrent($this->_enableRegisterUsers);
         $value->_magicLinkEnabled = $values->getMagicLinkEnabledOrCurrent($this->_magicLinkEnabled);
+        $value->_requireEmailVerification = $values->getRequireEmailVerificationOrCurrent($this->_requireEmailVerification);
+        $value->_invitationExpiryDays = $values->getInvitationExpiryDaysOrCurrent($this->_invitationExpiryDays);
+        $value->_magicLinkExpiryMinutes = $values->getMagicLinkExpiryMinutesOrCurrent($this->_magicLinkExpiryMinutes);
+        $value->_sessionSsoTtlSeconds = $values->getSessionSsoTtlSecondsOrCurrent($this->_sessionSsoTtlSeconds);
+        $value->_refreshTokenTtlSeconds = $values->getRefreshTokenTtlSecondsOrCurrent($this->_refreshTokenTtlSeconds);
         $value->_webauthnEnabled = $values->getWebauthnEnabledOrCurrent($this->_webauthnEnabled);
         $value->_webauthnRpId = $values->getWebauthnRpIdOrCurrent($this->_webauthnRpId);
         $value->_webauthnRpName = $values->getWebauthnRpNameOrCurrent($this->_webauthnRpName);
@@ -160,6 +190,11 @@ class TenantConfig extends TenantConfigRef
         $data['allowRegister'] = $this->isAllowRegister();
         $data['enableRegisterUsers'] = $this->isEnableRegisterUsers();
         $data['magicLinkEnabled'] = $this->isMagicLinkEnabled();
+        $data['requireEmailVerification'] = $this->isRequireEmailVerification();
+        $data['invitationExpiryDays'] = $this->getInvitationExpiryDays();
+        $data['magicLinkExpiryMinutes'] = $this->getMagicLinkExpiryMinutes();
+        $data['sessionSsoTtlSeconds'] = $this->getSessionSsoTtlSeconds();
+        $data['refreshTokenTtlSeconds'] = $this->getRefreshTokenTtlSeconds();
         $data['webauthnEnabled'] = $this->isWebauthnEnabled();
         $data['webauthnRpId'] = $this->getWebauthnRpId();
         $data['webauthnRpName'] = $this->getWebauthnRpName();
@@ -183,6 +218,11 @@ class TenantConfig extends TenantConfigRef
           ->allowRegister($this->_allowRegister)
           ->enableRegisterUsers($this->_enableRegisterUsers)
           ->magicLinkEnabled($this->_magicLinkEnabled)
+          ->requireEmailVerification($this->_requireEmailVerification)
+          ->invitationExpiryDays($this->_invitationExpiryDays)
+          ->magicLinkExpiryMinutes($this->_magicLinkExpiryMinutes)
+          ->sessionSsoTtlSeconds($this->_sessionSsoTtlSeconds)
+          ->refreshTokenTtlSeconds($this->_refreshTokenTtlSeconds)
           ->webauthnEnabled($this->_webauthnEnabled)
           ->webauthnRpId($this->_webauthnRpId)
           ->webauthnRpName($this->_webauthnRpName)

@@ -11,6 +11,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserNameAttribu
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailVerifiedAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
@@ -29,6 +30,7 @@ class UserRetrieveResult
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
     use UserWellcomeAtAttributeHolder;
+    use UserEmailVerifiedAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserApproveAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
@@ -45,6 +47,7 @@ class UserRetrieveResult
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
       'wellcomeAt' => 'unsetWellcomeAt',
+      'emailVerified' => 'unsetEmailVerified',
       'enabled' => 'unsetEnabled',
       'approve' => 'unsetApprove',
       'temporalPassword' => 'unsetTemporalPassword',
@@ -64,6 +67,7 @@ class UserRetrieveResult
             $this->readPasswordFrom($att);
             $this->readEmailFrom($att);
             $this->readWellcomeAtFrom($att);
+            $this->readEmailVerifiedFrom($att);
             $this->readEnabledFrom($att);
             $this->readApproveFrom($att);
             $this->readTemporalPasswordFrom($att);
@@ -83,6 +87,7 @@ class UserRetrieveResult
         $this->writePasswordTo($att);
         $this->writeEmailTo($att);
         $this->writeWellcomeAtTo($att);
+        $this->writeEmailVerifiedTo($att);
         $this->writeEnabledTo($att);
         $this->writeApproveTo($att);
         $this->writeTemporalPasswordTo($att);
@@ -107,6 +112,7 @@ class UserRetrieveResult
         $this->withDefaultPassword();
         $this->withDefaultEmail();
         $this->withDefaultWellcomeAt();
+        $this->withDefaultEmailVerified();
         $this->withDefaultEnabled();
         $this->withDefaultApprove();
         $this->withDefaultTemporalPassword();

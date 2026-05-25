@@ -21,31 +21,18 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\CreateApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Update\UpdateApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Retrieve\RetrieveApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\List\ListApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\List\ApiKeyClientListAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Delete\DeleteApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\EnableApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\DisableApiKeyClientOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\OnlyForRootAllow;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\List\ApiKeyClientListAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiKeyClientRetrieveAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
@@ -65,20 +52,13 @@ class ApiKeyClientPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(ApiKeyClientCreateAllowDecision::class, CreateApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, UpdateApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, RetrieveApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(ApiKeyClientListAllowDecision::class, ListApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, DeleteApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(ApiKeyClientEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(ApiKeyClientEnableAllowDecision::class, EnableApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, DisableApiKeyClientOnlyForRootAllow::class);
-        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(ApiKeyClientCreateAllowDecision::class, OnlyForRootAllow::class, 'checkCreate');
+        $listener->registerListener(ApiKeyClientUpdateAllowDecision::class, OnlyForRootAllow::class, 'checkUpdate');
+        $listener->registerListener(ApiKeyClientListAllowDecision::class, OnlyForRootAllow::class, 'checkList');
+        $listener->registerListener(ApiKeyClientRetrieveAllowDecision::class, OnlyForRootAllow::class, 'checkRetrieve');
+        $listener->registerListener(ApiKeyClientDeleteAllowDecision::class, OnlyForRootAllow::class, 'checkDelete');
+        $listener->registerListener(ApiKeyClientEnableAllowDecision::class, OnlyForRootAllow::class, 'checkEnable');
+        $listener->registerListener(ApiKeyClientDisableAllowDecision::class, OnlyForRootAllow::class, 'checkDisable');
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

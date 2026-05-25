@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientEnrichForUpdate;
 
-class TrustedClientCreateEnrich
+class TrustedClientCreateEnrich extends TrustedClientEnrichForUpdate
 {
     public function __construct(public readonly TrustedClientCreateParams $input, private TrustedClientAttributes $result)
     {

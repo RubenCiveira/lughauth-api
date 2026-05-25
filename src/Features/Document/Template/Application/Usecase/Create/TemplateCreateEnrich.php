@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Template\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateAttributes;
+use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateEnrichForUpdate;
 
-class TemplateCreateEnrich
+class TemplateCreateEnrich extends TemplateEnrichForUpdate
 {
     public function __construct(public readonly TemplateCreateParams $input, private TemplateAttributes $result)
     {

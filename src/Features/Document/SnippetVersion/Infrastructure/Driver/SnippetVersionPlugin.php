@@ -21,16 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Usecase\Create\SnippetVersionCreateAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Usecase\Update\SnippetVersionUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Usecase\Retrieve\SnippetVersionRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Usecase\List\SnippetVersionListAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Usecase\Delete\SnippetVersionDeleteAllowDecision;
 use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionReadGateway;
@@ -55,11 +45,6 @@ class SnippetVersionPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(SnippetVersionRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(SnippetVersionCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(SnippetVersionUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(SnippetVersionRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(SnippetVersionListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(SnippetVersionDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

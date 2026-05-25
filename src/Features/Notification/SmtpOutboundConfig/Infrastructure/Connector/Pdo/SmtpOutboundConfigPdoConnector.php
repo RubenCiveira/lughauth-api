@@ -142,7 +142,7 @@ class SmtpOutboundConfigPdoConnector
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'host', value: $entity->getHost(), type: SqlParam::STR),
-                     new SqlParam(name: 'port', value: $entity->isPort(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'port', value: $entity->getPort(), type: SqlParam::INT),
                      new SqlParam(name: 'login', value: $entity->getLogin(), type: SqlParam::STR),
                      new SqlParam(name: 'password', value: $entity->getCypheredPassword($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'senderName', value: $entity->getSenderName(), type: SqlParam::STR),
@@ -183,7 +183,7 @@ class SmtpOutboundConfigPdoConnector
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()?->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'host', value: $update->getHost(), type: SqlParam::STR),
-                     new SqlParam(name: 'port', value: $update->isPort(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'port', value: $update->getPort(), type: SqlParam::INT),
                      new SqlParam(name: 'login', value: $update->getLogin(), type: SqlParam::STR),
                      new SqlParam(name: 'password', value: $update->getCypheredPassword($this->cypher), type: SqlParam::STR),
                      new SqlParam(name: 'senderName', value: $update->getSenderName(), type: SqlParam::STR),
@@ -340,11 +340,11 @@ class SmtpOutboundConfigPdoConnector
                     $query .= ' and "notification_smtp_outbound_config"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
-                if (null !== $filterTenantTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "notification_smtp_outbound_config"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccesible = $filter->tenantAccesible();
+                if (null !== $filterTenantAccesible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "notification_smtp_outbound_config"."tenant"';
+                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
+                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
                 }
             }
             if ($sort) {
@@ -386,7 +386,7 @@ class SmtpOutboundConfigPdoConnector
             if (null === $host) {
                 throw ConstraintException::ofError('not-null', ['host'], [null]);
             }
-            $port = isset($row['port']) ? !! $row['port'] : null;
+            $port = $row['port'] ?? null;
             if (null === $port) {
                 throw ConstraintException::ofError('not-null', ['port'], [null]);
             }

@@ -20,7 +20,7 @@ class SnippetAssetFilter
         private ?string $code = null,
         private ?SnippetRef $snippet = null,
         private ?array $snippets = null,
-        private ?string $snippetTenantTenantAccesible = null,
+        private ?string $snippetTenantAccesible = null,
     ) {
     }
     public function uids(): ?array
@@ -115,22 +115,22 @@ class SnippetAssetFilter
         $copy->snippets = $snippets;
         return $copy;
     }
-    public function snippetTenantTenantAccesible(): ?string
+    public function snippetTenantAccesible(): ?string
     {
-        return $this->snippetTenantTenantAccesible;
+        return $this->snippetTenantAccesible;
     }
-    public function isSnippetTenantTenantAccesibleAssigned(): bool
+    public function isSnippetTenantAccesibleAssigned(): bool
     {
-        return null !== $this->snippetTenantTenantAccesible;
+        return null !== $this->snippetTenantAccesible;
     }
-    public function unsetSnippetTenantTenantAccesible(): void
+    public function unsetSnippetTenantAccesible(): void
     {
-        $this->snippetTenantTenantAccesible = null;
+        $this->snippetTenantAccesible = null;
     }
-    public function withSnippetTenantTenantAccesible(string $snippetTenantTenantAccesible): self
+    public function withSnippetTenantAccesible(string $snippetTenantAccesible): self
     {
         $copy = clone $this;
-        $copy->snippetTenantTenantAccesible = $snippetTenantTenantAccesible;
+        $copy->snippetTenantAccesible = $snippetTenantAccesible;
         return $copy;
     }
 }

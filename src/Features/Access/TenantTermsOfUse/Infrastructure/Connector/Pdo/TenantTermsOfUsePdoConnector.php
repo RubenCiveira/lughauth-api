@@ -333,11 +333,11 @@ class TenantTermsOfUsePdoConnector
                     $query .= ' and "access_tenant_terms_of_use"."relying_party" in (:relyingPartys)  ';
                     $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
                 }
-                $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
-                if (null !== $filterTenantTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_terms_of_use"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccesible = $filter->tenantAccesible();
+                if (null !== $filterTenantAccesible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "access_tenant_terms_of_use"."tenant"';
+                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
+                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

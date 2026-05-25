@@ -24,8 +24,8 @@ class FixTenantExcludingRoot
         $this->logDebug("Check FixTenantExcludingRoot Template variable");
         $span = $this->startSpan("Check FixTenantExcludingRoot Template variable");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
                 $event->withAll(['tenant']);
             }
             return $event;

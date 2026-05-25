@@ -24,8 +24,8 @@ class FixTenantExcludingRoot
         $this->logDebug("Check FixTenantExcludingRoot Message");
         $span = $this->startSpan("Check FixTenantExcludingRoot Message");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
                 $event->withAll(['tenant']);
             }
             return $event;

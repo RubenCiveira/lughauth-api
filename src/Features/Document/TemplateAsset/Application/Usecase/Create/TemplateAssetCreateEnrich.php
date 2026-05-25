@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes;
+use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetEnrichForUpdate;
 
-class TemplateAssetCreateEnrich
+class TemplateAssetCreateEnrich extends TemplateAssetEnrichForUpdate
 {
     public function __construct(public readonly TemplateAssetCreateParams $input, private TemplateAssetAttributes $result)
     {

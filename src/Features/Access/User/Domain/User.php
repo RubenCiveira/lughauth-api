@@ -16,6 +16,8 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEmailAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserWellcomeAtVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserWellcomeAtAccessor;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEmailVerifiedVO;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEmailVerifiedAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserEnabledVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserEnabledAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserApproveVO;
@@ -33,6 +35,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserProviderA
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserVersionVO;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Accessor\UserVersionAccessor;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\WellcomeAtCalculator;
+use Civi\Lughauth\Features\Access\User\Domain\Formula\EmailVerifiedCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\EnabledCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\ApproveCalculator;
 use Civi\Lughauth\Features\Access\User\Domain\Formula\SecondFactorSeedCalculator;
@@ -51,6 +54,7 @@ use Civi\Lughauth\Features\Access\User\Domain\Event\UserUnlockEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserBlockEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserSetMfaSeedEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserChangePasswordEvent;
+use Civi\Lughauth\Features\Access\User\Domain\Event\UserVerifyEmailEvent;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 
@@ -61,6 +65,7 @@ class User extends UserRef
     use UserPasswordAccessor;
     use UserEmailAccessor;
     use UserWellcomeAtAccessor;
+    use UserEmailVerifiedAccessor;
     use UserEnabledAccessor;
     use UserApproveAccessor;
     use UserTemporalPasswordAccessor;
@@ -78,6 +83,7 @@ class User extends UserRef
         UserPasswordVO|string $password,
         UserEmailVO|string|null $email = null,
         UserWellcomeAtVO|\DateTimeImmutable|null $wellcomeAt = null,
+        UserEmailVerifiedVO|bool|null $emailVerified = null,
         UserEnabledVO|bool|null $enabled = null,
         UserApproveVO|UserApproveOptions|null $approve = null,
         UserTemporalPasswordVO|bool|null $temporalPassword = null,
@@ -93,6 +99,7 @@ class User extends UserRef
         $this->_password = UserPasswordVO::from($password);
         $this->_email = null === $email ? UserEmailVO::empty() : UserEmailVO::from($email);
         $this->_wellcomeAt = null === $wellcomeAt ? UserWellcomeAtVO::empty() : UserWellcomeAtVO::from($wellcomeAt);
+        $this->_emailVerified = null === $emailVerified ? UserEmailVerifiedVO::empty() : UserEmailVerifiedVO::from($emailVerified);
         $this->_enabled = null === $enabled ? UserEnabledVO::empty() : UserEnabledVO::from($enabled);
         $this->_approve = null === $approve ? UserApproveVO::empty() : UserApproveVO::from($approve);
         $this->_temporalPassword = null === $temporalPassword ? UserTemporalPasswordVO::empty() : UserTemporalPasswordVO::from($temporalPassword);
@@ -110,6 +117,7 @@ class User extends UserRef
         $value->_password = $values->getPasswordOrCurrent($this->_password);
         $value->_email = $values->getEmailOrCurrent($this->_email);
         $value->_wellcomeAt = $values->getWellcomeAtOrCurrent($this->_wellcomeAt);
+        $value->_emailVerified = $values->getEmailVerifiedOrCurrent($this->_emailVerified);
         $value->_enabled = $values->getEnabledOrCurrent($this->_enabled);
         $value->_approve = $values->getApproveOrCurrent($this->_approve);
         $value->_temporalPassword = $values->getTemporalPasswordOrCurrent($this->_temporalPassword);
@@ -122,12 +130,13 @@ class User extends UserRef
     }
     public static function calculatedFields(): array
     {
-        return [ 'wellcomeAt', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'];
+        return [ 'wellcomeAt', 'emailVerified', 'enabled', 'approve', 'secondFactorSeed', 'blockedUntil', 'provider'];
     }
     public static function create(UserAttributes $values): User
     {
         $calculated = clone $values;
         $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $calculated->emailVerified(EmailVerifiedCalculator::calculateEmailVerified());
         $calculated->enabled(EnabledCalculator::calculateEnabled());
         $calculated->approve(ApproveCalculator::calculateApprove());
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
@@ -141,6 +150,7 @@ class User extends UserRef
     {
         $calculated = clone $values;
         $calculated->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt($this));
+        $calculated->emailVerified(EmailVerifiedCalculator::calculateEmailVerified($this));
         $calculated->enabled(EnabledCalculator::calculateEnabled($this));
         $calculated->approve(ApproveCalculator::calculateApprove($this));
         $calculated->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed($this));
@@ -167,6 +177,7 @@ class User extends UserRef
         $attributes->enabled(UserEnabledVO::from(true));
         $attributes->approve(UserApproveVO::from(UserApproveOptions::UNVERIFIED));
         $attributes->wellcomeAt(WellcomeAtCalculator::calculateWellcomeAt());
+        $attributes->emailVerified(EmailVerifiedCalculator::calculateEmailVerified());
         $attributes->secondFactorSeed(SecondFactorSeedCalculator::calculateSecondFactorSeed());
         $attributes->blockedUntil(BlockedUntilCalculator::calculateBlockedUntil());
         $attributes->provider(ProviderCalculator::calculateProvider());
@@ -242,6 +253,13 @@ class User extends UserRef
         $value->recordedEvents[] = new UserChangePasswordEvent($value, original: $this);
         return $value;
     }
+    public function verifyEmail(): User
+    {
+        $value = clone $this;
+        $value->_emailVerified = UserEmailVerifiedVO::from(true);
+        $value->recordedEvents[] = new UserVerifyEmailEvent($value, original: $this);
+        return $value;
+    }
     public function asPublicJson(): array
     {
         $data = [];
@@ -250,6 +268,7 @@ class User extends UserRef
         $data['name'] = $this->getName();
         $data['email'] = $this->getEmail();
         $data['wellcomeAt'] = $this->getWellcomeAt();
+        $data['emailVerified'] = $this->isEmailVerified();
         $data['enabled'] = $this->isEnabled();
         $data['approve'] = $this->getApprove();
         $data['temporalPassword'] = $this->isTemporalPassword();
@@ -268,6 +287,7 @@ class User extends UserRef
           ->password($this->_password)
           ->email($this->_email)
           ->wellcomeAt($this->_wellcomeAt)
+          ->emailVerified($this->_emailVerified)
           ->enabled($this->_enabled)
           ->approve($this->_approve)
           ->temporalPassword($this->_temporalPassword)

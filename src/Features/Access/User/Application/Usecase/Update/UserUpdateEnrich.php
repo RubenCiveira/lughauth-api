@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserEnrichForUpdate;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 
-class UserUpdateEnrich
+class UserUpdateEnrich extends UserEnrichForUpdate
 {
     public function __construct(
         public readonly UserUpdateParams $input,

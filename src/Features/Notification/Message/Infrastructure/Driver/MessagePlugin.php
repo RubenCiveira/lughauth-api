@@ -23,16 +23,6 @@ use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\M
 use Civi\Lughauth\Features\Notification\Message\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Notification\Message\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageCollectNonEditableFields;
-use Civi\Lughauth\Features\Notification\Message\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Notification\Message\Application\Usecase\Create\MessageCreateAllowDecision;
-use Civi\Lughauth\Features\Notification\Message\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Notification\Message\Application\Usecase\Update\MessageUpdateAllowDecision;
-use Civi\Lughauth\Features\Notification\Message\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Notification\Message\Application\Usecase\Retrieve\MessageRetrieveAllowDecision;
-use Civi\Lughauth\Features\Notification\Message\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Notification\Message\Application\Usecase\List\MessageListAllowDecision;
-use Civi\Lughauth\Features\Notification\Message\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Notification\Message\Application\Usecase\Delete\MessageDeleteAllowDecision;
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageReadRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageReadGateway;
@@ -58,11 +48,6 @@ class MessagePlugin extends MicroPlugin
     {
         $listener->registerListener(MessageRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(MessageCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(MessageCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(MessageUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(MessageRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(MessageListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(MessageDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

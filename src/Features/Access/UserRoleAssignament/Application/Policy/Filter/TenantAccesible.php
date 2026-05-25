@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Filter;
 
 use Throwable;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Service\Visibility\UserRoleAssignamentRestrictFilterToVisibility;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -25,14 +24,9 @@ class TenantAccesible
         $this->logDebug("Check TenantAccesible User role assignament");
         $span = $this->startSpan("Check TenantAccesible User role assignament");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
-                $userTenantTenantAccesible = $userContext->tenant;
-                if (!$userContext->anonymous && null !== $userTenantTenantAccesible) {
-                    $event->userRoleAssignamentFilter = $event->userRoleAssignamentFilter->withUserTenantTenantAccesible($userTenantTenantAccesible);
-                } else {
-                    throw new UnauthorizedException('The claim tenant is required');
-                }
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
+                $event->with($event->userRoleAssignamentFilter->withUserTenantAccesible($identity->tenant));
             }
             return $event;
         } catch (Throwable $ex) {

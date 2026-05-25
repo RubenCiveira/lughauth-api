@@ -13,6 +13,11 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRegisterAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnableRegisterUsersAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigMagicLinkEnabledAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRequireEmailVerificationAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigInvitationExpiryDaysAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigMagicLinkExpiryMinutesAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigSessionSsoTtlSecondsAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRefreshTokenTtlSecondsAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpNameAttributeHolder;
@@ -35,6 +40,11 @@ class TenantConfigCreateResult
     use TenantConfigAllowRegisterAttributeHolder;
     use TenantConfigEnableRegisterUsersAttributeHolder;
     use TenantConfigMagicLinkEnabledAttributeHolder;
+    use TenantConfigRequireEmailVerificationAttributeHolder;
+    use TenantConfigInvitationExpiryDaysAttributeHolder;
+    use TenantConfigMagicLinkExpiryMinutesAttributeHolder;
+    use TenantConfigSessionSsoTtlSecondsAttributeHolder;
+    use TenantConfigRefreshTokenTtlSecondsAttributeHolder;
     use TenantConfigWebauthnEnabledAttributeHolder;
     use TenantConfigWebauthnRpIdAttributeHolder;
     use TenantConfigWebauthnRpNameAttributeHolder;
@@ -55,6 +65,11 @@ class TenantConfigCreateResult
       'allowRegister' => 'unsetAllowRegister',
       'enableRegisterUsers' => 'unsetEnableRegisterUsers',
       'magicLinkEnabled' => 'unsetMagicLinkEnabled',
+      'requireEmailVerification' => 'unsetRequireEmailVerification',
+      'invitationExpiryDays' => 'unsetInvitationExpiryDays',
+      'magicLinkExpiryMinutes' => 'unsetMagicLinkExpiryMinutes',
+      'sessionSsoTtlSeconds' => 'unsetSessionSsoTtlSeconds',
+      'refreshTokenTtlSeconds' => 'unsetRefreshTokenTtlSeconds',
       'webauthnEnabled' => 'unsetWebauthnEnabled',
       'webauthnRpId' => 'unsetWebauthnRpId',
       'webauthnRpName' => 'unsetWebauthnRpName',
@@ -78,6 +93,11 @@ class TenantConfigCreateResult
             $this->readAllowRegisterFrom($att);
             $this->readEnableRegisterUsersFrom($att);
             $this->readMagicLinkEnabledFrom($att);
+            $this->readRequireEmailVerificationFrom($att);
+            $this->readInvitationExpiryDaysFrom($att);
+            $this->readMagicLinkExpiryMinutesFrom($att);
+            $this->readSessionSsoTtlSecondsFrom($att);
+            $this->readRefreshTokenTtlSecondsFrom($att);
             $this->readWebauthnEnabledFrom($att);
             $this->readWebauthnRpIdFrom($att);
             $this->readWebauthnRpNameFrom($att);
@@ -101,6 +121,11 @@ class TenantConfigCreateResult
         $this->writeAllowRegisterTo($att);
         $this->writeEnableRegisterUsersTo($att);
         $this->writeMagicLinkEnabledTo($att);
+        $this->writeRequireEmailVerificationTo($att);
+        $this->writeInvitationExpiryDaysTo($att);
+        $this->writeMagicLinkExpiryMinutesTo($att);
+        $this->writeSessionSsoTtlSecondsTo($att);
+        $this->writeRefreshTokenTtlSecondsTo($att);
         $this->writeWebauthnEnabledTo($att);
         $this->writeWebauthnRpIdTo($att);
         $this->writeWebauthnRpNameTo($att);
@@ -129,6 +154,11 @@ class TenantConfigCreateResult
         $this->withDefaultAllowRegister();
         $this->withDefaultEnableRegisterUsers();
         $this->withDefaultMagicLinkEnabled();
+        $this->withDefaultRequireEmailVerification();
+        $this->withDefaultInvitationExpiryDays();
+        $this->withDefaultMagicLinkExpiryMinutes();
+        $this->withDefaultSessionSsoTtlSeconds();
+        $this->withDefaultRefreshTokenTtlSeconds();
         $this->withDefaultWebauthnEnabled();
         $this->withDefaultWebauthnRpId();
         $this->withDefaultWebauthnRpName();

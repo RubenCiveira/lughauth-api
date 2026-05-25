@@ -61,6 +61,9 @@ class TenantLoginProviderSourceVO
         if (in_array($enumString, ['saml', 'sAML', 'SAML'])) {
             return TenantLoginProviderSourceOptions::SAML;
         }
+        if (in_array($enumString, ['oIDC', 'OIDC', 'oidc'])) {
+            return TenantLoginProviderSourceOptions::OIDC;
+        }
         return null;
     }
     private static function fromUnsafe(mixed $value): TenantLoginProviderSourceVO

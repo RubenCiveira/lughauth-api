@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Filter;
 
 use Throwable;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Service\Visibility\TemplateVersionRestrictFilterToVisibility;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -25,14 +24,9 @@ class TenantAccesible
         $this->logDebug("Check TenantAccesible Template version");
         $span = $this->startSpan("Check TenantAccesible Template version");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
-                $templateTenantTenantAccesible = $userContext->tenant;
-                if (!$userContext->anonymous && null !== $templateTenantTenantAccesible) {
-                    $event->templateVersionFilter = $event->templateVersionFilter->withTemplateTenantTenantAccesible($templateTenantTenantAccesible);
-                } else {
-                    throw new UnauthorizedException('The claim tenant is required');
-                }
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
+                $event->with($event->templateVersionFilter->withTemplateTenantAccesible($identity->tenant));
             }
             return $event;
         } catch (Throwable $ex) {

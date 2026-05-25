@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Role\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
+use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleEnrichForUpdate;
 
-class RoleCreateEnrich
+class RoleCreateEnrich extends RoleEnrichForUpdate
 {
     public function __construct(public readonly RoleCreateParams $input, private RoleAttributes $result)
     {

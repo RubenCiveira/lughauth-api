@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\Message\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
+use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageEnrichForUpdate;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 
-class MessageUpdateEnrich
+class MessageUpdateEnrich extends MessageEnrichForUpdate
 {
     public function __construct(
         public readonly MessageUpdateParams $input,

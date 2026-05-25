@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembershipAttributes;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipEnrichForUpdate;
 
-class UserGroupMembershipCreateEnrich
+class UserGroupMembershipCreateEnrich extends UserGroupMembershipEnrichForUpdate
 {
     public function __construct(public readonly UserGroupMembershipCreateParams $input, private UserGroupMembershipAttributes $result)
     {

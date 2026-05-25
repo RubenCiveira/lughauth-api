@@ -23,6 +23,11 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDy
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRegisterVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnableRegisterUsersVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkEnabledVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRequireEmailVerificationVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigInvitationExpiryDaysVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigMagicLinkExpiryMinutesVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigSessionSsoTtlSecondsVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRefreshTokenTtlSecondsVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpNameVO;
@@ -118,6 +123,26 @@ class TenantConfigUpdateController
             $value->allowRegister(TenantConfigAllowRegisterVO::tryFrom($body['allowRegister'] ?? null, $errorsList));
             $value->enableRegisterUsers(TenantConfigEnableRegisterUsersVO::tryFrom($body['enableRegisterUsers'] ?? null, $errorsList));
             $value->magicLinkEnabled(TenantConfigMagicLinkEnabledVO::tryFrom($body['magicLinkEnabled'] ?? null, $errorsList));
+            $valueRequireEmailVerification = TenantConfigRequireEmailVerificationVO::tryFrom($body['requireEmailVerification'] ?? null, $errorsList);
+            if (null !== $valueRequireEmailVerification) {
+                $value->requireEmailVerification($valueRequireEmailVerification);
+            }
+            $valueInvitationExpiryDays = TenantConfigInvitationExpiryDaysVO::tryFrom($body['invitationExpiryDays'] ?? null, $errorsList);
+            if (null !== $valueInvitationExpiryDays) {
+                $value->invitationExpiryDays($valueInvitationExpiryDays);
+            }
+            $valueMagicLinkExpiryMinutes = TenantConfigMagicLinkExpiryMinutesVO::tryFrom($body['magicLinkExpiryMinutes'] ?? null, $errorsList);
+            if (null !== $valueMagicLinkExpiryMinutes) {
+                $value->magicLinkExpiryMinutes($valueMagicLinkExpiryMinutes);
+            }
+            $valueSessionSsoTtlSeconds = TenantConfigSessionSsoTtlSecondsVO::tryFrom($body['sessionSsoTtlSeconds'] ?? null, $errorsList);
+            if (null !== $valueSessionSsoTtlSeconds) {
+                $value->sessionSsoTtlSeconds($valueSessionSsoTtlSeconds);
+            }
+            $valueRefreshTokenTtlSeconds = TenantConfigRefreshTokenTtlSecondsVO::tryFrom($body['refreshTokenTtlSeconds'] ?? null, $errorsList);
+            if (null !== $valueRefreshTokenTtlSeconds) {
+                $value->refreshTokenTtlSeconds($valueRefreshTokenTtlSeconds);
+            }
             $value->webauthnEnabled(TenantConfigWebauthnEnabledVO::tryFrom($body['webauthnEnabled'] ?? null, $errorsList));
             $value->webauthnRpId(TenantConfigWebauthnRpIdVO::tryFrom($body['webauthnRpId'] ?? null, $errorsList));
             $value->webauthnRpName(TenantConfigWebauthnRpNameVO::tryFrom($body['webauthnRpName'] ?? null, $errorsList));
@@ -154,6 +179,11 @@ class TenantConfigUpdateController
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
             $dto->magicLinkEnabled = $value->isMagicLinkEnabled();
+            $dto->requireEmailVerification = $value->isRequireEmailVerification();
+            $dto->invitationExpiryDays = $value->getInvitationExpiryDays();
+            $dto->magicLinkExpiryMinutes = $value->getMagicLinkExpiryMinutes();
+            $dto->sessionSsoTtlSeconds = $value->getSessionSsoTtlSeconds();
+            $dto->refreshTokenTtlSeconds = $value->getRefreshTokenTtlSeconds();
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();

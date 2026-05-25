@@ -24,22 +24,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Service\Visibility\SnippetAssetRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Create\SnippetAssetCreateAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Update\SnippetAssetUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Retrieve\SnippetAssetRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\List\SnippetAssetListAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Delete\SnippetAssetDeleteAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Enable\SnippetAssetEnableAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Disable\SnippetAssetDisableAllowDecision;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Allow\UploadContent\IsAuthenticatedUploadContentAllow;
-use Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\UploadContent\SnippetAssetUploadContentAllowDecision;
 use Civi\Lughauth\Features\Document\SnippetAsset\Infrastructure\Driven\SnippetAssetReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\SnippetAsset\Infrastructure\Driven\SnippetAssetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetReadGateway;
@@ -64,14 +48,6 @@ class SnippetAssetPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(SnippetAssetRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(SnippetAssetCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(SnippetAssetUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(SnippetAssetRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(SnippetAssetListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(SnippetAssetDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(SnippetAssetEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(SnippetAssetDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $listener->registerListener(SnippetAssetUploadContentAllowDecision::class, IsAuthenticatedUploadContentAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

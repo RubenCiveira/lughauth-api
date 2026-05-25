@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderEnrichForUpdate;
 
-class TenantLoginProviderCreateEnrich
+class TenantLoginProviderCreateEnrich extends TenantLoginProviderEnrichForUpdate
 {
     public function __construct(public readonly TenantLoginProviderCreateParams $input, private TenantLoginProviderAttributes $result)
     {

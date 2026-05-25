@@ -23,29 +23,16 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Create\CreateTenantOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Update\UpdateTenantOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Retrieve\TenantRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\List\TenantListAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete\DeleteTenantOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\EnableTenantOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\DisableTenantOnlyForRootAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
+use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\OnlyForRootAllow;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
 
 class TenantPlugin extends MicroPlugin
 {
@@ -66,18 +53,11 @@ class TenantPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(TenantRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(TenantCreateAllowDecision::class, CreateTenantOnlyForRootAllow::class);
-        $listener->registerListener(TenantCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TenantUpdateAllowDecision::class, UpdateTenantOnlyForRootAllow::class);
-        $listener->registerListener(TenantUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TenantRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TenantListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TenantDeleteAllowDecision::class, DeleteTenantOnlyForRootAllow::class);
-        $listener->registerListener(TenantDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(TenantEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(TenantEnableAllowDecision::class, EnableTenantOnlyForRootAllow::class);
-        $listener->registerListener(TenantDisableAllowDecision::class, DisableTenantOnlyForRootAllow::class);
-        $listener->registerListener(TenantDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
+        $listener->registerListener(TenantCreateAllowDecision::class, OnlyForRootAllow::class, 'checkCreate');
+        $listener->registerListener(TenantUpdateAllowDecision::class, OnlyForRootAllow::class, 'checkUpdate');
+        $listener->registerListener(TenantDeleteAllowDecision::class, OnlyForRootAllow::class, 'checkDelete');
+        $listener->registerListener(TenantEnableAllowDecision::class, OnlyForRootAllow::class, 'checkEnable');
+        $listener->registerListener(TenantDisableAllowDecision::class, OnlyForRootAllow::class, 'checkDisable');
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

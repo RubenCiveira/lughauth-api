@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\SnippetAsset\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\SnippetAssetAttributes;
+use Civi\Lughauth\Features\Document\SnippetAsset\Application\Service\Visibility\SnippetAssetEnrichForUpdate;
 
-class SnippetAssetCreateEnrich
+class SnippetAssetCreateEnrich extends SnippetAssetEnrichForUpdate
 {
     public function __construct(public readonly SnippetAssetCreateParams $input, private SnippetAssetAttributes $result)
     {

@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\Message\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
+use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageEnrichForUpdate;
 
-class MessageCreateEnrich
+class MessageCreateEnrich extends MessageEnrichForUpdate
 {
     public function __construct(public readonly MessageCreateParams $input, private MessageAttributes $result)
     {

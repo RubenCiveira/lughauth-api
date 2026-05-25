@@ -152,6 +152,8 @@ class TrustedClientListController
             }
             $dto->allowedRedirects = $allowedRedirects;
             $dto->secretOauth = '******';
+            $dto->isResourceServer = $value->isIsResourceServer();
+            $dto->requirePkce = $value->isRequirePkce();
             $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
             $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
             $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();

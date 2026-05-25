@@ -20,7 +20,7 @@ class TenantLoginProviderFilter
         private ?string $name = null,
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
-        private ?string $tenantTenantAccesible = null,
+        private ?string $tenantAccesible = null,
     ) {
     }
     public function uids(): ?array
@@ -115,22 +115,22 @@ class TenantLoginProviderFilter
         $copy->tenants = $tenants;
         return $copy;
     }
-    public function tenantTenantAccesible(): ?string
+    public function tenantAccesible(): ?string
     {
-        return $this->tenantTenantAccesible;
+        return $this->tenantAccesible;
     }
-    public function isTenantTenantAccesibleAssigned(): bool
+    public function isTenantAccesibleAssigned(): bool
     {
-        return null !== $this->tenantTenantAccesible;
+        return null !== $this->tenantAccesible;
     }
-    public function unsetTenantTenantAccesible(): void
+    public function unsetTenantAccesible(): void
     {
-        $this->tenantTenantAccesible = null;
+        $this->tenantAccesible = null;
     }
-    public function withTenantTenantAccesible(string $tenantTenantAccesible): self
+    public function withTenantAccesible(string $tenantAccesible): self
     {
         $copy = clone $this;
-        $copy->tenantTenantAccesible = $tenantTenantAccesible;
+        $copy->tenantAccesible = $tenantAccesible;
         return $copy;
     }
 }

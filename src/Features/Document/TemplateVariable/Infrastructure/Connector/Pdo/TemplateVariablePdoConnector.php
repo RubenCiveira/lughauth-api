@@ -333,11 +333,11 @@ class TemplateVariablePdoConnector
                     $query .= ' and "document_template_variable"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
-                if (null !== $filterTenantTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "document_template_variable"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccesible = $filter->tenantAccesible();
+                if (null !== $filterTenantAccesible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "document_template_variable"."tenant"';
+                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
+                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

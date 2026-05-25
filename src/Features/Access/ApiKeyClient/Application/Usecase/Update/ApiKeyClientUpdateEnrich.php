@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientEnrichForUpdate;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 
-class ApiKeyClientUpdateEnrich
+class ApiKeyClientUpdateEnrich extends ApiKeyClientEnrichForUpdate
 {
     public function __construct(
         public readonly ApiKeyClientUpdateParams $input,

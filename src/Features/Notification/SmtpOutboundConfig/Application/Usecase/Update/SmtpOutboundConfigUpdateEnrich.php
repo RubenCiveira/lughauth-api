@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfigAttributes;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigEnrichForUpdate;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
 
-class SmtpOutboundConfigUpdateEnrich
+class SmtpOutboundConfigUpdateEnrich extends SmtpOutboundConfigEnrichForUpdate
 {
     public function __construct(
         public readonly SmtpOutboundConfigUpdateParams $input,

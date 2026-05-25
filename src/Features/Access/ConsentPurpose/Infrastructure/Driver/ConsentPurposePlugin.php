@@ -23,16 +23,6 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\Create\ConsentPurposeCreateAllowDecision;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\Update\ConsentPurposeUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\Retrieve\ConsentPurposeRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\List\ConsentPurposeListAllowDecision;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\Delete\ConsentPurposeDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
@@ -58,11 +48,6 @@ class ConsentPurposePlugin extends MicroPlugin
     {
         $listener->registerListener(ConsentPurposeRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(ConsentPurposeCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(ConsentPurposeCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(ConsentPurposeUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(ConsentPurposeRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(ConsentPurposeListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(ConsentPurposeDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

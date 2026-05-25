@@ -11,6 +11,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\Truste
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientPublicAllowAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientAllowedRedirectsAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientSecretOauthAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientIsResourceServerAttributeHolder;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientRequirePkceAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutUriAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Holder\TrustedClientFrontChannelLogoutUriAttributeHolder;
@@ -43,6 +45,8 @@ class TrustedClientDisableResult
     use TrustedClientPublicAllowAttributeHolder;
     use TrustedClientAllowedRedirectsAttributeHolder;
     use TrustedClientSecretOauthAttributeHolder;
+    use TrustedClientIsResourceServerAttributeHolder;
+    use TrustedClientRequirePkceAttributeHolder;
     use TrustedClientBackChannelLogoutUriAttributeHolder;
     use TrustedClientBackChannelLogoutSessionRequiredAttributeHolder;
     use TrustedClientFrontChannelLogoutUriAttributeHolder;
@@ -73,6 +77,8 @@ class TrustedClientDisableResult
       'publicAllow' => 'unsetPublicAllow',
       'allowedRedirects' => 'unsetAllowedRedirects',
       'secretOauth' => 'unsetSecretOauth',
+      'isResourceServer' => 'unsetIsResourceServer',
+      'requirePkce' => 'unsetRequirePkce',
       'backChannelLogoutUri' => 'unsetBackChannelLogoutUri',
       'backChannelLogoutSessionRequired' => 'unsetBackChannelLogoutSessionRequired',
       'frontChannelLogoutUri' => 'unsetFrontChannelLogoutUri',
@@ -106,6 +112,8 @@ class TrustedClientDisableResult
             $this->readPublicAllowFrom($att);
             $this->readAllowedRedirectsFrom($att);
             $this->readSecretOauthFrom($att);
+            $this->readIsResourceServerFrom($att);
+            $this->readRequirePkceFrom($att);
             $this->readBackChannelLogoutUriFrom($att);
             $this->readBackChannelLogoutSessionRequiredFrom($att);
             $this->readFrontChannelLogoutUriFrom($att);
@@ -139,6 +147,8 @@ class TrustedClientDisableResult
         $this->writePublicAllowTo($att);
         $this->writeAllowedRedirectsTo($att);
         $this->writeSecretOauthTo($att);
+        $this->writeIsResourceServerTo($att);
+        $this->writeRequirePkceTo($att);
         $this->writeBackChannelLogoutUriTo($att);
         $this->writeBackChannelLogoutSessionRequiredTo($att);
         $this->writeFrontChannelLogoutUriTo($att);
@@ -177,6 +187,8 @@ class TrustedClientDisableResult
         $this->withDefaultPublicAllow();
         $this->withDefaultAllowedRedirects();
         $this->withDefaultSecretOauth();
+        $this->withDefaultIsResourceServer();
+        $this->withDefaultRequirePkce();
         $this->withDefaultBackChannelLogoutUri();
         $this->withDefaultBackChannelLogoutSessionRequired();
         $this->withDefaultFrontChannelLogoutUri();

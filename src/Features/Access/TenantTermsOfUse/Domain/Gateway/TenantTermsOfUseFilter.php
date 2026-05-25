@@ -17,7 +17,7 @@ class TenantTermsOfUseFilter
         private ?array $tenants = null,
         private ?RelyingPartyRef $relyingParty = null,
         private ?array $relyingPartys = null,
-        private ?string $tenantTenantAccesible = null,
+        private ?string $tenantAccesible = null,
     ) {
     }
     public function uids(): ?array
@@ -112,22 +112,22 @@ class TenantTermsOfUseFilter
         $copy->relyingPartys = $relyingPartys;
         return $copy;
     }
-    public function tenantTenantAccesible(): ?string
+    public function tenantAccesible(): ?string
     {
-        return $this->tenantTenantAccesible;
+        return $this->tenantAccesible;
     }
-    public function isTenantTenantAccesibleAssigned(): bool
+    public function isTenantAccesibleAssigned(): bool
     {
-        return null !== $this->tenantTenantAccesible;
+        return null !== $this->tenantAccesible;
     }
-    public function unsetTenantTenantAccesible(): void
+    public function unsetTenantAccesible(): void
     {
-        $this->tenantTenantAccesible = null;
+        $this->tenantAccesible = null;
     }
-    public function withTenantTenantAccesible(string $tenantTenantAccesible): self
+    public function withTenantAccesible(string $tenantAccesible): self
     {
         $copy = clone $this;
-        $copy->tenantTenantAccesible = $tenantTenantAccesible;
+        $copy->tenantAccesible = $tenantAccesible;
         return $copy;
     }
 }

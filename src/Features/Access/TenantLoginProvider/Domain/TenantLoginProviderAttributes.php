@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPrivateKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderCertificateAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderMetadataAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderOidcDiscoveryUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
@@ -35,6 +36,7 @@ class TenantLoginProviderAttributes
     use TenantLoginProviderPrivateKeyAttributeHolder;
     use TenantLoginProviderCertificateAttributeHolder;
     use TenantLoginProviderMetadataAttributeHolder;
+    use TenantLoginProviderOidcDiscoveryUrlAttributeHolder;
     use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
     use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
     use TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
@@ -53,6 +55,7 @@ class TenantLoginProviderAttributes
       'privateKey' => 'unsetPrivateKey',
       'certificate' => 'unsetCertificate',
       'metadata' => 'unsetMetadata',
+      'oidcDiscoveryUrl' => 'unsetOidcDiscoveryUrl',
       'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
       'samlIdpEntityId' => 'unsetSamlIdpEntityId',
       'samlIdpSsoUrl' => 'unsetSamlIdpSsoUrl',
@@ -74,6 +77,7 @@ class TenantLoginProviderAttributes
         $privateKey = $this->privateKeyTryBuildInitial($errors);
         $certificate = $this->certificateTryBuildInitial($errors);
         $metadata = $this->metadataTryBuildInitial($errors);
+        $oidcDiscoveryUrl = $this->oidcDiscoveryUrlTryBuildInitial($errors);
         $samlIdpMetadataUrl = $this->samlIdpMetadataUrlTryBuildInitial($errors);
         $samlIdpEntityId = $this->samlIdpEntityIdTryBuildInitial($errors);
         $samlIdpSsoUrl = $this->samlIdpSsoUrlTryBuildInitial($errors);
@@ -99,6 +103,7 @@ class TenantLoginProviderAttributes
             privateKey: $privateKey,
             certificate: $certificate,
             metadata: $metadata,
+            oidcDiscoveryUrl: $oidcDiscoveryUrl,
             samlIdpMetadataUrl: $samlIdpMetadataUrl,
             samlIdpEntityId: $samlIdpEntityId,
             samlIdpSsoUrl: $samlIdpSsoUrl,
@@ -121,6 +126,7 @@ class TenantLoginProviderAttributes
         $this->withAssertedPrivateKeyRules($value, $errorsList);
         $this->withAssertedCertificateRules($value, $errorsList);
         $this->withAssertedMetadataRules($value, $errorsList);
+        $this->withAssertedOidcDiscoveryUrlRules($value, $errorsList);
         $this->withAssertedSamlIdpMetadataUrlRules($value, $errorsList);
         $this->withAssertedSamlIdpEntityIdRules($value, $errorsList);
         $this->withAssertedSamlIdpSsoUrlRules($value, $errorsList);
@@ -150,6 +156,7 @@ class TenantLoginProviderAttributes
         $this->withDefaultPrivateKey();
         $this->withDefaultCertificate();
         $this->withDefaultMetadata();
+        $this->withDefaultOidcDiscoveryUrl();
         $this->withDefaultSamlIdpMetadataUrl();
         $this->withDefaultSamlIdpEntityId();
         $this->withDefaultSamlIdpSsoUrl();

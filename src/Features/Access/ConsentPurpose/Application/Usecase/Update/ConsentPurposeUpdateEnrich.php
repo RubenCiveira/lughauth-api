@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeAttributes;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeEnrichForUpdate;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
 
-class ConsentPurposeUpdateEnrich
+class ConsentPurposeUpdateEnrich extends ConsentPurposeEnrichForUpdate
 {
     public function __construct(
         public readonly ConsentPurposeUpdateParams $input,

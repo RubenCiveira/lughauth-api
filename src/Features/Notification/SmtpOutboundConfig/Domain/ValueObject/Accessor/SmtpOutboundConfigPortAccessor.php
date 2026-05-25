@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 trait SmtpOutboundConfigPortAccessor
 {
     private SmtpOutboundConfigPortVO $_port;
-    public function isPort(): bool
+    public function getPort(): int
     {
         return $this->_port->value();
     }
@@ -22,7 +22,7 @@ trait SmtpOutboundConfigPortAccessor
     {
         return !$this->_port->equals($original?->_port);
     }
-    public function withPort(SmtpOutboundConfigPortVO|bool $port): self
+    public function withPort(SmtpOutboundConfigPortVO|int $port): self
     {
         $copy = clone $this;
         $copy->_port = SmtpOutboundConfigPortVO::from($port);

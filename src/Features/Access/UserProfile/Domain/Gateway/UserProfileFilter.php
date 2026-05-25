@@ -14,7 +14,7 @@ class UserProfileFilter
         private ?string $search = null,
         public readonly ?UserRef $user = null,
         private ?array $users = null,
-        private ?string $userTenantTenantAccesible = null,
+        private ?string $userTenantAccesible = null,
     ) {
     }
     public function uids(): ?array
@@ -73,22 +73,22 @@ class UserProfileFilter
         $copy->users = $users;
         return $copy;
     }
-    public function userTenantTenantAccesible(): ?string
+    public function userTenantAccesible(): ?string
     {
-        return $this->userTenantTenantAccesible;
+        return $this->userTenantAccesible;
     }
-    public function isUserTenantTenantAccesibleAssigned(): bool
+    public function isUserTenantAccesibleAssigned(): bool
     {
-        return null !== $this->userTenantTenantAccesible;
+        return null !== $this->userTenantAccesible;
     }
-    public function unsetUserTenantTenantAccesible(): void
+    public function unsetUserTenantAccesible(): void
     {
-        $this->userTenantTenantAccesible = null;
+        $this->userTenantAccesible = null;
     }
-    public function withUserTenantTenantAccesible(string $userTenantTenantAccesible): self
+    public function withUserTenantAccesible(string $userTenantAccesible): self
     {
         $copy = clone $this;
-        $copy->userTenantTenantAccesible = $userTenantTenantAccesible;
+        $copy->userTenantAccesible = $userTenantAccesible;
         return $copy;
     }
 }

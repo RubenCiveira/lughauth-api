@@ -150,6 +150,12 @@ class Phix implements MigrationInterface
         }
         if (isset($parameters['dbname'])) {
             $response['name'] = $parameters['dbname'];
+        } elseif ($adapter === 'sqlite') {
+            $sqliteName = trim($parts[1]);
+            if ($sqliteName === '') {
+                throw new \InvalidArgumentException('DSN de sqlite invalido: falta nombre de base de datos');
+            }
+            $response['name'] = $sqliteName;
         }
         if (isset($_ENV['DATABASE_USERNAME'])) {
             $response['user'] = $this->config->get('database.username');

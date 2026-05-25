@@ -72,6 +72,41 @@ class TenantConfigApiDTO
     )]
     public ?bool $magicLinkEnabled = null;
     #[OA\Property(
+        property: "requireEmailVerification",
+        title: "require email verification",
+        description:"If true, users must confirm their email address via the verification link before they can complete their first login. The OIDC flow will hold the user at a verification-pending challenge until the link is clicked.",
+        type: "string"
+    )]
+    public ?bool $requireEmailVerification = null;
+    #[OA\Property(
+        property: "invitationExpiryDays",
+        title: "invitation expiry days",
+        description:"Number of days before an unused user invitation token expires. Currently hardcoded to 7 days in InvitationCreateUsecase.",
+        type: "string"
+    )]
+    public ?int $invitationExpiryDays = null;
+    #[OA\Property(
+        property: "magicLinkExpiryMinutes",
+        title: "magic link expiry minutes",
+        description:"Number of minutes before a magic-link token expires after being sent. Only relevant when magic-link-enabled=true.",
+        type: "string"
+    )]
+    public ?int $magicLinkExpiryMinutes = null;
+    #[OA\Property(
+        property: "sessionSsoTtlSeconds",
+        title: "session sso ttl seconds",
+        description:"Lifetime in seconds of the cross-client SSO session cookie. After this duration the user must re-authenticate even if a per-flow session is still valid. Corresponds to the max_age upper bound for prompt=none requests.",
+        type: "string"
+    )]
+    public ?int $sessionSsoTtlSeconds = null;
+    #[OA\Property(
+        property: "refreshTokenTtlSeconds",
+        title: "refresh token ttl seconds",
+        description:"Lifetime in seconds of issued refresh tokens. Defaults to 30 days (2 592 000 s). Applies to all grant types that issue refresh tokens for this tenant.",
+        type: "string"
+    )]
+    public ?int $refreshTokenTtlSeconds = null;
+    #[OA\Property(
         property: "webauthnEnabled",
         title: "webauthn enabled",
         description:"El webauthn enabled de tenant config",

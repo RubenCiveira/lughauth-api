@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Template\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateAttributes;
+use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateEnrichForUpdate;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
 
-class TemplateUpdateEnrich
+class TemplateUpdateEnrich extends TemplateEnrichForUpdate
 {
     public function __construct(
         public readonly TemplateUpdateParams $input,

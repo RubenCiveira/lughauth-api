@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
+use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientEnrichForUpdate;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 
-class TrustedClientUpdateEnrich
+class TrustedClientUpdateEnrich extends TrustedClientEnrichForUpdate
 {
     public function __construct(
         public readonly TrustedClientUpdateParams $input,

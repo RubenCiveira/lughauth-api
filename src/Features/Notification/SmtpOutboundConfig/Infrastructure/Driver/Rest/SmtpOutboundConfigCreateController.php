@@ -159,7 +159,7 @@ class SmtpOutboundConfigCreateController
             $dto->uid = $value->getUid();
             $dto->tenant = $tenant ? ['$ref' => $tenant->uid()] : null;
             $dto->host = $value->getHost();
-            $dto->port = $value->isPort();
+            $dto->port = $value->getPort();
             $dto->login = $value->getLogin();
             $dto->password = '******';
             $dto->senderName = $value->getSenderName();

@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\UserRoleAssignamentAttributes;
+use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Service\Visibility\UserRoleAssignamentEnrichForUpdate;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\UserRoleAssignament;
 
-class UserRoleAssignamentUpdateEnrich
+class UserRoleAssignamentUpdateEnrich extends UserRoleAssignamentEnrichForUpdate
 {
     public function __construct(
         public readonly UserRoleAssignamentUpdateParams $input,

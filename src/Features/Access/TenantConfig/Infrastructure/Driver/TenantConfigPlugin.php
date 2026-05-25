@@ -23,16 +23,6 @@ use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\Te
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create\TenantConfigCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Update\TenantConfigUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Retrieve\TenantConfigRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\List\TenantConfigListAllowDecision;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Delete\TenantConfigDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
@@ -58,11 +48,6 @@ class TenantConfigPlugin extends MicroPlugin
     {
         $listener->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(TenantConfigCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TenantConfigUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TenantConfigRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TenantConfigListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TenantConfigDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -82,6 +67,11 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "allowRegister", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "enableRegisterUsers", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "magicLinkEnabled", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "requireEmailVerification", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "invitationExpiryDays", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "magicLinkExpiryMinutes", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "sessionSsoTtlSeconds", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "refreshTokenTtlSeconds", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnEnabled", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnRpId", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnRpName", "MANAGE");

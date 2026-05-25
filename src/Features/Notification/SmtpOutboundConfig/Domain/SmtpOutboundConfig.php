@@ -57,7 +57,7 @@ class SmtpOutboundConfig extends SmtpOutboundConfigRef
     public function __construct(
         SmtpOutboundConfigUidVO|string $uid,
         SmtpOutboundConfigHostVO|string $host,
-        SmtpOutboundConfigPortVO|bool $port,
+        SmtpOutboundConfigPortVO|int $port,
         SmtpOutboundConfigLoginVO|string $login,
         SmtpOutboundConfigPasswordVO|string $password,
         SmtpOutboundConfigSenderEmailVO|string $senderEmail,
@@ -134,7 +134,7 @@ class SmtpOutboundConfig extends SmtpOutboundConfigRef
             $data['tenant'] = ['$ref' => $tenant->uid() ];
         }
         $data['host'] = $this->getHost();
-        $data['port'] = $this->isPort();
+        $data['port'] = $this->getPort();
         $data['login'] = $this->getLogin();
         $data['senderName'] = $this->getSenderName();
         $data['senderEmail'] = $this->getSenderEmail();

@@ -47,6 +47,20 @@ class TrustedClientApiDTO
     )]
     public ?string $secretOauth = null;
     #[OA\Property(
+        property: "isResourceServer",
+        title: "is resource server",
+        description:"If true, this client is allowed to call the token introspection endpoint (POST /introspect) to validate access tokens. Resource servers must authenticate at the introspection endpoint using their client credentials.",
+        type: "string"
+    )]
+    public ?bool $isResourceServer = null;
+    #[OA\Property(
+        property: "requirePkce",
+        title: "require pkce",
+        description:"If true, every authorization code request from this client must include code_challenge and code_challenge_method=S256. For clients with public-allow=true, PKCE is always required regardless of this flag.",
+        type: "string"
+    )]
+    public ?bool $requirePkce = null;
+    #[OA\Property(
         property: "backChannelLogoutUri",
         title: "back channel logout uri",
         description:"El back channel logout uri de trusted client",

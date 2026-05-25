@@ -57,6 +57,13 @@ class UserApiDTO
     )]
     public ?string $wellcomeAt = null;
     #[OA\Property(
+        property: "emailVerified",
+        title: "email verified",
+        description:"Indicates whether the user has confirmed ownership of their email address by clicking the verification link sent at registration. Used by the OIDC flow to emit the email_verified claim and optionally block login until confirmed.",
+        type: "string"
+    )]
+    public ?bool $emailVerified = null;
+    #[OA\Property(
         property: "enabled",
         title: "enabled",
         description:"A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.",

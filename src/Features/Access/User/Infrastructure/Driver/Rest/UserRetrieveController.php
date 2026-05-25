@@ -75,6 +75,7 @@ class UserRetrieveController
             $dto->password = '******';
             $dto->email = $value->getEmail();
             $dto->wellcomeAt = $value->getWellcomeAt()?->format(DateTime::ATOM);
+            $dto->emailVerified = $value->isEmailVerified();
             $dto->enabled = $value->isEnabled();
             $dto->approve = $value->getApprove();
             $dto->temporalPassword = $value->isTemporalPassword();

@@ -12,4 +12,5 @@ enum TenantLoginProviderSourceOptions: string
     case MICROSOFT = 'microsoft';
     case APPLE = 'apple';
     case SAML = 'saml';
+    case OIDC = 'oidc';
 }

@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\SnippetVersion\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\SnippetVersionAttributes;
+use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionEnrichForUpdate;
 
-class SnippetVersionCreateEnrich
+class SnippetVersionCreateEnrich extends SnippetVersionEnrichForUpdate
 {
     public function __construct(public readonly SnippetVersionCreateParams $input, private SnippetVersionAttributes $result)
     {

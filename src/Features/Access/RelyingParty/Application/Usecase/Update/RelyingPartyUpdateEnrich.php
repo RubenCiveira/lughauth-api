@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyEnrichForUpdate;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 
-class RelyingPartyUpdateEnrich
+class RelyingPartyUpdateEnrich extends RelyingPartyEnrichForUpdate
 {
     public function __construct(
         public readonly RelyingPartyUpdateParams $input,

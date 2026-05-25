@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\ThemeVersion\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersionAttributes;
+use Civi\Lughauth\Features\Document\ThemeVersion\Application\Service\Visibility\ThemeVersionEnrichForUpdate;
 
-class ThemeVersionCreateEnrich
+class ThemeVersionCreateEnrich extends ThemeVersionEnrichForUpdate
 {
     public function __construct(public readonly ThemeVersionCreateParams $input, private ThemeVersionAttributes $result)
     {

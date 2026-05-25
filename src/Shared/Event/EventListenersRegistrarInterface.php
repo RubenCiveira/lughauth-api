@@ -16,5 +16,5 @@ interface EventListenersRegistrarInterface
      * @param string $event Event name to register.
      * @param string $type Listener class or service identifier.
      */
-    public function registerListener(string $event, string $type): void;
+    public function registerListener(string $event, string $type, ?string $method = null): void;
 }

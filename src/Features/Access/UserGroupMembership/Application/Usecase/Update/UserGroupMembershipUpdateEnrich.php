@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\UserGroupMembership\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembershipAttributes;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipEnrichForUpdate;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
 
-class UserGroupMembershipUpdateEnrich
+class UserGroupMembershipUpdateEnrich extends UserGroupMembershipEnrichForUpdate
 {
     public function __construct(
         public readonly UserGroupMembershipUpdateParams $input,

@@ -26,22 +26,6 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Create\TemplateAssetCreateAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Update\TemplateAssetUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Retrieve\TemplateAssetRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\List\TemplateAssetListAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Delete\TemplateAssetDeleteAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Enable\TemplateAssetEnableAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\Disable\TemplateAssetDisableAllowDecision;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Allow\UploadContent\IsAuthenticatedUploadContentAllow;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Usecase\UploadContent\TemplateAssetUploadContentAllowDecision;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
@@ -67,14 +51,6 @@ class TemplateAssetPlugin extends MicroPlugin
     {
         $listener->registerListener(TemplateAssetRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(TemplateAssetCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(TemplateAssetCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TemplateAssetUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TemplateAssetRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TemplateAssetListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TemplateAssetDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(TemplateAssetEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(TemplateAssetDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $listener->registerListener(TemplateAssetUploadContentAllowDecision::class, IsAuthenticatedUploadContentAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -25,20 +25,6 @@ use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\Temp
 use Civi\Lughauth\Features\Document\Template\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\Template\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\Create\TemplateCreateAllowDecision;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\Update\TemplateUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\Retrieve\TemplateRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\List\TemplateListAllowDecision;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\Delete\TemplateDeleteAllowDecision;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\Enable\TemplateEnableAllowDecision;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Document\Template\Application\Usecase\Disable\TemplateDisableAllowDecision;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
@@ -64,13 +50,6 @@ class TemplatePlugin extends MicroPlugin
     {
         $listener->registerListener(TemplateRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(TemplateCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(TemplateCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TemplateUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TemplateRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TemplateListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TemplateDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(TemplateEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(TemplateDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

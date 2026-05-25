@@ -27,28 +27,10 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibi
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Create\TenantLoginProviderCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update\TenantLoginProviderUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Retrieve\TenantLoginProviderRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\List\TenantLoginProviderListAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Delete\TenantLoginProviderDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Enable\TenantLoginProviderEnableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Disable\TenantLoginProviderDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\UploadMetadata\IsAuthenticatedUploadMetadataAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\UploadMetadata\TenantLoginProviderUploadMetadataAllowDecision;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Allow\UploadSamlIdpIdpCert\IsAuthenticatedUploadSamlIdpIdpCertAllow;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\UploadSamlIdpIdpCert\TenantLoginProviderUploadSamlIdpIdpCertAllowDecision;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -70,15 +52,6 @@ class TenantLoginProviderPlugin extends MicroPlugin
     {
         $listener->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(TenantLoginProviderCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TenantLoginProviderUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TenantLoginProviderRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TenantLoginProviderListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TenantLoginProviderDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(TenantLoginProviderEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(TenantLoginProviderDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $listener->registerListener(TenantLoginProviderUploadMetadataAllowDecision::class, IsAuthenticatedUploadMetadataAllow::class);
-        $listener->registerListener(TenantLoginProviderUploadSamlIdpIdpCertAllowDecision::class, IsAuthenticatedUploadSamlIdpIdpCertAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -102,6 +75,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-login-provider", "privateKey", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "certificate", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "metadata", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "oidcDiscoveryUrl", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpMetadataUrl", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpEntityId", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpSsoUrl", "MANAGE");

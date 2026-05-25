@@ -25,20 +25,6 @@ use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeRe
 use Civi\Lughauth\Features\Document\Theme\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\Theme\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Create\ThemeCreateAllowDecision;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Update\ThemeUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Retrieve\ThemeRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\List\ThemeListAllowDecision;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Delete\ThemeDeleteAllowDecision;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Enable\ThemeEnableAllowDecision;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Document\Theme\Application\Usecase\Disable\ThemeDisableAllowDecision;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
@@ -64,13 +50,6 @@ class ThemePlugin extends MicroPlugin
     {
         $listener->registerListener(ThemeRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(ThemeCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(ThemeCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(ThemeUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(ThemeRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(ThemeListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(ThemeDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(ThemeEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(ThemeDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

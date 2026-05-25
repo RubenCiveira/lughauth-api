@@ -26,22 +26,6 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibilit
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create\TenantTermsOfUseCreateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update\TenantTermsOfUseUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Retrieve\TenantTermsOfUseRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\List\TenantTermsOfUseListAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Delete\TenantTermsOfUseDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Enable\TenantTermsOfUseEnableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Allow\UploadAttached\IsAuthenticatedUploadAttachedAllow;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Disable\TenantTermsOfUseDisableAllowDecision;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\UploadAttached\TenantTermsOfUseUploadAttachedAllowDecision;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
@@ -67,14 +51,6 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     {
         $listener->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(TenantTermsOfUseCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(TenantTermsOfUseUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(TenantTermsOfUseRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(TenantTermsOfUseListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(TenantTermsOfUseDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(TenantTermsOfUseEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(TenantTermsOfUseDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $listener->registerListener(TenantTermsOfUseUploadAttachedAllowDecision::class, IsAuthenticatedUploadAttachedAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseEnrichForUpdate;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 
-class TenantTermsOfUseUpdateEnrich
+class TenantTermsOfUseUpdateEnrich extends TenantTermsOfUseEnrichForUpdate
 {
     public function __construct(
         public readonly TenantTermsOfUseUpdateParams $input,

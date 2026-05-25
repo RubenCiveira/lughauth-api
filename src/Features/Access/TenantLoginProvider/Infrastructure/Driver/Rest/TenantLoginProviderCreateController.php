@@ -25,6 +25,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderOidcDiscoveryUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpMetadataUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpEntityIdVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpSsoUrlVO;
@@ -116,6 +117,7 @@ class TenantLoginProviderCreateController
             if (null !== $metadata && strpos($metadata, $preffixMetadata) === 0) {
                 $value->metadata(TenantLoginProviderMetadataVO::tryFromTemporal(base64_decode(substr($metadata, strlen($preffixMetadata))), $errorsList));
             }
+            $value->oidcDiscoveryUrl(TenantLoginProviderOidcDiscoveryUrlVO::tryFrom($body['oidcDiscoveryUrl'] ?? null, $errorsList));
             $value->samlIdpMetadataUrl(TenantLoginProviderSamlIdpMetadataUrlVO::tryFrom($body['samlIdpMetadataUrl'] ?? null, $errorsList));
             $value->samlIdpEntityId(TenantLoginProviderSamlIdpEntityIdVO::tryFrom($body['samlIdpEntityId'] ?? null, $errorsList));
             $value->samlIdpSsoUrl(TenantLoginProviderSamlIdpSsoUrlVO::tryFrom($body['samlIdpSsoUrl'] ?? null, $errorsList));
@@ -160,6 +162,7 @@ class TenantLoginProviderCreateController
                 $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/metadata';
                 $dto->metadata = $this->links->create($url, $request);
             }
+            $dto->oidcDiscoveryUrl = $value->getOidcDiscoveryUrl();
             $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
             $dto->samlIdpEntityId = $value->getSamlIdpEntityId();
             $dto->samlIdpSsoUrl = $value->getSamlIdpSsoUrl();

@@ -17,6 +17,10 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientAllowedRedirectsAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientSecretOauthAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIsResourceServerVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientIsResourceServerAccessor;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRequirePkceVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientRequirePkceAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\Accessor\TrustedClientBackChannelLogoutUriAccessor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
@@ -75,6 +79,8 @@ class TrustedClient extends TrustedClientRef
     use TrustedClientPublicAllowAccessor;
     use TrustedClientAllowedRedirectsAccessor;
     use TrustedClientSecretOauthAccessor;
+    use TrustedClientIsResourceServerAccessor;
+    use TrustedClientRequirePkceAccessor;
     use TrustedClientBackChannelLogoutUriAccessor;
     use TrustedClientBackChannelLogoutSessionRequiredAccessor;
     use TrustedClientFrontChannelLogoutUriAccessor;
@@ -104,6 +110,8 @@ class TrustedClient extends TrustedClientRef
         TrustedClientCodeVO|string $code,
         TrustedClientPublicAllowVO|bool $publicAllow,
         TrustedClientAllowedRedirectsVO|TrustedClientAllowedRedirectsListRef| array |null $allowedRedirects,
+        TrustedClientIsResourceServerVO|bool $isResourceServer,
+        TrustedClientRequirePkceVO|bool $requirePkce,
         TrustedClientEnabledVO|bool $enabled,
         TrustedClientTokenEndpointAuthMethodVO|string $tokenEndpointAuthMethod,
         TrustedClientM2mTokenTtlSecondsVO|int $m2mTokenTtlSeconds,
@@ -135,6 +143,8 @@ class TrustedClient extends TrustedClientRef
         $this->_publicAllow = TrustedClientPublicAllowVO::from($publicAllow);
         $this->_allowedRedirects = TrustedClientAllowedRedirectsVO::from($allowedRedirects);
         $this->_secretOauth = null === $secretOauth ? TrustedClientSecretOauthVO::empty() : TrustedClientSecretOauthVO::from($secretOauth);
+        $this->_isResourceServer = TrustedClientIsResourceServerVO::from($isResourceServer);
+        $this->_requirePkce = TrustedClientRequirePkceVO::from($requirePkce);
         $this->_backChannelLogoutUri = null === $backChannelLogoutUri ? TrustedClientBackChannelLogoutUriVO::empty() : TrustedClientBackChannelLogoutUriVO::from($backChannelLogoutUri);
         $this->_backChannelLogoutSessionRequired = null === $backChannelLogoutSessionRequired ? TrustedClientBackChannelLogoutSessionRequiredVO::empty() : TrustedClientBackChannelLogoutSessionRequiredVO::from($backChannelLogoutSessionRequired);
         $this->_frontChannelLogoutUri = null === $frontChannelLogoutUri ? TrustedClientFrontChannelLogoutUriVO::empty() : TrustedClientFrontChannelLogoutUriVO::from($frontChannelLogoutUri);
@@ -166,6 +176,8 @@ class TrustedClient extends TrustedClientRef
         $value->_publicAllow = $values->getPublicAllowOrCurrent($this->_publicAllow);
         $value->_allowedRedirects = $values->getAllowedRedirectsOrCurrent($this->_allowedRedirects);
         $value->_secretOauth = $values->getSecretOauthOrCurrent($this->_secretOauth);
+        $value->_isResourceServer = $values->getIsResourceServerOrCurrent($this->_isResourceServer);
+        $value->_requirePkce = $values->getRequirePkceOrCurrent($this->_requirePkce);
         $value->_backChannelLogoutUri = $values->getBackChannelLogoutUriOrCurrent($this->_backChannelLogoutUri);
         $value->_backChannelLogoutSessionRequired = $values->getBackChannelLogoutSessionRequiredOrCurrent($this->_backChannelLogoutSessionRequired);
         $value->_frontChannelLogoutUri = $values->getFrontChannelLogoutUriOrCurrent($this->_frontChannelLogoutUri);
@@ -250,6 +262,8 @@ class TrustedClient extends TrustedClientRef
                 }
             }
         }
+        $data['isResourceServer'] = $this->isIsResourceServer();
+        $data['requirePkce'] = $this->isRequirePkce();
         $data['backChannelLogoutUri'] = $this->getBackChannelLogoutUri();
         $data['backChannelLogoutSessionRequired'] = $this->isBackChannelLogoutSessionRequired();
         $data['frontChannelLogoutUri'] = $this->getFrontChannelLogoutUri();
@@ -283,6 +297,8 @@ class TrustedClient extends TrustedClientRef
           ->publicAllow($this->_publicAllow)
           ->allowedRedirects($this->_allowedRedirects)
           ->secretOauth($this->_secretOauth)
+          ->isResourceServer($this->_isResourceServer)
+          ->requirePkce($this->_requirePkce)
           ->backChannelLogoutUri($this->_backChannelLogoutUri)
           ->backChannelLogoutSessionRequired($this->_backChannelLogoutSessionRequired)
           ->frontChannelLogoutUri($this->_frontChannelLogoutUri)

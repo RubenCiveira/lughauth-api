@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderEnrichForUpdate;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
 
-class TenantLoginProviderUpdateEnrich
+class TenantLoginProviderUpdateEnrich extends TenantLoginProviderEnrichForUpdate
 {
     public function __construct(
         public readonly TenantLoginProviderUpdateParams $input,

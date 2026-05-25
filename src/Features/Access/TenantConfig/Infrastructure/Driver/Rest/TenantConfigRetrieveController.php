@@ -74,6 +74,11 @@ class TenantConfigRetrieveController
             $dto->allowRegister = $value->isAllowRegister();
             $dto->enableRegisterUsers = $value->isEnableRegisterUsers();
             $dto->magicLinkEnabled = $value->isMagicLinkEnabled();
+            $dto->requireEmailVerification = $value->isRequireEmailVerification();
+            $dto->invitationExpiryDays = $value->getInvitationExpiryDays();
+            $dto->magicLinkExpiryMinutes = $value->getMagicLinkExpiryMinutes();
+            $dto->sessionSsoTtlSeconds = $value->getSessionSsoTtlSeconds();
+            $dto->refreshTokenTtlSeconds = $value->getRefreshTokenTtlSeconds();
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();

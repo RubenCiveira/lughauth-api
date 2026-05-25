@@ -21,16 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\ThemeVersion\Application\Service\Visibility\ThemeVersionRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Usecase\Create\ThemeVersionCreateAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Usecase\Update\ThemeVersionUpdateAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Usecase\Retrieve\ThemeVersionRetrieveAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Usecase\List\ThemeVersionListAllowDecision;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Document\ThemeVersion\Application\Usecase\Delete\ThemeVersionDeleteAllowDecision;
 use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Driven\ThemeVersionReadRepositoryAdapter;
 use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Driven\ThemeVersionWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionReadGateway;
@@ -55,11 +45,6 @@ class ThemeVersionPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(ThemeVersionRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(ThemeVersionCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(ThemeVersionUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(ThemeVersionRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(ThemeVersionListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(ThemeVersionDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

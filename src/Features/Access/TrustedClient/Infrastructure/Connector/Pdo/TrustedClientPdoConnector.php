@@ -144,12 +144,14 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute insert sql query for Trusted client");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "registration_access", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "token_endpoint_auth_method", "grant_types_json", "response_types_json", "dynamically_registered", "registered_at", "allowed_scopes_m_2m", "m_2m_token_ttl_seconds", "request_object_signing_alg", "jwks_uri", "jwks_json", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :registrationAccess, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :tokenEndpointAuthMethod, :grantTypesJson, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :allowedScopesM2m, :m2mTokenTtlSeconds, :requestObjectSigningAlg, :jwksUri, :jwksJson, :version)', [
+                $this->db->execute('INSERT INTO "access_trusted_client" ( "uid", "code", "allow_all_scopes", "public_allow", "secret_oauth", "is_resource_server", "require_pkce", "back_channel_logout_uri", "back_channel_logout_session_required", "front_channel_logout_uri", "front_channel_logout_session_required", "enabled", "registration_access", "client_name", "logo_uri", "client_uri", "policy_uri", "tos_uri", "token_endpoint_auth_method", "grant_types_json", "response_types_json", "dynamically_registered", "registered_at", "allowed_scopes_m_2m", "m_2m_token_ttl_seconds", "request_object_signing_alg", "jwks_uri", "jwks_json", "version") VALUES ( :uid, :code, :allowAllScopes, :publicAllow, :secretOauth, :isResourceServer, :requirePkce, :backChannelLogoutUri, :backChannelLogoutSessionRequired, :frontChannelLogoutUri, :frontChannelLogoutSessionRequired, :enabled, :registrationAccess, :clientName, :logoUri, :clientUri, :policyUri, :tosUri, :tokenEndpointAuthMethod, :grantTypesJson, :responseTypesJson, :dynamicallyRegistered, :registeredAt, :allowedScopesM2m, :m2mTokenTtlSeconds, :requestObjectSigningAlg, :jwksUri, :jwksJson, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $entity->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $entity->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $entity->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $entity->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'isResourceServer', value: $entity->isIsResourceServer(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requirePkce', value: $entity->isRequirePkce(), type: SqlParam::BOOL),
                      new SqlParam(name: 'backChannelLogoutUri', value: $entity->getBackChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'backChannelLogoutSessionRequired', value: $entity->isBackChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'frontChannelLogoutUri', value: $entity->getFrontChannelLogoutUri(), type: SqlParam::STR),
@@ -199,12 +201,14 @@ class TrustedClientPdoConnector
         $span = $this->startSpan("Execute update sql query for Trusted client");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "registration_access" = :registrationAccess , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "grant_types_json" = :grantTypesJson , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "allowed_scopes_m_2m" = :allowedScopesM2m , "m_2m_token_ttl_seconds" = :m2mTokenTtlSeconds , "request_object_signing_alg" = :requestObjectSigningAlg , "jwks_uri" = :jwksUri , "jwks_json" = :jwksJson , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_trusted_client" SET "code" = :code , "allow_all_scopes" = :allowAllScopes , "public_allow" = :publicAllow , "secret_oauth" = :secretOauth , "is_resource_server" = :isResourceServer , "require_pkce" = :requirePkce , "back_channel_logout_uri" = :backChannelLogoutUri , "back_channel_logout_session_required" = :backChannelLogoutSessionRequired , "front_channel_logout_uri" = :frontChannelLogoutUri , "front_channel_logout_session_required" = :frontChannelLogoutSessionRequired , "enabled" = :enabled , "registration_access" = :registrationAccess , "client_name" = :clientName , "logo_uri" = :logoUri , "client_uri" = :clientUri , "policy_uri" = :policyUri , "tos_uri" = :tosUri , "token_endpoint_auth_method" = :tokenEndpointAuthMethod , "grant_types_json" = :grantTypesJson , "response_types_json" = :responseTypesJson , "dynamically_registered" = :dynamicallyRegistered , "registered_at" = :registeredAt , "allowed_scopes_m_2m" = :allowedScopesM2m , "m_2m_token_ttl_seconds" = :m2mTokenTtlSeconds , "request_object_signing_alg" = :requestObjectSigningAlg , "jwks_uri" = :jwksUri , "jwks_json" = :jwksJson , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'code', value: $update->getCode(), type: SqlParam::STR),
                      new SqlParam(name: 'allowAllScopes', value: $update->isAllowAllScopes(), type: SqlParam::BOOL),
                      new SqlParam(name: 'publicAllow', value: $update->isPublicAllow(), type: SqlParam::BOOL),
                      new SqlParam(name: 'secretOauth', value: $update->getCypheredSecretOauth($this->cypher), type: SqlParam::STR),
+                     new SqlParam(name: 'isResourceServer', value: $update->isIsResourceServer(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requirePkce', value: $update->isRequirePkce(), type: SqlParam::BOOL),
                      new SqlParam(name: 'backChannelLogoutUri', value: $update->getBackChannelLogoutUri(), type: SqlParam::STR),
                      new SqlParam(name: 'backChannelLogoutSessionRequired', value: $update->isBackChannelLogoutSessionRequired(), type: SqlParam::BOOL),
                      new SqlParam(name: 'frontChannelLogoutUri', value: $update->getFrontChannelLogoutUri(), type: SqlParam::STR),
@@ -549,6 +553,14 @@ class TrustedClientPdoConnector
             }
             $allowedRedirects = TrustedClientAllowedRedirectsVO::from(TrustedClientAllowedRedirectsListRef::fromArray($row['allowed_redirects'] ?? []));
             $secretOauth = isset($row['secret_oauth']) && $row['secret_oauth'] ? TrustedClientSecretOauthVO::fromCypheredText($this->cypher, $row['secret_oauth']) : TrustedClientSecretOauthVO::empty();
+            $isResourceServer = isset($row['is_resource_server']) ? !! $row['is_resource_server'] : null;
+            if (null === $isResourceServer) {
+                throw ConstraintException::ofError('not-null', ['isResourceServer'], [null]);
+            }
+            $requirePkce = isset($row['require_pkce']) ? !! $row['require_pkce'] : null;
+            if (null === $requirePkce) {
+                throw ConstraintException::ofError('not-null', ['requirePkce'], [null]);
+            }
             $backChannelLogoutUri = $row['back_channel_logout_uri'] ?? null;
             $backChannelLogoutSessionRequired = isset($row['back_channel_logout_session_required']) ? !! $row['back_channel_logout_session_required'] : null;
             $frontChannelLogoutUri = $row['front_channel_logout_uri'] ?? null;
@@ -587,6 +599,8 @@ class TrustedClientPdoConnector
                 publicAllow: $publicAllow,
                 allowedRedirects: $allowedRedirects,
                 secretOauth: $secretOauth,
+                isResourceServer: $isResourceServer,
+                requirePkce: $requirePkce,
                 backChannelLogoutUri: $backChannelLogoutUri,
                 backChannelLogoutSessionRequired: $backChannelLogoutSessionRequired,
                 frontChannelLogoutUri: $frontChannelLogoutUri,

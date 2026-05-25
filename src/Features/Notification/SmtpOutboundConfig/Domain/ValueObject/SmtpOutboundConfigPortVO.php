@@ -10,7 +10,7 @@ use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 
 class SmtpOutboundConfigPortVO
 {
-    public static function from(SmtpOutboundConfigPortVO|bool $value): SmtpOutboundConfigPortVO
+    public static function from(SmtpOutboundConfigPortVO|int $value): SmtpOutboundConfigPortVO
     {
         return self::fromUnsafe($value);
     }
@@ -19,10 +19,10 @@ class SmtpOutboundConfigPortVO
         if ($value instanceof SmtpOutboundConfigPortVO) {
             // If is a ValueObject, its already validated... nothing to append
             return $value;
-        } elseif (is_bool($value)) {
+        } elseif (is_integer($value)) {
             return new SmtpOutboundConfigPortVO($value);
         } else {
-            $list->add(new ConstraintFail('wrong_type', ['port'], [$value], ['bool']));
+            $list->add(new ConstraintFail('wrong_type', ['port'], [$value], ['int']));
             return null;
         }
     }
@@ -46,10 +46,10 @@ class SmtpOutboundConfigPortVO
      * private constructor to avoid build a value without all the rule validations.
      */
     private function __construct(
-        private readonly bool $port
+        private readonly int $port
     ) {
     }
-    public function value(): bool
+    public function value(): int
     {
         return $this->port;
     }

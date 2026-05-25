@@ -28,6 +28,8 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFail;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
 use Civi\Lughauth\Shared\Security\AesCypherService;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientIsResourceServerVO;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientRequirePkceVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutUriVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientBackChannelLogoutSessionRequiredVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientFrontChannelLogoutUriVO;
@@ -157,6 +159,14 @@ class TrustedClientUpdateController
             if (null !== $readSecretOauth && '******' !== $readSecretOauth) {
                 $value->secretOauth(TrustedClientSecretOauthVO::tryFromPlainText($this->cypherService, $readSecretOauth, $errorsList));
             }
+            $valueIsResourceServer = TrustedClientIsResourceServerVO::tryFrom($body['isResourceServer'] ?? null, $errorsList);
+            if (null !== $valueIsResourceServer) {
+                $value->isResourceServer($valueIsResourceServer);
+            }
+            $valueRequirePkce = TrustedClientRequirePkceVO::tryFrom($body['requirePkce'] ?? null, $errorsList);
+            if (null !== $valueRequirePkce) {
+                $value->requirePkce($valueRequirePkce);
+            }
             $value->backChannelLogoutUri(TrustedClientBackChannelLogoutUriVO::tryFrom($body['backChannelLogoutUri'] ?? null, $errorsList));
             $value->backChannelLogoutSessionRequired(TrustedClientBackChannelLogoutSessionRequiredVO::tryFrom($body['backChannelLogoutSessionRequired'] ?? null, $errorsList));
             $value->frontChannelLogoutUri(TrustedClientFrontChannelLogoutUriVO::tryFrom($body['frontChannelLogoutUri'] ?? null, $errorsList));
@@ -218,6 +228,8 @@ class TrustedClientUpdateController
             }
             $dto->allowedRedirects = $allowedRedirects;
             $dto->secretOauth = '******';
+            $dto->isResourceServer = $value->isIsResourceServer();
+            $dto->requirePkce = $value->isRequirePkce();
             $dto->backChannelLogoutUri = $value->getBackChannelLogoutUri();
             $dto->backChannelLogoutSessionRequired = $value->isBackChannelLogoutSessionRequired();
             $dto->frontChannelLogoutUri = $value->getFrontChannelLogoutUri();

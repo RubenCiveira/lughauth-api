@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
+use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantEnrichForUpdate;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 
-class TenantUpdateEnrich
+class TenantUpdateEnrich extends TenantEnrichForUpdate
 {
     public function __construct(
         public readonly TenantUpdateParams $input,

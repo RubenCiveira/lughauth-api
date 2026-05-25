@@ -40,7 +40,7 @@ class SmtpOutboundConfigApiDTO
         description:"El port de smtp outbound config",
         type: "string"
     )]
-    public ?bool $port = null;
+    public ?int $port = null;
     #[OA\Property(
         property: "login",
         title: "login",

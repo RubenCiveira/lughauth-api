@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Filter;
 
 use Throwable;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Service\Visibility\SnippetAssetRestrictFilterToVisibility;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -25,14 +24,9 @@ class TenantAccesible
         $this->logDebug("Check TenantAccesible Snippet asset");
         $span = $this->startSpan("Check TenantAccesible Snippet asset");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
-                $snippetTenantTenantAccesible = $userContext->tenant;
-                if (!$userContext->anonymous && null !== $snippetTenantTenantAccesible) {
-                    $event->snippetAssetFilter = $event->snippetAssetFilter->withSnippetTenantTenantAccesible($snippetTenantTenantAccesible);
-                } else {
-                    throw new UnauthorizedException('The claim tenant is required');
-                }
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
+                $event->with($event->snippetAssetFilter->withSnippetTenantAccesible($identity->tenant));
             }
             return $event;
         } catch (Throwable $ex) {

@@ -44,12 +44,12 @@ class EventBus implements EventListenersRegistrarInterface
      * @param string $type  The listener service identifier in the container.
      */
     #[Override]
-    public function registerListener(string $event, string $type): void
+    public function registerListener(string $event, string $type, ?string $method = null): void
     {
         $container = $this->container;
-        $this->base->addListener($event, function (mixed $event) use ($type, $container): mixed {
+        $this->base->addListener($event, function (mixed $event) use ($type, $method, $container): mixed {
             $instance = $container->get($type);
-            $response = call_user_func($instance, $event);
+            $response = null !== $method ? call_user_func([$instance, $method], $event) : call_user_func($instance, $event);
             return $response !== null ? $response : $event;
         });
     }

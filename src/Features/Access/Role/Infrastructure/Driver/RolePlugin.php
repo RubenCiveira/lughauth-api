@@ -19,16 +19,6 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Create\RoleCreateAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Update\RoleUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Retrieve\RoleRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\List\RoleListAllowDecision;
-use Civi\Lughauth\Features\Access\Role\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\Role\Application\Usecase\Delete\RoleDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
@@ -52,11 +42,6 @@ class RolePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(RoleCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(RoleUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(RoleRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(RoleListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(RoleDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantConfig\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigEnrichForUpdate;
 
-class TenantConfigCreateEnrich
+class TenantConfigCreateEnrich extends TenantConfigEnrichForUpdate
 {
     public function __construct(public readonly TenantConfigCreateParams $input, private TenantConfigAttributes $result)
     {

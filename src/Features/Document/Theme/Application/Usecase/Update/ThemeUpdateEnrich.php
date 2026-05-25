@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Theme\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeAttributes;
+use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeEnrichForUpdate;
 use Civi\Lughauth\Features\Document\Theme\Domain\Theme;
 
-class ThemeUpdateEnrich
+class ThemeUpdateEnrich extends ThemeEnrichForUpdate
 {
     public function __construct(
         public readonly ThemeUpdateParams $input,

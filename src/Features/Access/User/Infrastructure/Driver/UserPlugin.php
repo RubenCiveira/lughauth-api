@@ -28,26 +28,6 @@ use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestri
 use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Create\UserCreateAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Update\UserUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Retrieve\UserRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\List\UserListAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Delete\UserDeleteAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Accept\IsAuthenticatedAcceptAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Accept\UserAcceptAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Reject\IsAuthenticatedRejectAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Reject\UserRejectAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Disable\IsAuthenticatedDisableAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Disable\UserDisableAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Enable\IsAuthenticatedEnableAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Enable\UserEnableAllowDecision;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Allow\Unlock\IsAuthenticatedUnlockAllow;
-use Civi\Lughauth\Features\Access\User\Application\Usecase\Unlock\UserUnlockAllowDecision;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
@@ -73,16 +53,6 @@ class UserPlugin extends MicroPlugin
     {
         $listener->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(UserCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(UserUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(UserRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(UserListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(UserDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
-        $listener->registerListener(UserAcceptAllowDecision::class, IsAuthenticatedAcceptAllow::class);
-        $listener->registerListener(UserRejectAllowDecision::class, IsAuthenticatedRejectAllow::class);
-        $listener->registerListener(UserDisableAllowDecision::class, IsAuthenticatedDisableAllow::class);
-        $listener->registerListener(UserEnableAllowDecision::class, IsAuthenticatedEnableAllow::class);
-        $listener->registerListener(UserUnlockAllowDecision::class, IsAuthenticatedUnlockAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void
@@ -105,6 +75,7 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user", "password", "MANAGE");
             $handler->registerResourceAttribute("user", "email", "MANAGE");
             $handler->registerResourceAttribute("user", "wellcomeAt", "MANAGE");
+            $handler->registerResourceAttribute("user", "emailVerified", "MANAGE");
             $handler->registerResourceAttribute("user", "enabled", "MANAGE");
             $handler->registerResourceAttribute("user", "approve", "MANAGE");
             $handler->registerResourceAttribute("user", "temporalPassword", "MANAGE");

@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\Sm
 
 trait SmtpOutboundConfigPortAttributeHolder
 {
-    protected SmtpOutboundConfigPortVO|bool|null $port = null;
+    protected SmtpOutboundConfigPortVO|int|null $port = null;
     protected bool $portAssigned = false;
 
     public function getPortOrCurrent(SmtpOutboundConfigPortVO $port): SmtpOutboundConfigPortVO
@@ -26,13 +26,13 @@ trait SmtpOutboundConfigPortAttributeHolder
     {
         return  SmtpOutboundConfigPortVO::tryFrom($this->portAssigned ? $this->port : null, $error);
     }
-    public function port(SmtpOutboundConfigPortVO|bool $port): static
+    public function port(SmtpOutboundConfigPortVO|int $port): static
     {
         $this->port = $port;
         $this->portAssigned = true;
         return $this;
     }
-    public function isPort(): ?bool
+    public function getPort(): ?int
     {
         return $this->port instanceof SmtpOutboundConfigPortVO ? $this->port->value() : $this->port;
     }
@@ -50,7 +50,7 @@ trait SmtpOutboundConfigPortAttributeHolder
     public function readPortFrom(mixed $att): void
     {
         if ($att->isPortAssigned()) {
-            $port = $att->isPort();
+            $port = $att->getPort();
             \assert(null !== $port);
             $this->port($port);
         }

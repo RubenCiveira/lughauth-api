@@ -23,16 +23,6 @@ use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\V
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigCollectNonEditableFields;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Create\SmtpOutboundConfigCreateAllowDecision;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Update\SmtpOutboundConfigUpdateAllowDecision;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Retrieve\SmtpOutboundConfigRetrieveAllowDecision;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\List\SmtpOutboundConfigListAllowDecision;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Usecase\Delete\SmtpOutboundConfigDeleteAllowDecision;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigReadRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigReadGateway;
@@ -58,11 +48,6 @@ class SmtpOutboundConfigPlugin extends MicroPlugin
     {
         $listener->registerListener(SmtpOutboundConfigRestrictFilterToVisibility::class, TenantAccesible::class);
         $listener->registerListener(SmtpOutboundConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
-        $listener->registerListener(SmtpOutboundConfigCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(SmtpOutboundConfigUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(SmtpOutboundConfigRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(SmtpOutboundConfigListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(SmtpOutboundConfigDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

@@ -183,6 +183,141 @@ paths:
                 $ref: '#/components/schemas/ApiKeyClientApiDTO'
         404:
           description: 'Not found'
+  /api/me/acl/access/consent-purposes:
+    get:
+      tags:
+        - 'Consent purpose access control'
+      description: Allows
+      operationId: 869a738d393f5b507685d593a448f64d
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/consent-purposes/{uid}':
+    get:
+      tags:
+        - 'Consent purpose access control'
+      description: Allows
+      operationId: 664a3dc711a1435a4692ce94f45d3fdf
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/consent-purposes:
+    get:
+      tags:
+        - 'Consent purpose'
+      description: Create
+      operationId: 729ebb95c6de5178533492b5827a2232
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentPurposeApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Consent purpose'
+      description: Create
+      operationId: 4355355cb492768d6a72042b941608f3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentPurposeApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentPurposeApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/consent-purposes/{uid}':
+    put:
+      tags:
+        - 'Consent purpose'
+      description: 'Update the value'
+      operationId: 00629de5d391be067c8b1a9f67c3feab
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentPurposeApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentPurposeApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Consent purpose'
+      description: 'Delete the record'
+      operationId: 97779aeb7e487503ab52252ffd8711ed
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentPurposeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/consent-purposes{uid}':
+    get:
+      tags:
+        - 'Consent purpose'
+      description: Create
+      operationId: bf2deebc82fc417da19b6a84ec72b9d2
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsentPurposeApiDTO'
+        404:
+          description: 'Not found'
   /api/me/acl/access/relying-parties:
     get:
       tags:
@@ -1593,21 +1728,21 @@ paths:
                 $ref: '#/components/schemas/UserApiDTO'
         404:
           description: 'Not found'
-  /api/me/acl/access/identity:
+  /api/me/acl/access/user-group-membership:
     get:
       tags:
-        - 'User identity access control'
+        - 'User group membership access control'
       description: Allows
-      operationId: f716daea74d1c34af14b8515bd31a4fd
+      operationId: 702b3e146b340dcf00a0269959094751
       responses:
         200:
           description: Ok
-  '/api/me/acl/access/identity/{uid}':
+  '/api/me/acl/access/user-group-membership/{uid}':
     get:
       tags:
-        - 'User identity access control'
+        - 'User group membership access control'
       description: Allows
-      operationId: 34f802cb281853e86109d2a23a76fa94
+      operationId: 94c22b2fea54316b4aed3c6b49a3bc73
       parameters:
         -
           name: uid
@@ -1620,46 +1755,12 @@ paths:
           description: Ok
         404:
           description: 'Not found'
-  /api/access/identity:
-    get:
-      tags:
-        - 'User identity'
-      description: Create
-      operationId: dfb0ac776319d94e1db22092a8052276
-      responses:
-        201:
-          description: Ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserIdentityApiListDTO'
-        422:
-          description: 'Constraint error'
-    post:
-      tags:
-        - 'User identity'
-      description: Create
-      operationId: b569a06c9444e11f975adf7a0ba0f7d9
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserIdentityApiDTO'
-      responses:
-        201:
-          description: Ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserIdentityApiDTO'
-        422:
-          description: 'Constraint error'
-  '/api/access/identity/{uid}':
+  '/api/access/user-group-membership/{uid}':
     put:
       tags:
-        - 'User identity'
+        - 'User group membership'
       description: 'Update the value'
-      operationId: 82446e1c64ec462693a6dbd5a4010cef
+      operationId: 55aa2331eea2c945103348d2cd3fcf71
       parameters:
         -
           name: uid
@@ -1671,14 +1772,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserIdentityApiDTO'
+              $ref: '#/components/schemas/UserGroupMembershipApiDTO'
       responses:
         200:
           description: Ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserIdentityApiDTO'
+                $ref: '#/components/schemas/UserGroupMembershipApiDTO'
         404:
           description: 'Not found'
         409:
@@ -1687,9 +1788,9 @@ paths:
           description: 'Constraint error'
     delete:
       tags:
-        - 'User identity'
+        - 'User group membership'
       description: 'Delete the record'
-      operationId: 7ff0d67c0961eef06c4f27072a5dc0f4
+      operationId: 5282a9e3da8cf9b601fc522f82f13709
       parameters:
         -
           name: uid
@@ -1703,79 +1804,30 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserIdentityApiDTO'
+                $ref: '#/components/schemas/UserGroupMembershipApiDTO'
         404:
           description: 'Not found'
-  '/api/access/identity{uid}':
+  /api/access/user-group-membership:
     get:
       tags:
-        - 'User identity'
+        - 'User group membership'
       description: Create
-      operationId: 3f82715e3f4804e28dc5692cfa78297b
-      parameters:
-        -
-          name: uid
-          in: path
-          required: true
-          schema:
-            type: string
+      operationId: 2f448b9c55760a8e6152a676cb2a9aeb
       responses:
         201:
           description: Ok
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserIdentityApiDTO'
-        404:
-          description: 'Not found'
-  /api/me/acl/plan/tenants:
-    get:
-      tags:
-        - 'Plan tenant access control'
-      description: Allows
-      operationId: d0d05282b06562eaadcd25473ca79a36
-      responses:
-        200:
-          description: Ok
-  '/api/me/acl/plan/tenants/{uid}':
-    get:
-      tags:
-        - 'Plan tenant access control'
-      description: Allows
-      operationId: 379760efbc660201e25b05cdc1e1a253
-      parameters:
-        -
-          name: uid
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: Ok
-        404:
-          description: 'Not found'
-  /api/plan/tenants:
-    get:
-      tags:
-        - 'Plan tenant'
-      description: Create
-      operationId: 45e8bfbe0dc282380c91a8cc40c1e445
-      responses:
-        201:
-          description: Ok
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlanTenantApiListDTO'
+                $ref: '#/components/schemas/UserGroupMembershipApiListDTO'
         422:
           description: 'Constraint error'
-  '/api/plan/tenants{uid}':
+  '/api/access/user-group-membership{uid}':
     get:
       tags:
-        - 'Plan tenant'
+        - 'User group membership'
       description: Create
-      operationId: 9f9d8a3aa1c81931529909ac4880d0e8
+      operationId: 789d5a8f52d2c3e8f796a57566c9ae04
       parameters:
         -
           name: uid
@@ -1789,9 +1841,3018 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PlanTenantApiDTO'
+                $ref: '#/components/schemas/UserGroupMembershipApiDTO'
         404:
           description: 'Not found'
+  /api/me/acl/access/me/api-keys:
+    get:
+      tags:
+        - 'User personal api key access control'
+      description: Allows
+      operationId: 9b99cc773a465b3eeb12421adbc04fa3
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/me/api-keys/{uid}':
+    get:
+      tags:
+        - 'User personal api key access control'
+      description: Allows
+      operationId: 313f202d67e16ad19552b062f221b734
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/me/api-keys:
+    get:
+      tags:
+        - 'User personal api key'
+      description: Create
+      operationId: 2ec96c1496cfe81ee288cfd7fb35d14c
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalApiKeyApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'User personal api key'
+      description: Create
+      operationId: 4396370114e42704369cd885ec958c84
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/me/api-keys/{uid}':
+    put:
+      tags:
+        - 'User personal api key'
+      description: 'Update the value'
+      operationId: 2c576b479893489516ebfc5108065f1b
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'User personal api key'
+      description: 'Delete the record'
+      operationId: bc5b13b5940b125a617a16d06e6a496f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/me/api-keys{uid}':
+    get:
+      tags:
+        - 'User personal api key'
+      description: Create
+      operationId: d1a41a853cd7af9359efc1ffd60f9605
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/me/api-keys/{uid}/revoke':
+    patch:
+      tags:
+        - 'User personal api key'
+      description: 'Update the value'
+      operationId: 43e3187f90b53e059242abafb8425988
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/access/user-role-assignament:
+    get:
+      tags:
+        - 'User role assignament access control'
+      description: Allows
+      operationId: 51d564f74ecd88a0238981b5fd09539a
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/access/user-role-assignament/{uid}':
+    get:
+      tags:
+        - 'User role assignament access control'
+      description: Allows
+      operationId: 419bb44400a31ab6f30a680ceb685fdb
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/access/user-role-assignament:
+    get:
+      tags:
+        - 'User role assignament'
+      description: Create
+      operationId: 6a9a963dd9a6123b2b42fa17ed412c21
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleAssignamentApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'User role assignament'
+      description: Create
+      operationId: fada6dd6e10bb4c5d1156b066298cc9d
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/access/user-role-assignament/{uid}':
+    put:
+      tags:
+        - 'User role assignament'
+      description: 'Update the value'
+      operationId: 272090900970a8fbbd9657086f96ee33
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'User role assignament'
+      description: 'Delete the record'
+      operationId: 2a9e2d749fd5304a95ab74ef7673a647
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
+        404:
+          description: 'Not found'
+  '/api/access/user-role-assignament{uid}':
+    get:
+      tags:
+        - 'User role assignament'
+      description: Create
+      operationId: 7f69ead3dfd80fb024bb4a2328305967
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/snippet:
+    get:
+      tags:
+        - 'Snippet access control'
+      description: Allows
+      operationId: 203f7884bf4876653265372ae73ff6ae
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/snippet/{uid}':
+    get:
+      tags:
+        - 'Snippet access control'
+      description: Allows
+      operationId: 8d1ea3d028e3634c635d7061f5070f7f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/snippet:
+    get:
+      tags:
+        - Snippet
+      description: Create
+      operationId: 55fd4458241ed5ec2db47ab95a61ce15
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - Snippet
+      description: Create
+      operationId: 080fd36fd36a380491393faa5ad1d51a
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/snippet/{uid}':
+    put:
+      tags:
+        - Snippet
+      description: 'Update the value'
+      operationId: fd5b1378913aabcaa907c9d441fc6cca
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - Snippet
+      description: 'Delete the record'
+      operationId: 1715f20eeb0782cdeb0cf79779a53b96
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet/{uid}/disable':
+    patch:
+      tags:
+        - Snippet
+      description: 'Update the value'
+      operationId: 9dd6a74dce3474e670c5a50eb7be3b85
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet/{uid}/enable':
+    patch:
+      tags:
+        - Snippet
+      description: 'Update the value'
+      operationId: ae036c45e6f6966fd6a1fbd6e5b4cdf5
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet{uid}':
+    get:
+      tags:
+        - Snippet
+      description: Create
+      operationId: 565bfa80e2cbcdfef1ce7e4d8835d407
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/snippet-asset:
+    get:
+      tags:
+        - 'Snippet asset access control'
+      description: Allows
+      operationId: 7077f7dcb1ded187d6a08c25f5841050
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/snippet-asset/{uid}':
+    get:
+      tags:
+        - 'Snippet asset access control'
+      description: Allows
+      operationId: 1a69da9fb94430d5f37f0fa871908ede
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/snippet-asset:
+    get:
+      tags:
+        - 'Snippet asset'
+      description: Create
+      operationId: 7c3caf514f35287966194e6a6efe0bfa
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Snippet asset'
+      description: Create
+      operationId: 43194bb3b18500ac9a3ed8187e2a9338
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetAssetApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/snippet-asset/{uid}':
+    put:
+      tags:
+        - 'Snippet asset'
+      description: 'Update the value'
+      operationId: ffcd2a5fa546fa9ef80b43a15d8d7260
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetAssetApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Snippet asset'
+      description: 'Delete the record'
+      operationId: 914760dae34204a56260e27bf9b8a067
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet-asset/{uid}/disable':
+    patch:
+      tags:
+        - 'Snippet asset'
+      description: 'Update the value'
+      operationId: 14a53deb435dce1bec6d3f2fb9e10dc3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet-asset/{uid}/enable':
+    patch:
+      tags:
+        - 'Snippet asset'
+      description: 'Update the value'
+      operationId: 2bd82d6529098cb7d7bd40a4dbda971c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet-asset{uid}':
+    get:
+      tags:
+        - 'Snippet asset'
+      description: Create
+      operationId: ce668842e0039d4b0d0a870b9985212d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetAssetApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/snippet-versions:
+    get:
+      tags:
+        - 'Snippet version access control'
+      description: Allows
+      operationId: 7c283dcaa8203308987ad84893cbd6a5
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/snippet-versions/{uid}':
+    get:
+      tags:
+        - 'Snippet version access control'
+      description: Allows
+      operationId: 809fabaa4c5d355174a3b7be2cfec1f4
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/snippet-versions:
+    get:
+      tags:
+        - 'Snippet version'
+      description: Create
+      operationId: cd1adf8e04ac107e92b397ac6c47076e
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetVersionApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Snippet version'
+      description: Create
+      operationId: 33ecb7417df819fe921e8f132c08d914
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetVersionApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetVersionApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/snippet-versions/{uid}':
+    put:
+      tags:
+        - 'Snippet version'
+      description: 'Update the value'
+      operationId: 69233b5b42fbe4ff793dfaebf7a9377c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SnippetVersionApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetVersionApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Snippet version'
+      description: 'Delete the record'
+      operationId: ff5a4a11f9960fab8a8a7779db2017a9
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetVersionApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/snippet-versions{uid}':
+    get:
+      tags:
+        - 'Snippet version'
+      description: Create
+      operationId: 4c85490c687adf8641f3cb372d7f1483
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SnippetVersionApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/template:
+    get:
+      tags:
+        - 'Template access control'
+      description: Allows
+      operationId: 02b2aa62cfa4faa48fc8712673255e49
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/template/{uid}':
+    get:
+      tags:
+        - 'Template access control'
+      description: Allows
+      operationId: 4b4e1c0c070ef21c380d8fda381b52b7
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/template:
+    get:
+      tags:
+        - Template
+      description: Create
+      operationId: c6bac7273ada9e8e553e0af8108b2859
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - Template
+      description: Create
+      operationId: 4f076d7ef109681ac97c22e310d010c2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/template/{uid}':
+    put:
+      tags:
+        - Template
+      description: 'Update the value'
+      operationId: c4d75d770d3d5cb16d8718512a8b1418
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - Template
+      description: 'Delete the record'
+      operationId: 03fb01688e94ae66c2e646b6f27a3293
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template/{uid}/disable':
+    patch:
+      tags:
+        - Template
+      description: 'Update the value'
+      operationId: 91ac7f1a80f3b1bbbc6fd79529e7943f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template/{uid}/enable':
+    patch:
+      tags:
+        - Template
+      description: 'Update the value'
+      operationId: 28b505dae60c89370a7f6f4f58d2a115
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template{uid}':
+    get:
+      tags:
+        - Template
+      description: Create
+      operationId: cf3ca133a503d3e4182da68767fcdf1c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/template-asset:
+    get:
+      tags:
+        - 'Template asset access control'
+      description: Allows
+      operationId: d2fefc7761b57eb19d8437a0fad49ca9
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/template-asset/{uid}':
+    get:
+      tags:
+        - 'Template asset access control'
+      description: Allows
+      operationId: 221154939b6f1621a2e3049f95cc4c1f
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/template-asset:
+    get:
+      tags:
+        - 'Template asset'
+      description: Create
+      operationId: d5299bf64d83bce1a2fdca02c266ed41
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Template asset'
+      description: Create
+      operationId: 5653c439d38606d8035be6d2c41990f3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateAssetApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/template-asset/{uid}':
+    put:
+      tags:
+        - 'Template asset'
+      description: 'Update the value'
+      operationId: 3f41a7ee5362d083c8d8b80e8e77ef00
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateAssetApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Template asset'
+      description: 'Delete the record'
+      operationId: cf1a4890aabeac803b17c8438e4f6104
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-asset/{uid}/disable':
+    patch:
+      tags:
+        - 'Template asset'
+      description: 'Update the value'
+      operationId: c934f9b99586533f007277990801c6e6
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-asset/{uid}/enable':
+    patch:
+      tags:
+        - 'Template asset'
+      description: 'Update the value'
+      operationId: c1652bf4f2dad4429569d03738ecf7fb
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-asset{uid}':
+    get:
+      tags:
+        - 'Template asset'
+      description: Create
+      operationId: dd7093fdb12408dde0751fd2773c47b8
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateAssetApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/template-variable:
+    get:
+      tags:
+        - 'Template variable access control'
+      description: Allows
+      operationId: c082c900a6232d6d24636001b163c524
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/template-variable/{uid}':
+    get:
+      tags:
+        - 'Template variable access control'
+      description: Allows
+      operationId: e130c027d3d21e1d28ac84f49cb9795c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/template-variable:
+    get:
+      tags:
+        - 'Template variable'
+      description: Create
+      operationId: 4ac570bd06460b015b2f15e93122ec36
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Template variable'
+      description: Create
+      operationId: 95c7f3837133489ad09648a8a47edf61
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateVariableApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/template-variable/{uid}':
+    put:
+      tags:
+        - 'Template variable'
+      description: 'Update the value'
+      operationId: c0300ee2cccafb64427c5dd21d0cc70b
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateVariableApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Template variable'
+      description: 'Delete the record'
+      operationId: 99b3da561eeda1fe2e3a2b305edeb157
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-variable/{uid}/disable':
+    patch:
+      tags:
+        - 'Template variable'
+      description: 'Update the value'
+      operationId: 59213d6f33d2f024b0280d44668d2f85
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-variable/{uid}/enable':
+    patch:
+      tags:
+        - 'Template variable'
+      description: 'Update the value'
+      operationId: b2a396da6d6d02361fe5daae60a8d511
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-variable{uid}':
+    get:
+      tags:
+        - 'Template variable'
+      description: Create
+      operationId: 03ddff56016e9aff9b6b2cbb52f422c1
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVariableApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/template-versions:
+    get:
+      tags:
+        - 'Template version access control'
+      description: Allows
+      operationId: 8893d88f0af5bc25fba9b27f276aa36a
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/template-versions/{uid}':
+    get:
+      tags:
+        - 'Template version access control'
+      description: Allows
+      operationId: a7deaab0547b0a19733e2ef2bcb740cd
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/template-versions:
+    get:
+      tags:
+        - 'Template version'
+      description: Create
+      operationId: fb40f06a584aec1dbef2959ba16bd9b4
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVersionApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Template version'
+      description: Create
+      operationId: b41933e9bd9f0c315e8884e1eb8b47bc
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateVersionApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVersionApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/template-versions/{uid}':
+    put:
+      tags:
+        - 'Template version'
+      description: 'Update the value'
+      operationId: 2bd0e67ee9c14fc38aecd452d05dcc87
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TemplateVersionApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVersionApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Template version'
+      description: 'Delete the record'
+      operationId: f54d6a7859e8dc30d01c7a1914d71e10
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVersionApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/template-versions{uid}':
+    get:
+      tags:
+        - 'Template version'
+      description: Create
+      operationId: 48f25cf9a7b00ae7da7d96cf8c8debdd
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TemplateVersionApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/theme:
+    get:
+      tags:
+        - 'Theme access control'
+      description: Allows
+      operationId: d539bb72fbcb8164f49ded17977d7ea7
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/theme/{uid}':
+    get:
+      tags:
+        - 'Theme access control'
+      description: Allows
+      operationId: c5bc7ad6be7cddb5e70d73483d2802fa
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/theme:
+    get:
+      tags:
+        - Theme
+      description: Create
+      operationId: 532bb3b5cb3fedba460dd2418e9e8aec
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - Theme
+      description: Create
+      operationId: 6a13c1048dcabb8f1fdac9c18ee57ce3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/theme/{uid}':
+    put:
+      tags:
+        - Theme
+      description: 'Update the value'
+      operationId: 76c0550d0b410b0731aded8a8a19619e
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - Theme
+      description: 'Delete the record'
+      operationId: 387deaa93968a21f8d1750d204bb0374
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme/{uid}/disable':
+    patch:
+      tags:
+        - Theme
+      description: 'Update the value'
+      operationId: eb0962352798e6b4bbba6adc8c958f8b
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme/{uid}/enable':
+    patch:
+      tags:
+        - Theme
+      description: 'Update the value'
+      operationId: 4d89b8a3b324e3d6b538a8742973f9cf
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme{uid}':
+    get:
+      tags:
+        - Theme
+      description: Create
+      operationId: 66e5d2da8affbbb06e5dde75a9d9269d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/theme-asset:
+    get:
+      tags:
+        - 'Theme asset access control'
+      description: Allows
+      operationId: aab6ef9de50648ff13d5971ad937b2a1
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/theme-asset/{uid}':
+    get:
+      tags:
+        - 'Theme asset access control'
+      description: Allows
+      operationId: 3c946384f8715dd42e482a0fc2d052ee
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/theme-asset:
+    get:
+      tags:
+        - 'Theme asset'
+      description: Create
+      operationId: 4066a159868b8f0a56336647345b2cae
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Theme asset'
+      description: Create
+      operationId: b883b7426716f5c338446cdc3852e3b8
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeAssetApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/theme-asset/{uid}':
+    put:
+      tags:
+        - 'Theme asset'
+      description: 'Update the value'
+      operationId: dd8ade6a4c4d01004b3d9b0020d26924
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeAssetApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Theme asset'
+      description: 'Delete the record'
+      operationId: 18ef1e6b04190efbc713c04cc5eb01a3
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme-asset/{uid}/disable':
+    patch:
+      tags:
+        - 'Theme asset'
+      description: 'Update the value'
+      operationId: a983b8854008ed5fd1675375127fb9b6
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme-asset/{uid}/enable':
+    patch:
+      tags:
+        - 'Theme asset'
+      description: 'Update the value'
+      operationId: c6fa3d09dc150952c29dddf8c8e17095
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme-asset{uid}':
+    get:
+      tags:
+        - 'Theme asset'
+      description: Create
+      operationId: 36acc2ed23e31435bdce9b6dca08da0d
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeAssetApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/document/theme-versions:
+    get:
+      tags:
+        - 'Theme version access control'
+      description: Allows
+      operationId: fc8283f76634b1317232d2faf19400f4
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/document/theme-versions/{uid}':
+    get:
+      tags:
+        - 'Theme version access control'
+      description: Allows
+      operationId: daf8fe7c4d5bacb45ad47931219b2f8a
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/document/theme-versions:
+    get:
+      tags:
+        - 'Theme version'
+      description: Create
+      operationId: da2eb5d278118bd0f873dc7d6b5eadf3
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeVersionApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Theme version'
+      description: Create
+      operationId: adc5326f269d645a01743ccee9a65c0e
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeVersionApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeVersionApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/document/theme-versions/{uid}':
+    put:
+      tags:
+        - 'Theme version'
+      description: 'Update the value'
+      operationId: 10aac54c99c09092ba30174de9739bd1
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThemeVersionApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeVersionApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Theme version'
+      description: 'Delete the record'
+      operationId: bc041d6ef3863d7308053037271b1cc1
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeVersionApiDTO'
+        404:
+          description: 'Not found'
+  '/api/document/theme-versions{uid}':
+    get:
+      tags:
+        - 'Theme version'
+      description: Create
+      operationId: 65b7aa034b3a6fe21b65c5c3a2502aa9
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThemeVersionApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/template/template:
+    get:
+      tags:
+        - 'Message access control'
+      description: Allows
+      operationId: 0ba2b806784e0f0c984396fec1d179fb
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/template/template/{uid}':
+    get:
+      tags:
+        - 'Message access control'
+      description: Allows
+      operationId: f45f32c667e2fcc366b703d779e98fea
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/template/template:
+    get:
+      tags:
+        - Message
+      description: Create
+      operationId: 142cc5dfe03d54d3ac690e31bc6c3dc0
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - Message
+      description: Create
+      operationId: e455b156c650c0fbd7999b21b624c543
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/template/template/{uid}':
+    put:
+      tags:
+        - Message
+      description: 'Update the value'
+      operationId: 7b12d598d006291c7845c6dc3db9b154
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - Message
+      description: 'Delete the record'
+      operationId: c3d8c3b0ff3b2f078166ae3cd724bf34
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiDTO'
+        404:
+          description: 'Not found'
+  '/api/template/template{uid}':
+    get:
+      tags:
+        - Message
+      description: Create
+      operationId: cd06ef034c0f8279eed71fc9cca3acde
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageApiDTO'
+        404:
+          description: 'Not found'
+  /api/me/acl/template/smtp-outbound-config:
+    get:
+      tags:
+        - 'Smtp outbound config access control'
+      description: Allows
+      operationId: ed94e33819c3a6482bd3ac06bbf65676
+      responses:
+        200:
+          description: Ok
+  '/api/me/acl/template/smtp-outbound-config/{uid}':
+    get:
+      tags:
+        - 'Smtp outbound config access control'
+      description: Allows
+      operationId: 718199859db60380d9f1d5c208e122de
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+        404:
+          description: 'Not found'
+  /api/template/smtp-outbound-config:
+    get:
+      tags:
+        - 'Smtp outbound config'
+      description: Create
+      operationId: 9718128aafa90e641cd965f7a6c91707
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpOutboundConfigApiListDTO'
+        422:
+          description: 'Constraint error'
+    post:
+      tags:
+        - 'Smtp outbound config'
+      description: Create
+      operationId: 2ab03935de55a18c3c7a0ce3c0ca2904
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+        422:
+          description: 'Constraint error'
+  '/api/template/smtp-outbound-config/{uid}':
+    put:
+      tags:
+        - 'Smtp outbound config'
+      description: 'Update the value'
+      operationId: c70c4167ec8292b8484fa950cf6aa4d5
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+        404:
+          description: 'Not found'
+        409:
+          description: 'Optimist lock'
+        422:
+          description: 'Constraint error'
+    delete:
+      tags:
+        - 'Smtp outbound config'
+      description: 'Delete the record'
+      operationId: fe1344a20b80c68b80534cee8599369c
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+        404:
+          description: 'Not found'
+  '/api/template/smtp-outbound-config{uid}':
+    get:
+      tags:
+        - 'Smtp outbound config'
+      description: Create
+      operationId: 197cb26ddea7cf4c53f6c4e12f33e078
+      parameters:
+        -
+          name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+        404:
+          description: 'Not found'
+  '/oauth/openid/{tenant}/authorize':
+    get:
+      tags:
+        - OIDC
+      summary: 'Authorization Endpoint — interactive login UI'
+      description: 'Returns the HTML login form. Clients must redirect the user-agent here to initiate the Authorization Code flow with PKCE.'
+      operationId: c6b8d8a01109abd67ff39b2305ef05cf
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: response_type
+          in: query
+          required: true
+          schema:
+            type: string
+            example: code
+        -
+          name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+        -
+          name: redirect_uri
+          in: query
+          required: true
+          schema:
+            type: string
+        -
+          name: scope
+          in: query
+          required: true
+          schema:
+            type: string
+            example: 'openid email profile'
+        -
+          name: code_challenge
+          in: query
+          required: true
+          schema:
+            type: string
+        -
+          name: code_challenge_method
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - S256
+              - plain
+        -
+          name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        -
+          name: nonce
+          in: query
+          required: false
+          schema:
+            type: string
+        -
+          name: prompt
+          in: query
+          required: false
+          schema:
+            type: string
+            enum:
+              - none
+              - login
+              - consent
+              - select_account
+      responses:
+        200:
+          description: 'HTML login form'
+        302:
+          description: 'Redirect with authorization code (if session already active)'
+    post:
+      tags:
+        - OIDC
+      summary: 'Authorization Endpoint — form submission'
+      description: 'Processes login form submissions (credentials, MFA steps). Not intended for direct API calls; called by the browser during the interactive login flow.'
+      operationId: 4d86af10092a5e64a3e0d5997119a669
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                step:
+                  description: 'Current login step'
+                  type: string
+                username:
+                  type: string
+                password:
+                  type: string
+                csid:
+                  description: 'Cross-site ID token'
+                  type: string
+              type: object
+      responses:
+        302:
+          description: 'Redirect with authorization code on successful login'
+        200:
+          description: 'HTML form for next login step or error'
+  '/oauth/openid/{tenant}/introspect':
+    post:
+      tags:
+        - OIDC
+      summary: 'Token Introspection (RFC 7662)'
+      description: 'Returns metadata about an access or refresh token. Requires client authentication via HTTP Basic or client_id/client_secret in the body.'
+      operationId: b9be94b2dc70067fad4c956afbb1868b
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                token:
+                  description: 'Token to introspect'
+                  type: string
+                token_type_hint:
+                  description: 'access_token or refresh_token'
+                  type: string
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+              type: object
+      responses:
+        200:
+          description: 'Introspection response'
+          content:
+            application/json:
+              schema:
+                properties:
+                  active:
+                    type: boolean
+                  scope:
+                    type: string
+                  client_id:
+                    type: string
+                  token_type:
+                    type: string
+                  exp:
+                    type: integer
+                  sub:
+                    type: string
+                  iss:
+                    type: string
+                  jti:
+                    type: string
+                  tenant:
+                    type: string
+                type: object
+        400:
+          description: 'Missing token parameter'
+        401:
+          description: 'Client authentication failed'
+      security:
+        -
+          basicAuth: {  }
+  '/oauth/openid/{tenant}/logout':
+    get:
+      tags:
+        - OIDC
+      summary: 'RP-Initiated Logout'
+      description: 'Ends the user session. Dispatches back-channel logout notifications and renders front-channel logout iframes if registered.'
+      operationId: 6d791cfdc5b41c8e09adb3c1ffd0867a
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: id_token_hint
+          in: query
+          required: false
+          schema:
+            type: string
+        -
+          name: post_logout_redirect_uri
+          in: query
+          required: false
+          schema:
+            type: string
+        -
+          name: client_id
+          in: query
+          required: false
+          schema:
+            type: string
+        -
+          name: state
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        302:
+          description: 'Redirect to post_logout_redirect_uri'
+        200:
+          description: 'Logout page with front-channel iframes'
+        400:
+          description: 'Invalid request (missing or disallowed redirect URI)'
+  '/oauth/openid/{tenant}/revoke':
+    post:
+      tags:
+        - OIDC
+      summary: 'Token Revocation (RFC 7009)'
+      description: 'Revokes an access or refresh token. Always returns 200 OK even if the token is unknown or already revoked.'
+      operationId: 7dc646d4bfd0c203364bba5b106e4816
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                token:
+                  description: 'Token to revoke'
+                  type: string
+                token_type_hint:
+                  description: 'access_token or refresh_token'
+                  type: string
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+              type: object
+      responses:
+        200:
+          description: 'Token revoked (or already invalid)'
+        400:
+          description: 'Missing token parameter'
+        401:
+          description: 'Client authentication failed'
+  '/oauth/openid/{tenant}/token':
+    post:
+      tags:
+        - OIDC
+      summary: 'OAuth 2.0 Token Endpoint'
+      description: 'Exchange authorization code, refresh token, or device code for tokens. Supports: authorization_code, refresh_token, password, client_credentials, urn:ietf:params:oauth:grant-type:device_code'
+      operationId: 4947452133a5ab6778324170f2afeaca
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                grant_type:
+                  type: string
+                  example: authorization_code
+                code:
+                  type: string
+                redirect_uri:
+                  type: string
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                code_verifier:
+                  description: 'PKCE verifier'
+                  type: string
+                refresh_token:
+                  type: string
+              type: object
+      responses:
+        200:
+          description: 'Token response'
+          content:
+            application/json:
+              schema:
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                  id_token:
+                    type: string
+                  refresh_token:
+                    type: string
+                  scope:
+                    type: string
+                type: object
+        400:
+          description: 'OAuth error (invalid_grant, invalid_client, etc.)'
+        401:
+          description: 'Client authentication failed'
+  '/oauth/openid/{tenant}/userinfo':
+    get:
+      tags:
+        - OIDC
+      summary: 'OIDC UserInfo Endpoint'
+      description: 'Returns claims about the authenticated user. Requires Bearer access token with openid scope.'
+      operationId: 7c76b784357aa43ea55b17f7434ddbc3
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'User claims'
+          content:
+            application/json:
+              schema:
+                properties:
+                  sub:
+                    type: string
+                  name:
+                    type: string
+                  email:
+                    type: string
+                  given_name:
+                    type: string
+                  family_name:
+                    type: string
+                  picture:
+                    type: string
+                  locale:
+                    type: string
+                  zoneinfo:
+                    type: string
+                  phone_number:
+                    type: string
+                  updated_at:
+                    type: integer
+                type: object
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
+  '/oauth/openid/{tenant}/register':
+    post:
+      tags:
+        - OIDC
+      summary: 'Dynamic Client Registration — RFC 7591'
+      description: 'Registers a new OAuth client dynamically. May require an initial_access_token depending on tenant policy.'
+      operationId: 1811ade5c7e4ff27a45c6a0f3fc35501
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              required:
+                - redirect_uris
+              properties:
+                redirect_uris:
+                  type: array
+                  items:
+                    type: string
+                client_name:
+                  type: string
+                grant_types:
+                  type: array
+                  items:
+                    type: string
+                response_types:
+                  type: array
+                  items:
+                    type: string
+                scope:
+                  type: string
+                token_endpoint_auth_method:
+                  type: string
+                logo_uri:
+                  type: string
+                backchannel_logout_uri:
+                  type: string
+              type: object
+      responses:
+        201:
+          description: 'Client registered successfully'
+        400:
+          description: 'Invalid client metadata'
+        401:
+          description: 'initial_access_token required or invalid'
+        403:
+          description: 'Registration disabled for this tenant'
+  '/oauth/openid/{tenant}/register/{client_id}':
+    get:
+      tags:
+        - OIDC
+      summary: 'Read Client Registration — RFC 7592'
+      operationId: 9bde528db67b2a65e028d16184c71628
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Client registration data'
+        401:
+          description: 'Invalid registration_access_token'
+    put:
+      tags:
+        - OIDC
+      summary: 'Update Client Registration — RFC 7592'
+      operationId: 38d83ddea792883996e186368dd0c5bb
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Updated client registration data'
+        400:
+          description: 'Invalid client metadata'
+        401:
+          description: 'Invalid registration_access_token'
+    delete:
+      tags:
+        - OIDC
+      summary: 'Delete Client Registration — RFC 7592'
+      operationId: 2a36003f9c1ceca26f9f86cb8d824e2f
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+        -
+          name: client_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: 'Client deleted'
+        401:
+          description: 'Invalid registration_access_token'
+  '/oauth/openid/{tenant}/.well-known/openid-configuration':
+    get:
+      tags:
+        - OIDC
+      summary: 'OpenID Connect Discovery Document'
+      description: 'Returns the OpenID Provider Metadata as defined in OpenID Connect Discovery 1.0.'
+      operationId: e8b2db270f4c8f094508be656a24fad0
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'OpenID Provider Metadata'
+  '/oauth/openid/{tenant}/device':
+    post:
+      tags:
+        - OIDC
+      summary: 'Device Authorization Request (RFC 8628)'
+      description: 'Initiates the OAuth 2.0 Device Authorization Grant flow. Returns device_code and user_code for the device to display.'
+      operationId: e32ad3759486cac9a0b4836496a21c4d
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              properties:
+                client_id:
+                  type: string
+                scope:
+                  type: string
+                audience:
+                  type: string
+              type: object
+      responses:
+        200:
+          description: 'Device authorization response'
+          content:
+            application/json:
+              schema:
+                properties:
+                  device_code:
+                    type: string
+                  user_code:
+                    type: string
+                    example: ABCD-1234
+                  verification_uri:
+                    type: string
+                  verification_uri_complete:
+                    type: string
+                  expires_in:
+                    type: integer
+                  interval:
+                    type: integer
+                type: object
+        400:
+          description: 'Invalid request'
+        401:
+          description: 'Invalid client'
+  '/oauth/openid/{tenant}/par':
+    post:
+      tags:
+        - OIDC
+      summary: 'Pushed Authorization Request — RFC 9126'
+      description: 'Accepts authorization parameters server-to-server and returns a short-lived request_uri. The client then redirects the user-agent to /authorize with only client_id and request_uri.'
+      operationId: 93f59c66264feb24bf96828a2e244870
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - client_id
+                - response_type
+                - redirect_uri
+              properties:
+                client_id:
+                  type: string
+                client_secret:
+                  type: string
+                response_type:
+                  type: string
+                  example: code
+                redirect_uri:
+                  type: string
+                scope:
+                  type: string
+                  example: 'openid email'
+                state:
+                  type: string
+                nonce:
+                  type: string
+                code_challenge:
+                  type: string
+                code_challenge_method:
+                  type: string
+                  enum:
+                    - S256
+                    - plain
+              type: object
+      responses:
+        201:
+          description: 'PAR request created'
+          content:
+            application/json:
+              schema:
+                properties:
+                  request_uri:
+                    type: string
+                    example: 'urn:ietf:params:oauth:request_uri:abc123'
+                  expires_in:
+                    type: integer
+                    example: 60
+                type: object
+        400:
+          description: 'Invalid request parameters'
+        401:
+          description: 'Client authentication failed'
+  /api/me/profile:
+    get:
+      tags:
+        - Profile
+      summary: 'Get own user profile'
+      operationId: 05ba1ffa4895f16f997a5ebc04f14e50
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileApiDTO'
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
+    put:
+      tags:
+        - Profile
+      summary: 'Create or update own user profile'
+      operationId: 4a281f0bb7156791de936b6f35b297d1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileApiDTO'
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileApiDTO'
+        401:
+          description: Unauthorized
+        422:
+          description: 'Constraint error'
+      security:
+        -
+          bearerAuth: {  }
+  '/oauth/openid/{tenant}/jwks':
+    get:
+      tags:
+        - OIDC
+      summary: 'JSON Web Key Set'
+      description: 'Public keys for JWT signature verification. Cached for 1 hour.'
+      operationId: 295794607bd2205ebcfd8fd37dfe8668
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: JWKS
+          content:
+            application/json:
+              schema:
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      properties:
+                        kty:
+                          type: string
+                          example: RSA
+                        use:
+                          type: string
+                          example: sig
+                        kid:
+                          type: string
+                        alg:
+                          type: string
+                          example: RS256
+                        'n':
+                          type: string
+                        e:
+                          type: string
+                      type: object
+                type: object
+  '/oauth/openid/{tenant}/webauthn/register/begin':
+    post:
+      tags:
+        - WebAuthn
+      summary: 'Begin WebAuthn credential registration'
+      operationId: c9bb67cc5f9ea54edb41564b92683a46
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: PublicKeyCredentialCreationOptions
+        401:
+          description: Unauthenticated
+  '/oauth/openid/{tenant}/webauthn/register/finish':
+    post:
+      tags:
+        - WebAuthn
+      summary: 'Finish WebAuthn credential registration'
+      operationId: 51bba2c7da30772b7e77086fe932f870
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Registration successful'
+        400:
+          description: 'Verification failed'
+        401:
+          description: Unauthenticated
+  '/oauth/openid/{tenant}/webauthn/authenticate/begin':
+    post:
+      tags:
+        - WebAuthn
+      summary: 'Begin WebAuthn authentication'
+      operationId: 9754112cdb8974de61d0be4a2219fa42
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: PublicKeyCredentialRequestOptions
+  '/oauth/openid/{tenant}/webauthn/authenticate/finish':
+    post:
+      tags:
+        - WebAuthn
+      summary: 'Finish WebAuthn authentication'
+      operationId: 8d83a84cdb915426ffb7988615b3741c
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'Authentication successful, returns challengeId for OIDC flow'
+        401:
+          description: 'Assertion verification failed'
 components:
   schemas:
     ApiKeyClientApiDTO:
@@ -1833,6 +4894,66 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ApiKeyClientApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    ConsentPurposeApiDTO:
+      title: 'Consent purpose'
+      description: consent-purpose
+      properties:
+        uid:
+          title: uid
+          description: 'A number to identify the db record'
+          type: string
+        tenant:
+          title: tenant
+          description: 'El tenant de consent purpose'
+          properties:
+            $ref:
+              type: string
+          type: object
+        key:
+          title: key
+          description: 'El key de consent purpose'
+          type: string
+          enum:
+            - MARKETING
+            - ANALYTICS
+            - THIRD_PARTY
+            - PERSONALIZATION
+        title:
+          title: title
+          description: 'El title de consent purpose'
+          type: string
+        description:
+          title: description
+          description: 'El description de consent purpose'
+          type: string
+        required:
+          title: required
+          description: 'El required de consent purpose'
+          type: string
+        activationDate:
+          title: 'activation date'
+          description: 'El activation date de consent purpose'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de consent purpose para controlar bloqueos optimistas'
+          type: string
+      type: object
+    ConsentPurposeApiListDTO:
+      title: 'Consent purpose'
+      description: consent-purpose
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ConsentPurposeApiDTO'
         next:
           title: 'Link to retrieve next page'
           description: 'A link to retrieve next page'
@@ -1992,6 +5113,14 @@ components:
           title: 'force mfa'
           description: 'El force mfa de tenant config'
           type: string
+        dynamicRegistrationPolicy:
+          title: 'dynamic registration policy'
+          description: 'El dynamic registration policy de tenant config'
+          type: string
+          enum:
+            - OPEN
+            - TOKEN_REQUIRED
+            - DISABLED
         allowRegister:
           title: 'allow register'
           description: 'El allow register de tenant config'
@@ -2000,13 +5129,49 @@ components:
           title: 'enable register users'
           description: 'El enable register users de tenant config'
           type: string
+        magicLinkEnabled:
+          title: 'magic link enabled'
+          description: 'El magic link enabled de tenant config'
+          type: string
+        requireEmailVerification:
+          title: 'require email verification'
+          description: 'If true, users must confirm their email address via the verification link before they can complete their first login. The OIDC flow will hold the user at a verification-pending challenge until the link is clicked.'
+          type: string
+        invitationExpiryDays:
+          title: 'invitation expiry days'
+          description: 'Number of days before an unused user invitation token expires. Currently hardcoded to 7 days in InvitationCreateUsecase.'
+          type: string
+        magicLinkExpiryMinutes:
+          title: 'magic link expiry minutes'
+          description: 'Number of minutes before a magic-link token expires after being sent. Only relevant when magic-link-enabled=true.'
+          type: string
+        sessionSsoTtlSeconds:
+          title: 'session sso ttl seconds'
+          description: 'Lifetime in seconds of the cross-client SSO session cookie. After this duration the user must re-authenticate even if a per-flow session is still valid. Corresponds to the max_age upper bound for prompt=none requests.'
+          type: string
+        refreshTokenTtlSeconds:
+          title: 'refresh token ttl seconds'
+          description: 'Lifetime in seconds of issued refresh tokens. Defaults to 30 days (2 592 000 s). Applies to all grant types that issue refresh tokens for this tenant.'
+          type: string
+        webauthnEnabled:
+          title: 'webauthn enabled'
+          description: 'El webauthn enabled de tenant config'
+          type: string
+        webauthnRpId:
+          title: 'webauthn rp id'
+          description: 'El webauthn rp id de tenant config'
+          type: string
+        webauthnRpName:
+          title: 'webauthn rp name'
+          description: 'El webauthn rp name de tenant config'
+          type: string
         wellcomeEmail:
           title: 'wellcome email'
           description: 'Email send to the enabled user'
           type: string
         registerdEmail:
           title: 'registerd email'
-          description: 'El registerd email de tenant config'
+          description: 'Email send when a user register'
           type: string
         disabledUserEmail:
           title: 'disabled user email'
@@ -2070,7 +5235,10 @@ components:
           enum:
             - GOOGLE
             - GITHUB
+            - MICROSOFT
+            - APPLE
             - SAML
+            - OIDC
         disabled:
           title: disabled
           description: 'Indicates if this provider is currently disabled.'
@@ -2094,6 +5262,26 @@ components:
         metadata:
           title: metadata
           description: 'A metadata file required by some providers for configuration (e.g., SAML descriptor).'
+          type: string
+        oidcDiscoveryUrl:
+          title: 'oidc discovery url'
+          description: 'For source=OIDC: the /.well-known/openid-configuration URL of the external OIDC identity provider. The system will fetch authorization_endpoint, token_endpoint, and jwks_uri from this document at startup. public-key holds the OIDC client_id; private-key holds the OIDC client_secret.'
+          type: string
+        samlIdpMetadataUrl:
+          title: 'saml idp metadata url'
+          description: 'El saml idp metadata url de tenant login provider'
+          type: string
+        samlIdpEntityId:
+          title: 'saml idp entity id'
+          description: 'El saml idp entity id de tenant login provider'
+          type: string
+        samlIdpSsoUrl:
+          title: 'saml idp sso url'
+          description: 'El saml idp sso url de tenant login provider'
+          type: string
+        samlIdpIdpCert:
+          title: 'saml idp idp cert'
+          description: 'El saml idp idp cert de tenant login provider'
           type: string
         usersEnabledByDefault:
           title: 'users enabled by default'
@@ -2130,6 +5318,13 @@ components:
         tenant:
           title: tenant
           description: 'La cuenta a la que pertenece'
+          properties:
+            $ref:
+              type: string
+          type: object
+        relyingParty:
+          title: 'relying party'
+          description: 'La applicación a tener en cuenta'
           properties:
             $ref:
               type: string
@@ -2182,6 +5377,10 @@ components:
           title: code
           description: 'El código identificativo de la aplicación'
           type: string
+        allowAllScopes:
+          title: 'allow all scopes'
+          description: 'El allow all scopes de trusted client'
+          type: string
         publicAllow:
           title: 'public allow'
           description: 'If true, users can use these client to access with public code flow'
@@ -2190,9 +5389,97 @@ components:
           title: 'secret oauth'
           description: 'If the user is not delegated, the phrasse to identify'
           type: string
+        isResourceServer:
+          title: 'is resource server'
+          description: 'If true, this client is allowed to call the token introspection endpoint (POST /introspect) to validate access tokens. Resource servers must authenticate at the introspection endpoint using their client credentials.'
+          type: string
+        requirePkce:
+          title: 'require pkce'
+          description: 'If true, every authorization code request from this client must include code_challenge and code_challenge_method=S256. For clients with public-allow=true, PKCE is always required regardless of this flag.'
+          type: string
+        backChannelLogoutUri:
+          title: 'back channel logout uri'
+          description: 'El back channel logout uri de trusted client'
+          type: string
+        backChannelLogoutSessionRequired:
+          title: 'back channel logout session required'
+          description: 'El back channel logout session required de trusted client'
+          type: string
+        frontChannelLogoutUri:
+          title: 'front channel logout uri'
+          description: 'El front channel logout uri de trusted client'
+          type: string
+        frontChannelLogoutSessionRequired:
+          title: 'front channel logout session required'
+          description: 'El front channel logout session required de trusted client'
+          type: string
         enabled:
           title: enabled
           description: 'The indicator to allow the account be used without deleting it'
+          type: string
+        registrationAccess:
+          title: 'registration access'
+          description: 'El registration access de trusted client'
+          type: string
+        clientName:
+          title: 'client name'
+          description: 'El client name de trusted client'
+          type: string
+        logoUri:
+          title: 'logo uri'
+          description: 'El logo uri de trusted client'
+          type: string
+        clientUri:
+          title: 'client uri'
+          description: 'El client uri de trusted client'
+          type: string
+        policyUri:
+          title: 'policy uri'
+          description: 'El policy uri de trusted client'
+          type: string
+        tosUri:
+          title: 'tos uri'
+          description: 'El tos uri de trusted client'
+          type: string
+        tokenEndpointAuthMethod:
+          title: 'token endpoint auth method'
+          description: 'El token endpoint auth method de trusted client'
+          type: string
+        grantTypesJson:
+          title: 'grant types json'
+          description: 'El grant types json de trusted client'
+          type: string
+        responseTypesJson:
+          title: 'response types json'
+          description: 'El response types json de trusted client'
+          type: string
+        dynamicallyRegistered:
+          title: 'dynamically registered'
+          description: 'El dynamically registered de trusted client'
+          type: string
+        registeredAt:
+          title: 'registered at'
+          description: 'El registered at de trusted client'
+          type: string
+        allowedScopesM2m:
+          title: 'allowed scopes m 2m'
+          description: 'El allowed scopes m 2m de trusted client'
+          type: string
+        m2mTokenTtlSeconds:
+          title: 'm 2m token ttl seconds'
+          description: 'El m 2m token ttl seconds de trusted client'
+          type: string
+        requestObjectSigningAlg:
+          title: 'request object signing alg'
+          description: 'El request object signing alg de trusted client'
+          type: string
+        jwksUri:
+          title: 'jwks uri'
+          description: 'El jwks uri de trusted client'
+          type: string
+        jwksJson:
+          title: 'jwks json'
+          description: 'El jwks json de trusted client'
           type: string
         version:
           title: version
@@ -2244,6 +5531,10 @@ components:
         wellcomeAt:
           title: 'wellcome at'
           description: 'The date when a wellcome email is send'
+          type: string
+        emailVerified:
+          title: 'email verified'
+          description: 'Indicates whether the user has confirmed ownership of their email address by clicking the verification link sent at registration. Used by the OIDC flow to emit the email_verified claim and optionally block login until confirmed.'
           type: string
         enabled:
           title: enabled
@@ -2298,9 +5589,9 @@ components:
           description: 'A link to retrieve next page'
           type: string
       type: object
-    UserIdentityApiDTO:
-      title: 'User identity'
-      description: user-identity
+    UserGroupMembershipApiDTO:
+      title: 'User group membership'
+      description: user-group-membership
       properties:
         uid:
           title: uid
@@ -2308,77 +5599,884 @@ components:
           type: string
         user:
           title: user
-          description: 'El user de user identity'
+          description: 'El user de user group membership'
           properties:
             $ref:
               type: string
           type: object
         relyingParty:
           title: 'relying party'
-          description: 'El relying party de user identity'
+          description: 'El relying party de user group membership'
           properties:
             $ref:
               type: string
           type: object
         trustedClient:
           title: 'trusted client'
-          description: 'El trusted client de user identity'
+          description: 'El trusted client de user group membership'
+          properties:
+            $ref:
+              type: string
+          type: object
+        groups:
+          title: groups
+          description: 'El groups de user group membership'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de user group membership para controlar bloqueos optimistas'
+          type: string
+      type: object
+    UserGroupMembershipApiListDTO:
+      title: 'User group membership'
+      description: user-group-membership
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupMembershipApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    UserPersonalApiKeyApiDTO:
+      title: 'User personal api key'
+      description: 'A personal API key (PAT) scoped to a specific user. The raw key is shown to the user only at creation time and is never stored. Subsequent authentication uses the SHA-256 hash for constant-time comparison.'
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de user personal api key'
+          type: string
+        user:
+          title: user
+          description: 'El user de user personal api key'
+          properties:
+            $ref:
+              type: string
+          type: object
+        name:
+          title: name
+          description: "A label to identify the key (e.g. 'CI pipeline', 'local dev')."
+          type: string
+        keyHash:
+          title: 'key hash'
+          description: 'SHA-256 hex digest of the raw key. Never stored in plain text.'
+          type: string
+        scopes:
+          title: scopes
+          description: 'Space-separated OAuth scopes granted to this key.'
+          type: string
+        lastUsedAt:
+          title: 'last used at'
+          description: 'Timestamp of the most recent successful authentication.'
+          type: string
+        expiresAt:
+          title: 'expires at'
+          description: 'Optional expiry. Null means the key does not expire.'
+          type: string
+        createdAt:
+          title: 'created at'
+          description: 'El created at de user personal api key'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de user personal api key'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de user personal api key para controlar bloqueos optimistas'
+          type: string
+      type: object
+    UserPersonalApiKeyApiListDTO:
+      title: 'User personal api key'
+      description: 'A personal API key (PAT) scoped to a specific user. The raw key is shown to the user only at creation time and is never stored. Subsequent authentication uses the SHA-256 hash for constant-time comparison.'
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPersonalApiKeyApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    UserRoleAssignamentApiDTO:
+      title: 'User role assignament'
+      description: user-role-assignament
+      properties:
+        uid:
+          title: uid
+          description: 'El identificador de la aplicacion'
+          type: string
+        user:
+          title: user
+          description: 'El user de user role assignament'
+          properties:
+            $ref:
+              type: string
+          type: object
+        relyingParty:
+          title: 'relying party'
+          description: 'El relying party de user role assignament'
+          properties:
+            $ref:
+              type: string
+          type: object
+        trustedClient:
+          title: 'trusted client'
+          description: 'El trusted client de user role assignament'
           properties:
             $ref:
               type: string
           type: object
         version:
           title: version
-          description: 'Campo con el número de version de user identity para controlar bloqueos optimistas'
+          description: 'Campo con el número de version de user role assignament para controlar bloqueos optimistas'
           type: string
       type: object
-    UserIdentityApiListDTO:
-      title: 'User identity'
-      description: user-identity
+    UserRoleAssignamentApiListDTO:
+      title: 'User role assignament'
+      description: user-role-assignament
       properties:
         items:
           title: 'The items'
           description: 'A list of items'
           type: array
           items:
-            $ref: '#/components/schemas/UserIdentityApiDTO'
+            $ref: '#/components/schemas/UserRoleAssignamentApiDTO'
         next:
           title: 'Link to retrieve next page'
           description: 'A link to retrieve next page'
           type: string
       type: object
-    PlanTenantApiDTO:
-      title: 'Plan tenant'
-      description: plan-tenant
+    SnippetApiDTO:
+      title: Snippet
+      description: snippet
       properties:
         uid:
           title: uid
-          description: 'El uid de plan tenant'
+          description: 'El uid de snippet'
           type: string
-        name:
-          title: name
-          description: 'El name de plan tenant'
+        code:
+          title: code
+          description: 'legal.footer, gdpr.notice, company.address...'
+          type: string
+        tenant:
+          title: tenant
+          description: 'null = global, valor = override por tenant'
+          properties:
+            $ref:
+              type: string
+          type: object
+        enabled:
+          title: enabled
+          description: 'El enabled de snippet'
           type: string
         version:
           title: version
-          description: 'Campo con el número de version de plan tenant para controlar bloqueos optimistas'
+          description: 'Campo con el número de version de snippet para controlar bloqueos optimistas'
           type: string
       type: object
-    PlanTenantApiListDTO:
-      title: 'Plan tenant'
-      description: plan-tenant
+    SnippetApiListDTO:
+      title: Snippet
+      description: snippet
       properties:
         items:
           title: 'The items'
           description: 'A list of items'
           type: array
           items:
-            $ref: '#/components/schemas/PlanTenantApiDTO'
+            $ref: '#/components/schemas/SnippetApiDTO'
         next:
           title: 'Link to retrieve next page'
           description: 'A link to retrieve next page'
           type: string
       type: object
+    SnippetAssetApiDTO:
+      title: 'Snippet asset'
+      description: snippet-asset
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de snippet asset'
+          type: string
+        snippet:
+          title: snippet
+          description: 'El snippet de snippet asset'
+          properties:
+            $ref:
+              type: string
+          type: object
+        code:
+          title: code
+          description: 'icon, separator...'
+          type: string
+        type:
+          title: type
+          description: 'IMAGE, CSS, FONT...'
+          type: string
+        content:
+          title: content
+          description: 'El content de snippet asset'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de snippet asset'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de snippet asset para controlar bloqueos optimistas'
+          type: string
+      type: object
+    SnippetAssetApiListDTO:
+      title: 'Snippet asset'
+      description: snippet-asset
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/SnippetAssetApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    SnippetVersionApiDTO:
+      title: 'Snippet version'
+      description: snippet-version
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de snippet version'
+          type: string
+        snippet:
+          title: snippet
+          description: 'El snippet de snippet version'
+          properties:
+            $ref:
+              type: string
+          type: object
+        locale:
+          title: locale
+          description: 'BCP 47: es, en, fr... null = versión por defecto'
+          type: string
+        subject:
+          title: subject
+          description: 'Usado cuando el snippet se incrusta en canal MAIL.'
+          type: string
+        contentHtml:
+          title: 'content html'
+          description: 'El content html de snippet version'
+          type: string
+        contentText:
+          title: 'content text'
+          description: 'El content text de snippet version'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de snippet version para controlar bloqueos optimistas'
+          type: string
+      type: object
+    SnippetVersionApiListDTO:
+      title: 'Snippet version'
+      description: snippet-version
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/SnippetVersionApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    TemplateApiDTO:
+      title: Template
+      description: template
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de template'
+          type: string
+        code:
+          title: code
+          description: 'LOGIN_MAGIC_LINK, RESET_PASSWORD, page.profile...'
+          type: string
+        tenant:
+          title: tenant
+          description: 'null = global, valor = override por tenant'
+          properties:
+            $ref:
+              type: string
+          type: object
+        theme:
+          title: theme
+          description: 'Nombre del theme layout (full-window, index-page...). Resuelto contra el tenant activo en render time.'
+          type: string
+        channel:
+          title: channel
+          description: 'El channel de template'
+          type: string
+          enum:
+            - MAIL
+            - SMS
+            - HTML
+        enabled:
+          title: enabled
+          description: 'El enabled de template'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de template para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TemplateApiListDTO:
+      title: Template
+      description: template
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    TemplateAssetApiDTO:
+      title: 'Template asset'
+      description: template-asset
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de template asset'
+          type: string
+        template:
+          title: template
+          description: 'El template de template asset'
+          properties:
+            $ref:
+              type: string
+          type: object
+        tenant:
+          title: tenant
+          description: 'null = asset global del template. Valor = override por tenant (logo distinto por tenant en template global).'
+          properties:
+            $ref:
+              type: string
+          type: object
+        code:
+          title: code
+          description: 'logo, background, corporate.css...'
+          type: string
+        type:
+          title: type
+          description: 'IMAGE, CSS, FONT...'
+          type: string
+        content:
+          title: content
+          description: 'El content de template asset'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de template asset'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de template asset para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TemplateAssetApiListDTO:
+      title: 'Template asset'
+      description: template-asset
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateAssetApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    TemplateVariableApiDTO:
+      title: 'Template variable'
+      description: template-variable
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de template variable'
+          type: string
+        code:
+          title: code
+          description: 'user.name, login.link...'
+          type: string
+        tenant:
+          title: tenant
+          description: 'El tenant de template variable'
+          properties:
+            $ref:
+              type: string
+          type: object
+        type:
+          title: type
+          description: 'STRING, NUMBER, DATE, URL...'
+          type: string
+        value:
+          title: value
+          description: 'El value de template variable'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de template variable'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de template variable para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TemplateVariableApiListDTO:
+      title: 'Template variable'
+      description: template-variable
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateVariableApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    TemplateVersionApiDTO:
+      title: 'Template version'
+      description: template-version
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de template version'
+          type: string
+        template:
+          title: template
+          description: 'El template de template version'
+          properties:
+            $ref:
+              type: string
+          type: object
+        locale:
+          title: locale
+          description: 'BCP 47: es, en, fr... null = versión por defecto'
+          type: string
+        subject:
+          title: subject
+          description: 'Asunto del email. Ignorado en canal HTML/SMS.'
+          type: string
+        contentHtml:
+          title: 'content html'
+          description: 'El content html de template version'
+          type: string
+        contentText:
+          title: 'content text'
+          description: 'El content text de template version'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de template version para controlar bloqueos optimistas'
+          type: string
+      type: object
+    TemplateVersionApiListDTO:
+      title: 'Template version'
+      description: template-version
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateVersionApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    ThemeApiDTO:
+      title: Theme
+      description: theme
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de theme'
+          type: string
+        tenant:
+          title: tenant
+          description: 'null = theme global fallback, valor = override por tenant'
+          properties:
+            $ref:
+              type: string
+          type: object
+        name:
+          title: name
+          description: 'Nombre de resolución desde template.theme: full-window, index-page...'
+          type: string
+        isDefault:
+          title: 'is default'
+          description: 'El is default de theme'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de theme'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de theme para controlar bloqueos optimistas'
+          type: string
+      type: object
+    ThemeApiListDTO:
+      title: Theme
+      description: theme
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ThemeApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    ThemeAssetApiDTO:
+      title: 'Theme asset'
+      description: theme-asset
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de theme asset'
+          type: string
+        theme:
+          title: theme
+          description: 'El theme de theme asset'
+          properties:
+            $ref:
+              type: string
+          type: object
+        code:
+          title: code
+          description: 'logo, corporate.css, banner...'
+          type: string
+        type:
+          title: type
+          description: 'IMAGE, CSS, FONT...'
+          type: string
+        content:
+          title: content
+          description: 'El content de theme asset'
+          type: string
+        enabled:
+          title: enabled
+          description: 'El enabled de theme asset'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de theme asset para controlar bloqueos optimistas'
+          type: string
+      type: object
+    ThemeAssetApiListDTO:
+      title: 'Theme asset'
+      description: theme-asset
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ThemeAssetApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    ThemeVersionApiDTO:
+      title: 'Theme version'
+      description: theme-version
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de theme version'
+          type: string
+        theme:
+          title: theme
+          description: 'El theme de theme version'
+          properties:
+            $ref:
+              type: string
+          type: object
+        channel:
+          title: channel
+          description: 'El channel de theme version'
+          type: string
+          enum:
+            - MAIL
+            - HTML
+        locale:
+          title: locale
+          description: 'BCP 47: es, en, fr... null = versión por defecto'
+          type: string
+        contentHtml:
+          title: 'content html'
+          description: 'Layout Handlebars con slot {{{slot_content}}}, {{title}}, {{locale}}, {{theme_assets_path}}, {{tenant_name}}'
+          type: string
+        contentText:
+          title: 'content text'
+          description: 'El content text de theme version'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de theme version para controlar bloqueos optimistas'
+          type: string
+      type: object
+    ThemeVersionApiListDTO:
+      title: 'Theme version'
+      description: theme-version
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/ThemeVersionApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    MessageApiDTO:
+      title: Message
+      description: message
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de message'
+          type: string
+        target:
+          title: target
+          description: name
+          type: string
+        tenant:
+          title: tenant
+          description: 'null = global, valor = override'
+          properties:
+            $ref:
+              type: string
+          type: object
+        urgent:
+          title: urgent
+          description: 'El urgent de message'
+          type: string
+        content:
+          title: content
+          description: 'El content de message'
+          type: string
+        retries:
+          title: retries
+          description: 'El retries de message'
+          type: string
+        createdAt:
+          title: 'created at'
+          description: 'El created at de message'
+          type: string
+        sendAt:
+          title: 'send at'
+          description: 'El send at de message'
+          type: string
+        lockAt:
+          title: 'lock at'
+          description: 'El lock at de message'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de message para controlar bloqueos optimistas'
+          type: string
+      type: object
+    MessageApiListDTO:
+      title: Message
+      description: message
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    SmtpOutboundConfigApiDTO:
+      title: 'Smtp outbound config'
+      description: smtp-outbound-config
+      properties:
+        uid:
+          title: uid
+          description: 'El uid de smtp outbound config'
+          type: string
+        tenant:
+          title: tenant
+          description: 'null = global, valor = override'
+          properties:
+            $ref:
+              type: string
+          type: object
+        host:
+          title: host
+          description: 'El host de smtp outbound config'
+          type: string
+        port:
+          title: port
+          description: 'El port de smtp outbound config'
+          type: string
+        login:
+          title: login
+          description: 'El login de smtp outbound config'
+          type: string
+        password:
+          title: password
+          description: 'El password de smtp outbound config'
+          type: string
+        senderName:
+          title: 'sender name'
+          description: 'El sender name de smtp outbound config'
+          type: string
+        senderEmail:
+          title: 'sender email'
+          description: 'El sender email de smtp outbound config'
+          type: string
+        timeout:
+          title: timeout
+          description: 'El timeout de smtp outbound config'
+          type: string
+        useTls:
+          title: 'use tls'
+          description: 'El use tls de smtp outbound config'
+          type: string
+        maxRetries:
+          title: 'max retries'
+          description: 'El max retries de smtp outbound config'
+          type: string
+        retryDelay:
+          title: 'retry delay'
+          description: 'El retry delay de smtp outbound config'
+          type: string
+        rateLimit:
+          title: 'rate limit'
+          description: 'El rate limit de smtp outbound config'
+          type: string
+        version:
+          title: version
+          description: 'Campo con el número de version de smtp outbound config para controlar bloqueos optimistas'
+          type: string
+      type: object
+    SmtpOutboundConfigApiListDTO:
+      title: 'Smtp outbound config'
+      description: smtp-outbound-config
+      properties:
+        items:
+          title: 'The items'
+          description: 'A list of items'
+          type: array
+          items:
+            $ref: '#/components/schemas/SmtpOutboundConfigApiDTO'
+        next:
+          title: 'Link to retrieve next page'
+          description: 'A link to retrieve next page'
+          type: string
+      type: object
+    ProfileApiDTO:
+      properties:
+        uid:
+          type: string
+          nullable: true
+        user:
+          type: object
+          nullable: true
+        givenName:
+          type: string
+          nullable: true
+        familyName:
+          type: string
+          nullable: true
+        middleName:
+          type: string
+          nullable: true
+        nickname:
+          type: string
+          nullable: true
+        preferredUsername:
+          type: string
+          nullable: true
+        pictureUrl:
+          type: string
+          nullable: true
+        websiteUrl:
+          type: string
+          nullable: true
+        gender:
+          type: string
+          nullable: true
+        birthdate:
+          description: YYYY-MM-DD
+          type: string
+          nullable: true
+        zoneinfo:
+          description: 'IANA timezone identifier'
+          type: string
+          nullable: true
+        locale:
+          description: 'BCP 47 language tag'
+          type: string
+          nullable: true
+        phoneNumber:
+          type: string
+          nullable: true
+        phoneNumberVerified:
+          type: boolean
+          nullable: true
+        addressJson:
+          description: 'JSON-encoded OIDC address claim'
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+          nullable: true
+        version:
+          type: integer
+          nullable: true
+      type: object
+  securitySchemes:
+    bearerAuth:
+      type: http
+      bearerFormat: JWT
+      scheme: bearer
+    basicAuth:
+      type: http
+      scheme: basic
 tags:
   -
     name: 'Api key client access control'
@@ -2386,6 +6484,12 @@ tags:
   -
     name: 'Api key client'
     description: 'Api key client'
+  -
+    name: 'Consent purpose access control'
+    description: 'Consent purpose access control'
+  -
+    name: 'Consent purpose'
+    description: 'Consent purpose'
   -
     name: 'Relying party access control'
     description: 'Relying party access control'
@@ -2435,14 +6539,101 @@ tags:
     name: 'User access control'
     description: 'User access control'
   -
-    name: 'User identity access control'
-    description: 'User identity access control'
+    name: 'User group membership access control'
+    description: 'User group membership access control'
   -
-    name: 'User identity'
-    description: 'User identity'
+    name: 'User group membership'
+    description: 'User group membership'
   -
-    name: 'Plan tenant access control'
-    description: 'Plan tenant access control'
+    name: 'User personal api key access control'
+    description: 'User personal api key access control'
   -
-    name: 'Plan tenant'
-    description: 'Plan tenant'
+    name: 'User personal api key'
+    description: 'User personal api key'
+  -
+    name: 'User role assignament access control'
+    description: 'User role assignament access control'
+  -
+    name: 'User role assignament'
+    description: 'User role assignament'
+  -
+    name: 'Snippet access control'
+    description: 'Snippet access control'
+  -
+    name: Snippet
+    description: Snippet
+  -
+    name: 'Snippet asset access control'
+    description: 'Snippet asset access control'
+  -
+    name: 'Snippet asset'
+    description: 'Snippet asset'
+  -
+    name: 'Snippet version access control'
+    description: 'Snippet version access control'
+  -
+    name: 'Snippet version'
+    description: 'Snippet version'
+  -
+    name: 'Template access control'
+    description: 'Template access control'
+  -
+    name: Template
+    description: Template
+  -
+    name: 'Template asset access control'
+    description: 'Template asset access control'
+  -
+    name: 'Template asset'
+    description: 'Template asset'
+  -
+    name: 'Template variable access control'
+    description: 'Template variable access control'
+  -
+    name: 'Template variable'
+    description: 'Template variable'
+  -
+    name: 'Template version access control'
+    description: 'Template version access control'
+  -
+    name: 'Template version'
+    description: 'Template version'
+  -
+    name: 'Theme access control'
+    description: 'Theme access control'
+  -
+    name: Theme
+    description: Theme
+  -
+    name: 'Theme asset access control'
+    description: 'Theme asset access control'
+  -
+    name: 'Theme asset'
+    description: 'Theme asset'
+  -
+    name: 'Theme version access control'
+    description: 'Theme version access control'
+  -
+    name: 'Theme version'
+    description: 'Theme version'
+  -
+    name: 'Message access control'
+    description: 'Message access control'
+  -
+    name: Message
+    description: Message
+  -
+    name: 'Smtp outbound config access control'
+    description: 'Smtp outbound config access control'
+  -
+    name: 'Smtp outbound config'
+    description: 'Smtp outbound config'
+  -
+    name: OIDC
+    description: OIDC
+  -
+    name: Profile
+    description: Profile
+  -
+    name: WebAuthn
+    description: WebAuthn

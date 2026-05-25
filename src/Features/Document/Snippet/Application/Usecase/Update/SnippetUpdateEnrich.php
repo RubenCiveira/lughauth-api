@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Document\Snippet\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Document\Snippet\Domain\SnippetAttributes;
+use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetEnrichForUpdate;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Snippet;
 
-class SnippetUpdateEnrich
+class SnippetUpdateEnrich extends SnippetEnrichForUpdate
 {
     public function __construct(
         public readonly SnippetUpdateParams $input,

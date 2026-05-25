@@ -14,6 +14,7 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driver\U
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
 use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Driver\UserAcceptedTermnsOfUsePlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driver\UserPersonalApiKeyPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
 use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driver\UserProfilePlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
@@ -22,6 +23,7 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driver\ConsentPu
 use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driver\UserInvitationPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driver\TenantTermsOfUsePlugin;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Driver\UserMfaRecoveryCodePlugin;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Infrastructure\Driver\UserConsentedScopesPlugin;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Driver\UserWebauthnCredentialPlugin;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driver\UserPlugin;
@@ -39,6 +41,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new RelyingPartyPlugin(),
           new UserAcceptedTermnsOfUsePlugin(),
           new ApiKeyClientPlugin(),
+          new UserPersonalApiKeyPlugin(),
           new TenantPlugin(),
           new UserProfilePlugin(),
           new TrustedClientPlugin(),
@@ -47,6 +50,7 @@ class AccessPlugin extends AggregatedMicroPlugin
           new UserInvitationPlugin(),
           new TenantLoginProviderPlugin(),
           new TenantTermsOfUsePlugin(),
+          new UserMfaRecoveryCodePlugin(),
           new UserConsentedScopesPlugin(),
           new UserWebauthnCredentialPlugin(),
           new UserPlugin(),

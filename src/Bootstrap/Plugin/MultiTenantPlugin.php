@@ -12,18 +12,18 @@ use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
 use Civi\Lughauth\Bootstrap\Management\Migration\MigrationManagement;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
-use Civi\Lughauth\Features\Oidc\Authentication\Domain\AuthenticationResult;
-use Civi\Lughauth\Features\Oidc\Common\Infrastructure\Driver\Management\OidcMigrationProvider;
-use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyLogin;
-use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyRecover;
-use Civi\Lughauth\Features\Oidc\User\Application\Listener\NotifyCreate;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
+use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driver\Management\OAuthMigrationProvider;
+use Civi\Lughauth\Features\OAuth\User\Application\Listener\NotifyLogin;
+use Civi\Lughauth\Features\OAuth\User\Application\Listener\NotifyRecover;
+use Civi\Lughauth\Features\OAuth\User\Application\Listener\NotifyCreate;
 
 class MultiTenantPlugin extends AggregatedMicroPlugin
 {
     public function __construct()
     {
         parent::__construct([
-          new OidcPlugin()
+          new OAuthPlugin()
         ]);
     }
     #[Override]
@@ -39,7 +39,7 @@ class MultiTenantPlugin extends AggregatedMicroPlugin
     public function getManagementsInterfaces(ContainerInterface $container): array
     {
         $migrations = $container->get(MigrationManagement::class);
-        $migrations->addProvider($container->get(OidcMigrationProvider::class));
+        $migrations->addProvider($container->get(OAuthMigrationProvider::class));
         return parent::getManagementsInterfaces($container);
     }
 }

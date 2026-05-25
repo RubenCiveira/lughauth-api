@@ -14,7 +14,7 @@ class UserInvitationFilter
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        private ?string $tokenHash = null,
+        public readonly ?string $tokenHash = null,
         private ?UserInvitationStatusOptions $status = null,
         private ?string $email = null,
         private ?TenantRef $tenant = null,
@@ -23,7 +23,7 @@ class UserInvitationFilter
         private ?array $invitedBys = null,
         private ?UserRef $acceptedBy = null,
         private ?array $acceptedBys = null,
-        private ?string $tenantTenantAccesible = null,
+        private ?string $tenantAccesible = null,
     ) {
     }
     public function uids(): ?array
@@ -208,22 +208,22 @@ class UserInvitationFilter
         $copy->acceptedBys = $acceptedBys;
         return $copy;
     }
-    public function tenantTenantAccesible(): ?string
+    public function tenantAccesible(): ?string
     {
-        return $this->tenantTenantAccesible;
+        return $this->tenantAccesible;
     }
-    public function isTenantTenantAccesibleAssigned(): bool
+    public function isTenantAccesibleAssigned(): bool
     {
-        return null !== $this->tenantTenantAccesible;
+        return null !== $this->tenantAccesible;
     }
-    public function unsetTenantTenantAccesible(): void
+    public function unsetTenantAccesible(): void
     {
-        $this->tenantTenantAccesible = null;
+        $this->tenantAccesible = null;
     }
-    public function withTenantTenantAccesible(string $tenantTenantAccesible): self
+    public function withTenantAccesible(string $tenantAccesible): self
     {
         $copy = clone $this;
-        $copy->tenantTenantAccesible = $tenantTenantAccesible;
+        $copy->tenantAccesible = $tenantAccesible;
         return $copy;
     }
 }

@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseEnrichForUpdate;
 
-class TenantTermsOfUseCreateEnrich
+class TenantTermsOfUseCreateEnrich extends TenantTermsOfUseEnrichForUpdate
 {
     public function __construct(public readonly TenantTermsOfUseCreateParams $input, private TenantTermsOfUseAttributes $result)
     {

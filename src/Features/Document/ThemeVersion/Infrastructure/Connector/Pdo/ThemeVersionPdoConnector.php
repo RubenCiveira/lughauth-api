@@ -293,11 +293,11 @@ class ThemeVersionPdoConnector
                     $query .= ' and "document_theme_version"."theme" in (:themes)  ';
                     $params[] = new SqlParam(name: 'themes', value: $filterThemes, type: SqlParam::STR);
                 }
-                $filterThemeTenantTenantAccesible = $filter->themeTenantTenantAccesible();
-                if (null !== $filterThemeTenantTenantAccesible) {
-                    $join .= ' LEFT JOIN "document_theme" as "themeTenantTenantAccesibleTheme" ON "themeTenantTenantAccesibleTheme"."uid" = "document_theme_version"."theme" LEFT JOIN "access_tenant" as "themeTenantTenantAccesibleTenant" ON "themeTenantTenantAccesibleTenant"."uid" = "themeTenantTenantAccesibleTheme"."tenant"';
-                    $query .= ' and "themeTenantTenantAccesibleTenant"."uid" = :themeTenantTenantAccesible';
-                    $params[] = new SqlParam(name: 'themeTenantTenantAccesible', value: $filterThemeTenantTenantAccesible, type: SqlParam::STR);
+                $filterThemeTenantAccesible = $filter->themeTenantAccesible();
+                if (null !== $filterThemeTenantAccesible) {
+                    $join .= ' LEFT JOIN "document_theme" as "themeTenantAccesibleTheme" ON "themeTenantAccesibleTheme"."uid" = "document_theme_version"."theme" LEFT JOIN "access_tenant" as "themeTenantAccesibleTenant" ON "themeTenantAccesibleTenant"."uid" = "themeTenantAccesibleTheme"."tenant"';
+                    $query .= ' and "themeTenantAccesibleTenant"."uid" = :themeTenantAccesible';
+                    $params[] = new SqlParam(name: 'themeTenantAccesible', value: $filterThemeTenantAccesible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

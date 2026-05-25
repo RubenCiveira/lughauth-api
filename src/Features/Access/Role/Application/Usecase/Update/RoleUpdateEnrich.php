@@ -6,9 +6,10 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\Role\Application\Usecase\Update;
 
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
+use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleEnrichForUpdate;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 
-class RoleUpdateEnrich
+class RoleUpdateEnrich extends RoleEnrichForUpdate
 {
     public function __construct(
         public readonly RoleUpdateParams $input,

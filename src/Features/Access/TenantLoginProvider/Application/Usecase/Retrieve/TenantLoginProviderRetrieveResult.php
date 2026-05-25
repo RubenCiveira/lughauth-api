@@ -15,6 +15,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderPrivateKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderCertificateAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderMetadataAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderOidcDiscoveryUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
@@ -35,6 +36,7 @@ class TenantLoginProviderRetrieveResult
     use TenantLoginProviderPrivateKeyAttributeHolder;
     use TenantLoginProviderCertificateAttributeHolder;
     use TenantLoginProviderMetadataAttributeHolder;
+    use TenantLoginProviderOidcDiscoveryUrlAttributeHolder;
     use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
     use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
     use TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
@@ -53,6 +55,7 @@ class TenantLoginProviderRetrieveResult
       'privateKey' => 'unsetPrivateKey',
       'certificate' => 'unsetCertificate',
       'metadata' => 'unsetMetadata',
+      'oidcDiscoveryUrl' => 'unsetOidcDiscoveryUrl',
       'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
       'samlIdpEntityId' => 'unsetSamlIdpEntityId',
       'samlIdpSsoUrl' => 'unsetSamlIdpSsoUrl',
@@ -74,6 +77,7 @@ class TenantLoginProviderRetrieveResult
             $this->readPrivateKeyFrom($att);
             $this->readCertificateFrom($att);
             $this->readMetadataFrom($att);
+            $this->readOidcDiscoveryUrlFrom($att);
             $this->readSamlIdpMetadataUrlFrom($att);
             $this->readSamlIdpEntityIdFrom($att);
             $this->readSamlIdpSsoUrlFrom($att);
@@ -95,6 +99,7 @@ class TenantLoginProviderRetrieveResult
         $this->writePrivateKeyTo($att);
         $this->writeCertificateTo($att);
         $this->writeMetadataTo($att);
+        $this->writeOidcDiscoveryUrlTo($att);
         $this->writeSamlIdpMetadataUrlTo($att);
         $this->writeSamlIdpEntityIdTo($att);
         $this->writeSamlIdpSsoUrlTo($att);
@@ -121,6 +126,7 @@ class TenantLoginProviderRetrieveResult
         $this->withDefaultPrivateKey();
         $this->withDefaultCertificate();
         $this->withDefaultMetadata();
+        $this->withDefaultOidcDiscoveryUrl();
         $this->withDefaultSamlIdpMetadataUrl();
         $this->withDefaultSamlIdpEntityId();
         $this->withDefaultSamlIdpSsoUrl();

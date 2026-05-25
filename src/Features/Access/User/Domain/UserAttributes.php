@@ -11,6 +11,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserNameAttribu
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailVerifiedAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTemporalPasswordAttributeHolder;
@@ -29,6 +30,7 @@ class UserAttributes
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
     use UserWellcomeAtAttributeHolder;
+    use UserEmailVerifiedAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserApproveAttributeHolder;
     use UserTemporalPasswordAttributeHolder;
@@ -45,6 +47,7 @@ class UserAttributes
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
       'wellcomeAt' => 'unsetWellcomeAt',
+      'emailVerified' => 'unsetEmailVerified',
       'enabled' => 'unsetEnabled',
       'approve' => 'unsetApprove',
       'temporalPassword' => 'unsetTemporalPassword',
@@ -64,6 +67,7 @@ class UserAttributes
         $password = $this->passwordTryBuildInitial($errors);
         $email = $this->emailTryBuildInitial($errors);
         $wellcomeAt = $this->wellcomeAtTryBuildInitial($errors);
+        $emailVerified = $this->emailVerifiedTryBuildInitial($errors);
         $enabled = $this->enabledTryBuildInitial($errors);
         $approve = $this->approveTryBuildInitial($errors);
         $temporalPassword = $this->temporalPasswordTryBuildInitial($errors);
@@ -86,6 +90,7 @@ class UserAttributes
             password: $password,
             email: $email,
             wellcomeAt: $wellcomeAt,
+            emailVerified: $emailVerified,
             enabled: $enabled,
             approve: $approve,
             temporalPassword: $temporalPassword,
@@ -106,6 +111,7 @@ class UserAttributes
         $this->withAssertedPasswordRules($value, $errorsList);
         $this->withAssertedEmailRules($value, $errorsList);
         $this->withAssertedWellcomeAtRules($value, $errorsList);
+        $this->withAssertedEmailVerifiedRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedApproveRules($value, $errorsList);
         $this->withAssertedTemporalPasswordRules($value, $errorsList);
@@ -133,6 +139,7 @@ class UserAttributes
         $this->withDefaultPassword();
         $this->withDefaultEmail();
         $this->withDefaultWellcomeAt();
+        $this->withDefaultEmailVerified();
         $this->withDefaultEnabled();
         $this->withDefaultApprove();
         $this->withDefaultTemporalPassword();

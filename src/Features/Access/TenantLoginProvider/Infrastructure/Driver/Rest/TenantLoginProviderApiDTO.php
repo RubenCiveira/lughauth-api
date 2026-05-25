@@ -40,7 +40,7 @@ class TenantLoginProviderApiDTO
         title: "source",
         description:"The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, SAML).",
         type: "string",
-        enum: ["GOOGLE","GITHUB","MICROSOFT","APPLE","SAML"]
+        enum: ["GOOGLE","GITHUB","MICROSOFT","APPLE","SAML","OIDC"]
     )]
     public ?TenantLoginProviderSourceOptions $source = null;
     #[OA\Property(
@@ -85,6 +85,13 @@ class TenantLoginProviderApiDTO
         type: "string"
     )]
     public ?string $metadata = null;
+    #[OA\Property(
+        property: "oidcDiscoveryUrl",
+        title: "oidc discovery url",
+        description:"For source=OIDC: the /.well-known/openid-configuration URL of the external OIDC identity provider. The system will fetch authorization_endpoint, token_endpoint, and jwks_uri from this document at startup. public-key holds the OIDC client_id; private-key holds the OIDC client_secret.",
+        type: "string"
+    )]
+    public ?string $oidcDiscoveryUrl = null;
     #[OA\Property(
         property: "samlIdpMetadataUrl",
         title: "saml idp metadata url",

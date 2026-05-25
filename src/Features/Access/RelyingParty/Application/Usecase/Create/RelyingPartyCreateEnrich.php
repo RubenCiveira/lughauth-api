@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
+use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyEnrichForUpdate;
 
-class RelyingPartyCreateEnrich
+class RelyingPartyCreateEnrich extends RelyingPartyEnrichForUpdate
 {
     public function __construct(public readonly RelyingPartyCreateParams $input, private RelyingPartyAttributes $result)
     {

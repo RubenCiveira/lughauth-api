@@ -136,7 +136,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant config");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "dynamic_registration_policy", "allow_register", "enable_register_users", "magic_link_enabled", "webauthn_enabled", "webauthn_rp_id", "webauthn_rp_name", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :dynamicRegistrationPolicy, :allowRegister, :enableRegisterUsers, :magicLinkEnabled, :webauthnEnabled, :webauthnRpId, :webauthnRpName, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_config" ( "uid", "tenant", "inner_label", "force_mfa", "dynamic_registration_policy", "allow_register", "enable_register_users", "magic_link_enabled", "require_email_verification", "invitation_expiry_days", "magic_link_expiry_minutes", "session_sso_ttl_seconds", "refresh_token_ttl_seconds", "webauthn_enabled", "webauthn_rp_id", "webauthn_rp_name", "wellcome_email", "registerd_email", "disabled_user_email", "enabled_user_email", "allow_recover_pass", "recover_pass_email", "version") VALUES ( :uid, :tenant, :innerLabel, :forceMfa, :dynamicRegistrationPolicy, :allowRegister, :enableRegisterUsers, :magicLinkEnabled, :requireEmailVerification, :invitationExpiryDays, :magicLinkExpiryMinutes, :sessionSsoTtlSeconds, :refreshTokenTtlSeconds, :webauthnEnabled, :webauthnRpId, :webauthnRpName, :wellcomeEmail, :registerdEmail, :disabledUserEmail, :enabledUserEmail, :allowRecoverPass, :recoverPassEmail, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $entity->getInnerLabel(), type: SqlParam::STR),
@@ -145,6 +145,11 @@ class TenantConfigPdoConnector
                      new SqlParam(name: 'allowRegister', value: $entity->isAllowRegister(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enableRegisterUsers', value: $entity->isEnableRegisterUsers(), type: SqlParam::BOOL),
                      new SqlParam(name: 'magicLinkEnabled', value: $entity->isMagicLinkEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requireEmailVerification', value: $entity->isRequireEmailVerification(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'invitationExpiryDays', value: $entity->getInvitationExpiryDays(), type: SqlParam::INT),
+                     new SqlParam(name: 'magicLinkExpiryMinutes', value: $entity->getMagicLinkExpiryMinutes(), type: SqlParam::INT),
+                     new SqlParam(name: 'sessionSsoTtlSeconds', value: $entity->getSessionSsoTtlSeconds(), type: SqlParam::INT),
+                     new SqlParam(name: 'refreshTokenTtlSeconds', value: $entity->getRefreshTokenTtlSeconds(), type: SqlParam::INT),
                      new SqlParam(name: 'webauthnEnabled', value: $entity->isWebauthnEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'webauthnRpId', value: $entity->getWebauthnRpId(), type: SqlParam::STR),
                      new SqlParam(name: 'webauthnRpName', value: $entity->getWebauthnRpName(), type: SqlParam::STR),
@@ -181,7 +186,7 @@ class TenantConfigPdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant config");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "dynamic_registration_policy" = :dynamicRegistrationPolicy , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "magic_link_enabled" = :magicLinkEnabled , "webauthn_enabled" = :webauthnEnabled , "webauthn_rp_id" = :webauthnRpId , "webauthn_rp_name" = :webauthnRpName , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_config" SET "tenant" = :tenant , "inner_label" = :innerLabel , "force_mfa" = :forceMfa , "dynamic_registration_policy" = :dynamicRegistrationPolicy , "allow_register" = :allowRegister , "enable_register_users" = :enableRegisterUsers , "magic_link_enabled" = :magicLinkEnabled , "require_email_verification" = :requireEmailVerification , "invitation_expiry_days" = :invitationExpiryDays , "magic_link_expiry_minutes" = :magicLinkExpiryMinutes , "session_sso_ttl_seconds" = :sessionSsoTtlSeconds , "refresh_token_ttl_seconds" = :refreshTokenTtlSeconds , "webauthn_enabled" = :webauthnEnabled , "webauthn_rp_id" = :webauthnRpId , "webauthn_rp_name" = :webauthnRpName , "wellcome_email" = :wellcomeEmail , "registerd_email" = :registerdEmail , "disabled_user_email" = :disabledUserEmail , "enabled_user_email" = :enabledUserEmail , "allow_recover_pass" = :allowRecoverPass , "recover_pass_email" = :recoverPassEmail , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'innerLabel', value: $update->getInnerLabel(), type: SqlParam::STR),
@@ -190,6 +195,11 @@ class TenantConfigPdoConnector
                      new SqlParam(name: 'allowRegister', value: $update->isAllowRegister(), type: SqlParam::BOOL),
                      new SqlParam(name: 'enableRegisterUsers', value: $update->isEnableRegisterUsers(), type: SqlParam::BOOL),
                      new SqlParam(name: 'magicLinkEnabled', value: $update->isMagicLinkEnabled(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'requireEmailVerification', value: $update->isRequireEmailVerification(), type: SqlParam::BOOL),
+                     new SqlParam(name: 'invitationExpiryDays', value: $update->getInvitationExpiryDays(), type: SqlParam::INT),
+                     new SqlParam(name: 'magicLinkExpiryMinutes', value: $update->getMagicLinkExpiryMinutes(), type: SqlParam::INT),
+                     new SqlParam(name: 'sessionSsoTtlSeconds', value: $update->getSessionSsoTtlSeconds(), type: SqlParam::INT),
+                     new SqlParam(name: 'refreshTokenTtlSeconds', value: $update->getRefreshTokenTtlSeconds(), type: SqlParam::INT),
                      new SqlParam(name: 'webauthnEnabled', value: $update->isWebauthnEnabled(), type: SqlParam::BOOL),
                      new SqlParam(name: 'webauthnRpId', value: $update->getWebauthnRpId(), type: SqlParam::STR),
                      new SqlParam(name: 'webauthnRpName', value: $update->getWebauthnRpName(), type: SqlParam::STR),
@@ -346,11 +356,11 @@ class TenantConfigPdoConnector
                     $query .= ' and "access_tenant_config"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                $filterTenantTenantAccesible = $filter->tenantTenantAccesible();
-                if (null !== $filterTenantTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantTenantAccesibleTenant" ON "tenantTenantAccesibleTenant"."uid" = "access_tenant_config"."tenant"';
-                    $query .= ' and "tenantTenantAccesibleTenant"."uid" = :tenantTenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantTenantAccesible', value: $filterTenantTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccesible = $filter->tenantAccesible();
+                if (null !== $filterTenantAccesible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "access_tenant_config"."tenant"';
+                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
+                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
                 }
             }
             if ($sort) {
@@ -401,6 +411,26 @@ class TenantConfigPdoConnector
             $allowRegister = isset($row['allow_register']) ? !! $row['allow_register'] : null;
             $enableRegisterUsers = isset($row['enable_register_users']) ? !! $row['enable_register_users'] : null;
             $magicLinkEnabled = isset($row['magic_link_enabled']) ? !! $row['magic_link_enabled'] : null;
+            $requireEmailVerification = isset($row['require_email_verification']) ? !! $row['require_email_verification'] : null;
+            if (null === $requireEmailVerification) {
+                throw ConstraintException::ofError('not-null', ['requireEmailVerification'], [null]);
+            }
+            $invitationExpiryDays = $row['invitation_expiry_days'] ?? null;
+            if (null === $invitationExpiryDays) {
+                throw ConstraintException::ofError('not-null', ['invitationExpiryDays'], [null]);
+            }
+            $magicLinkExpiryMinutes = $row['magic_link_expiry_minutes'] ?? null;
+            if (null === $magicLinkExpiryMinutes) {
+                throw ConstraintException::ofError('not-null', ['magicLinkExpiryMinutes'], [null]);
+            }
+            $sessionSsoTtlSeconds = $row['session_sso_ttl_seconds'] ?? null;
+            if (null === $sessionSsoTtlSeconds) {
+                throw ConstraintException::ofError('not-null', ['sessionSsoTtlSeconds'], [null]);
+            }
+            $refreshTokenTtlSeconds = $row['refresh_token_ttl_seconds'] ?? null;
+            if (null === $refreshTokenTtlSeconds) {
+                throw ConstraintException::ofError('not-null', ['refreshTokenTtlSeconds'], [null]);
+            }
             $webauthnEnabled = isset($row['webauthn_enabled']) ? !! $row['webauthn_enabled'] : null;
             $webauthnRpId = $row['webauthn_rp_id'] ?? null;
             $webauthnRpName = $row['webauthn_rp_name'] ?? null;
@@ -420,6 +450,11 @@ class TenantConfigPdoConnector
                 allowRegister: $allowRegister,
                 enableRegisterUsers: $enableRegisterUsers,
                 magicLinkEnabled: $magicLinkEnabled,
+                requireEmailVerification: $requireEmailVerification,
+                invitationExpiryDays: $invitationExpiryDays,
+                magicLinkExpiryMinutes: $magicLinkExpiryMinutes,
+                sessionSsoTtlSeconds: $sessionSsoTtlSeconds,
+                refreshTokenTtlSeconds: $refreshTokenTtlSeconds,
                 webauthnEnabled: $webauthnEnabled,
                 webauthnRpId: $webauthnRpId,
                 webauthnRpName: $webauthnRpName,

@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\ConsentPurpose\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeAttributes;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeEnrichForUpdate;
 
-class ConsentPurposeCreateEnrich
+class ConsentPurposeCreateEnrich extends ConsentPurposeEnrichForUpdate
 {
     public function __construct(public readonly ConsentPurposeCreateParams $input, private ConsentPurposeAttributes $result)
     {

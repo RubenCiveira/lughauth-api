@@ -21,16 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Service\Visibility\UserRoleAssignamentRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Filter\TenantAccesible;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Allow\Create\IsAuthenticatedCreateAllow;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\Create\UserRoleAssignamentCreateAllowDecision;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Allow\Update\IsAuthenticatedUpdateAllow;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\Update\UserRoleAssignamentUpdateAllowDecision;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Allow\Retrieve\IsAuthenticatedRetrieveAllow;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\Retrieve\UserRoleAssignamentRetrieveAllowDecision;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Allow\List\IsAuthenticatedListAllow;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\List\UserRoleAssignamentListAllowDecision;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Policy\Allow\Delete\IsAuthenticatedDeleteAllow;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Application\Usecase\Delete\UserRoleAssignamentDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Infrastructure\Driven\UserRoleAssignamentReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Infrastructure\Driven\UserRoleAssignamentWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\Gateway\UserRoleAssignamentReadGateway;
@@ -55,11 +45,6 @@ class UserRoleAssignamentPlugin extends MicroPlugin
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
         $listener->registerListener(UserRoleAssignamentRestrictFilterToVisibility::class, TenantAccesible::class);
-        $listener->registerListener(UserRoleAssignamentCreateAllowDecision::class, IsAuthenticatedCreateAllow::class);
-        $listener->registerListener(UserRoleAssignamentUpdateAllowDecision::class, IsAuthenticatedUpdateAllow::class);
-        $listener->registerListener(UserRoleAssignamentRetrieveAllowDecision::class, IsAuthenticatedRetrieveAllow::class);
-        $listener->registerListener(UserRoleAssignamentListAllowDecision::class, IsAuthenticatedListAllow::class);
-        $listener->registerListener(UserRoleAssignamentDeleteAllowDecision::class, IsAuthenticatedDeleteAllow::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

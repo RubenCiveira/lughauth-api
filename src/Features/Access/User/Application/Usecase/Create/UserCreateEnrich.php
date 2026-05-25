@@ -6,8 +6,9 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\User\Application\Usecase\Create;
 
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
+use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserEnrichForUpdate;
 
-class UserCreateEnrich
+class UserCreateEnrich extends UserEnrichForUpdate
 {
     public function __construct(public readonly UserCreateParams $input, private UserAttributes $result)
     {

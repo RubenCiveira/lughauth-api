@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter;
 
 use Throwable;
-use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -25,14 +24,9 @@ class TenantAccesible
         $this->logDebug("Check TenantAccesible Tenant login provider");
         $span = $this->startSpan("Check TenantAccesible Tenant login provider");
         try {
-            $userContext = $this->context->getIdentity();
-            if (!$userContext->hasAnyScope('platform:global_access')) {
-                $tenantTenantAccesible = $userContext->tenant;
-                if (!$userContext->anonymous && null !== $tenantTenantAccesible) {
-                    $event->tenantLoginProviderFilter = $event->tenantLoginProviderFilter->withTenantTenantAccesible($tenantTenantAccesible);
-                } else {
-                    throw new UnauthorizedException('The claim tenant is required');
-                }
+            $identity = $this->context->getIdentity();
+            if (!($identity->hasScope("platform:global_access"))) {
+                $event->with($event->tenantLoginProviderFilter->withTenantAccesible($identity->tenant));
             }
             return $event;
         } catch (Throwable $ex) {
