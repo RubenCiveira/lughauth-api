@@ -61,7 +61,7 @@ class NotifyLogin
 
         $tenant = $auth->tenant ? new TenantRef($auth->tenant) : null;
         $userName = $auth->name ?? $auth->email ?? $auth->id ?? 'unknown';
-        $ip = $this->context->getConnection()->source;
+        $ip = $this->context->getConnection()->getSource();
         $date = (new \DateTimeImmutable())->format(DATE_ATOM);
 
         try {

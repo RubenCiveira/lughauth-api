@@ -60,10 +60,12 @@ class JwksController
      * Returns the tenant's JWKS as a JSON response, serving from cache when available.
      * Attaches an ETag derived from the payload hash and a one-hour Cache-Control header.
      */
+    private const string CACHE_KEY = 'jwks_public_keyset';
+
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
-        $key = $tenant . '_public_txt_jwks';
+        $key = self::CACHE_KEY;
         if (!$this->cacheInterface->has($key)) {
             $data = $this->tokenHandler->keysAsJwks($tenant);
             $encoded = json_encode($data);

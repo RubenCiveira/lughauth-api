@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\TokenSecurity\Infrastructure\Driven;
 
 use Override;
+use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyConfig;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
@@ -35,7 +36,8 @@ class JoseTokenSigner implements TokenSigner
 {
     public function __construct(
         private readonly KeyConfig $config,
-        private readonly TokenStoreGateway $repository
+        private readonly TokenStoreGateway $repository,
+        private readonly CacheInterface $cache
     ) {
     }
 
@@ -47,7 +49,9 @@ class JoseTokenSigner implements TokenSigner
     #[Override]
     public function sign(string $tenant, array $data, \DateInterval $expiration): string
     {
-        $this->checkNewNeeded($tenant);
+        if ($this->checkNewNeeded($tenant)) {
+            $this->cache->deleteMultiple(['jwks_public_keyset', 'jwks.verify.publickey']);
+        }
         $key = $this->repository->currentKey($tenant);
         if (!$key) {
             throw new NoActiveKeyException('There is no active key for tenant: ' . $tenant);
@@ -93,7 +97,9 @@ class JoseTokenSigner implements TokenSigner
     #[Override]
     public function keysAsJwks(string $tenant): JWKSet
     {
-        $this->checkNewNeeded($tenant);
+        if ($this->checkNewNeeded($tenant)) {
+            $this->cache->deleteMultiple(['jwks_public_keyset', 'jwks.verify.publickey']);
+        }
         $keys = [];
         $result = $this->repository->listKeys($tenant);
         foreach ($result as $pk) {
@@ -183,7 +189,7 @@ class JoseTokenSigner implements TokenSigner
         return is_array($payload) ? $payload : null;
     }
 
-    private function checkNewNeeded(string $tenant): void
+    private function checkNewNeeded(string $tenant): bool
     {
         $expected = new \DateTime();
         for ($i = 0; $i < $this->config->futures; $i++) {
@@ -196,12 +202,13 @@ class JoseTokenSigner implements TokenSigner
             $intervalInSeconds = $this->intervalInSeconds($this->config->ttl);
             $numberOfIntervals = (int) ceil($differenceInSeconds / $intervalInSeconds);
             for ($i = 0; $i < $numberOfIntervals + 1; $i++) {
-                // Tengo que crear una clave y guardarla.
                 $pair = $this->createKeyPair();
                 $this->repository->saveKey($tenant, $pair, $since, $this->config->ttl);
                 $since = $since->add($this->config->ttl);
             }
+            return true;
         }
+        return false;
     }
 
     private function createKeyPair(): KeyPair

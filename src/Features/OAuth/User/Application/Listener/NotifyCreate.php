@@ -5,9 +5,9 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\User\Application\Listener;
 
-use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Notification\Message\Application\Usecase\SendMessage;
+use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\EnqueueNotificationUsecase;
 
 /**
  * Domain event listener that reacts to UserCreateEvent and optionally sends a notification.
@@ -24,7 +24,7 @@ use Civi\Lughauth\Features\Notification\Message\Application\Usecase\SendMessage;
  */
 class NotifyCreate
 {
-    public function __construct(private readonly SendMessage $sender)
+    public function __construct(private readonly EnqueueNotificationUsecase $sender)
     {
 
     }

@@ -6,6 +6,22 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven;
 
 use Override;
+use DateTimeImmutable;
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
+use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\TermsOfUseConsentGateway;
 
@@ -21,6 +37,16 @@ use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\TermsOfUseConsentGateway
  */
 final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
 {
+    public function __construct(
+        private readonly TenantReadGateway $tenants,
+        private readonly UserReadGateway $users,
+        private readonly RelyingPartyReadGateway $relyingParties,
+        private readonly TenantTermsOfUseReadGateway $tenantTerms,
+        private readonly UserAcceptedTermnsOfUseReadGateway $acceptedTermsRead,
+        private readonly UserAcceptedTermnsOfUseWriteGateway $acceptedTermsWrite,
+    ) {
+    }
+
     /**
      * Always returns an empty array, indicating that all terms of use have already been accepted
      * and no consent screen needs to be displayed.
@@ -28,7 +54,42 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
     #[Override]
     public function getPendingConsent(string $tenant, string $username, array $audiences): array
     {
-        return [];
+        $theTenant = $this->tenants->findOneByName($tenant);
+        if ($theTenant === null) {
+            throw new InvalidArgumentException('Unkown tenant');
+        }
+
+        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+        $userUid = $user->uid();
+        if ($userUid === null || $userUid === '') {
+            throw new InvalidArgumentException('Empty user');
+        }
+
+        $terms = $this->loadActiveTermsForAudiences($theTenant->uid() ?? '', $audiences);
+        $pending = [];
+        foreach ($terms as $term) {
+            $accepted = $this->acceptedTermsRead->findOneByUserAndConditions(
+                new UserRef($userUid),
+                new TenantTermsOfUseRef($term->uid() ?? '')
+            );
+            if ($accepted !== null) {
+                continue;
+            }
+
+            $termUid = $term->uid();
+            if ($termUid === null || $termUid === '') {
+                continue;
+            }
+            $pending[] = new TermsOfUseAcceptance(
+                id: $termUid,
+                text: $term->getText() ?? ''
+            );
+        }
+
+        return $pending;
     }
 
     /**
@@ -37,5 +98,107 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
     #[Override]
     public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void
     {
+        $theTenant = $this->tenants->findOneByName($tenant);
+        if ($theTenant === null) {
+            throw new InvalidArgumentException('Unkown tenant');
+        }
+
+        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+        $userUid = $user->uid();
+        if ($userUid === null || $userUid === '') {
+            throw new InvalidArgumentException('Empty user');
+        }
+
+        $termUid = trim($consent->id);
+        if ($termUid === '') {
+            throw new InvalidArgumentException('Empty consent id');
+        }
+
+        $selected = null;
+        foreach ($this->loadActiveTermsForAudiences($theTenant->uid() ?? '', $audiences) as $term) {
+            if ($term->uid() === $termUid) {
+                $selected = $term;
+                break;
+            }
+        }
+        if ($selected === null) {
+            throw new InvalidArgumentException('Unkown consent');
+        }
+
+        $existing = $this->acceptedTermsRead->findOneByUserAndConditions(
+            new UserRef($userUid),
+            new TenantTermsOfUseRef($termUid)
+        );
+        if ($existing !== null) {
+            return;
+        }
+
+        $attributes = (new UserAcceptedTermnsOfUseAttributes())
+            ->uid(Random::comb())
+            ->user(new UserRef($userUid))
+            ->conditions(new TenantTermsOfUseRef($termUid))
+            ->acceptDate(new DateTimeImmutable());
+
+        $this->acceptedTermsWrite->create(UserAcceptedTermnsOfUse::create($attributes));
+    }
+
+    /**
+     * @param string[] $audiences
+     *
+     * @return TenantTermsOfUse[]
+     */
+    private function loadActiveTermsForAudiences(string $tenantUid, array $audiences): array
+    {
+        if ($tenantUid === '') {
+            return [];
+        }
+
+        $partyUids = [];
+        foreach ($audiences as $audience) {
+            $party = $this->relyingParties->findOneByCode((string) $audience);
+            $partyUid = $party?->uid();
+            if ($partyUid !== null && $partyUid !== '') {
+                $partyUids[] = $partyUid;
+            }
+        }
+        if ($partyUids === []) {
+            return [];
+        }
+
+        $allTerms = $this->tenantTerms->list(
+            (new TenantTermsOfUseFilter())
+                ->withTenant(new TenantRef($tenantUid))
+                ->withRelyingPartys($partyUids)
+        );
+
+        $now = new DateTimeImmutable();
+        $latestByParty = [];
+        foreach ($allTerms as $term) {
+            if (!$term instanceof TenantTermsOfUse) {
+                continue;
+            }
+            if (!$term->isEnabled()) {
+                continue;
+            }
+            $activationDate = $term->getActivationDate();
+            if ($activationDate === null || $activationDate > $now) {
+                continue;
+            }
+
+            $partyUid = $term->getRelyingParty()?->uid();
+            if ($partyUid === null || $partyUid === '') {
+                continue;
+            }
+
+            $current = $latestByParty[$partyUid] ?? null;
+            if ($current === null || (($current->getActivationDate() ?? $now) <= $activationDate)) {
+                $latestByParty[$partyUid] = $term;
+            }
+        }
+
+        return array_values($latestByParty);
     }
 }

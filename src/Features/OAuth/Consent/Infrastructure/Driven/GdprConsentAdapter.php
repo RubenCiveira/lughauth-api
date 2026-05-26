@@ -5,8 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven;
 
+use DateTimeImmutable;
 use Override;
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeRef;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeFilter;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesFilter;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesReadGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesWriteGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\UserConsentPurposes;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\UserConsentPurposesAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\GdprConsentGateway;
+use Civi\Lughauth\Features\OAuth\Consent\Domain\GdprConsentPurposeItem;
 
 /**
  * Stub infrastructure adapter that implements GdprConsentGateway as a no-op.
@@ -21,6 +38,15 @@ use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\GdprConsentGateway;
  */
 final class GdprConsentAdapter implements GdprConsentGateway
 {
+    public function __construct(
+        private readonly TenantReadGateway $tenants,
+        private readonly UserReadGateway $users,
+        private readonly ConsentPurposeReadGateway $consentPurposes,
+        private readonly UserConsentPurposesReadGateway $userConsentPurposesRead,
+        private readonly UserConsentPurposesWriteGateway $userConsentPurposesWrite,
+    ) {
+    }
+
     /**
      * Always returns an empty array, indicating that there are no pending GDPR consent purposes
      * to present to the user.
@@ -28,7 +54,52 @@ final class GdprConsentAdapter implements GdprConsentGateway
     #[Override]
     public function pendingPurposes(string $tenant, string $username): array
     {
-        return [];
+        $theTenant = $this->tenants->findOneByName($tenant);
+        if ($theTenant === null) {
+            throw new InvalidArgumentException('Unkown tenant');
+        }
+
+        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+
+        $tenantUid = $theTenant->uid() ?? '';
+        if ($tenantUid === '') {
+            throw new InvalidArgumentException('Empty tenant');
+        }
+        $userUid = $user->uid() ?? '';
+        if ($userUid === '') {
+            throw new InvalidArgumentException('Empty user');
+        }
+
+        $activePurposes = $this->loadActiveConsentPurposes($tenantUid);
+        $pending = [];
+        foreach ($activePurposes as $purpose) {
+            $purposeUid = $purpose->uid() ?? '';
+            if ($purposeUid === '') {
+                continue;
+            }
+
+            $existing = $this->userConsentPurposesRead->retrieve(
+                (new UserConsentPurposesFilter())
+                    ->withUser(new UserRef($userUid))
+                    ->withConsentPurpose(new ConsentPurposeRef($purposeUid))
+            );
+            if ($existing !== null) {
+                continue;
+            }
+
+            $pending[] = new GdprConsentPurposeItem(
+                uid: $purposeUid,
+                key: (string) $purpose->getKey(),
+                title: $purpose->getTitle() ?? '',
+                description: $purpose->getDescription() ?? '',
+                required: $purpose->isRequired() ?? false,
+            );
+        }
+
+        return $pending;
     }
 
     /**
@@ -37,5 +108,94 @@ final class GdprConsentAdapter implements GdprConsentGateway
     #[Override]
     public function storePurposeDecisions(string $tenant, string $username, array $decisionsByPurposeUid, string $ipAddress, string $userAgent): void
     {
+        $theTenant = $this->tenants->findOneByName($tenant);
+        if ($theTenant === null) {
+            throw new InvalidArgumentException('Unkown tenant');
+        }
+
+        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+
+        $tenantUid = $theTenant->uid() ?? '';
+        if ($tenantUid === '') {
+            throw new InvalidArgumentException('Empty tenant');
+        }
+        $userUid = $user->uid() ?? '';
+        if ($userUid === '') {
+            throw new InvalidArgumentException('Empty user');
+        }
+
+        $activePurposeIds = [];
+        foreach ($this->loadActiveConsentPurposes($tenantUid) as $purpose) {
+            $uid = $purpose->uid() ?? '';
+            if ($uid !== '') {
+                $activePurposeIds[$uid] = true;
+            }
+        }
+
+        foreach ($decisionsByPurposeUid as $purposeUid => $granted) {
+            $purposeUid = trim((string) $purposeUid);
+            if ($purposeUid === '' || !isset($activePurposeIds[$purposeUid])) {
+                continue;
+            }
+
+            $existing = $this->userConsentPurposesRead->retrieve(
+                (new UserConsentPurposesFilter())
+                    ->withUser(new UserRef($userUid))
+                    ->withConsentPurpose(new ConsentPurposeRef($purposeUid))
+            );
+
+            if ($existing !== null) {
+                $updated = $existing->update(
+                    (new UserConsentPurposesAttributes())
+                        ->granted((bool) $granted)
+                        ->decisionAt(new DateTimeImmutable())
+                        ->ipAddress($ipAddress)
+                        ->userAgent($userAgent)
+                );
+                $this->userConsentPurposesWrite->update($existing, $updated);
+                continue;
+            }
+
+            $entity = UserConsentPurposes::create(
+                (new UserConsentPurposesAttributes())
+                    ->uid(Random::comb())
+                    ->user(new UserRef($userUid))
+                    ->consentPurpose(new ConsentPurposeRef($purposeUid))
+                    ->granted((bool) $granted)
+                    ->decisionAt(new DateTimeImmutable())
+                    ->ipAddress($ipAddress)
+                    ->userAgent($userAgent)
+            );
+            $this->userConsentPurposesWrite->create($entity);
+        }
+    }
+
+    /**
+     * @return ConsentPurpose[]
+     */
+    private function loadActiveConsentPurposes(string $tenantUid): array
+    {
+        $all = $this->consentPurposes->list(
+            (new ConsentPurposeFilter())
+                ->withTenant(new TenantRef($tenantUid))
+        );
+
+        $now = new DateTimeImmutable();
+        $active = [];
+        foreach ($all as $purpose) {
+            if (!$purpose instanceof ConsentPurpose) {
+                continue;
+            }
+            $activationDate = $purpose->getActivationDate();
+            if ($activationDate === null || $activationDate > $now) {
+                continue;
+            }
+            $active[] = $purpose;
+        }
+
+        return $active;
     }
 }

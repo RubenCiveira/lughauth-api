@@ -103,8 +103,8 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $userAgent = $serverParams['HTTP_USER_AGENT'] ?? null;
 
         $stmt = $this->pdo->prepare('INSERT INTO _oauth_session ' .
-            '(session, expiration, client_id, issuer, auth_data, csid, ip_address, user_agent, last_used_at, client_name) VALUES ' .
-            '(:state, :expiration, :client, :issuer, :data, :csid, :ip_address, :user_agent, :last_used_at, :client_name)');
+            '(session, expiration, client_id, issuer, auth_data, csid, ip_address, user_agent, last_used_at, client_name, user_uid, auth_time) VALUES ' .
+            '(:state, :expiration, :client, :issuer, :data, :csid, :ip_address, :user_agent, :last_used_at, :client_name, :user_uid, :auth_time)');
         $stmt->bindValue('state', $state, PDO::PARAM_STR);
         $stmt->bindValue('expiration', $expires->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('client', $clientDetails->id, PDO::PARAM_STR);
@@ -115,6 +115,8 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $stmt->bindValue('user_agent', $userAgent !== null ? substr($userAgent, 0, 500) : null, PDO::PARAM_STR);
         $stmt->bindValue('last_used_at', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->bindValue('client_name', $clientDetails->id, PDO::PARAM_STR);
+        $stmt->bindValue('user_uid', $validationData->id, PDO::PARAM_STR);
+        $stmt->bindValue('auth_time', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
         $stmt->execute();
     }
 

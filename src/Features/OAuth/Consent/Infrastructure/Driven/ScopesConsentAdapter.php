@@ -6,7 +6,23 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven;
 
 use Override;
+use DateTimeImmutable;
+use InvalidArgumentException;
+use Civi\Lughauth\Shared\Value\Random;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesFilter;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesReadGateway;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesWriteGateway;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopes;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopesAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
+use Civi\Lughauth\Features\OAuth\Consent\Domain\ScopePermission;
+use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
 /**
  * Stub infrastructure adapter that implements ScopesConsentGateway as a no-op.
@@ -20,21 +36,147 @@ use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
  */
 final class ScopesConsentAdapter implements ScopesConsentGateway
 {
-    /**
-     * Always returns an empty array, indicating that all requested scopes are already approved
-     * and no consent screen needs to be displayed.
-     */
+    use LoggerAwareTrait;
+
+    public function __construct(
+        private readonly UserReadGateway $users,
+        private readonly TenantReadGateway $tenants,
+        private readonly TrustedClientReadGateway $trustedClients,
+        private readonly UserConsentedScopesReadGateway $consentsRead,
+        private readonly UserConsentedScopesWriteGateway $consentsWrite,
+    ) {
+    }
+
     #[Override]
     public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array
     {
-        return [];
+        $theTenant = $this->tenants->findOneByName($tenant);
+        if ($theTenant === null ) {
+            throw new InvalidArgumentException("Unkown tenant");
+        }
+        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        if ($user === null) {
+            throw new InvalidArgumentException("Unkown user");
+        }
+        $userUid = $user->uid();
+        if ($userUid === null || $userUid === '') {
+            throw new InvalidArgumentException("Empty user");
+        }
+        $trustedClient = $this->trustedClients->retrieve(new TrustedClientFilter(code: $clientId));
+        if ($trustedClient === null) {
+            throw new InvalidArgumentException("Unkown client");
+        }
+        $trustedClientUid = $trustedClient->uid();
+        if ($trustedClientUid === null || $trustedClientUid === '') {
+            throw new InvalidArgumentException("Empty client");
+        }
+
+        $existing = $this->consentsRead->retrieve(
+            (new UserConsentedScopesFilter())
+                ->withUser(new UserRef($userUid))
+                ->withTrustedClient(new TrustedClientRef($trustedClientUid))
+        );
+
+        $acceptedScopes = $this->splitScopeString($existing?->getScope() ?? '');
+        $acceptedMap = array_fill_keys($acceptedScopes, true);
+
+        $pending = [];
+        foreach ($requestedScopes as $scope) {
+            $scope = trim((string) $scope);
+            if ($scope === '' || isset($acceptedMap[$scope])) {
+                continue;
+            }
+            $pending[] = new ScopePermission(
+                scope: $scope,
+                required: $scope === 'openid'
+            );
+        }
+        return $pending;
     }
 
-    /**
-     * No-op implementation; scope acceptance is not persisted until a real adapter is wired in.
-     */
     #[Override]
     public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
     {
+        $theTenant = $this->tenants->findOneByName($tenant);
+        if ($theTenant === null ) {
+            throw new InvalidArgumentException("Unkown tenant");
+        }
+        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        if ($user === null) {
+            throw new InvalidArgumentException("Unkown user");
+        }
+        $userUid = $user->uid();
+        if ($userUid === null || $userUid === '') {
+            throw new InvalidArgumentException("Empty user");
+        }
+
+        $trustedClient = $this->trustedClients->retrieve(new TrustedClientFilter(code: $clientId));
+        if ($trustedClient === null) {
+            throw new InvalidArgumentException("Unkown client");
+        }
+        $trustedClientUid = $trustedClient->uid();
+        if ($trustedClientUid === null || $trustedClientUid === '') {
+            throw new InvalidArgumentException("Empty client");
+        }
+        $filter = (new UserConsentedScopesFilter())
+            ->withUser(new UserRef($userUid))
+            ->withTrustedClient(new TrustedClientRef($trustedClientUid));
+
+        $existing = $this->consentsRead->retrieve($filter);
+        $approved = $this->normalizeScopes($approvedScopes);
+
+        if ($existing !== null) {
+            $merged = array_values(array_unique([...$this->splitScopeString($existing->getScope() ?? ''), ...$approved]));
+            $updated = $existing->update(
+                (new UserConsentedScopesAttributes())
+                    ->scope(implode(' ', $merged))
+                    ->granted(true)
+                    ->decisionAt(new DateTimeImmutable())
+            );
+            $this->consentsWrite->update($existing, $updated);
+            return;
+        }
+
+        $entity = UserConsentedScopes::create(
+            (new UserConsentedScopesAttributes())
+                ->uid(Random::comb())
+                ->user(new UserRef($userUid))
+                ->trustedClient(new TrustedClientRef($trustedClientUid))
+                ->scope(implode(' ', $approved))
+                ->granted(true)
+                ->decisionAt(new DateTimeImmutable())
+        );
+        $this->consentsWrite->create($entity);
+    }
+
+    /**
+     * @param string[] $scopes
+     *
+     * @return string[]
+     */
+    private function normalizeScopes(array $scopes): array
+    {
+        $result = [];
+        foreach ($scopes as $scope) {
+            $value = trim((string) $scope);
+            if ($value === '') {
+                continue;
+            }
+            $result[] = $value;
+        }
+
+        return array_values(array_unique($result));
+    }
+
+    /**
+     * @return string[]
+     */
+    private function splitScopeString(string $scope): array
+    {
+        if ($scope === '') {
+            return [];
+        }
+
+        return $this->normalizeScopes(explode(' ', $scope));
     }
 }

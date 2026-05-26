@@ -65,6 +65,10 @@ class LoginAdapter implements LoginGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUserSubjet($theTenant, $username);
+            if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
+                $this->logInfo('OIDC login requires scopes consent', ['tenant' => $tenant, 'username' => $username]);
+                return $scopes;
+            }
             $root = $theTenant->isRoot();
             return new AuthenticationResult(
                 valid: true,
@@ -100,6 +104,10 @@ class LoginAdapter implements LoginGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUser($theTenant, $username);
+            if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
+                $this->logInfo('OIDC login requires scopes consent', ['tenant' => $tenant, 'username' => $username]);
+                return $scopes;
+            }
             $root = $theTenant->isRoot();
             return new AuthenticationResult(
                 valid: true,

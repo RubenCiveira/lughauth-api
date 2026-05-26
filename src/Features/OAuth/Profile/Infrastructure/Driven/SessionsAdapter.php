@@ -35,9 +35,6 @@ class SessionsAdapter implements SessionsGateway
     /**
      * Returns all active sessions for the given user UID, ordered by most recently used first.
      *
-     * Queries the _oauth_session table, then filters in PHP by the userId field stored in the
-     * JSON auth_data column so that only sessions belonging to the specified user are returned.
-     *
      * @return ActiveSession[]
      */
     #[Override]
@@ -45,20 +42,17 @@ class SessionsAdapter implements SessionsGateway
     {
         $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
         $stmt = $this->pdo->prepare(
-            'SELECT session, client_id, client_name, ip_address, user_agent, last_used_at, expiration, auth_data ' .
+            'SELECT session, client_id, client_name, ip_address, user_agent, last_used_at, expiration ' .
             'FROM _oauth_session ' .
-            'WHERE expiration > :now ' .
+            'WHERE user_uid = :user_uid AND expiration > :now ' .
             'ORDER BY last_used_at DESC'
         );
+        $stmt->bindValue('user_uid', $userUid, PDO::PARAM_STR);
         $stmt->bindValue('now', $now, PDO::PARAM_STR);
         $stmt->execute();
 
         $sessions = [];
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $data = (array) json_decode((string) $row['auth_data'], true);
-            if (($data['userId'] ?? null) !== $userUid) {
-                continue;
-            }
             $sessions[] = new ActiveSession(
                 sessionId: $row['session'],
                 clientId: $row['client_id'],
