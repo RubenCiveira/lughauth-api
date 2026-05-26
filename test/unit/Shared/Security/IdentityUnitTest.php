@@ -60,7 +60,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a known claim value.
          */
-        $identity = new Identity(false, claims: ['email' => 'user@example.com']);
+        $identity = Identity::from(false, claims: ['email' => 'user@example.com']);
 
         /*
          * Act: fetch the claim value from the identity.
@@ -81,7 +81,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a single claim.
          */
-        $identity = new Identity(false, claims: ['email' => 'user@example.com']);
+        $identity = Identity::from(false, claims: ['email' => 'user@example.com']);
 
         /*
          * Act: fetch a claim that does not exist.
@@ -102,7 +102,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with no claims.
          */
-        $identity = new Identity(false, claims: null);
+        $identity = Identity::from(false, claims: null);
 
         /*
          * Act: fetch any claim from the identity.
@@ -123,7 +123,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with multiple roles.
          */
-        $identity = new Identity(false, roles: ['admin', 'user']);
+        $identity = Identity::from(false, roles: ['admin', 'user']);
 
         /*
          * Act: check for a role that exists.
@@ -144,7 +144,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with known roles.
          */
-        $identity = new Identity(false, roles: ['admin', 'user']);
+        $identity = Identity::from(false, roles: ['admin', 'user']);
 
         /*
          * Act: check for a role that does not exist.
@@ -165,7 +165,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity without roles.
          */
-        $identity = new Identity(false, roles: null);
+        $identity = Identity::from(false, roles: null);
 
         /*
          * Act: check for any role.
@@ -186,7 +186,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with multiple roles.
          */
-        $identity = new Identity(false, roles: ['editor', 'viewer']);
+        $identity = Identity::from(false, roles: ['editor', 'viewer']);
 
         /*
          * Act: check for any role in a list.
@@ -207,7 +207,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a single role.
          */
-        $identity = new Identity(false, roles: ['user']);
+        $identity = Identity::from(false, roles: ['user']);
 
         /*
          * Act: check for any role that does not exist.
@@ -228,7 +228,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity without roles.
          */
-        $identity = new Identity(false, roles: null);
+        $identity = Identity::from(false, roles: null);
 
         /*
          * Act: check for any role when none exist.
@@ -249,7 +249,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with multiple scopes.
          */
-        $identity = new Identity(anonymous: false, scope: 'read write delete');
+        $identity = Identity::from(anonymous: false, scope: 'read write delete');
 
         /*
          * Act: check for individual scope values.
@@ -276,7 +276,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a null scope.
          */
-        $identity = new Identity(anonymous: false, scope: null);
+        $identity = Identity::from(anonymous: false, scope: null);
 
         /*
          * Act: check for a scope when none exists.
@@ -297,7 +297,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with an empty scope string.
          */
-        $identity = new Identity(anonymous: false, scope: '');
+        $identity = Identity::from(anonymous: false, scope: '');
 
         /*
          * Act: check for a scope when the list is empty.
@@ -318,7 +318,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a non-empty scope list.
          */
-        $identity = new Identity(anonymous: false, scope: 'read');
+        $identity = Identity::from(anonymous: false, scope: 'read');
 
         /*
          * Act: search for an empty scope value.
@@ -339,7 +339,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with duplicate scopes.
          */
-        $identity = new Identity(anonymous: false, scope: 'read read');
+        $identity = Identity::from(anonymous: false, scope: 'read read');
 
         /*
          * Act: check for the duplicated scope.
@@ -360,7 +360,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a concatenated scope value.
          */
-        $identity = new Identity(anonymous: false, scope: 'readwrite');
+        $identity = Identity::from(anonymous: false, scope: 'readwrite');
 
         /*
          * Act: check for a partial scope value.
@@ -381,7 +381,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with a prefixed role.
          */
-        $identity = new Identity(false, roles: ['platform:admin', 'platform:support']);
+        $identity = Identity::from(false, roles: ['platform:admin', 'platform:support']);
 
         /*
          * Act: check for a wildcard role.
@@ -402,7 +402,7 @@ class IdentityUnitTest extends TestCase
         /*
          * Arrange: build an identity with roles that differ from the wildcard.
          */
-        $identity = new Identity(false, roles: ['billing:read', 'billing:write']);
+        $identity = Identity::from(false, roles: ['billing:read', 'billing:write']);
 
         /*
          * Act: check for a wildcard role with a different prefix.
@@ -420,7 +420,7 @@ class IdentityUnitTest extends TestCase
      */
     public function testHasAnyScopeReturnsTrue(): void
     {
-        $identity = new Identity(anonymous: false, scope: 'read write');
+        $identity = Identity::from(anonymous: false, scope: 'read write');
 
         $this->assertTrue($identity->hasAnyScope('delete', 'read'));
     }
@@ -430,7 +430,7 @@ class IdentityUnitTest extends TestCase
      */
     public function testHasAnyScopeReturnsFalse(): void
     {
-        $identity = new Identity(anonymous: false, scope: 'read write');
+        $identity = Identity::from(anonymous: false, scope: 'read write');
 
         $this->assertFalse($identity->hasAnyScope('delete', 'admin'));
     }
@@ -440,7 +440,7 @@ class IdentityUnitTest extends TestCase
      */
     public function testHasAnyScopeReturnsFalseWhenNull(): void
     {
-        $identity = new Identity(anonymous: false, scope: null);
+        $identity = Identity::from(anonymous: false, scope: null);
 
         $this->assertFalse($identity->hasAnyScope('read'));
     }

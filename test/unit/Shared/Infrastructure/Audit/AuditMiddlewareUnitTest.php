@@ -30,7 +30,7 @@ final class AuditMiddlewareUnitTest extends TestCase
         $auditContext->setActionId('action-1');
         $auditContext->addChange(new AuditChange('action-1', 'User', '1', 'update', ['name' => 'A']));
 
-        $identity = new Identity(false, name: 'user', token: 'token', tenant: 'tenant-1');
+        $identity = Identity::from(false, name: 'user', token: 'token', tenant: 'tenant-1');
         $connection = new Connection(0, true, new DateTime(), 'app', '/path', '127.0.0.1', 'host', 'en');
 
         $context = $this->createMock(Context::class);
@@ -60,7 +60,7 @@ final class AuditMiddlewareUnitTest extends TestCase
 
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(true));
+        $context->method('getIdentity')->willReturn(Identity::from(true));
         $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $config = $this->createMock(AppConfig::class);
@@ -92,7 +92,7 @@ final class AuditMiddlewareUnitTest extends TestCase
 
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(true));
+        $context->method('getIdentity')->willReturn(Identity::from(true));
         $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);
@@ -125,7 +125,7 @@ final class AuditMiddlewareUnitTest extends TestCase
 
         $auditContext = new AuditContext();
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(true));
+        $context->method('getIdentity')->willReturn(Identity::from(true));
         $context->method('getConnection')->willReturn(new Connection(0, true, new DateTime(), 'app', '/', '0.0.0.0', 'host', 'en'));
 
         $middleware = new AuditMiddleware($pdo, $auditContext, $context, $config);

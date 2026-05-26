@@ -186,8 +186,14 @@ namespace {
             };
 
             $container = $this->createMock(ContainerInterface::class);
-            $container->method('has')->with(LoggerInterface::class)->willReturn(true);
-            $container->method('get')->with(LoggerInterface::class)->willReturn($monolog);
+            $container->expects($this->once())
+                ->method('has')
+                ->with(LoggerInterface::class)
+                ->willReturn(true);
+            $container->expects($this->once())
+                ->method('get')
+                ->with(LoggerInterface::class)
+                ->willReturn($monolog);
 
             /*
              * Act: resolve the logger from the container.

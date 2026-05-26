@@ -617,7 +617,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-        $identity = new Identity(anonymous: false, id: 'user', name: 'User', issuer: 'iss');
+        $identity = Identity::from(anonymous: false, id: 'user', name: 'User', issuer: 'iss');
 
         $magicLinkService = $this->createMock(MagicLinkService::class);
         $magicLinkService->method('consume')->willReturn([
@@ -662,7 +662,7 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
         $_SERVER['SERVER_NAME'] = 'host';
         $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-        $identity = new Identity(anonymous: false, id: 'user', name: 'User', issuer: 'iss');
+        $identity = Identity::from(anonymous: false, id: 'user', name: 'User', issuer: 'iss');
         $connection = new \Civi\Lughauth\Shared\Security\Connection(
             level: 0,
             remote: true,

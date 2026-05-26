@@ -410,7 +410,7 @@ final class DeviceDomainUnitTest extends TestCase
 
     private function makeDeviceAuthorization(
         string $deviceCode = 'dc-1',
-        DateTimeImmutable $expiresAt = null,
+        ?DateTimeImmutable $expiresAt = null,
         string $status = DeviceAuthorizationStatus::PENDING,
         ?AuthenticationResult $authResult = null,
         ?DateTimeImmutable $lastPollAt = null

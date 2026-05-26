@@ -26,7 +26,7 @@ final class FieldsListenerUnitTest extends TestCase
          * Arrange: create a context, handler, and view proposal.
          */
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(false));
+        $context->method('getIdentity')->willReturn(Identity::from(false));
 
         $handler = $this->createMock(Handler::class);
         $handler->method('hiddenFields')->willReturn(['secret', 'internal']);
@@ -65,7 +65,7 @@ final class FieldsListenerUnitTest extends TestCase
          * Arrange: create a context, handler, and modify proposal.
          */
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(false));
+        $context->method('getIdentity')->willReturn(Identity::from(false));
 
         $handler = $this->createMock(Handler::class);
         $handler->method('uneditableFields')->willReturn(['createdAt']);

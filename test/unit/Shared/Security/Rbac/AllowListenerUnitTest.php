@@ -27,7 +27,7 @@ final class AllowListenerUnitTest extends TestCase
          * Arrange: create a context, handler, and allow decision.
          */
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(false));
+        $context->method('getIdentity')->willReturn(Identity::from(false));
 
         $handler = $this->createMock(Handler::class);
         $handler->method('allow')->willReturn(false);
@@ -66,7 +66,7 @@ final class AllowListenerUnitTest extends TestCase
          * Arrange: create a context, handler, and allow decision.
          */
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn(new Identity(false));
+        $context->method('getIdentity')->willReturn(Identity::from(false));
 
         $handler = $this->createMock(Handler::class);
         $handler->method('allow')->willReturn(true);

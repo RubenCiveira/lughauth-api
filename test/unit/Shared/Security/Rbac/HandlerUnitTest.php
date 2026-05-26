@@ -37,7 +37,7 @@ final class HandlerUnitTest extends TestCase
         $mapper->expects($this->never())->method('allow');
 
         $handler = new Handler($config, $mapper);
-        $identity = new Identity(false);
+        $identity = Identity::from(false);
 
         /*
          * Act: invoke handler methods while disabled.
@@ -91,7 +91,7 @@ final class HandlerUnitTest extends TestCase
             ->willReturn(false);
 
         $handler = new Handler($config, $mapper);
-        $identity = new Identity(false);
+        $identity = Identity::from(false);
 
         /*
          * Act: invoke handler methods while enabled.

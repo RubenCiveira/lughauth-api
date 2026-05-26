@@ -31,19 +31,36 @@ class Identity implements \JsonSerializable
      */
     public static function anonymous(): Identity
     {
+        return self::from(anonymous: true);
+    }
+
+    public static function from(
+        bool $anonymous,
+        ?string $authScope = null,
+        ?string $id = null,
+        ?string $name = null,
+        ?string $token = null,
+        ?string $issuer = null,
+        ?string $tenant = null,
+        ?array $roles = null,
+        ?array $groups = null,
+        ?array $claims = null,
+        ?string $scope = null,
+        ?string $email = null,
+    ): Identity {
         return new Identity(
-            anonymous: true,
-            authScope: self::AUTH_SCOPE_NONE,
-            id: '',
-            name: '',
-            token: '',
-            issuer: '',
-            tenant: '',
-            roles: [],
-            groups: [],
-            claims: [],
-            scope: '',
-            email: '',
+            anonymous: $anonymous,
+            authScope: $authScope ?? self::AUTH_SCOPE_NONE,
+            id: $id ?? '',
+            name: $name ?? '',
+            token: $token ?? '',
+            issuer: $issuer ?? '',
+            tenant: $tenant ?? '',
+            roles: $roles ?? [],
+            groups: $groups ?? [],
+            claims: $claims ?? [],
+            scope: $scope ?? '',
+            email: $email ?? '',
         );
     }
 

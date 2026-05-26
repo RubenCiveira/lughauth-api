@@ -199,7 +199,7 @@ final class LughMapperUnitTest extends TestCase
             $client
         );
 
-        $identity = new Identity(false, roles: ['admin']);
+        $identity = Identity::from(false, roles: ['admin']);
 
         /*
          * Act: request hidden fields, uneditable fields, and allow checks.
@@ -275,7 +275,7 @@ final class LughMapperUnitTest extends TestCase
             $client
         );
 
-        $identity = new Identity(false, roles: ['admin'], tenant: 'tenant-1');
+        $identity = Identity::from(false, roles: ['admin'], tenant: 'tenant-1');
 
         /*
          * Act: evaluate permissions to trigger the cache miss path.

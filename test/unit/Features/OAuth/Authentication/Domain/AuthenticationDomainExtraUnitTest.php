@@ -36,7 +36,7 @@ final class AuthenticationDomainExtraUnitTest extends TestCase
 
     public function test_step_result_render(): void
     {
-        $response = $this->createMock(ResponseInterface::class);
+        $response = $this->createStub(ResponseInterface::class);
         $challenges = new ChallengesState();
         $result = StepResult::render($response, $challenges);
 

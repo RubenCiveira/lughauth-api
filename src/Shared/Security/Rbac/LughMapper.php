@@ -157,7 +157,7 @@ class LughMapper
 
     private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
-        $roles = [...$user->getRoles() ?? [], '@everyone', $user->isAnonymous() ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->getRoles(), '@everyone', $user->isAnonymous() ? '@anonymous' : '@authenticated' ];
         $all = [];
         $visibles = [];
         foreach ($roles as $role) {
@@ -186,13 +186,14 @@ class LughMapper
 
     private function getGrants(Identity $user): string
     {
-        $cache_key = 'lught.grants' . (null !== $user->getTenant() ? '.' . $user->getTenant() : '');
+        $tenant = $user->getTenant();
+        $cache_key = 'lught.grants' . ($tenant !== '' ? '.' . $tenant : '');
         if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
             $url = $this->authUrl . '/grant';
-            if (null !== $user->getTenant()) {
-                $url .= '?tenant=' . urlencode($user->getTenant());
+            if ($tenant !== '') {
+                $url .= '?tenant=' . urlencode($tenant);
             }
             $request = $this->requestFactory->createRequest('GET', $url);
             if (null != $this->apiKey) {

@@ -59,7 +59,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware([
             '/secure' => ['anonymous' => false]
-        ], new Identity(true));
+        ], Identity::from(true));
 
         /*
          * Act: handle a request with an anonymous identity.
@@ -82,7 +82,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware([
             '/roles' => ['roles' => ['admin']]
-        ], new Identity(false, roles: ['user']));
+        ], Identity::from(false, roles: ['user']));
 
         /*
          * Act: handle a request with insufficient roles.
@@ -105,7 +105,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware([
             '/groups' => ['groups' => ['admins']]
-        ], new Identity(false, groups: ['users']));
+        ], Identity::from(false, groups: ['users']));
 
         /*
          * Act: handle a request with insufficient groups.
@@ -126,7 +126,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         /*
          * Arrange: configure a rule that requires a scope.
          */
-        $identity = new Identity(false);
+        $identity = Identity::from(false);
         $middleware = $this->middleware([
             '/scopes' => ['scopes' => ['write']]
         ], $identity);
@@ -176,7 +176,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         $cache = new InMemoryCache(['api-key-verify--key' => json_encode(['scopes' => ['other']])]);
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
-        ], new Identity(false), $cache);
+        ], Identity::from(false), $cache);
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
@@ -202,7 +202,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         $cache = new InMemoryCache(['api-key-verify--key' => json_encode(['scopes' => ['scope']])]);
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
-        ], new Identity(false), $cache);
+        ], Identity::from(false), $cache);
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
@@ -238,7 +238,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         };
         $middleware = $this->middleware([
             '/cidr' => ['cidr' => ['10.0.0.0/8']]
-        ], new Identity(false), null, $connection);
+        ], Identity::from(false), null, $connection);
 
         /*
          * Act: handle a request with a disallowed CIDR.
@@ -272,7 +272,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         };
         $middleware = $this->middleware([
             '/cidr' => ['cidr' => ['10.0.0.0/8']]
-        ], new Identity(false), null, $connection);
+        ], Identity::from(false), null, $connection);
 
         /*
          * Act: handle a request with an allowed CIDR.
@@ -293,7 +293,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         /*
          * Arrange: create an identity with the required scope.
          */
-        $identity = new Identity(false, scope: 'write');
+        $identity = Identity::from(false, scope: 'write');
         $middleware = $this->middleware([
             '/scopes' => ['scopes' => ['write']]
         ], $identity);
@@ -319,7 +319,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
          */
         $middleware = $this->middleware([
             '/' => ['anonymous' => false]
-        ], new Identity(true));
+        ], Identity::from(true));
         $request = $this->request('/api');
 
         /*
@@ -351,7 +351,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
-        ], new Identity(false), $cache, null, $client);
+        ], Identity::from(false), $cache, null, $client);
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
@@ -384,7 +384,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
 
         $middleware = $this->middleware([
             '/apikey' => ['api-key-scope' => 'scope']
-        ], new Identity(false), $cache, null, $client);
+        ], Identity::from(false), $cache, null, $client);
 
         $request = $this->request('/api/apikey', ['x-api-key' => 'key']);
 
@@ -409,7 +409,7 @@ final class AccessControlMiddlewareUnitTest extends TestCase
         $app->method('getBasePath')->willReturn('/api');
 
         $context = $this->createMock(Context::class);
-        $context->method('getIdentity')->willReturn($identity ?? new Identity(false));
+        $context->method('getIdentity')->willReturn($identity ?? Identity::from(false));
         $context->method('getConnection')->willReturn($connection ?? new Connection(0, true, new DateTime(), 'app', '/', '127.0.0.1', 'host', 'en'));
 
         $config = $this->createMock(AppConfig::class);

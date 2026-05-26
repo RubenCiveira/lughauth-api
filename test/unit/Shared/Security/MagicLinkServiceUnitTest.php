@@ -89,7 +89,7 @@ namespace {
                 'security.magiclink.param' => 'ml',
                 'security.magiclink.reads' => 3,
             ]);
-            $identity = new Identity(
+            $identity = Identity::from(
                 anonymous: false,
                 authScope: Identity::AUTH_SCOPE_READ,
                 id: 'user-1',
