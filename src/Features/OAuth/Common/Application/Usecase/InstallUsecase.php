@@ -225,7 +225,7 @@ class InstallUsecase
         $smtp = new SmtpOutboundConfigAttributes();
         $smtp->uid(Random::comb());
         $smtp->host($_ENV['MAILER_HOST'] ?? 'smtp.example.com');
-        $smtp->port(true);
+        $smtp->port(intval( $_ENV['MAILER_PORT'] ?? 587) );
         $smtp->login($_ENV['MAILER_USERNAME'] ?? 'noreply@example.com');
         $smtp->password(SmtpOutboundConfigPasswordVO::fromPlainText($this->cypher, $_ENV['MAILER_PASSWORD'] ?? 'change-me'));
         $smtp->senderName($_ENV['MAILER_FROM_NAME'] ?? 'LughAuth');

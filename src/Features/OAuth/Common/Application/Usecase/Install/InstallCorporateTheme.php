@@ -35,8 +35,7 @@ use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ValueObject\ThemeAssetCont
  */
 class InstallCorporateTheme
 {
-    // FIXME: sospecho que debería ser un __DIR__ . '/assets'
-    private const string STYLE_DIR = __DIR__ . '/../../../../../Oidc/Theme/Themes/corporate/style/';
+    private const string STYLE_DIR = __DIR__ . '/assets/';
 
     public function __construct(
         private readonly ThemeWriteGateway $themes,
