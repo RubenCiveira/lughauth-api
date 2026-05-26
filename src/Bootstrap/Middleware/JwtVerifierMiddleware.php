@@ -100,11 +100,26 @@ class JwtVerifierMiddleware
         $cache_key = "verify_access_{$token}";
         if ($this->cache->has($cache_key)) {
             $cached = json_decode($this->cache->get($cache_key), true);
-            $error = is_array($cached) ? ($cached[3] ?? $cached[2] ?? null) : null;
+            $error = null;
+            if (is_array($cached)) {
+                if (isset($cached[3]) && is_string($cached[3])) {
+                    $error = $cached[3];
+                } elseif (isset($cached[2]) && is_string($cached[2])) {
+                    // Backward compatibility with old cache shape [null, null, "error"]
+                    $error = $cached[2];
+                }
+            }
             if ($error) {
                 $this->logger->warning('JWT rejected (cached result)', ['error' => $error, 'token_prefix' => substr($token, 0, 20)]);
                 throw new UnauthorizedException(message: $error);
             } else {
+                $cachedConnection = $cached[0] ?? null;
+                $cachedIdentity = $cached[1] ?? null;
+                if (!is_array($cachedConnection) || !is_array($cachedIdentity)) {
+                    $this->logger->warning('JWT cache entry has invalid shape, skipping cache', ['token_prefix' => substr($token, 0, 20)]);
+                    $this->cache->delete($cache_key);
+                    return $this->verifyAuth($token, $authScope);
+                }
                 [$connection, $identity, $auth] = $this->deseiralize(is_array($cached) ? $cached : []);
                 $this->context->setSecurityContext($connection, $identity, $auth);
             }
@@ -127,19 +142,19 @@ class JwtVerifierMiddleware
                     if (!$nbf || !$exp) {
                         $fail = 'The provided JWT dont have valid time range.';
                         $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'exp' => $exp]);
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]), 60);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), 60);
                         throw new UnauthorizedException(message: $fail);
                     } elseif ($now < $nbf) {
                         $fail = 'The provided JWT is not ready for use.';
                         $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'nbf' => $nbf, 'now' => $now, 'diff' => $nbf - $now]);
                         $ttl = max(1, $nbf - $now);
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]), $ttl);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), $ttl);
                         throw new UnauthorizedException(message: $fail);
                     } elseif ($now > $exp) {
                         $fail = 'The provided JWT is expired.';
                         $this->logger->warning('JWT rejected: ' . $fail, ['sub' => $payload->sub ?? null, 'exp' => $exp, 'now' => $now, 'expired_ago' => $now - $exp]);
                         $ttl = max(1, $exp - $now + 60);
-                        $this->cache->set($cache_key, json_encode([null, null, $fail]), $ttl);
+                        $this->cache->set($cache_key, json_encode([null, null, $fail, $fail]), $ttl);
                         throw new UnauthorizedException(message: $fail);
                     } else {
                         try {
@@ -268,18 +283,36 @@ class JwtVerifierMiddleware
         );
         $connection = new Connection(
             level: 0,
-            remote: $cc['remote'],
-            startTime: new DateTime($cc['startTime']['date']),
-            application: $cc['application'],
-            callback: $cc['callback'],
-            source: $cc['source'],
-            target: $cc['target'],
-            locale: $cc['locale']
+            remote: (bool) ($cc['remote'] ?? true),
+            startTime: $this->deserializeStartTime($cc['startTime'] ?? null),
+            application: (string) ($cc['application'] ?? ''),
+            callback: (string) ($cc['callback'] ?? ''),
+            source: (string) ($cc['source'] ?? '0.0.0.0'),
+            target: (string) ($cc['target'] ?? ''),
+            locale: isset($cc['locale']) ? (string) $cc['locale'] : ''
         );
         $authenticationContext = is_array($auth)
             ? $this->deserializeAuthenticationContext($auth, $identity)
             : AuthenticationContext::anonymous();
         return [$connection, $identity, $authenticationContext];
+    }
+
+    private function deserializeStartTime(mixed $raw): DateTime
+    {
+        try {
+            if (is_string($raw) && $raw !== '') {
+                return new DateTime($raw);
+            }
+            if (is_array($raw)) {
+                $value = $raw['date'] ?? $raw['datetime'] ?? null;
+                if (is_string($value) && $value !== '') {
+                    return new DateTime($value);
+                }
+            }
+        } catch (\Throwable) {
+        }
+
+        return new DateTime();
     }
 
     private function resolveAuthenticationContext(object $payload, Identity $identity, Connection $connection): AuthenticationContext
