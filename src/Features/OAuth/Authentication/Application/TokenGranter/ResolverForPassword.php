@@ -10,6 +10,16 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\LoginUsecase;
 
+/**
+ * Token granter strategy for the OAuth 2.0 Resource Owner Password Credentials grant type.
+ *
+ * Handles direct credential submission where the client presents the user's username and
+ * password at the token endpoint. This grant type bypasses the interactive authorization UI
+ * and is only appropriate for highly trusted first-party clients.
+ *
+ * Authentication is fully delegated to LoginUsecase, which applies the same validation rules
+ * and security policies (lockout, MFA requirements, etc.) as the interactive login flow.
+ */
 class ResolverForPassword implements TokenGranterStrategy
 {
     public function __construct(private readonly LoginUsecase $userLoginGateway)
@@ -17,12 +27,20 @@ class ResolverForPassword implements TokenGranterStrategy
 
     }
 
+    /**
+     * Returns true only when the grant type is exactly "password".
+     * Params are not inspected at this stage; username and password are consumed during authenticate.
+     */
     #[Override]
     public function canHandle(string $grantType, array $params): bool
     {
         return 'password' === $grantType;
     }
 
+    /**
+     * Validates the username and password from the request params against the user store.
+     * Returns a successful AuthenticationResult on valid credentials or a failure result otherwise.
+     */
     #[Override]
     public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {

@@ -19,6 +19,21 @@ use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\ReadDynamicClient\Re
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\UpdateDynamicClient\UpdateDynamicClientUsecase;
 use Civi\Lughauth\Features\OAuth\Client\Application\Usecase\DeleteDynamicClient\DeleteDynamicClientUsecase;
 
+/**
+ * REST controller that exposes the full RFC 7591 (Dynamic Client Registration) and RFC 7592
+ * (Dynamic Client Registration Management) surface under the path
+ * /oauth/openid/{tenant}/register[/{client_id}].
+ *
+ * The four HTTP methods map directly to the four RFC operations: POST creates a new client
+ * (RFC 7591), GET reads its current metadata, PUT replaces its metadata, and DELETE removes
+ * it permanently (all RFC 7592). Each management method (GET, PUT, DELETE) requires a valid
+ * Bearer registration access token in the Authorization header.
+ *
+ * DynamicClientException thrown by the use cases is translated into the standard OAuth JSON
+ * error body {"error": "...", "error_description": "..."} with the appropriate HTTP status.
+ * InvalidArgumentException from the DynamicClientRequest factory is surfaced as
+ * "invalid_client_metadata" (HTTP 400).
+ */
 class DynamicClientController
 {
     public function __construct(
@@ -61,6 +76,10 @@ class DynamicClientController
             new OA\Response(response: 403, description: 'Registration disabled for this tenant'),
         ]
     )]
+    /**
+     * Handles the RFC 7591 registration POST request, parses the body into a DynamicClientRequest,
+     * delegates to RegisterClientUsecase, and returns the RFC 7591 response payload with HTTP 201.
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {
@@ -106,6 +125,10 @@ class DynamicClientController
             new OA\Response(response: 401, description: 'Invalid registration_access_token'),
         ]
     )]
+    /**
+     * Handles the RFC 7592 read GET request, requires a Bearer token in the Authorization header,
+     * delegates to ReadDynamicClientUsecase, and returns the client metadata as JSON with HTTP 200.
+     */
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {
@@ -141,6 +164,11 @@ class DynamicClientController
             new OA\Response(response: 401, description: 'Invalid registration_access_token'),
         ]
     )]
+    /**
+     * Handles the RFC 7592 update PUT request, requires a Bearer token, parses the new metadata
+     * from the body, delegates to UpdateDynamicClientUsecase, and returns the updated client
+     * data as JSON with HTTP 200.
+     */
     public function put(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {
@@ -179,6 +207,10 @@ class DynamicClientController
             new OA\Response(response: 401, description: 'Invalid registration_access_token'),
         ]
     )]
+    /**
+     * Handles the RFC 7592 delete DELETE request, requires a Bearer token, delegates to
+     * DeleteDynamicClientUsecase, and returns HTTP 204 No Content on success.
+     */
     public function delete(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {

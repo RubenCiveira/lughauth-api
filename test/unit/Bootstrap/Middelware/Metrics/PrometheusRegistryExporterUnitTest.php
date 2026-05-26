@@ -136,6 +136,63 @@ namespace {
         }
 
         /**
+         * Ensures compile handles non-string scalar values by casting them.
+         */
+        public function testCompileHandlesNonStringScalar(): void
+        {
+            /*
+             * Arrange: create an exporter and access the compile method.
+             */
+            $exporter = new PrometheusRegistryExporter($this->policy(true), $this->registryWithSample(), new MetricsFS(sys_get_temp_dir() . '/export_' . uniqid()));
+            $compile = new ReflectionMethod($exporter, 'compile');
+
+            /*
+             * Act: compile an integer pattern (non-string scalar) and a non-scalar value.
+             */
+            $patternsInt = $compile->invoke($exporter, [42]);
+            $patternsNull = $compile->invoke($exporter, [null]);
+
+            /*
+             * Assert: verify integer is cast to string and null is skipped.
+             */
+            $this->assertCount(1, $patternsInt);
+            $this->assertStringStartsWith('~', $patternsInt[0]);
+            $this->assertCount(0, $patternsNull);
+        }
+
+        /**
+         * Ensures ingestBatch handles NaN values that fail json_encode.
+         */
+        public function testIngestBatchHandlesNanValue(): void
+        {
+            /*
+             * Arrange: configure an exporter with a NaN value in the payload.
+             */
+            $root = sys_get_temp_dir() . '/export_' . uniqid();
+            $fs = new MetricsFS($root);
+            $exporter = new PrometheusRegistryExporter($this->policy(true), $this->createMock(CollectorRegistry::class), $fs, [
+                'max_lines_flush' => 100,
+                'label_allow' => []
+            ]);
+
+            $payload = [
+                'metric' => [
+                    ['labels' => [], 'value' => NAN],
+                ]
+            ];
+
+            /*
+             * Act: ingest a batch with a NaN value.
+             */
+            $exporter->ingestBatch($payload, 1000);
+
+            /*
+             * Assert: verify the exporter handled the NaN without error.
+             */
+            $this->assertTrue(true);
+        }
+
+        /**
          * Ensures compile and match behavior handles patterns.
          */
         public function testCompileAndMatch(): void

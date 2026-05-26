@@ -8,9 +8,23 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 
+/**
+ * Represents the outcome of a single step handler within the OIDC interactive authorization flow.
+ *
+ * A step can either render a UI page (TYPE_RENDER) — for example to show a login form, MFA
+ * challenge, or consent screen — or signal that the current step completed successfully and the
+ * flow should proceed (TYPE_PROCEED) by issuing tokens and redirecting the user back to the client.
+ *
+ * Constructed exclusively through the static factory methods render() and proceed() to enforce
+ * that only valid type/payload combinations can be expressed. The private constructor prevents
+ * accidental instantiation with an inconsistent state.
+ */
 final class StepResult
 {
+    /** Type constant indicating the step produced an HTTP response to be rendered to the user. */
     public const TYPE_RENDER = 'render';
+
+    /** Type constant indicating the step completed successfully and token issuance should proceed. */
     public const TYPE_PROCEED = 'proceed';
 
     private function __construct(
@@ -21,11 +35,19 @@ final class StepResult
     ) {
     }
 
+    /**
+     * Creates a render result carrying the HTTP response to be returned to the browser.
+     * Used when a step needs to display a form or informational page before the flow can continue.
+     */
     public static function render(ResponseInterface $response, ChallengesState $challenges): self
     {
         return new self(self::TYPE_RENDER, $response, null, $challenges);
     }
 
+    /**
+     * Creates a proceed result carrying the completed authentication response.
+     * Used when a step has been satisfied and the flow controller should issue tokens and redirect.
+     */
     public static function proceed(PublicLoginAuthResponse $authResponse, ChallengesState $challenges): self
     {
         return new self(self::TYPE_PROCEED, null, $authResponse, $challenges);

@@ -5,6 +5,19 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain\ValueObject;
 
+/**
+ * Value object representing a PKCE (Proof Key for Code Exchange) challenge per RFC 7636.
+ *
+ * Captures the code_challenge and code_challenge_method parameters sent by the client in the
+ * authorization request and provides a verify() method that the token endpoint calls with the
+ * code_verifier to confirm the exchange. Two methods are supported: "S256" (recommended) hashes
+ * the verifier with SHA-256 and base64url-encodes it before comparing, while "plain" compares
+ * the verifier directly to the challenge.
+ *
+ * Constructed only through the fromRequest() factory, which returns null when the client did not
+ * include a challenge (allowed for confidential clients) and rejects unsupported methods with an
+ * InvalidArgumentException before any storage takes place.
+ */
 final class PkceChallenge
 {
     private function __construct(
@@ -13,6 +26,10 @@ final class PkceChallenge
     ) {
     }
 
+    /**
+     * Creates a PkceChallenge from optional authorization request parameters.
+     * Returns null when no challenge is present; throws InvalidArgumentException for unsupported methods.
+     */
     public static function fromRequest(?string $challenge, ?string $method): ?self
     {
         if ($challenge === null) {
@@ -25,6 +42,10 @@ final class PkceChallenge
         return new self($challenge, $method);
     }
 
+    /**
+     * Verifies that the supplied code_verifier satisfies this challenge using the stored method.
+     * Returns true when the verifier is valid; false when it does not match or is malformed.
+     */
     public function verify(string $verifier): bool
     {
         return match ($this->method) {

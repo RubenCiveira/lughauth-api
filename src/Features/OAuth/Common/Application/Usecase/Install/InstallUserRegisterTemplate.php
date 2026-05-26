@@ -14,6 +14,18 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "user.register" mail template used to send new users
+ * an account activation link after self-registration.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "user.register" bound to the "corporate-mail" theme
+ * and appends a TemplateVersion containing the HTML email body with Handlebars placeholders
+ * for the user name ({{user.name}}) and the activation URL ({{activate.url}}).
+ *
+ * The template is enabled immediately after creation so the notification subsystem can
+ * dispatch it as soon as the first self-registration flow completes.
+ */
 class InstallUserRegisterTemplate
 {
     public function __construct(
@@ -22,6 +34,10 @@ class InstallUserRegisterTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "user.register" mail template along with its first version
+     * containing the account activation welcome email body.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

@@ -7,8 +7,27 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels
 
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 
+/**
+ * HTML rendering component for the editable OIDC profile form.
+ *
+ * This panel produces the HTML fragment used by the ProfileHtml controller when the
+ * user requests to edit their profile fields (given name, family name, locale, etc.).
+ * It accepts an optional OidcProfile snapshot to pre-populate the form inputs with
+ * the current stored values, making it suitable for both initial creation and
+ * subsequent edits.
+ *
+ * The panel is a stateless view component: it performs no domain logic, reads no
+ * repositories, and only escapes and formats the data it receives.  All user-visible
+ * labels are sourced from the $t translations array supplied by the controller.
+ */
 class ProfileEditPanel
 {
+    /**
+     * Renders the profile edit form as an HTML string.
+     *
+     * Pre-populates each input from the $profile snapshot when provided; leaves fields
+     * blank for a new profile.  An optional $error message is displayed above the form.
+     */
     public function render(?OidcProfile $profile, string $saveUrl, string $cancelUrl, ?string $error = null, array $t = []): string
     {
         $saveUrl = htmlspecialchars($saveUrl);

@@ -9,6 +9,17 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
 
+/**
+ * Application use case that resolves a previously pushed authorization request_uri at the
+ * authorization endpoint.
+ *
+ * Fetches the ParRequest aggregate from storage by its URI and tenant, enforces the single-use
+ * and expiry invariants, and marks the request as consumed so it cannot be replayed. The
+ * returned ParRequest contains the original authorization parameters that the authorization
+ * endpoint must use to drive the user's login flow. Any invalid, expired, or already-used
+ * request_uri results in a ParException with the 'invalid_request_uri' error code, as required
+ * by RFC 9126 Section 3.
+ */
 final class ResolveParRequestUsecase
 {
     public function __construct(
@@ -16,6 +27,10 @@ final class ResolveParRequestUsecase
     ) {
     }
 
+    /**
+     * Looks up the PAR request by URI, validates it is unused and unexpired, marks it consumed, and returns it.
+     * Throws ParException with 'invalid_request_uri' if the URI is unknown, already used, or expired.
+     */
     public function resolve(string $requestUri, string $tenant): ParRequest
     {
         $parRequest = $this->gateway->findByUri($requestUri, $tenant);

@@ -5,7 +5,20 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Device\Domain;
 
+/**
+ * Constant holder for the OAuth 2.0 Device Authorization Grant type identifier (RFC 8628).
+ *
+ * The DEVICE_CODE constant holds the official IANA-registered URN used as the grant_type
+ * parameter value in token endpoint requests that exchange a device code for access tokens.
+ * It is referenced by DeviceAuthorizationService::grantType() and the token endpoint router
+ * to recognise and dispatch device-flow token requests. Centralising the string here prevents
+ * accidental typos and makes grant-type comparisons grep-able across the codebase.
+ */
 final class DeviceAuthorizationGrantType
 {
+    /**
+     * The IANA-registered URN identifying the Device Authorization grant type as defined in RFC 8628.
+     * Used as the grant_type parameter value in token endpoint requests for device-flow exchanges.
+     */
     public const string DEVICE_CODE = 'urn:ietf:params:oauth:grant-type:device_code';
 }

@@ -9,6 +9,17 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ApiKeyStoreGateway;
 
+/**
+ * REST controller that exposes an internal endpoint for validating and resolving M2M API keys.
+ *
+ * This controller is intended for server-to-server use only; it should not be accessible
+ * from the public internet. It receives a raw API key value in the request body and delegates
+ * the lookup to ApiKeyStoreGateway, returning the associated ApiKeyData as JSON on success or
+ * a 404 response when the key is unknown.
+ *
+ * The response body is the JSON-encoded ApiKeyData object, which includes the key identifier
+ * and the list of scopes associated with it.
+ */
 class ApiKeyController
 {
     public function __construct(
@@ -16,6 +27,10 @@ class ApiKeyController
     ) {
     }
 
+    /**
+     * Reads the "api-key" field from the parsed request body, looks it up in the store, and
+     * returns either the ApiKeyData JSON (200) or a not-found error JSON (404).
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $body = $request->getParsedBody();

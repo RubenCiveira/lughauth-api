@@ -20,6 +20,25 @@ use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\ScopesConsentUsecas
 use Civi\Lughauth\Features\OAuth\Consent\Domain\ScopePermission;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Login step form that presents the OAuth scope consent screen to the authenticated user.
+ *
+ * This form is triggered when ScopesConsentUsecase detects that the current request includes
+ * scopes for which the user has not yet granted consent to the requesting client. It renders
+ * two separate sections: required scopes (shown with disabled checkboxes and a required
+ * marker) and optional scopes (shown with user-selectable checkboxes). Both sections are
+ * presented in a scrollable container within the HTML page.
+ *
+ * On submission, the form records the approved scope set (all required scopes plus the
+ * optional scopes the user checked) via ScopesConsentUsecase, then reconstructs the
+ * AuthenticationRequest restricted to only the approved scopes and proceeds to
+ * pre-authentication. If no scopes are approved despite some being available, a
+ * LoginException is thrown to re-prompt the user.
+ *
+ * Relationships: uses ScopesConsentUsecase for scope resolution and persistence, delegates to
+ * AuthenticateUser for post-consent pre-authentication, and relies on HtmlSecurer and
+ * DecorateHtml for rendering.
+ */
 class ScopeConsentForm implements StepForm
 {
     public function __construct(
@@ -31,6 +50,13 @@ class ScopeConsentForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders the scope consent page with required and optional scope sections.
+     *
+     * Fetches the list of scopes that still need consent for the current user and client, splits
+     * them into required and optional groups, and emits an HTML page with the appropriate
+     * checkboxes. If no pending scopes exist, an empty-state message is shown.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -105,6 +131,13 @@ class ScopeConsentForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Records the user's scope choices and pre-authenticates with the approved scope set.
+     *
+     * Reads the optional_scopes checkbox values, intersects them with the pending optional scopes,
+     * merges with the required scopes, stores the decision via ScopesConsentUsecase, and calls
+     * preAuthenticate with a reconstructed AuthenticationRequest limited to approved scopes.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {

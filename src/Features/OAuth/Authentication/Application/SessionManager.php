@@ -8,6 +8,17 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Application;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 
+/**
+ * Application service that provides high-level operations for managing OAuth session lifecycle.
+ *
+ * Acts as a thin facade over the SessionStoreGateway, exposing only the operations needed by
+ * the authentication flow controllers: loading an existing session to resume an authorization
+ * request, and removing a session when the user logs out or the flow is abandoned.
+ *
+ * The nonce and state parameters accepted by loadSession are reserved for future integrity checks
+ * and are not currently used by the underlying store; callers should still supply them so that
+ * validation can be added transparently without breaking the public interface.
+ */
 class SessionManager
 {
     public function __construct(
@@ -15,11 +26,19 @@ class SessionManager
     ) {
     }
 
+    /**
+     * Deletes the session identified by the given code from the session store.
+     * Should be called after a session has been consumed or when the user explicitly logs out.
+     */
     public function removeSession(string $code): void
     {
         $this->sessionStore->deleteSession($code);
     }
 
+    /**
+     * Retrieves the session data associated with the given session code.
+     * Returns null when no session exists for the provided code or when it has already expired.
+     */
     public function loadSession(string $code, string $nonce, string $state): ?SessionInfo
     {
         return $this->sessionStore->loadSession($code);

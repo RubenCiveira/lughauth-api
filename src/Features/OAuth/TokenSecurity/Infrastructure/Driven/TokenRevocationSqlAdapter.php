@@ -9,12 +9,27 @@ use PDO;
 use Override;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 
+/**
+ * SQL-backed adapter for the TokenRevocationGateway port.
+ *
+ * Persists revoked JWT identifiers (JTIs) to the `_oauth_revoked_jti` table so
+ * that tokens invalidated before their natural expiry are rejected on subsequent
+ * verification requests. Each row is tenant-scoped to maintain multi-tenant data
+ * isolation and is tagged with the original expiration timestamp so that the
+ * cleanup operation can safely remove rows without checking external JWT state.
+ * The INSERT uses INSERT IGNORE semantics, making duplicate revocation calls
+ * idempotent and safe to call multiple times for the same JTI.
+ */
 class TokenRevocationSqlAdapter implements TokenRevocationGateway
 {
     public function __construct(private readonly PDO $pdo)
     {
     }
 
+    /**
+     * Inserts the given JTI into the revocation table, scoped to the tenant.
+     * Duplicate entries for the same JTI are silently ignored via INSERT IGNORE.
+     */
     #[Override]
     public function revokeJti(string $jti, string $tenantId, string $tokenType, \DateTimeImmutable $expiresAt): void
     {
@@ -29,6 +44,10 @@ class TokenRevocationSqlAdapter implements TokenRevocationGateway
         $stmt->execute();
     }
 
+    /**
+     * Checks whether a JTI has been revoked for the given tenant.
+     * Returns true if a matching row exists in the revocation table, false otherwise.
+     */
     #[Override]
     public function isRevoked(string $jti, string $tenantId): bool
     {
@@ -41,6 +60,10 @@ class TokenRevocationSqlAdapter implements TokenRevocationGateway
         return (bool) $stmt->fetchColumn();
     }
 
+    /**
+     * Deletes all revocation records whose expiration timestamp is in the past.
+     * Should be called periodically to prevent unbounded table growth.
+     */
     #[Override]
     public function cleanup(): void
     {

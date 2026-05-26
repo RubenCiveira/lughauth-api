@@ -18,7 +18,6 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
-use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\OidcStepRouter;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
@@ -28,12 +27,23 @@ use Civi\Lughauth\Features\OAuth\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization;
 use Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorizationStatus;
 
+/**
+ * HTML driver that serves the browser-facing user-code entry and authentication pages for the Device Authorization flow.
+ *
+ * This class handles two routes: a GET that renders the user-code entry form or the OIDC
+ * step-up authentication form when a valid code is already present in the query string, and
+ * a POST that processes form submissions (either code entry or authentication step responses).
+ * When authentication succeeds the verified device authorization is approved via
+ * DeviceAuthorizationService and the user is shown a confirmation message to return to their CLI.
+ * The class reuses the same OidcStepRouter pipeline used for the regular browser login flow
+ * so all configured authentication factors (password, MFA, WebAuthn, etc.) work transparently
+ * for device verification without any duplication of step logic.
+ */
 class DeviceVerificationHtml
 {
     public function __construct(
         private readonly Context $context,
         private readonly DeviceAuthorizationService $deviceAuth,
-        private readonly AuthenticateUser $authenticator,
         private readonly HtmlSecurer $securer,
         private readonly DecorateHtml $decorator,
         private readonly OidcCookieManager $cookies,
@@ -41,6 +51,11 @@ class DeviceVerificationHtml
     ) {
     }
 
+    /**
+     * Handles GET requests to the device verification URI. Renders the user-code entry form when
+     * no code is supplied, validates the code when present, and routes to the OIDC authentication
+     * step form if the authorization is still pending.
+     */
     public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -69,6 +84,12 @@ class DeviceVerificationHtml
         return $this->renderStep(null, null, $input, $response, null, $input->challenges);
     }
 
+    /**
+     * Handles POST requests to the device verification URI, processing both user-code submissions
+     * and subsequent OIDC authentication step responses. On successful authentication it approves
+     * the device authorization and renders a confirmation page. Intermediate steps redirect back
+     * to the same form with the pre-session state stored in a cookie.
+     */
     public function formVerify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -188,7 +209,9 @@ class DeviceVerificationHtml
             baseUrl: $baseUrl,
             issuer: $issuer,
             sessionId: $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null,
-            preSessionId: $cookies['PRE_SESSION_ID'] ?? null
+            preSessionId: $cookies['PRE_SESSION_ID'] ?? null,
+            codeChallenge: null,
+            codeChallengeMethod: null,
         );
     }
 

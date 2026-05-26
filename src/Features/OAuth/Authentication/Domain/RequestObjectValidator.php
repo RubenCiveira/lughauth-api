@@ -17,6 +17,19 @@ use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\JWSVerifier;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 
+/**
+ * Validates a JAR (JWT-Secured Authorization Request) object per RFC 9101.
+ *
+ * Verifies the signature of the request JWT using the client's public keys, which are
+ * either embedded directly as a JSON Web Key Set in the client configuration or fetched
+ * from the client's registered jwks_uri endpoint. Supported signing algorithms are RS256,
+ * ES256, and PS256; unsigned ("alg":"none") request objects are rejected unconditionally.
+ *
+ * After successful signature verification, the method additionally confirms that the
+ * client_id claim inside the JWT matches the registered client to prevent substitution
+ * attacks. Throws InvalidArgumentException with the error code "invalid_request_object"
+ * for any validation failure, which the authorization endpoint maps to an OAuth error response.
+ */
 final class RequestObjectValidator
 {
     public function __construct(
@@ -25,6 +38,10 @@ final class RequestObjectValidator
     ) {
     }
 
+    /**
+     * Verifies the request JWT signature and returns the decoded payload claims as an array.
+     * Throws InvalidArgumentException with code "invalid_request_object" on any validation failure.
+     */
     public function validate(string $requestJwt, ClientData $client): array
     {
         $header = $this->parseHeader($requestJwt);

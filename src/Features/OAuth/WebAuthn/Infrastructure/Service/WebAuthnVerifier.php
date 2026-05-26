@@ -10,14 +10,17 @@ use CBOR\StringStream;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Exception\WebAuthnException;
 
 /**
- * Handles low-level WebAuthn cryptographic verification.
+ * Low-level WebAuthn cryptographic verification service.
  *
- * Uses spomky-labs/cbor-php (bundled with web-auth/webauthn-framework) for CBOR
- * decoding and PHP's openssl extension for signature verification.
- *
- * Supported algorithms:
- *   - ES256 (alg = -7): ECDSA P-256 / SHA-256
- *   - RS256 (alg = -257): RSASSA-PKCS1-v1_5 / SHA-256
+ * Implements the W3C WebAuthn Level 2 verification algorithms for both the
+ * registration (attestation) and authentication (assertion) ceremonies without
+ * relying on a higher-level WebAuthn library, keeping the dependency footprint
+ * minimal. CBOR decoding is handled by spomky-labs/cbor-php and RSA/EC signature
+ * verification is delegated to PHP's openssl extension. The service supports
+ * ES256 (ECDSA P-256 / SHA-256, alg=-7) and RS256 (RSASSA-PKCS1-v1_5 / SHA-256,
+ * alg=-257) public keys, covering the algorithms required by all major platform
+ * authenticators. Public keys are returned as PEM-encoded SubjectPublicKeyInfo
+ * structures so they can be stored and later passed directly to openssl_verify.
  */
 class WebAuthnVerifier
 {

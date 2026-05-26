@@ -5,6 +5,16 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Device\Domain\Exception;
 
+/**
+ * Domain exception that encodes RFC 8628 and RFC 6749 error responses for the Device Authorization flow.
+ *
+ * Each named factory method maps to a specific error code defined in RFC 8628 §3.5 or RFC 6749 §5.2
+ * and carries an HTTP status code that the REST layer must forward in the response. The error()
+ * accessor returns the machine-readable OAuth error string (e.g. "authorization_pending"),
+ * and statusCode() returns the appropriate HTTP status (400 for most errors, 401 for client errors).
+ * Callers in the token endpoint catch this exception and serialise it into the standard JSON
+ * error body with "error" and "error_description" fields.
+ */
 final class DeviceAuthorizationException extends \RuntimeException
 {
     public function __construct(
@@ -15,46 +25,82 @@ final class DeviceAuthorizationException extends \RuntimeException
         parent::__construct($description);
     }
 
+    /**
+     * Returns the machine-readable OAuth error code string to include in the JSON error response body.
+     * Maps directly to the "error" field specified in RFC 6749 §5.2 and RFC 8628 §3.5.
+     */
     public function error(): string
     {
         return $this->error;
     }
 
+    /**
+     * Returns the HTTP status code that must be set on the error response.
+     * Typically 400 for request/grant errors and 401 for client authentication failures.
+     */
     public function statusCode(): int
     {
         return $this->statusCode;
     }
 
+    /**
+     * Creates an exception representing the authorization_pending state where the user has not yet acted.
+     * The device should continue polling according to the specified interval.
+     */
     public static function authorizationPending(): self
     {
         return new self('authorization_pending', 'Authorization pending');
     }
 
+    /**
+     * Creates an exception indicating the device is polling too frequently.
+     * The device must increase its polling interval by at least five seconds.
+     */
     public static function slowDown(): self
     {
         return new self('slow_down', 'Slow down');
     }
 
+    /**
+     * Creates an exception representing access_denied when the user explicitly rejects the device request.
+     * The device should stop polling and inform the user of the denial.
+     */
     public static function accessDenied(): self
     {
         return new self('access_denied', 'Access denied');
     }
 
+    /**
+     * Creates an exception representing an expired_token error when the device code has passed its TTL.
+     * The device must restart the authorization flow to obtain a new device code.
+     */
     public static function expiredToken(): self
     {
         return new self('expired_token', 'Expired device code');
     }
 
+    /**
+     * Creates an exception representing an invalid_grant error when the device code is unrecognised or already consumed.
+     * The device must restart the authorization flow.
+     */
     public static function invalidGrant(): self
     {
         return new self('invalid_grant', 'Invalid device code');
     }
 
+    /**
+     * Creates an invalid_request exception with an optional detail message describing the missing or malformed parameter.
+     * Used when required parameters such as device_code or client_id are absent from the request.
+     */
     public static function invalidRequest(string $detail = 'Invalid request'): self
     {
         return new self('invalid_request', $detail);
     }
 
+    /**
+     * Creates an invalid_client exception with a 401 HTTP status when client credentials cannot be verified.
+     * Returned when Basic Auth credentials are wrong or the client_id is not recognised.
+     */
     public static function invalidClient(): self
     {
         return new self('invalid_client', 'Invalid client', 401);

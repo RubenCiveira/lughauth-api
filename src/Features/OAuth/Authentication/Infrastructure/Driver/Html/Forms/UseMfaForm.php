@@ -18,6 +18,23 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Login step form that challenges an already-enrolled user with a TOTP one-time password.
+ *
+ * This form is shown after successful credential authentication when the user has MFA enabled
+ * and the ChallengesState does not yet carry a satisfied MFA flag. It presents a single OTP
+ * code input field. If the ChallengesState already carries withMfa=true (e.g. the session was
+ * resumed), the authentication phase skips the OTP check and proceeds immediately.
+ *
+ * On submission, the OTP is verified via PublicMfa. A valid code updates the challenges state
+ * with withMfa=true and calls AuthenticateUser::preAuthenticate to produce the pre-auth result.
+ * An invalid code throws a LoginException with an ERR_MFA_REQUIRED result so the form is
+ * re-rendered with a wrong-code error message.
+ *
+ * Relationships: uses PublicMfa for OTP verification, calls AuthenticateUser for post-MFA
+ * pre-authentication, relies on HtmlSecurer for CSRF injection and auto-focus scripts, and
+ * DecorateHtml for themed page output.
+ */
 class UseMfaForm implements StepForm
 {
     public function __construct(
@@ -29,6 +46,12 @@ class UseMfaForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders the OTP entry form with a single code input and a back link.
+     *
+     * Injects CSRF signing and auto-focus scripts and displays any error from the previous
+     * failed OTP attempt as a localised message above the input field.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -84,6 +107,13 @@ class UseMfaForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Validates the submitted OTP code and pre-authenticates the user on success.
+     *
+     * If the challenges state already indicates MFA was satisfied (e.g. session resume),
+     * the OTP check is bypassed. Otherwise the code is verified via PublicMfa, the challenges
+     * state is updated with withMfa=true, and preAuthenticate is called to continue the flow.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {

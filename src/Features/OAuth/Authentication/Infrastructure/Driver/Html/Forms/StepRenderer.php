@@ -9,7 +9,27 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 
+/**
+ * Contract for the HTML rendering side of a multi-step login form.
+ *
+ * Implementations are responsible for producing the full HTML page for their particular
+ * step — login, MFA entry, consent, password change, etc. — and writing it into the
+ * PSR-7 ResponseInterface body. The render method receives the current StepInput (which
+ * includes the OIDC flow context, the authentication request, and the accumulated
+ * ChallengesState), along with an optional AuthenticationResult from the previous attempt
+ * so error messages can be surfaced to the user.
+ *
+ * The method must always return a StepResult of type TYPE_RENDER wrapping the response,
+ * leaving the caller responsible for attaching cookies and returning the response to
+ * the HTTP layer.
+ */
 interface StepRenderer
 {
+    /**
+     * Produces the HTML page for this login step and writes it into the response body.
+     *
+     * The optional error parameter carries the result of the most recent failed authentication
+     * attempt so the form can display a localised error message to the user.
+     */
     public function render(StepInput $input, \Psr\Http\Message\ResponseInterface $response, ?AuthenticationResult $error): StepResult;
 }

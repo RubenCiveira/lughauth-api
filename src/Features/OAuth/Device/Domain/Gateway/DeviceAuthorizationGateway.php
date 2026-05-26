@@ -9,19 +9,58 @@ use DateTimeImmutable;
 use Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorization;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
+/**
+ * Outbound port (repository) for Device Authorization Grant persistence (RFC 8628).
+ *
+ * Implementations are responsible for the full CRUD lifecycle of DeviceAuthorization records:
+ * creating a new pending record, retrieving by device code or tenant-scoped user code,
+ * transitioning the status to APPROVED or DENIED, recording poll timestamps to enforce
+ * the minimum interval, and consuming (deleting) the record once the token exchange is
+ * complete or the grant has been denied. This interface decouples the application service
+ * from any specific storage technology such as SQL or Redis.
+ */
 interface DeviceAuthorizationGateway
 {
+    /**
+     * Persists a newly created DeviceAuthorization record in PENDING state.
+     * Must store all fields including expiry and polling interval for later retrieval.
+     */
     public function create(DeviceAuthorization $authorization): void;
 
+    /**
+     * Retrieves a DeviceAuthorization by its opaque device code regardless of tenant.
+     * Returns null when no matching record is found.
+     */
     public function findByDeviceCode(string $deviceCode): ?DeviceAuthorization;
 
+    /**
+     * Retrieves a DeviceAuthorization within a specific tenant by the human-typeable user code.
+     * Returns null when no matching record exists in that tenant.
+     */
     public function findByUserCode(string $tenant, string $userCode): ?DeviceAuthorization;
 
+    /**
+     * Transitions the record identified by deviceCode to APPROVED status and stores
+     * the AuthenticationResult so the token endpoint can retrieve it on the next poll.
+     * Returns true when the update affected a row, false otherwise.
+     */
     public function approve(string $deviceCode, AuthenticationResult $auth): bool;
 
+    /**
+     * Transitions the record identified by deviceCode to DENIED status.
+     * Returns true when the update affected a row, false when the record was not found.
+     */
     public function deny(string $deviceCode): bool;
 
+    /**
+     * Records the timestamp of the most recent poll for the given device code.
+     * This timestamp is used to enforce the minimum polling interval on the next request.
+     */
     public function touchPoll(string $deviceCode, DateTimeImmutable $now): void;
 
+    /**
+     * Permanently deletes the device authorization record after a successful token exchange or denial.
+     * Once consumed the device code can no longer be used in any subsequent requests.
+     */
     public function consume(string $deviceCode): void;
 }

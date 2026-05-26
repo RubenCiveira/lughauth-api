@@ -8,7 +8,27 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 
+/**
+ * Contract for the authentication side of a multi-step login form.
+ *
+ * Every concrete login step that needs to process form data submitted by the user must
+ * implement this interface. The authenticate method receives all context necessary to
+ * validate the user's input — credentials, OTP codes, consent decisions, etc. — and
+ * returns a StepResult that either signals success (TYPE_PROCEED with an auth response)
+ * or throws a LoginException / UnauthorizedException to surface an error.
+ *
+ * This interface is paired with StepRenderer to form the full StepForm contract, keeping
+ * rendering and authentication concerns explicitly separated while sharing the same input
+ * value object.
+ */
 interface StepAuthenticator
 {
+    /**
+     * Processes the user's form submission for this login step and returns the step outcome.
+     *
+     * Implementations should validate and act on the data in StepInput::body, update the
+     * ChallengesState as needed, and return StepResult::proceed() on success or throw an
+     * appropriate exception to signal failure or a required re-render.
+     */
     public function authenticate(StepInput $input): StepResult;
 }

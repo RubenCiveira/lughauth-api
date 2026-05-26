@@ -18,6 +18,23 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Login step form for enrolling a new TOTP-based multi-factor authentication device.
+ *
+ * This form is shown when the authentication pipeline determines that the user must set up
+ * MFA for the first time (ERR_NEW_MFA_REQUIRED). It retrieves a fresh TOTP seed from
+ * PublicMfa, optionally presenting a QR-code image and a textual seed to the user for
+ * import into an authenticator app. The seed is encrypted and round-tripped through the
+ * form so the server can verify the first OTP code without persisting the seed prematurely.
+ *
+ * Only after the user submits a valid OTP code that matches the seed is the seed persisted
+ * and the MFA challenge marked as satisfied. A reset button on the form allows generating a
+ * new seed if the user needs to restart enrollment.
+ *
+ * Relationships: uses PublicMfa to generate and verify TOTP data, AuthenticateUser for
+ * post-enrolment pre-authentication, HtmlSecurer for encryption and CSRF injection, and
+ * DecorateHtml for themed page output.
+ */
 class NewMfaForm implements StepForm
 {
     public function __construct(
@@ -29,6 +46,13 @@ class NewMfaForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders the MFA enrollment page with a QR code or seed text and the OTP input field.
+     *
+     * Fetches a new TOTP seed from PublicMfa, encrypts it for safe round-tripping in the
+     * hidden form field, and emits the QR/message if provided, together with an input for
+     * the verification code and a back link.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -101,6 +125,13 @@ class NewMfaForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Verifies the submitted OTP code against the round-tripped seed and finalises MFA enrolment.
+     *
+     * Decrypts the hidden seed field, validates the OTP via PublicMfa, and if successful
+     * persists the seed and marks the MFA challenge as satisfied before calling preAuthenticate.
+     * Throws LoginException with a wrong-code result when validation fails.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {

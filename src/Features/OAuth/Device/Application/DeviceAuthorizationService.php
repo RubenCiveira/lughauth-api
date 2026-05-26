@@ -16,15 +16,41 @@ use Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGatewa
 use Civi\Lughauth\Features\OAuth\Device\Domain\Exception\DeviceAuthorizationException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
+/**
+ * Application service that manages the full lifecycle of an OAuth 2.0 Device Authorization Grant (RFC 8628).
+ *
+ * This service is the single entry point for device-flow operations. It creates new
+ * device authorizations by generating a cryptographically random device code and a
+ * short, user-friendly user code, persists them via the gateway, and enforces the
+ * configured expiry window (DEFAULT_TTL). The polling side of the flow is handled by
+ * exchangeDeviceCode, which checks expiry, denial, and the minimum polling interval
+ * (DEFAULT_INTERVAL seconds) before allowing token issuance, translating each
+ * intermediate state into the RFC 8628-defined error codes (authorization_pending,
+ * slow_down, expired_token, access_denied). User-code generation retries up to five
+ * times to avoid collisions before falling back to a UUID.
+ */
 final class DeviceAuthorizationService
 {
+    /**
+     * Minimum polling interval in seconds that the device must wait between token endpoint requests.
+     * Enforced by exchangeDeviceCode to prevent thundering-herd polling.
+     */
     public const int DEFAULT_INTERVAL = 5;
+
+    /**
+     * ISO 8601 duration string defining how long a device authorization request remains valid.
+     * After this period the device code and user code are considered expired.
+     */
     public const string DEFAULT_TTL = 'PT10M';
 
     public function __construct(private readonly DeviceAuthorizationGateway $gateway)
     {
     }
 
+    /**
+     * Creates a new device authorization record with a fresh device code and user code,
+     * persists it to the gateway, and returns the populated DeviceAuthorization value object.
+     */
     public function createAuthorization(
         string $tenant,
         ClientData $client,
@@ -53,16 +79,29 @@ final class DeviceAuthorizationService
         return $authorization;
     }
 
+    /**
+     * Finds an active device authorization by tenant-scoped user code.
+     * Returns null when no matching record exists.
+     */
     public function findByUserCode(string $tenant, string $userCode): ?DeviceAuthorization
     {
         return $this->gateway->findByUserCode($tenant, $userCode);
     }
 
+    /**
+     * Looks up a device authorization by its opaque device code across all tenants.
+     * Returns null when the device code does not match any stored record.
+     */
     public function findByDeviceCode(string $deviceCode): ?DeviceAuthorization
     {
         return $this->gateway->findByDeviceCode($deviceCode);
     }
 
+    /**
+     * Approves a pending device authorization identified by tenant and user code, attaching
+     * the provided AuthenticationResult so the device can later redeem it via the token endpoint.
+     * Returns false when the record is not found, already expired, or not in PENDING state.
+     */
     public function approveByUserCode(string $tenant, string $userCode, AuthenticationResult $auth): bool
     {
         $record = $this->gateway->findByUserCode($tenant, $userCode);
@@ -78,6 +117,11 @@ final class DeviceAuthorizationService
         return $this->gateway->approve($record->deviceCode, $auth);
     }
 
+    /**
+     * Attempts to exchange an approved device code for an AuthenticationResult, enforcing
+     * expiry, denial, and minimum polling interval. Throws DeviceAuthorizationException with
+     * the appropriate RFC 8628 error code for every non-terminal condition.
+     */
     public function exchangeDeviceCode(string $deviceCode): AuthenticationResult
     {
         if ($deviceCode === '') {
@@ -112,6 +156,10 @@ final class DeviceAuthorizationService
         return $record->auth;
     }
 
+    /**
+     * Returns the URN string that identifies the Device Authorization grant type in OAuth token requests.
+     * Used by the token endpoint to route the token exchange to this service.
+     */
     public static function grantType(): string
     {
         return DeviceAuthorizationGrantType::DEVICE_CODE;

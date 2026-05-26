@@ -24,6 +24,20 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 
+/**
+ * Infrastructure adapter that implements DynamicClientGateway by persisting dynamically
+ * registered clients as TrustedClient entities in the Access bounded context.
+ *
+ * This adapter maps between the DynamicClient* domain value objects and the TrustedClient
+ * aggregate, acting as the primary anti-corruption layer for RFC 7591/7592 operations. The
+ * registration access token is stored as a SHA-256 hash so that a plain-text token is never
+ * kept at rest. The client secret is encrypted at rest using AesCypherService.
+ *
+ * The registration policy is resolved by reading the tenant's TenantConfig record; when
+ * neither the tenant nor the config is found, "disabled" is returned as a safe default.
+ * All redirect URIs are stored as individual TrustedClientAllowedRedirects value objects,
+ * each assigned a fresh COMB UUID, so the Access layer can manage them independently.
+ */
 final class DynamicClientAdapter implements DynamicClientGateway
 {
     public function __construct(
@@ -35,6 +49,11 @@ final class DynamicClientAdapter implements DynamicClientGateway
     ) {
     }
 
+    /**
+     * Creates a new TrustedClient entity with the dynamically_registered flag set, storing the
+     * hashed registration access token and the encrypted client secret, then returns the assigned
+     * client ID and issuance timestamp.
+     */
     #[Override]
     public function create(
         string $clientId,
@@ -76,6 +95,11 @@ final class DynamicClientAdapter implements DynamicClientGateway
         ];
     }
 
+    /**
+     * Looks up a dynamically registered client by UID and verifies the SHA-256 hash of the
+     * provided token matches the stored value. Returns null on any mismatch or if the client
+     * is not flagged as dynamically registered.
+     */
     #[Override]
     public function findByClientIdAndToken(string $clientId, string $registrationAccessToken): ?DynamicClientData
     {
@@ -94,6 +118,10 @@ final class DynamicClientAdapter implements DynamicClientGateway
         return $this->mapToDynamicClientData($client);
     }
 
+    /**
+     * Acquires a pessimistic write lock on the client, validates the token hash, applies the
+     * updated metadata attributes, persists the change, and returns the refreshed snapshot.
+     */
     #[Override]
     public function update(string $clientId, string $registrationAccessToken, DynamicClientRequest $request): ?DynamicClientData
     {
@@ -128,6 +156,10 @@ final class DynamicClientAdapter implements DynamicClientGateway
         return $this->mapToDynamicClientData($updated);
     }
 
+    /**
+     * Acquires a pessimistic write lock on the client, validates the token hash, and delegates
+     * the physical deletion to the write gateway. Returns false on any validation failure.
+     */
     #[Override]
     public function delete(string $clientId, string $registrationAccessToken): bool
     {
@@ -146,6 +178,10 @@ final class DynamicClientAdapter implements DynamicClientGateway
         return $this->writer->delete($client->delete());
     }
 
+    /**
+     * Reads the dynamic registration policy from the tenant's configuration record.
+     * Returns "disabled" when the tenant or its configuration cannot be found.
+     */
     #[Override]
     public function readRegistrationPolicy(string $tenant): string
     {

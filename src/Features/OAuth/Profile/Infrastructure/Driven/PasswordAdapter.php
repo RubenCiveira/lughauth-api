@@ -16,6 +16,21 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasswordGateway;
 
+/**
+ * Infrastructure adapter that implements PasswordGateway for authenticated user self-service password changes.
+ *
+ * This adapter resolves the tenant and user entities via UserLoaderAdapter, decrypts the
+ * currently stored password using AesCypherService, and compares it with the old password
+ * supplied by the user.  Only if the comparison succeeds is the new password encrypted and
+ * persisted through UserWriteGateway::update().
+ *
+ * A LoginException carrying the "wrong_old_pass" error code is thrown when the old password
+ * does not match, allowing the calling controller to surface a specific, user-friendly message
+ * rather than a generic error.
+ *
+ * Distributed tracing spans are recorded for every call so that password-change latency can
+ * be tracked and correlated across service boundaries through the TracerAwareTrait mixin.
+ */
 class PasswordAdapter implements PasswordGateway
 {
     use LoggerAwareTrait;
@@ -28,6 +43,12 @@ class PasswordAdapter implements PasswordGateway
     ) {
     }
 
+    /**
+     * Changes the password for the given user after verifying the current one.
+     *
+     * Decrypts the stored password and compares it to oldPass; throws LoginException on
+     * mismatch.  On success the new password is encrypted and saved, and true is returned.
+     */
     #[Override]
     public function changePassword(string $userUid, string $tenant, string $oldPass, string $newPass): bool
     {

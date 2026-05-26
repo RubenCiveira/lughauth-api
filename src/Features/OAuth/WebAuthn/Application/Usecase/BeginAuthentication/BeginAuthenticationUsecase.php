@@ -12,6 +12,17 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 
+/**
+ * Application use case that initiates the WebAuthn authentication ceremony.
+ *
+ * Generates a cryptographically random challenge, stores it as a pending
+ * WebAuthnChallenge of type "authenticate" scoped to the tenant, and returns
+ * the PublicKeyCredentialRequestOptions payload that the browser's navigator
+ * .credentials.get() call requires. The challenge expires after five minutes;
+ * the FinishAuthenticationUsecase must be called within that window to complete
+ * the ceremony. No user identity is bound at this stage — the credential lookup
+ * happens during the finish step, allowing usernameless (resident-key) flows.
+ */
 final class BeginAuthenticationUsecase
 {
     public function __construct(
@@ -20,6 +31,11 @@ final class BeginAuthenticationUsecase
     ) {
     }
 
+    /**
+     * Creates and persists a fresh authentication challenge for the tenant.
+     * Returns the PublicKeyCredentialRequestOptions array ready to be JSON-encoded
+     * and sent to the browser to drive the navigator.credentials.get() call.
+     */
     public function begin(string $tenantName, string $rpId): array
     {
         $tenant = $this->tenants->findOneByName($tenantName);

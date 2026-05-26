@@ -5,6 +5,18 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain\Exception;
 
+/**
+ * Domain exception used to signal error conditions during RFC 7591/7592 dynamic client
+ * registration and management operations.
+ *
+ * Each instance carries a machine-readable error code (as defined by the respective RFC),
+ * a human-readable error description, and the HTTP status code that the REST layer should
+ * return to the caller. Named factory methods provide convenient construction for every
+ * expected error scenario, ensuring consistent error codes and messages across the codebase.
+ *
+ * The REST controller catches this exception and serializes it into the standard OAuth error
+ * response body: {"error": "...", "error_description": "..."}.
+ */
 final class DynamicClientException extends \RuntimeException
 {
     public function __construct(
@@ -15,41 +27,73 @@ final class DynamicClientException extends \RuntimeException
         parent::__construct($description);
     }
 
+    /**
+     * Returns the machine-readable OAuth error code, e.g. "invalid_redirect_uri".
+     * Used by the REST layer when building the error response body.
+     */
     public function error(): string
     {
         return $this->error;
     }
 
+    /**
+     * Returns the HTTP status code that should accompany this error in the response.
+     * Defaults to 400; specific factory methods may set 401, 403, or 404.
+     */
     public function statusCode(): int
     {
         return $this->statusCode;
     }
 
+    /**
+     * Creates an exception indicating that one of the provided redirect URIs is not acceptable,
+     * for example because it uses a forbidden scheme such as "javascript:".
+     */
     public static function invalidRedirectUri(string $uri): self
     {
         return new self('invalid_redirect_uri', "Invalid redirect_uri: {$uri}");
     }
 
+    /**
+     * Creates an exception signalling that the submitted client metadata contains an invalid
+     * or unacceptable field value, described by the detail string.
+     */
     public static function invalidClientMetadata(string $detail): self
     {
         return new self('invalid_client_metadata', $detail);
     }
 
+    /**
+     * Creates an exception indicating that dynamic client registration is disabled for the
+     * target tenant; maps to HTTP 403 access_denied.
+     */
     public static function registrationNotAllowed(): self
     {
         return new self('access_denied', 'Dynamic client registration is disabled for this tenant', 403);
     }
 
+    /**
+     * Creates an exception indicating that the provided registration access token is invalid
+     * or expired; maps to HTTP 401 invalid_token.
+     */
     public static function invalidToken(): self
     {
         return new self('invalid_token', 'The registration access token is invalid or expired', 401);
     }
 
+    /**
+     * Creates an exception indicating that no client with the given identifier exists;
+     * maps to HTTP 404 invalid_client_id.
+     */
     public static function notFound(): self
     {
         return new self('invalid_client_id', 'Client not found', 404);
     }
 
+    /**
+     * Creates an exception indicating that the tenant requires an initial_access_token to
+     * register new clients but none was provided; maps to HTTP 401 access_denied.
+     */
     public static function tokenRequired(): self
     {
         return new self('access_denied', 'An initial_access_token is required to register clients', 401);

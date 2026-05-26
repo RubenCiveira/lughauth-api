@@ -8,12 +8,17 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 
 /**
- * Builds OIDC Back-Channel Logout tokens (logout+jwt) per spec:
- * https://openid.net/specs/openid-connect-backchannel-1_0.html
+ * Builds OIDC Back-Channel Logout tokens (logout+jwt) per the OIDC Back-Channel Logout 1.0 spec.
  *
- * NOTE: The spec forbids the 'nonce' claim in logout tokens.
- * The 'typ' claim is overridden to 'logout+jwt' to distinguish these
- * tokens from regular access/id tokens.
+ * A logout token is a compact signed JWT that an IdP sends to registered Relying Parties to
+ * notify them that a session has ended server-side. It carries the subject, audience, session ID,
+ * and a mandatory "events" claim referencing the backchannel-logout schema URI.
+ *
+ * This class is a pure static factory and cannot be instantiated; all state is passed as arguments
+ * to the build() method. The spec explicitly forbids a "nonce" claim and requires the "typ" header
+ * to be "logout+jwt" to distinguish logout tokens from regular access or ID tokens.
+ *
+ * @see https://openid.net/specs/openid-connect-backchannel-1_0.html
  */
 final class LogoutToken
 {
@@ -21,6 +26,10 @@ final class LogoutToken
     {
     }
 
+    /**
+     * Constructs and signs a logout+jwt token for the given subject and session.
+     * The token is valid for five minutes — enough for delivery retry but short enough to limit replay risk.
+     */
     public static function build(
         TokenSigner $signer,
         string $tenant,

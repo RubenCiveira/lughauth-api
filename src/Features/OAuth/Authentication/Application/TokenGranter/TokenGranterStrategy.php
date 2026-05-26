@@ -8,10 +8,29 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
+/**
+ * Strategy contract for OAuth 2.0 token grant type handlers.
+ *
+ * Each implementation encapsulates the authentication logic for one specific grant type
+ * (e.g., password, refresh_token, client_credentials, device_code). The mediator queries
+ * canHandle to select the correct strategy before invoking authenticate.
+ *
+ * Implementations should be stateless and safe to call concurrently. Any failure to
+ * authenticate should be communicated through the returned AuthenticationResult rather than
+ * by throwing exceptions, except for protocol-level errors such as missing required parameters.
+ */
 interface TokenGranterStrategy
 {
+    /**
+     * Indicates whether this strategy is capable of handling the given grant type and request params.
+     * Should return true only for the grant type(s) it was specifically designed to process.
+     */
     public function canHandle(string $grantType, array $params): bool;
 
+    /**
+     * Executes the grant-type-specific authentication logic and returns an AuthenticationResult.
+     * The result carries either a valid identity or a structured error that the token endpoint can translate.
+     */
     public function authenticate(
         string $tenant,
         AuthenticationRequest $client,

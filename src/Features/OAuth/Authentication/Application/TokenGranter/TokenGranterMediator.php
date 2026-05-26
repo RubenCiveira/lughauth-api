@@ -8,9 +8,21 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
+/**
+ * Mediator that selects and executes the appropriate token granter strategy for a given grant type.
+ *
+ * Holds an ordered list of all known TokenGranterStrategy implementations and routes each
+ * token endpoint request to the first strategy that declares it can handle the requested grant
+ * type. This decouples the token endpoint controller from the concrete grant implementations and
+ * makes it straightforward to register additional grant types by extending the strategy list.
+ *
+ * Returns null when no registered strategy supports the requested grant type, allowing the caller
+ * to return an unsupported_grant_type error response per RFC 6749.
+ */
 class TokenGranterMediator
 {
     private readonly array $granters;
+
     public function __construct(
         ResolverForPassword $passResolver,
         ResolverForRefresh $refreshResolver,
@@ -20,6 +32,10 @@ class TokenGranterMediator
         $this->granters = [ $passResolver, $refreshResolver, $deviceResolver, $clientCredentialsResolver ];
     }
 
+    /**
+     * Iterates the registered strategies and delegates to the first one that accepts the grant type.
+     * Returns null if no strategy matches, signalling an unsupported grant type to the caller.
+     */
     public function authenticate(
         string $grantType,
         string $tenant,

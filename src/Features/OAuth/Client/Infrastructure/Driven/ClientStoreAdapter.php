@@ -13,6 +13,21 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 
+/**
+ * Infrastructure adapter that implements ClientStoreGateway by reading TrustedClient entities
+ * from the Access bounded context.
+ *
+ * This class translates between the Access domain's TrustedClient aggregate and the OAuth
+ * domain's ClientData value object, acting as an anti-corruption layer that keeps the OAuth
+ * application layer agnostic of persistence details. It handles all validation steps — client
+ * existence, enabled status, public-access flag, secret verification, and redirect-URI matching
+ * — logging a structured error message for each rejection reason without leaking details to
+ * callers.
+ *
+ * Redirect-URI matching supports exact matches, server-relative URLs, and a wildcard suffix
+ * ("*") pattern restricted to localhost origins so that local development environments remain
+ * convenient without opening the server to open-redirect attacks.
+ */
 class ClientStoreAdapter implements ClientStoreGateway
 {
     use LoggerAwareTrait;
@@ -24,6 +39,10 @@ class ClientStoreAdapter implements ClientStoreGateway
     ) {
     }
 
+    /**
+     * Looks up the client by ID and verifies the decrypted secret matches the provided value.
+     * Returns null if the client is not found, disabled, or the secret is wrong.
+     */
     #[Override]
     public function clientData(string $clientId, string $clientSecret): ?ClientData
     {
@@ -47,6 +66,10 @@ class ClientStoreAdapter implements ClientStoreGateway
         }
     }
 
+    /**
+     * Looks up the client by ID and returns its data if it exists and is enabled.
+     * Returns null if the client is not found or is disabled.
+     */
     #[Override]
     public function findEnabledClient(string $clientId): ?ClientData
     {
@@ -62,6 +85,10 @@ class ClientStoreAdapter implements ClientStoreGateway
         return $this->mapClientData($existent);
     }
 
+    /**
+     * Looks up the client and verifies it is both enabled and marked as publicly accessible.
+     * Returns null if the client is not found, disabled, or does not allow public access.
+     */
     #[Override]
     public function preValidatedClient(string $clientId): ?ClientData
     {
@@ -84,6 +111,11 @@ class ClientStoreAdapter implements ClientStoreGateway
         }
     }
 
+    /**
+     * Looks up the client and additionally verifies that the given redirect URL is registered
+     * for it; supports exact matching, server-relative URLs, and localhost wildcard suffixes.
+     * Returns null on any failure including an unregistered redirect URL.
+     */
     #[Override]
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData
     {
@@ -133,6 +165,10 @@ class ClientStoreAdapter implements ClientStoreGateway
         }
     }
 
+    /**
+     * Returns the URL of the first non-empty registered redirect URI for the client, or null if
+     * the client does not exist, is disabled, or has no redirect URIs configured.
+     */
     #[Override]
     public function defaultRedirectUri(string $clientId): ?string
     {

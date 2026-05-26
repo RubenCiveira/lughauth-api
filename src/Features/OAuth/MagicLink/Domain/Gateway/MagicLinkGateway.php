@@ -10,14 +10,29 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLink;
 /**
  * Port for persisting and retrieving MagicLink aggregates.
  *
- * Lookup is always by token hash, never by raw token.
- * `markUsed` must be idempotent: calling it on an already-used link is a no-op.
+ * Lookup is always by token hash, never by raw token, so the plaintext secret is never
+ * stored or transmitted beyond the initial email delivery. Implementations must scope all
+ * queries to both the token hash and the tenant identifier to prevent cross-tenant leakage.
+ * `markUsed` must be idempotent: calling it on an already-used link is a no-op so that
+ * concurrent verification attempts do not cause database errors.
  */
 interface MagicLinkGateway
 {
+    /**
+     * Persists a new MagicLink aggregate to the backing store.
+     * Called immediately after the token is generated and the email has been dispatched.
+     */
     public function store(MagicLink $magicLink): void;
 
+    /**
+     * Retrieves a MagicLink by its SHA-256 token hash scoped to the given tenant.
+     * Returns null when no matching record is found, without distinguishing expiry or usage state.
+     */
     public function findByHash(string $tokenHash, string $tenantId): ?MagicLink;
 
+    /**
+     * Stamps the magic-link record with the current timestamp to mark it as consumed.
+     * Subsequent calls with the same uid must be silently ignored (idempotent).
+     */
     public function markUsed(string $uid): void;
 }

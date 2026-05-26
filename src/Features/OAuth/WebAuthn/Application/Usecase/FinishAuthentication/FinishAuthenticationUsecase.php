@@ -13,6 +13,18 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Exception\WebAuthnException;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Infrastructure\Service\WebAuthnVerifier;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 
+/**
+ * Application use case that completes the WebAuthn authentication ceremony.
+ *
+ * Looks up the pending challenge by ID, validates that it is of type "authenticate"
+ * and has not expired, then resolves the stored credential by the ID supplied in
+ * the client assertion. The cryptographic assertion (authenticatorData + clientDataJSON
+ * + signature) is delegated to WebAuthnVerifier, which performs origin binding,
+ * RP ID hash verification, and replay-attack detection via the sign counter. On
+ * success, the sign count is updated in the credential store, the challenge is marked
+ * verified, and the authenticated user's UID and username are returned to the caller
+ * for use in the subsequent OIDC token-issuance flow.
+ */
 final class FinishAuthenticationUsecase
 {
     public function __construct(

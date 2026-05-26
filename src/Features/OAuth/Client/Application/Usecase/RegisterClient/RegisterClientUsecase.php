@@ -9,8 +9,23 @@ use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 
+/**
+ * Application use case that implements the OAuth 2.0 Dynamic Client Registration endpoint
+ * as defined in RFC 7591.
+ *
+ * Before persisting a new client, this use case reads the tenant's registration policy and
+ * enforces it: registration may be completely disabled, open to anyone, or gated behind an
+ * initial access token. All supplied redirect URIs are also validated to reject dangerous
+ * schemes such as "javascript:", "data:", and "vbscript:".
+ *
+ * On success it generates a cryptographically random client ID (UUID), a 256-bit client
+ * secret, and a 256-bit registration access token (used for subsequent RFC 7592 management
+ * operations), delegates persistence to DynamicClientGateway, and returns the full
+ * RegisterClientResult value object ready to be serialized into the HTTP response.
+ */
 final class RegisterClientUsecase
 {
+    /** List of URI schemes that are explicitly forbidden as redirect URIs for security reasons. */
     private const array FORBIDDEN_URI_SCHEMES = ['javascript', 'data', 'vbscript'];
 
     public function __construct(
@@ -18,6 +33,10 @@ final class RegisterClientUsecase
     ) {
     }
 
+    /**
+     * Validates the registration policy and all redirect URIs, then creates and persists
+     * a new dynamic client, returning a result object with all RFC 7591 response fields.
+     */
     public function register(RegisterClientParams $params): RegisterClientResult
     {
         $policy = $this->gateway->readRegistrationPolicy($params->tenant);

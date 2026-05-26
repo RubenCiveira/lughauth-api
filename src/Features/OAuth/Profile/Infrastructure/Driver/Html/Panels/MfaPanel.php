@@ -7,8 +7,28 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels
 
 use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
 
+/**
+ * HTML rendering component for the multi-factor authentication (MFA) configuration panel.
+ *
+ * This class produces the HTML fragment embedded by ProfileHtml when the user accesses
+ * the MFA section of their profile.  It handles two distinct states: an "enabled" state
+ * that shows a disable button, and a "disabled" state that presents the TOTP enrolment
+ * form together with the provisioning QR code image (when available) and the raw secret.
+ *
+ * The panel is a pure view component — it carries no application or domain logic and
+ * only produces markup from the data it receives, making it straightforward to test
+ * in isolation or replace with a template-engine implementation.  All dynamic values
+ * are HTML-escaped to prevent XSS vulnerabilities.
+ */
 class MfaPanel
 {
+    /**
+     * Renders the MFA panel as an HTML string for either the enable or disable workflow.
+     *
+     * When $enabled is true the panel shows the current status and a disable form.
+     * When false it shows the enrolment form with the TOTP seed and optional QR image.
+     * Optional $error and $success flags control the display of feedback messages.
+     */
     public function render(
         bool $enabled,
         string $saveUrl,

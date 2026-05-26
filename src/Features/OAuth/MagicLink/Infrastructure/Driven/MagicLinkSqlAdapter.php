@@ -11,6 +11,16 @@ use DateTimeImmutable;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLink;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkGateway;
 
+/**
+ * SQL-backed implementation of the MagicLinkGateway port using PDO.
+ *
+ * Maps MagicLink aggregates to and from the _oauth_magic_link table. All token lookups are
+ * performed exclusively by the SHA-256 hash column, never by the raw token, to uphold the
+ * security invariant that plaintext tokens are never persisted. The tenant_id column is always
+ * included in WHERE clauses to prevent cross-tenant token leakage. The hydrate() method
+ * reconstructs a fully-typed MagicLink value object from a raw database row, normalising null
+ * and empty-string edge cases for the optional state, nonce, and usedAt fields.
+ */
 class MagicLinkSqlAdapter implements MagicLinkGateway
 {
     public function __construct(
@@ -18,6 +28,10 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
     ) {
     }
 
+    /**
+     * Inserts a new magic-link record into the database, storing only the token hash.
+     * An empty nonce string is persisted as NULL to keep the schema semantically clean.
+     */
     #[Override]
     public function store(MagicLink $magicLink): void
     {
@@ -42,6 +56,10 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
         ]);
     }
 
+    /**
+     * Looks up a magic-link by its token hash scoped to the given tenant.
+     * Returns null when no row matches; expiry and usage state are left for the caller to evaluate.
+     */
     #[Override]
     public function findByHash(string $tokenHash, string $tenantId): ?MagicLink
     {
@@ -60,6 +78,10 @@ class MagicLinkSqlAdapter implements MagicLinkGateway
         return $this->hydrate($row);
     }
 
+    /**
+     * Sets the used_at column to the current timestamp for the given magic-link UID.
+     * Subsequent calls with the same UID are effectively no-ops since the value is already set.
+     */
     #[Override]
     public function markUsed(string $uid): void
     {

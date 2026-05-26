@@ -16,58 +16,133 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
  */
 class AuthenticationResult
 {
+    /** Signals that the user must complete a registered MFA challenge before continuing. */
     public const string ERR_MFA_REQUIRED = 'MFA_REQUIRED';
+
+    /** Signals that the user must enrol in MFA before the account can be used. */
     public const string ERR_NEW_MFA_REQUIRED = 'NEW_MFA_REQUIRED';
+
+    /** Signals that the user must accept terms-of-service or GDPR consent before continuing. */
     public const string ERR_CONSENT_REQUIRED = 'CONSENT_REQUIRED';
+
+    /** Signals that the user must approve the specific scopes requested by the client. */
     public const string ERR_SCOPES_CONSENT_REQUIRED = 'SCOPES_CONSENT_REQUIRED';
+
+    /** Signals that the user must set a new password before the account can be used. */
     public const string ERR_NEW_PASSWORD_REQUIRED = 'NEW_PASSWORD_REQUIRED';
+
+    /** Signals that a password-change verification code has been sent and the flow is waiting for it. */
     public const string ERR_WAITING_PASSCHANGE_CODE = 'WAITING_PASSCHANGE_CODE';
+
+    /** Signals that a new-user email verification step is pending before the account is active. */
     public const string ERR_WAITING_USER_VERIFY = 'WAITING_USER_VERIFY';
+
+    /** Signals that no account was found for the supplied identifier. */
     public const string ERR_UNKNOW_USER = 'UNKNOW_USER';
+
+    /** Signals that the supplied credentials did not match any account. */
     public const string ERR_WRONG_CREDENTIAL = 'WRONG_CREDENTIAL';
+
+    /** Signals that the user exists but is not permitted to access this client or tenant. */
     public const string ERR_NOT_ALLOWED_ACCESS = 'NOT_ALLOWED_ACCESS';
+
+    /** Signals that a magic-link email has been dispatched and the flow is awaiting user action. */
     public const string ERR_MAGIC_LINK_SENT = 'MAGIC_LINK_SENT';
 
+    /**
+     * Creates a result indicating that a magic-link email was sent and no further action is needed at this step.
+     * The flow pauses until the user clicks the link in their inbox.
+     */
     public static function waitMagicLink(): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_MAGIC_LINK_SENT);
     }
+
+    /**
+     * Creates a result indicating the user must complete a password-change step before proceeding.
+     * The id field carries the URL the user should be redirected to for setting the new password.
+     */
     public static function waitNewpass(string $url, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_PASSCHANGE_CODE, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating the user account is pending email verification.
+     * The id field carries the verification URL to which the user should be redirected.
+     */
     public static function waitNewuserVerify(string $url, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, id: $url, error: self::ERR_WAITING_USER_VERIFY, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating the user must complete their existing MFA challenge.
+     * The optional detail message can surface provider-specific instructions to the UI.
+     */
     public static function mfaRequired(?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_MFA_REQUIRED, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating the user must enrol in MFA before the account is usable.
+     * Typically raised when MFA is mandatory for the tenant but the user has not yet registered a factor.
+     */
     public static function newMfaRequired(?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_NEW_MFA_REQUIRED, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating that terms-of-service or GDPR consent must be accepted.
+     * The flow will redirect the user to the consent step before issuing any tokens.
+     */
     public static function consentRequired(?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_CONSENT_REQUIRED, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating that the user must explicitly approve the requested OAuth scopes.
+     * Used when the client requests scopes that have not previously been consented to by this user.
+     */
     public static function scopesConsentRequired(?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_SCOPES_CONSENT_REQUIRED, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating the account requires a new password before it can be used.
+     * Typically triggered by an administrator-forced reset or an expired temporary password.
+     */
     public static function newPasswordRequired(?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_NEW_PASSWORD_REQUIRED, errorMessage: $detail);
     }
+
+    /**
+     * Creates a result indicating no account could be found for the supplied identifier.
+     * Callers should consider returning the same response as wrongCredentials to prevent user enumeration.
+     */
     public static function unknowUser(string $tenant, string $username, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_UNKNOW_USER, errorMessage: $detail ?? self::ERR_UNKNOW_USER);
     }
+
+    /**
+     * Creates a result indicating that the supplied credentials were rejected by the identity store.
+     * Returned for both wrong passwords and account-locked states to avoid leaking account existence.
+     */
     public static function wrongCredentials(string $tenant, string $username, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_WRONG_CREDENTIAL, errorMessage: $detail ?? self::ERR_WRONG_CREDENTIAL);
     }
+
+    /**
+     * Creates a result indicating the user is known but is not authorised to access this client or tenant.
+     * Distinct from wrongCredentials so that access-control denials can be reported and audited separately.
+     */
     public static function notAllowedAccess(string $tenant, string $username, ?string $detail = null): AuthenticationResult
     {
         return new AuthenticationResult(valid: false, error: self::ERR_NOT_ALLOWED_ACCESS, errorMessage: $detail ?? self::ERR_NOT_ALLOWED_ACCESS);
@@ -90,6 +165,10 @@ class AuthenticationResult
     ) {
     }
 
+    /**
+     * Builds the standard OIDC/JWT user claim set from this result for inclusion in an ID or access token.
+     * Merges the client ID into the audience list and maps identity attributes to their JWT claim names.
+     */
     public function toJwtUserClaims(string $issuer, string $clientId): array
     {
         $audiences = array_values(array_unique([$clientId, ...($this->audiences ?? [])]));
@@ -109,6 +188,10 @@ class AuthenticationResult
         ];
     }
 
+    /**
+     * Converts this result to an associative array suitable for storing in a session or cache.
+     * The shape is consumed by deserialize() to reconstruct the object across request boundaries.
+     */
     public function serialize(): array
     {
         return [
@@ -128,6 +211,10 @@ class AuthenticationResult
         ];
     }
 
+    /**
+     * Reconstructs an AuthenticationResult from a previously serialized associative array.
+     * Missing keys default to null or false so that older serialized sessions remain compatible.
+     */
     public static function deserialize(array $data): self
     {
         return new self(

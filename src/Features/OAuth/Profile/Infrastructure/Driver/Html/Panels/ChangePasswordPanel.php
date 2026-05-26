@@ -5,8 +5,28 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels;
 
+/**
+ * HTML rendering component for the self-service password change panel.
+ *
+ * This class produces the raw HTML fragment that the ProfileHtml controller embeds
+ * inside the themed layout page when the user navigates to the change-password section
+ * of their profile.  It has no dependencies on the domain or application layers and
+ * operates purely on scalar values supplied by the controller, keeping presentation
+ * logic fully isolated from business logic.
+ *
+ * The panel has two display states: a form state (default) and a success state shown
+ * after a successful password change.  All user-visible strings are passed through the
+ * $t translations array so the panel is locale-agnostic.
+ */
 class ChangePasswordPanel
 {
+    /**
+     * Renders the change-password panel as an HTML string.
+     *
+     * When $success is true a confirmation message is shown in place of the form.
+     * If $error is non-empty it is rendered as an inline error paragraph above the form.
+     * All URL and string values are HTML-escaped to prevent XSS.
+     */
     public function render(string $saveUrl, string $cancelUrl, ?string $error = null, bool $success = false, array $t = []): string
     {
         $saveUrl = htmlspecialchars($saveUrl);

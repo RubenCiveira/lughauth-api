@@ -8,12 +8,28 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Domain;
 /**
  * User profile entity holding OIDC standard claims (OpenID Connect Core §5.1).
  *
+ * This read-model is returned by ProfileGateway after a successful read or write
+ * operation and acts as the authoritative representation of a user's OIDC
+ * identity attributes within the Profile feature.  All fields map directly to
+ * the claim names defined by the OpenID Connect Core specification; nullable
+ * fields represent optional claims that the user may not have filled in.
+ *
+ * The addressJson field stores the OIDC address claim as a JSON string rather
+ * than a nested object to keep this class a simple value object; callers that
+ * need the structured address must decode it themselves.
+ *
  * `version` enables optimistic concurrency: updates must include the current
  * version and are rejected by the gateway if it no longer matches, preventing
  * lost-update races from concurrent profile edits.
  */
 class OidcProfile
 {
+    /**
+     * Constructs an immutable OIDC profile snapshot.
+     *
+     * All constructor arguments correspond directly to OIDC standard claim names
+     * and are set once at construction time; the object is never mutated.
+     */
     public function __construct(
         public readonly string $uid,
         public readonly string $userUid,

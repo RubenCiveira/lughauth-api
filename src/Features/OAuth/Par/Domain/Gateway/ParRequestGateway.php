@@ -7,11 +7,33 @@ namespace Civi\Lughauth\Features\OAuth\Par\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
 
+/**
+ * Port for persisting and retrieving Pushed Authorization Request aggregates.
+ *
+ * All operations are scoped to a (request_uri, tenant) pair to prevent cross-tenant access.
+ * The request_uri is an opaque URN and must be treated as a secret until the authorization
+ * endpoint consumes it. Implementations should purge expired records proactively to avoid
+ * unbounded table growth; the SQL adapter performs this on construction. The markUsed
+ * operation sets the used_at timestamp so that subsequent resolution attempts are rejected
+ * even when the record has not yet been physically deleted.
+ */
 interface ParRequestGateway
 {
+    /**
+     * Persists a newly created ParRequest aggregate to the backing store.
+     * Called immediately after the request is validated and the request_uri has been generated.
+     */
     public function store(ParRequest $request): void;
 
+    /**
+     * Retrieves a ParRequest by its URI scoped to the given tenant, or null if not found.
+     * Does not evaluate expiry or usage state; those checks are the caller's responsibility.
+     */
     public function findByUri(string $requestUri, string $tenant): ?ParRequest;
 
+    /**
+     * Marks the PAR request identified by the URI as consumed so it cannot be reused.
+     * Should be called by ResolveParRequestUsecase immediately after the record is validated.
+     */
     public function markUsed(string $requestUri, string $tenant): void;
 }

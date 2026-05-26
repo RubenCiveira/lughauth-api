@@ -18,8 +18,14 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
  * Dispatches OIDC Back-Channel Logout notifications (server-to-server) to all
  * registered Relying Parties that have a backchannel_logout_uri configured.
  *
+ * Iterates over every enabled trusted client, builds a signed logout+jwt token for
+ * each one that declares a back-channel URI, and POSTs it as an
+ * application/x-www-form-urlencoded body per the OIDC Back-Channel Logout 1.0 spec.
+ *
  * Per spec, delivery is best-effort: a failure to notify one RP MUST NOT
- * prevent the user's session from being terminated at the IdP.
+ * prevent the user's session from being terminated at the IdP. All errors are
+ * logged at WARNING level and silently swallowed so that other RPs continue to
+ * receive their notifications regardless of individual failures.
  */
 final class BackChannelLogoutDispatcher
 {

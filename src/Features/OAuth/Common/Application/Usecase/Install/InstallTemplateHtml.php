@@ -5,8 +5,25 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install;
 
+/**
+ * Utility class that provides a reusable HTML email wrapper for transactional mail templates.
+ *
+ * This helper encapsulates the outer table-based email skeleton that is common to all
+ * LughAuth transactional emails: a branded header bar, a content area, and a footer
+ * disclaimer. It is separate from the Handlebars-based theme system because it is used
+ * programmatically during template seed steps where the full theme rendering pipeline is
+ * not involved.
+ *
+ * The layout method accepts a pre-rendered HTML string and wraps it in the standard
+ * corporate email chrome, making it straightforward for installation steps to compose
+ * consistent email bodies without duplicating boilerplate markup.
+ */
 class InstallTemplateHtml
 {
+    /**
+     * Wraps the provided main content HTML in the standard LughAuth email outer layout,
+     * including the branded header and the automated-message footer disclaimer.
+     */
     public function layout(string $mainContent): string
     {
         return <<<HTML

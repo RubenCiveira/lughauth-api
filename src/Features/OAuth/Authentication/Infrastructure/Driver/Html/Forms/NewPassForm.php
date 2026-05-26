@@ -18,6 +18,23 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\ChangePasswordUsecase;
 
+/**
+ * Login step form that forces a user to change their password before completing authentication.
+ *
+ * This step is triggered when the authentication pipeline returns ERR_NEW_PASSWORD_REQUIRED,
+ * which typically happens when an account has an expired or temporary password. The form asks
+ * the user for both their current (old) password and a new one; both fields are encrypted in
+ * the browser by HtmlSecurer before submission so plaintext values are never transmitted.
+ *
+ * On submission the ChangePasswordUsecase validates the old credential and applies the new
+ * one. If the change succeeds, AuthenticateUser pre-authenticates the user and the flow
+ * continues to the next step or final redirect. Failures surface a translated error message
+ * and re-render the same form.
+ *
+ * Relationships: delegates password logic to ChangePasswordUsecase, calls AuthenticateUser
+ * for post-change pre-authentication, uses HtmlSecurer for crypto/CSRF scripts, and
+ * DecorateHtml for themed output.
+ */
 class NewPassForm implements StepForm
 {
     public function __construct(
@@ -29,6 +46,13 @@ class NewPassForm implements StepForm
     ) {
     }
 
+    /**
+     * Processes the forced-password-change submission and pre-authenticates on success.
+     *
+     * Decrypts both the old and new password fields, delegates to ChangePasswordUsecase, and
+     * calls preAuthenticate when the change is accepted. Throws LoginException with a
+     * new-password-required result if the change cannot be applied.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
@@ -52,6 +76,13 @@ class NewPassForm implements StepForm
         throw new LoginException(auth: AuthenticationResult::newPasswordRequired('unable_to_change'));
     }
 
+    /**
+     * Renders the forced-password-change form with old-password and new-password fields.
+     *
+     * Injects CSRF signing and in-browser field encryption scripts so that both passwords
+     * are ciphered before the form is submitted. Displays any error message from the previous
+     * authentication attempt.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {

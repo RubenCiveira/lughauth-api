@@ -21,6 +21,26 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\RegisterUserUsecase;
 
+/**
+ * Login step form that handles self-service user registration during the OIDC login flow.
+ *
+ * The registration flow has three sequential pages. The first page collects email and password
+ * together with optional terms-of-use acceptance; the password is encrypted in-browser.
+ * On submission a registration link is generated via OidcUrlBuilder and dispatched by
+ * RegisterUserUsecase, then a LoginException puts the flow into a waiting state. The second
+ * page is an informational waiting page that may include a direct link to the verification
+ * URL. The third page, reached when the user follows the link in their email, presents a
+ * one-time verification code input (pre-filled from the _use_code query parameter); once the
+ * code is validated the user is immediately pre-authenticated and the flow continues.
+ *
+ * Tenant-level consent text is dynamically injected as a readonly textarea with a checkbox
+ * when RegisterUserUsecase returns non-empty terms content; otherwise the acceptance is
+ * submitted automatically via a hidden field.
+ *
+ * Relationships: delegates registration and verification to RegisterUserUsecase, uses
+ * OidcUrlBuilder for callback URL construction, calls AuthenticateUser for post-verification
+ * pre-authentication, and relies on HtmlSecurer and DecorateHtml for secure rendering.
+ */
 class RegisterUserForm implements StepForm
 {
     public function __construct(
@@ -33,6 +53,13 @@ class RegisterUserForm implements StepForm
     ) {
     }
 
+    /**
+     * Processes either a new registration request (email + password) or a code verification submission.
+     *
+     * When the body contains a user field, validates acceptance of terms, generates a verification
+     * URL, and dispatches the registration email. When a code is present, verifies it and if valid
+     * pre-authenticates the newly registered user to continue the flow.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
@@ -81,6 +108,13 @@ class RegisterUserForm implements StepForm
         throw new LoginException(auth: AuthenticationResult::waitNewuserVerify('', 'Invalid code'));
     }
 
+    /**
+     * Selects and renders the appropriate registration sub-page based on the current flow state.
+     *
+     * Shows the code-entry confirmation page when verify_send=true is in the query string,
+     * the waiting/info page when an error is present, or the initial email/password entry page
+     * otherwise.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {

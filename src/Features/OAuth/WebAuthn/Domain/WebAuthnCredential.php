@@ -8,32 +8,82 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain;
 use DateTimeImmutable;
 
 /**
- * A stored FIDO2 passkey credential bound to a specific user.
+ * Immutable value object representing a stored FIDO2 passkey credential.
  *
- * `signCount` is updated on every successful assertion via `withUpdatedSignCount()`
- * to detect cloned authenticators (a replayed sign count indicates credential cloning).
- * Disabled credentials (`enabled = false`) are rejected at assertion time without
- * being deleted, preserving audit history.
+ * Encapsulates all data persisted after a successful WebAuthn registration ceremony:
+ * the opaque credential ID assigned by the authenticator, the PEM-encoded public key
+ * used to verify future assertions, and the sign count used for replay-attack detection.
+ * The aaguid identifies the authenticator model and may be used for policy enforcement.
+ * Credentials are never deleted when revoked — the enabled flag is set to false instead,
+ * preserving audit history while preventing further use. withUpdatedSignCount() follows
+ * immutable-update semantics, returning a new instance rather than mutating in place;
+ * the credential gateway must persist the returned copy after each successful assertion.
  */
 final class WebAuthnCredential
 {
     public function __construct(
+        /**
+         * Unique internal identifier for this credential record within the system.
+         */
         public readonly string $uid,
+        /**
+         * Identifier of the tenant this credential belongs to, enforcing multi-tenant isolation.
+         */
         public readonly string $tenantId,
+        /**
+         * UID of the user who registered this passkey, used to identify the authenticated subject.
+         */
         public readonly string $userUid,
+        /**
+         * Display name or email of the user at registration time, stored for informational purposes.
+         */
         public readonly string $username,
+        /**
+         * Opaque base64url-encoded credential ID assigned by the authenticator hardware.
+         * Used as the primary lookup key when matching an assertion to a stored credential.
+         */
         public readonly string $credentialId,
+        /**
+         * PEM-encoded public key extracted from the attestation object during registration.
+         * Used by WebAuthnVerifier to cryptographically verify subsequent assertions.
+         */
         public readonly string $publicKey,
+        /**
+         * Monotonically increasing counter maintained by the authenticator and verified on
+         * each assertion to detect cloned or replayed credentials.
+         */
         public readonly int $signCount,
+        /**
+         * Authenticator Attestation GUID identifying the authenticator model or family.
+         * May be null for authenticators that do not disclose their AAGUID.
+         */
         public readonly ?string $aaguid,
+        /**
+         * Human-readable name given to the device by the user at registration time.
+         * Null if the client did not supply a device name.
+         */
         public readonly ?string $deviceName,
+        /**
+         * List of transport hints (e.g. "usb", "nfc", "ble", "internal") reported by the
+         * authenticator, used by the browser to filter available credentials on assertion.
+         */
         public readonly ?array $transports,
+        /** Timestamp at which this credential was first registered. */
         public readonly DateTimeImmutable $createdAt,
+        /** Timestamp of the most recent successful assertion using this credential, or null if never used. */
         public readonly ?DateTimeImmutable $lastUsedAt,
+        /**
+         * Whether this credential is currently active. Disabled credentials are retained
+         * for audit history but must not be accepted during authentication ceremonies.
+         */
         public readonly bool $enabled,
     ) {
     }
 
+    /**
+     * Returns a new WebAuthnCredential with an updated sign count and last-used timestamp.
+     * Must be called after every successful assertion and the result persisted via the gateway.
+     */
     public function withUpdatedSignCount(int $signCount, DateTimeImmutable $lastUsedAt): self
     {
         return new self(

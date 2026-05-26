@@ -10,12 +10,29 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ApiKeyData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ApiKeyStoreGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
 
+/**
+ * Infrastructure adapter that implements ApiKeyStoreGateway by delegating to the Access
+ * bounded context's ApiKeyClientReadGateway.
+ *
+ * This class acts as an anti-corruption layer between the OAuth domain and the Access
+ * persistence layer, translating the raw ApiKeyClient entity into the ApiKeyData value object
+ * expected by the OAuth token-endpoint logic. The scope string stored on the entity is
+ * comma-separated and is split here before being handed to the domain.
+ *
+ * If no matching entity is found, null is returned so the caller can treat the key as unknown
+ * without any persistence-specific exception propagating into the domain.
+ */
 class ApiKeyStoreAdapter implements ApiKeyStoreGateway
 {
     public function __construct(
         private readonly ApiKeyClientReadGateway $apiKeys
     ) {
     }
+
+    /**
+     * Looks up the raw API key in the Access store and maps the entity to an ApiKeyData value
+     * object, splitting the comma-separated scopes string into an array.
+     */
     #[Override]
     public function apiKey(string $apiKey): ?ApiKeyData
     {

@@ -5,6 +5,17 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception;
 
+/**
+ * Exception representing an OAuth 2.0 token-endpoint error response per RFC 6749 §5.2.
+ *
+ * Carries the machine-readable error code (e.g., "invalid_grant") and the HTTP status code
+ * that should be returned to the client. Named constructors cover all standard error codes
+ * defined by the specification and can be caught by a generic token-endpoint error handler
+ * that serialises the response as a JSON object with "error" and "error_description" fields.
+ *
+ * This exception is intentionally separate from LoginException so that token-endpoint failures
+ * are handled independently from interactive browser-based authorization-flow failures.
+ */
 final class OAuthTokenException extends \RuntimeException
 {
     public function __construct(
@@ -15,36 +26,64 @@ final class OAuthTokenException extends \RuntimeException
         parent::__construct($description);
     }
 
+    /**
+     * Returns the RFC 6749 machine-readable error code (e.g., "invalid_grant", "invalid_scope").
+     * Used by the error handler to populate the "error" field of the JSON response body.
+     */
     public function error(): string
     {
         return $this->error;
     }
 
+    /**
+     * Returns the HTTP status code to send with the error response.
+     * Defaults to 400 for most errors; 401 is used for client authentication failures.
+     */
     public function statusCode(): int
     {
         return $this->statusCode;
     }
 
+    /**
+     * Creates an exception for a malformed or missing required parameter in the token request.
+     * Corresponds to the "invalid_request" error code defined in RFC 6749 §5.2.
+     */
     public static function invalidRequest(string $detail = 'Invalid request'): self
     {
         return new self('invalid_request', $detail);
     }
 
+    /**
+     * Creates an exception for an expired, revoked, or otherwise unusable authorization grant.
+     * Corresponds to the "invalid_grant" error code defined in RFC 6749 §5.2.
+     */
     public static function invalidGrant(string $detail = 'Invalid grant'): self
     {
         return new self('invalid_grant', $detail);
     }
 
+    /**
+     * Creates an exception for a failed client authentication attempt at the token endpoint.
+     * Returns HTTP 401 per RFC 6749 and corresponds to the "invalid_client" error code.
+     */
     public static function invalidClient(string $detail = 'Client authentication failed'): self
     {
         return new self('invalid_client', $detail, 401);
     }
 
+    /**
+     * Creates an exception when the client is not authorized to use the requested grant type.
+     * Corresponds to the "unauthorized_client" error code defined in RFC 6749 §5.2.
+     */
     public static function unauthorizedClient(string $detail = 'Unauthorized client'): self
     {
         return new self('unauthorized_client', $detail);
     }
 
+    /**
+     * Creates an exception when the requested scope is invalid, unknown, or exceeds what the client is allowed.
+     * Corresponds to the "invalid_scope" error code defined in RFC 6749 §5.2.
+     */
     public static function invalidScope(string $detail = 'Invalid scope'): self
     {
         return new self('invalid_scope', $detail);

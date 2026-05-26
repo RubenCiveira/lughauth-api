@@ -16,6 +16,18 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Exception\WebAuthnException;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Infrastructure\Service\WebAuthnVerifier;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 
+/**
+ * Application use case that completes the WebAuthn credential registration ceremony.
+ *
+ * Validates the pending challenge (existence, expiry, and correct type "register"),
+ * confirms the user referenced by the challenge still exists in the system, and
+ * delegates the cryptographic attestation verification to WebAuthnVerifier. On
+ * success, a new WebAuthnCredential is persisted with the extracted public key,
+ * credential ID, sign count, AAGUID, and optional transport hints. An optional
+ * human-readable device name may be supplied by the client to help the user manage
+ * their registered passkeys. After this call returns, the user may authenticate
+ * using the newly registered passkey through the authentication ceremony.
+ */
 final class FinishRegistrationUsecase
 {
     public function __construct(
@@ -27,6 +39,11 @@ final class FinishRegistrationUsecase
     ) {
     }
 
+    /**
+     * Verifies the attestation response and persists the new passkey credential.
+     * Throws WebAuthnException for any cryptographic or protocol violation, and
+     * NotFoundException if the tenant or user referenced in the challenge no longer exists.
+     */
     public function finish(
         string $challengeId,
         string $tenantName,

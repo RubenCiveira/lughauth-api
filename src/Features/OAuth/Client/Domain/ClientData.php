@@ -6,32 +6,61 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
 /**
- * Immutable snapshot of an OAuth 2.0 client's registered configuration.
+ * Immutable snapshot of an OAuth 2.0 client's registered configuration as returned by the
+ * client store on every authorization or token request.
  *
- * Read from the client store on every authorization or token request.
- * `secretLogin` controls whether the client may use the direct login endpoint
- * instead of the standard browser-redirect flow.
- * `requestObjectSigningAlg`, `jwksUri`, and `jwksJson` are only relevant for
- * clients that send signed request objects (JAR / RFC 9101).
+ * This value object is the primary domain representation of a "Trusted Client" entity and is
+ * shared across multiple use cases: authorization code initiation, token issuance, PAR, and
+ * device authorization. It is deliberately read-only so that no use case can accidentally
+ * mutate the configuration mid-request.
+ *
+ * The secretLogin flag controls whether the client may bypass the standard browser-redirect
+ * flow and use the direct (resource-owner password equivalent) login endpoint. The JAR-related
+ * fields (requestObjectSigningAlg, jwksUri, jwksJson) are only populated for clients that
+ * submit signed request objects as specified in RFC 9101.
  */
 class ClientData
 {
     public function __construct(
-        /** The client id */
+        /**
+         * The unique client identifier (code) used as the client_id in OAuth requests.
+         * Corresponds to the TrustedClient's code field in the persistence layer.
+         */
         public readonly string $id,
-        /** The client grant list allowed  */
+        /**
+         * The OAuth 2.0 grant types this client is allowed to use, e.g. "authorization_code",
+         * "refresh_token", "client_credentials". Decoded from a JSON array stored on the entity.
+         */
         public readonly array $grants,
-        /** If true, client can use login endpoint, otherwise, he must use http oauth flow */
+        /**
+         * When true the client may authenticate via the direct login endpoint rather than the
+         * standard browser-redirect authorization flow.
+         */
         public readonly bool $secretLogin,
-        /** M2M allowed scopes */
+        /**
+         * The set of OAuth scopes this client may request when using the client_credentials grant.
+         * The token endpoint intersects this list with the requested scopes before issuance.
+         */
         public readonly array $allowedScopesM2m = [],
-        /** M2M access token ttl seconds */
+        /**
+         * Lifetime in seconds of access tokens issued to this client via the client_credentials
+         * grant. Defaults to 3600 (one hour) when not explicitly configured.
+         */
         public readonly int $m2mTokenTtlSeconds = 3600,
-        /** Request object signing algorithm expected for this client */
+        /**
+         * The signing algorithm expected for JAR (JWT Authorization Request) objects sent by this
+         * client. Null when the client does not use signed request objects.
+         */
         public readonly ?string $requestObjectSigningAlg = null,
-        /** Public jwks uri for request object signature verification */
+        /**
+         * Public JWKS URI from which the server fetches the client's public keys for JAR
+         * signature verification. Null when the client does not use signed request objects.
+         */
         public readonly ?string $jwksUri = null,
-        /** Inline jwks json for request object signature verification */
+        /**
+         * Inline JSON Web Key Set provided directly on the client record, used as an alternative
+         * to jwksUri for JAR signature verification. Null when not configured.
+         */
         public readonly ?string $jwksJson = null
     ) {
     }

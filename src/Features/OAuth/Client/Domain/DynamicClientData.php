@@ -5,23 +5,51 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
+/**
+ * Immutable value object representing the full registered metadata of a dynamically registered
+ * OAuth 2.0 client, as required by the RFC 7592 management read and update responses.
+ *
+ * Instances are produced by DynamicClientGateway and consumed by the ReadDynamicClientUsecase
+ * and UpdateDynamicClientUsecase before being serialized into the HTTP response body by the
+ * DynamicClientController. All fields map directly to the corresponding RFC 7591/7592 JSON
+ * properties.
+ *
+ * The registrationClientUri is intentionally left empty when the object originates from the
+ * update path; the REST controller reconstructs it from the issuer base URL and the clientId
+ * before writing the response. This keeps the domain object free of infrastructure concerns.
+ */
 final class DynamicClientData
 {
     public function __construct(
+        /** The unique client identifier assigned at dynamic registration time. */
         public readonly string $clientId,
+        /** The list of redirect URIs registered for this client (redirect_uris). */
         public readonly array $redirectUris,
+        /** The OAuth 2.0 grant types registered for this client (grant_types). */
         public readonly array $grantTypes,
+        /** The OAuth 2.0 response types registered for this client (response_types). */
         public readonly array $responseTypes,
+        /** The space-separated scope string registered for this client, or null if not set. */
         public readonly ?string $scope,
+        /** The token endpoint authentication method registered for this client. */
         public readonly string $tokenEndpointAuthMethod,
+        /** Human-readable name for the client application, or null if not provided. */
         public readonly ?string $clientName,
+        /** URI of the client's logo image, or null if not provided. */
         public readonly ?string $logoUri,
+        /** URI of the client application's home page, or null if not provided. */
         public readonly ?string $clientUri,
+        /** URI of the client's privacy policy document, or null if not provided. */
         public readonly ?string $policyUri,
+        /** URI of the client's terms-of-service document, or null if not provided. */
         public readonly ?string $tosUri,
+        /** Back-channel logout URI used for OIDC back-channel logout flows, or null. */
         public readonly ?string $backchannelLogoutUri,
+        /** Front-channel logout URI used for OIDC front-channel logout flows, or null. */
         public readonly ?string $frontchannelLogoutUri,
+        /** Unix timestamp (seconds) at which the client_id was issued. */
         public readonly int $clientIdIssuedAt,
+        /** The fully qualified management URI for RFC 7592 read/update/delete operations. */
         public readonly string $registrationClientUri,
     ) {
     }

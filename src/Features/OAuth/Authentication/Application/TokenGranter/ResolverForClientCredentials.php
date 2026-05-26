@@ -10,14 +10,33 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\OAuthTokenException;
 
+/**
+ * Token granter strategy for the OAuth 2.0 client_credentials grant type.
+ *
+ * Handles machine-to-machine token requests where no end-user is involved. The client
+ * authenticates itself directly and receives an access token scoped to its own permissions.
+ *
+ * Scope resolution follows RFC 6749: if the request omits a scope parameter the full set of
+ * M2M-allowed scopes is granted; if scopes are explicitly requested they are intersected with
+ * the client's allowedScopesM2m list, and an invalid_scope error is raised when the intersection
+ * is empty. The resulting AuthenticationResult uses the client ID as the subject.
+ */
 class ResolverForClientCredentials implements TokenGranterStrategy
 {
+    /**
+     * Returns true only when the grant type is exactly "client_credentials".
+     * Params are not inspected because the grant type alone is sufficient to identify this flow.
+     */
     #[Override]
     public function canHandle(string $grantType, array $params): bool
     {
         return 'client_credentials' === $grantType;
     }
 
+    /**
+     * Validates and intersects the requested scopes against the client's allowed M2M scopes.
+     * Throws OAuthTokenException with error "invalid_scope" when no requested scope is permitted.
+     */
     #[Override]
     public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {

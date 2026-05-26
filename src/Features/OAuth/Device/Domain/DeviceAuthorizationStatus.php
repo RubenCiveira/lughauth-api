@@ -6,14 +6,32 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Device\Domain;
 
 /**
- * Terminal and transient states for a Device Authorization Grant request (RFC 8628).
+ * Enumeration of lifecycle states for an OAuth 2.0 Device Authorization Grant request (RFC 8628).
  *
- * A `DeviceAuthorization` starts in PENDING and transitions once: to APPROVED
- * after the user confirms on the verification URI, or to DENIED if they reject it.
+ * A DeviceAuthorization always starts in PENDING immediately after creation. When the end-user
+ * visits the verification URI and approves the request the record transitions to APPROVED, making
+ * the associated AuthenticationResult available for the token endpoint to consume. If the user
+ * explicitly rejects the request the state becomes DENIED and subsequent polling must return
+ * the access_denied error. Both APPROVED and DENIED are terminal: the record is consumed
+ * (deleted) by the token endpoint on the first successful or denied exchange.
  */
 final class DeviceAuthorizationStatus
 {
+    /**
+     * Initial state assigned at creation; the user has not yet visited the verification URI.
+     * The device token endpoint returns authorization_pending while in this state.
+     */
     public const string PENDING = 'pending';
+
+    /**
+     * Set by the verification handler after the user successfully authenticates and approves
+     * the device. The token endpoint can now exchange the device code for tokens.
+     */
     public const string APPROVED = 'approved';
+
+    /**
+     * Set by the verification handler when the user explicitly rejects the device request.
+     * The token endpoint must return access_denied and stop further polling.
+     */
     public const string DENIED = 'denied';
 }

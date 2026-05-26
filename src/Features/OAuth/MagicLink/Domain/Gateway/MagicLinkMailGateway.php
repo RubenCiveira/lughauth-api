@@ -8,8 +8,22 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway;
 use DateTimeImmutable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
+/**
+ * Port for sending the magic-link authentication email to the end user.
+ *
+ * Implementations are responsible for rendering the correct email template and delivering
+ * the message through the application's notification infrastructure. The domain layer
+ * provides all the data needed — recipient address, display name, tenant context, the
+ * clickable URL, and expiry time — so implementations do not need to perform any lookups.
+ * Callers should treat this operation as fire-and-forget; delivery failures may be handled
+ * asynchronously through the notification outbox pattern.
+ */
 interface MagicLinkMailGateway
 {
+    /**
+     * Sends the magic-link email to the specified recipient with the verification URL and expiry.
+     * The implementation must not expose the raw token in any way other than embedding it in the URL.
+     */
     public function sendMagicLink(
         string $toEmail,
         string $userName,

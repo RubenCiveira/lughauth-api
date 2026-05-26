@@ -262,6 +262,34 @@ final class MetricsFSUnitTest extends TestCase
     }
 
     /**
+     * Ensures listSeries returns empty when glob fails.
+     */
+    public function testListSeriesHandlesGlobFalse(): void
+    {
+        /*
+         * Arrange: create a metrics filesystem and force glob to return false.
+         */
+        $root = sys_get_temp_dir() . '/metricsfs_' . uniqid();
+        $fs = new MetricsFS($root);
+
+        \Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsRotatorTestHook::$forceGlobFalse = true;
+        \Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsRotatorTestHook::$globCallsUntilFail = 0;
+        try {
+            /*
+             * Act: list series while glob fails.
+             */
+            $series = $fs->listSeries('metric');
+        } finally {
+            \Civi\Lughauth\Bootstrap\Middleware\Metrics\MetricsRotatorTestHook::$forceGlobFalse = false;
+        }
+
+        /*
+         * Assert: verify an empty array is returned.
+         */
+        $this->assertSame([], $series);
+    }
+
+    /**
      * Ensures non-gz files that cannot be opened return no rows.
      */
     public function testReadJsonlStreamReturnsEmptyWhenPlainFileCannotOpen(): void

@@ -13,16 +13,30 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 /**
  * Port for storing and retrieving OAuth authorization sessions.
  *
- * Each session is keyed by an opaque `state` string generated per request.
- * `csid` is a stable cross-session identifier that survives state rotation
- * and allows the user's existing browser session to be looked up.
+ * Each session is keyed by an opaque state string generated per authorization request.
+ * The csid (cross-session identifier) is a stable value that survives state rotation and
+ * allows the system to look up an existing authenticated session without exposing the
+ * internal state token. Implementations must enforce expiry so that sessions are automatically
+ * invalidated after their lifetime elapses. The purgeExpired method should be called
+ * periodically to reclaim storage used by stale records.
  */
 interface SessionStoreGateway
 {
+    /**
+     * Loads an active session by its opaque state key, returning null if expired or not found.
+     */
     public function loadSession(string $state): ?SessionInfo;
 
+    /**
+     * Finds the most recently active session identifier for the given cross-session identifier.
+     * Returns null when no unexpired session exists for the provided csid.
+     */
     public function findActiveSessionIdByCsid(string $csid): ?string;
 
+    /**
+     * Persists a new session record associating the state key with the client, user, and challenge data.
+     * The session lifetime is determined by the expiration interval added to the current timestamp.
+     */
     public function saveSession(
         string $state,
         ClientData $clientDetails,
@@ -33,9 +47,21 @@ interface SessionStoreGateway
         \DateInterval $expiration
     ): void;
 
+    /**
+     * Rotates the session by replacing oldState with newState in the backing store.
+     * Used during mid-flow state transitions to prevent session fixation.
+     */
     public function updateSession(string $newState, string $oldState): void;
 
+    /**
+     * Removes the session identified by the given state key from the backing store.
+     * Called on logout or after the authorization code has been exchanged for tokens.
+     */
     public function deleteSession(string $state): void;
 
+    /**
+     * Deletes all session records whose expiration timestamp is in the past.
+     * Should be called periodically by OAuthCleanupScheduler to reclaim storage.
+     */
     public function purgeExpired(): void;
 }

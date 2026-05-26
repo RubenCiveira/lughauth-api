@@ -8,37 +8,79 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain;
 use DateTimeImmutable;
 
 /**
- * Tracks a pending FIDO2/WebAuthn challenge (registration or authentication).
+ * Immutable value object representing a pending FIDO2/WebAuthn ceremony challenge.
  *
- * Challenges are short-lived; call `isExpired()` before accepting an assertion.
- * `markVerified()` returns a new immutable instance — it never mutates in place —
- * so the gateway must persist the returned copy to record a successful verification.
- * The `verifiedUserUid` set on verification must match the claimed identity
- * before the Authentication context accepts the WebAuthn step as complete.
+ * A challenge is created at the start of either a registration or authentication
+ * ceremony and is consumed exactly once when the ceremony completes. The type field
+ * distinguishes "register" challenges (for credential creation) from "authenticate"
+ * challenges (for assertion verification), preventing one type from being used in
+ * the other ceremony. Challenges expire after a configured window (typically five
+ * minutes); callers must invoke isExpired() before accepting any assertion to guard
+ * against stale replay attempts. markVerified() follows immutable-update semantics:
+ * it returns a new instance with the verification fields populated rather than
+ * mutating the current object, so the gateway must persist the returned copy.
  */
 final class WebAuthnChallenge
 {
     public function __construct(
+        /**
+         * Unique identifier for this challenge, returned to the client and used as a
+         * correlation key when the finish endpoint is called to complete the ceremony.
+         */
         public readonly string $challengeId,
+        /**
+         * Identifier of the tenant this challenge belongs to, ensuring cross-tenant
+         * isolation when multiple tenants share the same challenge storage table.
+         */
         public readonly string $tenantId,
+        /**
+         * UID of the user for whom this challenge was created, or null for anonymous
+         * authentication ceremonies that resolve the user from the credential itself.
+         */
         public readonly ?string $userUid,
+        /**
+         * Base64url-encoded random bytes sent to the authenticator device.
+         * Must be echoed back in the assertion and verified to prevent replay attacks.
+         */
         public readonly string $challenge,
+        /**
+         * Ceremony type: "register" for credential creation or "authenticate" for assertion.
+         * Validated during the finish step to prevent type-confusion attacks.
+         */
         public readonly string $type,
+        /**
+         * Optional JSON snapshot of the full PublicKeyCredentialCreationOptions or
+         * RequestOptions sent to the client, stored for audit or debugging purposes.
+         */
         public readonly ?string $optionsJson,
+        /** Timestamp at which this challenge was first created. */
         public readonly DateTimeImmutable $createdAt,
+        /** Timestamp after which the challenge is considered expired and must be rejected. */
         public readonly DateTimeImmutable $expiresAt,
+        /** Whether the ceremony has been successfully completed for this challenge. */
         public readonly bool $verified,
+        /** Timestamp at which the verification was recorded, or null if not yet verified. */
         public readonly ?DateTimeImmutable $verifiedAt,
+        /** UID of the user who completed the ceremony, populated after successful verification. */
         public readonly ?string $verifiedUserUid,
+        /** Username of the user who completed the ceremony, populated after successful verification. */
         public readonly ?string $verifiedUsername,
     ) {
     }
 
+    /**
+     * Returns true when the current time has passed the challenge's expiration timestamp.
+     * Expired challenges must be rejected immediately without performing any crypto checks.
+     */
     public function isExpired(): bool
     {
         return $this->expiresAt < new DateTimeImmutable();
     }
 
+    /**
+     * Returns a new WebAuthnChallenge instance with verification fields set to record a successful ceremony.
+     * Does not mutate the current object; the returned copy must be persisted by the caller.
+     */
     public function markVerified(string $userUid, string $username): self
     {
         return new self(

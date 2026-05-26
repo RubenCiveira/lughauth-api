@@ -14,6 +14,18 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGatewa
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 
+/**
+ * Application use case that initiates the WebAuthn credential registration ceremony.
+ *
+ * Validates that both the tenant and the requesting user exist and are consistent
+ * (the user must belong to the given tenant), then generates a cryptographically
+ * random challenge stored as a pending WebAuthnChallenge of type "register". The
+ * returned PublicKeyCredentialCreationOptions include the user's display information
+ * and an excludeCredentials list built from the user's already-registered passkeys,
+ * preventing duplicate registrations on the same authenticator device. The challenge
+ * expires after five minutes; FinishRegistrationUsecase must be invoked within that
+ * window to complete the ceremony and persist the new credential.
+ */
 final class BeginRegistrationUsecase
 {
     public function __construct(
@@ -24,6 +36,11 @@ final class BeginRegistrationUsecase
     ) {
     }
 
+    /**
+     * Creates and persists a registration challenge bound to the user and tenant.
+     * Returns the PublicKeyCredentialCreationOptions array ready to be JSON-encoded
+     * and passed to the browser's navigator.credentials.create() call.
+     */
     public function begin(string $userUid, string $tenantName, string $rpId, string $rpName): array
     {
         $tenant = $this->tenants->findOneByName($tenantName);

@@ -706,6 +706,156 @@ final class JwtVerifierMiddlewareUnitTest extends TestCase
     }
 
     /**
+     * Ensures a double JWKS verification failure throws unauthorized.
+     */
+    public function testVerifyAuthJwksDoubleRefreshFailureThrows(): void
+    {
+        /*
+         * Arrange: sign with key1 but both cached and fresh JWKS have key2 (wrong key).
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $now = time();
+        $key1 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $key2 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k2']);
+
+        $wrongJwks = json_encode(['keys' => [$key2->jsonSerialize()]], JSON_THROW_ON_ERROR);
+
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 10,
+            'exp' => $now + 1000,
+        ], $key1);
+
+        $cache = new ArrayCache(['jwks.verify.publickey' => $wrongJwks]);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getBody')->willReturn($this->stream($wrongJwks));
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('sendRequest')->willReturn($response);
+
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+        ], $cache, null, $client);
+
+        /*
+         * Act: handle the request — both verifications fail.
+         */
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify an unauthorized exception is raised.
+         */
+    }
+
+    /**
+     * Ensures JWKS refresh success path rejects tokens with invalid time range.
+     */
+    public function testVerifyAuthJwksRefreshSuccessInvalidTimeRange(): void
+    {
+        /*
+         * Arrange: cache has wrong JWKS; fresh JWKS is correct but token is expired.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $now = time();
+        $key1 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $key2 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k2']);
+
+        $wrongJwks = json_encode(['keys' => [$key2->jsonSerialize()]], JSON_THROW_ON_ERROR);
+        $correctJwks = json_encode(['keys' => [$key1->jsonSerialize()]], JSON_THROW_ON_ERROR);
+
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 100,
+            'exp' => $now - 10,
+        ], $key1);
+
+        $cache = new ArrayCache(['jwks.verify.publickey' => $wrongJwks]);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getBody')->willReturn($this->stream($correctJwks));
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('sendRequest')->willReturn($response);
+
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+        ], $cache, null, $client);
+
+        /*
+         * Act: handle the request — fresh JWKS OK but token expired.
+         */
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify an unauthorized exception is raised for expired token.
+         */
+    }
+
+    /**
+     * Ensures JWKS refresh success path rejects tokens with issuer mismatch.
+     */
+    public function testVerifyAuthJwksRefreshSuccessIssuerMismatch(): void
+    {
+        /*
+         * Arrange: cache has wrong JWKS; fresh JWKS correct but token has wrong issuer.
+         */
+        $_SERVER['REQUEST_URI'] = '/';
+        $_SERVER['SERVER_NAME'] = 'host';
+        $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
+        $now = time();
+        $key1 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k1']);
+        $key2 = JWKFactory::createRSAKey(1024, ['use' => 'sig', 'alg' => 'RS256', 'kid' => 'k2']);
+
+        $wrongJwks = json_encode(['keys' => [$key2->jsonSerialize()]], JSON_THROW_ON_ERROR);
+        $correctJwks = json_encode(['keys' => [$key1->jsonSerialize()]], JSON_THROW_ON_ERROR);
+
+        $token = $this->jwt([
+            'sub' => 'user',
+            'iss' => 'wrong-issuer',
+            'aud' => 'aud1',
+            'azp' => 'app',
+            'nbf' => $now - 10,
+            'exp' => $now + 1000,
+        ], $key1);
+
+        $cache = new ArrayCache(['jwks.verify.publickey' => $wrongJwks]);
+
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getBody')->willReturn($this->stream($correctJwks));
+        $client = $this->createMock(ClientInterface::class);
+        $client->method('sendRequest')->willReturn($response);
+
+        $middleware = $this->middleware([
+            'security.jwt.verify.publickey.location' => 'http://jwks',
+            'security.jwt.verify.issuer' => 'expected-issuer',
+        ], $cache, null, $client);
+
+        /*
+         * Act: handle the request — fresh JWKS OK, time range OK, but wrong issuer.
+         */
+        $this->expectException(UnauthorizedException::class);
+        $middleware($this->request('Bearer ' . $token), $this->handler());
+
+        /*
+         * Assert: verify an unauthorized exception is raised for issuer mismatch.
+         */
+    }
+
+    /**
      * Ensures JWKS key rotation is handled by fetching fresh keys and retrying.
      */
     public function testVerifyAuthJwksRefreshSuccessFlow(): void

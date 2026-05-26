@@ -34,6 +34,23 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfileData;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
 
+/**
+ * Infrastructure adapter that implements ProfileGateway by delegating to the Access UserProfile subsystem.
+ *
+ * This adapter acts as an anti-corruption layer between the Profile feature's domain model
+ * (OidcProfile / OidcProfileData) and the Access bounded context's UserProfile aggregate
+ * (UserProfile / UserProfileAttributes).  Each incoming OidcProfileData field is converted
+ * to the corresponding value object type with full validation; any constraint failures are
+ * collected and thrown as a ConstraintException before any persistence attempt is made.
+ *
+ * The save() method implements an upsert: it first acquires a pessimistic write lock via
+ * UserProfileWriteGateway::findOneForUpdateByUser() and either updates the existing record or
+ * creates a brand-new one with a fresh UUID.  The persisted UserProfile is then mapped back
+ * to an OidcProfile and returned to the caller.
+ *
+ * Observability is provided through the LoggerAwareTrait and TracerAwareTrait mixins, which
+ * emit structured log entries and distributed tracing spans for every public operation.
+ */
 class ProfileAdapter implements ProfileGateway
 {
     use LoggerAwareTrait;
@@ -45,6 +62,11 @@ class ProfileAdapter implements ProfileGateway
     ) {
     }
 
+    /**
+     * Looks up the OIDC profile for the given user UID, returning null when none has been created yet.
+     *
+     * Delegates to UserProfileReadGateway and maps the result to an OidcProfile value object.
+     */
     #[Override]
     public function findByUser(string $userUid): ?OidcProfile
     {
@@ -61,6 +83,12 @@ class ProfileAdapter implements ProfileGateway
         }
     }
 
+    /**
+     * Creates or updates the OIDC profile for the user and returns the persisted snapshot.
+     *
+     * Converts OidcProfileData to validated UserProfileAttributes; if an existing record is
+     * found it is updated, otherwise a new UserProfile entity is created with a fresh UUID.
+     */
     #[Override]
     public function save(string $userUid, OidcProfileData $data): OidcProfile
     {

@@ -19,6 +19,20 @@ use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAsset;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAssetAttributes;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ValueObject\ThemeAssetContentVO;
 
+/**
+ * Installation step that seeds the default "corporate" UI themes used by the OAuth login
+ * and consent screens.
+ *
+ * Three theme variants are created in a single install() call: "corporate" (the main
+ * browser UI with responsive background images and slide-in animation), "corporate-full"
+ * (a full-window layout used for profile and settings pages), and "corporate-mail" (a
+ * table-based email layout for transactional notifications).
+ *
+ * Static CSS and image assets located in the Oidc/Theme/Themes/corporate/style/ directory
+ * are uploaded through the ThemeAsset subsystem. The mail theme carries no binary assets.
+ * All themes are enabled immediately after creation so they are ready for use as soon as
+ * the installation completes.
+ */
 class InstallCorporateTheme
 {
     // FIXME: sospecho que debería ser un __DIR__ . '/assets'
@@ -31,6 +45,10 @@ class InstallCorporateTheme
     ) {
     }
 
+    /**
+     * Creates and enables the "corporate", "corporate-full", and "corporate-mail" theme records
+     * together with their respective layout HTML versions and static file assets.
+     */
     public function install(): void
     {
         $this->installCorporateHtml();

@@ -21,6 +21,25 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcUrlBuilder;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\ChangePasswordUsecase;
 
+/**
+ * Login step form that manages the self-service password recovery flow.
+ *
+ * The recovery flow consists of three sequential pages: (1) an email/username entry page
+ * where the user requests a recovery link, (2) an informational waiting page shown
+ * immediately after the request is dispatched, and (3) a code + new-password entry page
+ * reached when the user clicks the recovery link in their email (the _use_code query
+ * parameter pre-fills the one-time code).
+ *
+ * During authentication, when a username is present in the body, a time-limited recovery URL
+ * is generated via OidcUrlBuilder and the change request is dispatched via ChangePasswordUsecase.
+ * When a code is present instead, the code and new password are validated and, on success, the
+ * user is immediately pre-authenticated and the flow continues. Both the code and the new
+ * password are encrypted in the browser before transmission.
+ *
+ * Relationships: delegates recovery logic to ChangePasswordUsecase, uses OidcUrlBuilder to
+ * construct callback URLs, calls AuthenticateUser for post-recovery pre-authentication, and
+ * uses HtmlSecurer and DecorateHtml for secure rendering.
+ */
 class RecoverPassForm implements StepForm
 {
     public function __construct(
@@ -33,6 +52,13 @@ class RecoverPassForm implements StepForm
     ) {
     }
 
+    /**
+     * Processes either a recovery request (by username) or a recovery confirmation (by code + new password).
+     *
+     * If the body contains a username field, a recovery link is generated and dispatched, then a
+     * waiting LoginException is thrown. If the body contains a code, it is decrypted and validated;
+     * on success the user is pre-authenticated directly.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
@@ -79,6 +105,12 @@ class RecoverPassForm implements StepForm
         throw new LoginException(auth: AuthenticationResult::waitNewpass('', 'Unable to change to password: please retry'));
     }
 
+    /**
+     * Selects and renders the appropriate recovery sub-page based on the current flow state.
+     *
+     * Checks the recover_send query parameter to decide whether to show the code-entry page,
+     * the waiting/info page (when an error is present), or the initial username-entry page.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {

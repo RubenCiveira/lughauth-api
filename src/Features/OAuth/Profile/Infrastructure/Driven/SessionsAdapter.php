@@ -10,6 +10,21 @@ use PDO;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\ActiveSession;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\SessionsGateway;
 
+/**
+ * PDO-based implementation of SessionsGateway that reads and deletes rows from _oauth_session.
+ *
+ * This adapter queries the _oauth_session table directly using a PDO connection.  Because
+ * the session table stores the owning user UID inside a JSON auth_data column rather than
+ * in a dedicated foreign-key column, listByUser() fetches all non-expired rows ordered by
+ * last_used_at and then filters in PHP by matching the userId field in the JSON blob.
+ *
+ * Only sessions whose expiration timestamp is strictly greater than the current server time
+ * are returned; expired sessions are silently skipped so the profile UI never displays
+ * already-invalidated sessions.
+ *
+ * The revoke() method issues a simple DELETE by primary key (session), ensuring that the
+ * session cannot be used for token refresh or introspection after this call returns.
+ */
 class SessionsAdapter implements SessionsGateway
 {
     public function __construct(
@@ -17,6 +32,14 @@ class SessionsAdapter implements SessionsGateway
     ) {
     }
 
+    /**
+     * Returns all active sessions for the given user UID, ordered by most recently used first.
+     *
+     * Queries the _oauth_session table, then filters in PHP by the userId field stored in the
+     * JSON auth_data column so that only sessions belonging to the specified user are returned.
+     *
+     * @return ActiveSession[]
+     */
     #[Override]
     public function listByUser(string $userUid): array
     {
@@ -49,6 +72,12 @@ class SessionsAdapter implements SessionsGateway
         return $sessions;
     }
 
+    /**
+     * Permanently deletes the session record identified by sessionId from the session store.
+     *
+     * After deletion any attempt to refresh a token or introspect a token tied to this
+     * session ID will fail as if the session had never existed.
+     */
     #[Override]
     public function revoke(string $sessionId): void
     {

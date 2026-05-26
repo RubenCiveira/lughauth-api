@@ -10,6 +10,16 @@ use PDO;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
 
+/**
+ * SQL-backed implementation of the ParRequestGateway port using PDO.
+ *
+ * Persists PAR request aggregates in the _oauth_par_request table with the authorization
+ * parameters stored as a JSON blob. On construction expired records are purged proactively
+ * to prevent unbounded table growth; this is a best-effort cleanup and does not affect
+ * correctness. All queries include the tenant_id column to ensure strict tenant isolation.
+ * The mapRow() helper reconstructs a fully-typed ParRequest value object from a database row,
+ * decoding the JSON params and normalising the nullable usedAt field.
+ */
 final class ParRequestSqlAdapter implements ParRequestGateway
 {
     public function __construct(private readonly PDO $pdo)
@@ -17,6 +27,10 @@ final class ParRequestSqlAdapter implements ParRequestGateway
         $this->purgeExpired();
     }
 
+    /**
+     * Inserts a new PAR request row, serialising the authorization parameters as a JSON string.
+     * used_at is explicitly stored as NULL to mark the request as unconsumed.
+     */
     #[Override]
     public function store(ParRequest $request): void
     {
@@ -33,6 +47,10 @@ final class ParRequestSqlAdapter implements ParRequestGateway
         $stmt->execute();
     }
 
+    /**
+     * Retrieves a PAR request by its URN scoped to the given tenant, returning null when not found.
+     * Does not filter by expiry or usage state; those validations belong to the use case layer.
+     */
     #[Override]
     public function findByUri(string $requestUri, string $tenant): ?ParRequest
     {
@@ -51,6 +69,10 @@ final class ParRequestSqlAdapter implements ParRequestGateway
         return $this->mapRow($row);
     }
 
+    /**
+     * Stamps the used_at column with the current timestamp to mark the request as consumed.
+     * The tenant_id is included in the WHERE clause to prevent cross-tenant modifications.
+     */
     #[Override]
     public function markUsed(string $requestUri, string $tenant): void
     {

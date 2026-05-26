@@ -5,6 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Par\Domain\Exception;
 
+/**
+ * Domain exception representing an OAuth error produced during the Pushed Authorization Request flow.
+ *
+ * Encapsulates the three pieces of information required to generate an RFC 9126-compliant error
+ * response: an OAuth error code (e.g. 'invalid_client', 'invalid_request'), a human-readable
+ * description surfaced as the exception message, and the HTTP status code the controller must
+ * use. Named factory methods cover all error scenarios defined in the PAR specification so that
+ * application and infrastructure code never needs to hard-code error strings or status codes.
+ */
 final class ParException extends \RuntimeException
 {
     public function __construct(
@@ -15,26 +24,45 @@ final class ParException extends \RuntimeException
         parent::__construct($description);
     }
 
+    /**
+     * Returns the short OAuth error code (e.g. 'invalid_client') to be serialised into the JSON error body.
+     */
     public function error(): string
     {
         return $this->error;
     }
 
+    /**
+     * Returns the HTTP status code that the controller must set on the error response.
+     * Defaults to 400 for most error types; 401 is used for client authentication failures.
+     */
     public function statusCode(): int
     {
         return $this->statusCode;
     }
 
+    /**
+     * Creates a 401 exception indicating that client authentication failed.
+     * Used when the client_id or client_secret cannot be validated against the registry.
+     */
     public static function invalidClient(): self
     {
         return new self('invalid_client', 'Client authentication failed', 401);
     }
 
+    /**
+     * Creates a 400 exception for a malformed or incomplete authorization request.
+     * The detail string should identify the specific missing or invalid parameter.
+     */
     public static function invalidRequest(string $detail = 'Invalid request'): self
     {
         return new self('invalid_request', $detail);
     }
 
+    /**
+     * Creates a 400 exception signalling that the supplied request_uri is not valid.
+     * Covers all three rejection reasons: unknown URI, already used, and expired.
+     */
     public static function invalidRequestUri(): self
     {
         return new self('invalid_request_uri', 'The request_uri is invalid, expired, or already used');

@@ -8,14 +8,41 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway;
 use DateTimeImmutable;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnCredential;
 
+/**
+ * Domain port for persisting and retrieving WebAuthn passkey credentials.
+ *
+ * Each credential is bound to a specific user and tenant, identified by its
+ * opaque credential ID as issued by the authenticator device. Implementations
+ * must enforce tenant scoping on every query to prevent cross-tenant credential
+ * leakage. The sign count is updated after each successful authentication to
+ * support replay-attack detection. Only enabled credentials are returned by
+ * lookup methods; disabled ones are retained for audit purposes but must never
+ * be used to satisfy an authentication assertion.
+ */
 interface WebAuthnCredentialGateway
 {
+    /**
+     * Persists a newly registered passkey credential to the store.
+     * The credential ID must be unique within the tenant scope.
+     */
     public function store(WebAuthnCredential $credential): void;
 
+    /**
+     * Retrieves an enabled credential by its authenticator-issued ID within the tenant.
+     * Returns null if no matching credential exists or it has been disabled.
+     */
     public function findByCredentialId(string $credentialId, string $tenantId): ?WebAuthnCredential;
 
     /** @return WebAuthnCredential[] */
+    /**
+     * Returns all enabled credentials registered for the given user within the tenant.
+     * Results are ordered by creation date descending so the most recent appears first.
+     */
     public function findByUser(string $userUid, string $tenantId): array;
 
+    /**
+     * Updates the sign count and last-used timestamp for a credential after a successful assertion.
+     * Must be called as part of the finish-authentication flow to prevent replay attacks.
+     */
     public function updateSignCount(string $credentialId, string $tenantId, int $signCount, DateTimeImmutable $lastUsedAt): void;
 }

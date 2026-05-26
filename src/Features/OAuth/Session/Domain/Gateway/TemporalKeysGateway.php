@@ -7,17 +7,51 @@ namespace Civi\Lughauth\Features\OAuth\Session\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 
+/**
+ * Port for managing short-lived signing keys and temporary authorization code storage.
+ *
+ * Provides symmetric encryption and HS256 JWT verification backed by a rotating key pair
+ * (current key and one previous fallback) persisted in the database. Keys are rotated
+ * automatically on a 1-hour schedule; the fallback key ensures tokens signed with the
+ * previous key remain valid during the transition window. Temporal authorization codes
+ * are stored as encrypted JSON blobs with a 3-minute TTL and are consumed atomically on
+ * retrieval to enforce single-use semantics.
+ */
 interface TemporalKeysGateway
 {
+    /**
+     * Returns the current active signing key as a raw string.
+     * Used by callers that need to perform their own cryptographic operations with the key.
+     */
     public function currentKey(): string;
 
+    /**
+     * Encrypts the given plaintext token using the current AES key.
+     * Returns null if no active key is available.
+     */
     public function encrypt(string $token): ?string;
 
+    /**
+     * Decrypts a ciphertext token using the current key.
+     * Returns null when decryption fails or no active key exists.
+     */
     public function verifyCypher(string $token): ?string;
 
+    /**
+     * Verifies a compact-serialised HS256 JWT and returns the 'identity' claim value on success.
+     * Falls back to the previous key if verification with the current key fails; returns null on total failure.
+     */
     public function verifyToken(string $token): ?string;
 
+    /**
+     * Stores a TemporalAuthCode under a fresh UUID with a 3-minute TTL and returns the code string.
+     * The code is consumed atomically by retrieveTemporalAuthCode, enforcing single-use semantics.
+     */
     public function registerTemporalAuthCode(TemporalAuthCode $code): string;
 
+    /**
+     * Retrieves and immediately deletes the TemporalAuthCode identified by the given code string.
+     * Returns null when the code does not exist or has expired.
+     */
     public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode;
 }

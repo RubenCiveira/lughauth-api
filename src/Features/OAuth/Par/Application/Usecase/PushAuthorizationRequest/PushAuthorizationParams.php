@@ -5,13 +5,51 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest;
 
+/**
+ * Input value object for the PushAuthorizationUsecase carrying all parameters needed to
+ * register a Pushed Authorization Request (RFC 9126).
+ *
+ * Bundles the tenant context, client credentials, and the raw authorization parameters
+ * submitted by the relying party. The authParams array contains the standard OAuth fields
+ * (response_type, redirect_uri, scope, state, nonce, code_challenge, etc.) exactly as
+ * received from the client, allowing the use case to validate and forward them without
+ * needing to unpack individual fields at the controller level.
+ */
 final class PushAuthorizationParams
 {
+    /**
+     * Name of the tenant on whose behalf the PAR request is being pushed.
+     * Used to scope the stored request and to validate the client registration.
+     */
+    public readonly string $tenant;
+
+    /**
+     * OAuth client identifier submitted by the relying party.
+     * Must correspond to a registered client within the specified tenant.
+     */
+    public readonly string $clientId;
+
+    /**
+     * Client secret used to authenticate the relying party before accepting the request.
+     * May be an empty string for public clients that authenticate via other means.
+     */
+    public readonly string $clientSecret;
+
+    /**
+     * Raw map of OAuth authorization parameters to be stored and later resolved by the authorization endpoint.
+     * Must contain at minimum response_type, redirect_uri, and client_id.
+     */
+    public readonly array $authParams;
+
     public function __construct(
-        public readonly string $tenant,
-        public readonly string $clientId,
-        public readonly string $clientSecret,
-        public readonly array $authParams,
+        string $tenant,
+        string $clientId,
+        string $clientSecret,
+        array $authParams,
     ) {
+        $this->tenant = $tenant;
+        $this->clientId = $clientId;
+        $this->clientSecret = $clientSecret;
+        $this->authParams = $authParams;
     }
 }

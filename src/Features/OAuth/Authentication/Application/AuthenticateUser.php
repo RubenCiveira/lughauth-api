@@ -84,6 +84,10 @@ class AuthenticateUser
         }
     }
 
+    /**
+     * Performs pre-authentication for a flow where the user identity was established in a prior step.
+     * Fills the authentication result from previously validated state rather than re-checking credentials.
+     */
     public function preAuthenticate(
         AuthenticationRequest $request,
         ChallengesState $challenges,
@@ -118,6 +122,10 @@ class AuthenticateUser
         }
     }
 
+    /**
+     * Authenticates a user by validating the supplied username and password against the login gateway.
+     * On success, creates a new session (or reuses an existing csid-linked one) and dispatches a login event.
+     */
     public function authenticate(
         AuthenticationRequest $request,
         ChallengesState $challenges,
@@ -225,6 +233,10 @@ class AuthenticateUser
         );
     }
 
+    /**
+     * Computes the OIDC half-hash of a value as required by the s_hash and c_hash claims.
+     * Uses SHA-256, takes the left half of the binary digest, and encodes it as base64url.
+     */
     public static function generateHash(string $value): string
     {
         $hashedValue = hash('sha256', $value, true);

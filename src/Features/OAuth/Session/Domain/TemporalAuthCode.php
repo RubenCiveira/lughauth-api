@@ -10,21 +10,65 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
 /**
- * Short-lived bundle of authorization parameters issued after a successful authentication.
+ * Short-lived bundle of authorization parameters issued after a successful authentication step.
  *
- * Stored under the `code` returned to the client in the authorization code flow.
- * Consumed once by the token endpoint, which verifies the PKCE challenge before
- * exchanging it for access and ID tokens.
+ * Stored under the authorization code returned to the client in the authorization code flow and
+ * later consumed by the token endpoint. At retrieval time the token endpoint verifies the PKCE
+ * challenge (when present) before exchanging this bundle for access and ID tokens. The entire
+ * object is serialised as JSON and stored with a 3-minute TTL; consumption is atomic so that
+ * the code cannot be replayed. The nonce value is forwarded into the resulting ID token to
+ * allow the relying party to bind the token to its original request.
  */
 class TemporalAuthCode
 {
+    /**
+     * Authentication result carrying the validated user identity and tenant context.
+     * Consumed by the token endpoint to populate the access and ID token claims.
+     */
+    public readonly AuthenticationResult $data;
+
+    /**
+     * OAuth client that initiated the authorization flow, including its grants and configuration.
+     */
+    public readonly ClientData $client;
+
+    /**
+     * OpenID Connect nonce value from the original authorization request.
+     * Included in the ID token nonce claim so the relying party can detect replay attempts.
+     */
+    public readonly string $nonce;
+
+    /**
+     * The original authorization request parameters, including scope and redirect URI.
+     * Used by the token endpoint to validate that the token request matches the original intent.
+     */
+    public readonly AuthenticationRequest $request;
+
+    /**
+     * PKCE code challenge value provided by the client, or null when PKCE was not used.
+     * The token endpoint must verify this against the code_verifier in the token request.
+     */
+    public readonly ?string $codeChallenge;
+
+    /**
+     * PKCE challenge method ('S256' or 'plain'), or null when PKCE was not used.
+     * Dictates how the token endpoint must hash the code_verifier before comparing it.
+     */
+    public readonly ?string $codeChallengeMethod;
+
     public function __construct(
-        public readonly AuthenticationResult $data,
-        public readonly ClientData $client,
-        public readonly string $nonce,
-        public readonly AuthenticationRequest $request,
-        public readonly ?string $codeChallenge = null,
-        public readonly ?string $codeChallengeMethod = null,
+        AuthenticationResult $data,
+        ClientData $client,
+        string $nonce,
+        AuthenticationRequest $request,
+        ?string $codeChallenge = null,
+        ?string $codeChallengeMethod = null,
     ) {
+        $this->data = $data;
+        $this->client = $client;
+        $this->nonce = $nonce;
+        $this->request = $request;
+        $this->codeChallenge = $codeChallenge;
+        $this->codeChallengeMethod = $codeChallengeMethod;
     }
 }

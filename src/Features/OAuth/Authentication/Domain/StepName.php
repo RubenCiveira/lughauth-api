@@ -5,18 +5,52 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
+/**
+ * Enumeration of all named steps within the OIDC interactive authorization flow.
+ *
+ * Each case maps to a URL segment value (via the string backing type) used in the step query
+ * parameter of the authorization endpoint. The flow controller resolves the current step from
+ * this value to select the appropriate handler. Storing step names as an enum ensures that only
+ * known, valid steps are accepted and that routing remains type-safe throughout the codebase.
+ *
+ * New authentication steps should be added here before implementing the corresponding handler
+ * and updating the flow controller's dispatch table.
+ */
 enum StepName: string
 {
+    /** Standard username/password login screen — the default entry point for the authorization flow. */
     case LOGIN = 'login';
+
+    /** Terms-of-service or GDPR general consent screen shown when the user has not yet accepted. */
     case CONSENT = 'consent';
+
+    /** Per-client OAuth scope consent screen shown when the client requests new or sensitive scopes. */
     case SCOPES_CONSENT = 'scopes-consent';
+
+    /** Multi-factor authentication challenge screen for users with a registered second factor. */
     case MFA = 'mfa';
+
+    /** MFA enrolment screen for users who are required to register a second factor before proceeding. */
     case NEW_MFA = 'build-mfa';
+
+    /** Password recovery screen where the user can request a reset link or code. */
     case RECOVER_PASS = 'recover-pass';
+
+    /** Forced password-change screen shown when the current password is expired or was set by an admin. */
     case NEW_PASS = 'new-pass';
+
+    /** Self-registration screen allowing new users to create an account and start the verification flow. */
     case REGISTER_USER = 'register-user';
+
+    /** Delegated login screen used when authentication is handled by a third-party identity provider. */
     case DELEGATED_LOGIN = 'delegated-login';
+
+    /** WebAuthn passkey assertion screen for users who have registered a platform or roaming authenticator. */
     case WEBAUTHN_LOGIN = 'webauthn-login';
+
+    /** WebAuthn passkey registration screen for enrolling a new authenticator on an existing account. */
     case WEBAUTHN_REGISTER = 'webauthn-register';
+
+    /** Magic-link login screen confirming that a one-time link has been sent to the user's email address. */
     case MAGIC_LINK = 'magic-link';
 }

@@ -8,6 +8,18 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\Revoke
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 
+/**
+ * Application use case that implements token revocation per RFC 7009.
+ *
+ * Accepts an opaque token value, parses and verifies its signature using the tenant-specific
+ * signing key, and records the token's JTI in the revocation store so that subsequent
+ * introspection and refresh attempts will fail immediately.
+ *
+ * Invalid, unparseable, or tokens issued to a different client are silently ignored to
+ * comply with the RFC requirement that revocation endpoints always return 200 OK to avoid
+ * disclosing information about whether a given token was valid. The token type (access or
+ * refresh) is determined by inspecting the scope claim for the "refresh" scope marker.
+ */
 class RevokeTokenUsecase
 {
     public function __construct(

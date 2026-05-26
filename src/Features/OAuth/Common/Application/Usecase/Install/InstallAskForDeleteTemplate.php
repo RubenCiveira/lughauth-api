@@ -14,6 +14,18 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "user.delete" mail template used to confirm account
+ * deletion requests.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "user.delete" bound to the "corporate-mail" theme
+ * and appends a TemplateVersion containing the full HTML email body with Handlebars
+ * placeholders ({{user.name}}, {{confirm.url}}, {{confirm.expires}}).
+ *
+ * The template is enabled immediately after creation so that the notification subsystem can
+ * dispatch it as soon as a user requests account deletion.
+ */
 class InstallAskForDeleteTemplate
 {
     public function __construct(
@@ -22,6 +34,10 @@ class InstallAskForDeleteTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "user.delete" mail template along with its first version
+     * containing the account-deletion confirmation email body.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

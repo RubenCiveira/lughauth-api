@@ -14,6 +14,16 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
 
+/**
+ * Infrastructure adapter that bridges the MagicLinkCodeGateway port to the authentication
+ * and session subsystems.
+ *
+ * Resolves the OAuth client, constructs a synthetic AuthenticationRequest for the magic-link
+ * flow, loads the user's pre-authenticated state via LoginGateway, and registers a short-lived
+ * TemporalAuthCode through TemporalKeysGateway. The returned code is an opaque UUID stored in
+ * the _oauth_temporal_codes table with a 3-minute TTL. This adapter is the single point where
+ * the magic-link feature plugs into the standard authorization code machinery.
+ */
 class MagicLinkCodeAdapter implements MagicLinkCodeGateway
 {
     public function __construct(
@@ -23,6 +33,10 @@ class MagicLinkCodeAdapter implements MagicLinkCodeGateway
     ) {
     }
 
+    /**
+     * Constructs and stores a temporary authorization code for the specified user and client.
+     * Throws \DomainException if the client identifier cannot be resolved to an active client record.
+     */
     #[Override]
     public function createAuthCode(
         string $userUid,

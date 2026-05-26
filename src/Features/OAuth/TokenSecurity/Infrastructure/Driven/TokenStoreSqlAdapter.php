@@ -11,6 +11,18 @@ use Override;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\KeyPair;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenStoreGateway;
 
+/**
+ * SQL-backed adapter for the TokenStoreGateway port.
+ *
+ * Stores and retrieves JWT signing key pairs from the `_oauth_keys_storer` table,
+ * where each row represents a key with an explicit validity window (since / expiration).
+ * The constructor immediately purges keys that expired more than one hour ago, acting
+ * as lightweight housekeeping so the table does not grow unboundedly. When `useTenant`
+ * is false (current default) all operations collapse to a single shared tenant key "-",
+ * making the adapter work correctly in single-tenant deployments without code changes.
+ * Key material (private and public PEM strings) is stored as plain text; ensure the
+ * underlying database is encrypted at rest and access-controlled accordingly.
+ */
 class TokenStoreSqlAdapter implements TokenStoreGateway
 {
     private readonly bool $useTenant;
@@ -21,6 +33,10 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         $this->clearTemp();
     }
 
+    /**
+     * Returns the key pair whose validity window contains the current timestamp.
+     * Returns null when no active key exists, signalling the signer to generate one.
+     */
     #[Override]
     public function currentKey(string $tenant): ?KeyPair
     {
@@ -39,6 +55,10 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         }
     }
 
+    /**
+     * Returns the maximum expiration timestamp of all future keys for the tenant.
+     * Falls back to the current instant when no future keys exist, triggering generation.
+     */
     #[Override]
     public function nextKeysExpiration(string $tenant): \DateTimeImmutable
     {
@@ -78,6 +98,10 @@ class TokenStoreSqlAdapter implements TokenStoreGateway
         return $result;
     }
 
+    /**
+     * Persists a newly generated key pair with the computed validity window.
+     * The expiration is derived by adding the caducidad interval to the start timestamp.
+     */
     #[Override]
     public function saveKey(string $tenant, KeyPair $pair, \DateTimeImmutable $start, \DateInterval $caducidad): void
     {

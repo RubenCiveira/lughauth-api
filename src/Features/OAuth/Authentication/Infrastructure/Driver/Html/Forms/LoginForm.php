@@ -21,6 +21,23 @@ use Civi\Lughauth\Features\OAuth\User\Application\Usecase\RegisterUserUsecase;
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * The primary credential-entry login step form for the interactive OIDC authorization flow.
+ *
+ * This form renders the username/password login page and processes the submitted credentials.
+ * In addition to the standard login form it dynamically surfaces optional alternate entry
+ * points based on tenant configuration: social/federated login buttons (via DelegateLogin),
+ * a password recovery link (when ChangePasswordUsecase reports recovery is available), a
+ * self-registration link (when RegisterUserUsecase permits it), and a magic-link login button
+ * (when RequestMagicLinkUsecase is enabled for the tenant).
+ *
+ * The form applies client-side security by injecting a CSRF signing snippet and encrypting
+ * the password field in the browser before it is submitted, so plaintext credentials are
+ * never sent over the wire.
+ *
+ * Relationships: orchestrates AuthenticateUser for credential validation, delegates rendering
+ * to DecorateHtml, and relies on HtmlSecurer for JavaScript snippet injection and decryption.
+ */
 class LoginForm implements StepForm
 {
     public function __construct(
@@ -35,6 +52,13 @@ class LoginForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders the login form page including all tenant-enabled alternate authentication options.
+     *
+     * Builds translated labels, injects the CSRF token and password-encryption scripts, and
+     * conditionally appends social login buttons, password-recovery, registration, and
+     * magic-link forms depending on what the tenant has enabled.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -149,6 +173,12 @@ class LoginForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Validates the submitted username/password credentials against the domain authentication service.
+     *
+     * Decrypts the browser-encrypted password, invokes AuthenticateUser, and propagates any
+     * LoginException with the updated challenges state so subsequent steps retain the username.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {

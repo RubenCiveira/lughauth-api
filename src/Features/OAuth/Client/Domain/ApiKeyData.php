@@ -6,17 +6,28 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
 /**
- * M2M (machine-to-machine) API key credential for the `client_credentials` grant.
+ * Immutable value object representing a resolved M2M (machine-to-machine) API key credential.
  *
- * `scopes` defines the maximum set of scopes the key may request; the token
- * endpoint will intersect this list with `ClientData::allowedScopesM2m` before issuance.
+ * Instances are produced by ApiKeyStoreGateway after looking up a raw key string in the
+ * persistence layer. The object is then consumed by the token-endpoint logic to authenticate
+ * client_credentials grant requests without a client secret.
+ *
+ * The scopes list defines the maximum set of OAuth scopes the key may request; the token
+ * endpoint will intersect this list with ClientData::allowedScopesM2m before issuing any
+ * access token, so the key can never escalate beyond its registered permissions.
  */
 class ApiKeyData
 {
     public function __construct(
-        /** The client id */
+        /**
+         * The raw API key string that was presented by the caller and used as the logical
+         * client identifier for this M2M credential.
+         */
         public readonly string $id,
-        /** The client grant list allowed  */
+        /**
+         * The list of OAuth scopes that this API key is authorised to request.
+         * Values are parsed from a comma-separated string stored in the persistence layer.
+         */
         public readonly array $scopes,
     ) {
     }

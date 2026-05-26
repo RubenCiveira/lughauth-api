@@ -11,6 +11,18 @@ use PDO;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 
+/**
+ * SQL-backed adapter for the WebAuthnChallengeGateway port.
+ *
+ * Persists WebAuthn ceremony challenges to the `_oauth_webauthn_challenge` table,
+ * providing tenant-scoped storage with full lifecycle support: creation, lookup,
+ * verification marking, and expiry purging. On construction the adapter immediately
+ * purges any already-expired rows so that the table stays lean without requiring a
+ * separate cron job. All datetime values are stored as "Y-m-d H:i:s" strings in UTC;
+ * callers must ensure their database session timezone is set to UTC accordingly.
+ * The mapRow helper reconstructs immutable WebAuthnChallenge value objects from
+ * raw PDO result rows, keeping persistence concerns fully encapsulated in this class.
+ */
 final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
 {
     public function __construct(private readonly PDO $pdo)
@@ -18,6 +30,10 @@ final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
         $this->purgeExpired();
     }
 
+    /**
+     * Inserts a new challenge row into the database.
+     * All fields from the WebAuthnChallenge value object are persisted verbatim.
+     */
     #[Override]
     public function store(WebAuthnChallenge $challenge): void
     {
@@ -44,6 +60,10 @@ final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
         $stmt->execute();
     }
 
+    /**
+     * Fetches a challenge by ID scoped to the given tenant.
+     * Returns null if the row does not exist, regardless of its expiry state.
+     */
     #[Override]
     public function findById(string $challengeId, string $tenantId): ?WebAuthnChallenge
     {
@@ -58,6 +78,10 @@ final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
         return $row ? $this->mapRow($row) : null;
     }
 
+    /**
+     * Updates the challenge row to record a successful ceremony completion.
+     * Sets verified=1 along with the verification timestamp and resolved user identity.
+     */
     #[Override]
     public function markVerified(WebAuthnChallenge $challenge): void
     {
@@ -75,6 +99,10 @@ final class WebAuthnChallengeSqlAdapter implements WebAuthnChallengeGateway
         $stmt->execute();
     }
 
+    /**
+     * Deletes all challenge rows whose expires_at timestamp is before the current time.
+     * Called automatically on construction and may also be invoked explicitly for housekeeping.
+     */
     #[Override]
     public function purgeExpired(): void
     {

@@ -15,6 +15,17 @@ use Civi\Lughauth\Features\OAuth\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Exception\DeviceAuthorizationException;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller that handles the Device Authorization Request endpoint (RFC 8628 §3.1).
+ *
+ * Exposes POST /oauth/openid/{tenant}/device, which is the entry point for IoT devices,
+ * CLIs, and other input-constrained clients that cannot open a browser directly. The
+ * controller resolves and validates the client credentials (HTTP Basic Auth or public
+ * client_id), delegates authorization creation to DeviceAuthorizationService, and returns
+ * the standard device authorization response containing device_code, user_code,
+ * verification_uri, verification_uri_complete, expires_in, and interval. All RFC 8628
+ * error conditions are serialised as JSON error objects with the appropriate HTTP status.
+ */
 class DeviceAuthorizationController
 {
     public function __construct(
@@ -59,6 +70,10 @@ class DeviceAuthorizationController
             new OA\Response(response: 401, description: 'Invalid client'),
         ]
     )]
+    /**
+     * Processes the device authorization request, validates the client, creates a new DeviceAuthorization
+     * record, and returns the RFC 8628 JSON response. Errors are returned as JSON with the appropriate HTTP status.
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

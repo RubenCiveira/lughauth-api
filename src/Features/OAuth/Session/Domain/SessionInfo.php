@@ -6,21 +6,57 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Session\Domain;
 
 /**
- * Snapshot of an active OAuth session stored between authorization steps.
+ * Snapshot of an active OAuth authorization session stored between authentication steps.
  *
- * `csid` is a stable cross-session identifier used to look up the user's
- * existing session without exposing the internal session state token.
- * `withMfa` is set to true only after a successful MFA step, and may be
- * required by certain clients before token issuance.
+ * Loaded from the session store when the authorization endpoint resumes an in-progress flow,
+ * for example after an MFA challenge. The csid (cross-session identifier) is a stable value
+ * derived from the user's long-lived browser cookie that allows the system to locate existing
+ * sessions without exposing the internal state token. The withMfa flag is set to true only
+ * after a successful second-factor step and may be required by certain clients before token
+ * issuance proceeds.
  */
 class SessionInfo
 {
+    /**
+     * Stable cross-session identifier derived from the user's browser cookie.
+     * Allows the system to correlate multiple in-flight authorization sessions for the same user.
+     */
+    public readonly string $csid;
+
+    /**
+     * Indicates whether the user has successfully completed an MFA challenge in this session.
+     * Clients that require MFA must check this flag before allowing token issuance.
+     */
+    public readonly bool $withMfa;
+
+    /**
+     * The issuer URL associated with this session, identifying the tenant's OIDC provider endpoint.
+     */
+    public readonly string $issuer;
+
+    /**
+     * Unique identifier of the authenticated user within the tenant.
+     * Used to look up the user's profile and claims when building tokens.
+     */
+    public readonly string $userId;
+
+    /**
+     * OAuth client identifier that initiated the authorization flow for this session.
+     * Stored to validate that the token request comes from the same client.
+     */
+    public readonly string $clientId;
+
     public function __construct(
-        public readonly string $csid,
-        public readonly bool $withMfa,
-        public readonly string $issuer,
-        public readonly string $userId,
-        public readonly string $clientId,
+        string $csid,
+        bool $withMfa,
+        string $issuer,
+        string $userId,
+        string $clientId,
     ) {
+        $this->csid = $csid;
+        $this->withMfa = $withMfa;
+        $this->issuer = $issuer;
+        $this->userId = $userId;
+        $this->clientId = $clientId;
     }
 }

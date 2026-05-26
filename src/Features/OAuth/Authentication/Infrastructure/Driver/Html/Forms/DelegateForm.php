@@ -17,6 +17,23 @@ use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Application\DelegateLogin;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 
+/**
+ * Login step form that handles federated / delegated authentication via external identity providers.
+ *
+ * This form covers two distinct sub-flows within the delegated login step. During the render
+ * phase it either (a) detects an incoming redirect from the external provider (provider-data
+ * query parameter is present) and auto-submits a signed CSRF form, or (b) initiates the
+ * outbound redirect to the external provider's endpoint by querying DelegateLogin for the
+ * target URL and redirecting the browser there.
+ *
+ * During the authenticate phase it validates the provider callback payload received in the
+ * POST body, resolves the local user identity, and calls AuthenticateUser to produce a
+ * pre-authenticated result that subsequent steps (MFA, consent, etc.) can continue from.
+ *
+ * Relationships: delegates OAuth provider interactions to DelegateLogin, relies on
+ * AuthenticateUser for identity resolution, uses HtmlSecurer for CSRF token signing,
+ * and DecorateHtml for themed page rendering.
+ */
 class DelegateForm implements StepForm
 {
     public function __construct(
@@ -27,6 +44,13 @@ class DelegateForm implements StepForm
     ) {
     }
 
+    /**
+     * Validates the provider callback payload and resolves the authenticated local identity.
+     *
+     * Calls DelegateLogin to verify the provider-supplied data, then delegates to
+     * AuthenticateUser to complete pre-authentication. Throws UnauthorizedException when
+     * the provider result is absent or invalid.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
@@ -57,6 +81,13 @@ class DelegateForm implements StepForm
         throw new UnauthorizedException('-');
     }
 
+    /**
+     * Renders the delegated login step, either initiating the redirect or handling the callback.
+     *
+     * When provider-data is already present in the query string (post-redirect callback), a
+     * hidden auto-submitting form is rendered to transfer the provider payload securely. Otherwise
+     * the browser is redirected to the external provider's authorization endpoint.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {

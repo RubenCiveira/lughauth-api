@@ -9,13 +9,31 @@ use Override;
 use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\InstallUsecase;
 use Civi\Lughauth\Shared\Infrastructure\Migration\MigrationInterface;
 
+/**
+ * Management-layer migration provider that registers the OAuth/OIDC data installation step
+ * within the application's migration framework.
+ *
+ * This class implements MigrationInterface under the name "oidc-data" so that the migration
+ * runner can discover and execute it alongside schema migrations. When migrate() is called,
+ * it delegates entirely to InstallUsecase, which seeds all default tenants, roles, users,
+ * trusted clients, API keys, SMTP configuration, themes, and email templates inside a single
+ * database transaction.
+ *
+ * The status() method always returns false for the "users" key because the migration
+ * framework's idempotency check is not currently implemented; callers should guard against
+ * running this migration more than once at the orchestration level.
+ */
 class OAuthMigrationProvider implements MigrationInterface
 {
     public function __construct(
         private readonly InstallUsecase $installer
     ) {
     }
+
     /**
+     * Returns the unique identifier for this migration step used by the migration runner
+     * to track execution state.
+     *
      * @return string
      *
      * @psalm-return 'oidc-data'
@@ -27,6 +45,9 @@ class OAuthMigrationProvider implements MigrationInterface
     }
 
     /**
+     * Executes the full OAuth data installation via InstallUsecase and returns a status map
+     * indicating that the "users" seed step completed successfully.
+     *
      * @return true[]
      *
      * @psalm-return array{users: true}
@@ -39,6 +60,9 @@ class OAuthMigrationProvider implements MigrationInterface
     }
 
     /**
+     * Returns the current migration status; always reports "users" as false because live
+     * status checking is not implemented and the migration should be guarded externally.
+     *
      * @return false[]
      *
      * @psalm-return array{users: false}

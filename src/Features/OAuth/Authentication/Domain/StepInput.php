@@ -7,14 +7,61 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * Aggregates all inputs required by a single step handler within the OIDC authorization flow.
+ *
+ * Passed to each step handler (login, MFA, consent, etc.) so that implementations receive a
+ * consistent, fully typed bundle rather than an untyped parameter bag. Carrying the raw HTTP
+ * request alongside the structured domain objects allows step handlers to access custom
+ * headers or body fields while still benefiting from domain-level validation already applied
+ * to the other fields.
+ *
+ * Immutable by construction; step handlers that need to modify challenges state should create
+ * a new ChallengesState via the with* builders and return it within a StepResult.
+ */
 final class StepInput
 {
+    /**
+     * Full OIDC flow context derived from the current HTTP request, including tenant, client, and PKCE data.
+     * Provides all the parameters needed to build redirect URLs and validate the authorization request.
+     */
+    public readonly OidcFlowContext $context;
+
+    /**
+     * Resolved authentication request carrying the ClientData and requested scope for this flow.
+     * Pre-populated by the flow controller before the step handler is invoked.
+     */
+    public readonly AuthenticationRequest $authRequest;
+
+    /**
+     * Current snapshot of pending challenges, indicating which steps have already been completed.
+     * Step handlers should inspect this to determine what the user still needs to do.
+     */
+    public readonly ChallengesState $challenges;
+
+    /**
+     * Parsed HTTP request body as an associative array, or null when no body was sent.
+     * Used by form-submission steps to read credentials, OTP codes, or consent responses.
+     */
+    public readonly ?array $body;
+
+    /**
+     * Raw PSR-7 server request, available for steps that need access to headers or the full body stream.
+     * Should be used sparingly; prefer the structured fields above when the data is already extracted.
+     */
+    public readonly ServerRequestInterface $request;
+
     public function __construct(
-        public readonly OidcFlowContext $context,
-        public readonly AuthenticationRequest $authRequest,
-        public readonly ChallengesState $challenges,
-        public readonly ?array $body,
-        public readonly ServerRequestInterface $request,
+        OidcFlowContext $context,
+        AuthenticationRequest $authRequest,
+        ChallengesState $challenges,
+        ?array $body,
+        ServerRequestInterface $request,
     ) {
+        $this->context = $context;
+        $this->authRequest = $authRequest;
+        $this->challenges = $challenges;
+        $this->body = $body;
+        $this->request = $request;
     }
 }

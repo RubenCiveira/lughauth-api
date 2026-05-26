@@ -14,6 +14,19 @@ use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\Enque
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\PasswordRecoveryMailGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\UserRegistrationMailGateway;
 
+/**
+ * Infrastructure adapter that implements the OAuth mail gateway ports by delegating all
+ * outgoing email dispatch to the notification outbox subsystem.
+ *
+ * This class bridges the OAuth domain's mail gateway interfaces (PasswordRecoveryMailGateway
+ * and UserRegistrationMailGateway) and the generic EnqueueNotificationUsecase, translating
+ * domain-specific parameters into generic EnqueueNotificationCommand value objects. Each
+ * notification is enqueued as urgent so the outbox dispatcher prioritises its delivery.
+ *
+ * Template resolution is handled by the notification subsystem using the template codes
+ * "user.register" and "user.recover", which are seeded during installation by
+ * InstallUserRegisterTemplate and InstallPasswordRecoverTemplate respectively.
+ */
 class OAuthMailAdapter implements PasswordRecoveryMailGateway, UserRegistrationMailGateway
 {
     public function __construct(
@@ -21,6 +34,10 @@ class OAuthMailAdapter implements PasswordRecoveryMailGateway, UserRegistrationM
     ) {
     }
 
+    /**
+     * Enqueues a registration verification email to the given address containing the
+     * account activation URL, using the "user.register" template.
+     */
     #[Override]
     public function sendRegistrationVerification(
         string $toEmail,
@@ -41,6 +58,10 @@ class OAuthMailAdapter implements PasswordRecoveryMailGateway, UserRegistrationM
         ));
     }
 
+    /**
+     * Enqueues a password recovery email to the given address containing the recovery URL
+     * and its expiry time, using the "user.recover" template.
+     */
     #[Override]
     public function sendPasswordRecovery(
         string $toEmail,

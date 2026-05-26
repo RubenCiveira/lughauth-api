@@ -7,6 +7,18 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 
 use Civi\Lughauth\Shared\Context;
 
+/**
+ * Builds absolute OIDC authorization and session-check URLs for use in redirects and templates.
+ *
+ * Constructs properly encoded URLs for the main authorization endpoint and the check-session
+ * endpoint, automatically appending the standard OAuth query parameters (client_id, scope,
+ * state, nonce, audience, redirect_uri, response_type) from the supplied AuthenticationRequest.
+ *
+ * Convenience methods are provided for common flow-specific destinations such as user registration
+ * and password recovery, which pre-populate the step parameter so the login UI opens directly on
+ * the correct screen. The optional suffix parameter allows fragment identifiers or extra path
+ * segments to be appended after the query string.
+ */
 final class OidcUrlBuilder
 {
     private readonly string $baseUrl;
@@ -16,6 +28,10 @@ final class OidcUrlBuilder
         $this->baseUrl = rtrim($context->getBaseUrl(), '/') . '/oauth/openid/';
     }
 
+    /**
+     * Builds the authorization endpoint URL for the given tenant with all standard OAuth parameters.
+     * Extra parameters are merged into the query string, and an optional suffix is appended verbatim.
+     */
     public function authorizeUrl(
         AuthenticationRequest $client,
         string $tenant,
@@ -34,6 +50,10 @@ final class OidcUrlBuilder
         );
     }
 
+    /**
+     * Builds the check-session endpoint URL for the given tenant with all standard OAuth parameters.
+     * Used to silently verify whether a user session is still active without an interactive prompt.
+     */
     public function checkSessionUrl(
         AuthenticationRequest $client,
         string $tenant,
@@ -52,6 +72,10 @@ final class OidcUrlBuilder
         );
     }
 
+    /**
+     * Builds a URL that opens the authorization flow directly on the user-registration step.
+     * Pre-populates the step and verify_send parameters so the UI skips the login screen.
+     */
     public function registerUserUrl(
         AuthenticationRequest $client,
         string $tenant,
@@ -70,6 +94,10 @@ final class OidcUrlBuilder
         );
     }
 
+    /**
+     * Builds a URL that opens the authorization flow directly on the password-recovery step.
+     * Pre-populates the step and recover_send parameters so the UI skips the login screen.
+     */
     public function recoverPassUrl(
         AuthenticationRequest $client,
         string $tenant,

@@ -12,6 +12,17 @@ use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller that exposes the JSON Web Key Set (JWKS) endpoint for a tenant.
+ *
+ * The JWKS document contains all RSA public keys currently valid for the tenant,
+ * allowing external OAuth resource servers and OIDC relying parties to verify
+ * tokens without contacting this server on every request. To reduce latency and
+ * database load, the serialized JWKS JSON is cached in the injected PSR-16 cache
+ * for one hour. The response includes ETag and Cache-Control headers so that
+ * downstream HTTP caches and clients can perform conditional GET requests. Clients
+ * should poll this endpoint when they encounter an unknown kid in a JWT header.
+ */
 class JwksController
 {
     public function __construct(private readonly TokenSigner $tokenHandler, private readonly CacheInterface $cacheInterface)
@@ -45,6 +56,10 @@ class JwksController
             ),
         ]
     )]
+    /**
+     * Returns the tenant's JWKS as a JSON response, serving from cache when available.
+     * Attaches an ETag derived from the payload hash and a one-hour Cache-Control header.
+     */
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

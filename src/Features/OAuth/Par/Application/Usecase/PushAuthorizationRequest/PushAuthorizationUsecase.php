@@ -10,8 +10,23 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Gateway\ParRequestGateway;
 use Civi\Lughauth\Features\OAuth\Par\Domain\ParRequest;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
 
+/**
+ * Application use case implementing the Pushed Authorization Request endpoint (RFC 9126).
+ *
+ * Authenticates the OAuth client using its credentials, validates that the submitted
+ * authorization parameters include the minimum required fields, creates a ParRequest
+ * aggregate with a cryptographically random request_uri and a 60-second TTL, and persists
+ * it via the ParRequestGateway. The resulting request_uri is returned to the caller along
+ * with the expiry duration so the HTTP layer can produce the RFC-compliant JSON response.
+ * All failures are signalled through ParException with the appropriate OAuth error code and
+ * HTTP status, enabling the controller to serialise a standards-compliant error body.
+ */
 final class PushAuthorizationUsecase
 {
+    /**
+     * Lifetime in seconds for the generated request_uri, as mandated by the application policy.
+     * Matches the expiry set on the ParRequest aggregate so both layers stay in sync.
+     */
     private const int EXPIRES_IN = 60;
 
     public function __construct(
@@ -20,6 +35,10 @@ final class PushAuthorizationUsecase
     ) {
     }
 
+    /**
+     * Validates the client credentials and authorization parameters, then stores and returns a new PAR request.
+     * Throws ParException with 'invalid_client' (401) on bad credentials or 'invalid_request' (400) on missing params.
+     */
     public function push(PushAuthorizationParams $params): PushAuthorizationResult
     {
         $client = $this->clients->clientData($params->clientId, $params->clientSecret);

@@ -5,8 +5,21 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway;
 
+/**
+ * Port for creating short-lived OAuth authorization codes on behalf of a magic-link verification.
+ *
+ * Implementations are responsible for constructing a valid AuthenticationRequest, resolving the
+ * authenticated user state, and registering a TemporalAuthCode that the token endpoint can later
+ * consume. The returned string is the opaque code value that will be appended to the redirect URI.
+ * This gateway decouples the magic-link domain from the token-issuance infrastructure so that
+ * each can evolve independently.
+ */
 interface MagicLinkCodeGateway
 {
+    /**
+     * Creates and persists a temporary authorization code bound to the given user, client, and scope.
+     * The returned code is a single-use opaque string that expires within a short window (typically 3 minutes).
+     */
     public function createAuthCode(
         string $userUid,
         string $clientId,

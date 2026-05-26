@@ -5,8 +5,29 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Profile\Domain;
 
+/**
+ * Command/input value object carrying the mutable OIDC profile fields submitted by the user.
+ *
+ * This class is the write-side counterpart of OidcProfile.  It is constructed from
+ * the incoming HTTP request (form POST or JSON body) and passed to ProfileGateway::save()
+ * to create or update the persisted profile record.
+ *
+ * All fields are optional (nullable) so that partial updates are supported: a null
+ * value means "no change requested" and the gateway must preserve whatever is
+ * currently stored.  Fields that are intentionally cleared by the user should be
+ * passed as empty strings rather than null.
+ *
+ * System-managed fields such as uid, userUid, updatedAt, and version are not included
+ * here because they are never set by user input.
+ */
 class OidcProfileData
 {
+    /**
+     * Constructs a profile data transfer object with all optional OIDC claim values.
+     *
+     * Any field left as null signals that the corresponding claim should not be
+     * modified; the gateway is responsible for applying only the non-null values.
+     */
     public function __construct(
         public readonly ?string $givenName = null,
         public readonly ?string $familyName = null,

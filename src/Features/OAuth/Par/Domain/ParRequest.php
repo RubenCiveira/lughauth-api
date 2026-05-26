@@ -10,21 +10,69 @@ namespace Civi\Lughauth\Features\OAuth\Par\Domain;
  *
  * Created via `create()`, which generates a cryptographically random `request_uri`
  * in `urn:ietf:params:oauth:request_uri:…` format and sets a 60-second expiry.
+ * The params array preserves the full set of authorization parameters submitted by the
+ * client so they can be restored verbatim when the authorization endpoint resolves the URI.
  * Single-use: once resolved by the authorization endpoint `usedAt` is set and
- * subsequent lookups must be rejected.
+ * subsequent lookups must be rejected to prevent replay attacks.
  */
 final class ParRequest
 {
+    /**
+     * The unique URN reference for this pushed request in the format urn:ietf:params:oauth:request_uri:{token}.
+     * Must be presented by the client to the authorization endpoint within the expiry window.
+     */
+    public readonly string $requestUri;
+
+    /**
+     * Name of the tenant this request belongs to.
+     * All gateway lookups must scope queries to this value to prevent cross-tenant access.
+     */
+    public readonly string $tenant;
+
+    /**
+     * OAuth client identifier that pushed this request.
+     * Stored to allow the authorization endpoint to verify that the client_id in the redirect matches.
+     */
+    public readonly string $clientId;
+
+    /**
+     * Original authorization parameters submitted by the client, including response_type, redirect_uri,
+     * scope, state, nonce, and optional PKCE fields. Preserved verbatim for resolution.
+     */
+    public readonly array $params;
+
+    /**
+     * Timestamp after which this request_uri is no longer valid.
+     * Typically 60 seconds from creation; evaluated by ResolveParRequestUsecase.
+     */
+    public readonly \DateTimeImmutable $expiresAt;
+
+    /**
+     * Timestamp at which this request was consumed by the authorization endpoint, or null if unused.
+     * A non-null value means the URI has already been redeemed and must be rejected on retry.
+     */
+    public readonly ?\DateTimeImmutable $usedAt;
+
     public function __construct(
-        public readonly string $requestUri,
-        public readonly string $tenant,
-        public readonly string $clientId,
-        public readonly array $params,
-        public readonly \DateTimeImmutable $expiresAt,
-        public readonly ?\DateTimeImmutable $usedAt = null,
+        string $requestUri,
+        string $tenant,
+        string $clientId,
+        array $params,
+        \DateTimeImmutable $expiresAt,
+        ?\DateTimeImmutable $usedAt = null,
     ) {
+        $this->requestUri = $requestUri;
+        $this->tenant = $tenant;
+        $this->clientId = $clientId;
+        $this->params = $params;
+        $this->expiresAt = $expiresAt;
+        $this->usedAt = $usedAt;
     }
 
+    /**
+     * Factory method that generates a random request_uri token and sets the 60-second expiry.
+     * The returned aggregate has not yet been persisted; callers must pass it to the gateway.
+     */
     public static function create(string $tenant, string $clientId, array $params): self
     {
         $token = bin2hex(random_bytes(32));
@@ -37,11 +85,19 @@ final class ParRequest
         );
     }
 
+    /**
+     * Returns true if the request_uri expiry timestamp is in the past relative to the current clock.
+     * Expired requests must be rejected even when they have not been explicitly marked as used.
+     */
     public function isExpired(): bool
     {
         return $this->expiresAt < new \DateTimeImmutable();
     }
 
+    /**
+     * Returns true if this request has already been consumed by the authorization endpoint.
+     * A used request must always be rejected on resolution to prevent replay attacks.
+     */
     public function isUsed(): bool
     {
         return $this->usedAt !== null;

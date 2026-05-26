@@ -7,10 +7,35 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Profile\Domain\ActiveSession;
 
+/**
+ * Domain port for listing and revoking a user's active OAuth sessions.
+ *
+ * This gateway abstracts the underlying session store (typically the _oauth_session
+ * table) from the Profile feature's domain layer.  It is used by the profile
+ * management UI and REST API to present the user with a list of live sessions and
+ * to allow them to invalidate individual sessions remotely.
+ *
+ * Only non-expired sessions should be returned by listByUser; revoke must
+ * permanently remove the session record so that subsequent token refresh attempts
+ * for that session are rejected.
+ */
 interface SessionsGateway
 {
-    /** @return ActiveSession[] */
+    /**
+     * Returns all currently active (non-expired) sessions belonging to the given user.
+     *
+     * Results are ordered by most recently used first so the UI can highlight the
+     * user's current device at the top of the list.
+     *
+     * @return ActiveSession[]
+     */
     public function listByUser(string $userUid): array;
 
+    /**
+     * Permanently revokes the session identified by the given session ID.
+     *
+     * After this call any bearer token or cookie referencing the session will be
+     * considered invalid by the token-introspection and session-load logic.
+     */
     public function revoke(string $sessionId): void;
 }

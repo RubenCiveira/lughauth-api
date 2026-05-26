@@ -10,18 +10,37 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Device\Application\DeviceAuthorizationService;
 
+/**
+ * Token granter strategy for the OAuth 2.0 Device Authorization Grant (RFC 8628).
+ *
+ * Handles token requests from devices that completed the device flow by polling with a
+ * device_code obtained during the initial device authorization step. Delegates the actual
+ * code exchange and state validation to DeviceAuthorizationService, which tracks whether
+ * the user has approved the request on a secondary device.
+ *
+ * The grant type identifier is sourced from DeviceAuthorizationService::grantType() to ensure
+ * consistency between the service and this resolver without duplicating the constant.
+ */
 class ResolverForDevice implements TokenGranterStrategy
 {
     public function __construct(private readonly DeviceAuthorizationService $deviceAuth)
     {
     }
 
+    /**
+     * Returns true when the grant type matches the Device Authorization Grant identifier.
+     * The params array is not inspected here; the device_code is read during authenticate instead.
+     */
     #[Override]
     public function canHandle(string $grantType, array $params): bool
     {
         return DeviceAuthorizationService::grantType() === $grantType;
     }
 
+    /**
+     * Exchanges the device_code parameter for an AuthenticationResult by delegating to DeviceAuthorizationService.
+     * Returns a failed result when the code is unknown, expired, or not yet approved by the user.
+     */
     #[Override]
     public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {

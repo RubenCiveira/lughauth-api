@@ -7,8 +7,28 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels
 
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 
+/**
+ * HTML rendering component for the read-only profile overview panel.
+ *
+ * This panel produces the summary view of a user's OIDC profile that is shown when
+ * they visit their profile home page.  It displays the user's avatar (or a placeholder),
+ * a display name derived from given/family name, nickname, or preferred username, and a
+ * definition list of all stored profile fields.
+ *
+ * Navigation links to the edit, change-password, MFA, sessions, and (optionally) invite
+ * sections are rendered as action buttons at the bottom of the panel.  The invite button
+ * is suppressed when $inviteUrl is null, giving the controller full control over feature
+ * availability.  All labels are resolved from the $t translations array.
+ */
 class ProfileViewPanel
 {
+    /**
+     * Renders the read-only profile view as an HTML string.
+     *
+     * Derives the best display name from the available profile fields in the order:
+     * full name > nickname > preferred username.  Renders an avatar image when a
+     * pictureUrl is present, otherwise falls back to a CSS placeholder element.
+     */
     public function render(
         ?OidcProfile $profile,
         string $editUrl,

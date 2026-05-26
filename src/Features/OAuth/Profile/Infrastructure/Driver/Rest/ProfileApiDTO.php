@@ -7,60 +7,162 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Rest;
 
 use OpenApi\Attributes as OA;
 
+/**
+ * Data Transfer Object used to serialize and deserialize the OIDC profile over the REST API.
+ *
+ * This class is both the request body schema for PUT /api/me/profile and the response
+ * body schema for GET /api/me/profile.  It is annotated with OpenAPI attributes so that
+ * the API documentation tool can generate the ProfileApiDTO schema automatically.
+ *
+ * All fields are public and nullable so that partial updates are possible: a missing
+ * field in the JSON request body deserializes to null and the controller treats it as
+ * "no change".  The version field can be used by API consumers to detect concurrent
+ * edits, though enforcement is handled by the underlying ProfileGateway.
+ */
 #[OA\Schema(schema: 'ProfileApiDTO')]
 class ProfileApiDTO
 {
+    /**
+     * Unique identifier of the profile record.
+     *
+     * Set by the server on creation; ignored when present in a write request.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $uid = null;
 
+    /**
+     * Reference to the owning user, serialized as an object with a $ref field containing the user UID.
+     *
+     * Read-only from the API perspective; ignored in write requests.
+     */
     #[OA\Property(type: 'object', nullable: true)]
     public ?array $user = null;
 
+    /**
+     * The user's given (first) name as defined by OIDC Core §5.1.
+     *
+     * May be null when the user has not provided this claim.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $givenName = null;
 
+    /**
+     * The user's family (last) name as defined by OIDC Core §5.1.
+     *
+     * May be null when the user has not provided this claim.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $familyName = null;
 
+    /**
+     * The user's middle name as defined by OIDC Core §5.1.
+     *
+     * May be null when the user has not provided this claim.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $middleName = null;
 
+    /**
+     * Casual name by which the user wishes to be referred to, per OIDC Core §5.1.
+     *
+     * May be null when the user has not provided this claim.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $nickname = null;
 
+    /**
+     * Shorthand name by which the end-user wishes to be referred to at the RP.
+     *
+     * May be null when the user has not provided this claim.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $preferredUsername = null;
 
+    /**
+     * URL of the user's profile picture, per OIDC Core §5.1.
+     *
+     * May be null when no picture URL has been set.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $pictureUrl = null;
 
+    /**
+     * URL of the user's web page or blog, per OIDC Core §5.1.
+     *
+     * May be null when the user has not provided a website URL.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $websiteUrl = null;
 
+    /**
+     * The user's gender, per OIDC Core §5.1; free-form string.
+     *
+     * May be null when the user has not provided this claim.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $gender = null;
 
+    /**
+     * The user's birthday in YYYY-MM-DD format, per OIDC Core §5.1.
+     *
+     * May be null when the user has not provided a birthdate.
+     */
     #[OA\Property(type: 'string', nullable: true, description: 'YYYY-MM-DD')]
     public ?string $birthdate = null;
 
+    /**
+     * IANA timezone identifier such as "Europe/Madrid", per OIDC Core §5.1.
+     *
+     * May be null when the user has not set a time zone preference.
+     */
     #[OA\Property(type: 'string', nullable: true, description: 'IANA timezone identifier')]
     public ?string $zoneinfo = null;
 
+    /**
+     * BCP 47 language tag representing the user's locale preference, per OIDC Core §5.1.
+     *
+     * May be null when the user has not set a locale.
+     */
     #[OA\Property(type: 'string', nullable: true, description: 'BCP 47 language tag')]
     public ?string $locale = null;
 
+    /**
+     * The user's preferred phone number in E.164 format, per OIDC Core §5.1.
+     *
+     * May be null when the user has not provided a phone number.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $phoneNumber = null;
 
+    /**
+     * Whether the phone number has been verified by the authorization server.
+     *
+     * May be null when no phone number is stored or verification has not been performed.
+     */
     #[OA\Property(type: 'boolean', nullable: true)]
     public ?bool $phoneNumberVerified = null;
 
+    /**
+     * JSON-encoded OIDC address claim as defined in OIDC Core §5.1.
+     *
+     * The address is stored and transported as a JSON string; consumers must decode it.
+     */
     #[OA\Property(type: 'string', nullable: true, description: 'JSON-encoded OIDC address claim')]
     public ?string $addressJson = null;
 
+    /**
+     * ISO 8601 datetime string indicating when the profile was last updated.
+     *
+     * Set by the server on each write; read-only from the API consumer's perspective.
+     */
     #[OA\Property(type: 'string', nullable: true)]
     public ?string $updatedAt = null;
 
+    /**
+     * Optimistic concurrency version number incremented on each profile update.
+     *
+     * Clients may include this value in write requests to detect concurrent edits.
+     */
     #[OA\Property(type: 'integer', nullable: true)]
     public ?int $version = null;
 }

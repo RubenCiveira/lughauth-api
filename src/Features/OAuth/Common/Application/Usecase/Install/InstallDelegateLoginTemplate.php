@@ -14,6 +14,19 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "auth.delegate" mail template used to notify users of
+ * a new sign-in via a delegate (federated) identity provider.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "auth.delegate" bound to the "corporate-mail" theme
+ * and appends a TemplateVersion containing an HTML email body with Handlebars placeholders
+ * for the provider name ({{provider.name}}), login date ({{login.date}}), and IP address
+ * ({{login.ip}}).
+ *
+ * The template is enabled immediately after creation so it is ready for the notification
+ * subsystem to dispatch as soon as a delegate login event is recorded.
+ */
 class InstallDelegateLoginTemplate
 {
     public function __construct(
@@ -22,6 +35,10 @@ class InstallDelegateLoginTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "auth.delegate" mail template along with its first version
+     * containing the delegate login notification email body.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

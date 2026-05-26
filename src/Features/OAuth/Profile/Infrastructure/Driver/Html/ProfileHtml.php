@@ -33,6 +33,28 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Create\InvitationCreateParams;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Create\InvitationCreateUsecase;
 
+/**
+ * HTTP driver controller that handles all HTML-rendered profile management pages.
+ *
+ * This class is the primary entry point for every browser-facing route under the
+ * /oauth/openid/{tenant}/me path prefix.  It orchestrates the view, edit, password
+ * change, MFA configuration, session listing / revocation, and user invitation flows
+ * by delegating to the corresponding domain gateways and panel view components.
+ *
+ * Authentication is resolved from the tenant-scoped session cookie; unauthenticated
+ * requests receive a 401 page with a link back to the authorization endpoint rather
+ * than a redirect, so that the OAuth flow is not bypassed.
+ *
+ * All write operations wrap their gateway calls in an explicit SQL transaction via
+ * SqlTemplate and handle rollback implicitly through SqlTemplate::close() in the
+ * finally block.  Panels are panel view objects (ChangePasswordPanel, MfaPanel, etc.)
+ * that produce raw HTML fragments which this controller wraps with the themed layout
+ * provided by DecorateHtml.
+ *
+ * Translation is resolved from the Accept-Language request header unless the user's
+ * stored profile locale overrides it, ensuring the UI is displayed in the user's
+ * preferred language.
+ */
 class ProfileHtml
 {
     use LoggerAwareTrait;
@@ -60,6 +82,13 @@ class ProfileHtml
     ) {
     }
 
+    /**
+     * Handles GET requests to the profile overview page.
+     *
+     * Loads the session, fetches the stored OIDC profile, and renders the
+     * ProfileViewPanel wrapped in the themed layout.  Redirects to the
+     * unauthenticated page when no valid session is found.
+     */
     public function view(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Profile view page");
@@ -97,6 +126,12 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles GET requests to the profile edit form page.
+     *
+     * Loads the current profile to pre-populate form fields and renders the
+     * ProfileEditPanel.  Returns an unauthenticated page when no session is found.
+     */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Profile edit page");
@@ -123,6 +158,13 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles POST requests to persist profile edits.
+     *
+     * Parses the form body, persists the profile through ProfileGateway::save(), and
+     * redirects to the view page on success.  Re-renders the edit form with an error
+     * message and HTTP 422 on any gateway exception.
+     */
     public function save(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Profile save");
@@ -158,6 +200,12 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles GET requests to the user-invitation form page.
+     *
+     * Renders the invite form for the currently authenticated user.  Returns an
+     * unauthenticated page when no valid session cookie is present.
+     */
     public function invite(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -171,6 +219,13 @@ class ProfileHtml
         return $response;
     }
 
+    /**
+     * Handles POST requests to submit a user invitation by email address.
+     *
+     * Creates the invitation record and dispatches the invitation email via
+     * InvitationCreateUsecase.  Renders the form again with an error on validation
+     * failure; shows a success confirmation on completion.
+     */
     public function sendInvite(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -276,6 +331,12 @@ class ProfileHtml
         return $response->withStatus(401);
     }
 
+    /**
+     * Handles GET requests to the change-password form page.
+     *
+     * Renders the ChangePasswordPanel inside the themed layout for the authenticated
+     * user.  Returns an unauthenticated page when no session cookie is present.
+     */
     public function changePassword(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Change password page");
@@ -300,6 +361,13 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles POST requests to persist a password change submitted via the profile form.
+     *
+     * Validates that new password and confirmation match before delegating to
+     * PasswordGateway::changePassword().  Renders the form with a specific error message
+     * for a wrong old password; throws for any unexpected error.
+     */
     public function savePassword(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Save new password");
@@ -351,6 +419,13 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles GET requests to the MFA configuration page.
+     *
+     * Reads the current MFA enablement state and, when disabled, generates a fresh
+     * setup payload to render in the MfaPanel.  Returns an unauthenticated page when
+     * no session is found.
+     */
     public function mfa(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("MFA page");
@@ -377,6 +452,13 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles POST requests to enable or disable MFA for the authenticated user.
+     *
+     * Reads the "action" field from the form body to determine whether to call
+     * MfaGateway::disable() or MfaGateway::enable().  Re-renders the MFA panel with
+     * an error message on gateway failure; shows a success state on completion.
+     */
     public function saveMfa(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Save MFA settings");
@@ -426,6 +508,12 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles GET requests to the active sessions listing page.
+     *
+     * Fetches all non-expired sessions for the authenticated user and renders them
+     * through SessionsPanel, highlighting the current session by cookie ID.
+     */
     public function sessions(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Sessions page");
@@ -452,6 +540,13 @@ class ProfileHtml
         }
     }
 
+    /**
+     * Handles POST requests to revoke a specific session owned by the authenticated user.
+     *
+     * Verifies that the target session belongs to the current user and is not the
+     * current session before delegating to SessionsGateway::revoke().  Redirects back
+     * to the sessions listing page on completion.
+     */
     public function revokeSession(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Revoke session");

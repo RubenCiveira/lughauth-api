@@ -8,9 +8,33 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfileData;
 
+/**
+ * Domain port for reading and persisting OIDC user profile data.
+ *
+ * This gateway defines the contract used by the Profile feature's application
+ * and infrastructure layers to look up and store the standard OpenID Connect
+ * claims associated with a user account (given name, family name, locale, etc.).
+ *
+ * Implementations translate between the internal OidcProfile/OidcProfileData
+ * representations and the underlying persistence mechanism, which may be a
+ * relational database or a remote identity provider.  The gateway follows the
+ * upsert pattern: callers always go through save() regardless of whether a
+ * profile row already exists.
+ */
 interface ProfileGateway
 {
+    /**
+     * Finds the OIDC profile for the given user UID, or returns null if none exists yet.
+     *
+     * The returned OidcProfile is an immutable snapshot; any edits must go through save().
+     */
     public function findByUser(string $userUid): ?OidcProfile;
 
+    /**
+     * Creates or updates the OIDC profile for the given user with the supplied data.
+     *
+     * If no profile exists for the user a new record is created; otherwise the
+     * existing record is updated.  The persisted, up-to-date OidcProfile is returned.
+     */
     public function save(string $userUid, OidcProfileData $data): OidcProfile;
 }

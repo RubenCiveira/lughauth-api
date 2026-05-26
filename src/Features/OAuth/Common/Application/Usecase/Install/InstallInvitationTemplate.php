@@ -14,6 +14,19 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "access.invitation" mail template used to invite new
+ * users to register on the platform.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "access.invitation" bound to the "corporate-mail"
+ * theme and appends a TemplateVersion containing the HTML email body with Handlebars
+ * placeholders for the invitation accept URL ({{invitation.accept_url}}), expiry date
+ * ({{invitation.expires}}), and the inviting user's name ({{invitation.invited_by}}).
+ *
+ * The template is enabled immediately after creation so the invitation subsystem can
+ * dispatch it as soon as the first user invitation is created.
+ */
 class InstallInvitationTemplate
 {
     public function __construct(
@@ -22,6 +35,10 @@ class InstallInvitationTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "access.invitation" mail template along with its first version
+     * containing the platform invitation email body.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

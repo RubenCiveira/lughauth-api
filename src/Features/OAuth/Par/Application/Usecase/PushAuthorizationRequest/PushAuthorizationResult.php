@@ -5,11 +5,33 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest;
 
+/**
+ * Value object returned by PushAuthorizationUsecase after a successful PAR request registration.
+ *
+ * Contains the two fields required by RFC 9126 Section 2.2: the request_uri that the client
+ * must present to the authorization endpoint, and the number of seconds before that URI
+ * expires. The HTTP layer serialises this object directly into the JSON response body with
+ * HTTP 201 Created. Neither field is mutable after construction.
+ */
 final class PushAuthorizationResult
 {
+    /**
+     * The urn:ietf:params:oauth:request_uri:… reference that identifies the pushed request.
+     * The client must pass this value as the request_uri parameter to the authorization endpoint.
+     */
+    public readonly string $requestUri;
+
+    /**
+     * Number of seconds from the moment of issuance until the request_uri expires.
+     * Clients must initiate the authorization redirect before this window closes.
+     */
+    public readonly int $expiresIn;
+
     public function __construct(
-        public readonly string $requestUri,
-        public readonly int $expiresIn,
+        string $requestUri,
+        int $expiresIn,
     ) {
+        $this->requestUri = $requestUri;
+        $this->expiresIn = $expiresIn;
     }
 }

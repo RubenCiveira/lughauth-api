@@ -16,6 +16,17 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLinkSession;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkSessionGateway;
 
+/**
+ * Infrastructure adapter that implements the MagicLinkSessionGateway port by persisting a
+ * long-lived browser session via the SessionStoreGateway.
+ *
+ * After a successful magic-link verification a 15-day session is created so that the user
+ * stays authenticated in the browser without repeating the passwordless flow on every visit.
+ * The session is stored under a fresh UUID4 and associated with the issuer URL derived from
+ * the application context and tenant name. The method returns null and skips session creation
+ * when the client identifier is empty or cannot be resolved to an active client record, ensuring
+ * the authorization code flow is not blocked by optional session establishment failures.
+ */
 class MagicLinkSessionAdapter implements MagicLinkSessionGateway
 {
     public function __construct(
@@ -25,6 +36,10 @@ class MagicLinkSessionAdapter implements MagicLinkSessionGateway
     ) {
     }
 
+    /**
+     * Creates a 15-day browser session for the authenticated user and returns its descriptor.
+     * Returns null without side-effects when the client identifier is empty or the client is not found.
+     */
     #[Override]
     public function createSession(
         string $userUid,

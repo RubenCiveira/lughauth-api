@@ -19,6 +19,25 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGatewa
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Login step form that enables passwordless authentication using WebAuthn / FIDO2 passkeys.
+ *
+ * This form renders a button that triggers the browser's WebAuthn credential selection dialog.
+ * All WebAuthn ceremony steps — fetching a challenge from the begin endpoint, calling
+ * navigator.credentials.get(), and posting the signed assertion to the finish endpoint — are
+ * performed entirely in JavaScript injected by the render method. On a successful assertion
+ * the finish endpoint marks the challenge as verified and stores the resolved username; the
+ * form's hidden fields then carry the challenge ID back to the server via a standard POST.
+ *
+ * During the authenticate phase, the challenge record is retrieved from WebAuthnChallengeGateway
+ * and validated for both the verified flag and expiry. If valid, the challenge's verified
+ * username is used to update the challenges state and pre-authenticate the user. Expired or
+ * unverified challenges result in a LoginException with wrong-credentials.
+ *
+ * Relationships: uses WebAuthnChallengeGateway for challenge lookup, TenantReadGateway to
+ * resolve the tenant UUID, AuthenticateUser for post-assertion pre-authentication, and
+ * HtmlSecurer / DecorateHtml for rendering.
+ */
 class WebAuthnLoginForm implements StepForm
 {
     public function __construct(
@@ -31,6 +50,14 @@ class WebAuthnLoginForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders the WebAuthn login page with the authenticator button and ceremony JavaScript.
+     *
+     * Injects an inline script that orchestrates the full WebAuthn get-credential ceremony:
+     * fetching the challenge from the begin endpoint, invoking navigator.credentials.get(),
+     * posting the assertion to the finish endpoint, and auto-submitting the hidden form with
+     * the challenge ID on success.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -149,6 +176,13 @@ class WebAuthnLoginForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Validates the WebAuthn challenge and pre-authenticates the resolved user on success.
+     *
+     * Looks up the challenge by ID from WebAuthnChallengeGateway, rejects it if unverified,
+     * missing a username, or expired, and otherwise resolves the user identity from the
+     * challenge record before calling preAuthenticate.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {

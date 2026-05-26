@@ -7,8 +7,22 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLinkSession;
 
+/**
+ * Port for creating a persistent browser session after a successful magic-link verification.
+ *
+ * After the token is consumed and an authorization code is issued, the system may optionally
+ * establish a long-lived session so the user does not need to re-authenticate on their next
+ * visit. Returning null signals that no session was created (e.g. because the client is unknown
+ * or the feature is not applicable), which is a valid outcome — the authorization code flow
+ * continues normally regardless. Implementations interact with the SessionStoreGateway to
+ * persist the session data.
+ */
 interface MagicLinkSessionGateway
 {
+    /**
+     * Creates and stores a new browser session for the authenticated user and returns its descriptor.
+     * Returns null if the session cannot be created, for example when the client identifier is invalid.
+     */
     public function createSession(
         string $userUid,
         string $email,

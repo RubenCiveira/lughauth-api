@@ -131,6 +131,37 @@ final class PhixUnitTest extends TestCase
     }
 
     /**
+     * Ensures DSN parsing handles sqlite adapter using the DSN value as name.
+     */
+    public function testParseSqliteDsnUsesValueAsName(): void
+    {
+        /* Arrange: clear credentials and build a parser with a sqlite DSN. */
+        $previousUser = $_ENV['DATABASE_USERNAME'] ?? null;
+        $previousPass = $_ENV['DATABASE_PASSWORD'] ?? null;
+        $hadUser = array_key_exists('DATABASE_USERNAME', $_ENV);
+        $hadPass = array_key_exists('DATABASE_PASSWORD', $_ENV);
+        unset($_ENV['DATABASE_USERNAME'], $_ENV['DATABASE_PASSWORD']);
+
+        $phix = new TestablePhix($this->config('sqlite:/var/db/test.sqlite'), $this->managerWithMigrations(true, true, ''));
+
+        /* Act: parse the sqlite DSN. */
+        $data = $phix->parse();
+
+        /* Assert: verify adapter and name are extracted correctly. */
+        $this->assertSame('sqlite', $data['adapter']);
+        $this->assertSame('/var/db/test.sqlite', $data['name']);
+        $this->assertArrayNotHasKey('host', $data);
+
+        /* Cleanup: restore environment credentials. */
+        if ($hadUser) {
+            $_ENV['DATABASE_USERNAME'] = $previousUser;
+        }
+        if ($hadPass) {
+            $_ENV['DATABASE_PASSWORD'] = $previousPass;
+        }
+    }
+
+    /**
      * Ensures DSN parsing includes credentials when provided.
      */
     public function testParseWithCredentials(): void

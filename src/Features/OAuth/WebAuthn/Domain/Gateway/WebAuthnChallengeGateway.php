@@ -7,13 +7,40 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
 
+/**
+ * Domain port for persisting and retrieving WebAuthn challenge objects.
+ *
+ * Challenges are short-lived nonces created at the start of a registration or
+ * authentication ceremony and consumed exactly once when the ceremony completes.
+ * Implementations are responsible for tenant-scoped isolation — challenge IDs
+ * are unique per tenant, not globally — and must support the full lifecycle:
+ * create, look up, mark as verified, and purge expired entries. Purging should
+ * be triggered opportunistically (e.g. on construction or on a schedule) to
+ * prevent unbounded growth of the challenge store.
+ */
 interface WebAuthnChallengeGateway
 {
+    /**
+     * Persists a new pending challenge to the store.
+     * The challenge must not already exist; implementations may throw on duplicate IDs.
+     */
     public function store(WebAuthnChallenge $challenge): void;
 
+    /**
+     * Retrieves a challenge by its ID scoped to the given tenant.
+     * Returns null if no matching challenge exists or it has already been purged.
+     */
     public function findById(string $challengeId, string $tenantId): ?WebAuthnChallenge;
 
+    /**
+     * Updates the challenge record to reflect a successful verification.
+     * Persists the verified flag, verification timestamp, and resolved user identity.
+     */
     public function markVerified(WebAuthnChallenge $challenge): void;
 
+    /**
+     * Removes all challenge records that have passed their expiration timestamp.
+     * Keeps the store lean and prevents expired challenges from being accidentally reused.
+     */
     public function purgeExpired(): void;
 }

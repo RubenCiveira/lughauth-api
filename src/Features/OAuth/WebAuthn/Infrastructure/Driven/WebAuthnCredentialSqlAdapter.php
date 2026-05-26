@@ -11,12 +11,28 @@ use PDO;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnCredential;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
 
+/**
+ * SQL-backed adapter for the WebAuthnCredentialGateway port.
+ *
+ * Persists passkey credentials to the `access_user_webauthn_credential` table,
+ * enforcing tenant scoping on every read query. The transports array is serialised
+ * to JSON for storage and deserialised on load; a null value is preserved to
+ * distinguish "authenticator reported no transports" from "transport data missing".
+ * Lookup methods filter on enabled=1 so that disabled credentials are transparently
+ * excluded from authentication flows while still being retained for audit purposes.
+ * The mapRow helper centralises all field-to-object mapping, keeping individual
+ * method bodies focused on query logic only.
+ */
 final class WebAuthnCredentialSqlAdapter implements WebAuthnCredentialGateway
 {
     public function __construct(private readonly PDO $pdo)
     {
     }
 
+    /**
+     * Inserts a new credential row, including JSON-encoded transport hints.
+     * The sign count and all metadata fields are persisted in a single INSERT statement.
+     */
     #[Override]
     public function store(WebAuthnCredential $credential): void
     {
@@ -44,6 +60,10 @@ final class WebAuthnCredentialSqlAdapter implements WebAuthnCredentialGateway
         $stmt->execute();
     }
 
+    /**
+     * Looks up an enabled credential by its authenticator-issued ID within the tenant.
+     * Returns null if the credential does not exist or has been disabled.
+     */
     #[Override]
     public function findByCredentialId(string $credentialId, string $tenantId): ?WebAuthnCredential
     {
@@ -58,6 +78,10 @@ final class WebAuthnCredentialSqlAdapter implements WebAuthnCredentialGateway
         return $row ? $this->mapRow($row) : null;
     }
 
+    /**
+     * Returns all enabled credentials for the given user within the tenant, newest first.
+     * Used during registration to build the excludeCredentials list for the browser.
+     */
     #[Override]
     public function findByUser(string $userUid, string $tenantId): array
     {
@@ -72,6 +96,10 @@ final class WebAuthnCredentialSqlAdapter implements WebAuthnCredentialGateway
         return array_map([$this, 'mapRow'], $stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 
+    /**
+     * Updates the sign count and last-used timestamp for a credential after a successful assertion.
+     * The credential is identified by its ID scoped to the tenant.
+     */
     #[Override]
     public function updateSignCount(string $credentialId, string $tenantId, int $signCount, DateTimeImmutable $lastUsedAt): void
     {

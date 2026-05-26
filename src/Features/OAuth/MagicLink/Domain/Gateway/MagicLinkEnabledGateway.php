@@ -5,7 +5,21 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway;
 
+/**
+ * Port for querying whether the magic-link authentication feature is active for a given tenant.
+ *
+ * The feature can be toggled per-tenant through the TenantConfig aggregate; this gateway
+ * abstracts that configuration check so the application layer does not depend directly on
+ * the tenant-configuration infrastructure. Returning false for an unknown tenant name is
+ * the expected behaviour — callers should treat an unknown tenant the same as a disabled one.
+ * Both RequestMagicLinkUsecase and VerifyMagicLinkUsecase consult this gateway as their
+ * first guard before performing any further work.
+ */
 interface MagicLinkEnabledGateway
 {
+    /**
+     * Returns true if the magic-link login method is enabled for the named tenant, false otherwise.
+     * An unknown or inactive tenant must return false rather than throw an exception.
+     */
     public function isEnabled(string $tenantName): bool;
 }

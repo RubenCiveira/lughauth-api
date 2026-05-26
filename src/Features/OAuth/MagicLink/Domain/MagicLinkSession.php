@@ -5,11 +5,33 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\MagicLink\Domain;
 
+/**
+ * Value object representing a browser session established after a successful magic-link verification.
+ *
+ * Carries the minimum information the HTTP layer needs to set a session cookie: a unique session
+ * identifier and the duration for which the cookie should remain valid. This object is produced
+ * by MagicLinkSessionGateway implementations and consumed by the HTML driver to attach the
+ * session to the user's browser. It is deliberately lightweight and contains no sensitive user data.
+ */
 final class MagicLinkSession
 {
+    /**
+     * Opaque identifier for the newly created session, used as the cookie value.
+     * Must be treated as a secret; its exposure is equivalent to a valid credential.
+     */
+    public readonly string $sessionId;
+
+    /**
+     * Duration interval after which the session cookie should expire.
+     * Passed directly to the cookie manager so the browser enforces the lifetime.
+     */
+    public readonly \DateInterval $expiration;
+
     public function __construct(
-        public readonly string $sessionId,
-        public readonly \DateInterval $expiration,
+        string $sessionId,
+        \DateInterval $expiration,
     ) {
+        $this->sessionId = $sessionId;
+        $this->expiration = $expiration;
     }
 }

@@ -33,6 +33,25 @@ use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use OpenApi\Attributes as OA;
 
+/**
+ * HTTP driver for the OIDC Authorization Endpoint, handling the interactive HTML login flow.
+ *
+ * This class is responsible for presenting and processing the browser-facing authorization UI
+ * that implements RFC 6749 / OpenID Connect Core. It covers three main concerns: initiating
+ * the authorization flow (GET /authorize), processing each incremental login step submitted
+ * by the user (POST /authorize), and resuming an already-active session without re-prompting
+ * the user for credentials (check-session/refresh endpoint).
+ *
+ * The class resolves PAR (Pushed Authorization Request) URIs and signed request objects before
+ * building the flow context, validates PKCE challenges, delegates step rendering and
+ * authentication to OidcStepRouter, and emits the final redirect with the authorization code
+ * (or tokens) once all challenges have been satisfied. Cookies for both the pre-session state
+ * and the authenticated session are managed via OidcCookieManager.
+ *
+ * Relationships: depends on AuthenticateUser (domain service), SessionManager, OidcStepRouter
+ * (step dispatch), OidcResponseBuilder (redirect construction), HtmlSecurer (CSRF token
+ * verification), and DecorateHtml (themed page wrapping).
+ */
 class AuthorizeHtml
 {
     use LoggerAwareTrait;
@@ -76,6 +95,13 @@ class AuthorizeHtml
             new OA\Response(response: 302, description: 'Redirect with authorization code (if session already active)'),
         ]
     )]
+    /**
+     * Handles the initial GET request to the authorization endpoint.
+     *
+     * Validates the client, resolves PAR or request-object overrides, and either resumes an
+     * existing session silently or renders the first login step. When prompt=none and no
+     * active session exists, it immediately redirects with an error.
+     */
     public function authorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -117,6 +143,13 @@ class AuthorizeHtml
         }
     }
 
+    /**
+     * Handles the check-session POST that resumes an authenticated session silently.
+     *
+     * Verifies the CSRF token (csid), reloads the session, and immediately completes
+     * the authorization flow without showing any login UI. If the session has expired
+     * or the csid is invalid, the user is redirected back to the login form.
+     */
     public function refresh(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $body = (array) ($request->getParsedBody() ?? []);
@@ -206,6 +239,13 @@ class AuthorizeHtml
             new OA\Response(response: 200, description: 'HTML form for next login step or error'),
         ]
     )]
+    /**
+     * Handles form POST submissions at each step of the interactive login flow.
+     *
+     * Reads the current step and pre-session cookie, executes the appropriate step handler
+     * (credential check, MFA, consent, etc.), and either redirects with an authorization code
+     * on success or re-renders the step with an error message on failure.
+     */
     public function formAuthorize(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $body = (array) ($request->getParsedBody() ?? []);

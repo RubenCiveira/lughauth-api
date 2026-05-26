@@ -14,6 +14,18 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "page.index" HTML template used for the main OAuth
+ * authorization page that hosts the login, consent, and challenge forms.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "page.index" bound to the "corporate" theme and
+ * appends a TemplateVersion with a two-column Handlebars layout: a decorative image panel
+ * on the left and a form panel on the right into which {{{innerContent}}} is injected.
+ *
+ * The template is enabled immediately after creation so the authorization endpoint can
+ * render it as soon as the first login flow is initiated.
+ */
 class InstallIndexPageTemplate
 {
     public function __construct(
@@ -22,6 +34,10 @@ class InstallIndexPageTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "page.index" HTML template along with its first version
+     * containing the two-column corporate layout with the inner content slot.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

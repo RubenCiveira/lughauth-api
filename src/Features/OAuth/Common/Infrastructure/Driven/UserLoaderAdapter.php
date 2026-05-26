@@ -24,6 +24,20 @@ use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTempor
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 
+/**
+ * Infrastructure adapter that centralises all user and tenant lookup logic needed across
+ * the various OAuth authentication flows (password, recovery code, registration code, etc.).
+ *
+ * This class is shared by multiple authentication use cases and acts as a domain service
+ * boundary between the OAuth Authentication context and the Access bounded context. It
+ * enforces a consistent set of blocking conditions — unknown or disabled tenant, unknown
+ * user, wrong tenant, disabled user, blocked user, and unaccepted approval status — throwing
+ * a LoginException with an AuthenticationResult::unknowUser payload whenever any condition
+ * is violated, which prevents information leakage about the reason for rejection.
+ *
+ * All rejection paths are logged at error level with structured context (tenant name, user
+ * name) so that security incidents can be traced without exposing details to the caller.
+ */
 class UserLoaderAdapter
 {
     use LoggerAwareTrait;
@@ -38,6 +52,10 @@ class UserLoaderAdapter
     ) {
     }
 
+    /**
+     * Retrieves the UserAccessTemporalCode record for the given user, creating one if it does
+     * not yet exist, and returns it ready for further updates within the same transaction.
+     */
     public function userCodeForUpdate(User $user): UserAccessTemporalCode
     {
         $code = $this->codeWriter->findOneForUpdateByUser($user);
@@ -51,6 +69,9 @@ class UserLoaderAdapter
     }
 
     /**
+     * Returns the most recent active TenantTermsOfUse records for the given tenant that belong
+     * to any of the specified relying party codes.
+     *
      * return TenantTermsOfUse[]
      */
     public function loadTenantTerms(Tenant $tenant, array $relyingParties): array
@@ -99,11 +120,19 @@ class UserLoaderAdapter
         return array_values($last);
     }
 
+    /**
+     * Persists an update to the given UserAccessTemporalCode record and returns the
+     * updated entity.
+     */
     public function updateCode(UserAccessTemporalCode $user): UserAccessTemporalCode
     {
         return $this->codeWriter->update($user, $user);
     }
 
+    /**
+     * Looks up the tenant by name, verifying it exists and is enabled.
+     * Throws LoginException with an unknowUser result if either condition is not met.
+     */
     public function checkTenant(string $tenant, string $username): Tenant
     {
         $result = $this->tenants->findOneByName($tenant);
@@ -119,6 +148,9 @@ class UserLoaderAdapter
     }
 
     /**
+     * Looks up and validates a user by their password recovery code within the given tenant.
+     * Returns an array of [User, UserAccessTemporalCode] on success or throws LoginException.
+     *
      * @return (User|UserAccessTemporalCode)[]
      *
      * @psalm-return list{User, UserAccessTemporalCode}
@@ -138,6 +170,10 @@ class UserLoaderAdapter
     }
 
     /**
+     * Looks up and validates a user by their registration verification code within the given
+     * tenant, additionally ensuring the user is still in the unverified approval state.
+     * Returns an array of [User, UserAccessTemporalCode] on success or throws LoginException.
+     *
      * @return (User|UserAccessTemporalCode)[]
      *
      * @psalm-return list{User, UserAccessTemporalCode}
@@ -159,16 +195,28 @@ class UserLoaderAdapter
         throw new LoginException(auth: AuthenticationResult::unknowUser($tenant->getName(), $code));
     }
 
+    /**
+     * Looks up an active user by username or email within the given tenant.
+     * Throws LoginException if the user is not found, disabled, blocked, or not yet approved.
+     */
     public function checkUserNameOrEmail(Tenant $tenant, string $username): User
     {
         return $this->checkLookupUser($tenant, $this->users->findOneByTenantAndName($tenant, $username), $username);
     }
 
+    /**
+     * Looks up an active user by username within the given tenant.
+     * Throws LoginException if the user is not found, disabled, blocked, or not yet approved.
+     */
     public function checkUser(Tenant $tenant, string $username): User
     {
         return $this->checkLookupUser($tenant, $this->users->findOneByTenantAndName($tenant, $username), $username);
     }
 
+    /**
+     * Looks up an active user by their subject identifier (UID) within the given tenant.
+     * Throws LoginException if the user is not found, disabled, blocked, or not yet approved.
+     */
     public function checkUserSubjet(Tenant $tenant, string $username): User
     {
         return $this->checkLookupUser($tenant, $this->users->findOneByUid($username), $username);

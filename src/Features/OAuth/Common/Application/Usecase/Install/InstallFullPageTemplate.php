@@ -14,6 +14,18 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "page.full" HTML template used to render full-window
+ * OAuth UI pages such as the user profile and settings screens.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "page.full" bound to the "corporate-full" theme and
+ * appends a TemplateVersion whose content simply forwards the raw {{{innerContent}}} slot,
+ * delegating all structural markup to the corporate-full theme layout.
+ *
+ * The template is enabled immediately after creation so it is available for rendering as
+ * soon as any full-page OAuth flow is initiated.
+ */
 class InstallFullPageTemplate
 {
     public function __construct(
@@ -22,6 +34,10 @@ class InstallFullPageTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "page.full" HTML template along with its first version
+     * that passes through the inner content slot to the corporate-full theme.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

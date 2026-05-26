@@ -5,24 +5,52 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Client\Domain;
 
+/**
+ * Immutable value object that carries the client registration metadata submitted by a relying
+ * party during an RFC 7591 dynamic registration or RFC 7592 update request.
+ *
+ * All fields map directly to the corresponding RFC 7591 JSON properties. Sensible defaults are
+ * provided for optional fields (authorization_code grant, code response type, and
+ * client_secret_basic authentication) so that minimal registration payloads remain valid.
+ *
+ * The canonical way to create an instance from raw HTTP request data is the static fromArray
+ * factory, which validates the mandatory redirect_uris field and normalizes all others. The
+ * constructor can be used directly in tests or when the data has already been validated.
+ */
 final class DynamicClientRequest
 {
     public function __construct(
+        /** One or more redirect URIs that the authorization server may redirect to after granting authorization. */
         public readonly array $redirectUris,
+        /** Human-readable name of the client application presented to users during consent. */
         public readonly ?string $clientName = null,
+        /** OAuth 2.0 grant types the client intends to use; defaults to ["authorization_code"]. */
         public readonly array $grantTypes = ['authorization_code'],
+        /** OAuth 2.0 response types the client expects; defaults to ["code"]. */
         public readonly array $responseTypes = ['code'],
+        /** Space-separated set of scopes the client may request, or null to leave unrestricted. */
         public readonly ?string $scope = null,
+        /** Method the client uses to authenticate at the token endpoint; defaults to "client_secret_basic". */
         public readonly string $tokenEndpointAuthMethod = 'client_secret_basic',
+        /** URI of the client's logo, shown during consent screens. */
         public readonly ?string $logoUri = null,
+        /** URI of the client's home page. */
         public readonly ?string $clientUri = null,
+        /** URI of the client's privacy policy. */
         public readonly ?string $policyUri = null,
+        /** URI of the client's terms of service. */
         public readonly ?string $tosUri = null,
+        /** Back-channel logout URI for OIDC back-channel logout notification. */
         public readonly ?string $backchannelLogoutUri = null,
+        /** Front-channel logout URI for OIDC front-channel logout notification via iframe. */
         public readonly ?string $frontchannelLogoutUri = null,
     ) {
     }
 
+    /**
+     * Creates an instance from a raw associative array, typically parsed from the request body.
+     * Throws InvalidArgumentException if redirect_uris is absent or not an array.
+     */
     public static function fromArray(array $data): self
     {
         if (empty($data['redirect_uris']) || !is_array($data['redirect_uris'])) {

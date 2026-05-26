@@ -13,6 +13,17 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGat
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\User\Application\Usecase\LoginUsecase;
 
+/**
+ * Token granter strategy for the OAuth 2.0 refresh_token grant type.
+ *
+ * Validates an incoming refresh token by verifying its signature and checking whether
+ * its JTI has been revoked. If the token is valid and not revoked, the keypass claim is
+ * used as the user identifier to reload fresh user data from the store via LoginUsecase.
+ *
+ * This approach ensures that changes to user permissions, roles, or account status are
+ * reflected in newly issued access tokens without requiring a full re-authentication by
+ * the user.
+ */
 class ResolverForRefresh implements TokenGranterStrategy
 {
     public function __construct(
@@ -22,12 +33,20 @@ class ResolverForRefresh implements TokenGranterStrategy
     ) {
     }
 
+    /**
+     * Returns true only when the grant type is exactly "refresh_token".
+     * The token itself is not inspected until the authenticate call.
+     */
     #[Override]
     public function canHandle(string $grantType, array $params): bool
     {
         return 'refresh_token' === $grantType;
     }
 
+    /**
+     * Verifies the refresh token signature, checks the revocation list, and reloads user data.
+     * Returns a wrong-credentials result when the token is invalid, missing claims, or revoked.
+     */
     #[Override]
     public function authenticate(string $tenant, AuthenticationRequest $client, array $params): AuthenticationResult
     {

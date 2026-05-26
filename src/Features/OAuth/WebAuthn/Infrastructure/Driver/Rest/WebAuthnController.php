@@ -17,6 +17,19 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\BeginAuthenticatio
 use Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\FinishAuthentication\FinishAuthenticationUsecase;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller exposing the four WebAuthn ceremony endpoints for a tenant.
+ *
+ * Handles the full passkey lifecycle over HTTP: register/begin returns
+ * PublicKeyCredentialCreationOptions; register/finish verifies the attestation and
+ * persists the new credential; authenticate/begin returns PublicKeyCredentialRequestOptions;
+ * authenticate/finish verifies the assertion and returns the challengeId for use in the
+ * subsequent OIDC token-issuance flow. Registration endpoints require an authenticated
+ * session (anonymous callers receive 401); authentication endpoints are intentionally
+ * public to support passwordless login. The RP ID and RP name are resolved from tenant
+ * configuration, with a fallback to the APP_ORIGIN environment variable and the tenant
+ * name respectively, so the controller works correctly in both configured and default setups.
+ */
 final class WebAuthnController
 {
     public function __construct(
@@ -42,6 +55,10 @@ final class WebAuthnController
             new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
+    /**
+     * Initiates a registration ceremony for the authenticated user.
+     * Requires a valid session; returns PublicKeyCredentialCreationOptions as JSON.
+     */
     public function registerBegin(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'] ?? '';
@@ -72,6 +89,10 @@ final class WebAuthnController
             new OA\Response(response: 401, description: 'Unauthenticated'),
         ]
     )]
+    /**
+     * Completes the registration ceremony by verifying the attestation response.
+     * Requires an authenticated session and a valid challengeId from the begin step.
+     */
     public function registerFinish(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'] ?? '';
@@ -114,6 +135,10 @@ final class WebAuthnController
             new OA\Response(response: 200, description: 'PublicKeyCredentialRequestOptions'),
         ]
     )]
+    /**
+     * Initiates a passwordless authentication ceremony for the tenant.
+     * No authentication is required; returns PublicKeyCredentialRequestOptions as JSON.
+     */
     public function authenticateBegin(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'] ?? '';
@@ -137,6 +162,10 @@ final class WebAuthnController
             new OA\Response(response: 401, description: 'Assertion verification failed'),
         ]
     )]
+    /**
+     * Completes the authentication ceremony by verifying the assertion response.
+     * On success returns the challengeId so the OIDC flow can exchange it for tokens.
+     */
     public function authenticateFinish(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'] ?? '';

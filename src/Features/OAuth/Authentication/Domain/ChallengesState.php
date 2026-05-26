@@ -11,9 +11,14 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
  * Serialised into the session (`toArray`) at the end of each step and deserialised
  * (`fromArray`) at the start of the next. The `v` version field allows migration
  * between serialisation formats without invalidating existing sessions.
+ *
+ * Each with* method returns a new instance with the changed field, preserving immutability
+ * and making it straightforward to build up state incrementally as the user progresses
+ * through login, MFA, and consent steps.
  */
 final class ChallengesState
 {
+    /** Current serialisation version; increment when the array shape changes to trigger migration logic. */
     public const VERSION = 1;
 
     public function __construct(
@@ -24,6 +29,10 @@ final class ChallengesState
     ) {
     }
 
+    /**
+     * Returns a new instance with the username field set to the given value.
+     * Used after the user provides their identifier so subsequent steps can reference it.
+     */
     public function withUsername(string $username): self
     {
         return new self(
@@ -34,6 +43,10 @@ final class ChallengesState
         );
     }
 
+    /**
+     * Returns a new instance with the withMfa flag set to the given boolean.
+     * Set to true after the user successfully completes a multi-factor authentication challenge.
+     */
     public function withMfa(bool $withMfa): self
     {
         return new self(
@@ -44,6 +57,10 @@ final class ChallengesState
         );
     }
 
+    /**
+     * Returns a new instance with the session flag set to the given boolean.
+     * Set to true when the flow is resuming from an existing valid session rather than a fresh login.
+     */
     public function withSession(bool $session): self
     {
         return new self(
@@ -54,6 +71,10 @@ final class ChallengesState
         );
     }
 
+    /**
+     * Deserialises a ChallengesState from a raw associative array, applying version-aware migration.
+     * Arrays without a `v` key are treated as the legacy format and mapped accordingly.
+     */
     public static function fromArray(array $data): self
     {
         if (isset($data['v'])) {

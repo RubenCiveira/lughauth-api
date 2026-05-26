@@ -9,15 +9,41 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 
+/**
+ * Base exception for all authentication failures during the OIDC login flow.
+ *
+ * Wraps the AuthenticationResult that caused the failure so that exception handlers can
+ * inspect the exact error code and route the user to the appropriate remediation step
+ * (MFA, consent, password change, etc.) without needing to re-evaluate business logic.
+ *
+ * The embedded ChallengesState snapshot preserves the progress the user made before the
+ * exception was raised, enabling the flow controller to resume from the correct step after
+ * the user satisfies the requirement. Concrete subclasses model specific failure scenarios
+ * and should be preferred over throwing this base class directly.
+ */
 class LoginException extends UnauthorizedException
 {
+    /**
+     * The AuthenticationResult associated with this failure, carrying the error code and any detail message.
+     * Handlers should inspect auth.error against the ERR_* constants on AuthenticationResult.
+     */
+    public readonly AuthenticationResult $auth;
+
+    /**
+     * Snapshot of the authentication challenges state at the time the exception was raised.
+     * Null when the exception occurs before any challenges have been established.
+     */
+    public readonly ?ChallengesState $challenges;
+
     public function __construct(
-        public readonly AuthenticationResult $auth,
+        AuthenticationResult $auth,
         string $message = '',
         int $code = 401,
         \Exception|null $previous = null,
-        public readonly ?ChallengesState $challenges = null
+        ?ChallengesState $challenges = null
     ) {
+        $this->auth = $auth;
+        $this->challenges = $challenges;
         parent::__construct($message, $code, $previous);
     }
 }

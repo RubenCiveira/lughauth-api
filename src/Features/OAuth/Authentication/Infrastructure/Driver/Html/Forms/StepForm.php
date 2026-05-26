@@ -5,6 +5,20 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Forms;
 
+/**
+ * Full contract for a single step in the interactive HTML login flow.
+ *
+ * A StepForm combines the two facets of a login step — rendering the HTML page to the
+ * browser (StepRenderer) and processing the data the user submits back (StepAuthenticator)
+ * — into a single cohesive interface. Every concrete form class (LoginForm, UseMfaForm,
+ * ScopeConsentForm, etc.) implements this interface so that OidcStepRouter can dispatch to
+ * any step uniformly.
+ *
+ * The two-phase design mirrors the HTTP request cycle: GET-like render calls produce a
+ * response body, while POST-like authenticate calls mutate challenge state and either
+ * proceed to the next step or signal an error. This clean separation ensures that rendering
+ * and business logic remain independently testable.
+ */
 interface StepForm extends StepRenderer, StepAuthenticator
 {
 }

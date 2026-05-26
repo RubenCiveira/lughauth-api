@@ -23,11 +23,33 @@ use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Forms
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Forms\MagicLinkLoginForm;
 use Psr\Http\Message\ResponseInterface;
 
+/**
+ * Dispatcher that maps the current authentication step name or error code to the correct StepForm.
+ *
+ * OidcStepRouter acts as the central hub for the multi-step interactive login flow. It
+ * maintains a registry of all available StepForm implementations keyed by their StepName
+ * value, and an ERROR_MAP that translates AuthenticationResult error codes to the step that
+ * should handle them (e.g. ERR_MFA_REQUIRED → MFA step, ERR_CONSENT_REQUIRED → consent step).
+ *
+ * Resolution priority is: explicit step name from the request body → error-code mapping →
+ * configured fallback step (defaults to LOGIN). This allows any part of the flow to redirect
+ * to the correct form without the caller needing to know which concrete class handles it.
+ *
+ * The run method combines resolution with execution: when a verified CSRF token (csid) is
+ * present it delegates to authenticate(), otherwise to render(). AuthorizeHtml uses this
+ * class exclusively for all step dispatch.
+ */
 final class OidcStepRouter
 {
     /** @var array<string, StepForm> */
     private array $steps;
 
+    /**
+     * Maps AuthenticationResult error codes to the StepName value that should handle them.
+     *
+     * When an authentication attempt fails with one of these codes, the router automatically
+     * forwards to the form registered under the mapped step name rather than the login fallback.
+     */
     /** @var array<string, string> */
     private const ERROR_MAP = [
         AuthenticationResult::ERR_CONSENT_REQUIRED => StepName::CONSENT->value,
@@ -72,6 +94,13 @@ final class OidcStepRouter
         ];
     }
 
+    /**
+     * Resolves the StepForm responsible for the given step name and/or authentication error.
+     *
+     * Returns the form registered under the explicit step key when present, otherwise falls
+     * back to the error-code mapping, and finally to the configured fallback step. Returns
+     * null only if the fallback step itself is not registered.
+     */
     public function resolve(?string $step, ?AuthenticationResult $error): ?StepForm
     {
         $key = $this->normalizeStep($step);
@@ -98,6 +127,13 @@ final class OidcStepRouter
         return $step === '' ? null : $step;
     }
 
+    /**
+     * Resolves the correct StepForm and either authenticates or renders depending on csid presence.
+     *
+     * When a verified CSRF token (csid) is provided, the csid is injected into the body and
+     * the form's authenticate() method is called. Without a csid, the form's render() method
+     * is called instead. Returns null if no form can be resolved.
+     */
     public function run(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error, ?string $step, ?string $csid): ?StepResult
     {
         $form = $this->resolve($step, $error);

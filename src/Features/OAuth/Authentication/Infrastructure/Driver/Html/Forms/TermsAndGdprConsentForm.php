@@ -10,10 +10,10 @@ use Psr\Http\Message\ResponseInterface;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
+use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepInput;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepName;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
-use Civi\Lughauth\Features\OAuth\Authentication\Application\AuthenticateUser;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\TermsOfUseConsentUsecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
@@ -21,6 +21,25 @@ use Civi\Lughauth\Features\OAuth\Consent\Application\Usecase\GdprConsentUsecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\GdprConsentPurposeItem;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Login step form that presents combined Terms-of-Use and GDPR consent to the authenticated user.
+ *
+ * This form is triggered when TermsOfUseConsentUsecase reports that the user has not yet
+ * accepted the current version of the tenant's terms of service. It displays the full
+ * terms text inside a readonly textarea together with an acceptance checkbox. In addition,
+ * any GDPR processing purposes that are still pending (as reported by GdprConsentUsecase)
+ * are rendered below the terms as a list of individually checkable items, each with an
+ * expandable description.
+ *
+ * On submission, acceptance of the terms and the individual GDPR decisions are stored in a
+ * single atomic operation. The IP address and User-Agent are captured for the GDPR audit
+ * trail. If the user does not tick the acceptance checkbox the flow throws a LoginException
+ * with a must_accept_condition error, re-presenting the consent page.
+ *
+ * Relationships: delegates consent storage to TermsOfUseConsentUsecase and GdprConsentUsecase,
+ * calls AuthenticateUser for post-consent pre-authentication, and relies on HtmlSecurer and
+ * DecorateHtml for rendering.
+ */
 class TermsAndGdprConsentForm implements StepForm
 {
     public function __construct(
@@ -33,6 +52,13 @@ class TermsAndGdprConsentForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders the consent page showing terms text and GDPR purpose checkboxes.
+     *
+     * Fetches the first pending terms-of-use consent document and all pending GDPR purposes
+     * for the current user, then emits an HTML page with the readonly terms textarea, the
+     * acceptance checkbox, and an optional GDPR block.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -111,6 +137,13 @@ class TermsAndGdprConsentForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Records the terms acceptance and all GDPR decisions, then pre-authenticates the user.
+     *
+     * Stores the accepted terms document via TermsOfUseConsentUsecase and the individual GDPR
+     * purpose decisions (keyed by uid) via GdprConsentUsecase, capturing IP and User-Agent for
+     * audit purposes. Throws LoginException if the user did not tick the acceptance checkbox.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {

@@ -16,6 +16,22 @@ use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
 
+/**
+ * Infrastructure adapter that implements MfaGateway by delegating to the shared MFA subsystem.
+ *
+ * This class bridges the Profile feature's domain MfaGateway port to the concrete
+ * UserMfaGateway and UserWriteGateway dependencies that live in the Access and OAuth/Mfa
+ * bounded contexts.  It is responsible for resolving the tenant and user entities via
+ * UserLoaderAdapter before forwarding any TOTP operation to the underlying gateway.
+ *
+ * Distributed tracing spans and structured log entries are emitted for every public
+ * operation using the LoggerAwareTrait and TracerAwareTrait mixins, ensuring observability
+ * without coupling the domain layer to any particular tracing library.
+ *
+ * When enabling MFA the adapter validates the user-supplied OTP against the provisional
+ * seed and throws BadRequestException for an invalid code, preventing storage of an
+ * unverified seed.
+ */
 class MfaAdapter implements MfaGateway
 {
     use LoggerAwareTrait;
@@ -28,6 +44,12 @@ class MfaAdapter implements MfaGateway
     ) {
     }
 
+    /**
+     * Checks whether TOTP second-factor authentication is currently active for the user.
+     *
+     * Resolves the tenant and user, then reads the isUseSecondFactors flag stored on
+     * the user entity; returns true only when the flag is explicitly set to true.
+     */
     #[Override]
     public function isEnabled(string $userUid, string $tenant): bool
     {
@@ -36,6 +58,12 @@ class MfaAdapter implements MfaGateway
         return (bool) $theUser->isUseSecondFactors();
     }
 
+    /**
+     * Generates a fresh TOTP seed and a QR code image for the MFA enrolment wizard.
+     *
+     * Delegates to UserMfaGateway::configurationForNewMfa() and wraps the result in
+     * a MfaSetup value object.  The seed is provisional until confirmed via enable().
+     */
     #[Override]
     public function buildSetup(string $userUid, string $tenant): MfaSetup
     {
@@ -54,6 +82,12 @@ class MfaAdapter implements MfaGateway
         }
     }
 
+    /**
+     * Verifies the supplied OTP against the provisional seed and, if valid, stores the seed.
+     *
+     * Throws BadRequestException when the OTP is incorrect so the profile UI can render
+     * an inline error without triggering a generic 500 response.
+     */
     #[Override]
     public function enable(string $userUid, string $tenant, string $seed, string $otp): void
     {
@@ -75,6 +109,12 @@ class MfaAdapter implements MfaGateway
         }
     }
 
+    /**
+     * Clears the stored TOTP seed so the user is no longer challenged for a second factor.
+     *
+     * Persists the change through UserWriteGateway::update() using the change-set returned
+     * by User::setMfaSeed(null, null).
+     */
     #[Override]
     public function disable(string $userUid, string $tenant): void
     {

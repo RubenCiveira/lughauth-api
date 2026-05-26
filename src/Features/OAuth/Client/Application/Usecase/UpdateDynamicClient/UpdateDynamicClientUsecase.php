@@ -10,8 +10,22 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\DynamicClientRequest;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Exception\DynamicClientException;
 
+/**
+ * Application use case that implements the update (PUT) endpoint of the OAuth 2.0 Dynamic
+ * Client Registration Management Protocol defined in RFC 7592.
+ *
+ * The caller must present the registration access token that was issued at registration time;
+ * the gateway validates it by comparing the SHA-256 hash stored alongside the client record.
+ * Before delegating to the gateway, all redirect URIs in the incoming request are validated to
+ * reject dangerous schemes ("javascript:", "data:", "vbscript:") and empty-scheme URIs.
+ *
+ * A DynamicClientException with "invalid_token" (HTTP 401) is raised when the token does not
+ * match or the client is not found. A DynamicClientException with "invalid_redirect_uri" (HTTP
+ * 400) is raised for any rejected URI scheme.
+ */
 final class UpdateDynamicClientUsecase
 {
+    /** List of URI schemes that are explicitly forbidden as redirect URIs for security reasons. */
     private const array FORBIDDEN_URI_SCHEMES = ['javascript', 'data', 'vbscript'];
 
     public function __construct(
@@ -19,6 +33,10 @@ final class UpdateDynamicClientUsecase
     ) {
     }
 
+    /**
+     * Validates redirect URIs in the request, then delegates the update to the gateway
+     * and returns the refreshed client metadata snapshot on success.
+     */
     public function update(string $clientId, string $registrationAccessToken, DynamicClientRequest $request): DynamicClientData
     {
         foreach ($request->redirectUris as $uri) {

@@ -7,7 +7,21 @@ namespace Civi\Lughauth\Features\OAuth\Client\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Client\Domain\ApiKeyData;
 
+/**
+ * Domain port (outbound gateway) for resolving M2M API key credentials.
+ *
+ * This interface decouples the OAuth token-endpoint logic from the concrete persistence
+ * mechanism used to store API keys. Implementations are responsible for looking up a raw
+ * key string in the appropriate store and returning an ApiKeyData value object when the key
+ * is found and valid, or null when it is unknown or disabled.
+ *
+ * The single method contract keeps implementations focused and easy to test in isolation.
+ */
 interface ApiKeyStoreGateway
 {
+    /**
+     * Looks up the given raw API key and returns its associated metadata when found.
+     * Returns null if no matching, active key exists in the store.
+     */
     public function apiKey(string $apiKey): ?ApiKeyData;
 }

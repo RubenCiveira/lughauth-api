@@ -14,6 +14,19 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "user.login" mail template used to notify users of a
+ * new sign-in to their account.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "user.login" bound to the "corporate-mail" theme
+ * and appends a TemplateVersion containing the HTML email body with Handlebars placeholders
+ * for the user name ({{user.name}}), login date ({{login.date}}), and originating IP
+ * address ({{login.ip}}).
+ *
+ * The template is enabled immediately after creation so it is ready for the notification
+ * subsystem to dispatch on the first successful login event.
+ */
 class InstallLoginTemplate
 {
     public function __construct(
@@ -22,6 +35,10 @@ class InstallLoginTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "user.login" mail template along with its first version
+     * containing the login-notification email body.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

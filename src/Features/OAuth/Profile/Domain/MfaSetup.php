@@ -5,8 +5,27 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Profile\Domain;
 
+/**
+ * Value object carrying the data required to enrol a user in TOTP-based MFA.
+ *
+ * Instances are produced by MfaGateway::buildSetup() and consumed by the profile
+ * UI panel (MfaPanel) to render the setup wizard.  The seed must be confirmed by
+ * the user with a valid OTP before it is stored; until then it is considered
+ * provisional and should not be persisted.
+ *
+ * The optional qrImage field holds a data-URI or URL of a QR code that encodes
+ * the TOTP provisioning URI, making it convenient for authenticator apps to
+ * scan.  When the gateway cannot produce a QR image it leaves this field null
+ * and the UI falls back to displaying the raw seed string.
+ */
 class MfaSetup
 {
+    /**
+     * Constructs an MFA setup payload with the TOTP seed and an optional QR code image.
+     *
+     * Both fields are immutable once set; a new MfaSetup must be requested from
+     * the gateway if the seed needs to be regenerated.
+     */
     public function __construct(
         public readonly string $seed,
         public readonly ?string $qrImage = null,

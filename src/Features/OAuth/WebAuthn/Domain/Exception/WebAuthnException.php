@@ -7,33 +7,67 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Exception;
 
 use RuntimeException;
 
+/**
+ * Domain exception that represents any failure in the WebAuthn ceremony flow.
+ *
+ * All error conditions that can arise during registration or authentication are
+ * expressed through named factory methods rather than raw constructor calls, so
+ * that callers receive a descriptive message and the codebase has a single canonical
+ * location for WebAuthn error strings. The exception is final to prevent subclassing
+ * that could obscure the specific error origin. Handlers should map these to HTTP
+ * 400 Bad Request or 401 Unauthorized responses depending on the ceremony context.
+ */
 final class WebAuthnException extends RuntimeException
 {
+    /**
+     * Raised when the stored challenge has passed its expiration timestamp.
+     * The client must restart the ceremony by calling the begin endpoint again.
+     */
     public static function challengeExpired(): self
     {
         return new self('WebAuthn challenge has expired');
     }
 
+    /**
+     * Raised when no challenge matching the supplied ID exists for the tenant.
+     * May indicate a replay of an already-consumed challenge or a stale client request.
+     */
     public static function challengeNotFound(): self
     {
         return new self('WebAuthn challenge not found');
     }
 
+    /**
+     * Raised when the credential ID from the assertion does not match any stored credential.
+     * Typically indicates the authenticator was never registered with this relying party.
+     */
     public static function credentialNotFound(): self
     {
         return new self('WebAuthn credential not found');
     }
 
+    /**
+     * Raised when the matched credential exists but has been administratively disabled.
+     * The user must register a new passkey or contact support to re-enable the device.
+     */
     public static function credentialDisabled(): self
     {
         return new self('WebAuthn credential is disabled');
     }
 
+    /**
+     * Raised when the assertion sign count is not greater than the stored value.
+     * This indicates a possible cloned authenticator and the assertion must be rejected.
+     */
     public static function replayAttack(): self
     {
         return new self('WebAuthn replay attack detected: sign count too low');
     }
 
+    /**
+     * Raised for any generic cryptographic or protocol verification failure.
+     * The reason string provides a human-readable description of the specific check that failed.
+     */
     public static function verificationFailed(string $reason): self
     {
         return new self('WebAuthn verification failed: ' . $reason);

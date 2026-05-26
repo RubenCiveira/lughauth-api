@@ -11,6 +11,16 @@ use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Servi
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\VerifyMagicLink\VerifyMagicLinkUsecase;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 
+/**
+ * HTML driver controller that handles the browser-facing magic-link verification endpoint.
+ *
+ * Receives the GET request from the user's email client, extracts the token and client_id
+ * query parameters, and delegates to VerifyMagicLinkUsecase. On success it issues a 302
+ * redirect to the OAuth callback URI and, when a session was established, attaches a secure
+ * session cookie via OidcCookieManager. On any verification failure it renders a themed
+ * error page with HTTP 400 rather than leaking the specific failure reason. The rendered
+ * error message is intentionally generic to prevent oracle attacks on token validity.
+ */
 class MagicLinkVerifyHtml
 {
     public function __construct(
@@ -20,6 +30,10 @@ class MagicLinkVerifyHtml
     ) {
     }
 
+    /**
+     * Handles the magic-link verification request, redirecting on success or rendering an error page on failure.
+     * Sets a session cookie on the response when the use case returns a valid session object.
+     */
     public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant   = $args['tenant'];

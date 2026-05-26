@@ -14,6 +14,19 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersi
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
+/**
+ * Installation step that seeds the "user.recover" mail template used to send password
+ * recovery links to users who have requested a password reset.
+ *
+ * This class is invoked once during the initial system installation by InstallUsecase. It
+ * creates a Template entity with code "user.recover" bound to the "corporate-mail" theme
+ * and appends a TemplateVersion containing the HTML email body with Handlebars placeholders
+ * for the user name ({{user.name}}), the recovery URL ({{recover.url}}), and the link
+ * expiry date ({{recover.expires}}).
+ *
+ * The template is enabled immediately after creation so the notification subsystem can
+ * dispatch it as soon as the first password recovery request is received.
+ */
 class InstallPasswordRecoverTemplate
 {
     public function __construct(
@@ -22,6 +35,10 @@ class InstallPasswordRecoverTemplate
     ) {
     }
 
+    /**
+     * Creates and enables the "user.recover" mail template along with its first version
+     * containing the password-reset email body.
+     */
     public function install(): void
     {
         $tpl = new TemplateAttributes();

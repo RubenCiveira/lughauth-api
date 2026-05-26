@@ -5,6 +5,15 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Session\Domain\Exception;
 
+/**
+ * Domain exception thrown when a JWS token signature cannot be verified.
+ *
+ * Raised by TemporalKeysSqlAdapter when neither the current signing key nor the previous
+ * fallback key produces a valid signature for the supplied compact-serialised JWS. Callers
+ * that catch this exception should treat the associated token as invalid and deny the request.
+ * It extends RuntimeException so it does not need to be declared in method signatures, keeping
+ * the gateway interface clean.
+ */
 class SignatureVerificationException extends \RuntimeException
 {
 }

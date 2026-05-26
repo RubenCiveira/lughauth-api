@@ -7,15 +7,49 @@ namespace Civi\Lughauth\Features\OAuth\Client\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
+/**
+ * Domain port (outbound gateway) for reading OAuth client configuration from the client store.
+ *
+ * This interface abstracts all client lookup strategies needed throughout the authorization
+ * server. Different methods cover the distinct validation levels required at each protocol
+ * step: secret-authenticated lookups for confidential clients, redirect-URI-validated lookups
+ * for public clients, and pre-validated lookups for PAR or device flows where the client has
+ * already been checked upstream. All methods return null on any validation failure so that
+ * callers can treat absence as an opaque rejection without leaking internal details.
+ *
+ * Implementations translate from the Access bounded context's TrustedClient entity into the
+ * OAuth-specific ClientData value object, acting as an anti-corruption layer.
+ */
 interface ClientStoreGateway
 {
+    /**
+     * Retrieves client data after verifying both the client ID and the plain-text client secret.
+     * Returns null if the client is unknown, disabled, or the secret does not match.
+     */
     public function clientData(string $clientId, string $clientSecret): ?ClientData;
 
+    /**
+     * Retrieves client data for a known enabled client without secret verification.
+     * Intended for flows that authenticate the client through other means (e.g. PAR with PKCE).
+     */
     public function findEnabledClient(string $clientId): ?ClientData;
 
+    /**
+     * Retrieves client data for a client that allows public (unauthenticated) access and is enabled.
+     * Returns null if the client is not enabled or does not permit public access.
+     */
     public function preValidatedClient(string $clientId): ?ClientData;
 
+    /**
+     * Retrieves client data for a public client after also validating that the redirect URL is
+     * registered for that client, scoped to the given tenant and scope string.
+     * Returns null on any validation failure including unknown redirect URIs.
+     */
     public function publicClientData(string $id, string $tenant, string $redirectUrl, string $scope): ?ClientData;
 
+    /**
+     * Returns the first registered redirect URI for the given client, or null if none exists
+     * or the client is disabled. Useful as a fallback when the caller did not supply a redirect_uri.
+     */
     public function defaultRedirectUri(string $clientId): ?string;
 }

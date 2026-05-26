@@ -13,6 +13,17 @@ use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\Enque
 use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\EnqueueNotificationUsecase;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkMailGateway;
 
+/**
+ * Infrastructure adapter that delivers the magic-link email through the application's
+ * notification outbox infrastructure.
+ *
+ * Translates the domain-level sendMagicLink call into an EnqueueNotificationCommand targeting
+ * the 'auth.magic_link' template over the MAIL channel. The message is marked urgent so the
+ * outbox worker prioritises it over non-critical notifications. Template variables include the
+ * user's display name, the clickable magic URL, and the human-readable expiry time.
+ * Actual SMTP delivery is handled asynchronously by the outbox consumer, decoupling token
+ * generation latency from email infrastructure latency.
+ */
 class MagicLinkMailAdapter implements MagicLinkMailGateway
 {
     public function __construct(
@@ -20,6 +31,10 @@ class MagicLinkMailAdapter implements MagicLinkMailGateway
     ) {
     }
 
+    /**
+     * Enqueues an urgent magic-link email notification using the 'auth.magic_link' template.
+     * The email is delivered asynchronously by the notification outbox worker.
+     */
     #[Override]
     public function sendMagicLink(
         string $toEmail,

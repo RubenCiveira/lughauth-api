@@ -8,28 +8,157 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Domain;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 
+/**
+ * Immutable value object capturing all parameters of an in-progress OIDC authorization request.
+ *
+ * Assembled once from the incoming HTTP request at the entry point of the authorization flow and
+ * passed through every step handler without modification. Centralises all query-string, cookie, and
+ * header extraction so that individual step handlers do not depend on the raw HTTP request object
+ * beyond this context being available.
+ *
+ * The fromRequest() factory handles audience normalisation (comma-separated string or array),
+ * constructs the tenant-scoped issuer URL, and reads the tenant-specific session cookie.
+ * PKCE parameters are captured as nullable fields; null means the client did not include PKCE,
+ * which is permitted for confidential clients but should be enforced for public ones.
+ */
 final class OidcFlowContext
 {
+    /**
+     * Tenant identifier extracted from the URL path of the authorization endpoint.
+     * Determines which identity store, signing keys, and policies are applied to this flow.
+     */
+    public readonly string $tenant;
+
+    /**
+     * OAuth client_id parameter supplied by the Relying Party in the authorization request.
+     * Used to load and validate the registered client configuration from the client store.
+     */
+    public readonly string $clientId;
+
+    /**
+     * Redirect URI supplied by the client; must match a registered URI before tokens are issued.
+     * Carried through the flow so the final response can redirect to the correct destination.
+     */
+    public readonly string $redirect;
+
+    /**
+     * Space-separated scope string requested by the client in the authorization request.
+     * Subject to policy enforcement; the granted scopes may be a subset of this value.
+     */
+    public readonly string $scope;
+
+    /**
+     * OAuth response_type parameter (e.g., "code") indicating the desired response mode.
+     * Validated against the client's permitted response types before the flow proceeds.
+     */
+    public readonly string $responseType;
+
+    /**
+     * Opaque state value supplied by the client to prevent CSRF attacks.
+     * Echoed back verbatim in the redirect response without interpretation by the IdP.
+     */
+    public readonly string $state;
+
+    /**
+     * Nonce value supplied by the client for replay protection in ID tokens.
+     * Included in the issued ID token's nonce claim so the client can verify freshness.
+     */
+    public readonly string $nonce;
+
+    /**
+     * List of resource server audience identifiers for which the access token should be valid.
+     * Normalised from either a comma-separated query parameter string or a repeated parameter array.
+     */
+    public readonly array $audiences;
+
+    /**
+     * Requested prompt behaviour (e.g., "none", "login", "consent") controlling the UI flow.
+     * An empty string means the IdP may apply its default behaviour.
+     */
+    public readonly string $prompt;
+
+    /**
+     * Preferred locale extracted from the Accept-Language request header.
+     * Used to render the login UI in the user's language when the theme supports localisation.
+     */
+    public readonly string $locale;
+
+    /**
+     * Base URL of the authorization server without a trailing slash.
+     * Used to construct issuer URLs, cookie names, and absolute redirect targets.
+     */
+    public readonly string $baseUrl;
+
+    /**
+     * Tenant-scoped issuer URL derived from baseUrl and the tenant identifier.
+     * Included in the iss claim of all tokens issued during this flow.
+     */
+    public readonly string $issuer;
+
+    /**
+     * Value of the tenant-specific AUTH_SESSION_ID cookie if present in the request.
+     * Non-null means the browser carries an existing session that may be reused.
+     */
+    public readonly ?string $sessionId;
+
+    /**
+     * Value of the PRE_SESSION_ID cookie representing a partially completed login session.
+     * Non-null when the user was redirected mid-flow (e.g., after MFA) and needs to resume.
+     */
+    public readonly ?string $preSessionId;
+
+    /**
+     * PKCE code challenge value provided by the client for public client flows.
+     * Null when the client did not include PKCE; enforcement policy is applied upstream.
+     */
+    public readonly ?string $codeChallenge;
+
+    /**
+     * PKCE code challenge method, either "S256" or "plain".
+     * Null when no challenge was provided; always read together with codeChallenge.
+     */
+    public readonly ?string $codeChallengeMethod;
+
     public function __construct(
-        public readonly string $tenant,
-        public readonly string $clientId,
-        public readonly string $redirect,
-        public readonly string $scope,
-        public readonly string $responseType,
-        public readonly string $state,
-        public readonly string $nonce,
-        public readonly array $audiences,
-        public readonly string $prompt,
-        public readonly string $locale,
-        public readonly string $baseUrl,
-        public readonly string $issuer,
-        public readonly ?string $sessionId,
-        public readonly ?string $preSessionId,
-        public readonly ?string $codeChallenge,
-        public readonly ?string $codeChallengeMethod,
+        string $tenant,
+        string $clientId,
+        string $redirect,
+        string $scope,
+        string $responseType,
+        string $state,
+        string $nonce,
+        array $audiences,
+        string $prompt,
+        string $locale,
+        string $baseUrl,
+        string $issuer,
+        ?string $sessionId,
+        ?string $preSessionId,
+        ?string $codeChallenge,
+        ?string $codeChallengeMethod,
     ) {
+        $this->tenant = $tenant;
+        $this->clientId = $clientId;
+        $this->redirect = $redirect;
+        $this->scope = $scope;
+        $this->responseType = $responseType;
+        $this->state = $state;
+        $this->nonce = $nonce;
+        $this->audiences = $audiences;
+        $this->prompt = $prompt;
+        $this->locale = $locale;
+        $this->baseUrl = $baseUrl;
+        $this->issuer = $issuer;
+        $this->sessionId = $sessionId;
+        $this->preSessionId = $preSessionId;
+        $this->codeChallenge = $codeChallenge;
+        $this->codeChallengeMethod = $codeChallengeMethod;
     }
 
+    /**
+     * Constructs an OidcFlowContext by extracting all relevant parameters from an HTTP request.
+     * Reads query params, cookies, and the Accept-Language header and derives the issuer and base URL from context.
+     */
     public static function fromRequest(ServerRequestInterface $request, string $tenant, Context $context): self
     {
         $query = $request->getQueryParams();

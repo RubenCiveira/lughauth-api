@@ -7,9 +7,31 @@ namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels
 
 use Civi\Lughauth\Features\OAuth\Profile\Domain\ActiveSession;
 
+/**
+ * HTML rendering component for the active sessions management panel.
+ *
+ * This panel renders each of a user's active OAuth sessions as a card showing the
+ * associated client name, IP address, user agent, last-used timestamp, and expiration
+ * date.  The current session (identified by $currentSessionId) is highlighted with a
+ * badge and its revoke button is replaced by a "this device" label to prevent
+ * self-lockout.
+ *
+ * Each non-current session card contains a POST form that submits to
+ * $revokeBaseUrl/{sessionId}, allowing the user to individually terminate any live
+ * session from any device.  All dynamic values are HTML-escaped before insertion into
+ * the markup.  Labels and translatable strings are provided through the $t array.
+ */
 class SessionsPanel
 {
-    /** @param ActiveSession[] $sessions */
+    /**
+     * Renders the sessions panel as an HTML string, listing one card per active session.
+     *
+     * When $sessions is empty a localised empty-state paragraph is rendered instead
+     * of the cards.  The current session card omits the revoke form and shows a
+     * "this device" indicator instead.
+     *
+     * @param ActiveSession[] $sessions
+     */
     public function render(array $sessions, string $revokeBaseUrl, string $cancelUrl, ?string $currentSessionId = null, array $t = []): string
     {
         $cancelUrl = htmlspecialchars($cancelUrl);

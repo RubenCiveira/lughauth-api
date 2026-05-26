@@ -9,6 +9,17 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 
+/**
+ * REST driver controller that exposes the magic-link request endpoint to API consumers.
+ *
+ * Accepts a POST request with the user's email, OAuth client_id, redirect_uri, scope, and
+ * optional state, then delegates to RequestMagicLinkUsecase. The response is always HTTP 202
+ * Accepted regardless of whether the email exists, the feature is enabled, or any other
+ * precondition — this is a deliberate anti-enumeration measure that prevents callers from
+ * discovering valid email addresses or enabled tenants by observing response codes.
+ * Requests with a missing email, client_id, or redirect_uri are silently discarded before
+ * reaching the use case.
+ */
 class MagicLinkRequestController
 {
     public function __construct(
@@ -16,6 +27,10 @@ class MagicLinkRequestController
     ) {
     }
 
+    /**
+     * Handles the magic-link initiation request and always returns HTTP 202 regardless of outcome.
+     * Missing required fields (email, client_id, redirect_uri) cause the use case to be skipped entirely.
+     */
     public function request(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

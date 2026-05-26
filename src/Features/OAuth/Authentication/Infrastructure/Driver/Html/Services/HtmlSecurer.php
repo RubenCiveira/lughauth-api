@@ -10,6 +10,24 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 
+/**
+ * Infrastructure service that injects client-side security scripts and handles symmetric encryption.
+ *
+ * HtmlSecurer is responsible for two distinct concerns. First, it produces Snipped objects
+ * that, when assembled by configureScripts(), generate the JavaScript block injected into
+ * each login form page. These snippets cover: CSRF token signing (addSign/addSignAndSend),
+ * field-level AES encryption of sensitive inputs before form submission (cypher), auto-focus
+ * (focusOn), and auto-submit (autoSubmit). The signing uses rotating keys supplied by
+ * TemporalKeysGateway so tokens are short-lived.
+ *
+ * Second, it provides server-side helpers for encrypting and decrypting values (encrypt /
+ * decrypt) that correspond to the in-browser encryption, and a verifyToken helper for
+ * validating incoming CSRF tokens. Together these close the round-trip: the browser encrypts
+ * with the current key, the server decrypts and verifies with the same gateway.
+ *
+ * The assetsPath is resolved from application config and is prepended to JavaScript dependency
+ * filenames so the correct CDN or local path is used without hardcoding it in form code.
+ */
 class HtmlSecurer
 {
     private readonly string $assetsPath;
@@ -23,41 +41,89 @@ class HtmlSecurer
         $this->assetsPath = $config->get('oidc.assets.path', $context->getBaseUrl() . '/oauth/assets/');
     }
 
+    /**
+     * Verifies a CSRF token received from the browser and returns its payload string on success.
+     *
+     * Returns null when the token is invalid, expired, or has already been consumed, so
+     * callers can treat a null result as an authentication failure.
+     */
     public function verifyToken(string $token): ?string
     {
         return $this->keys->verifyToken($token);
     }
 
+    /**
+     * Produces a Snipped that signs a CSRF token into the named field and then auto-submits the form.
+     *
+     * Combines addSign and an immediate form submit so the page can perform a silent POST
+     * (e.g. the check-session refresh page) without any user interaction.
+     */
     public function addSignAndSend(string $name, string $form): Snipped
     {
         return $this->addSignCode($name, true, $form);
     }
 
+    /**
+     * Produces a Snipped that signs a CSRF token into the named hidden input field.
+     *
+     * Temporarily disables submit buttons while the async signing operation is in progress to
+     * prevent double-submission before the token is ready.
+     */
     public function addSign(string $name): Snipped
     {
         return $this->addSignCode($name, false, '');
     }
 
+    /**
+     * Encrypts a plain-text value using the current rotating session key and returns the ciphertext.
+     *
+     * The encrypted value is suitable for embedding in a hidden form field so the browser can
+     * round-trip encrypted data without ever seeing the underlying key.
+     */
     public function encrypt(string $value): string|null
     {
         return $this->keys->encrypt($value);
     }
 
+    /**
+     * Decrypts and verifies a value that was previously encrypted by the server or the browser.
+     *
+     * Returns null when the ciphertext is invalid, tampered with, or produced by an expired key.
+     */
     public function decrypt(string $value): string|null
     {
         return $this->keys->verifyCypher($value);
     }
 
+    /**
+     * Produces a Snipped that sets focus on the specified input element after page load.
+     *
+     * Improves usability by moving keyboard focus directly to the most relevant field
+     * without requiring extra user interaction.
+     */
     public function focusOn(string $name): Snipped
     {
         return new Snipped(code: "document.getElementById('" . $name . "').focus();", dependecies: []);
     }
 
+    /**
+     * Produces a Snipped that auto-submits the specified form element after page load.
+     *
+     * Used for transparent redirect forms where the page should submit itself immediately
+     * without waiting for user input.
+     */
     public function autoSubmit(string $form): Snipped
     {
         return new Snipped(code: "document.getElementById('".$form."').submit();", dependecies: []);
     }
 
+    /**
+     * Produces a Snipped that AES-encrypts the specified fields in the browser before form submission.
+     *
+     * Each entry in the fields array maps a visible input (from) to a hidden input (to). On
+     * submit the plaintext value is encrypted with the current rotating key and written to the
+     * hidden field; the visible field is cleared to prevent plaintext transmission.
+     */
     public function cypher(array $fields, string $form): Snipped
     {
         $secret = $this->keys->currentKey();
@@ -84,6 +150,13 @@ class HtmlSecurer
             . " });})();", dependecies: ["oauth.min.js"]);
     }
 
+    /**
+     * Assembles multiple Snipped objects into a single HTML script block ready for injection.
+     *
+     * Deduplicates both dependency script tags and inline code fragments, then wraps the
+     * combined inline code in a DOMContentLoaded listener so it executes after the page
+     * has finished parsing.
+     */
     public function configureScripts(array $spnippeds): string
     {
         $imp = "";
@@ -128,6 +201,14 @@ class HtmlSecurer
     }
 }
 
+/**
+ * Value object that carries a JavaScript code fragment and its external script dependencies.
+ *
+ * Snipped instances are produced by HtmlSecurer helper methods and consumed by
+ * configureScripts(). The code string is raw JavaScript intended to run inside a
+ * DOMContentLoaded handler; the dependecies array lists the filenames of external scripts
+ * that must be loaded (via script tags) before the code can execute.
+ */
 class Snipped
 {
     public function __construct(

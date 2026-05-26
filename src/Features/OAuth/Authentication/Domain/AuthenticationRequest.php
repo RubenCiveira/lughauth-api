@@ -12,15 +12,54 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
  *
  * Passed into the authentication pipeline to validate the client,
  * resolve the required auth steps, and build the final redirect response.
+ * Carries the resolved ClientData object alongside the raw OAuth parameters so that
+ * downstream services do not need to re-fetch client configuration from the store.
+ * The audiences array supports resource-indicator style requests (RFC 8707) where the
+ * caller explicitly scopes the token to one or more resource servers.
  */
 class AuthenticationRequest
 {
+    /**
+     * Resolved client configuration including allowed scopes, redirect URIs, and grant type restrictions.
+     * Populated by the client resolution layer before the request enters the authentication pipeline.
+     */
+    public readonly ClientData $client;
+
+    /**
+     * Space-separated list of OAuth scopes requested by the client.
+     * The final granted scopes may be a subset after applying client-level policy.
+     */
+    public readonly string $scope;
+
+    /**
+     * Redirect URI supplied by the client in the authorization request.
+     * Must match one of the registered redirect URIs for the client; validation is done upstream.
+     */
+    public readonly string $redirect;
+
+    /**
+     * OAuth response type (e.g., "code", "token") requested by the client.
+     * Null when not supplied, in which case the default for the grant type applies.
+     */
+    public readonly ?string $responseType;
+
+    /**
+     * List of resource server audience identifiers for which the token should be valid.
+     * An empty array means no explicit audience restriction beyond the client itself.
+     */
+    public readonly array $audiences;
+
     public function __construct(
-        public readonly ClientData $client,
-        public readonly string $scope,
-        public readonly string $redirect,
-        public readonly ?string $responseType = null,
-        public readonly array $audiences = [],
+        ClientData $client,
+        string $scope,
+        string $redirect,
+        ?string $responseType = null,
+        array $audiences = [],
     ) {
+        $this->client = $client;
+        $this->scope = $scope;
+        $this->redirect = $redirect;
+        $this->responseType = $responseType;
+        $this->audiences = $audiences;
     }
 }

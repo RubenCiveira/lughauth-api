@@ -9,12 +9,16 @@ use DateTimeImmutable;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
 /**
- * Tracks the state of an OAuth 2.0 Device Authorization Grant request (RFC 8628).
+ * Immutable value object that tracks the full state of an OAuth 2.0 Device Authorization Grant request (RFC 8628).
  *
- * The `userCode` is a short, human-typeable string presented on the device.
- * `status` transitions from `PENDING` to `APPROVED` or `DENIED` after the
- * user acts on the verification URI. The token endpoint polls `isExpired()`
- * and `expiresIn()` to enforce the expiry and return the correct error codes.
+ * A DeviceAuthorization is created by DeviceAuthorizationService when a device initiates
+ * the flow and is persisted via DeviceAuthorizationGateway. The userCode is a short,
+ * dash-separated, human-typeable string (e.g. "ABCD-1234") that the device displays;
+ * the user visits the verification URI and enters this code to approve the request.
+ * The status field transitions from PENDING to APPROVED (user confirmed) or DENIED
+ * (user rejected). The token endpoint calls isExpired() and expiresIn() to enforce
+ * the expiry window and lastPollAt together with interval to detect overly rapid polling.
+ * Once approved and consumed by the token endpoint the record is deleted from storage.
  */
 final class DeviceAuthorization
 {
@@ -34,11 +38,19 @@ final class DeviceAuthorization
     ) {
     }
 
+    /**
+     * Returns true when the given instant is past the authorization's expiry timestamp.
+     * Expired authorizations must be rejected with the expired_token error code.
+     */
     public function isExpired(DateTimeImmutable $now): bool
     {
         return $now > $this->expiresAt;
     }
 
+    /**
+     * Returns the number of seconds remaining until this authorization expires relative to the given instant.
+     * Returns zero rather than a negative value once the authorization is past its expiry time.
+     */
     public function expiresIn(DateTimeImmutable $now): int
     {
         $diff = $this->expiresAt->getTimestamp() - $now->getTimestamp();

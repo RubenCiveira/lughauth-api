@@ -13,6 +13,17 @@ use Civi\Lughauth\Features\OAuth\Device\Domain\DeviceAuthorizationStatus;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 
+/**
+ * SQL-backed implementation of DeviceAuthorizationGateway that stores device codes in the _oauth_device_codes table.
+ *
+ * All state transitions (create, approve, deny, touchPoll, consume) are executed via prepared
+ * PDO statements against a single flat table. The AuthenticationResult associated with an
+ * approved authorization is serialised as a JSON blob in the auth_data column so it can be
+ * reconstructed on the next token endpoint poll. Expired records are purged automatically
+ * in the constructor to prevent the table from growing unboundedly between explicit cleanups.
+ * The adapter serialises DateTimeImmutable values to MySQL-compatible datetime strings and
+ * deserialises them back on read, keeping the domain objects storage-agnostic.
+ */
 class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
 {
     public function __construct(private readonly PDO $pdo)
@@ -32,7 +43,8 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         $stmt->bindValue('tenant', $authorization->tenant, PDO::PARAM_STR);
         $stmt->bindValue('client_id', $authorization->clientId, PDO::PARAM_STR);
         $stmt->bindValue('scope', $authorization->scope, PDO::PARAM_STR);
-        $stmt->bindValue('audiences', json_encode($authorization->audiences) ?: '[]', PDO::PARAM_STR);
+        $encoded = json_encode($authorization->audiences);
+        $stmt->bindValue('audiences', $encoded !== false ? $encoded : '[]', PDO::PARAM_STR);
         $stmt->bindValue('status', $authorization->status, PDO::PARAM_STR);
         $stmt->bindValue('auth_data', null, PDO::PARAM_NULL);
         $stmt->bindValue('requested_at', $authorization->requestedAt->format('Y-m-d H:i:s'), PDO::PARAM_STR);
@@ -42,6 +54,11 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         $stmt->execute();
     }
 
+    /**
+     * Retrieves a DeviceAuthorization by its opaque device code regardless of tenant.
+     * Returns null when no matching record is found.
+     */
+    #[Override]
     public function findByDeviceCode(string $deviceCode): ?DeviceAuthorization
     {
         $stmt = $this->pdo->prepare('SELECT * FROM _oauth_device_codes WHERE device_code = :device_code');
@@ -53,6 +70,11 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         return null;
     }
 
+    /**
+     * Retrieves a DeviceAuthorization within a specific tenant by the human-typeable user code.
+     * Returns null when no matching record exists in that tenant.
+     */
+    #[Override]
     public function findByUserCode(string $tenant, string $userCode): ?DeviceAuthorization
     {
         $stmt = $this->pdo->prepare('SELECT * FROM _oauth_device_codes WHERE tenant = :tenant AND user_code = :user_code');
@@ -65,15 +87,27 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         return null;
     }
 
+    /**
+     * Transitions the record identified by deviceCode to APPROVED status and stores
+     * the AuthenticationResult so the token endpoint can retrieve it on the next poll.
+     * Returns true when the update affected a row, false otherwise.
+     */
+    #[Override]
     public function approve(string $deviceCode, AuthenticationResult $auth): bool
     {
         $stmt = $this->pdo->prepare('UPDATE _oauth_device_codes SET status = :status, auth_data = :auth_data WHERE device_code = :device_code');
         $stmt->bindValue('status', DeviceAuthorizationStatus::APPROVED, PDO::PARAM_STR);
-        $stmt->bindValue('auth_data', json_encode($this->authToArray($auth)) ?: '{}', PDO::PARAM_STR);
+        $encodedAuth = json_encode($this->authToArray($auth));
+        $stmt->bindValue('auth_data', $encodedAuth !== false ? $encodedAuth : '{}', PDO::PARAM_STR);
         $stmt->bindValue('device_code', $deviceCode, PDO::PARAM_STR);
         return $stmt->execute();
     }
 
+    /**
+     * Transitions the record identified by deviceCode to DENIED status.
+     * Returns true when the update affected a row, false when the record was not found.
+     */
+    #[Override]
     public function deny(string $deviceCode): bool
     {
         $stmt = $this->pdo->prepare('UPDATE _oauth_device_codes SET status = :status WHERE device_code = :device_code');
@@ -82,6 +116,11 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         return $stmt->execute();
     }
 
+    /**
+     * Records the timestamp of the most recent poll for the given device code.
+     * This timestamp is used to enforce the minimum polling interval on the next request.
+     */
+    #[Override]
     public function touchPoll(string $deviceCode, DateTimeImmutable $now): void
     {
         $stmt = $this->pdo->prepare('UPDATE _oauth_device_codes SET last_poll_at = :last_poll_at WHERE device_code = :device_code');
@@ -90,6 +129,11 @@ class DeviceAuthorizationSqlAdapter implements DeviceAuthorizationGateway
         $stmt->execute();
     }
 
+    /**
+     * Permanently deletes the device authorization record after a successful token exchange or denial.
+     * Once consumed the device code can no longer be used in any subsequent requests.
+     */
+    #[Override]
     public function consume(string $deviceCode): void
     {
         $stmt = $this->pdo->prepare('DELETE FROM _oauth_device_codes WHERE device_code = :device_code');

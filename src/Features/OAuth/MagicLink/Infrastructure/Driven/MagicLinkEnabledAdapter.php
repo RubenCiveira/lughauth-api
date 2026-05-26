@@ -10,6 +10,16 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
 
+/**
+ * Infrastructure adapter that implements the MagicLinkEnabledGateway port by consulting
+ * the tenant configuration stored in the database.
+ *
+ * Resolves the tenant record by name and then loads its associated TenantConfig aggregate
+ * to check the isMagicLinkEnabled flag. If the tenant does not exist or has no configuration
+ * record, the method returns false conservatively. This adapter belongs to the driven side of
+ * the hexagonal architecture and should never be referenced directly by application or domain
+ * code; all consumers must depend on the MagicLinkEnabledGateway interface.
+ */
 class MagicLinkEnabledAdapter implements MagicLinkEnabledGateway
 {
     public function __construct(
@@ -18,6 +28,10 @@ class MagicLinkEnabledAdapter implements MagicLinkEnabledGateway
     ) {
     }
 
+    /**
+     * Returns true only when the tenant exists and its configuration explicitly enables magic-link logins.
+     * Missing tenant or missing configuration both resolve to false without throwing exceptions.
+     */
     #[Override]
     public function isEnabled(string $tenantName): bool
     {

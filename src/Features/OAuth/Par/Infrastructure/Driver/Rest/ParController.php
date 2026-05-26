@@ -12,6 +12,17 @@ use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationReques
 use Civi\Lughauth\Features\OAuth\Par\Application\Usecase\PushAuthorizationRequest\PushAuthorizationUsecase;
 use Civi\Lughauth\Features\OAuth\Par\Domain\Exception\ParException;
 
+/**
+ * REST driver controller that exposes the Pushed Authorization Request endpoint (RFC 9126).
+ *
+ * Accepts application/x-www-form-urlencoded POST requests from confidential clients and
+ * delegates to PushAuthorizationUsecase. Client credentials are resolved from HTTP Basic Auth
+ * first, falling back to form-body client_id and client_secret fields. Authorization parameters
+ * are extracted from the body with client_secret stripped out before forwarding. Any ParException
+ * thrown by the use case is caught and serialised as a JSON error body with the appropriate HTTP
+ * status, producing an RFC 9126-compliant error response. Successful responses return HTTP 201
+ * with request_uri and expires_in fields in the JSON body.
+ */
 class ParController
 {
     public function __construct(
@@ -60,6 +71,10 @@ class ParController
             new OA\Response(response: 401, description: 'Client authentication failed'),
         ]
     )]
+    /**
+     * Handles the PAR POST request, returning HTTP 201 with request_uri and expires_in on success.
+     * Catches ParException and serialises it as a JSON error body with the appropriate HTTP status.
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {

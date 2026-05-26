@@ -17,6 +17,23 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagicLink\
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
+/**
+ * Login step form that handles passwordless authentication via magic links sent by email.
+ *
+ * This form implements a two-page flow within the magic-link step. On the first page the user
+ * enters their email address; the form then calls RequestMagicLinkUsecase to dispatch a
+ * one-time sign-in link to that address and throws a LoginException carrying the
+ * ERR_MAGIC_LINK_SENT result to signal the waiting state. On subsequent renders, detecting
+ * that same error code, it swaps in a confirmation page that instructs the user to check
+ * their inbox.
+ *
+ * The actual link-click verification is handled by a separate endpoint; this form only covers
+ * the request-and-wait phase of the interaction.
+ *
+ * Relationships: delegates magic-link dispatch to RequestMagicLinkUsecase, uses DecorateHtml
+ * for themed page rendering, HtmlSecurer for CSRF signing scripts, and MessageProvider for
+ * translated labels.
+ */
 class MagicLinkLoginForm implements StepForm
 {
     public function __construct(
@@ -27,6 +44,13 @@ class MagicLinkLoginForm implements StepForm
     ) {
     }
 
+    /**
+     * Renders either the email-entry form or the confirmation page, depending on the current error state.
+     *
+     * When the error indicates the magic link has already been sent (ERR_MAGIC_LINK_SENT), the
+     * confirmation page is shown. Otherwise the email-entry form is rendered with CSRF and
+     * auto-focus scripts injected.
+     */
     #[Override]
     public function render(StepInput $input, ResponseInterface $response, ?AuthenticationResult $error): StepResult
     {
@@ -62,6 +86,13 @@ class MagicLinkLoginForm implements StepForm
         return StepResult::render($response, $input->challenges);
     }
 
+    /**
+     * Processes the submitted email and triggers the magic-link dispatch.
+     *
+     * Calls RequestMagicLinkUsecase with the tenant and OAuth flow context, then always throws
+     * a LoginException carrying AuthenticationResult::waitMagicLink() to transition the UI to
+     * the confirmation page on the next render cycle.
+     */
     #[Override]
     public function authenticate(StepInput $input): StepResult
     {
