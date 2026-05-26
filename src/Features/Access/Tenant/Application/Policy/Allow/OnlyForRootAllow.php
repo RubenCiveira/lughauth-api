@@ -47,7 +47,7 @@ class OnlyForRootAllow
     private function check(string $name, AllowDecision $proposal): AllowDecision
     {
         $this->logDebug("Check " . $name . " on OnlyForRootAllow Tenant");
-        $span = $this->startSpan("Check " + name + " on OnlyForRootAllow Tenant");
+        $span = $this->startSpan("Check " . $name . " on OnlyForRootAllow Tenant");
         try {
             $identity = $this->context->getIdentity();
             if ($proposal->isAllowed()) {

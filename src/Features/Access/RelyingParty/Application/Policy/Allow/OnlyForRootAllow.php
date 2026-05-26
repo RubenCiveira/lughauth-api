@@ -57,7 +57,7 @@ class OnlyForRootAllow
     private function check(string $name, AllowDecision $proposal): AllowDecision
     {
         $this->logDebug("Check " . $name . " on OnlyForRootAllow Relying party");
-        $span = $this->startSpan("Check " + name + " on OnlyForRootAllow Relying party");
+        $span = $this->startSpan("Check " . $name . " on OnlyForRootAllow Relying party");
         try {
             $identity = $this->context->getIdentity();
             if ($proposal->isAllowed()) {

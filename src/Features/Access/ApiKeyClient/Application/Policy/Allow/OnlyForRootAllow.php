@@ -57,7 +57,7 @@ class OnlyForRootAllow
     private function check(string $name, AllowDecision $proposal): AllowDecision
     {
         $this->logDebug("Check " . $name . " on OnlyForRootAllow Api key client");
-        $span = $this->startSpan("Check " + name + " on OnlyForRootAllow Api key client");
+        $span = $this->startSpan("Check " . $name . " on OnlyForRootAllow Api key client");
         try {
             $identity = $this->context->getIdentity();
             if ($proposal->isAllowed()) {

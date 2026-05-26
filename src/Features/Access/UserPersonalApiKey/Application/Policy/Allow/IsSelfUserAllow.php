@@ -42,7 +42,7 @@ class IsSelfUserAllow
     private function check(string $name, AllowDecision $proposal): AllowDecision
     {
         $this->logDebug("Check " . $name . " on IsSelfUserAllow User personal api key");
-        $span = $this->startSpan("Check " + name + " on IsSelfUserAllow User personal api key");
+        $span = $this->startSpan("Check " . $name . " on IsSelfUserAllow User personal api key");
         try {
             $identity = $this->context->getIdentity();
             if ($proposal->isAllowed()) {

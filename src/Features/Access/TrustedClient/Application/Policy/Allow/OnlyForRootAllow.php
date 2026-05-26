@@ -57,7 +57,7 @@ class OnlyForRootAllow
     private function check(string $name, AllowDecision $proposal): AllowDecision
     {
         $this->logDebug("Check " . $name . " on OnlyForRootAllow Trusted client");
-        $span = $this->startSpan("Check " + name + " on OnlyForRootAllow Trusted client");
+        $span = $this->startSpan("Check " . $name . " on OnlyForRootAllow Trusted client");
         try {
             $identity = $this->context->getIdentity();
             if ($proposal->isAllowed()) {

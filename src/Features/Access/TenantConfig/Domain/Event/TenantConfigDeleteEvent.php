@@ -16,28 +16,25 @@ class TenantConfigDeleteEvent extends TenantConfigEvent implements PublicEvent
     ) {
         parent::__construct($payload);
     }
-
     #[Override]
     public function eventType(): string
     {
         return 'tenant-config.delete';
     }
-
     #[Override]
     public function schemaVersion(): string
     {
         return 'v1';
     }
-
     #[Override]
     public function payload(): array
     {
-        return $this->payload->asPublicJson();
+        return [];
     }
-
     #[Override]
     public function original(): array
     {
-        return [];
+        return $this->payload->asPublicJson();
+        ;
     }
 }
