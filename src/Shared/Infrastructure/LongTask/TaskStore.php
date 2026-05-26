@@ -35,7 +35,7 @@ class TaskStore
         $id = $progress->key->uid;
         $txt = json_encode($progress);
         $identity = $this->context->getIdentity();
-        $user = $identity->id ?? '-';
+        $user = $identity->getId() ?? '-';
 
         $this->template->execute("insert into _long_tasks (id, content, user, expiration) values (:id, :content, :user, :expiration)", [
                 new SqlParam('id', $id, SqlParam::TEXT),
@@ -52,7 +52,7 @@ class TaskStore
     public function update(TaskProgress $progress): void
     {
         $identity = $this->context->getIdentity();
-        $user = $identity->id ?? '-';
+        $user = $identity->getId() ?? '-';
 
         $id = $progress->key->uid;
         $txt = json_encode($progress);
@@ -70,7 +70,7 @@ class TaskStore
     public function retrieve(TaskKey $key): ?TaskProgress
     {
         $identity = $this->context->getIdentity();
-        $user = $identity->id ?? '-';
+        $user = $identity->getId() ?? '-';
 
         $row = $this->template->query("select content from _long_tasks where id=:id and user=:user or user='-'", [
             new SqlParam('id', $key->uid, SqlParam::TEXT),

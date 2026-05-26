@@ -69,10 +69,10 @@ class ProfileMeController
         $span = $this->startSpan("Get own profile");
         try {
             $identity = $this->context->getIdentity();
-            if ($identity->anonymous || null === $identity->id) {
+            if ($identity->isAnonymous() || null === $identity->getId()) {
                 throw new UnauthorizedException('Authentication required');
             }
-            $profile = $this->gateway->findByUser($identity->id);
+            $profile = $this->gateway->findByUser($identity->getId());
             $dto = $profile !== null ? $this->mapToDto($profile) : new ProfileApiDTO();
             $encoded = json_encode($dto);
             $response->getBody()->write($encoded !== false ? $encoded : '{}');
@@ -110,11 +110,11 @@ class ProfileMeController
         $this->sql->begin();
         try {
             $identity = $this->context->getIdentity();
-            if ($identity->anonymous || null === $identity->id) {
+            if ($identity->isAnonymous() || null === $identity->getId()) {
                 throw new UnauthorizedException('Authentication required');
             }
             $data = $this->readData($request);
-            $profile = $this->gateway->save($identity->id, $data);
+            $profile = $this->gateway->save($identity->getId(), $data);
             $this->sql->commit();
             $dto = $this->mapToDto($profile);
             $encoded = json_encode($dto);

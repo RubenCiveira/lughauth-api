@@ -25,6 +25,7 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
+use Civi\Lughauth\Shared\Security\AuthenticationContext;
 use Civi\Lughauth\Shared\Security\MagicLinkService;
 
 /**
@@ -83,7 +84,10 @@ class JwtVerifierMiddleware
                         $connection = $magic['connection'] instanceof Connection
                             ? $magic['connection']
                             : Connection::remoteHttp(0, '', $this->config);
-                        $this->context->setSecurityContext($connection, $magic['identity']);
+                        $auth = isset($magic['auth']) && $magic['auth'] instanceof AuthenticationContext
+                            ? $magic['auth']
+                            : AuthenticationContext::anonymous();
+                        $this->context->setSecurityContext($connection, $magic['identity'], $auth);
                     }
                 }
             }
@@ -95,13 +99,14 @@ class JwtVerifierMiddleware
     {
         $cache_key = "verify_access_{$token}";
         if ($this->cache->has($cache_key)) {
-            [$connection, $identity, $error] = json_decode($this->cache->get($cache_key), true);
+            $cached = json_decode($this->cache->get($cache_key), true);
+            $error = is_array($cached) ? ($cached[3] ?? $cached[2] ?? null) : null;
             if ($error) {
                 $this->logger->warning('JWT rejected (cached result)', ['error' => $error, 'token_prefix' => substr($token, 0, 20)]);
                 throw new UnauthorizedException(message: $error);
             } else {
-                [$connection, $identity] = $this->deseiralize([$connection, $identity]);
-                $this->context->setSecurityContext($connection, $identity);
+                [$connection, $identity, $auth] = $this->deseiralize(is_array($cached) ? $cached : []);
+                $this->context->setSecurityContext($connection, $identity, $auth);
             }
         } else {
             $jwks = $this->getJwks();
@@ -154,17 +159,19 @@ class JwtVerifierMiddleware
                             id: $payload->sub,
                             scope: $payload->scope ?? '',
                             name: $payload->name ?? $payload->sub,
+                            token: '',
                             email: $payload->email ?? $payload->sub,
                             issuer: $payload->iss,
                             roles: $this->extractRoles($payload),
-                            groups: $payload->groups ?? null,
+                            groups: $payload->groups ?? [],
                             tenant: $payload->tenant ?? 'main',
                             claims: $claims
                         );
                         $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
                         $ttl = max(1, $exp - $now);
-                        $this->cache->set($cache_key, json_encode([$connection, $identity, null]), $ttl);
-                        $this->context->setSecurityContext($connection, $identity);
+                        $auth = $this->resolveAuthenticationContext($payload, $identity, $connection);
+                        $this->cache->set($cache_key, json_encode([$connection, $identity, $auth, null]), $ttl);
+                        $this->context->setSecurityContext($connection, $identity, $auth);
                     }
                 } else {
                     // Firma no válida con JWKS cacheado — puede ser rotación de claves.
@@ -211,18 +218,21 @@ class JwtVerifierMiddleware
                         anonymous: false,
                         authScope: $authScope,
                         id: $payload->sub,
+                        scope: $payload->scope ?? '',
                         name: $payload->name ?? $payload->sub,
+                        token: '',
                         email: $payload->email ?? $payload->sub,
                         issuer: $payload->iss,
                         roles: $this->extractRoles($payload),
-                        groups: $payload->groups ?? null,
+                        groups: $payload->groups ?? [],
                         tenant: $payload->tenant ?? 'main',
                         claims: $claims
                     );
                     $connection = Connection::remoteHttp(0, $payload->azp, $this->config);
                     $ttl = max(1, $exp - $now);
-                    $this->cache->set($cache_key, json_encode([$connection, $identity, null]), $ttl);
-                    $this->context->setSecurityContext($connection, $identity);
+                    $auth = $this->resolveAuthenticationContext($payload, $identity, $connection);
+                    $this->cache->set($cache_key, json_encode([$connection, $identity, $auth, null]), $ttl);
+                    $this->context->setSecurityContext($connection, $identity, $auth);
                 }
             } catch (\InvalidArgumentException $je) {
                 $fail = 'The provided JWT is not valid.';
@@ -234,23 +244,27 @@ class JwtVerifierMiddleware
     }
 
     /**
-     * @param array{0: array<string, mixed>, 1: array<string, mixed>} $vcc
-     * @return array{0: Connection, 1: Identity}
+     * @param array<int, mixed> $vcc
+     * @return array{0: Connection, 1: Identity, 2: AuthenticationContext}
      */
     private function deseiralize(array $vcc): array
     {
-        [$cc, $ac] = $vcc;
+        $cc = $vcc[0] ?? [];
+        $ac = $vcc[1] ?? [];
+        $auth = $vcc[2] ?? null;
         $identity = new Identity(
             anonymous: $ac['anonymous'],
             authScope: $ac['authScope'],
             id: $ac['id'],
             name: $ac['name'],
-            scope: $ac['scope'] ?? null,
+            token: $ac['token'] ?? '',
+            scope: $ac['scope'] ?? '',
             issuer: $ac['issuer'],
-            roles: $ac['roles'],
-            groups: $ac['groups'],
+            roles: $ac['roles'] ?? [],
+            groups: $ac['groups'] ?? [],
             tenant: $ac['tenant'],
-            claims: $ac['claims']
+            claims: $ac['claims'] ?? [],
+            email: $ac['email'] ?? ''
         );
         $connection = new Connection(
             level: 0,
@@ -262,7 +276,89 @@ class JwtVerifierMiddleware
             target: $cc['target'],
             locale: $cc['locale']
         );
-        return [$connection, $identity];
+        $authenticationContext = is_array($auth)
+            ? $this->deserializeAuthenticationContext($auth, $identity)
+            : AuthenticationContext::anonymous();
+        return [$connection, $identity, $authenticationContext];
+    }
+
+    private function resolveAuthenticationContext(object $payload, Identity $identity, Connection $connection): AuthenticationContext
+    {
+        $authenticatedAt = new \DateTimeImmutable();
+        if (isset($payload->auth_time)) {
+            try {
+                $authenticatedAt = is_numeric($payload->auth_time)
+                    ? (new \DateTimeImmutable())->setTimestamp((int) $payload->auth_time)
+                    : new \DateTimeImmutable((string) $payload->auth_time);
+            } catch (\Throwable) {
+            }
+        } elseif (isset($payload->iat) && is_numeric($payload->iat)) {
+            $authenticatedAt = (new \DateTimeImmutable())->setTimestamp((int) $payload->iat);
+        }
+
+        $now = new \DateTimeImmutable();
+        $ageSeconds = max(0, $now->getTimestamp() - $authenticatedAt->getTimestamp());
+        $age = new \DateInterval('PT' . $ageSeconds . 'S');
+        $amr = isset($payload->amr) ? strtolower((string) $payload->amr) : null;
+
+        return new AuthenticationContext(
+            level: $this->resolveAuthenticationLevel($amr, $identity),
+            mfa: str_contains((string) $amr, 'mfa') || str_contains((string) $amr, 'otp') || str_contains((string) $amr, 'webauthn'),
+            rememberMe: str_contains((string) ($payload->typ ?? ''), 'remember-me') || str_contains((string) ($payload->amr ?? ''), 'remember'),
+            impersonated: isset($payload->act),
+            secureTransport: str_starts_with(strtolower($this->context->getBaseUrl()), 'https://'),
+            authenticatedAt: $authenticatedAt,
+            authenticationAge: $age,
+            authenticationMethod: is_string($payload->amr ?? null) ? $payload->amr : null,
+            sessionId: isset($payload->sid) ? (string) $payload->sid : '',
+            authenticatedActor: $identity,
+            effectiveActor: $identity,
+        );
+    }
+
+    private function resolveAuthenticationLevel(?string $amr, Identity $identity): string
+    {
+        if ($identity->isAnonymous()) {
+            return AuthenticationContext::LEVEL_ANONYMOUS;
+        }
+        $value = strtolower((string) $amr);
+        if (str_contains($value, 'mfa') || str_contains($value, 'otp') || str_contains($value, 'webauthn')) {
+            return AuthenticationContext::LEVEL_MFA;
+        }
+        if (str_contains($value, 'remember')) {
+            return AuthenticationContext::LEVEL_REMEMBERED;
+        }
+        if (str_contains($value, 'pwd') || str_contains($value, 'password')) {
+            return AuthenticationContext::LEVEL_PASSWORD_HTTPS;
+        }
+        return AuthenticationContext::LEVEL_PASSWORD;
+    }
+
+    private function deserializeAuthenticationContext(array $data, Identity $identity): AuthenticationContext
+    {
+        $authenticatedAt = new \DateTimeImmutable();
+        if (isset($data['authenticatedAt']) && is_string($data['authenticatedAt'])) {
+            try {
+                $authenticatedAt = new \DateTimeImmutable($data['authenticatedAt']);
+            } catch (\Throwable) {
+            }
+        }
+        $ageMillis = isset($data['authenticationAge']) ? (int) $data['authenticationAge'] : 0;
+        $age = new \DateInterval('PT' . (int) floor($ageMillis / 1000) . 'S');
+
+        return new AuthenticationContext(
+            level: (string) ($data['level'] ?? AuthenticationContext::LEVEL_ANONYMOUS),
+            mfa: (bool) ($data['mfa'] ?? false),
+            rememberMe: (bool) ($data['rememberMe'] ?? false),
+            impersonated: (bool) ($data['impersonated'] ?? false),
+            secureTransport: (bool) ($data['secureTransport'] ?? false),
+            authenticatedAt: $authenticatedAt,
+            authenticationAge: $age,
+            authenticationMethod: isset($data['authenticationMethod']) ? (string) $data['authenticationMethod'] : null,
+            sessionId: (string) ($data['sessionId'] ?? ''),
+            authenticatedActor: $identity,
+            effectiveActor: $identity,
+        );
     }
 
     private function extractJwt(string $token): JWS

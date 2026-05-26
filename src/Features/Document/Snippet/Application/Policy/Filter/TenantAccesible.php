@@ -26,7 +26,7 @@ class TenantAccesible
         try {
             $identity = $this->context->getIdentity();
             if (!($identity->hasScope("platform:global_access"))) {
-                $event->with($event->snippetFilter->withTenantAccesible($identity->tenant));
+                $event->with($event->snippetFilter->withTenantAccesible($identity->getTenant()));
             }
             return $event;
         } catch (Throwable $ex) {

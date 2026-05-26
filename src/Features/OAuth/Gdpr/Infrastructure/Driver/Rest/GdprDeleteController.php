@@ -61,11 +61,11 @@ class GdprDeleteController
     private function handleDelete(ResponseInterface $response): ResponseInterface
     {
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous || null === $identity->id) {
+        if ($identity->isAnonymous() || null === $identity->getId()) {
             throw new UnauthorizedException('Authentication required');
         }
 
-        $this->usecase->delete(new DeleteUserDataParams($identity->id, $identity->tenant ?? ''));
+        $this->usecase->delete(new DeleteUserDataParams($identity->getId(), $identity->getTenant() ?? ''));
 
         return $response->withStatus(204);
     }

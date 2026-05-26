@@ -24,7 +24,7 @@ class OnlySelfAccesibles
         $this->logDebug("Check OnlySelfAccesibles User personal api key");
         $span = $this->startSpan("Check OnlySelfAccesibles User personal api key");
         try {
-            $event->with($event->userPersonalApiKeyFilter->withOnlySelfAccesibles($identity->uid));
+            $event->with($event->userPersonalApiKeyFilter->withOnlySelfAccesibles($identity->getUid()));
             return $event;
         } catch (Throwable $ex) {
             $span->recordException($ex);

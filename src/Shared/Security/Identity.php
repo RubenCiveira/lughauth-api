@@ -9,7 +9,7 @@ namespace Civi\Lughauth\Shared\Security;
  * Represents the identity of an authenticated or anonymous user, including
  * roles, claims, and authorization scope.
  */
-class Identity
+class Identity implements \JsonSerializable
 {
     /**
      * No authorization scope granted.
@@ -31,38 +31,128 @@ class Identity
      */
     public static function anonymous(): Identity
     {
-        return new Identity(anonymous: true);
+        return new Identity(
+            anonymous: true,
+            authScope: self::AUTH_SCOPE_NONE,
+            id: '',
+            name: '',
+            token: '',
+            issuer: '',
+            tenant: '',
+            roles: [],
+            groups: [],
+            claims: [],
+            scope: '',
+            email: '',
+        );
     }
 
     /**
      * Constructs an Identity object.
      */
     public function __construct(
-        /** @var bool Whether the user is anonymous. */
-        public readonly bool $anonymous,
-        /** @var string|null The authorization scope (none, read, or read-write). */
-        public readonly ?string $authScope = Identity::AUTH_SCOPE_NONE,
-        /** @var string|null The user identifier. */
-        public readonly ?string $id = null,
-        /** @var string|null The user display name. */
-        public readonly ?string $name = null,
-        /** @var string|null The access token used for authentication. */
-        public readonly ?string $token = null,
-        /** @var string|null The issuer of the identity (e.g., authentication server). */
-        public readonly ?string $issuer = null,
-        /** @var string|null The tenant associated with the user, if any. */
-        public readonly ?string $tenant = null,
-        /** @var array<int, string>|null The list of roles granted to the user. */
-        public readonly ?array $roles = null,
-        /** @var array<int, string>|null The groups to which the user belongs. */
-        public readonly ?array $groups = null,
-        /** @var array<string, string>|null Additional claims or metadata associated with the user. */
-        public readonly ?array $claims = null,
-        /** @var string|null A raw scope string (space-separated). */
-        public readonly ?string $scope = null,
-        /** @var string|null The user email address. */
-        public readonly ?string $email = null,
+        private readonly bool $anonymous,
+        private readonly string $authScope,
+        private readonly string $id,
+        private readonly string $name,
+        private readonly string $token,
+        private readonly string $issuer,
+        private readonly string $tenant,
+        /** @var array<int, string> */
+        private readonly array $roles,
+        /** @var array<int, string> */
+        private readonly array $groups,
+        /** @var array<string, string> */
+        private readonly array $claims,
+        private readonly string $scope,
+        private readonly string $email,
     ) {
+    }
+
+    public function isAnonymous(): bool
+    {
+        return $this->anonymous;
+    }
+
+    public function getAuthScope(): string
+    {
+        return $this->authScope;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getUid(): string
+    {
+        return $this->id;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getToken(): string
+    {
+        return $this->token;
+    }
+
+    public function getIssuer(): string
+    {
+        return $this->issuer;
+    }
+
+    public function getTenant(): string
+    {
+        return $this->tenant;
+    }
+
+    /** @return array<int, string> */
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+
+    /** @return array<int, string> */
+    public function getGroups(): array
+    {
+        return $this->groups;
+    }
+
+    /** @return array<string, string> */
+    public function getClaims(): array
+    {
+        return $this->claims;
+    }
+
+    public function getScope(): string
+    {
+        return $this->scope;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'anonymous' => $this->anonymous,
+            'authScope' => $this->authScope,
+            'id' => $this->id,
+            'name' => $this->name,
+            'token' => $this->token,
+            'issuer' => $this->issuer,
+            'tenant' => $this->tenant,
+            'roles' => $this->roles,
+            'groups' => $this->groups,
+            'claims' => $this->claims,
+            'scope' => $this->scope,
+            'email' => $this->email,
+        ];
     }
 
     /**
@@ -73,7 +163,7 @@ class Identity
      */
     public function getClaim(string $claim): ?string
     {
-        return null !== $this->claims && isset($this->claims[$claim]) ? $this->claims[$claim] : null;
+        return isset($this->claims[$claim]) ? $this->claims[$claim] : null;
     }
 
     /**
@@ -84,7 +174,7 @@ class Identity
      */
     public function hasScope(string $scopeName): bool
     {
-        if (null === $this->scope) {
+        if ($this->scope === '') {
             return false;
         }
         $scope = strtolower($scopeName);
@@ -100,7 +190,7 @@ class Identity
      */
     public function hasAnyScope(string ...$scopes): bool
     {
-        if (null === $this->scope) {
+        if ($this->scope === '') {
             return false;
         }
         foreach ($scopes as $scope) {
@@ -119,7 +209,7 @@ class Identity
      */
     public function hasAnyRole(string ...$roles): bool
     {
-        if (null === $this->roles) {
+        if (empty($this->roles)) {
             return false;
         }
         foreach ($roles as $role) {
@@ -138,7 +228,7 @@ class Identity
      */
     public function hasRole(string $roleName): bool
     {
-        if (null === $this->roles || empty($this->roles)) {
+        if (empty($this->roles)) {
             return false;
         }
         $role = strtolower($roleName);

@@ -79,17 +79,17 @@ class UserInfoController
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $identity = $this->context->getIdentity();
-        $claims = ['sub' => $identity->id];
+        $claims = ['sub' => $identity->getId()];
 
-        $scopes = $this->parseScopes($identity->scope);
+        $scopes = $this->parseScopes($identity->getScope());
 
         if (in_array('email', $scopes, true)) {
-            $claims['email'] = $identity->email;
+            $claims['email'] = $identity->getEmail();
         }
 
         if (in_array('profile', $scopes, true) || in_array('phone', $scopes, true)) {
-            $profile = $identity->id !== null
-                ? $this->profileGateway->findByUser($identity->id)
+            $profile = $identity->getId() !== null
+                ? $this->profileGateway->findByUser($identity->getId())
                 : null;
 
             if ($profile !== null) {

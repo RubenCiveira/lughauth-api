@@ -157,7 +157,7 @@ class LughMapper
 
     private function fields(array $grants, Identity $user, string $resource, string $on): array
     {
-        $roles = [...$user->roles ?? [], '@everyone', $user->anonymous ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->getRoles() ?? [], '@everyone', $user->isAnonymous() ? '@anonymous' : '@authenticated' ];
         $all = [];
         $visibles = [];
         foreach ($roles as $role) {
@@ -175,7 +175,7 @@ class LughMapper
 
     private function isAllowed(array $grants, Identity $user, string $resource, string $on, string $with): bool
     {
-        $roles = [...$user->roles ?? [], '@everyone', $user->anonymous ? '@anonymous' : '@authenticated' ];
+        $roles = [...$user->getRoles() ?? [], '@everyone', $user->isAnonymous() ? '@anonymous' : '@authenticated' ];
         foreach ($roles as $role) {
             if (isset($grants[$role][$resource]) && $grants[$role][$resource][$on][$with]) {
                 return true;
@@ -186,13 +186,13 @@ class LughMapper
 
     private function getGrants(Identity $user): string
     {
-        $cache_key = 'lught.grants' . (null !== $user->tenant ? '.' . $user->tenant : '');
+        $cache_key = 'lught.grants' . (null !== $user->getTenant() ? '.' . $user->getTenant() : '');
         if ($this->cache->has($cache_key)) {
             return $this->cache->get($cache_key);
         } else {
             $url = $this->authUrl . '/grant';
-            if (null !== $user->tenant) {
-                $url .= '?tenant=' . urlencode($user->tenant);
+            if (null !== $user->getTenant()) {
+                $url .= '?tenant=' . urlencode($user->getTenant());
             }
             $request = $this->requestFactory->createRequest('GET', $url);
             if (null != $this->apiKey) {

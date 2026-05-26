@@ -31,7 +31,8 @@ class MagicLinkService
         ?ServerRequestInterface $request,
         ?string $jwtToken = null,
         ?Identity $identity = null,
-        ?Connection $connection = null
+        ?Connection $connection = null,
+        ?AuthenticationContext $auth = null
     ): string {
         if ($request == null && $jwtToken === null && $identity === null) {
             throw new \InvalidArgumentException('Magic link requires a JWT token or identity.');
@@ -49,6 +50,7 @@ class MagicLinkService
             'token' => $jwtToken,
             'identity' => $identity ? $this->serializeIdentity($identity) : null,
             'connection' => $connection ? $this->serializeConnection($connection) : null,
+            'auth' => $auth ? $this->serializeAuthenticationContext($auth) : null,
             'reads' => 0,
             'max' => $this->maxReads,
         ];
@@ -59,7 +61,7 @@ class MagicLinkService
     }
 
     /**
-     * @return array{token: ?string, identity: ?Identity, connection: ?Connection}|null
+     * @return array{token: ?string, identity: ?Identity, connection: ?Connection, auth: ?AuthenticationContext}|null
      */
     public function consume(ServerRequestInterface $request): ?array
     {
@@ -104,6 +106,7 @@ class MagicLinkService
         $jwtToken = isset($data['token']) && is_string($data['token']) && $data['token'] !== '' ? $data['token'] : null;
         $identity = isset($data['identity']) && is_array($data['identity']) ? $this->deserializeIdentity($data['identity']) : null;
         $connection = isset($data['connection']) && is_array($data['connection']) ? $this->deserializeConnection($data['connection']) : null;
+        $auth = isset($data['auth']) && is_array($data['auth']) ? $this->deserializeAuthenticationContext($data['auth'], $identity) : null;
 
         if ($jwtToken === null && $identity === null) {
             return null;
@@ -113,6 +116,7 @@ class MagicLinkService
             'token' => $jwtToken,
             'identity' => $identity,
             'connection' => $connection,
+            'auth' => $auth,
         ];
     }
 
@@ -211,32 +215,32 @@ class MagicLinkService
     private function serializeIdentity(Identity $identity): array
     {
         return [
-            'anonymous' => $identity->anonymous,
-            'authScope' => $identity->authScope,
-            'id' => $identity->id,
-            'name' => $identity->name,
-            'token' => $identity->token,
-            'issuer' => $identity->issuer,
-            'tenant' => $identity->tenant,
-            'roles' => $identity->roles,
-            'groups' => $identity->groups,
-            'claims' => $identity->claims,
-            'scope' => $identity->scope,
-            'email' => $identity->email,
+            'anonymous' => $identity->isAnonymous(),
+            'authScope' => $identity->getAuthScope(),
+            'id' => $identity->getId(),
+            'name' => $identity->getName(),
+            'token' => $identity->getToken(),
+            'issuer' => $identity->getIssuer(),
+            'tenant' => $identity->getTenant(),
+            'roles' => $identity->getRoles(),
+            'groups' => $identity->getGroups(),
+            'claims' => $identity->getClaims(),
+            'scope' => $identity->getScope(),
+            'email' => $identity->getEmail(),
         ];
     }
 
     private function serializeConnection(Connection $connection): array
     {
         return [
-            'level' => $connection->level,
-            'remote' => $connection->remote,
-            'startTime' => $connection->startTime->format(DateTime::ATOM),
-            'application' => $connection->application,
-            'callback' => $connection->callback,
-            'source' => $connection->source,
-            'target' => $connection->target,
-            'locale' => $connection->locale,
+            'level' => $connection->getLevel(),
+            'remote' => $connection->isRemote(),
+            'startTime' => $connection->getStartTime()->format(DateTime::ATOM),
+            'application' => $connection->getApplication(),
+            'callback' => $connection->getCallback(),
+            'source' => $connection->getSource(),
+            'target' => $connection->getTarget(),
+            'locale' => $connection->getLocale(),
         ];
     }
 
@@ -245,16 +249,16 @@ class MagicLinkService
         return new Identity(
             anonymous: (bool) ($data['anonymous'] ?? true),
             authScope: $data['authScope'] ?? Identity::AUTH_SCOPE_NONE,
-            id: $data['id'] ?? null,
-            name: $data['name'] ?? null,
-            token: $data['token'] ?? null,
-            issuer: $data['issuer'] ?? null,
-            tenant: $data['tenant'] ?? null,
-            roles: $data['roles'] ?? null,
-            groups: $data['groups'] ?? null,
-            claims: $data['claims'] ?? null,
-            scope: $data['scope'] ?? null,
-            email: $data['email'] ?? null
+            id: (string) ($data['id'] ?? ''),
+            name: (string) ($data['name'] ?? ''),
+            token: (string) ($data['token'] ?? ''),
+            issuer: (string) ($data['issuer'] ?? ''),
+            tenant: (string) ($data['tenant'] ?? ''),
+            roles: is_array($data['roles'] ?? null) ? $data['roles'] : [],
+            groups: is_array($data['groups'] ?? null) ? $data['groups'] : [],
+            claims: is_array($data['claims'] ?? null) ? $data['claims'] : [],
+            scope: (string) ($data['scope'] ?? ''),
+            email: (string) ($data['email'] ?? '')
         );
     }
 
@@ -270,6 +274,48 @@ class MagicLinkService
             source: (string) ($data['source'] ?? ''),
             target: (string) ($data['target'] ?? ''),
             locale: $data['locale'] ?? null
+        );
+    }
+
+    private function serializeAuthenticationContext(AuthenticationContext $auth): array
+    {
+        $authenticatedAt = $auth->getAuthenticatedAt()->format(DateTime::ATOM);
+        $ageMillis = max(0, ((new \DateTimeImmutable())->getTimestamp() - $auth->getAuthenticatedAt()->getTimestamp()) * 1000);
+        return [
+            'level' => $auth->getLevel(),
+            'mfa' => $auth->isMfa(),
+            'rememberMe' => $auth->isRememberMe(),
+            'impersonated' => $auth->isImpersonated(),
+            'secureTransport' => $auth->isSecureTransport(),
+            'authenticatedAt' => $authenticatedAt,
+            'authenticationAge' => $ageMillis,
+            'authenticationMethod' => $auth->getAuthenticationMethod(),
+            'sessionId' => $auth->getSessionId(),
+        ];
+    }
+
+    private function deserializeAuthenticationContext(array $data, ?Identity $identity): AuthenticationContext
+    {
+        $authenticatedAt = new \DateTimeImmutable();
+        if (isset($data['authenticatedAt']) && is_string($data['authenticatedAt'])) {
+            try {
+                $authenticatedAt = new \DateTimeImmutable($data['authenticatedAt']);
+            } catch (\Throwable) {
+            }
+        }
+        $ageMillis = isset($data['authenticationAge']) ? (int) $data['authenticationAge'] : 0;
+        return new AuthenticationContext(
+            level: (string) ($data['level'] ?? AuthenticationContext::LEVEL_ANONYMOUS),
+            mfa: (bool) ($data['mfa'] ?? false),
+            rememberMe: (bool) ($data['rememberMe'] ?? false),
+            impersonated: (bool) ($data['impersonated'] ?? false),
+            secureTransport: (bool) ($data['secureTransport'] ?? false),
+            authenticatedAt: $authenticatedAt,
+            authenticationAge: new \DateInterval('PT' . (int) floor($ageMillis / 1000) . 'S'),
+            authenticationMethod: isset($data['authenticationMethod']) ? (string) $data['authenticationMethod'] : null,
+            sessionId: (string) ($data['sessionId'] ?? ''),
+            authenticatedActor: $identity,
+            effectiveActor: $identity,
         );
     }
 }

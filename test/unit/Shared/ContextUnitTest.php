@@ -53,7 +53,7 @@ final class ContextUnitTest extends TestCase
         $identity = $context->getIdentity();
 
         /* Assert: anonymous identity is returned. */
-        $this->assertTrue($identity->anonymous);
+        $this->assertTrue($identity->isAnonymous());
     }
 
     /**
@@ -73,7 +73,7 @@ final class ContextUnitTest extends TestCase
         $connection = $context->getConnection();
 
         /* Assert: remote HTTP connection is returned. */
-        $this->assertTrue($connection->remote);
+        $this->assertTrue($connection->isRemote());
     }
 
     /**

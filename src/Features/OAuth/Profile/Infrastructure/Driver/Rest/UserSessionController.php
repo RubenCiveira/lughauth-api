@@ -54,11 +54,11 @@ class UserSessionController
     public function list(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous || null === $identity->id) {
+        if ($identity->isAnonymous() || null === $identity->getId()) {
             throw new UnauthorizedException('Authentication required');
         }
 
-        $sessions = $this->sessions->listByUser($identity->id);
+        $sessions = $this->sessions->listByUser($identity->getId());
 
         $payload = array_map(static fn ($s) => [
             'session_id' => $s->sessionId,
@@ -98,7 +98,7 @@ class UserSessionController
     public function revoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous || null === $identity->id) {
+        if ($identity->isAnonymous() || null === $identity->getId()) {
             throw new UnauthorizedException('Authentication required');
         }
 
@@ -127,11 +127,11 @@ class UserSessionController
     public function revokeAll(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous || null === $identity->id) {
+        if ($identity->isAnonymous() || null === $identity->getId()) {
             throw new UnauthorizedException('Authentication required');
         }
 
-        foreach ($this->sessions->listByUser($identity->id) as $session) {
+        foreach ($this->sessions->listByUser($identity->getId()) as $session) {
             $this->sessions->revoke($session->sessionId);
         }
 

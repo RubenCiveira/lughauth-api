@@ -52,12 +52,12 @@ namespace {
              * Assert: verify the connection details match the environment.
              */
             $this->assertInstanceOf(Connection::class, $connection);
-            $this->assertTrue($connection->remote);
-            $this->assertSame('testApp', $connection->application);
-            $this->assertSame('/callback', $connection->callback);
-            $this->assertSame('192.168.1.42', $connection->source);
-            $this->assertSame('example.org', $connection->target);
-            $this->assertSame('en-US', $connection->locale);
+            $this->assertTrue($connection->isRemote());
+            $this->assertSame('testApp', $connection->getApplication());
+            $this->assertSame('/callback', $connection->getCallback());
+            $this->assertSame('192.168.1.42', $connection->getSource());
+            $this->assertSame('example.org', $connection->getTarget());
+            $this->assertSame('en-US', $connection->getLocale());
         }
 
         /**
@@ -79,7 +79,7 @@ namespace {
             /*
              * Assert: verify the target is empty when hostname is unavailable.
              */
-            $this->assertSame('', $connection->target);
+            $this->assertSame('', $connection->getTarget());
         }
 
         /**
@@ -102,7 +102,7 @@ namespace {
             /*
              * Assert: verify the client IP uses the first forwarded address.
              */
-            $this->assertSame('10.0.0.123', $connection->source);
+            $this->assertSame('10.0.0.123', $connection->getSource());
         }
 
         /**
@@ -127,7 +127,7 @@ namespace {
             /*
              * Assert: verify the client IP uses X-Real-IP.
              */
-            $this->assertSame('10.0.0.200', $connection->source);
+            $this->assertSame('10.0.0.200', $connection->getSource());
         }
 
         /**
@@ -148,7 +148,7 @@ namespace {
             /*
              * Assert: verify the loopback address is normalized.
              */
-            $this->assertSame('127.0.0.1', $connection->source);
+            $this->assertSame('127.0.0.1', $connection->getSource());
         }
 
         /**

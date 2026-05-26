@@ -13,7 +13,7 @@ use Civi\Lughauth\Shared\AppConfig;
  * language preference, origin, and application context. It is primarily used to
  * capture and analyze HTTP request origin and attributes.
  */
-class Connection
+class Connection implements \JsonSerializable
 {
     /**
      * Creates a Connection instance based on the current HTTP request environment,
@@ -67,22 +67,76 @@ class Connection
      */
     public function __construct(
         /** @var int Indicates the security level used to connect (need to be refactor as an enumerated). */
-        public readonly int $level,
+        private readonly int $level,
         /** @var bool Indicates whether the connection is remote (vs local). */
-        public readonly bool $remote,
+        private readonly bool $remote,
         /** @var DateTime The timestamp when the connection was created. */
-        public readonly DateTime $startTime,
+        private readonly DateTime $startTime,
         /** @var string The name or identifier of the calling application. */
-        public readonly string $application,
+        private readonly string $application,
         /** @var string The original request URI. */
-        public readonly string $callback,
+        private readonly string $callback,
         /** @var string The IP address of the client. */
-        public readonly string $source,
+        private readonly string $source,
         /** @var string The hostname or server target. */
-        public readonly string $target,
+        private readonly string $target,
         /** @var string|null The locale inferred from the request headers, if available. */
-        public readonly ?string $locale,
+        private readonly ?string $locale,
     ) {
+    }
+
+    public function getLevel(): int
+    {
+        return $this->level;
+    }
+
+    public function isRemote(): bool
+    {
+        return $this->remote;
+    }
+
+    public function getStartTime(): DateTime
+    {
+        return $this->startTime;
+    }
+
+    public function getApplication(): string
+    {
+        return $this->application;
+    }
+
+    public function getCallback(): string
+    {
+        return $this->callback;
+    }
+
+    public function getSource(): string
+    {
+        return $this->source;
+    }
+
+    public function getTarget(): string
+    {
+        return $this->target;
+    }
+
+    public function getLocale(): ?string
+    {
+        return $this->locale;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return [
+            'level' => $this->level,
+            'remote' => $this->remote,
+            'startTime' => $this->startTime->format(DateTime::ATOM),
+            'application' => $this->application,
+            'callback' => $this->callback,
+            'source' => $this->source,
+            'target' => $this->target,
+            'locale' => $this->locale ?? '',
+        ];
     }
 
     /**

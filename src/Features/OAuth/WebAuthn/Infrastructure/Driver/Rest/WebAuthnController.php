@@ -63,11 +63,11 @@ final class WebAuthnController
     {
         $tenant = $args['tenant'] ?? '';
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous) {
+        if ($identity->isAnonymous()) {
             throw new UnauthorizedException('Authentication required for WebAuthn registration');
         }
 
-        $userUid = $identity->id ?? '';
+        $userUid = $identity->getId() ?? '';
         [$rpId, $rpName] = $this->resolveRp($tenant);
 
         $options = $this->beginRegistration->begin($userUid, $tenant, $rpId, $rpName);
@@ -97,7 +97,7 @@ final class WebAuthnController
     {
         $tenant = $args['tenant'] ?? '';
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous) {
+        if ($identity->isAnonymous()) {
             throw new UnauthorizedException('Authentication required for WebAuthn registration');
         }
 

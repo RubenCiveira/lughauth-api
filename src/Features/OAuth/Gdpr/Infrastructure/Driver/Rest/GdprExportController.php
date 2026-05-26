@@ -62,11 +62,11 @@ class GdprExportController
     private function handleExport(ResponseInterface $response): ResponseInterface
     {
         $identity = $this->context->getIdentity();
-        if ($identity->anonymous || null === $identity->id) {
+        if ($identity->isAnonymous() || null === $identity->getId()) {
             throw new UnauthorizedException('Authentication required');
         }
 
-        $result = $this->usecase->export(new ExportUserDataParams($identity->id, $identity->tenant ?? ''));
+        $result = $this->usecase->export(new ExportUserDataParams($identity->getId(), $identity->getTenant() ?? ''));
 
         $encoded = json_encode($result->package->toArray());
         $response->getBody()->write($encoded !== false ? $encoded : '{}');

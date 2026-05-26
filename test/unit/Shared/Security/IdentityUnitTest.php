@@ -24,32 +24,32 @@ class IdentityUnitTest extends TestCase
         /*
          * Act: access the identity properties.
          */
-        $anonymous = $identity->anonymous;
-        $authScope = $identity->authScope;
-        $id = $identity->id;
-        $name = $identity->name;
-        $token = $identity->token;
-        $issuer = $identity->issuer;
-        $tenant = $identity->tenant;
-        $roles = $identity->roles;
-        $groups = $identity->groups;
-        $claims = $identity->claims;
-        $scope = $identity->scope;
+        $anonymous = $identity->isAnonymous();
+        $authScope = $identity->getAuthScope();
+        $id = $identity->getId();
+        $name = $identity->getName();
+        $token = $identity->getToken();
+        $issuer = $identity->getIssuer();
+        $tenant = $identity->getTenant();
+        $roles = $identity->getRoles();
+        $groups = $identity->getGroups();
+        $claims = $identity->getClaims();
+        $scope = $identity->getScope();
 
         /*
          * Assert: verify the default values on the anonymous identity.
          */
         $this->assertTrue($anonymous);
         $this->assertSame(Identity::AUTH_SCOPE_NONE, $authScope);
-        $this->assertNull($id);
-        $this->assertNull($name);
-        $this->assertNull($token);
-        $this->assertNull($issuer);
-        $this->assertNull($tenant);
-        $this->assertNull($roles);
-        $this->assertNull($groups);
-        $this->assertNull($claims);
-        $this->assertNull($scope);
+        $this->assertSame('', $id);
+        $this->assertSame('', $name);
+        $this->assertSame('', $token);
+        $this->assertSame('', $issuer);
+        $this->assertSame('', $tenant);
+        $this->assertSame([], $roles);
+        $this->assertSame([], $groups);
+        $this->assertSame([], $claims);
+        $this->assertSame('', $scope);
     }
 
     /**

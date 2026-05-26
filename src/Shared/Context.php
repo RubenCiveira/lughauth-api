@@ -9,6 +9,7 @@ use DI\ContainerBuilder;
 use Psr\Container\ContainerInterface;
 use Civi\Lughauth\Shared\Security\Connection;
 use Civi\Lughauth\Shared\Security\Identity;
+use Civi\Lughauth\Shared\Security\AuthenticationContext;
 
 /**
  * Holds the runtime context for a single request or process invocation.
@@ -26,6 +27,7 @@ class Context
 {
     private ?Identity $identity = null;
     private ?Connection $connection = null;
+    private ?AuthenticationContext $authenticationContext = null;
 
     /**
      * Creates a new application context.
@@ -47,10 +49,15 @@ class Context
      * @param Connection $connection Resolved network connection metadata.
      * @param Identity   $identity   Authenticated (or anonymous) user identity.
      */
-    public function setSecurityContext(Connection $connection, Identity $identity): void
+    public function setSecurityContext(
+        Connection $connection,
+        Identity $identity,
+        ?AuthenticationContext $authenticationContext = null
+    ): void
     {
         $this->identity = $identity;
         $this->connection = $connection;
+        $this->authenticationContext = $authenticationContext;
     }
 
     /**
@@ -83,6 +90,15 @@ class Context
             $this->connection = Connection::remoteHttp(0);
         }
         return $this->connection;
+    }
+
+    public function getAuthenticationContext(): AuthenticationContext
+    {
+        if ($this->authenticationContext === null) {
+            $this->authenticationContext = AuthenticationContext::anonymous();
+        }
+
+        return $this->authenticationContext;
     }
 
     /**

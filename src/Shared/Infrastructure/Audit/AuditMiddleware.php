@@ -109,12 +109,12 @@ class AuditMiddleware implements MiddlewareInterface
 
         $stmt->execute([
             'id' => $actionId,
-            'actor_id' => $identity->anonymous ? 'anonymous' : $identity->name,
+            'actor_id' => $identity->isAnonymous() ? 'anonymous' : $identity->getName(),
             'actor_type' => 'user',
-            'actor_ip' => $connection->source,
-            'tenant_id' => $identity->tenant,
-            'session_id' => $identity->token !== null ? substr($identity->token, 0, 100) : '',
-            'client_id' => $connection->application,
+            'actor_ip' => $connection->getSource(),
+            'tenant_id' => $identity->getTenant(),
+            'session_id' => $identity->getToken() !== null ? substr($identity->getToken(), 0, 100) : '',
+            'client_id' => $connection->getApplication(),
             'user_agent' => $request->getHeaderLine('User-Agent'),
             'method' => $method,
             'path' => $request->getUri()->getPath(),

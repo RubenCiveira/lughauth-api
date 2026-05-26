@@ -81,7 +81,7 @@ class AccessControlMiddleware
         }
 
         // Validaciones
-        if (isset($matchedRule['anonymous']) && !$matchedRule['anonymous'] && $identity->anonymous) {
+        if (isset($matchedRule['anonymous']) && !$matchedRule['anonymous'] && $identity->isAnonymous()) {
             return $this->deny(401, "Unauthorized");
         }
 
@@ -89,7 +89,7 @@ class AccessControlMiddleware
             return $this->deny(403, "Forbidden: role");
         }
 
-        if (isset($matchedRule['groups']) && !array_intersect($matchedRule['groups'], $identity->groups ?? [])) {
+        if (isset($matchedRule['groups']) && !array_intersect($matchedRule['groups'], $identity->getGroups() ?? [])) {
             return $this->deny(403, "Forbidden: group");
         }
 
