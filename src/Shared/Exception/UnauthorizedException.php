@@ -13,12 +13,20 @@ class UnauthorizedException extends \RuntimeException
     /**
      * Create a new exception.
      *
-     * @param string $message Custom error message (default: 'Unauthorized').
+     * @param mixed $message Custom error message (default: 'Unauthorized').
      * @param int $code HTTP status code (default: 401).
-     * @param \Exception|null $previous Previous exception for chaining (optional).
+     * @param \Throwable|null $previous Previous exception for chaining (optional).
      */
-    public function __construct($message = 'Unauthorized', $code = 401, \Exception|null $previous = null)
+    public function __construct(mixed $message = 'Unauthorized', int $code = 401, \Throwable|null $previous = null)
     {
+        if (is_array($message)) {
+            $message = $message['message'] ?? $message['error'] ?? json_encode($message);
+        }
+
+        if (!is_string($message) || $message === '') {
+            $message = 'Unauthorized';
+        }
+
         parent::__construct($message, $code, $previous);
     }
 }
