@@ -12,6 +12,25 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenRevocationGateway;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller that implements the OAuth 2.0 Token Introspection endpoint (RFC 7662).
+ *
+ * This controller exposes a POST endpoint at /oauth/openid/{tenant}/introspect that allows
+ * resource servers to query whether a given access or refresh token is currently active. The
+ * caller must authenticate as a registered confidential client, either via HTTP Basic
+ * Authorization or by supplying client_id and client_secret in the request body.
+ *
+ * When the token is valid and not revoked, the endpoint returns a JSON object with active=true
+ * and a set of standard JWT claims extracted from the token payload (sub, scope, exp, iss, etc.).
+ * When the token is invalid, expired, or has been explicitly revoked, only {"active": false}
+ * is returned — no additional information is disclosed to avoid leaking token metadata.
+ *
+ * Revocation state is checked via TokenRevocationGateway using the jti claim so revoked tokens
+ * are rejected even if their signature and expiry are otherwise valid.
+ *
+ * Relationships: depends on TokenSigner for verification, ClientStoreGateway for client
+ * authentication, and TokenRevocationGateway for revocation checks.
+ */
 class IntrospectionController
 {
     public function __construct(
@@ -62,6 +81,12 @@ class IntrospectionController
             new OA\Response(response: 401, description: 'Client authentication failed'),
         ]
     )]
+    /**
+     * Handles the token introspection POST request and returns the token metadata or an inactive response.
+     *
+     * Authenticates the calling client, verifies the token signature and expiry, checks the
+     * revocation registry, and returns either the full claims payload or {"active": false}.
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $params = (array) ($request->getParsedBody() ?? []);

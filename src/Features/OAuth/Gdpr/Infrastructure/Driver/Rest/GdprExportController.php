@@ -13,6 +13,17 @@ use Civi\Lughauth\Features\OAuth\Gdpr\Application\Usecase\ExportUserData\ExportU
 use Civi\Lughauth\Features\OAuth\Gdpr\Application\Usecase\ExportUserData\ExportUserDataUsecase;
 use Civi\Lughauth\Features\OAuth\Gdpr\Domain\Exception\GdprException;
 
+/**
+ * REST controller that handles the GDPR Right of Access / Data Export endpoint (GDPR Article 15).
+ *
+ * Exposes GET /api/me/gdpr/export, which allows an authenticated user to download all personal
+ * data held for their identity within the current tenant as a JSON attachment. The controller
+ * reads the authenticated subject identity from the shared Context, rejects anonymous requests
+ * with an UnauthorizedException, and delegates data collection to ExportUserDataUsecase. The
+ * resulting GdprDataPackage is serialised as a JSON document and returned with a
+ * Content-Disposition: attachment header so browsers prompt a file download. GdprException
+ * errors are returned as JSON error bodies with the appropriate HTTP status code.
+ */
 class GdprExportController
 {
     public function __construct(
@@ -32,6 +43,10 @@ class GdprExportController
             new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
+    /**
+     * Validates the caller is authenticated, collects all personal-data sections via the use case,
+     * and returns a JSON attachment containing the serialised GdprDataPackage.
+     */
     public function export(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {

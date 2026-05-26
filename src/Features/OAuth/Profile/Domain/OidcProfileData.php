@@ -29,19 +29,33 @@ class OidcProfileData
      * modified; the gateway is responsible for applying only the non-null values.
      */
     public function __construct(
+        /** New given_name value, or null to leave unchanged; empty string to clear. */
         public readonly ?string $givenName = null,
+        /** New family_name value, or null to leave unchanged; empty string to clear. */
         public readonly ?string $familyName = null,
+        /** New middle_name value, or null to leave unchanged; empty string to clear. */
         public readonly ?string $middleName = null,
+        /** New nickname value, or null to leave unchanged; empty string to clear. */
         public readonly ?string $nickname = null,
+        /** New preferred_username value, or null to leave unchanged; empty string to clear. */
         public readonly ?string $preferredUsername = null,
+        /** New profile picture URL, or null to leave unchanged; empty string to clear. */
         public readonly ?string $pictureUrl = null,
+        /** New website URL, or null to leave unchanged; empty string to clear. */
         public readonly ?string $websiteUrl = null,
+        /** New gender value, or null to leave unchanged; empty string to clear. */
         public readonly ?string $gender = null,
+        /** New birthdate in YYYY-MM-DD format, or null to leave unchanged; empty string to clear. */
         public readonly ?string $birthdate = null,
+        /** New IANA timezone identifier, or null to leave unchanged; empty string to clear. */
         public readonly ?string $zoneinfo = null,
+        /** New BCP 47 locale tag, or null to leave unchanged; empty string to clear. */
         public readonly ?string $locale = null,
+        /** New phone number in E.164 format, or null to leave unchanged; empty string to clear. */
         public readonly ?string $phoneNumber = null,
+        /** Phone number verification flag; only set by trusted server-side flows, never from plain user input. */
         public readonly ?bool $phoneNumberVerified = null,
+        /** New JSON-encoded OIDC address object, or null to leave unchanged. */
         public readonly ?string $addressJson = null,
     ) {
     }

@@ -11,6 +11,21 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\SessionsGateway;
 
+/**
+ * REST API controller that exposes session management endpoints for the authenticated user.
+ *
+ * Provides three operations under /api/me/sessions: listing all active sessions, revoking
+ * a specific session by ID, and revoking all sessions at once (global logout).  Each
+ * operation reads the caller's identity from the shared Context and rejects anonymous
+ * requests with HTTP 401.
+ *
+ * Session data is sourced entirely from SessionsGateway, which abstracts the underlying
+ * session store.  This controller contains no domain logic beyond identity verification
+ * and response serialisation; all session-lifecycle concerns belong to the gateway layer.
+ *
+ * The revokeAll operation iterates the user's active sessions and revokes them one by one
+ * through the same gateway, ensuring consistency with the single-session revocation path.
+ */
 class UserSessionController
 {
     public function __construct(
@@ -19,6 +34,12 @@ class UserSessionController
     ) {
     }
 
+    /**
+     * Handles GET /api/me/sessions — returns all active sessions for the authenticated user.
+     *
+     * Each session is serialised as a flat JSON object; the response array may be empty
+     * when the user has no active sessions at the time of the call.
+     */
     #[OA\Get(
         path: '/api/me/sessions',
         summary: 'List active sessions',
@@ -54,6 +75,12 @@ class UserSessionController
         return $response->withStatus(200)->withHeader('Content-Type', 'application/json');
     }
 
+    /**
+     * Handles DELETE /api/me/sessions/{sessionId} — revokes the specified session.
+     *
+     * After this call the session token associated with the given ID is permanently
+     * invalidated and any subsequent refresh or introspection attempt will fail.
+     */
     #[OA\Delete(
         path: '/api/me/sessions/{sessionId}',
         summary: 'Revoke a specific session',
@@ -80,6 +107,12 @@ class UserSessionController
         return $response->withStatus(204);
     }
 
+    /**
+     * Handles DELETE /api/me/sessions — revokes all active sessions (global logout).
+     *
+     * Iterates every active session for the authenticated user and revokes each one,
+     * effectively signing the user out of all devices simultaneously.
+     */
     #[OA\Delete(
         path: '/api/me/sessions',
         summary: 'Revoke all sessions (global logout)',

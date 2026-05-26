@@ -329,6 +329,28 @@ final class LogManagementUnitTest extends TestCase
         $this->assertSame([], $lines);
     }
 
+    /**
+     * Ensures get returns empty when glob fails to list log files.
+     */
+    public function testGetReturnsEmptyWhenGlobFails(): void
+    {
+        /* Arrange: create a log directory and force glob to return false. */
+        $dir = $this->createLogDir();
+        $management = new LogManagement($this->config('app'), $dir);
+        $request = $this->request([]);
+
+        $GLOBALS[\Civi\Lughauth\Bootstrap\Management\Log\GLOB_OVERRIDE_FLAG] = true;
+        try {
+            /* Act: get logs while glob fails. */
+            $result = ($management->get())($request);
+        } finally {
+            unset($GLOBALS[\Civi\Lughauth\Bootstrap\Management\Log\GLOB_OVERRIDE_FLAG]);
+        }
+
+        /* Assert: verify an empty result is returned. */
+        $this->assertSame([], $result);
+    }
+
     private function createLogDir(): string
     {
         $dir = sys_get_temp_dir() . '/logs_' . uniqid();

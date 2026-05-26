@@ -32,10 +32,29 @@ final class ClientApplicationUnitTest extends TestCase
         $this->assertSame(['code'], $r->responseTypes);
     }
 
+    public function test_dynamic_client_request_constructor_direct(): void
+    {
+        $r = new DynamicClientRequest(
+            redirectUris: ['https://app/cb'],
+            clientName: 'Direct App',
+        );
+        $this->assertSame(['https://app/cb'], $r->redirectUris);
+        $this->assertSame('Direct App', $r->clientName);
+        $this->assertSame(['authorization_code'], $r->grantTypes);
+        $this->assertSame(['code'], $r->responseTypes);
+        $this->assertSame('client_secret_basic', $r->tokenEndpointAuthMethod);
+    }
+
     public function test_dynamic_client_request_from_array_throws_without_redirect_uris(): void
     {
         $this->expectException(\InvalidArgumentException::class);
         DynamicClientRequest::fromArray(['client_name' => 'App']);
+    }
+
+    public function test_dynamic_client_request_from_array_throws_when_redirect_uris_not_array(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        DynamicClientRequest::fromArray(['redirect_uris' => 'https://app/cb']);
     }
 
     public function test_dynamic_client_request_from_array_custom_grant_types(): void
@@ -146,9 +165,34 @@ final class ClientApplicationUnitTest extends TestCase
         }
     }
 
+    public function test_register_throws_for_schemeless_redirect_uri(): void
+    {
+        $this->expectException(DynamicClientException::class);
+        $gateway = $this->makeGateway(policy: 'open');
+        $usecase = new RegisterClientUsecase($gateway);
+        $req = new DynamicClientRequest(['//example.com/callback']);
+        try {
+            $usecase->register(new RegisterClientParams('t', 'https://iss', $req));
+        } catch (DynamicClientException $e) {
+            $this->assertSame('invalid_redirect_uri', $e->error());
+            throw $e;
+        }
+    }
+
     public function test_register_succeeds_when_token_provided_with_token_required_policy(): void
     {
         $gateway = $this->makeGateway(policy: 'token-required');
+        $usecase = new RegisterClientUsecase($gateway);
+        $req = new DynamicClientRequest(['https://app/cb']);
+
+        $result = $usecase->register(new RegisterClientParams('t', 'https://iss', $req, 'my-initial-token'));
+
+        $this->assertNotEmpty($result->clientId);
+    }
+
+    public function test_register_succeeds_with_token_required_underscore_policy(): void
+    {
+        $gateway = $this->makeGateway(policy: 'token_required');
         $usecase = new RegisterClientUsecase($gateway);
         $req = new DynamicClientRequest(['https://app/cb']);
 

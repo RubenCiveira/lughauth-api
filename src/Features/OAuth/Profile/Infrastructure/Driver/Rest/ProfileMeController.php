@@ -18,6 +18,23 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfileData;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
 
+/**
+ * REST API controller for the authenticated user's own OIDC profile resource.
+ *
+ * Exposes GET /api/me/profile and PUT /api/me/profile endpoints that allow a bearer-token
+ * authenticated user to retrieve and update their own OIDC profile claims without any
+ * admin-level access.  The controller reads the caller's identity from the shared Context
+ * and rejects anonymous requests with HTTP 401.
+ *
+ * The GET handler returns the current profile serialised as ProfileApiDTO, or an empty
+ * DTO when no profile record has been created yet.  The PUT handler performs an upsert
+ * through ProfileGateway::save() inside an explicit SQL transaction managed by SqlTemplate,
+ * and returns the persisted profile on success.
+ *
+ * Distributed tracing spans are opened for every public method via TracerAwareTrait,
+ * and exceptions are recorded on the active span before being re-thrown so that
+ * trace-based alerting can correlate errors to specific API calls.
+ */
 class ProfileMeController
 {
     use LoggerAwareTrait;
@@ -30,6 +47,12 @@ class ProfileMeController
     ) {
     }
 
+    /**
+     * Handles GET /api/me/profile — returns the caller's OIDC profile as JSON.
+     *
+     * Throws UnauthorizedException for anonymous callers.  Returns an empty ProfileApiDTO
+     * when the user has not yet created a profile record.
+     */
     #[OA\Get(
         path: '/api/me/profile',
         summary: 'Get own user profile',
@@ -62,6 +85,12 @@ class ProfileMeController
         }
     }
 
+    /**
+     * Handles PUT /api/me/profile — creates or updates the caller's OIDC profile.
+     *
+     * Parses the JSON request body into OidcProfileData, delegates to ProfileGateway::save()
+     * inside a transaction, and returns the persisted profile as JSON with HTTP 200.
+     */
     #[OA\Put(
         path: '/api/me/profile',
         summary: 'Create or update own user profile',

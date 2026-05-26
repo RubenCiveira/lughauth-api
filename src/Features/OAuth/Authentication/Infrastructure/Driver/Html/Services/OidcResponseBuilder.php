@@ -15,6 +15,24 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Features\OAuth\User\Domain\PublicLoginAuthResponse;
 
+/**
+ * Infrastructure service that constructs the final successful redirect response at the end of the OIDC flow.
+ *
+ * OidcResponseBuilder is responsible for assembling the Authorization Endpoint redirect URL
+ * once the user has passed all authentication challenges. It inspects the response_type field
+ * of the flow context to decide which tokens to include in the redirect:
+ *
+ * - "code" response type: registers a short-lived TemporalAuthCode and appends the opaque
+ *   code value to the redirect URI as a query parameter, ready for the token endpoint exchange.
+ * - "id_token" response type: signs and appends an ID token to the fragment (implicit flow).
+ * - "token" response type: signs and appends an access token to the fragment (implicit flow).
+ *
+ * It also attaches the authenticated session cookie via OidcCookieManager so the browser
+ * establishes the session for future check-session calls.
+ *
+ * Relationships: depends on TokenSigner for JWT signing, TemporalKeysGateway for temporal
+ * code registration, and OidcCookieManager for session cookie attachment.
+ */
 class OidcResponseBuilder
 {
     public function __construct(
@@ -24,6 +42,13 @@ class OidcResponseBuilder
     ) {
     }
 
+    /**
+     * Builds and returns a 302 redirect response carrying the authorization result tokens.
+     *
+     * Assembles the redirect URL according to the response_type, attaches the appropriate
+     * tokens or authorization code, appends state and nonce, and writes the authenticated
+     * session cookie onto the response before returning it.
+     */
     public function buildSuccessRedirect(
         OidcFlowContext $flow,
         PublicLoginAuthResponse $auth,

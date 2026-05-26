@@ -5,15 +5,35 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven;
 
+use Override;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
 
+/**
+ * Stub infrastructure adapter that implements ScopesConsentGateway as a no-op.
+ *
+ * This placeholder bypasses the scope consent step entirely by reporting that no scopes are
+ * pending and silently discarding any acceptance storage calls. It is used in deployments
+ * where per-scope consent tracking has not yet been implemented or is intentionally disabled.
+ *
+ * Replace this adapter with a real implementation backed by a persistence layer once the
+ * scope consent feature needs to be enforced.
+ */
 final class ScopesConsentAdapter implements ScopesConsentGateway
 {
+    /**
+     * Always returns an empty array, indicating that all requested scopes are already approved
+     * and no consent screen needs to be displayed.
+     */
+    #[Override]
     public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array
     {
         return [];
     }
 
+    /**
+     * No-op implementation; scope acceptance is not persisted until a real adapter is wired in.
+     */
+    #[Override]
     public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
     {
     }

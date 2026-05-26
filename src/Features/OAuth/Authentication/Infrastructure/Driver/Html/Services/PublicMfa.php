@@ -8,22 +8,56 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html
 use Civi\Lughauth\Features\OAuth\Mfa\Application\Usecase\UserMfa;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
 
+/**
+ * Infrastructure façade that exposes the MFA operations needed by the HTML login step forms.
+ *
+ * PublicMfa acts as a thin anti-corruption layer between the HTML driver layer and the UserMfa
+ * application service. It encapsulates the three MFA operations relevant to the login flow:
+ * generating a new TOTP seed for enrolment, verifying an OTP code during normal login, and
+ * verifying an OTP code against a candidate seed during the enrolment step.
+ *
+ * The verifyNewOpt method combines validation and persistence: it calls UserMfa to verify the
+ * OTP against the seed, and only if the code is correct does it immediately persist the seed
+ * via storeSeed, ensuring the seed is never stored before it has been proven valid.
+ *
+ * Relationships: delegates all real MFA logic to UserMfa; consumed exclusively by NewMfaForm
+ * and UseMfaForm in the HTML driver layer.
+ */
 class PublicMfa
 {
     public function __construct(
         private readonly UserMfa $gateway
     ) {
     }
+
+    /**
+     * Generates a new TOTP seed and returns the enrollment data including QR image and seed text.
+     *
+     * The caller should present the returned image or seed to the user without persisting
+     * the seed until it has been verified by verifyNewOpt.
+     */
     public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
     {
         return $this->gateway->configurationForNewMfa($tenant, $username);
     }
 
+    /**
+     * Verifies an OTP code against the user's existing enrolled TOTP secret.
+     *
+     * Returns true when the code is valid for the current time window and the user already
+     * has a stored seed; false otherwise.
+     */
     public function verifyOtp(string $tenant, string $username, string $otp): bool
     {
         return $this->gateway->verifyOtp($tenant, $username, $otp);
     }
 
+    /**
+     * Verifies an OTP code against a candidate seed and, if valid, persists the seed.
+     *
+     * Combines verification and storage atomically: the seed is only stored after the
+     * supplied OTP confirms the user has correctly imported it into their authenticator app.
+     */
     public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
     {
         if ($this->gateway->verifyNewOpt($tenant, $username, $seed, $otp)) {

@@ -8,8 +8,23 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * REST controller that exposes the consent history endpoint for the authenticated user (the
+ * "me" resource owner).
+ *
+ * This controller allows a logged-in user to retrieve the list of OAuth scope consents they
+ * have previously granted, grouped by client application. It is intended to back a
+ * self-service privacy dashboard where users can review their consent history.
+ *
+ * The current implementation is a stub that returns an empty 200 response; full logic will
+ * be added once the consent history query use case and its adapter are implemented.
+ */
 final class MeConsentsHistoryController
 {
+    /**
+     * Returns the authenticated user's full consent grant history as a JSON list, ordered
+     * from most recent to oldest.
+     */
     public function history(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $response;

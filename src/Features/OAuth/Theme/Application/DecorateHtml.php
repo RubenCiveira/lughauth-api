@@ -17,6 +17,19 @@ use Civi\Lughauth\Features\Document\Rendering\Application\Usecase\Render\Templat
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateOutputFormat;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 
+/**
+ * Application service that wraps an HTML fragment inside a full themed page layout.
+ *
+ * Acts as the single integration point between driver controllers and the theming system.
+ * Template resolution follows a two-stage strategy: first, the TemplateRenderUsecase is
+ * consulted for a database-backed page template (tenant-specific or global) identified by the
+ * code "page.{template}"; if no database template is found, a filesystem PHP-closure fallback
+ * from the bundled 'corporate' theme directory is used instead. Static theme assets (CSS, JS,
+ * images) are copied on demand from the source theme directory into the public/.assets/oidc/
+ * folder so they are served by the web server without requiring a separate build step.
+ * The assetsPath is resolved from application configuration at construction time to allow the
+ * base URL to be overridden per environment.
+ */
 class DecorateHtml
 {
     private const string FALLBACK_THEME = 'corporate';

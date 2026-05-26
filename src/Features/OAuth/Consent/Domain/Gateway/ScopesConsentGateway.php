@@ -7,9 +7,23 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Consent\Domain\ScopePermission;
 
+/**
+ * Domain port (outbound gateway) for querying and persisting OAuth scope consent records.
+ *
+ * Implementations compare the requested scopes against any previously stored approvals for the
+ * given user and client, returning only the scopes that still require explicit user consent as
+ * ScopePermission value objects. The store operation replaces or appends the approval record so
+ * that subsequent requests for the same scopes do not trigger the consent screen again.
+ *
+ * The gateway is intentionally scoped to a single user/client/tenant combination so that
+ * per-application consent isolation is enforced at the persistence level.
+ */
 interface ScopesConsentGateway
 {
     /**
+     * Returns the subset of the requested scopes that the user has not yet approved for the
+     * given client, as ScopePermission value objects carrying display metadata.
+     *
      * @param string[] $requestedScopes
      *
      * @return ScopePermission[]
@@ -17,6 +31,9 @@ interface ScopesConsentGateway
     public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array;
 
     /**
+     * Persists the user's approval of the specified scopes for the given client so that future
+     * authorization requests for the same scopes skip the consent screen.
+     *
      * @param string[] $approvedScopes
      */
     public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void;

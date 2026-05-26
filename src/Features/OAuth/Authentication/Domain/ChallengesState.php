@@ -95,6 +95,9 @@ final class ChallengesState
     }
 
     /**
+     * Serialises the current state to an associative array for storage in the session.
+     * The resulting array can be passed to fromArray() to restore the state on the next request.
+     *
      * @return (array|bool|int|null|string)[]
      *
      * @psalm-return array{v: 1, with_mfa: bool, session: bool, username: null|string, extra: array}

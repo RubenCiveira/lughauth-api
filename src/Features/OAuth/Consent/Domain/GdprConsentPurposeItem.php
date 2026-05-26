@@ -5,13 +5,30 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Domain;
 
+/**
+ * Immutable value object representing a single GDPR data-processing purpose that requires the
+ * user's explicit consent decision during the login flow.
+ *
+ * Instances are returned by GdprConsentGateway::pendingPurposes and consumed by the consent
+ * screen controller, which renders each item as a labelled checkbox. The required flag marks
+ * purposes that are legally mandatory; the UI must render these as pre-checked and non-editable
+ * so the user cannot decline them without abandoning the login.
+ *
+ * The key field is the stable machine-readable identifier used when storing decisions, while
+ * uid is the persistence layer's primary key for the purpose entity.
+ */
 final class GdprConsentPurposeItem
 {
     public function __construct(
+        /** The persistence-layer primary key of the GDPR purpose entity. */
         public readonly string $uid,
+        /** A stable machine-readable key used when recording the user's decision for this purpose. */
         public readonly string $key,
+        /** Short human-readable title displayed as the checkbox label in the consent UI. */
         public readonly string $title,
+        /** Longer description explaining what data is processed and why, shown below the title. */
         public readonly string $description,
+        /** When true the user cannot decline this purpose; it must be accepted to complete login. */
         public readonly bool $required
     ) {
     }

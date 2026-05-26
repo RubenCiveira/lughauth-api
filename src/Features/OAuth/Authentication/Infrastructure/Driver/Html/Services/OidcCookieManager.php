@@ -12,6 +12,26 @@ use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 
+/**
+ * Infrastructure service that manages HTTP cookies for the OIDC interactive login flow.
+ *
+ * OidcCookieManager is responsible for the full lifecycle of the two cookies used during
+ * the browser-facing authorization flow. The PRE_SESSION_ID cookie carries an encrypted,
+ * signed snapshot of the ChallengesState between form submissions so the server can resume
+ * the multi-step flow without storing server-side session data during the pre-authentication
+ * phase. It is issued by storePreSession() and read back by loadPreSessionChallenges().
+ *
+ * The AUTH_SESSION_ID_{TENANT} cookie is the persistent authenticated session cookie written
+ * after the user has successfully completed all authentication challenges. Its path is scoped
+ * to the per-tenant OIDC endpoint so credentials are isolated between tenants.
+ *
+ * clearSession() removes both cookies at once, which is invoked whenever a fresh login page
+ * is presented or the flow errors out, preventing stale challenge state from leaking into
+ * subsequent attempts.
+ *
+ * Relationships: relies on TokenSigner for signing and verifying the PRE_SESSION_ID payload
+ * and on Context to resolve the correct base URL for cookie path construction.
+ */
 class OidcCookieManager
 {
     private readonly string $base;
@@ -23,6 +43,12 @@ class OidcCookieManager
         $this->base = $this->context->getBaseUrl() . '/oauth';
     }
 
+    /**
+     * Removes both the authenticated session cookie and the pre-session cookie from the response.
+     *
+     * Should be called whenever a step-render response is returned so that no stale cookie
+     * survives into a subsequent flow attempt.
+     */
     public function clearSession(ResponseInterface $response, string $tenant): ResponseInterface
     {
         $path = $this->cookiePath($tenant);
@@ -31,6 +57,13 @@ class OidcCookieManager
         return $preCookie->remove($authCookie->remove($response));
     }
 
+    /**
+     * Creates a signed, short-lived PRE_SESSION_ID cookie containing the serialised ChallengesState.
+     *
+     * The cookie carries the accumulated challenge progress (username, MFA flags, etc.) so it can
+     * be restored on the next form POST without server-side session storage. It expires after
+     * ten minutes and is restricted to the tenant-scoped cookie path.
+     */
     public function storePreSession(OidcFlowContext $flow, ChallengesState $challenges): Cookie
     {
         $duration = new \DateInterval('PT10M');
@@ -46,6 +79,12 @@ class OidcCookieManager
         );
     }
 
+    /**
+     * Creates the authenticated session cookie written after the user completes all login challenges.
+     *
+     * The cookie name is tenant-scoped and its expiration matches the session duration returned by
+     * the authentication domain service.
+     */
     public function authenticatedSessionCookie(string $tenant, string $sessionId, \DateInterval $expiration): Cookie
     {
         return new Cookie(
@@ -59,12 +98,24 @@ class OidcCookieManager
         );
     }
 
+    /**
+     * Decrypts and deserialises the ChallengesState from the PRE_SESSION_ID cookie value.
+     *
+     * Returns a fresh empty ChallengesState when the cookie is absent, expired, or tampered with,
+     * which causes the flow to restart from the first login step.
+     */
     public function loadPreSessionChallenges(string $tenant, string $preSessionId): ChallengesState
     {
         $keypass = (array) $this->keys->verifiedKeypass($tenant, $preSessionId);
         return ChallengesState::fromArray((array) ($keypass['challenges'] ?? []));
     }
 
+    /**
+     * Builds the per-tenant cookie path that scopes cookies to the OIDC authorization endpoint.
+     *
+     * Scoping cookies to a narrow path prevents them from being sent to unrelated endpoints on
+     * the same origin and isolates state between tenants.
+     */
     public function cookiePath(string $tenant): string
     {
         $basePath = rtrim((string) (parse_url($this->base, PHP_URL_PATH) ?? '/oauth'), '/');

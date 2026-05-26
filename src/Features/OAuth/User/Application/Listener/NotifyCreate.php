@@ -9,12 +9,32 @@ use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Access\User\Domain\Event\UserCreateEvent;
 use Civi\Lughauth\Features\Notification\Message\Application\Usecase\SendMessage;
 
+/**
+ * Domain event listener that reacts to UserCreateEvent and optionally sends a notification.
+ *
+ * This listener is subscribed to the UserCreateEvent published whenever a new user account
+ * is successfully created in the system.  Its primary purpose is to dispatch a welcome or
+ * admin-alert notification via the SendMessage use case.
+ *
+ * The notification logic is currently commented out pending finalisation of the recipient
+ * configuration strategy; the listener body is intentionally left empty so that it acts as
+ * a ready-to-use extension point without requiring structural changes when notifications
+ * are re-enabled.  The SendMessage dependency is retained in the constructor to avoid
+ * a breaking change in the DI container configuration.
+ */
 class NotifyCreate
 {
     public function __construct(private readonly SendMessage $sender)
     {
 
     }
+
+    /**
+     * Handles a UserCreateEvent and fires a notification for the newly created user.
+     *
+     * The notification body is currently disabled; the method is a no-op until the
+     * recipient configuration is finalised and the SendMessage call is uncommented.
+     */
     public function __invoke(UserCreateEvent $auth)
     {
         /*

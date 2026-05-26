@@ -20,6 +20,18 @@ use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Value\Random;
 
+/**
+ * SQL-backed implementation of the TemporalKeysGateway port using PDO and the web-token library.
+ *
+ * Manages a single rotating key pair (current and previous fallback) stored in the
+ * _oauth_temporal_keys table. Keys are automatically rotated every hour: on construction a
+ * new random key is generated when the current one has expired, and the old key becomes the
+ * fallback to keep recently-issued tokens valid during the transition window. HS256 JWT
+ * verification tries the current key first, then retries with the fallback, raising
+ * SignatureVerificationException only when both attempts fail. Short-lived authorization codes
+ * are stored as JSON in _oauth_temporal_codes with a 3-minute TTL and are consumed atomically
+ * on retrieval to enforce the single-use invariant mandated by the OAuth 2.0 specification.
+ */
 class TemporalKeysSqlAdapter implements TemporalKeysGateway
 {
     public function __construct(
@@ -29,6 +41,10 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         $this->clearTemp();
     }
 
+    /**
+     * Verifies a compact-serialised HS256 JWT and returns the 'identity' claim on success.
+     * Tries the current key first and falls back to the previous key before giving up.
+     */
     #[\Override]
     public function verifyToken(string $token): ?string
     {
@@ -43,6 +59,10 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     /**
      * @return string
      */
+    /**
+     * Encrypts the given plaintext using AES with the current active key.
+     * Returns null when no active key is present in the database.
+     */
     public function encrypt(string $token): ?string
     {
         $current = $this->getCurrent();
@@ -55,6 +75,10 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     #[\Override]
     /**
      * @return string
+     */
+    /**
+     * Decrypts a ciphertext token using the current AES key.
+     * Returns null or an empty string when decryption fails or no active key exists.
      */
     public function verifyCypher(string $token): ?string
     {
@@ -69,6 +93,10 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         return $dec;
     }
 
+    /**
+     * Returns the current raw signing key string, or an empty string when no key row exists.
+     * Useful for callers that need to perform custom cryptographic operations outside this adapter.
+     */
     #[\Override]
     public function currentKey(): string
     {
@@ -170,6 +198,10 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         }
     }
 
+    /**
+     * Serialises the TemporalAuthCode as JSON, persists it under a fresh UUID with a 3-minute TTL, and returns the UUID.
+     * The stored code is later consumed atomically by retrieveTemporalAuthCode.
+     */
     #[\Override]
     public function registerTemporalAuthCode(TemporalAuthCode $code): string
     {
@@ -185,6 +217,10 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
         return $uid;
     }
 
+    /**
+     * Fetches and immediately deletes the TemporalAuthCode row identified by the given code string.
+     * Returns null when the code does not exist or has already expired, enforcing single-use semantics.
+     */
     #[\Override]
     public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode
     {

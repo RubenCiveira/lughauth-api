@@ -348,6 +348,59 @@ final class DeviceDomainUnitTest extends TestCase
         $this->assertSame('user-1', $result->id);
     }
 
+    public function test_exchange_device_code_throws_slow_down_when_polling_too_soon(): void
+    {
+        $this->expectException(DeviceAuthorizationException::class);
+        $recentlyPolled = $this->makeDeviceAuthorization(
+            expiresAt: new DateTimeImmutable('2099-01-01T00:00:00+00:00'),
+            status: DeviceAuthorizationStatus::PENDING,
+            lastPollAt: new DateTimeImmutable()
+        );
+        $gateway = $this->makeGateway(byDeviceCode: $recentlyPolled);
+        $service = new DeviceAuthorizationService($gateway);
+
+        try {
+            $service->exchangeDeviceCode('dc-1');
+        } catch (DeviceAuthorizationException $e) {
+            $this->assertSame('slow_down', $e->error());
+            throw $e;
+        }
+    }
+
+    public function test_exchange_device_code_throws_invalid_grant_when_approved_but_auth_null(): void
+    {
+        $this->expectException(DeviceAuthorizationException::class);
+        $approvedNoAuth = $this->makeDeviceAuthorization(
+            expiresAt: new DateTimeImmutable('2099-01-01T00:00:00+00:00'),
+            status: DeviceAuthorizationStatus::APPROVED,
+            authResult: null
+        );
+        $gateway = $this->makeGateway(byDeviceCode: $approvedNoAuth);
+        $service = new DeviceAuthorizationService($gateway);
+
+        try {
+            $service->exchangeDeviceCode('dc-1');
+        } catch (DeviceAuthorizationException $e) {
+            $this->assertSame('invalid_grant', $e->error());
+            throw $e;
+        }
+    }
+
+    public function test_generate_user_code_falls_back_to_uuid_when_all_attempts_collide(): void
+    {
+        $collision = $this->makeDeviceAuthorization();
+        $gateway = $this->makeGateway(byUserCode: $collision);
+        $client = new ClientData('c', [], false);
+        $service = new DeviceAuthorizationService($gateway);
+
+        $result = $service->createAuthorization('tenant', $client, 'openid', []);
+
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+            $result->userCode
+        );
+    }
+
     public function test_grant_type_static_method(): void
     {
         $this->assertSame(DeviceAuthorizationGrantType::DEVICE_CODE, DeviceAuthorizationService::grantType());

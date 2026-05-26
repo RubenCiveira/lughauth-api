@@ -17,6 +17,17 @@ use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 
+/**
+ * Infrastructure adapter implementing UserMfaGateway using the RobThree TwoFactorAuth library.
+ *
+ * This class bridges the domain MFA contract and the concrete TOTP implementation provided by
+ * the RobThree/TwoFactorAuth package. It resolves tenant and user entities from their respective
+ * read/write gateways before delegating TOTP operations to a TwoFactorAuth instance, ensuring
+ * that all operations are correctly scoped to the right tenant and user. The TOTP seed stored
+ * in the user record is encrypted at rest using AesCypherService and is decrypted on-the-fly
+ * only when needed for verification, so the raw secret is never persisted in plain text.
+ * The QR code image is generated via EndroidQrCodeProvider and embedded as a data URI.
+ */
 class UserMfaAdapter implements UserMfaGateway
 {
     public function __construct(
@@ -28,6 +39,11 @@ class UserMfaAdapter implements UserMfaGateway
     ) {
     }
 
+    /**
+     * Generates a new TOTP secret for the user, builds a QR-code image via EndroidQrCodeProvider,
+     * and returns the seed with the image URI. The label shown in the authenticator app is derived
+     * from the tenant configuration's inner label when available, falling back to the tenant name.
+     */
     #[Override]
     public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
     {
@@ -52,6 +68,10 @@ class UserMfaAdapter implements UserMfaGateway
         );
     }
 
+    /**
+     * Retrieves the encrypted TOTP seed stored for the user, decrypts it, and verifies the
+     * provided OTP. Returns true when the code is valid within the acceptable time window.
+     */
     #[Override]
     public function verifyOtp(string $tenant, string $username, string $otp): bool
     {
@@ -67,12 +87,22 @@ class UserMfaAdapter implements UserMfaGateway
         $secret = $theUser->getPlainSecondFactorSeed($this->cypher) ?? '';
         return $delegated->verifyCode($secret, $otp);
     }
+
+    /**
+     * Verifies the OTP against the supplied provisional seed without loading any persisted secret.
+     * Used during enrollment to confirm the user's authenticator app has been set up correctly.
+     */
     #[Override]
     public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
     {
         $delegated = new TwoFactorAuth(new EndroidQrCodeProvider());
         return $delegated->verifyCode($seed, $otp);
     }
+
+    /**
+     * Encrypts the confirmed TOTP seed and persists it on the user entity for future OTP verifications.
+     * Throws NotFoundException when the tenant or user cannot be resolved.
+     */
     #[Override]
     public function storeSeed(string $tenant, string $username, string $seed): void
     {

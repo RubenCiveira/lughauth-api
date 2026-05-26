@@ -10,6 +10,18 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\LoginGateway;
 
+/**
+ * Application service that drives the interactive authentication flow for human users.
+ *
+ * This use case acts as a thin façade over LoginGateway, providing three distinct entry
+ * points that correspond to different stages of the multi-step OAuth authentication
+ * sequence: pre-loading user data by UID, resolving a previously authenticated session,
+ * and validating a username/password credential submission.
+ *
+ * By routing all three operations through the same gateway interface the use case keeps
+ * the application layer free of infrastructure concerns while still allowing the HTTP
+ * driver layer to call the correct operation for each step of the authentication flow.
+ */
 class LoginUsecase
 {
     public function __construct(
@@ -17,6 +29,12 @@ class LoginUsecase
     ) {
     }
 
+    /**
+     * Pre-loads user data for a session that is already identified by a stored subject UID.
+     *
+     * Used when an existing authenticated session is resumed and the user does not need to
+     * re-enter credentials; builds the AuthenticationResult from the persisted identity.
+     */
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
@@ -25,6 +43,12 @@ class LoginUsecase
         return $this->gateway->fillPreLoadById($tenant, $client, $challenges);
     }
 
+    /**
+     * Builds an AuthenticationResult for a user who has already passed all challenge steps.
+     *
+     * Called after the challenge pipeline (MFA, terms, scopes consent) has been completed
+     * to produce the final claims-bearing result that will be encoded into tokens.
+     */
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
@@ -33,6 +57,12 @@ class LoginUsecase
         return $this->gateway->fillPreAuthenticated($tenant, $client, $challenges);
     }
 
+    /**
+     * Validates a username and password pair and returns the full authentication result.
+     *
+     * The result may be valid (successful login), or may indicate a required next step such
+     * as MFA verification, terms acceptance, or a mandatory password change.
+     */
     public function validatedUserData(
         string $tenant,
         string $username,

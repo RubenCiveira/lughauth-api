@@ -26,12 +26,19 @@ class ActiveSession
      * through the SessionsGateway (e.g. revoke) rather than through this value object.
      */
     public function __construct(
+        /** Unique identifier of the session record, used as the primary key for revocation. */
         public readonly string $sessionId,
+        /** Identifier of the OAuth client application that established this session. */
         public readonly string $clientId,
+        /** Human-readable display name of the client application, or null when unavailable. */
         public readonly ?string $clientName,
+        /** IP address from which this session was initiated, or null if not recorded. */
         public readonly ?string $ipAddress,
+        /** User-agent string of the device that created this session, or null if not recorded. */
         public readonly ?string $userAgent,
+        /** ISO 8601 datetime of the most recent activity on this session, or null. */
         public readonly ?string $lastUsedAt,
+        /** ISO 8601 datetime after which this session expires; always non-null for active sessions. */
         public readonly string $expiration,
     ) {
     }

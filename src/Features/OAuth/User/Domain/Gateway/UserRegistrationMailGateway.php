@@ -7,8 +7,25 @@ namespace Civi\Lughauth\Features\OAuth\User\Domain\Gateway;
 
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
+/**
+ * Domain port for dispatching account-registration verification emails.
+ *
+ * This gateway abstracts the mail-delivery mechanism from the application layer so that
+ * RegisterUserUsecase remains free of transactional-mail infrastructure details.
+ * Implementations are expected to live in the Infrastructure/Driven layer and use the
+ * notification outbox or a direct mail transport to deliver the activation link.
+ *
+ * The activation URL embedded in the email must contain the verification code as a query
+ * parameter so the user can complete account activation by following the link.
+ */
 interface UserRegistrationMailGateway
 {
+    /**
+     * Sends the registration verification email containing the activation link.
+     *
+     * Implementations must deliver the email containing activateUrl; failures should
+     * throw rather than silently swallow errors so the caller can handle retries.
+     */
     public function sendRegistrationVerification(
         string $toEmail,
         string $userName,

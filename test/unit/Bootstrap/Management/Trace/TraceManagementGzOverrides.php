@@ -32,3 +32,14 @@ function gzclose($h): void
 {
     \gzclose($h);
 }
+
+
+const GLOB_OVERRIDE_FLAG = '__test_force_trace_glob_false';
+
+function glob(string $pattern, int $flags = 0): array|false
+{
+    if (!empty($GLOBALS[GLOB_OVERRIDE_FLAG])) {
+        return false;
+    }
+    return \glob($pattern, $flags);
+}

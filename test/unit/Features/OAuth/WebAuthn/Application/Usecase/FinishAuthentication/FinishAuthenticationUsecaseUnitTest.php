@@ -123,6 +123,37 @@ final class FinishAuthenticationUsecaseUnitTest extends TestCase
         $this->usecase->finish('cid', 'acme', ['id' => 'c', 'response' => []], 'https://x.com', 'x.com');
     }
 
+    public function test_throws_NotFoundException_when_tenant_not_found(): void
+    {
+        $this->tenants->method('findOneByName')->willReturn(null);
+
+        $this->expectException(\Civi\Lughauth\Shared\Exception\NotFoundException::class);
+        $this->usecase->finish('cid', 'acme', ['id' => 'c'], 'https://x.com', 'x.com');
+    }
+
+    public function test_throws_WebAuthnException_when_wrong_challenge_type(): void
+    {
+        $this->tenants->method('findOneByName')->willReturn($this->buildTenant('tid', 'acme'));
+        $wrongType = new WebAuthnChallenge(
+            challengeId: 'cid',
+            tenantId: 'tid',
+            userUid: null,
+            challenge: 'abc',
+            type: 'register',
+            optionsJson: null,
+            createdAt: new DateTimeImmutable(),
+            expiresAt: new DateTimeImmutable('+5 minutes'),
+            verified: false,
+            verifiedAt: null,
+            verifiedUserUid: null,
+            verifiedUsername: null,
+        );
+        $this->challengeGateway->method('findById')->willReturn($wrongType);
+
+        $this->expectException(WebAuthnException::class);
+        $this->usecase->finish('cid', 'acme', ['id' => 'c'], 'https://x.com', 'x.com');
+    }
+
     private function buildTenant(string $uid, string $name): Tenant&MockObject
     {
         $tenant = $this->createMock(Tenant::class);

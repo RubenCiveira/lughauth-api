@@ -7,14 +7,31 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Consent\Domain\GdprConsentPurposeItem;
 
+/**
+ * Domain port (outbound gateway) that manages GDPR processing-purpose consent records.
+ *
+ * Implementations query and persist the user's explicit opt-in or opt-out decisions for each
+ * GDPR processing purpose defined for a tenant. The gateway is responsible for determining
+ * which purposes are still pending (i.e. no decision has been recorded or an existing decision
+ * has expired) and for storing the user's new decisions together with their audit context.
+ *
+ * The current stub implementation always returns an empty list, effectively disabling the GDPR
+ * consent step until a production implementation is wired in.
+ */
 interface GdprConsentGateway
 {
     /**
+     * Returns all GDPR processing purposes for the tenant that still require a consent decision
+     * from the given user.
+     *
      * @return GdprConsentPurposeItem[]
      */
     public function pendingPurposes(string $tenant, string $username): array;
 
     /**
+     * Persists the user's boolean accept/reject decision for each purpose UID, recording the
+     * IP address and user-agent for the compliance audit trail.
+     *
      * @param array<string, bool> $decisionsByPurposeUid
      */
     public function storePurposeDecisions(string $tenant, string $username, array $decisionsByPurposeUid, string $ipAddress, string $userAgent): void;

@@ -8,6 +8,19 @@ namespace Civi\Lughauth\Features\OAuth\User\Application\Usecase;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\RegisterUserGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\UserRegistrationMailGateway;
 
+/**
+ * Application service orchestrating the self-service user registration workflow.
+ *
+ * This use case covers the full lifecycle of a new account: checking whether registration
+ * is permitted for the tenant, retrieving the consent text that the user must accept,
+ * processing the registration form submission (which creates the account and dispatches
+ * a verification email), and handling the email-verification callback.
+ *
+ * Business rules around tenant-level flags, duplicate email detection, and email
+ * verification code generation are delegated to RegisterUserGateway so this class
+ * stays free of persistence and cryptography details.  The UserRegistrationMailGateway
+ * is used solely within requestForRegister to deliver the activation link.
+ */
 class RegisterUserUsecase
 {
     public function __construct(
@@ -16,16 +29,35 @@ class RegisterUserUsecase
     ) {
     }
 
+    /**
+     * Returns whether self-service registration is currently enabled for the given tenant.
+     *
+     * Reads the tenant-level configuration flag; used by the HTTP driver to show or hide
+     * the registration form on the login page.
+     */
     public function allowRegister(string $tenant): bool
     {
         return $this->gateway->allowRegister($tenant);
     }
 
+    /**
+     * Returns the consent text the user must accept before registering, or null when not required.
+     *
+     * The returned string typically contains the terms-of-service document for the tenant;
+     * a null or empty result means no consent is configured.
+     */
     public function getRegisterConsent(string $tenant): ?string
     {
         return $this->gateway->getRegisterConsent($tenant);
     }
 
+    /**
+     * Creates the user account and sends the email verification link.
+     *
+     * Delegates account creation and code generation to the gateway; if null is returned
+     * (e.g. registration is disabled or the email already exists as an active account)
+     * the method returns silently without dispatching any email.
+     */
     public function requestForRegister(string $url, string $tenant, string $email, string $password): void
     {
         $data = $this->gateway->requestForRegister($url, $tenant, $email, $password);
@@ -40,6 +72,12 @@ class RegisterUserUsecase
         );
     }
 
+    /**
+     * Verifies the registration code and activates (or queues for approval) the new account.
+     *
+     * Returns the username of the activated user on success, or null when the code is
+     * invalid or has already been used.
+     */
     public function verifyRegister(string $tenant, string $code): ?string
     {
         return $this->gateway->verifyRegister($tenant, $code);

@@ -7,8 +7,26 @@ namespace Civi\Lughauth\Features\OAuth\User\Application\Listener;
 
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Event\UserAccessTemporalCodeGeneratePasswordRecoverEvent;
 
+/**
+ * Domain event listener subscribed to the password-recovery code generation event.
+ *
+ * This listener reacts to UserAccessTemporalCodeGeneratePasswordRecoverEvent, which is
+ * published when a new password-recovery temporal code is generated for a user.  The
+ * actual recovery email dispatch is handled directly by ChangePasswordUsecase through
+ * PasswordRecoveryMailGateway, so this listener body is intentionally empty.
+ *
+ * The class is kept as an explicit extension point: any future side-effects that should
+ * occur when a recovery code is generated (e.g. audit logging, rate-limit tracking, or
+ * additional notifications) can be added here without modifying the use case.
+ */
 class NotifyRecover
 {
+    /**
+     * Handles the password-recovery code generation event.
+     *
+     * Currently a no-op because notification delivery is managed by ChangePasswordUsecase;
+     * this listener exists solely as a future extension point for additional side-effects.
+     */
     public function __invoke(UserAccessTemporalCodeGeneratePasswordRecoverEvent $_event): void
     {
         // Notification is handled directly by ChangePasswordUsecase via PasswordRecoveryMailGateway.

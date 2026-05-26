@@ -31,23 +31,41 @@ class OidcProfile
      * and are set once at construction time; the object is never mutated.
      */
     public function __construct(
+        /** Unique identifier of the profile record within the persistence layer. */
         public readonly string $uid,
+        /** UID of the user that owns this profile record. */
         public readonly string $userUid,
+        /** OIDC given_name claim: the user's first or given personal name. */
         public readonly ?string $givenName,
+        /** OIDC family_name claim: the user's surname or family name. */
         public readonly ?string $familyName,
+        /** OIDC middle_name claim: the user's middle name, if applicable. */
         public readonly ?string $middleName,
+        /** OIDC nickname claim: casual name by which the user prefers to be addressed. */
         public readonly ?string $nickname,
+        /** OIDC preferred_username claim: shorthand name the user wishes to use at the RP. */
         public readonly ?string $preferredUsername,
+        /** OIDC picture claim: URL of the user's profile picture. */
         public readonly ?string $pictureUrl,
+        /** OIDC website claim: URL of the user's personal web page or blog. */
         public readonly ?string $websiteUrl,
+        /** OIDC gender claim: free-form string describing the user's gender. */
         public readonly ?string $gender,
+        /** OIDC birthdate claim: date of birth in YYYY-MM-DD format. */
         public readonly ?string $birthdate,
+        /** OIDC zoneinfo claim: IANA time-zone identifier such as "Europe/Madrid". */
         public readonly ?string $zoneinfo,
+        /** OIDC locale claim: BCP 47 language tag representing the user's locale preference. */
         public readonly ?string $locale,
+        /** OIDC phone_number claim: user's preferred phone number in E.164 format. */
         public readonly ?string $phoneNumber,
+        /** OIDC phone_number_verified claim: whether the phone number has been verified. */
         public readonly ?bool $phoneNumberVerified,
+        /** OIDC address claim serialised as a JSON string; callers must json_decode before use. */
         public readonly ?string $addressJson,
+        /** ISO 8601 datetime of the last profile update; set by the persistence layer. */
         public readonly ?string $updatedAt,
+        /** Optimistic-concurrency version counter; incremented on each profile update. */
         public readonly ?int $version,
     ) {
     }

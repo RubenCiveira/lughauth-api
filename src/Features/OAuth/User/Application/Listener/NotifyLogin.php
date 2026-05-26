@@ -15,6 +15,20 @@ use Civi\Lughauth\Features\Notification\Outbox\Application\Usecase\Enqueue\Enque
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 
+/**
+ * Domain event listener that dispatches a security notification after a successful login.
+ *
+ * This listener is invoked with the AuthenticationResult produced at the end of the
+ * authentication flow.  When the result is valid (i.e. the login succeeded) it enqueues
+ * an urgent outbox notification using the "user.login" template, which typically sends
+ * an email to a configured security-alert recipient informing them of the login event.
+ *
+ * The recipient address is currently hard-coded for development purposes; the commented-out
+ * code block shows the intended production path where the recipient is read from the
+ * application configuration via AppConfig.  Failures to enqueue the notification are
+ * caught and logged as errors so that a notification infrastructure outage does not
+ * prevent the authentication response from reaching the user.
+ */
 class NotifyLogin
 {
     use LoggerAwareTrait;
@@ -26,6 +40,13 @@ class NotifyLogin
     ) {
 
     }
+
+    /**
+     * Handles an AuthenticationResult event and enqueues a login notification when the result is valid.
+     *
+     * Silently returns without sending anything when the authentication failed; catches and
+     * logs any enqueue exceptions so that notification failures are non-fatal.
+     */
     public function __invoke(AuthenticationResult $auth)
     {
         if (!$auth->valid) {

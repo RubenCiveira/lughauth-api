@@ -8,8 +8,23 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * REST controller that exposes the active consents list endpoint for the authenticated user
+ * (the "me" resource owner).
+ *
+ * This controller returns the set of OAuth scope consents currently in force for the logged-in
+ * user, one entry per client application that has been granted access. It is intended to power
+ * a self-service privacy dashboard where users can review and revoke active consents.
+ *
+ * The current implementation is a stub that returns an empty 200 response; full logic will be
+ * added once the active-consents query use case and its adapter are implemented.
+ */
 final class MeConsentsListController
 {
+    /**
+     * Returns the authenticated user's currently active consent grants as a JSON list, one
+     * entry per client application that has been explicitly approved.
+     */
     public function list(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
     {
         return $response;

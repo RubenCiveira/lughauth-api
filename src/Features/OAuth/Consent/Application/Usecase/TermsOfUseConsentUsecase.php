@@ -8,6 +8,17 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Application\Usecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\TermsOfUseConsentGateway;
 
+/**
+ * Application use case that manages the terms-of-use consent step during the login flow.
+ *
+ * This use case determines whether a user still needs to accept one or more versions of the
+ * platform's terms of use before the authorization flow can continue. It operates scoped by
+ * tenant, username, and an array of audience identifiers (relying party codes) so that
+ * different registered applications can enforce their own terms independently.
+ *
+ * TermsOfUseConsentGateway is responsible for the persistence detail; this class only
+ * orchestrates the query and update operations without knowledge of the underlying store.
+ */
 class TermsOfUseConsentUsecase
 {
     public function __construct(
@@ -16,6 +27,9 @@ class TermsOfUseConsentUsecase
     }
 
     /**
+     * Returns the list of terms-of-use items the user has not yet accepted for the given
+     * tenant and audiences; an empty array means no consent step is needed.
+     *
      * @param string[] $audiences
      *
      * @return TermsOfUseAcceptance[]
@@ -26,6 +40,9 @@ class TermsOfUseConsentUsecase
     }
 
     /**
+     * Persists the user's acceptance of the given terms-of-use item for the specified audiences,
+     * recording the consent object that carries the accepted version identifier.
+     *
      * @param string[] $audiences
      */
     public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void

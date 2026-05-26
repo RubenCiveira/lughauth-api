@@ -8,6 +8,18 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Application\Usecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\ScopePermission;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
 
+/**
+ * Application use case that manages the OAuth scope consent step during authorization.
+ *
+ * This use case handles both the query side (which scopes still require the user's explicit
+ * approval) and the write side (persisting the user's scope approval decision). It delegates
+ * the actual state management to ScopesConsentGateway and is used by both the consent screen
+ * controller and the ConsentOrchestrationService.
+ *
+ * Scope normalization (trimming whitespace, removing empty values, and deduplicating) is
+ * centralised in normalizeScopeList so that all callers operate on a consistent canonical
+ * list regardless of how the scope string was originally formatted.
+ */
 class ScopesConsentUsecase
 {
     public function __construct(
@@ -16,6 +28,9 @@ class ScopesConsentUsecase
     }
 
     /**
+     * Returns the subset of requested scopes that the user has not yet approved for the given
+     * client, as a list of ScopePermission value objects ready to be rendered by the consent UI.
+     *
      * @return ScopePermission[]
      */
     public function pendingScopes(string $tenant, string $username, string $clientId, string $scope): array
@@ -24,6 +39,9 @@ class ScopesConsentUsecase
     }
 
     /**
+     * Persists the user's approved scope list for the given client after normalizing the values
+     * to ensure consistent storage regardless of the input format.
+     *
      * @param string[] $approvedScopes
      */
     public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
@@ -32,6 +50,9 @@ class ScopesConsentUsecase
     }
 
     /**
+     * Trims, filters out empty values, and deduplicates a raw array of scope strings,
+     * returning an indexed array suitable for storage or comparison.
+     *
      * @param array<int, mixed> $values
      *
      * @return string[]
@@ -50,6 +71,9 @@ class ScopesConsentUsecase
     }
 
     /**
+     * Convenience wrapper that splits a space-separated scope string and delegates to
+     * normalizeScopeList, returning a clean deduplicated array of scope identifiers.
+     *
      * @return string[]
      */
     public function normalizeScopes(string $scope): array

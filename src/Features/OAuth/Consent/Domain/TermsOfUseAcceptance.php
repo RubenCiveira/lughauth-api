@@ -5,10 +5,24 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Domain;
 
+/**
+ * Immutable value object representing a single terms-of-use item that requires user acceptance
+ * during the login consent flow.
+ *
+ * Instances are returned by TermsOfUseConsentGateway::getPendingConsent and consumed by the
+ * consent controller, which presents the full terms text to the user before recording their
+ * acceptance. The id field is the stable version identifier used when calling
+ * storeAcceptedConsent to associate the acceptance record with the exact version shown.
+ *
+ * Because terms can be updated, the id must encode both the terms entity and the version so
+ * that future re-consent checks can detect when new versions have been published.
+ */
 final class TermsOfUseAcceptance
 {
     public function __construct(
+        /** Stable identifier combining the terms entity UID and version, used when storing acceptance. */
         public readonly string $id,
+        /** The full human-readable terms-of-use text displayed to the user before acceptance. */
         public readonly string $text
     ) {
     }

@@ -8,6 +8,19 @@ namespace Civi\Lughauth\Features\OAuth\User\Application\Usecase;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\ChangePasswordGateway;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\PasswordRecoveryMailGateway;
 
+/**
+ * Application service orchestrating the full self-service password change and recovery workflow.
+ *
+ * This use case covers three distinct scenarios: initiating a password-reset request
+ * (which generates a recovery code and dispatches the recovery email), validating an
+ * incoming recovery code and applying the new password, and forcing a password update
+ * for authenticated users who already know their current password.
+ *
+ * Business rules around recovery code expiry, tenant-level feature flags (allowRecover),
+ * and old-password verification are delegated to ChangePasswordGateway, keeping this
+ * class free of infrastructure concerns.  The PasswordRecoveryMailGateway dependency is
+ * used exclusively within requestForChange to send the recovery link to the user's email.
+ */
 class ChangePasswordUsecase
 {
     public function __construct(
@@ -16,6 +29,12 @@ class ChangePasswordUsecase
     ) {
     }
 
+    /**
+     * Initiates a password-reset flow by generating a recovery code and emailing the link.
+     *
+     * Delegates code generation to the gateway; if a null result is returned (e.g. user not
+     * found or email not available) the method returns silently without sending any email.
+     */
     public function requestForChange(string $url, string $tenant, string $username): void
     {
         $data = $this->gateway->requestForChange($url, $tenant, $username);
@@ -31,16 +50,34 @@ class ChangePasswordUsecase
         );
     }
 
+    /**
+     * Returns whether self-service password recovery is enabled for the given tenant.
+     *
+     * Reads the tenant-level configuration flag; used by HTTP controllers to show or
+     * hide the "Forgot password" link on the login page.
+     */
     public function allowRecover(string $tenant): bool
     {
         return $this->gateway->allowRecover($tenant);
     }
 
+    /**
+     * Validates a recovery code and applies the new password if the code is valid.
+     *
+     * Returns the username on success or null when the code is invalid or expired;
+     * the caller is responsible for surfacing an appropriate error to the user.
+     */
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string
     {
         return $this->gateway->validateChangeRequest($tenant, $code, $newPass);
     }
 
+    /**
+     * Forces a password update for an authenticated user who supplies their current password.
+     *
+     * Returns true when the update is applied successfully, and throws or returns false
+     * when the old password does not match the stored credential.
+     */
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool
     {
         return $this->gateway->forceUpdatePassword($tenant, $username, $oldPass, $newPass);

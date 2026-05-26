@@ -8,6 +8,18 @@ use Civi\Lughauth\Features\OAuth\Consent\Domain\PendingConsentRequest;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ConsentQueueGateway;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
 
+/**
+ * Domain service that orchestrates the multi-step scope consent flow during authorization.
+ *
+ * This service is the central coordinator for the consent queue: it decides whether a new
+ * consent item needs to be enqueued by comparing the requested scopes against the user's
+ * previously approved scopes via ScopesConsentGateway. If no new scopes need approval the
+ * queue is left untouched and the authorization flow continues uninterrupted.
+ *
+ * It also provides the nextPending query used by the authorization endpoint to redirect the
+ * user to the appropriate consent screen, and the completeAndAdvance operation that records
+ * the user's approval decision and advances to the next pending item in the queue.
+ */
 final class ConsentOrchestrationService
 {
     public function __construct(
@@ -16,6 +28,10 @@ final class ConsentOrchestrationService
     ) {
     }
 
+    /**
+     * Checks whether any of the requested scopes are still pending consent and, if so,
+     * pushes a new PendingConsentRequest onto the queue for the given user and client.
+     */
     public function enqueue(EnqueueConsentParams $params): void
     {
         $pending = $this->scopes->pendingScopes(
@@ -38,6 +54,10 @@ final class ConsentOrchestrationService
         ));
     }
 
+    /**
+     * Returns the next pending consent request for the given user and tenant along with the
+     * total count of remaining items, or a result with no pending item when the queue is empty.
+     */
     public function nextPending(string $userId, string $tenant): NextConsentResult
     {
         $all = $this->queue->listPending($userId, $tenant);
@@ -49,6 +69,10 @@ final class ConsentOrchestrationService
         );
     }
 
+    /**
+     * Persists the approved scopes for the given client, removes the corresponding queue entry,
+     * and returns the next pending consent result so the caller can redirect accordingly.
+     */
     public function completeAndAdvance(string $userId, string $tenant, string $clientId, array $approvedScopes): NextConsentResult
     {
         $this->scopes->storeAcceptedScopes($tenant, $userId, $clientId, $approvedScopes);

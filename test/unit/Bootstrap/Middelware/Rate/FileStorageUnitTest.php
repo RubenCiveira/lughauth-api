@@ -123,6 +123,35 @@ final class FileStorageUnitTest extends TestCase
         $saved = json_decode(file_get_contents($dir . '/var/buckets.json'), true);
         $this->assertSame($existingExpire, $saved['bucket'][0]);
     }
+
+    /**
+     * Ensures flush falls back to '{}' when json_encode fails.
+     */
+    public function testFlushFallsBackToEmptyJsonWhenEncodeFails(): void
+    {
+        /*
+         * Arrange: create a storage and inject an un-encodable NAN into buckets.
+         */
+        $dir = sys_get_temp_dir() . '/buckets_' . uniqid();
+        mkdir($dir . '/var', 0777, true);
+        $storage = new FileStorage($dir);
+
+        $bucketsRef = new ReflectionProperty($storage, 'buckets');
+        $bucketsRef->setValue($storage, ['broken' => [NAN, 'data']]);
+
+        $flushMethod = new ReflectionMethod($storage, 'flush');
+
+        /*
+         * Act: invoke flush with un-encodable data.
+         */
+        $flushMethod->invoke($storage);
+
+        /*
+         * Assert: verify the file contains the fallback empty JSON.
+         */
+        $written = file_get_contents($dir . '/var/buckets.json');
+        $this->assertSame('{}', $written);
+    }
 }
 
 final class FakeLimiterStateFileStorageUnitTest implements LimiterStateInterface

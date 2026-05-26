@@ -7,13 +7,40 @@ namespace Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
 
+/**
+ * Outbound port for TOTP-based Multi-Factor Authentication operations.
+ *
+ * Implementations provide the concrete TOTP algorithm integration (e.g. RobThree/TwoFactorAuth)
+ * while exposing a uniform interface to the UserMfa application service. The contract covers the
+ * full MFA enrollment cycle: generating a new secret with its QR-code image, verifying a code
+ * against a provisional un-persisted seed during enrollment confirmation, verifying a code against
+ * the stored seed on every subsequent login, and persisting a newly confirmed seed. Keeping these
+ * operations behind an interface allows the underlying library or storage mechanism to be swapped
+ * without touching any application or domain logic.
+ */
 interface UserMfaGateway
 {
+    /**
+     * Generates a new TOTP secret for the user and returns the seed together with a QR-code
+     * image URI for scanning with an authenticator application during enrollment.
+     */
     public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse;
 
+    /**
+     * Verifies the given OTP against the TOTP secret that is already stored for the user.
+     * Returns true when the code is valid within the acceptable clock-drift window.
+     */
     public function verifyOtp(string $tenant, string $username, string $otp): bool;
 
+    /**
+     * Verifies the given OTP against a provisional seed that has not yet been written to storage.
+     * Used during the enrollment confirmation step before calling storeSeed.
+     */
     public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool;
 
+    /**
+     * Persists the confirmed TOTP seed for the user in the specified tenant.
+     * Must only be called after a successful verifyNewOpt to avoid storing unverified secrets.
+     */
     public function storeSeed(string $tenant, string $username, string $seed): void;
 }

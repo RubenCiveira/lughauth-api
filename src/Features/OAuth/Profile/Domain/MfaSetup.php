@@ -27,7 +27,9 @@ class MfaSetup
      * the gateway if the seed needs to be regenerated.
      */
     public function __construct(
+        /** The provisional TOTP secret seed; passed back as a hidden field during OTP confirmation. */
         public readonly string $seed,
+        /** Data-URI or URL of a QR code image encoding the provisioning URI; null when unavailable. */
         public readonly ?string $qrImage = null,
     ) {
     }

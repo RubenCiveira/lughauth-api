@@ -328,6 +328,28 @@ final class TraceManagementUnitTest extends TestCase
         $this->assertSame([], $lines);
     }
 
+    /**
+     * Ensures get returns empty when glob fails to list trace files.
+     */
+    public function testGetReturnsEmptyWhenGlobFails(): void
+    {
+        /* Arrange: create a trace directory and force glob to return false. */
+        $dir = $this->createTraceDir();
+        $management = new TraceManagement($this->config('app'), $dir);
+        $request = $this->request([]);
+
+        $GLOBALS[\Civi\Lughauth\Bootstrap\Management\Trace\GLOB_OVERRIDE_FLAG] = true;
+        try {
+            /* Act: get traces while glob fails. */
+            $result = ($management->get())($request);
+        } finally {
+            unset($GLOBALS[\Civi\Lughauth\Bootstrap\Management\Trace\GLOB_OVERRIDE_FLAG]);
+        }
+
+        /* Assert: verify an empty result is returned. */
+        $this->assertSame([], $result);
+    }
+
     private function createTraceDir(): string
     {
         $dir = sys_get_temp_dir() . '/trace_' . uniqid();

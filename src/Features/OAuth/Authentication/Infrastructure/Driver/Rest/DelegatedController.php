@@ -10,12 +10,34 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\DelegateLogin\Application\DelegateLogin;
 
+/**
+ * REST controller that receives the external OAuth provider callback for delegated/federated login.
+ *
+ * After the user completes authentication at an external identity provider (e.g. Google, GitHub,
+ * or a corporate SAML/OIDC IdP), the provider redirects the browser back to this controller's
+ * verify endpoint. The controller acts as a transparent forwarder: it hands the inbound request
+ * to DelegateLogin, which validates the provider callback, resolves the target tenant from the
+ * state parameter, and redirects the browser onward to the correct tenant-scoped /authorize
+ * endpoint so the interactive HTML flow can resume.
+ *
+ * This controller does not perform any token exchange or identity resolution itself; all of that
+ * logic lives in DelegateLogin and the subsequent DelegateForm step.
+ *
+ * Relationships: delegates entirely to DelegateLogin; consumed by the router at
+ * /oauth/openid/-/delegated/verify.
+ */
 class DelegatedController
 {
     public function __construct(private readonly Context $context, private readonly DelegateLogin $delegated)
     {
     }
 
+    /**
+     * Forwards the provider callback to the correct tenant authorize endpoint.
+     *
+     * DelegateLogin inspects the inbound query parameters, resolves the tenant, and emits a
+     * redirect response to the per-tenant /authorize URL so the login flow can continue.
+     */
     public function verify(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         return $this->delegated->redirectToTenant('/oauth/openid/', '/authorize', $request, $response);

@@ -8,8 +8,23 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driver\Rest;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * REST controller that handles the POST endpoint for granting explicit scope consent on behalf
+ * of the authenticated user (the "me" resource owner).
+ *
+ * This controller is the driver-side entry point for the scope-consent form submission. It
+ * receives the user's approval decisions, delegates persistence to the appropriate application
+ * use case, and returns the response that continues or concludes the authorization flow.
+ *
+ * The current implementation is a stub that returns an empty 200 response; full logic will be
+ * added once the consent form and session handling are wired in.
+ */
 final class MeConsentsGrantController
 {
+    /**
+     * Accepts the user's consent grant submission and returns the appropriate redirect or
+     * confirmation response to continue the authorization flow.
+     */
     public function grant(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         return $response;

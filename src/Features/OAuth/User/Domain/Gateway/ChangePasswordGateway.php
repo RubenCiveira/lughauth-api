@@ -7,13 +7,49 @@ namespace Civi\Lughauth\Features\OAuth\User\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\User\Domain\RecoveryNotificationData;
 
+/**
+ * Domain port defining the password change and self-service recovery operations.
+ *
+ * This gateway abstracts all persistence and cryptography details associated with
+ * the password-change workflow from the application layer.  It is used exclusively
+ * by ChangePasswordUsecase, which orchestrates the three separate sub-flows: issuing
+ * a recovery link, validating a recovery code, and forcing an in-session password update.
+ *
+ * Implementations live in the Infrastructure/Driven layer and are responsible for
+ * tenant resolution, recovery-code generation and verification, AES password
+ * encryption/decryption, and updating the user aggregate via UserWriteGateway.
+ */
 interface ChangePasswordGateway
 {
+    /**
+     * Generates a password-recovery code for the user and returns notification data.
+     *
+     * Returns null silently when the user cannot be found or has no email address,
+     * preventing user-enumeration via observable differences in response behaviour.
+     */
     public function requestForChange(string $url, string $tenant, string $username): ?RecoveryNotificationData;
 
+    /**
+     * Returns whether self-service password recovery is enabled for the given tenant.
+     *
+     * Reads the tenant configuration flag so that UI controllers can conditionally
+     * show or hide the "Forgot password" link without exposing domain logic to the driver layer.
+     */
     public function allowRecover(string $tenant): bool;
 
+    /**
+     * Validates the recovery code and applies the new password if the code is valid.
+     *
+     * Returns the username of the updated user on success, or null when the code is
+     * invalid, expired, or has already been consumed.
+     */
     public function validateChangeRequest(string $tenant, string $code, string $newPass): ?string;
 
+    /**
+     * Updates the password for an already-authenticated user who supplies their current credential.
+     *
+     * Throws or returns false when oldPass does not match the stored credential; returns
+     * true when the update is applied successfully.
+     */
     public function forceUpdatePassword(string $tenant, string $username, string $oldPass, string $newPass): bool;
 }

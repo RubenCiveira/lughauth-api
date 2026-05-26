@@ -7,13 +7,49 @@ namespace Civi\Lughauth\Features\OAuth\User\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\User\Domain\RegistrationNotificationData;
 
+/**
+ * Domain port defining the self-service user registration contract.
+ *
+ * This gateway abstracts all persistence, cryptography, and tenant-configuration
+ * concerns associated with the registration workflow from the application layer.
+ * It is consumed exclusively by RegisterUserUsecase, which orchestrates the four
+ * registration sub-flows: feature-flag check, consent retrieval, account creation
+ * with email verification, and verification-code redemption.
+ *
+ * Implementations handle duplicate-email detection, registration-code generation,
+ * terms-of-use acceptance recording, and approval-state assignment based on
+ * the tenant's enableRegisterUsers flag.
+ */
 interface RegisterUserGateway
 {
+    /**
+     * Returns whether self-service registration is currently enabled for the given tenant.
+     *
+     * Used by the HTTP driver to conditionally render the registration form without
+     * exposing tenant configuration to the presentation layer.
+     */
     public function allowRegister(string $tenant): bool;
 
+    /**
+     * Returns the terms-of-service text the user must accept before registering, or null.
+     *
+     * A null or empty return value indicates that no consent is required for this tenant.
+     */
     public function getRegisterConsent(string $tenant): ?string;
 
+    /**
+     * Creates the user account and returns notification data for the verification email.
+     *
+     * Returns null when registration is disabled or when the email already belongs to a
+     * fully verified account, preventing account takeover via re-registration.
+     */
     public function requestForRegister(string $url, string $tenant, string $email, string $password): ?RegistrationNotificationData;
 
+    /**
+     * Redeems a registration verification code and activates the new account.
+     *
+     * Returns the username on success, or null when the code is invalid or expired.
+     * The resulting approval state (ACCEPTED vs PENDING) depends on the tenant configuration.
+     */
     public function verifyRegister(string $tenant, string $code): ?string;
 }

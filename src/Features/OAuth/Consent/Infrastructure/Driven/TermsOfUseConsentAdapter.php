@@ -5,16 +5,36 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven;
 
+use Override;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\TermsOfUseConsentGateway;
 
+/**
+ * Stub infrastructure adapter that implements TermsOfUseConsentGateway as a no-op.
+ *
+ * This placeholder bypasses the terms-of-use consent step entirely by reporting no pending
+ * terms and silently discarding acceptance storage calls. It is appropriate for deployments
+ * where terms-of-use enforcement has not yet been configured or is intentionally disabled.
+ *
+ * Replace this adapter with a persistence-backed implementation once terms-of-use tracking
+ * is required in the authorization flow.
+ */
 final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
 {
+    /**
+     * Always returns an empty array, indicating that all terms of use have already been accepted
+     * and no consent screen needs to be displayed.
+     */
+    #[Override]
     public function getPendingConsent(string $tenant, string $username, array $audiences): array
     {
         return [];
     }
 
+    /**
+     * No-op implementation; terms-of-use acceptance is not persisted until a real adapter is wired in.
+     */
+    #[Override]
     public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void
     {
     }

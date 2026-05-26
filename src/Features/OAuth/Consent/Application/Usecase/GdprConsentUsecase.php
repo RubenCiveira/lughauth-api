@@ -8,6 +8,19 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Application\Usecase;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\GdprConsentPurposeItem;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\GdprConsentGateway;
 
+/**
+ * Application use case that manages the GDPR processing-purpose consent step during login.
+ *
+ * This use case is invoked by the authorization flow whenever the system needs to confirm that
+ * the user has explicitly consented to each active GDPR processing purpose defined for their
+ * tenant. It delegates all state queries and updates to GdprConsentGateway, keeping the
+ * application layer decoupled from the persistence implementation.
+ *
+ * pendingPurposes returns only the purposes the user has not yet decided on, so the consent
+ * screen can present exactly the right set of checkboxes. storePurposeDecisions records the
+ * user's boolean decision per purpose together with the request metadata required for an audit
+ * trail.
+ */
 final class GdprConsentUsecase
 {
     public function __construct(
@@ -16,6 +29,9 @@ final class GdprConsentUsecase
     }
 
     /**
+     * Returns the list of GDPR processing purposes that still require a consent decision from
+     * the given user in the given tenant.
+     *
      * @return GdprConsentPurposeItem[]
      */
     public function pendingPurposes(string $tenant, string $username): array
@@ -24,6 +40,9 @@ final class GdprConsentUsecase
     }
 
     /**
+     * Persists the user's accept/reject decision for each GDPR purpose, recording the originating
+     * IP address and user-agent string for audit purposes.
+     *
      * @param array<string, bool> $decisionsByPurposeUid
      */
     public function storePurposeDecisions(string $tenant, string $username, array $decisionsByPurposeUid, string $ipAddress, string $userAgent): void

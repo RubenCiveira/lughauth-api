@@ -5,15 +5,36 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driven;
 
+use Override;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\GdprConsentGateway;
 
+/**
+ * Stub infrastructure adapter that implements GdprConsentGateway as a no-op.
+ *
+ * This placeholder is used in deployments where GDPR processing-purpose consent is not yet
+ * configured or where the feature is intentionally disabled. It reports no pending purposes
+ * and silently ignores any decision storage calls, effectively bypassing the GDPR consent
+ * step entirely without breaking the authorization flow.
+ *
+ * Replace this adapter with a fully-featured implementation once a persistence layer for
+ * GDPR purpose consent records is available.
+ */
 final class GdprConsentAdapter implements GdprConsentGateway
 {
+    /**
+     * Always returns an empty array, indicating that there are no pending GDPR consent purposes
+     * to present to the user.
+     */
+    #[Override]
     public function pendingPurposes(string $tenant, string $username): array
     {
         return [];
     }
 
+    /**
+     * No-op implementation; decision storage is not performed until a real adapter is wired in.
+     */
+    #[Override]
     public function storePurposeDecisions(string $tenant, string $username, array $decisionsByPurposeUid, string $ipAddress, string $userAgent): void
     {
     }

@@ -141,6 +141,46 @@ final class ParUnitTest extends TestCase
         }
     }
 
+    public function test_push_throws_invalid_request_when_redirect_uri_missing(): void
+    {
+        $this->expectException(ParException::class);
+
+        $client = new ClientData('c', ['authorization_code'], false);
+        $clients = $this->makeClientStore($client);
+        $gateway = $this->makeParGateway();
+        $usecase = new PushAuthorizationUsecase($clients, $gateway);
+
+        try {
+            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+                'response_type' => 'code',
+                'client_id' => 'c',
+            ]));
+        } catch (ParException $e) {
+            $this->assertSame('invalid_request', $e->error());
+            throw $e;
+        }
+    }
+
+    public function test_push_throws_invalid_request_when_client_id_missing(): void
+    {
+        $this->expectException(ParException::class);
+
+        $client = new ClientData('c', ['authorization_code'], false);
+        $clients = $this->makeClientStore($client);
+        $gateway = $this->makeParGateway();
+        $usecase = new PushAuthorizationUsecase($clients, $gateway);
+
+        try {
+            $usecase->push(new PushAuthorizationParams('t', 'c', 'secret', [
+                'response_type' => 'code',
+                'redirect_uri' => 'https://app/cb',
+            ]));
+        } catch (ParException $e) {
+            $this->assertSame('invalid_request', $e->error());
+            throw $e;
+        }
+    }
+
     public function test_push_stores_request_and_returns_result(): void
     {
         $stored = null;

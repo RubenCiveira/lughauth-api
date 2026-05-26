@@ -15,6 +15,18 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\SessionStoreGateway;
 use Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo;
 
+/**
+ * SQL-backed implementation of the SessionStoreGateway port using PDO.
+ *
+ * Persists OAuth authorization session records in the _oauth_session table, storing the
+ * serialised user identity and MFA state as a JSON blob in the auth_data column. On
+ * construction, expired sessions are purged proactively so that old rows do not accumulate.
+ * All lookups filter by expiration to ensure stale sessions are never returned even if a
+ * periodic cleanup has not yet run. The client IP address and User-Agent are recorded for
+ * auditing purposes but are not used for any validation logic. Session rotation (via
+ * updateSession) replaces the opaque state key while keeping all other session data intact,
+ * preventing session fixation between authentication steps.
+ */
 class SessionStoreSqlAdapter implements SessionStoreGateway
 {
     public function __construct(
@@ -23,6 +35,10 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $this->clearTemp();
     }
 
+    /**
+     * Loads an active, unexpired session by its opaque state key.
+     * Returns null when no matching record is found or when the session has expired.
+     */
     #[Override]
     public function loadSession(string $state): ?SessionInfo
     {
@@ -47,6 +63,10 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         return $result;
     }
 
+    /**
+     * Finds the most recent unexpired session state key for the given cross-session identifier.
+     * Returns null when no active session exists for the provided csid value.
+     */
     #[Override]
     public function findActiveSessionIdByCsid(string $csid): ?string
     {
@@ -59,6 +79,10 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         return is_array($row) && isset($row['session']) ? (string) $row['session'] : null;
     }
 
+    /**
+     * Inserts a new session row associating the state key with the client, issuer, user identity, and MFA state.
+     * The session expiration is calculated by adding the given interval to the current timestamp.
+     */
     #[Override]
     public function saveSession(
         string $state,
@@ -95,6 +119,9 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     }
 
     /**
+     * Replaces the opaque state key for an existing session without altering any other column.
+     * Used during mid-flow state rotation to prevent session fixation attacks.
+     *
      * @return void
      */
     #[Override]
@@ -107,6 +134,9 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
     }
 
     /**
+     * Removes the session row identified by the given state key from the database.
+     * Called on logout or after the authorization code has been successfully exchanged for tokens.
+     *
      * @return void
      */
     #[Override]
@@ -117,6 +147,10 @@ class SessionStoreSqlAdapter implements SessionStoreGateway
         $stmt->execute();
     }
 
+    /**
+     * Deletes all expired session rows from the database.
+     * Delegates to the internal clearTemp helper which is also called on construction.
+     */
     #[Override]
     public function purgeExpired(): void
     {

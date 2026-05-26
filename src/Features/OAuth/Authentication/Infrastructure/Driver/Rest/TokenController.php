@@ -22,6 +22,30 @@ use Civi\Lughauth\Features\OAuth\Device\Application\DeviceAuthorizationService;
 use Civi\Lughauth\Features\OAuth\Device\Domain\Exception\DeviceAuthorizationException;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller that implements the OAuth 2.0 Token Endpoint for all supported grant types.
+ *
+ * This controller handles POST /oauth/openid/{tenant}/token and dispatches to the appropriate
+ * grant-type logic. The supported grant types are:
+ *
+ * - authorization_code: redeems a temporal auth code issued by the Authorization Endpoint,
+ *   verifies PKCE, and exchanges it for access_token, id_token, and refresh_token.
+ * - refresh_token: validates an existing refresh token, resolves the client, and delegates to
+ *   TokenGranterMediator to issue a new access token set.
+ * - urn:ietf:params:oauth:grant-type:device_code: polls the device authorization grant, returns
+ *   tokens when the device code has been approved by the user.
+ * - password / client_credentials and other confidential-client grants: authenticate the client
+ *   via HTTP Basic or body credentials, verify the grant is registered for that client, and
+ *   call TokenGranterMediator.
+ *
+ * Access tokens are signed JWTs containing standard OIDC claims; id_tokens and refresh_tokens
+ * are also signed and attached to the response when the grant type is not client_credentials.
+ * Any OAuthTokenException thrown during processing is serialised as a standard OAuth error JSON
+ * response with the appropriate HTTP status code.
+ *
+ * Relationships: depends on TokenGranterMediator for grant logic, ClientStoreGateway for client
+ * lookup, TemporalKeysGateway for auth-code redemption, and TokenSigner for JWT signing.
+ */
 class TokenController
 {
     public function __construct(
@@ -73,6 +97,12 @@ class TokenController
             new OA\Response(response: 401, description: 'Client authentication failed'),
         ]
     )]
+    /**
+     * Dispatches the token request to the correct grant handler and returns the token response.
+     *
+     * Catches OAuthTokenException and serialises it as a standard OAuth error JSON body with
+     * the status code provided by the exception; all other exceptions propagate to the framework.
+     */
     public function post(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         try {

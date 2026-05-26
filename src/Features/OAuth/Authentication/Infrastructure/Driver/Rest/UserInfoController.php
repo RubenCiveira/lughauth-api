@@ -12,6 +12,26 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller that implements the OpenID Connect UserInfo Endpoint.
+ *
+ * This controller exposes GET /oauth/openid/{tenant}/userinfo and returns a JSON object
+ * containing claims about the currently authenticated user, as required by the OpenID Connect
+ * Core specification. The set of claims included is governed by the scopes present in the
+ * access token:
+ *
+ * - The "sub" claim is always returned as the base identifier.
+ * - The "email" scope adds the email address.
+ * - The "profile" scope adds standard profile claims (name, given_name, family_name, picture,
+ *   locale, zoneinfo, updated_at, etc.) resolved from ProfileGateway.
+ * - The "phone" scope adds phone_number and phone_number_verified.
+ *
+ * The identity of the caller is resolved from the shared Context, which is populated by the
+ * JWT verification middleware before this controller is invoked.
+ *
+ * Relationships: depends on Context for the authenticated identity and its scope, and on
+ * ProfileGateway to look up the extended OIDC profile claims stored for the user.
+ */
 class UserInfoController
 {
     public function __construct(
@@ -49,6 +69,13 @@ class UserInfoController
             new OA\Response(response: 401, description: 'Unauthorized'),
         ]
     )]
+    /**
+     * Returns the scope-filtered claims for the authenticated user as a JSON response.
+     *
+     * Extracts the token scopes from the request identity, conditionally fetches the extended
+     * profile from ProfileGateway when the profile or phone scope is present, and emits only
+     * the claims permitted by the granted scopes.
+     */
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $identity = $this->context->getIdentity();

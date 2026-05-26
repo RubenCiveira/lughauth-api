@@ -4070,7 +4070,7 @@ paths:
         - OIDC
       summary: 'Authorization Endpoint — interactive login UI'
       description: 'Returns the HTML login form. Clients must redirect the user-agent here to initiate the Authorization Code flow with PKCE.'
-      operationId: c6b8d8a01109abd67ff39b2305ef05cf
+      operationId: 92365f8c9424bcd9f326a5bb4da1d2c5
       parameters:
         -
           name: tenant
@@ -4152,7 +4152,7 @@ paths:
         - OIDC
       summary: 'Authorization Endpoint — form submission'
       description: 'Processes login form submissions (credentials, MFA steps). Not intended for direct API calls; called by the browser during the interactive login flow.'
-      operationId: 4d86af10092a5e64a3e0d5997119a669
+      operationId: ede2f831717f91939c7211dfc9f78c9d
       parameters:
         -
           name: tenant
@@ -4187,7 +4187,7 @@ paths:
         - OIDC
       summary: 'Token Introspection (RFC 7662)'
       description: 'Returns metadata about an access or refresh token. Requires client authentication via HTTP Basic or client_id/client_secret in the body.'
-      operationId: b9be94b2dc70067fad4c956afbb1868b
+      operationId: a05a8e963ede3586a4c27d3720282ddf
       parameters:
         -
           name: tenant
@@ -4251,7 +4251,7 @@ paths:
         - OIDC
       summary: 'RP-Initiated Logout'
       description: 'Ends the user session. Dispatches back-channel logout notifications and renders front-channel logout iframes if registered.'
-      operationId: 6d791cfdc5b41c8e09adb3c1ffd0867a
+      operationId: a0aa6b6791cce71257d52a7a97706e16
       parameters:
         -
           name: tenant
@@ -4296,7 +4296,7 @@ paths:
         - OIDC
       summary: 'Token Revocation (RFC 7009)'
       description: 'Revokes an access or refresh token. Always returns 200 OK even if the token is unknown or already revoked.'
-      operationId: 7dc646d4bfd0c203364bba5b106e4816
+      operationId: 9fc26b0f6e0d30785472b5faf8be8b6b
       parameters:
         -
           name: tenant
@@ -4334,7 +4334,7 @@ paths:
         - OIDC
       summary: 'OAuth 2.0 Token Endpoint'
       description: 'Exchange authorization code, refresh token, or device code for tokens. Supports: authorization_code, refresh_token, password, client_credentials, urn:ietf:params:oauth:grant-type:device_code'
-      operationId: 4947452133a5ab6778324170f2afeaca
+      operationId: b02c8c6794d1b1ef14b8424e2610ab7b
       parameters:
         -
           name: tenant
@@ -4396,7 +4396,7 @@ paths:
         - OIDC
       summary: 'OIDC UserInfo Endpoint'
       description: 'Returns claims about the authenticated user. Requires Bearer access token with openid scope.'
-      operationId: 7c76b784357aa43ea55b17f7434ddbc3
+      operationId: a9de986d6466505db8812cb91910991a
       parameters:
         -
           name: tenant
@@ -4443,7 +4443,7 @@ paths:
         - OIDC
       summary: 'Dynamic Client Registration — RFC 7591'
       description: 'Registers a new OAuth client dynamically. May require an initial_access_token depending on tenant policy.'
-      operationId: 1811ade5c7e4ff27a45c6a0f3fc35501
+      operationId: 4c1f886a2ab7778322483dcf10d611de
       parameters:
         -
           name: tenant
@@ -4496,7 +4496,8 @@ paths:
       tags:
         - OIDC
       summary: 'Read Client Registration — RFC 7592'
-      operationId: 9bde528db67b2a65e028d16184c71628
+      description: "Handles the RFC 7592 read GET request, requires a Bearer token in the Authorization header,\ndelegates to ReadDynamicClientUsecase, and returns the client metadata as JSON with HTTP 200."
+      operationId: f986693bbc89ac541bff32c4bdb43968
       parameters:
         -
           name: tenant
@@ -4519,7 +4520,8 @@ paths:
       tags:
         - OIDC
       summary: 'Update Client Registration — RFC 7592'
-      operationId: 38d83ddea792883996e186368dd0c5bb
+      description: "Handles the RFC 7592 update PUT request, requires a Bearer token, parses the new metadata\nfrom the body, delegates to UpdateDynamicClientUsecase, and returns the updated client\ndata as JSON with HTTP 200."
+      operationId: 6ad294e9c49e4f54b22cefb401eb15f6
       parameters:
         -
           name: tenant
@@ -4544,7 +4546,8 @@ paths:
       tags:
         - OIDC
       summary: 'Delete Client Registration — RFC 7592'
-      operationId: 2a36003f9c1ceca26f9f86cb8d824e2f
+      description: "Handles the RFC 7592 delete DELETE request, requires a Bearer token, delegates to\nDeleteDynamicClientUsecase, and returns HTTP 204 No Content on success."
+      operationId: 4b03b77ab3983f934b3830d389f75d66
       parameters:
         -
           name: tenant
@@ -4563,30 +4566,13 @@ paths:
           description: 'Client deleted'
         401:
           description: 'Invalid registration_access_token'
-  '/oauth/openid/{tenant}/.well-known/openid-configuration':
-    get:
-      tags:
-        - OIDC
-      summary: 'OpenID Connect Discovery Document'
-      description: 'Returns the OpenID Provider Metadata as defined in OpenID Connect Discovery 1.0.'
-      operationId: e8b2db270f4c8f094508be656a24fad0
-      parameters:
-        -
-          name: tenant
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: 'OpenID Provider Metadata'
   '/oauth/openid/{tenant}/device':
     post:
       tags:
         - OIDC
       summary: 'Device Authorization Request (RFC 8628)'
       description: 'Initiates the OAuth 2.0 Device Authorization Grant flow. Returns device_code and user_code for the device to display.'
-      operationId: e32ad3759486cac9a0b4836496a21c4d
+      operationId: 693213919169a21478ff17ca217b4f76
       parameters:
         -
           name: tenant
@@ -4631,13 +4617,60 @@ paths:
           description: 'Invalid request'
         401:
           description: 'Invalid client'
+  /api/me/gdpr/data:
+    delete:
+      tags:
+        - GDPR
+      summary: 'Delete personal data — GDPR Art. 17 (Right to Erasure)'
+      description: 'Permanently deletes all personal data held for the authenticated subject. This action is irreversible.'
+      operationId: 38337106e3982b38a8f2c288807bac5b
+      responses:
+        204:
+          description: 'Personal data deleted'
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
+  /api/me/gdpr/export:
+    get:
+      tags:
+        - GDPR
+      summary: 'Export personal data — GDPR Art. 15'
+      description: 'Returns a JSON document containing all personal data held for the authenticated subject.'
+      operationId: c92329a659dc0284ac320df130b2055b
+      responses:
+        200:
+          description: 'Personal data export'
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
+  '/oauth/openid/{tenant}/.well-known/openid-configuration':
+    get:
+      tags:
+        - OIDC
+      summary: 'OpenID Connect Discovery Document'
+      description: 'Returns the OpenID Provider Metadata as defined in RFC 8414 and OpenID Connect Discovery 1.0.'
+      operationId: 53d6ef4d58dc7bbf1cb2b8e402884fb0
+      parameters:
+        -
+          name: tenant
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: 'OpenID Provider Metadata'
   '/oauth/openid/{tenant}/par':
     post:
       tags:
         - OIDC
       summary: 'Pushed Authorization Request — RFC 9126'
       description: 'Accepts authorization parameters server-to-server and returns a short-lived request_uri. The client then redirects the user-agent to /authorize with only client_id and request_uri.'
-      operationId: 93f59c66264feb24bf96828a2e244870
+      operationId: ba333ad19408098cd9885a492d0617da
       parameters:
         -
           name: tenant
@@ -4702,7 +4735,8 @@ paths:
       tags:
         - Profile
       summary: 'Get own user profile'
-      operationId: 05ba1ffa4895f16f997a5ebc04f14e50
+      description: "Handles GET /api/me/profile — returns the caller's OIDC profile as JSON.\n\nThrows UnauthorizedException for anonymous callers.  Returns an empty ProfileApiDTO\nwhen the user has not yet created a profile record."
+      operationId: bec2f180842e5a9a987acb72d6f18948
       responses:
         200:
           description: Ok
@@ -4719,7 +4753,8 @@ paths:
       tags:
         - Profile
       summary: 'Create or update own user profile'
-      operationId: 4a281f0bb7156791de936b6f35b297d1
+      description: "Handles PUT /api/me/profile — creates or updates the caller's OIDC profile.\n\nParses the JSON request body into OidcProfileData, delegates to ProfileGateway::save()\ninside a transaction, and returns the persisted profile as JSON with HTTP 200."
+      operationId: a2719cd3ed737a7c00cb17b72071fdd9
       requestBody:
         content:
           application/json:
@@ -4739,13 +4774,64 @@ paths:
       security:
         -
           bearerAuth: {  }
+  /api/me/sessions:
+    get:
+      tags:
+        - Profile
+      summary: 'List active sessions'
+      description: 'Returns all active OAuth sessions for the authenticated user.'
+      operationId: a8ed93ae575346344b8afe8789def012
+      responses:
+        200:
+          description: 'Active sessions list'
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
+    delete:
+      tags:
+        - Profile
+      summary: 'Revoke all sessions (global logout)'
+      description: 'Revokes all active sessions for the authenticated user.'
+      operationId: ee2da3c56fe204051cd2f55bb48312bf
+      responses:
+        204:
+          description: 'All sessions revoked'
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
+  '/api/me/sessions/{sessionId}':
+    delete:
+      tags:
+        - Profile
+      summary: 'Revoke a specific session'
+      description: 'Revokes the given session, forcing re-authentication for that device.'
+      operationId: 1f601c5bfa7e73b8441332f46b54ea01
+      parameters:
+        -
+          name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        204:
+          description: 'Session revoked'
+        401:
+          description: Unauthorized
+      security:
+        -
+          bearerAuth: {  }
   '/oauth/openid/{tenant}/jwks':
     get:
       tags:
         - OIDC
       summary: 'JSON Web Key Set'
       description: 'Public keys for JWT signature verification. Cached for 1 hour.'
-      operationId: 295794607bd2205ebcfd8fd37dfe8668
+      operationId: a9f736f6f1d7153c828c0da3fd69c2b4
       parameters:
         -
           name: tenant
@@ -4786,7 +4872,8 @@ paths:
       tags:
         - WebAuthn
       summary: 'Begin WebAuthn credential registration'
-      operationId: c9bb67cc5f9ea54edb41564b92683a46
+      description: "Initiates a registration ceremony for the authenticated user.\nRequires a valid session; returns PublicKeyCredentialCreationOptions as JSON."
+      operationId: 73769aef90fb39a0e7d906a90a136fe8
       parameters:
         -
           name: tenant
@@ -4804,7 +4891,8 @@ paths:
       tags:
         - WebAuthn
       summary: 'Finish WebAuthn credential registration'
-      operationId: 51bba2c7da30772b7e77086fe932f870
+      description: "Completes the registration ceremony by verifying the attestation response.\nRequires an authenticated session and a valid challengeId from the begin step."
+      operationId: 58feb234e59805ae21a5848dcf4d3e1a
       parameters:
         -
           name: tenant
@@ -4824,7 +4912,8 @@ paths:
       tags:
         - WebAuthn
       summary: 'Begin WebAuthn authentication'
-      operationId: 9754112cdb8974de61d0be4a2219fa42
+      description: "Initiates a passwordless authentication ceremony for the tenant.\nNo authentication is required; returns PublicKeyCredentialRequestOptions as JSON."
+      operationId: ccfd28a66b5325e0792e953120fbbe76
       parameters:
         -
           name: tenant
@@ -4840,7 +4929,8 @@ paths:
       tags:
         - WebAuthn
       summary: 'Finish WebAuthn authentication'
-      operationId: 8d83a84cdb915426ffb7988615b3741c
+      description: "Completes the authentication ceremony by verifying the assertion response.\nOn success returns the challengeId so the OIDC flow can exchange it for tokens."
+      operationId: 6ba9c11cd0ef10cda92dd772a77672f2
       parameters:
         -
           name: tenant
@@ -6409,35 +6499,46 @@ components:
           type: string
       type: object
     ProfileApiDTO:
+      description: "Data Transfer Object used to serialize and deserialize the OIDC profile over the REST API.\n\nThis class is both the request body schema for PUT /api/me/profile and the response\nbody schema for GET /api/me/profile.  It is annotated with OpenAPI attributes so that\nthe API documentation tool can generate the ProfileApiDTO schema automatically.\n\nAll fields are public and nullable so that partial updates are possible: a missing\nfield in the JSON request body deserializes to null and the controller treats it as\n\"no change\".  The version field can be used by API consumers to detect concurrent\nedits, though enforcement is handled by the underlying ProfileGateway."
       properties:
         uid:
+          description: "Unique identifier of the profile record.\n\nSet by the server on creation; ignored when present in a write request."
           type: string
           nullable: true
         user:
+          description: "Reference to the owning user, serialized as an object with a $ref field containing the user UID.\n\nRead-only from the API perspective; ignored in write requests."
           type: object
           nullable: true
         givenName:
+          description: "The user's given (first) name as defined by OIDC Core §5.1.\n\nMay be null when the user has not provided this claim."
           type: string
           nullable: true
         familyName:
+          description: "The user's family (last) name as defined by OIDC Core §5.1.\n\nMay be null when the user has not provided this claim."
           type: string
           nullable: true
         middleName:
+          description: "The user's middle name as defined by OIDC Core §5.1.\n\nMay be null when the user has not provided this claim."
           type: string
           nullable: true
         nickname:
+          description: "Casual name by which the user wishes to be referred to, per OIDC Core §5.1.\n\nMay be null when the user has not provided this claim."
           type: string
           nullable: true
         preferredUsername:
+          description: "Shorthand name by which the end-user wishes to be referred to at the RP.\n\nMay be null when the user has not provided this claim."
           type: string
           nullable: true
         pictureUrl:
+          description: "URL of the user's profile picture, per OIDC Core §5.1.\n\nMay be null when no picture URL has been set."
           type: string
           nullable: true
         websiteUrl:
+          description: "URL of the user's web page or blog, per OIDC Core §5.1.\n\nMay be null when the user has not provided a website URL."
           type: string
           nullable: true
         gender:
+          description: "The user's gender, per OIDC Core §5.1; free-form string.\n\nMay be null when the user has not provided this claim."
           type: string
           nullable: true
         birthdate:
@@ -6453,9 +6554,11 @@ components:
           type: string
           nullable: true
         phoneNumber:
+          description: "The user's preferred phone number in E.164 format, per OIDC Core §5.1.\n\nMay be null when the user has not provided a phone number."
           type: string
           nullable: true
         phoneNumberVerified:
+          description: "Whether the phone number has been verified by the authorization server.\n\nMay be null when no phone number is stored or verification has not been performed."
           type: boolean
           nullable: true
         addressJson:
@@ -6463,9 +6566,11 @@ components:
           type: string
           nullable: true
         updatedAt:
+          description: "ISO 8601 datetime string indicating when the profile was last updated.\n\nSet by the server on each write; read-only from the API consumer's perspective."
           type: string
           nullable: true
         version:
+          description: "Optimistic concurrency version number incremented on each profile update.\n\nClients may include this value in write requests to detect concurrent edits."
           type: integer
           nullable: true
       type: object
@@ -6631,6 +6736,9 @@ tags:
   -
     name: OIDC
     description: OIDC
+  -
+    name: GDPR
+    description: GDPR
   -
     name: Profile
     description: Profile

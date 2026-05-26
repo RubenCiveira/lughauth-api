@@ -8,26 +8,55 @@ namespace Civi\Lughauth\Features\OAuth\Mfa\Application\Usecase;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
 
+/**
+ * Application service that orchestrates all TOTP-based Multi-Factor Authentication operations.
+ *
+ * This service acts as the thin application layer between the HTTP driver and the MFA domain,
+ * delegating every operation to UserMfaGateway so that the concrete TOTP library (currently
+ * RobThree/TwoFactorAuth) is kept behind a port and remains swappable. It covers three stages
+ * of the MFA lifecycle: generating a new TOTP secret along with the QR-code image for initial
+ * enrollment, verifying a one-time password against a provisional seed before the seed is
+ * persisted, and verifying an OTP against the seed already stored for a user. Persisting a
+ * newly confirmed seed is also delegated here so the controller never touches storage directly.
+ */
 class UserMfa
 {
     public function __construct(private readonly UserMfaGateway $gateway)
     {
 
     }
+
+    /**
+     * Generates a fresh TOTP secret for the given user and tenant, returning the seed and
+     * a QR-code image URI suitable for display in an authenticator enrollment screen.
+     */
     public function configurationForNewMfa(string $tenant, string $username): PublicLoginMfaBuildResponse
     {
         return $this->gateway->configurationForNewMfa($tenant, $username);
     }
 
+    /**
+     * Verifies a one-time password against the TOTP secret already stored for the user.
+     * Returns true when the OTP is valid within the acceptable time window.
+     */
     public function verifyOtp(string $tenant, string $username, string $otp): bool
     {
         return $this->gateway->verifyOtp($tenant, $username, $otp);
     }
 
+    /**
+     * Verifies a one-time password against a provisional seed that has not yet been persisted.
+     * Used during enrollment to confirm the user's authenticator app is correctly configured.
+     */
     public function verifyNewOpt(string $tenant, string $username, string $seed, string $otp): bool
     {
         return $this->gateway->verifyNewOpt($tenant, $username, $seed, $otp);
     }
+
+    /**
+     * Persists a confirmed TOTP seed for the given user in the specified tenant.
+     * Should only be called after verifyNewOpt returns true to avoid storing unverified secrets.
+     */
     public function storeSeed(string $tenant, string $username, string $seed): void
     {
         $this->gateway->storeSeed($tenant, $username, $seed);

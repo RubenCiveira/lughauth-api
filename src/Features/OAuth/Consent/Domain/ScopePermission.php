@@ -6,22 +6,35 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Consent\Domain;
 
 /**
- * Represents a single OAuth scope presented to the user during the consent step.
+ * Immutable value object representing a single OAuth scope presented to the user during the
+ * consent screen step of the authorization flow.
  *
- * `required` marks scopes that cannot be declined; the consent UI should render
- * these as pre-checked and read-only. `displayLabel()` provides a human-readable
- * fallback derived from the scope string when no explicit label is configured.
+ * Instances are returned by ScopesConsentGateway::pendingScopes and rendered by the consent
+ * controller as individual consent checkboxes. The required flag marks scopes that cannot be
+ * declined by the user (e.g. "openid"); the UI must render these as pre-checked and read-only.
+ *
+ * displayLabel() provides a human-readable fallback derived from the scope identifier when no
+ * explicit label is configured, converting underscores and hyphens to spaces and uppercasing
+ * the result, so minimal-configuration deployments still render sensible labels.
  */
 final class ScopePermission
 {
     public function __construct(
+        /** The OAuth scope identifier string, e.g. "openid", "profile", or "email". */
         public readonly string $scope,
+        /** When true this scope is mandatory and the user cannot decline it. */
         public readonly bool $required,
+        /** Optional human-readable label for the scope; falls back to a normalized form of scope. */
         public readonly ?string $label = null,
+        /** Optional longer description explaining what access this scope grants to the client. */
         public readonly ?string $description = null
     ) {
     }
 
+    /**
+     * Returns the configured label if present, or derives a readable label from the scope
+     * identifier by replacing hyphens and underscores with spaces and uppercasing the result.
+     */
     public function displayLabel(): string
     {
         if ($this->label !== null && $this->label !== '') {

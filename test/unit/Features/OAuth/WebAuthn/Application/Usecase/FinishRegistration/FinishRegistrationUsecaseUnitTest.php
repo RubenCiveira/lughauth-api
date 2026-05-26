@@ -91,6 +91,33 @@ final class FinishRegistrationUsecaseUnitTest extends TestCase
         $this->usecase->finish('cid', 'acme', [], 'https://x.com', 'x.com');
     }
 
+    public function test_throws_NotFoundException_when_tenant_not_found(): void
+    {
+        $this->tenants->method('findOneByName')->willReturn(null);
+
+        $this->expectException(\Civi\Lughauth\Shared\Exception\NotFoundException::class);
+        $this->usecase->finish('cid', 'acme', [], 'https://x.com', 'x.com');
+    }
+
+    public function test_throws_WebAuthnException_when_challenge_not_found(): void
+    {
+        $this->tenants->method('findOneByName')->willReturn($this->buildTenant('tid', 'acme'));
+        $this->challengeGateway->method('findById')->willReturn(null);
+
+        $this->expectException(WebAuthnException::class);
+        $this->usecase->finish('cid', 'acme', [], 'https://x.com', 'x.com');
+    }
+
+    public function test_throws_NotFoundException_when_user_not_found(): void
+    {
+        $this->tenants->method('findOneByName')->willReturn($this->buildTenant('tid', 'acme'));
+        $this->challengeGateway->method('findById')->willReturn($this->buildChallenge('+5 minutes', 'user-uid'));
+        $this->users->method('findOneByUid')->willReturn(null);
+
+        $this->expectException(\Civi\Lughauth\Shared\Exception\NotFoundException::class);
+        $this->usecase->finish('cid', 'acme', [], 'https://x.com', 'x.com');
+    }
+
     public function test_throws_when_challenge_type_wrong(): void
     {
         $this->tenants->method('findOneByName')->willReturn($this->buildTenant('tid', 'acme'));

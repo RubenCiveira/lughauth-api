@@ -265,4 +265,59 @@ final class OidcStepRouterUnitTest extends TestCase
         $this->assertSame(StepResult::TYPE_RENDER, $result?->type);
         $this->assertSame(StepResult::TYPE_RENDER, $result?->type);
     }
+
+    /**
+     * Verifies run() returns null when the fallback step is not registered.
+     */
+    public function testRunReturnsNullWhenNoFormResolved(): void
+    {
+        $router = new OidcStepRouter(
+            $this->createMock(TermsAndGdprConsentForm::class),
+            $this->createMock(ScopeConsentForm::class),
+            $this->createMock(LoginForm::class),
+            $this->createMock(NewMfaForm::class),
+            $this->createMock(NewPassForm::class),
+            $this->createMock(UseMfaForm::class),
+            $this->createMock(RecoverPassForm::class),
+            $this->createMock(DelegateForm::class),
+            $this->createMock(RegisterUserForm::class),
+            $this->createMock(WebAuthnLoginForm::class),
+            $this->createMock(MagicLinkLoginForm::class),
+            'nonexistent_step'
+        );
+
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $context = new Context($builder, $config);
+        $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
+        $authRequest = new AuthenticationRequest(
+            client: new ClientData('client-123', ['code'], true),
+            scope: 'openid',
+            redirect: 'https://client.example/callback',
+            responseType: 'code',
+            audiences: ['client-123']
+        );
+        $input = new StepInput(
+            context: $flow,
+            authRequest: $authRequest,
+            challenges: new ChallengesState(),
+            body: [],
+            request: $request
+        );
+
+        $result = $router->run($input, new Response(), null, null, null);
+
+        $this->assertNull($result);
+    }
 }

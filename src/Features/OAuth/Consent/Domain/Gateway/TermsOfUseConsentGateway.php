@@ -7,9 +7,23 @@ namespace Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway;
 
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
 
+/**
+ * Domain port (outbound gateway) for querying and persisting terms-of-use acceptance records.
+ *
+ * Implementations check whether the user has already accepted the current version of the terms
+ * for each of the given audiences (relying party codes) within the specified tenant. Audiences
+ * allow different registered applications to enforce their own independent terms versions.
+ *
+ * The gateway returns TermsOfUseAcceptance value objects that carry the identifier and text
+ * of each terms item that still requires acknowledgement, enabling the consent screen to
+ * present the correct content to the user.
+ */
 interface TermsOfUseConsentGateway
 {
     /**
+     * Returns the terms-of-use items the user has not yet accepted for the given audiences,
+     * or an empty array when all terms have already been acknowledged.
+     *
      * @param string[] $audiences
      *
      * @return TermsOfUseAcceptance[]
@@ -17,6 +31,9 @@ interface TermsOfUseConsentGateway
     public function getPendingConsent(string $tenant, string $username, array $audiences): array;
 
     /**
+     * Records the user's acceptance of the given terms-of-use item for the specified audiences
+     * so that subsequent logins no longer present the same consent request.
+     *
      * @param string[] $audiences
      */
     public function storeAcceptedConsent(string $tenant, string $username, array $audiences, TermsOfUseAcceptance $consent): void;

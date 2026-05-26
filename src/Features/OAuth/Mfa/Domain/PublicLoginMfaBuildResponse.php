@@ -5,12 +5,27 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Mfa\Domain;
 
+/**
+ * Value object carrying the result of a new MFA enrollment configuration request.
+ *
+ * Returned by UserMfaGateway::configurationForNewMfa() and surfaced to the HTTP driver so
+ * the login page can render the authenticator enrollment UI. The seed is the raw TOTP secret
+ * that the user must store in their authenticator application; it is passed back to
+ * UserMfaGateway::verifyNewOpt() and, on successful verification, to storeSeed(). The image
+ * field holds a base64-encoded data URI of the QR code so it can be embedded directly in HTML
+ * without an additional asset request. The url field carries the otpauth:// provisioning URI
+ * for clients that prefer to handle it programmatically rather than scanning an image.
+ */
 class PublicLoginMfaBuildResponse
 {
     public function __construct(
+        /** The raw TOTP secret that the user must register in their authenticator application. */
         public readonly string $seed,
+        /** Optional human-readable message to display alongside the QR code during enrollment. */
         public readonly ?string $message = null,
+        /** Base64-encoded data URI of the QR code image for rendering in the enrollment UI. */
         public readonly ?string $image = null,
+        /** The otpauth:// provisioning URI for programmatic authenticator configuration. */
         public readonly ?string $url = null,
     ) {
     }

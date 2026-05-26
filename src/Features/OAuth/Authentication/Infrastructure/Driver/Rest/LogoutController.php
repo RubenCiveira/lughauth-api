@@ -18,6 +18,27 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Infrastructure\Http\Cookie;
 use OpenApi\Attributes as OA;
 
+/**
+ * REST controller that implements RP-Initiated Logout and OAuth 2.0 Token Revocation (RFC 7009).
+ *
+ * The logout action (GET /logout) terminates the user's server-side session, dispatches
+ * back-channel logout notifications to all registered relying parties via
+ * BackChannelLogoutDispatcher, and — when any trusted clients have front-channel logout URIs —
+ * renders a small HTML page with hidden iframes that trigger each client's own logout handler
+ * before redirecting the user to the post_logout_redirect_uri. When no front-channel URIs exist
+ * the redirect is immediate. The post-logout redirect URI is validated against the client's
+ * registered URIs to prevent open-redirect attacks.
+ *
+ * The revoke action (POST /revoke) implements RFC 7009 token revocation. It authenticates the
+ * calling client (HTTP Basic or body credentials), then delegates to RevokeTokenUsecase. Per
+ * the specification, the endpoint always returns HTTP 200 regardless of whether the token was
+ * known or had already been revoked, to avoid leaking revocation state.
+ *
+ * Relationships: depends on SessionManager and SessionStoreGateway for session lookup and
+ * removal, ClientStoreGateway for client validation, TokenSigner for id_token_hint parsing,
+ * RevokeTokenUsecase for revocation, TrustedClientReadGateway for front-channel URIs, and
+ * BackChannelLogoutDispatcher for back-channel notifications.
+ */
 class LogoutController
 {
     private readonly string $base;
@@ -53,6 +74,13 @@ class LogoutController
             new OA\Response(response: 400, description: 'Invalid request (missing or disallowed redirect URI)'),
         ]
     )]
+    /**
+     * Ends the authenticated session and redirects the user to the post-logout URI.
+     *
+     * Removes the server-side session, dispatches back-channel logout notifications, renders
+     * front-channel logout iframes when applicable, clears session cookies, and finally
+     * redirects to the validated post_logout_redirect_uri with the optional state parameter.
+     */
     public function logout(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -143,6 +171,13 @@ class LogoutController
             new OA\Response(response: 401, description: 'Client authentication failed'),
         ]
     )]
+    /**
+     * Revokes the supplied token and always returns HTTP 200 per RFC 7009.
+     *
+     * Authenticates the client via Basic auth or body credentials, then delegates revocation
+     * to RevokeTokenUsecase. Returns 400 if the token parameter is missing, or 401 when client
+     * authentication fails.
+     */
     public function revoke(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];

@@ -8,8 +8,25 @@ namespace Civi\Lughauth\Features\OAuth\User\Domain\Gateway;
 use DateTimeImmutable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 
+/**
+ * Domain port for dispatching password-recovery notification emails.
+ *
+ * This gateway abstracts the mail-delivery mechanism from the application layer so that
+ * ChangePasswordUsecase remains free of transactional-mail infrastructure details.
+ * Implementations are expected to live in the Infrastructure/Driven layer and use the
+ * notification outbox or a direct mail transport to deliver the recovery link.
+ *
+ * The recovery URL and expiry timestamp are included in the email so the recipient can
+ * complete the password reset within the allowed time window before the code expires.
+ */
 interface PasswordRecoveryMailGateway
 {
+    /**
+     * Sends the password-recovery email to the specified recipient.
+     *
+     * Implementations must deliver the email containing recoveryUrl and expiresAt so
+     * the user can complete the reset flow; failures should throw rather than silently swallow.
+     */
     public function sendPasswordRecovery(
         string $toEmail,
         string $userName,

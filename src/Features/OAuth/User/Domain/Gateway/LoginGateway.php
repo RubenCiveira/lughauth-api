@@ -9,20 +9,49 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\ChallengesState;
 
+/**
+ * Domain port defining the three-phase interactive user authentication contract.
+ *
+ * This gateway is the primary extension point through which the OAuth authentication
+ * flow integrates with the user store.  It exposes three methods that correspond to
+ * distinct stages of the multi-step authentication sequence supported by this platform.
+ *
+ * Implementations live in the Infrastructure/Driven layer and handle tenant resolution,
+ * password verification, MFA checks, terms-of-service enforcement, scopes-consent
+ * detection, and role/group loading before returning a fully populated AuthenticationResult.
+ */
 interface LoginGateway
 {
+    /**
+     * Pre-loads identity claims for a user identified by their stored subject UID.
+     *
+     * Called when a session is resumed and the user does not need to re-enter
+     * credentials; returns a valid AuthenticationResult from the persisted identity.
+     */
     public function fillPreLoadById(
         string $tenant,
         AuthenticationRequest $client,
         ChallengesState $challenges
     ): AuthenticationResult;
 
+    /**
+     * Builds the final AuthenticationResult after all challenge steps have been completed.
+     *
+     * Invoked at the end of the challenge pipeline (MFA, terms, consent) to produce
+     * the claims that will be encoded into the access and ID tokens.
+     */
     public function fillPreAuthenticated(
         string $tenant,
         AuthenticationRequest $client,
         ChallengesState $challenges
     ): AuthenticationResult;
 
+    /**
+     * Validates username and password credentials and returns the resulting authentication state.
+     *
+     * The returned result may be valid (successful login) or may signal a required next step
+     * such as MFA verification, a mandatory password change, or terms acceptance.
+     */
     public function validatedUserData(
         string $tenant,
         string $username,
