@@ -53,8 +53,7 @@ class Context
         Connection $connection,
         Identity $identity,
         ?AuthenticationContext $authenticationContext = null
-    ): void
-    {
+    ): void {
         $this->identity = $identity;
         $this->connection = $connection;
         $this->authenticationContext = $authenticationContext;

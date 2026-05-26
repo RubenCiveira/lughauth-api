@@ -26,7 +26,6 @@ namespace {
     use Civi\Lughauth\Shared\AppConfig;
 
     #[AllowMockObjectsWithoutExpectations]
-
     final class MagicLinkServiceUnitTest extends TestCase
     {
         protected function setUp(): void

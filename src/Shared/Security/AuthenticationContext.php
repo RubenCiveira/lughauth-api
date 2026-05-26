@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Shared\Security;
 
-use Override;
 use DateInterval;
 use DateTimeImmutable;
 
@@ -42,17 +41,50 @@ class AuthenticationContext implements \JsonSerializable
         return new self();
     }
 
-    public function getLevel(): string { return $this->level; }
-    public function isMfa(): bool { return $this->mfa; }
-    public function isRememberMe(): bool { return $this->rememberMe; }
-    public function isImpersonated(): bool { return $this->impersonated; }
-    public function isSecureTransport(): bool { return $this->secureTransport; }
-    public function getAuthenticatedAt(): DateTimeImmutable { return $this->authenticatedAt; }
-    public function getAuthenticationAge(): DateInterval { return $this->authenticationAge; }
-    public function getAuthenticationMethod(): ?string { return $this->authenticationMethod; }
-    public function getSessionId(): string { return $this->sessionId; }
-    public function getAuthenticatedActor(): ?Identity { return $this->authenticatedActor; }
-    public function getEffectiveActor(): ?Identity { return $this->effectiveActor; }
+    public function getLevel(): string
+    {
+        return $this->level;
+    }
+    public function isMfa(): bool
+    {
+        return $this->mfa;
+    }
+    public function isRememberMe(): bool
+    {
+        return $this->rememberMe;
+    }
+    public function isImpersonated(): bool
+    {
+        return $this->impersonated;
+    }
+    public function isSecureTransport(): bool
+    {
+        return $this->secureTransport;
+    }
+    public function getAuthenticatedAt(): DateTimeImmutable
+    {
+        return $this->authenticatedAt;
+    }
+    public function getAuthenticationAge(): DateInterval
+    {
+        return $this->authenticationAge;
+    }
+    public function getAuthenticationMethod(): ?string
+    {
+        return $this->authenticationMethod;
+    }
+    public function getSessionId(): string
+    {
+        return $this->sessionId;
+    }
+    public function getAuthenticatedActor(): ?Identity
+    {
+        return $this->authenticatedActor;
+    }
+    public function getEffectiveActor(): ?Identity
+    {
+        return $this->effectiveActor;
+    }
 
     public function jsonSerialize(): array
     {

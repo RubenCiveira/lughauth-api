@@ -18,7 +18,6 @@ use Civi\Lughauth\Shared\Infrastructure\Audit\AuditContext;
 use Civi\Lughauth\Shared\Infrastructure\Audit\AuditMiddleware;
 
 #[AllowMockObjectsWithoutExpectations]
-
 final class AuditMiddlewareUnitTest extends TestCase
 {
     public function testProcessPersistsAuditActionAndChanges(): void
