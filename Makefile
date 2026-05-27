@@ -25,7 +25,7 @@ lint:
 
 coverage:
 	mkdir -p $(REPORT_DIR)
-	php -d memory_limit=1G -d xdebug.mode=coverage vendor/bin/phpunit --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
+	php -d memory_limit=1G -d xdebug.mode=coverage vendor/bin/phpunit --coverage-html $(REPORT_DIR)/coverage-html  --coverage-clover $(REPORT_DIR)/coverage-report.xml --coverage-filter src/
 
 coverage-view:
 	mkdir -p $(COVERAGE_DIR)
