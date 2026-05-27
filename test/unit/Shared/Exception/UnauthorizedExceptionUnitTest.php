@@ -59,4 +59,32 @@ class UnauthorizedExceptionUnitTest extends TestCase
         $this->assertSame(403, $code);
         $this->assertSame($prev, $previous);
     }
+
+    public function testArrayMessageUsesMessageKey(): void
+    {
+        $exception = new UnauthorizedException(['message' => 'Denied from array']);
+
+        $this->assertSame('Denied from array', $exception->getMessage());
+    }
+
+    public function testArrayMessageUsesErrorKeyFallback(): void
+    {
+        $exception = new UnauthorizedException(['error' => 'Denied error']);
+
+        $this->assertSame('Denied error', $exception->getMessage());
+    }
+
+    public function testArrayMessageFallsBackToJsonEncodedPayload(): void
+    {
+        $exception = new UnauthorizedException([]);
+
+        $this->assertSame('[]', $exception->getMessage());
+    }
+
+    public function testNonStringMessageFallsBackToDefault(): void
+    {
+        $exception = new UnauthorizedException(1234);
+
+        $this->assertSame('Unauthorized', $exception->getMessage());
+    }
 }
