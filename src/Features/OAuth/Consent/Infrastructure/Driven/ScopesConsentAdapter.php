@@ -10,7 +10,9 @@ use DateTimeImmutable;
 use InvalidArgumentException;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
@@ -54,10 +56,7 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
         if ($theTenant === null ) {
             throw new InvalidArgumentException("Unkown tenant");
         }
-        $user = $this->users->findOneByTenantAndName($theTenant, $username);
-        if ($user === null) {
-            throw new InvalidArgumentException("Unkown user");
-        }
+        $user = $this->resolveUser($theTenant, $username);
         $userUid = $user->uid();
         if ($userUid === null || $userUid === '') {
             throw new InvalidArgumentException("Empty user");
@@ -101,10 +100,7 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
         if ($theTenant === null ) {
             throw new InvalidArgumentException("Unkown tenant");
         }
-        $user = $this->users->findOneByTenantAndName($theTenant, $username);
-        if ($user === null) {
-            throw new InvalidArgumentException("Unkown user");
-        }
+        $user = $this->resolveUser($theTenant, $username);
         $userUid = $user->uid();
         if ($userUid === null || $userUid === '') {
             throw new InvalidArgumentException("Empty user");
@@ -147,6 +143,16 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
                 ->decisionAt(new DateTimeImmutable())
         );
         $this->consentsWrite->create($entity);
+    }
+
+    private function resolveUser(TenantRef $tenant, string $username): User
+    {
+        $user = $this->users->findOneByTenantAndName($tenant, $username)
+            ?? $this->users->findOneByUid($username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+        return $user;
     }
 
     /**

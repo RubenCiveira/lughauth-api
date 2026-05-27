@@ -12,6 +12,7 @@ use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeRef;
@@ -59,7 +60,8 @@ final class GdprConsentAdapter implements GdprConsentGateway
             throw new InvalidArgumentException('Unkown tenant');
         }
 
-        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        $user = $this->resolveUser($theTenant, $username);
+        // $user = $this->users->findOneByTenantAndName($theTenant, $username);
         if ($user === null) {
             throw new InvalidArgumentException('Unkown user');
         }
@@ -113,7 +115,8 @@ final class GdprConsentAdapter implements GdprConsentGateway
             throw new InvalidArgumentException('Unkown tenant');
         }
 
-        $user = $this->users->findOneByTenantAndName($theTenant, $username);
+        $user = $this->users->findOneByTenantAndName($theTenant, $username)
+            ?? $this->users->findOneByUid($username);
         if ($user === null) {
             throw new InvalidArgumentException('Unkown user');
         }
@@ -197,5 +200,15 @@ final class GdprConsentAdapter implements GdprConsentGateway
         }
 
         return $active;
+    }
+
+    private function resolveUser(TenantRef $tenant, string $username): User
+    {
+        $user = $this->users->findOneByTenantAndName($tenant, $username)
+            ?? $this->users->findOneByUid($username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+        return $user;
     }
 }

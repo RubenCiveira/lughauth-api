@@ -78,7 +78,6 @@ class TermsAndGdprConsentForm implements StepForm
             : '';
 
         $help = $translator->get("consent.help");
-        $code = $translator->get("consent.code");
         $send = $translator->get("consent.send");
 
         $backLabel = $translator->get("consent.back-label");
@@ -92,8 +91,12 @@ class TermsAndGdprConsentForm implements StepForm
             $input->authRequest->audiences
         );
 
+        if (empty($pendings)) {
+            throw new LoginException(auth: AuthenticationResult::consentRequired(), message: 'no_pending_terms');
+        }
+
         $pending = $pendings[0];
-        $pendingText = html_entity_decode($pending->text);
+        $pendingText = $pending->text;
 
         $error = $error !== '' ? '<p class="error">' . $error . '</p>' : '';
 
@@ -112,11 +115,11 @@ class TermsAndGdprConsentForm implements StepForm
                     <form method="POST">
                         <input type="hidden" name="csid" id="sign" />
                         <input type="hidden" name="step" value="{$step}" />
-                        <label>{$code}
-                            <textarea type="text" name="conditions" id="conditions" readonly>
-                                {$pendingText}
-                            </textarea>
-                        </label>
+                        <style>
+                            .terms-content{max-height:50vh;overflow-y:scroll;border:1px solid #ccc;border-radius:4px;padding:1rem;margin:1rem 0}
+                            @media(max-width:768px){.terms-content{max-height:70vh}}
+                        </style>
+                        <div class="terms-content">{$pendingText}</div>
                         <label>Acept:
                             <input type="checkbox" name="accept" value="accept" />
                         </label>
@@ -233,7 +236,7 @@ class TermsAndGdprConsentForm implements StepForm
 
         $serverParams = $input->request->getServerParams();
         $ipAddress = (string) ($serverParams['REMOTE_ADDR'] ?? '');
-        $userAgent = (string) ($input->request->getHeaderLine('User-Agent') ?? '');
+        $userAgent = $input->request->getHeaderLine('User-Agent');
 
         $this->gdprConsent->storePurposeDecisions($tenant, $username, $decisions, $ipAddress, $userAgent);
     }

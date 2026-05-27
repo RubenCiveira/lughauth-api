@@ -65,6 +65,10 @@ class LoginAdapter implements LoginGateway
         try {
             $theTenant = $this->users->checkTenant($tenant, $username);
             $theUser = $this->users->checkUserSubjet($theTenant, $username);
+            if ($terms = $this->checkTerms($theTenant, $theUser, $client->audiences)) {
+                $this->logInfo('OIDC login requires terms acceptance', ['tenant' => $tenant, 'username' => $username]);
+                return $terms;
+            }
             if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
                 $this->logInfo('OIDC login requires scopes consent', ['tenant' => $tenant, 'username' => $username]);
                 return $scopes;
@@ -103,7 +107,11 @@ class LoginAdapter implements LoginGateway
         $span = $this->startSpan('oidc.login.fill_pre_authenticated', ['tenant' => $tenant]);
         try {
             $theTenant = $this->users->checkTenant($tenant, $username);
-            $theUser = $this->users->checkUser($theTenant, $username);
+            $theUser = $this->users->checkUserOrSubject($theTenant, $username);
+            if ($terms = $this->checkTerms($theTenant, $theUser, $client->audiences)) {
+                $this->logInfo('OIDC login requires terms acceptance', ['tenant' => $tenant, 'username' => $username]);
+                return $terms;
+            }
             if ($scopes = $this->checkScopesConsent($theTenant, $theUser, $client)) {
                 $this->logInfo('OIDC login requires scopes consent', ['tenant' => $tenant, 'username' => $username]);
                 return $scopes;
@@ -214,7 +222,7 @@ class LoginAdapter implements LoginGateway
             }
             $accepted = $this->userTerms->findOneByUserAndConditions($user, $term);
             if (!$accepted) {
-                return AuthenticationResult::consentRequired($term->getText());
+                return AuthenticationResult::consentRequired();
             }
         }
         return null;

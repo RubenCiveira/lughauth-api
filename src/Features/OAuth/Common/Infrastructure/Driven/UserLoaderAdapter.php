@@ -96,26 +96,19 @@ class UserLoaderAdapter
                 continue;
             }
             $party = $term->getRelyingParty();
-            if (null === $party) {
+            $partyId = $party?->uid();
+            if ($partyId !== null && !in_array($partyId, $partiesIds)) {
                 continue;
             }
-            if (!in_array($party->uid(), $partiesIds)) {
-                continue;
-            }
-            $partyId = $party->uid();
-            if ($partyId === null) {
-                continue;
-            }
+            $key = $partyId ?? '';
             $on = $term->getActivationDate();
             if (!$on || !$term->isEnabled() || $on > $now) {
-                // No date.
                 continue;
             }
-            if (isset($last[$partyId]) && $last[$partyId]->getActivationDate() > $on) {
-                // Date before prev selected
+            if (isset($last[$key]) && $last[$key]->getActivationDate() > $on) {
                 continue;
             }
-            $last[$partyId] = $term;
+            $last[$key] = $term;
         }
         return array_values($last);
     }
@@ -220,6 +213,19 @@ class UserLoaderAdapter
     public function checkUserSubjet(Tenant $tenant, string $username): User
     {
         return $this->checkLookupUser($tenant, $this->users->findOneByUid($username), $username);
+    }
+
+    /**
+     * Looks up an active user by username or UID within the given tenant.
+     * Tries name lookup first; falls back to UID lookup. Useful for flows where
+     * the identifier may be either a username or a subject UID (e.g. session resume).
+     * Throws LoginException if the user is not found, disabled, blocked, or not yet approved.
+     */
+    public function checkUserOrSubject(Tenant $tenant, string $username): User
+    {
+        $user = $this->users->findOneByTenantAndName($tenant, $username)
+            ?? $this->users->findOneByUid($username);
+        return $this->checkLookupUser($tenant, $user, $username);
     }
 
     private function checkLookupUser(Tenant $tenant, ?User $theUser, string $username): User

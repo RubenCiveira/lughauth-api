@@ -149,6 +149,10 @@ class AuthorizeHtml
      * Verifies the CSRF token (csid), reloads the session, and immediately completes
      * the authorization flow without showing any login UI. If the session has expired
      * or the csid is invalid, the user is redirected back to the login form.
+     *
+     * When sessionAuthenticated requires an intermediate step (e.g. terms consent), the step
+     * form is rendered WITHOUT clearing the session cookie so subsequent submissions come back
+     * here and are dispatched to the correct step handler via runSessionStep().
      */
     public function refresh(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
@@ -170,7 +174,7 @@ class AuthorizeHtml
             return $pkceError;
         }
         $authRequest = $this->buildAuthRequest($flow, $client);
-        $csid = $this->securer->verifyToken($body['csid']);
+        $csid = $this->securer->verifyToken($body['csid'] ?? '');
         if ($csid === null) {
             $this->logWarning('OIDC check-session invalid csid', [
                 'tenant' => $tenant,
@@ -191,6 +195,10 @@ class AuthorizeHtml
                 ->withMfa($sess->withMfa)
                 ->withSession(true);
             $input = $this->buildStepInput($flow, $request, $authRequest, $challenges, $body);
+            $step = $body['step'] ?? null;
+            if ($step !== null && $step !== '') {
+                return $this->runSessionStep($step, $csid, $tenant, $flow, $client, $authRequest, $input, $request, $response);
+            }
             try {
                 $auth = $this->authenticator->sessionAuthenticated(
                     $authRequest,
@@ -204,7 +212,13 @@ class AuthorizeHtml
                 );
                 return $this->responseBuilder->buildSuccessRedirect($flow, $auth, $client, $authRequest, $response);
             } catch (LoginException $ex) {
-                return $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null, $ex->challenges ?? $challenges);
+                // Render the step form (e.g. consent) but keep the session cookie intact so the
+                // user's next submission hits this same endpoint with the session still valid.
+                $result = $this->executeStep($input, $response, $ex->auth, null, null);
+                if ($result->type !== StepResult::TYPE_RENDER || !$result->response) {
+                    throw new UnauthorizedException();
+                }
+                return $result->response;
             }
         } else {
             $this->logWarning('OIDC check-session missing session', [
@@ -212,6 +226,47 @@ class AuthorizeHtml
                 'sessionId' => (string) ($flow->sessionId ?? ''),
             ]);
             return $this->redirectToLogin($response, $flow, $authRequest);
+        }
+    }
+
+    private function runSessionStep(
+        string $step,
+        string $csid,
+        string $tenant,
+        OidcFlowContext $flow,
+        ClientData $client,
+        AuthenticationRequest $authRequest,
+        StepInput $input,
+        ServerRequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
+        try {
+            $result = $this->executeStep($input, $response, null, $step, $csid);
+            if ($result->type === StepResult::TYPE_PROCEED && $result->authResponse) {
+                return $this->responseBuilder->buildSuccessRedirect($flow, $result->authResponse, $client, $authRequest, $response);
+            }
+            if ($result->type === StepResult::TYPE_RENDER && $result->response) {
+                return $result->response;
+            }
+            throw new UnauthorizedException();
+        } catch (LoginException $ex) {
+            $isConsentStep = in_array($ex->auth->error, [
+                AuthenticationResult::ERR_CONSENT_REQUIRED,
+                AuthenticationResult::ERR_SCOPES_CONSENT_REQUIRED,
+            ], true);
+            if ($isConsentStep) {
+                // Consent was stored but the current DB snapshot (REPEATABLE READ) doesn't reflect
+                // the write yet. Redirect to GET /authorize so a fresh DB connection picks it up.
+                $url = $this->urlBuilder->authorizeUrl($authRequest, $tenant, $flow->state, $flow->nonce, array_filter([
+                    'prompt' => $flow->prompt,
+                    'code_challenge' => $flow->codeChallenge,
+                    'code_challenge_method' => $flow->codeChallengeMethod,
+                ]));
+                return $response->withStatus(302)->withHeader('Location', $url);
+            }
+            return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
+        } catch (UnauthorizedException $ex) {
+            return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, 'access_denied', $ex->getMessage(), $request, $response);
         }
     }
 
@@ -285,8 +340,18 @@ class AuthorizeHtml
 
             throw new UnauthorizedException();
         } catch (LoginException $ex) {
+            $isRecoverableStep = in_array($ex->auth->error, [
+                AuthenticationResult::ERR_CONSENT_REQUIRED,
+                AuthenticationResult::ERR_SCOPES_CONSENT_REQUIRED,
+            ], true);
+            if ($state->session && !$isRecoverableStep) {
+                return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, $ex->auth->error ?? 'access_denied', $ex->getMessage(), $request, $response);
+            }
             return $this->renderStep($ex->getMessage(), $ex->auth, $input, $response, null, $ex->challenges ?? $state);
         } catch (UnauthorizedException $ex) {
+            if ($state->session) {
+                return $this->renderSessionError($tenant, $flow->locale, $flow->redirect, $flow->state, 'access_denied', $ex->getMessage(), $request, $response);
+            }
             return $this->renderStep($ex->getMessage(), null, $input, $response, null, $state);
         }
     }
@@ -463,6 +528,44 @@ class AuthorizeHtml
             )
         );
         return $response->withStatus(404);
+    }
+
+    private function renderSessionError(
+        string $tenant,
+        string $locale,
+        string $redirect,
+        string $state,
+        string $errorCode,
+        string $errorMessage,
+        RequestInterface $request,
+        ResponseInterface $response
+    ): ResponseInterface {
+        $this->logWarning('OIDC session error page', ['tenant' => $tenant, 'error' => $errorCode]);
+        $backUrl = $redirect . '?error=' . urlencode($errorCode);
+        if ($state !== '') {
+            $backUrl .= '&state=' . urlencode($state);
+        }
+        $safeMessage = htmlspecialchars($errorMessage, ENT_QUOTES);
+        $safeCode = htmlspecialchars($errorCode, ENT_QUOTES);
+        $backUrl = htmlspecialchars($backUrl, ENT_QUOTES);
+        $response->getBody()->write(
+            $this->decorator->getFullPage(
+                $request,
+                'Authorization Error',
+                <<<HTML
+                    <div class="error-page">
+                        <h1>Authorization Error</h1>
+                        <p><strong>{$safeCode}</strong></p>
+                        <p>{$safeMessage}</p>
+                        <a class="primary-button" href="{$backUrl}">Back</a>
+                    </div>
+                HTML,
+                $locale,
+                'index',
+                $tenant
+            )
+        );
+        return $response->withStatus(400);
     }
 
     private function cisdPage(

@@ -12,6 +12,7 @@ use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
@@ -59,10 +60,7 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
             throw new InvalidArgumentException('Unkown tenant');
         }
 
-        $user = $this->users->findOneByTenantAndName($theTenant, $username);
-        if ($user === null) {
-            throw new InvalidArgumentException('Unkown user');
-        }
+        $user = $this->resolveUser($theTenant, $username);
         $userUid = $user->uid();
         if ($userUid === null || $userUid === '') {
             throw new InvalidArgumentException('Empty user');
@@ -85,7 +83,7 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
             }
             $pending[] = new TermsOfUseAcceptance(
                 id: $termUid,
-                text: $term->getText() ?? ''
+                text: $term->getText()
             );
         }
 
@@ -103,10 +101,7 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
             throw new InvalidArgumentException('Unkown tenant');
         }
 
-        $user = $this->users->findOneByTenantAndName($theTenant, $username);
-        if ($user === null) {
-            throw new InvalidArgumentException('Unkown user');
-        }
+        $user = $this->resolveUser($theTenant, $username);
         $userUid = $user->uid();
         if ($userUid === null || $userUid === '') {
             throw new InvalidArgumentException('Empty user');
@@ -145,6 +140,16 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
         $this->acceptedTermsWrite->create(UserAcceptedTermnsOfUse::create($attributes));
     }
 
+    private function resolveUser(TenantRef $tenant, string $username): User
+    {
+        $user = $this->users->findOneByTenantAndName($tenant, $username)
+            ?? $this->users->findOneByUid($username);
+        if ($user === null) {
+            throw new InvalidArgumentException('Unkown user');
+        }
+        return $user;
+    }
+
     /**
      * @param string[] $audiences
      *
@@ -153,7 +158,7 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
     private function loadActiveTermsForAudiences(string $tenantUid, array $audiences): array
     {
         if ($tenantUid === '') {
-            return [];
+            throw new InvalidArgumentException('Unkown tenant');
         }
 
         $partyUids = [];
@@ -164,14 +169,10 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
                 $partyUids[] = $partyUid;
             }
         }
-        if ($partyUids === []) {
-            return [];
-        }
 
         $allTerms = $this->tenantTerms->list(
             (new TenantTermsOfUseFilter())
                 ->withTenant(new TenantRef($tenantUid))
-                ->withRelyingPartys($partyUids)
         );
 
         $now = new DateTimeImmutable();
@@ -189,13 +190,14 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
             }
 
             $partyUid = $term->getRelyingParty()?->uid();
-            if ($partyUid === null || $partyUid === '') {
+            if ($partyUid !== null && $partyUid !== '' && !in_array($partyUid, $partyUids, true)) {
                 continue;
             }
 
-            $current = $latestByParty[$partyUid] ?? null;
+            $key = $partyUid ?? '';
+            $current = $latestByParty[$key] ?? null;
             if ($current === null || (($current->getActivationDate() ?? $now) <= $activationDate)) {
-                $latestByParty[$partyUid] = $term;
+                $latestByParty[$key] = $term;
             }
         }
 
