@@ -10,6 +10,7 @@ use DI\ContainerBuilder;
 use Nimbly\Capsule\Factory\ServerRequestFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\SimpleCache\CacheInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
@@ -73,7 +74,64 @@ abstract class OidcIntegrationTestCase extends TestCase
 
         $tokenStore = $this->tokenStore;
         $keyConfig = new KeyConfig();
-        $signer = new JoseTokenSigner($keyConfig, $tokenStore);
+        $cache = new class () implements CacheInterface {
+            private array $items = [];
+
+            public function get(string $key, mixed $default = null): mixed
+            {
+                return $this->items[$key] ?? $default;
+            }
+
+            public function set(string $key, mixed $value, null|int|\DateInterval $ttl = null): bool
+            {
+                $this->items[$key] = $value;
+                return true;
+            }
+
+            public function delete(string $key): bool
+            {
+                unset($this->items[$key]);
+                return true;
+            }
+
+            public function clear(): bool
+            {
+                $this->items = [];
+                return true;
+            }
+
+            public function getMultiple(iterable $keys, mixed $default = null): iterable
+            {
+                $result = [];
+                foreach ($keys as $key) {
+                    $result[$key] = $this->get((string) $key, $default);
+                }
+                return $result;
+            }
+
+            public function setMultiple(iterable $values, null|int|\DateInterval $ttl = null): bool
+            {
+                foreach ($values as $key => $value) {
+                    $this->set((string) $key, $value, $ttl);
+                }
+                return true;
+            }
+
+            public function deleteMultiple(iterable $keys): bool
+            {
+                foreach ($keys as $key) {
+                    $this->delete((string) $key);
+                }
+                return true;
+            }
+
+            public function has(string $key): bool
+            {
+                return array_key_exists($key, $this->items);
+            }
+        };
+
+        $signer = new JoseTokenSigner($keyConfig, $tokenStore, $cache);
 
         $builder->addDefinitions([
             ClientStoreGateway::class => $this->clientStore,
