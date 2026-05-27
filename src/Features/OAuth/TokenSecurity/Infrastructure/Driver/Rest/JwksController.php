@@ -25,6 +25,8 @@ use OpenApi\Attributes as OA;
  */
 class JwksController
 {
+    private const string CACHE_KEY = 'jwks_public_keyset';
+
     public function __construct(private readonly TokenSigner $tokenHandler, private readonly CacheInterface $cacheInterface)
     {
     }
@@ -60,8 +62,6 @@ class JwksController
      * Returns the tenant's JWKS as a JSON response, serving from cache when available.
      * Attaches an ETag derived from the payload hash and a one-hour Cache-Control header.
      */
-    private const string CACHE_KEY = 'jwks_public_keyset';
-
     public function get(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
