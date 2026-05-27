@@ -28,14 +28,15 @@ use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ValueObject\ThemeAssetCont
  * (a full-window layout used for profile and settings pages), and "corporate-mail" (a
  * table-based email layout for transactional notifications).
  *
- * Static CSS and image assets located in the Oidc/Theme/Themes/corporate/style/ directory
- * are uploaded through the ThemeAsset subsystem. The mail theme carries no binary assets.
- * All themes are enabled immediately after creation so they are ready for use as soon as
- * the installation completes.
+ * Static CSS and image assets located in the assets/ directory are uploaded through the
+ * ThemeAsset subsystem. Theme layout HTML is loaded from the contents/ directory. The mail
+ * theme carries no binary assets. All themes are enabled immediately after creation so they
+ * are ready for use as soon as the installation completes.
  */
 class InstallCorporateTheme
 {
     private const string STYLE_DIR = __DIR__ . '/assets/';
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
 
     public function __construct(
         private readonly ThemeWriteGateway $themes,
@@ -60,75 +61,7 @@ class InstallCorporateTheme
     private function installCorporateHtml(): void
     {
         $theme = $this->createTheme('corporate');
-
-        $layout = <<<'HANDLEBARS'
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="icon" type="image/png" href="{{theme_assets_path}}/favicon.png">
-    <link rel="stylesheet" href="{{theme_assets_path}}/corporate.css">
-</head>
-<body>
-    <div class="background-image">
-        <picture>
-            <source media="(max-width: 480px)" srcset="{{theme_assets_path}}/office_480x800.webp" type="image/webp">
-            <source media="(max-width: 768px)" srcset="{{theme_assets_path}}/office_768x1024.webp" type="image/webp">
-            <source media="(max-width: 1024px)" srcset="{{theme_assets_path}}/office_1024x768.webp" type="image/webp">
-            <source media="(max-width: 1440px)" srcset="{{theme_assets_path}}/office_1440x900.webp" type="image/webp">
-            <source media="(min-width: 1441px)" srcset="{{theme_assets_path}}/office_1920x1080.webp" type="image/webp">
-            <source media="(max-width: 480px)" srcset="{{theme_assets_path}}/office_480x800.jpeg">
-            <source media="(max-width: 768px)" srcset="{{theme_assets_path}}/office_768x1024.jpeg">
-            <source media="(max-width: 1024px)" srcset="{{theme_assets_path}}/office_1024x768.jpeg">
-            <source media="(max-width: 1440px)" srcset="{{theme_assets_path}}/office_1440x900.jpeg">
-            <img src="{{theme_assets_path}}/office_1920x1080.jpeg" alt="Corporate office background" class="bg-img" loading="lazy">
-        </picture>
-        <div class="background-overlay"></div>
-    </div>
-    <div class="main-container">
-        <div class="content-wrapper">
-            <div class="header">
-                <img src="{{theme_assets_path}}/logo.png" alt="Company Logo" class="company-logo" />
-            </div>
-            {{{slot_content}}}
-        </div>
-    </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const formContent = document.querySelector('.form-content');
-            const loadingIndicator = document.querySelector('.loading');
-            formContent.classList.add('slide-in');
-            setTimeout(function() {
-                const forms = formContent.querySelectorAll('form');
-                forms.forEach(form => {
-                    function handleFormSubmit(event) {
-                        event.preventDefault();
-                        formContent.classList.add('slide-out');
-                        loadingIndicator.style.display = 'block';
-                        setTimeout(function() {
-                            form.removeEventListener('submit', handleFormSubmit);
-                            form.submit();
-                        }, 500);
-                    }
-                    const existingSubmitListener = form.onsubmit;
-                    if (existingSubmitListener) {
-                        form.addEventListener('submit', function(event) {
-                            existingSubmitListener.call(form, event);
-                            handleFormSubmit(event);
-                        });
-                    } else {
-                        form.addEventListener('submit', handleFormSubmit);
-                    }
-                });
-            }, 10);
-        });
-    </script>
-</body>
-</html>
-HANDLEBARS;
-
+        $layout = (string) file_get_contents(self::CONTENT_DIR . 'theme-corporate.html');
         $this->createVersion($theme, ThemeVersionChannelOptions::HTML, $layout);
         $this->installAssets($theme);
     }
@@ -136,80 +69,14 @@ HANDLEBARS;
     private function installCorporateMail(): void
     {
         $theme = $this->createTheme('corporate-mail');
-
-        $layout = <<<'HANDLEBARS'
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{subject}}</title>
-</head>
-<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,Helvetica,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4;padding:24px 0;">
-  <tr>
-    <td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:8px;overflow:hidden;">
-        <tr>
-          <td style="background:#1d4ed8;padding:24px 32px;">
-            <p style="margin:0;font-size:22px;font-weight:bold;color:#ffffff;">LughAuth</p>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:32px;">
-            {{{slot_content}}}
-          </td>
-        </tr>
-        <tr>
-          <td style="background:#f9fafb;padding:16px 32px;text-align:center;font-size:12px;color:#6b7280;">
-            This message was sent automatically. Please do not reply.
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-</body>
-</html>
-HANDLEBARS;
-
+        $layout = (string) file_get_contents(self::CONTENT_DIR . 'theme-corporate-mail.html');
         $this->createVersion($theme, ThemeVersionChannelOptions::MAIL, $layout);
-        // Mail theme has no binary assets
     }
 
     private function installCorporateFullHtml(): void
     {
         $theme = $this->createTheme('corporate-full');
-
-        $layout = <<<'HANDLEBARS'
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{title}}</title>
-    <link rel="icon" type="image/png" href="{{theme_assets_path}}/favicon.png">
-    <link rel="stylesheet" href="{{theme_assets_path}}/corporate.css">
-    <link rel="stylesheet" href="{{theme_assets_path}}/full.css">
-    <link rel="stylesheet" href="{{theme_assets_path}}/profile.css">
-</head>
-<body class="full-window">
-    <header class="app-header">
-        <div class="app-header-inner">
-            <a class="app-logo" href="/">
-                <img src="{{theme_assets_path}}/logo.png" alt="Company Logo" />
-            </a>
-        </div>
-    </header>
-    <main class="app-main">
-        <div class="app-content">
-            {{{slot_content}}}
-        </div>
-    </main>
-</body>
-</html>
-HANDLEBARS;
-
+        $layout = (string) file_get_contents(self::CONTENT_DIR . 'theme-corporate-full.html');
         $this->createVersion($theme, ThemeVersionChannelOptions::HTML, $layout);
         $this->installAssets($theme);
     }
@@ -247,7 +114,8 @@ HANDLEBARS;
             return;
         }
 
-        foreach (glob($styleDir . '*') ?: [] as $filePath) {
+        $files = glob($styleDir . '*');
+        foreach ($files !== false ? $files : [] as $filePath) {
             if (!is_file($filePath)) {
                 continue;
             }

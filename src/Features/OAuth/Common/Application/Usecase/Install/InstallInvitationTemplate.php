@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallInvitationTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -37,7 +39,7 @@ class InstallInvitationTemplate
 
     /**
      * Creates and enables the "access.invitation" mail template along with its first version
-     * containing the platform invitation email body.
+     * containing the platform invitation email body (contents/mail-invitation.html).
      */
     public function install(): void
     {
@@ -50,26 +52,11 @@ class InstallInvitationTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $body = <<<'BODY'
-<p>You have been invited to join the platform.</p>
-<p>Click the button below to create your account. This invitation expires on <strong>{{invitation.expires}}</strong>.</p>
-<p style="margin:28px 0;text-align:center;">
-  <a href="{{invitation.accept_url}}"
-     style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:15px;font-weight:bold;">
-    Accept invitation
-  </a>
-</p>
-<p style="font-size:13px;color:#6b7280;">
-  Invited by <strong>{{invitation.invited_by}}</strong>.
-  If you were not expecting this invitation, you can safely ignore this email.
-</p>
-BODY;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('You have been invited');
-        $ver->contentHtml($body);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'mail-invitation.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

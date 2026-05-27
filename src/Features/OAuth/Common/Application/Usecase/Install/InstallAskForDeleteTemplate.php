@@ -28,6 +28,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallAskForDeleteTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -36,7 +38,7 @@ class InstallAskForDeleteTemplate
 
     /**
      * Creates and enables the "user.delete" mail template along with its first version
-     * containing the account-deletion confirmation email body.
+     * containing the account-deletion confirmation email body (contents/mail-ask-for-delete.html).
      */
     public function install(): void
     {
@@ -49,26 +51,11 @@ class InstallAskForDeleteTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $body = <<<'BODY'
-<p>Hello {{user.name}},</p>
-<p>We received a request to permanently delete your account and all associated data. This action cannot be undone.</p>
-<p style="margin:28px 0;text-align:center;">
-  <a href="{{confirm.url}}"
-     style="display:inline-block;background:#dc2626;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:15px;font-weight:bold;">
-    Confirm account deletion
-  </a>
-</p>
-<p style="font-size:13px;color:#6b7280;">
-  This link expires on <strong>{{confirm.expires}}</strong>.
-  If you did not request account deletion, please ignore this email — your account will remain active.
-</p>
-BODY;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('Confirm your account deletion request');
-        $ver->contentHtml($body);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'mail-ask-for-delete.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

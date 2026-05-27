@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallDelegateLoginTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -37,7 +39,7 @@ class InstallDelegateLoginTemplate
 
     /**
      * Creates and enables the "auth.delegate" mail template along with its first version
-     * containing the delegate login notification email body.
+     * containing the delegate login notification email body (contents/mail-delegate-login.html).
      */
     public function install(): void
     {
@@ -50,23 +52,11 @@ class InstallDelegateLoginTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $body = <<<'BODY'
-<p>Hello {{user.name}},</p>
-<p>A new sign-in to your account was detected via <strong>{{provider.name}}</strong>.</p>
-<table style="margin:16px 0;font-size:14px;color:#374151;">
-  <tr><td style="padding:4px 12px 4px 0;color:#6b7280;">Date</td><td>{{login.date}}</td></tr>
-  <tr><td style="padding:4px 12px 4px 0;color:#6b7280;">IP address</td><td>{{login.ip}}</td></tr>
-</table>
-<p style="font-size:13px;color:#6b7280;">
-  If this was not you, please secure your account immediately.
-</p>
-BODY;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('New sign-in via {{provider.name}}');
-        $ver->contentHtml($body);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'mail-delegate-login.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

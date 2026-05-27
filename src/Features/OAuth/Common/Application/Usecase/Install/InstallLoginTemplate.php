@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallLoginTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -37,7 +39,7 @@ class InstallLoginTemplate
 
     /**
      * Creates and enables the "user.login" mail template along with its first version
-     * containing the login-notification email body.
+     * containing the login-notification email body (contents/mail-login.html).
      */
     public function install(): void
     {
@@ -50,21 +52,11 @@ class InstallLoginTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $body = <<<'BODY'
-<p>Hello {{user.name}},</p>
-<p>A new sign-in to your account was detected.</p>
-<table cellpadding="0" cellspacing="0" style="margin:24px 0;font-size:14px;color:#374151;">
-  <tr><td style="padding:4px 0;font-weight:bold;width:120px;">Date</td><td>{{login.date}}</td></tr>
-  <tr><td style="padding:4px 0;font-weight:bold;">IP address</td><td>{{login.ip}}</td></tr>
-</table>
-<p>If this was you, no action is needed. If you did not sign in, please change your password immediately.</p>
-BODY;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('New sign-in to your account');
-        $ver->contentHtml($body);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'mail-login.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

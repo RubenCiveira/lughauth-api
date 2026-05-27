@@ -5,7 +5,6 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase;
 
-use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
@@ -60,26 +59,12 @@ use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install\InstallIndex
 use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install\InstallFullPageTemplate;
 use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install\InstallInvitationTemplate;
 use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install\InstallCorporateTheme;
+use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install\InstallTermsOfUse;
+use Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install\InstallGdprPolicy;
 
-/**
- * Application use case that performs the full first-time installation of the LughAuth OAuth
- * subsystem within a single database transaction.
- *
- * A single call to install() bootstraps everything needed to operate the authorization server
- * from scratch: a default relying party, the "lughauth-ui" trusted client, ADMIN/ROOT/IAM
- * roles, the "main" root tenant, a root user with the provided password, API key credentials
- * for collector and sync M2M clients, an SMTP outbound configuration, the corporate UI and
- * mail themes, and all default email and page templates.
- *
- * The entire setup is wrapped in a SqlTemplate transaction so that any failure rolls back
- * all partially created records, leaving the database in a clean state. This use case is
- * intended to be invoked exactly once, either via OAuthMigrationProvider or a CLI command,
- * and should never be called again on an already-initialized system.
- */
 class InstallUsecase
 {
     public function __construct(
-        private readonly Context $context,
         private readonly SqlTemplate $template,
         private readonly AesCypherService $cypher,
         private readonly RelyingPartyWriteGateway $createReling,
@@ -101,13 +86,11 @@ class InstallUsecase
         private readonly InstallFullPageTemplate $fullPageTemplate,
         private readonly InstallInvitationTemplate $invitationTemplate,
         private readonly InstallCorporateTheme $corporateTheme,
+        private readonly InstallTermsOfUse $termsOfUse,
+        private readonly InstallGdprPolicy $gdprPolicy,
     ) {
     }
 
-    /**
-     * Runs the full installation inside a database transaction, committing on success
-     * and closing the connection in the finally block regardless of outcome.
-     */
     public function install(): void
     {
         try {
@@ -247,5 +230,7 @@ class InstallUsecase
         $this->indexPageTemplate->install();
         $this->fullPageTemplate->install();
         $this->invitationTemplate->install();
+        $this->termsOfUse->install($createdTenant);
+        $this->gdprPolicy->install($createdTenant);
     }
 }

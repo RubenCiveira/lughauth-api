@@ -28,6 +28,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallUserRegisterTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -36,7 +38,7 @@ class InstallUserRegisterTemplate
 
     /**
      * Creates and enables the "user.register" mail template along with its first version
-     * containing the account activation welcome email body.
+     * containing the account activation welcome email body (contents/mail-user-register.html).
      */
     public function install(): void
     {
@@ -49,25 +51,11 @@ class InstallUserRegisterTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $body = <<<'BODY'
-<p>Welcome, <strong>{{user.name}}</strong>!</p>
-<p>Your account has been created successfully. Click the button below to activate it and get started.</p>
-<p style="margin:28px 0;text-align:center;">
-  <a href="{{activate.url}}"
-     style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:15px;font-weight:bold;">
-    Activate my account
-  </a>
-</p>
-<p style="font-size:13px;color:#6b7280;">
-  If you did not create this account, please disregard this message.
-</p>
-BODY;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('Welcome — activate your account');
-        $ver->contentHtml($body);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'mail-user-register.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

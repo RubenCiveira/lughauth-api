@@ -29,6 +29,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallSendMagicLinkTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -37,7 +39,7 @@ class InstallSendMagicLinkTemplate
 
     /**
      * Creates and enables the "auth.magic_link" mail template along with its first version
-     * containing the passwordless sign-in link email body.
+     * containing the passwordless sign-in link email body (contents/mail-magic-link.html).
      */
     public function install(): void
     {
@@ -50,26 +52,11 @@ class InstallSendMagicLinkTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $body = <<<'BODY'
-<p>Hello {{user.name}},</p>
-<p>Use the button below to sign in to your account. No password needed.</p>
-<p style="margin:28px 0;text-align:center;">
-  <a href="{{magic.url}}"
-     style="display:inline-block;background:#1d4ed8;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:6px;font-size:15px;font-weight:bold;">
-    Sign in now
-  </a>
-</p>
-<p style="font-size:13px;color:#6b7280;">
-  This link expires on <strong>{{magic.expires}}</strong> and can only be used once.
-  If you did not request this, please ignore this email.
-</p>
-BODY;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('Your sign-in link');
-        $ver->contentHtml($body);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'mail-magic-link.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

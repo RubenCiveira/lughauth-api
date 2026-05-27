@@ -28,6 +28,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallFullPageTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -36,7 +38,7 @@ class InstallFullPageTemplate
 
     /**
      * Creates and enables the "page.full" HTML template along with its first version
-     * that passes through the inner content slot to the corporate-full theme.
+     * that passes through the inner content slot to the corporate-full theme (contents/page-full.html).
      */
     public function install(): void
     {
@@ -49,14 +51,11 @@ class InstallFullPageTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $layout = '{{{innerContent}}}';
-
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('page.full');
-        $ver->contentHtml($layout);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'page-full.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }

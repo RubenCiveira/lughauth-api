@@ -28,6 +28,8 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
  */
 class InstallIndexPageTemplate
 {
+    private const string CONTENT_DIR = __DIR__ . '/contents/';
+
     public function __construct(
         private readonly TemplateWriteGateway $templates,
         private readonly TemplateVersionWriteGateway $versions,
@@ -36,7 +38,7 @@ class InstallIndexPageTemplate
 
     /**
      * Creates and enables the "page.index" HTML template along with its first version
-     * containing the two-column corporate layout with the inner content slot.
+     * containing the two-column corporate layout with the inner content slot (contents/page-index.html).
      */
     public function install(): void
     {
@@ -49,35 +51,11 @@ class InstallIndexPageTemplate
         $created = $this->templates->create(Template::create($tpl));
         $this->templates->update($created, $created->enable());
 
-        $layout = <<<'HANDLEBARS'
-<div class="main-content">
-    <div class="image-panel">
-        <div class="corporate-image">
-            <img src="{{theme_assets_path}}/identity.png" alt="Corporate illustration" class="main-illustration" />
-        </div>
-        <div class="image-content">
-            <h1>Stay connected and productive</h1>
-            <p>Access your workspace from anywhere with secure, enterprise-grade authentication.</p>
-        </div>
-    </div>
-    <div class="form-panel">
-        <div class="form-container">
-            <div class="form-content">
-                <div class="loading"></div>
-                <div class="in-form">
-                    {{{innerContent}}}
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-HANDLEBARS;
-
         $ver = new TemplateVersionAttributes();
         $ver->uid(Random::comb());
         $ver->template($created);
         $ver->subject('page.index');
-        $ver->contentHtml($layout);
+        $ver->contentHtml((string) file_get_contents(self::CONTENT_DIR . 'page-index.html'));
         $this->versions->create(TemplateVersion::create($ver));
     }
 }
