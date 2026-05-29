@@ -115,6 +115,31 @@ final class WebAuthnCredentialSqlAdapter implements WebAuthnCredentialGateway
         $stmt->execute();
     }
 
+    #[Override]
+    public function disableByUid(string $uid, string $tenantId): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE access_user_webauthn_credential SET enabled = 0
+             WHERE uid = :uid AND tenant_id = :tenant_id'
+        );
+        $stmt->bindValue('uid', $uid);
+        $stmt->bindValue('tenant_id', $tenantId);
+        $stmt->execute();
+    }
+
+    #[Override]
+    public function renameByUid(string $uid, string $tenantId, string $name): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE access_user_webauthn_credential SET device_name = :name
+             WHERE uid = :uid AND tenant_id = :tenant_id'
+        );
+        $stmt->bindValue('name', $name);
+        $stmt->bindValue('uid', $uid);
+        $stmt->bindValue('tenant_id', $tenantId);
+        $stmt->execute();
+    }
+
     private function mapRow(array $row): WebAuthnCredential
     {
         $transports = null;

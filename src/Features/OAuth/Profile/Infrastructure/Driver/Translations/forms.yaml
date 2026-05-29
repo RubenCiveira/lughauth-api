@@ -16,11 +16,18 @@ profile:
     birthdate: Birthdate
     gender: Gender
     website: Website
+    actions: Actions
     editProfile: Edit profile
     changePassword: Change password
     configureMfa: Configure MFA
     manageSessions: Manage sessions
+    recoveryCodes: Recovery codes
+    manageConsents: Manage consents
+    managePasskeys: Passkeys
+    downloadMyData: Download my data
+    deleteAccount: Delete account
     inviteUser: Invite a user
+    back: Back
   edit:
     title: Edit profile
     givenName: Given name
@@ -73,6 +80,51 @@ profile:
     expires: Expires
     empty: No active sessions found.
     backToProfile: Back to profile
+  passkeys:
+    title: Passkeys
+    help: Manage the passkeys (WebAuthn devices) registered to your account.
+    empty: No passkeys registered.
+    unnamed: Unnamed device
+    createdAt: Added
+    lastUsed: Last used
+    never: Never
+    delete: Delete
+    deleteConfirm: Are you sure you want to delete this passkey?
+    rename: Rename
+    name: Device name
+    backToProfile: Back to profile
+  consents:
+    title: Consented scopes
+    help: Review and revoke the permissions you have granted to applications.
+    empty: No consents found.
+    unknown: Unknown
+    grantedAt: Granted on
+    revoke: Revoke all
+    revokeScope: Revoke
+    backToProfile: Back to profile
+  recovery-codes:
+    title: Recovery codes
+    count: "Unused recovery codes: %d"
+    warning: Store these codes in a safe place. They will not be shown again.
+    regenerate: Generate new codes
+    back: Back to profile
+  data-export:
+    title: Download my data
+    help: Request a full export of your personal data (GDPR Article 15).
+    request: Request export
+    sentTitle: Export requested
+    sentHelp: Your data export request has been received. You will receive it by email shortly.
+    backToProfile: Back to profile
+  delete-account:
+    title: Delete account
+    help: This action is permanent and cannot be undone. All your data will be erased.
+    request: Request deletion
+    backToProfile: Back to profile
+    sentTitle: Deletion requested
+    sentHelp: Your deletion request has been received. You will receive a confirmation email.
+    confirmedTitle: Account deleted
+    confirmedHelp: Your account has been permanently deleted.
+    errorToken: The deletion link is invalid or has expired.
   invite:
     title: Invite a user
     help: Enter the email address of the person you want to invite.

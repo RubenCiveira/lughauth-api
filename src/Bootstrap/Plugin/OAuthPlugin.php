@@ -213,6 +213,22 @@ class OAuthPlugin extends MicroPlugin
             $group->get('/me/invite', [ProfileHtml::class, 'invite']);
             $group->post('/me/invite', [ProfileHtml::class, 'sendInvite']);
 
+            $group->get('/me/passkeys', [ProfileHtml::class, 'passkeys']);
+            $group->post('/me/passkeys/{credentialUid}/delete', [ProfileHtml::class, 'deletePasskey']);
+            $group->post('/me/passkeys/{credentialUid}/rename', [ProfileHtml::class, 'renamePasskey']);
+
+            $group->get('/me/consents', [ProfileHtml::class, 'consents']);
+            $group->post('/me/consents/revoke/{consentUid}', [ProfileHtml::class, 'revokeConsent']);
+            $group->post('/me/consents/revoke/{consentUid}/scope', [ProfileHtml::class, 'revokeConsentScope']);
+
+            $group->get('/me/recovery-codes', [ProfileHtml::class, 'recoveryCodes']);
+
+            $group->get('/me/data-export', [ProfileHtml::class, 'dataExport']);
+            $group->post('/me/data-export', [ProfileHtml::class, 'requestDataExport']);
+
+            $group->get('/me/delete-account', [ProfileHtml::class, 'deleteAccount']);
+            $group->post('/me/delete-account', [ProfileHtml::class, 'requestDeleteAccount']);
+
             $group->get('/invitation/accept', [InvitationAcceptHtml::class, 'form']);
             $group->post('/invitation/accept', [InvitationAcceptHtml::class, 'accept']);
         });

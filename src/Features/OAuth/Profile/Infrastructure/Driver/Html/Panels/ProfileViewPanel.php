@@ -10,33 +10,165 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfile;
 /**
  * HTML rendering component for the read-only profile overview panel.
  *
- * This panel produces the summary view of a user's OIDC profile that is shown when
- * they visit their profile home page.  It displays the user's avatar (or a placeholder),
- * a display name derived from given/family name, nickname, or preferred username, and a
- * definition list of all stored profile fields.
- *
- * Navigation links to the edit, change-password, MFA, sessions, and (optionally) invite
- * sections are rendered as action buttons at the bottom of the panel.  The invite button
- * is suppressed when $inviteUrl is null, giving the controller full control over feature
- * availability.  All labels are resolved from the $t translations array.
+ * Renders the user's avatar, display name, a definition list of profile fields,
+ * and a gear-icon dropdown menu linking to all profile management sub-sections.
+ * An optional back button is shown when a trusted referrer URL is provided.
  */
 class ProfileViewPanel
 {
-    /**
-     * Renders the read-only profile view as an HTML string.
-     *
-     * Derives the best display name from the available profile fields in the order:
-     * full name > nickname > preferred username.  Renders an avatar image when a
-     * pictureUrl is present, otherwise falls back to a CSS placeholder element.
-     */
+    private const string SVG_OPEN = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"'
+        . ' fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">';
+    private const string SVG_CLOSE = '</svg>';
+
+    private const string ICON_EDIT = self::SVG_OPEN
+        . '<path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>'
+        . '<path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_LOCK = self::SVG_OPEN
+        . '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>'
+        . '<path d="M7 11V7a5 5 0 0 1 10 0v4"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_SHIELD = self::SVG_OPEN
+        . '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_MONITOR = self::SVG_OPEN
+        . '<rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>'
+        . '<line x1="8" y1="21" x2="16" y2="21"/>'
+        . '<line x1="12" y1="17" x2="12" y2="21"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_KEY = self::SVG_OPEN
+        . '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_CHECK = self::SVG_OPEN
+        . '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>'
+        . '<polyline points="22 4 12 14.01 9 11.01"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_FINGERPRINT = self::SVG_OPEN
+        . '<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>'
+        . '<path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>'
+        . '<path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>'
+        . '<path d="M2 12a10 10 0 0 1 18-6"/>'
+        . '<path d="M2 17.5a14.5 14.5 0 0 0 4.28 5.5"/>'
+        . '<path d="M6 10a6 6 0 0 1 11.29-2.97"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_DOWNLOAD = self::SVG_OPEN
+        . '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>'
+        . '<polyline points="7 10 12 15 17 10"/>'
+        . '<line x1="12" y1="15" x2="12" y2="3"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_TRASH = self::SVG_OPEN
+        . '<polyline points="3 6 5 6 21 6"/>'
+        . '<path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_INVITE = self::SVG_OPEN
+        . '<path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>'
+        . '<circle cx="8.5" cy="7" r="4"/>'
+        . '<line x1="20" y1="8" x2="20" y2="14"/>'
+        . '<line x1="23" y1="11" x2="17" y2="11"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_CHEVRON = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13"'
+        . ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"'
+        . ' stroke-linecap="round" stroke-linejoin="round">'
+        . '<polyline points="6 9 12 15 18 9"/></svg>';
+
+    private const string ICON_GEAR = self::SVG_OPEN
+        . '<circle cx="12" cy="12" r="3"/>'
+        . '<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06'
+        . 'a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09'
+        . 'A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06'
+        . 'A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09'
+        . 'A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06'
+        . 'A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09'
+        . 'a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06'
+        . 'A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09'
+        . 'a1.65 1.65 0 0 0-1.51 1z"/>'
+        . self::SVG_CLOSE;
+
+    private const string ICON_ARROW_LEFT = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"'
+        . ' viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"'
+        . ' stroke-linecap="round" stroke-linejoin="round">'
+        . '<line x1="19" y1="12" x2="5" y2="12"/>'
+        . '<polyline points="12 19 5 12 12 5"/>'
+        . '</svg>';
+
+    // Inline critical styles so the dropdown works even when profile.css in DB is stale.
+    private const string DROPDOWN_STYLE = '<style>'
+        . '.profile-back-btn{display:inline-flex;align-items:center;gap:6px;margin-bottom:16px;'
+        . 'padding:6px 12px;border:1.5px solid #e5e8f0;border-radius:8px;background:#f9fafb;'
+        . 'color:#374151;font-size:13px;font-weight:500;text-decoration:none;'
+        . 'transition:background .14s,border-color .14s}'
+        . '.profile-back-btn:hover{background:#eef2ff;border-color:#c7d2fe;color:#4338ca;text-decoration:none}'
+        . '.profile-actions-menu{position:relative;margin-left:auto;flex-shrink:0}'
+        . '.profile-actions-trigger{display:inline-flex;align-items:center;gap:6px;'
+        . 'padding:7px 13px;border:1.5px solid #e5e8f0;border-radius:8px;background:#f9fafb;'
+        . 'color:#374151;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;'
+        . 'transition:background .14s,border-color .14s,box-shadow .14s}'
+        . '.profile-actions-trigger:hover,.profile-actions-menu.open .profile-actions-trigger{'
+        . 'background:#eef2ff;border-color:#c7d2fe;color:#4338ca;'
+        . 'box-shadow:0 2px 8px rgba(99,102,241,.12)}'
+        . '.profile-actions-trigger svg{flex-shrink:0}'
+        . '.profile-actions-dropdown{display:none;position:absolute;top:calc(100% + 8px);right:0;'
+        . 'min-width:220px;background:#fff;border:1px solid #e5e8f0;border-radius:12px;'
+        . 'box-shadow:0 8px 28px rgba(0,0,0,.10),0 2px 8px rgba(0,0,0,.06);'
+        . 'padding:6px;z-index:200;flex-direction:column;gap:1px}'
+        . '.profile-actions-menu.open .profile-actions-dropdown{display:flex}'
+        . '.profile-menu-item{display:flex;align-items:center;gap:10px;padding:9px 12px;'
+        . 'border-radius:7px;font-size:13.5px;font-weight:500;color:#374151;'
+        . 'text-decoration:none;white-space:nowrap}'
+        . '.profile-menu-item svg{width:16px;height:16px;flex-shrink:0;color:#9ca3af}'
+        . '.profile-menu-item:hover{background:#f3f4f6;color:#111827;text-decoration:none}'
+        . '.profile-menu-item:hover svg{color:#6366f1}'
+        . '.profile-menu-item.menu-item-primary{font-weight:600;color:#1e40af}'
+        . '.profile-menu-item.menu-item-primary svg{color:#3b82f6}'
+        . '.profile-menu-item.menu-item-primary:hover{background:#eff6ff;color:#1e3a8a}'
+        . '.profile-menu-item.menu-item-danger{color:#b91c1c}'
+        . '.profile-menu-item.menu-item-danger svg{color:#ef4444}'
+        . '.profile-menu-item.menu-item-danger:hover{background:#fef2f2;color:#7f1d1d}'
+        . '.profile-menu-separator{height:1px;background:#f0f2f7;margin:4px 6px}'
+        . '@media(prefers-color-scheme:dark){'
+        . '.profile-back-btn{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:rgba(212,224,245,.7)}'
+        . '.profile-back-btn:hover{background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.4);color:#a5b4fc}'
+        . '.profile-actions-trigger{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.12);color:rgba(212,224,245,.7)}'
+        . '.profile-actions-trigger:hover,.profile-actions-menu.open .profile-actions-trigger{'
+        . 'background:rgba(99,102,241,.14);border-color:rgba(99,102,241,.4);color:#a5b4fc}'
+        . '.profile-actions-dropdown{background:#1a2035;border-color:rgba(255,255,255,.1);'
+        . 'box-shadow:0 10px 32px rgba(0,0,0,.45)}'
+        . '.profile-menu-item{color:rgba(212,224,245,.8)}'
+        . '.profile-menu-item svg{color:rgba(212,224,245,.35)}'
+        . '.profile-menu-item:hover{background:rgba(255,255,255,.07);color:#d4e0f5}'
+        . '.profile-menu-item:hover svg{color:#a5b4fc}'
+        . '.profile-menu-item.menu-item-primary{color:#93c5fd}'
+        . '.profile-menu-item.menu-item-primary:hover{background:rgba(59,130,246,.1)}'
+        . '.profile-menu-item.menu-item-danger{color:#fca5a5}'
+        . '.profile-menu-item.menu-item-danger:hover{background:rgba(239,68,68,.1)}'
+        . '.profile-menu-separator{background:rgba(255,255,255,.08)}'
+        . '}'
+        . '</style>';
+
     public function render(
         ?OidcProfile $profile,
         string $editUrl,
         string $changePasswordUrl,
         string $mfaUrl,
         string $sessionsUrl,
+        string $recoveryCodesUrl,
+        string $consentsUrl,
+        string $passkeysUrl,
+        string $dataExportUrl,
+        string $deleteAccountUrl,
         array $t = [],
         ?string $inviteUrl = null,
+        ?string $backUrl = null,
     ): string {
         $givenName = htmlspecialchars($profile?->givenName ?? '');
         $familyName = htmlspecialchars($profile?->familyName ?? '');
@@ -51,47 +183,91 @@ class ProfileViewPanel
         $gender = htmlspecialchars($profile?->gender ?? '');
 
         $avatar = $pictureUrl !== ''
-            ? "<img src=\"{$pictureUrl}\" alt=\"Profile picture\" class=\"profile-avatar\" />"
-            : '<div class="profile-avatar-placeholder"></div>';
+            ? "<img src=\"{$pictureUrl}\" alt=\"\" class=\"profile-avatar\" />"
+            : '<div class="profile-avatar-placeholder"><span class="profile-avatar-initials">'
+                . $this->computeInitials($givenName, $familyName, $preferredUsername)
+                . '</span></div>';
 
         $name = trim("{$givenName} {$familyName}");
-        $displayName = $name !== '' ? htmlspecialchars($name) : ($nickname !== '' ? $nickname : $preferredUsername);
+        $displayName = $name !== '' ? $name : ($nickname !== '' ? $nickname : $preferredUsername);
 
-        $editUrl = htmlspecialchars($editUrl);
-        $changePasswordUrl = htmlspecialchars($changePasswordUrl);
-        $mfaUrl = htmlspecialchars($mfaUrl);
-        $sessionsUrl = htmlspecialchars($sessionsUrl);
-        $inviteBtn = $inviteUrl !== null
-            ? '<a class="secondary-button" href="' . htmlspecialchars($inviteUrl) . '">' . ($t['inviteUser'] ?? 'Invite a user') . '</a>'
-            : '';
+        $backBtn = '';
+        if ($backUrl !== null && $backUrl !== '') {
+            $safeBack = htmlspecialchars($backUrl);
+            $backLabel = htmlspecialchars($t['back'] ?? 'Back');
+            $backBtn = '<a class="profile-back-btn" href="' . $safeBack . '">'
+                . self::ICON_ARROW_LEFT . '<span>' . $backLabel . '</span></a>';
+        }
 
-        return <<<HTML
-            <h1>{$t['title']}</h1>
-            <div class="profile-view">
-                <div class="profile-header">
-                    {$avatar}
-                    <div class="profile-display-name">{$displayName}</div>
-                </div>
-                <dl class="profile-fields">
-                    <dt>{$t['givenName']}</dt><dd>{$givenName}</dd>
-                    <dt>{$t['familyName']}</dt><dd>{$familyName}</dd>
-                    <dt>{$t['nickname']}</dt><dd>{$nickname}</dd>
-                    <dt>{$t['username']}</dt><dd>{$preferredUsername}</dd>
-                    <dt>{$t['phone']}</dt><dd>{$phoneNumber}</dd>
-                    <dt>{$t['locale']}</dt><dd>{$locale}</dd>
-                    <dt>{$t['timezone']}</dt><dd>{$zoneinfo}</dd>
-                    <dt>{$t['birthdate']}</dt><dd>{$birthdate}</dd>
-                    <dt>{$t['gender']}</dt><dd>{$gender}</dd>
-                    <dt>{$t['website']}</dt><dd>{$websiteUrl}</dd>
-                </dl>
-                <div class="profile-actions">
-                    <a class="primary-button" href="{$editUrl}">{$t['editProfile']}</a>
-                    <a class="secondary-button" href="{$changePasswordUrl}">{$t['changePassword']}</a>
-                    <a class="secondary-button" href="{$mfaUrl}">{$t['configureMfa']}</a>
-                    <a class="secondary-button" href="{$sessionsUrl}">{$t['manageSessions']}</a>
-                    {$inviteBtn}
-                </div>
-            </div>
-            HTML;
+        $menu = self::DROPDOWN_STYLE
+            . '<div class="profile-actions-menu">'
+            . '<button type="button" class="profile-actions-trigger"'
+            . ' onclick="this.parentElement.classList.toggle(\'open\');event.stopPropagation()">'
+            . self::ICON_GEAR . '<span>' . htmlspecialchars($t['actions'] ?? 'Actions') . '</span>' . self::ICON_CHEVRON
+            . '</button>'
+            . '<div class="profile-actions-dropdown">'
+            . $this->menuItem(htmlspecialchars($editUrl), self::ICON_EDIT, $t['editProfile'] ?? 'Edit profile', 'menu-item-primary')
+            . $this->menuItem(htmlspecialchars($changePasswordUrl), self::ICON_LOCK, $t['changePassword'] ?? 'Change password', '')
+            . $this->menuItem(htmlspecialchars($mfaUrl), self::ICON_SHIELD, $t['configureMfa'] ?? 'Configure MFA', '')
+            . $this->menuItem(htmlspecialchars($sessionsUrl), self::ICON_MONITOR, $t['manageSessions'] ?? 'Manage sessions', '')
+            . $this->menuItem(htmlspecialchars($recoveryCodesUrl), self::ICON_KEY, $t['recoveryCodes'] ?? 'Recovery codes', '')
+            . $this->menuItem(htmlspecialchars($consentsUrl), self::ICON_CHECK, $t['manageConsents'] ?? 'Manage consents', '')
+            . $this->menuItem(htmlspecialchars($passkeysUrl), self::ICON_FINGERPRINT, $t['managePasskeys'] ?? 'Passkeys', '')
+            . $this->menuItem(htmlspecialchars($dataExportUrl), self::ICON_DOWNLOAD, $t['downloadMyData'] ?? 'Download my data', '')
+            . ($inviteUrl !== null ? $this->menuItem(htmlspecialchars($inviteUrl), self::ICON_INVITE, $t['inviteUser'] ?? 'Invite a user', '') : '')
+            . '<div class="profile-menu-separator"></div>'
+            . $this->menuItem(htmlspecialchars($deleteAccountUrl), self::ICON_TRASH, $t['deleteAccount'] ?? 'Delete account', 'menu-item-danger')
+            . '</div></div>'
+            . '<script>document.addEventListener(\'click\',function(e){'
+            . 'var m=document.querySelector(\'.profile-actions-menu\');'
+            . 'if(m&&!m.contains(e.target))m.classList.remove(\'open\');});</script>';
+
+        return '<h1>' . ($t['title'] ?? 'My profile') . '</h1>'
+            . $backBtn
+            . '<div class="profile-view">'
+            . '<div class="profile-header">'
+            . $avatar
+            . '<div class="profile-display-name">' . htmlspecialchars($displayName) . '</div>'
+            . $menu
+            . '</div>'
+            . '<dl class="profile-fields">'
+            . $this->dt($t['givenName'] ?? 'Given name', $givenName)
+            . $this->dt($t['familyName'] ?? 'Family name', $familyName)
+            . $this->dt($t['nickname'] ?? 'Nickname', $nickname)
+            . $this->dt($t['username'] ?? 'Username', $preferredUsername)
+            . $this->dt($t['phone'] ?? 'Phone', $phoneNumber)
+            . $this->dt($t['locale'] ?? 'Locale', $locale)
+            . $this->dt($t['timezone'] ?? 'Timezone', $zoneinfo)
+            . $this->dt($t['birthdate'] ?? 'Birthdate', $birthdate)
+            . $this->dt($t['gender'] ?? 'Gender', $gender)
+            . $this->dt($t['website'] ?? 'Website', $websiteUrl)
+            . '</dl>'
+            . '</div>';
+    }
+
+    private function menuItem(string $url, string $icon, string $label, string $extraClass): string
+    {
+        $cls = 'profile-menu-item' . ($extraClass !== '' ? ' ' . $extraClass : '');
+        return '<a class="' . $cls . '" href="' . $url . '">'
+            . $icon . '<span>' . htmlspecialchars($label) . '</span></a>';
+    }
+
+    private function computeInitials(string $givenName, string $familyName, string $preferredUsername): string
+    {
+        if ($givenName !== '' && $familyName !== '') {
+            return strtoupper(mb_substr($givenName, 0, 1)) . strtoupper(mb_substr($familyName, 0, 1));
+        }
+        if ($givenName !== '') {
+            return strtoupper(mb_substr($givenName, 0, 1));
+        }
+        if ($preferredUsername !== '') {
+            return strtoupper(mb_substr($preferredUsername, 0, 1));
+        }
+        return '?';
+    }
+
+    private function dt(string $label, string $value): string
+    {
+        return '<dt>' . $label . '</dt><dd>' . $value . '</dd>';
     }
 }

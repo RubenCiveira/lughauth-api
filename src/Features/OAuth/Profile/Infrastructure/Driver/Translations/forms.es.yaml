@@ -16,11 +16,18 @@ profile:
     birthdate: Fecha de nacimiento
     gender: Genero
     website: Sitio web
+    actions: Acciones
     editProfile: Editar perfil
     changePassword: Cambiar contrasena
     configureMfa: Configurar MFA
     manageSessions: Gestionar sesiones
+    recoveryCodes: Codigos de recuperacion
+    manageConsents: Gestionar consentimientos
+    managePasskeys: Claves de acceso
+    downloadMyData: Descargar mis datos
+    deleteAccount: Eliminar cuenta
     inviteUser: Invitar usuario
+    back: Volver
   edit:
     title: Editar perfil
     givenName: Nombre
@@ -73,6 +80,51 @@ profile:
     expires: Expira
     empty: No hay sesiones activas.
     backToProfile: Volver al perfil
+  passkeys:
+    title: Claves de acceso
+    help: Gestione las claves de acceso (dispositivos WebAuthn) registradas en su cuenta.
+    empty: No hay claves de acceso registradas.
+    unnamed: Dispositivo sin nombre
+    createdAt: Anadido
+    lastUsed: Ultimo uso
+    never: Nunca
+    delete: Eliminar
+    deleteConfirm: "¿Seguro que desea eliminar esta clave de acceso?"
+    rename: Renombrar
+    name: Nombre del dispositivo
+    backToProfile: Volver al perfil
+  consents:
+    title: Consentimientos
+    help: Revise y revoque los permisos que ha concedido a las aplicaciones.
+    empty: No hay consentimientos registrados.
+    unknown: Desconocido
+    grantedAt: Concedido el
+    revoke: Revocar todo
+    revokeScope: Revocar
+    backToProfile: Volver al perfil
+  recovery-codes:
+    title: Codigos de recuperacion
+    count: "Codigos de recuperacion disponibles: %d"
+    warning: Guarde estos codigos en un lugar seguro. No se mostraran de nuevo.
+    regenerate: Generar nuevos codigos
+    back: Volver al perfil
+  data-export:
+    title: Descargar mis datos
+    help: Solicite una exportacion completa de sus datos personales (RGPD, articulo 15).
+    request: Solicitar exportacion
+    sentTitle: Exportacion solicitada
+    sentHelp: Su solicitud de exportacion ha sido recibida. La recibira por correo electronico en breve.
+    backToProfile: Volver al perfil
+  delete-account:
+    title: Eliminar cuenta
+    help: Esta accion es permanente y no puede deshacerse. Todos sus datos seran borrados.
+    request: Solicitar eliminacion
+    backToProfile: Volver al perfil
+    sentTitle: Eliminacion solicitada
+    sentHelp: Su solicitud de eliminacion ha sido recibida. Recibira un correo de confirmacion.
+    confirmedTitle: Cuenta eliminada
+    confirmedHelp: Su cuenta ha sido eliminada permanentemente.
+    errorToken: El enlace de eliminacion no es valido o ha expirado.
   invite:
     title: Invitar usuario
     help: Introduce el email de la persona que deseas invitar.

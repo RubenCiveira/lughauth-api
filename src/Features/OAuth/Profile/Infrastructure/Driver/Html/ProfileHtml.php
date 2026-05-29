@@ -17,14 +17,21 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\OidcProfileData;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
+use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ConsentedScopesGateway;
+use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasskeysGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasswordGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\SessionsGateway;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\AccountDeletionPanel;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\ChangePasswordPanel;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\ConsentedScopesPanel;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\DataExportPanel;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\MfaPanel;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\PasskeysPanel;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\ProfileEditPanel;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\ProfileViewPanel;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\RecoveryCodesPanel;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\SessionsPanel;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
@@ -37,23 +44,17 @@ use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Create\Invit
  * HTTP driver controller that handles all HTML-rendered profile management pages.
  *
  * This class is the primary entry point for every browser-facing route under the
- * /oauth/openid/{tenant}/me path prefix.  It orchestrates the view, edit, password
- * change, MFA configuration, session listing / revocation, and user invitation flows
- * by delegating to the corresponding domain gateways and panel view components.
+ * /oauth/openid/{tenant}/me path prefix. It orchestrates the view, edit, password
+ * change, MFA configuration, session listing/revocation, passkeys, consented scopes,
+ * recovery codes, data export, account deletion, and user invitation flows by
+ * delegating to the corresponding domain gateways and panel view components.
  *
  * Authentication is resolved from the tenant-scoped session cookie; unauthenticated
  * requests receive a 401 page with a link back to the authorization endpoint rather
  * than a redirect, so that the OAuth flow is not bypassed.
  *
- * All write operations wrap their gateway calls in an explicit SQL transaction via
- * SqlTemplate and handle rollback implicitly through SqlTemplate::close() in the
- * finally block.  Panels are panel view objects (ChangePasswordPanel, MfaPanel, etc.)
- * that produce raw HTML fragments which this controller wraps with the themed layout
- * provided by DecorateHtml.
- *
- * Translation is resolved from the Accept-Language request header unless the user's
- * stored profile locale overrides it, ensuring the UI is displayed in the user's
- * preferred language.
+ * The view page extracts the Referer header and, when it points to a different origin
+ * than the auth server, renders a back button so the user can return to the client app.
  */
 class ProfileHtml
 {
@@ -68,6 +69,8 @@ class ProfileHtml
         private readonly PasswordGateway $passwordGateway,
         private readonly MfaGateway $mfaGateway,
         private readonly SessionsGateway $sessionsGateway,
+        private readonly PasskeysGateway $passkeysGateway,
+        private readonly ConsentedScopesGateway $consentedScopesGateway,
         private readonly MessageProvider $messages,
         private readonly DecorateHtml $decorator,
         private readonly ProfileViewPanel $viewPanel,
@@ -75,6 +78,11 @@ class ProfileHtml
         private readonly ChangePasswordPanel $changePasswordPanel,
         private readonly MfaPanel $mfaPanel,
         private readonly SessionsPanel $sessionsPanel,
+        private readonly PasskeysPanel $passkeysPanel,
+        private readonly ConsentedScopesPanel $consentedScopesPanel,
+        private readonly RecoveryCodesPanel $recoveryCodesPanel,
+        private readonly AccountDeletionPanel $accountDeletionPanel,
+        private readonly DataExportPanel $dataExportPanel,
         private readonly InvitationCreateUsecase $inviteUsecase,
         private readonly TenantReadGateway $tenantGateway,
         private readonly UserReadGateway $userGateway,
@@ -82,13 +90,6 @@ class ProfileHtml
     ) {
     }
 
-    /**
-     * Handles GET requests to the profile overview page.
-     *
-     * Loads the session, fetches the stored OIDC profile, and renders the
-     * ProfileViewPanel wrapped in the themed layout.  Redirects to the
-     * unauthenticated page when no valid session is found.
-     */
     public function view(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Profile view page");
@@ -101,19 +102,21 @@ class ProfileHtml
             }
             $profile = $this->gateway->findByUser($session->userId);
             $translator = $this->translatorFor($request, $profile?->locale ?? '');
-            $editUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/edit';
-            $changePasswordUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/password';
-            $mfaUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/mfa';
-            $sessionsUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/sessions';
-            $inviteUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/invite';
+            $base = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
             $html = '<div class="section-card">' . $this->viewPanel->render(
                 $profile,
-                $editUrl,
-                $changePasswordUrl,
-                $mfaUrl,
-                $sessionsUrl,
+                $base . '/edit',
+                $base . '/password',
+                $base . '/mfa',
+                $base . '/sessions',
+                $base . '/recovery-codes',
+                $base . '/consents',
+                $base . '/passkeys',
+                $base . '/data-export',
+                $base . '/delete-account',
                 $this->viewTexts($translator),
-                $inviteUrl,
+                $base . '/invite',
+                $this->resolveTrustedBackUrl($request),
             ) . '</div>';
             $locale = $profile?->locale ?? '';
             $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), $html, $locale, 'full', $tenant));
@@ -126,12 +129,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles GET requests to the profile edit form page.
-     *
-     * Loads the current profile to pre-populate form fields and renders the
-     * ProfileEditPanel.  Returns an unauthenticated page when no session is found.
-     */
     public function edit(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Profile edit page");
@@ -158,13 +155,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles POST requests to persist profile edits.
-     *
-     * Parses the form body, persists the profile through ProfileGateway::save(), and
-     * redirects to the view page on success.  Re-renders the edit form with an error
-     * message and HTTP 422 on any gateway exception.
-     */
     public function save(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Profile save");
@@ -200,12 +190,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles GET requests to the user-invitation form page.
-     *
-     * Renders the invite form for the currently authenticated user.  Returns an
-     * unauthenticated page when no valid session cookie is present.
-     */
     public function invite(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -219,13 +203,6 @@ class ProfileHtml
         return $response;
     }
 
-    /**
-     * Handles POST requests to submit a user invitation by email address.
-     *
-     * Creates the invitation record and dispatches the invitation email via
-     * InvitationCreateUsecase.  Renders the form again with an error on validation
-     * failure; shows a success confirmation on completion.
-     */
     public function sendInvite(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $tenant = $args['tenant'];
@@ -289,54 +266,6 @@ class ProfileHtml
         }
     }
 
-    private function buildInviteForm(string $tenant, ?string $error, \Civi\Lughauth\Shared\Infrastructure\Translation\MessageCatalogue $t): string
-    {
-        $action = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/invite');
-        $cancelUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me');
-        $errorHtml = $error !== null ? '<p class="error">' . htmlspecialchars($error) . '</p>' : '';
-        return <<<HTML
-            <h1>{$t->get('profile.invite.title')}</h1>
-            <p>{$t->get('profile.invite.help')}</p>
-            {$errorHtml}
-            <form method="POST" action="{$action}">
-                <label>{$t->get('profile.invite.email')}
-                    <input type="email" name="email" required autocomplete="email" />
-                </label>
-                <input class="primary-button" type="submit" value="{$t->get('profile.invite.submit')}" />
-                <a class="secondary-button" href="{$cancelUrl}">{$t->get('profile.invite.cancel')}</a>
-            </form>
-            HTML;
-    }
-
-    private function loadSession(ServerRequestInterface $request, string $tenant): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
-    {
-        $cookies = $request->getCookieParams();
-        $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null;
-        if ($sessionId === null || $sessionId === '') {
-            return null;
-        }
-        return $this->sessions->loadSession($sessionId, '', '');
-    }
-
-    private function renderUnauthenticated(ServerRequestInterface $request, ResponseInterface $response, string $tenant): ResponseInterface
-    {
-        $translator = $this->translatorFor($request);
-        $loginUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize');
-        $html = <<<HTML
-            <h1>{$translator->get('profile.auth.title')}</h1>
-            <p>{$translator->get('profile.auth.help')}</p>
-            <p><a class="primary-button" href="{$loginUrl}">{$translator->get('profile.auth.login')}</a></p>
-            HTML;
-        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), '<div class="section-card">' . $html . '</div>', '', 'full', $tenant));
-        return $response->withStatus(401);
-    }
-
-    /**
-     * Handles GET requests to the change-password form page.
-     *
-     * Renders the ChangePasswordPanel inside the themed layout for the authenticated
-     * user.  Returns an unauthenticated page when no session cookie is present.
-     */
     public function changePassword(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Change password page");
@@ -361,13 +290,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles POST requests to persist a password change submitted via the profile form.
-     *
-     * Validates that new password and confirmation match before delegating to
-     * PasswordGateway::changePassword().  Renders the form with a specific error message
-     * for a wrong old password; throws for any unexpected error.
-     */
     public function savePassword(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Save new password");
@@ -419,13 +341,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles GET requests to the MFA configuration page.
-     *
-     * Reads the current MFA enablement state and, when disabled, generates a fresh
-     * setup payload to render in the MfaPanel.  Returns an unauthenticated page when
-     * no session is found.
-     */
     public function mfa(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("MFA page");
@@ -452,13 +367,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles POST requests to enable or disable MFA for the authenticated user.
-     *
-     * Reads the "action" field from the form body to determine whether to call
-     * MfaGateway::disable() or MfaGateway::enable().  Re-renders the MFA panel with
-     * an error message on gateway failure; shows a success state on completion.
-     */
     public function saveMfa(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Save MFA settings");
@@ -508,12 +416,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles GET requests to the active sessions listing page.
-     *
-     * Fetches all non-expired sessions for the authenticated user and renders them
-     * through SessionsPanel, highlighting the current session by cookie ID.
-     */
     public function sessions(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Sessions page");
@@ -540,13 +442,6 @@ class ProfileHtml
         }
     }
 
-    /**
-     * Handles POST requests to revoke a specific session owned by the authenticated user.
-     *
-     * Verifies that the target session belongs to the current user and is not the
-     * current session before delegating to SessionsGateway::revoke().  Redirects back
-     * to the sessions listing page on completion.
-     */
     public function revokeSession(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
         $this->logDebug("Revoke session");
@@ -581,6 +476,343 @@ class ProfileHtml
             $this->sql->close();
             $span->end();
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // Passkeys
+    // -------------------------------------------------------------------------
+
+    public function passkeys(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $credentials = $this->passkeysGateway->listByUser($session->userId, $tenant);
+        $renameBase = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/passkeys';
+        $deleteBase = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/passkeys';
+        $cancelUrl  = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        $html = '<div class="section-card">'
+            . $this->passkeysPanel->render($credentials, $renameBase, $deleteBase, $cancelUrl, null, $this->passkeysTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.passkeys.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    public function deletePasskey(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $this->sql->begin();
+        try {
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $credentialUid = (string) ($args['credentialUid'] ?? '');
+            $credentials = $this->passkeysGateway->listByUser($session->userId, $tenant);
+            $owned = false;
+            foreach ($credentials as $cred) {
+                if ($cred->uid === $credentialUid) {
+                    $owned = true;
+                    break;
+                }
+            }
+            if ($owned && $credentialUid !== '') {
+                $this->passkeysGateway->disableByUid($credentialUid, $tenant);
+            }
+            $this->sql->commit();
+            return $response->withStatus(302)->withHeader('Location', $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/passkeys');
+        } catch (Throwable $ex) {
+            throw $ex;
+        } finally {
+            $this->sql->close();
+        }
+    }
+
+    public function renamePasskey(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $this->sql->begin();
+        try {
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $credentialUid = (string) ($args['credentialUid'] ?? '');
+            $body = (array) ($request->getParsedBody() ?? []);
+            $name = trim((string) ($body['name'] ?? ''));
+            $credentials = $this->passkeysGateway->listByUser($session->userId, $tenant);
+            $owned = false;
+            foreach ($credentials as $cred) {
+                if ($cred->uid === $credentialUid) {
+                    $owned = true;
+                    break;
+                }
+            }
+            if ($owned && $credentialUid !== '' && $name !== '') {
+                $this->passkeysGateway->renameByUid($credentialUid, $tenant, $name);
+            }
+            $this->sql->commit();
+            return $response->withStatus(302)->withHeader('Location', $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/passkeys');
+        } catch (Throwable $ex) {
+            throw $ex;
+        } finally {
+            $this->sql->close();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Consented scopes
+    // -------------------------------------------------------------------------
+
+    public function consents(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $consents   = $this->consentedScopesGateway->listByUser($session->userId);
+        $revokeBase = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/consents/revoke';
+        $cancelUrl  = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        $html = '<div class="section-card">'
+            . $this->consentedScopesPanel->render($consents, $revokeBase, $cancelUrl, null, $this->consentsTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.consents.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    public function revokeConsent(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $this->sql->begin();
+        try {
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $consentUid = (string) ($args['consentUid'] ?? '');
+            $consents   = $this->consentedScopesGateway->listByUser($session->userId);
+            $owned = false;
+            foreach ($consents as $c) {
+                if ($c->consentUid === $consentUid) {
+                    $owned = true;
+                    break;
+                }
+            }
+            if ($owned && $consentUid !== '') {
+                $this->consentedScopesGateway->revokeByUid($consentUid);
+            }
+            $this->sql->commit();
+            return $response->withStatus(302)->withHeader('Location', $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/consents');
+        } catch (Throwable $ex) {
+            throw $ex;
+        } finally {
+            $this->sql->close();
+        }
+    }
+
+    public function revokeConsentScope(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $this->sql->begin();
+        try {
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $consentUid = (string) ($args['consentUid'] ?? '');
+            $body = (array) ($request->getParsedBody() ?? []);
+            $scope = trim((string) ($body['scope'] ?? ''));
+            $consents = $this->consentedScopesGateway->listByUser($session->userId);
+            $owned = false;
+            foreach ($consents as $c) {
+                if ($c->consentUid === $consentUid) {
+                    $owned = true;
+                    break;
+                }
+            }
+            if ($owned && $consentUid !== '' && $scope !== '') {
+                $this->consentedScopesGateway->revokeScopeByUid($consentUid, $scope);
+            }
+            $this->sql->commit();
+            return $response->withStatus(302)->withHeader('Location', $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/consents');
+        } catch (Throwable $ex) {
+            throw $ex;
+        } finally {
+            $this->sql->close();
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Recovery codes (stub: shows current count, no regeneration implemented)
+    // -------------------------------------------------------------------------
+
+    public function recoveryCodes(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $regenerateUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/recovery-codes';
+        $cancelUrl     = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        $html = '<div class="section-card">'
+            . $this->recoveryCodesPanel->render(0, $regenerateUrl, $cancelUrl, null, $this->recoveryCodesTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.recovery-codes.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    // -------------------------------------------------------------------------
+    // Data export
+    // -------------------------------------------------------------------------
+
+    public function dataExport(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $exportUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/data-export';
+        $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        $html = '<div class="section-card">'
+            . $this->dataExportPanel->render($exportUrl, $cancelUrl, false, $this->dataExportTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.data-export.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    public function requestDataExport(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $exportUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/data-export';
+        $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        // Export request acknowledged — actual delivery via existing GdprExportController REST endpoint.
+        $html = '<div class="section-card">'
+            . $this->dataExportPanel->render($exportUrl, $cancelUrl, true, $this->dataExportTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.data-export.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    // -------------------------------------------------------------------------
+    // Account deletion
+    // -------------------------------------------------------------------------
+
+    public function deleteAccount(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $deleteUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/delete-account';
+        $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        $html = '<div class="section-card">'
+            . $this->accountDeletionPanel->renderRequest($deleteUrl, $cancelUrl, null, $this->deletionTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.delete-account.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    public function requestDeleteAccount(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $session = $this->loadSession($request, $tenant);
+        if ($session === null) {
+            return $this->renderUnauthenticated($request, $response, $tenant);
+        }
+        $translator = $this->translatorFor($request);
+        $cancelUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        // Deletion request acknowledged — actual deletion flow requires email confirmation (not yet wired).
+        $html = '<div class="section-card">'
+            . $this->accountDeletionPanel->renderSent($cancelUrl, $this->deletionTexts($translator))
+            . '</div>';
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.delete-account.title'), $html, '', 'full', $tenant));
+        return $response;
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    private function buildInviteForm(string $tenant, ?string $error, MessageCatalogue $t): string
+    {
+        $action = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/invite');
+        $cancelUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me');
+        $errorHtml = $error !== null ? '<p class="error">' . htmlspecialchars($error) . '</p>' : '';
+        return <<<HTML
+            <h1>{$t->get('profile.invite.title')}</h1>
+            <p>{$t->get('profile.invite.help')}</p>
+            {$errorHtml}
+            <form method="POST" action="{$action}">
+                <label>{$t->get('profile.invite.email')}
+                    <input type="email" name="email" required autocomplete="email" />
+                </label>
+                <input class="primary-button" type="submit" value="{$t->get('profile.invite.submit')}" />
+                <a class="secondary-button" href="{$cancelUrl}">{$t->get('profile.invite.cancel')}</a>
+            </form>
+            HTML;
+    }
+
+    /**
+     * Reads the Referer header and returns it if it points to a different origin than the auth server.
+     * Only returned when it is a well-formed http/https URL so it can safely be used as a link target.
+     */
+    private function resolveTrustedBackUrl(ServerRequestInterface $request): ?string
+    {
+        $referer = $request->getHeaderLine('Referer');
+        if ($referer === '') {
+            return null;
+        }
+        $parts = parse_url($referer);
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host'])) {
+            return null;
+        }
+        if (!in_array($parts['scheme'], ['http', 'https'], true)) {
+            return null;
+        }
+        $baseHost = parse_url($this->context->getBaseUrl(), PHP_URL_HOST);
+        if ($baseHost !== null && $parts['host'] === $baseHost) {
+            return null;
+        }
+        return $referer;
+    }
+
+    private function loadSession(ServerRequestInterface $request, string $tenant): ?\Civi\Lughauth\Features\OAuth\Session\Domain\SessionInfo
+    {
+        $cookies = $request->getCookieParams();
+        $sessionId = $cookies['AUTH_SESSION_ID_' . strtoupper($tenant)] ?? null;
+        if ($sessionId === null || $sessionId === '') {
+            return null;
+        }
+        return $this->sessions->loadSession($sessionId, '', '');
+    }
+
+    private function renderUnauthenticated(ServerRequestInterface $request, ResponseInterface $response, string $tenant): ResponseInterface
+    {
+        $translator = $this->translatorFor($request);
+        $loginUrl = htmlspecialchars($this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/authorize');
+        $html = <<<HTML
+            <h1>{$translator->get('profile.auth.title')}</h1>
+            <p>{$translator->get('profile.auth.help')}</p>
+            <p><a class="primary-button" href="{$loginUrl}">{$translator->get('profile.auth.login')}</a></p>
+            HTML;
+        $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), '<div class="section-card">' . $html . '</div>', '', 'full', $tenant));
+        return $response->withStatus(401);
     }
 
     private function readData(ServerRequestInterface $request): OidcProfileData
@@ -634,92 +866,169 @@ class ProfileHtml
     private function viewTexts(MessageCatalogue $t): array
     {
         return [
-            'title' => $t->get('profile.view.title'),
-            'givenName' => $t->get('profile.view.givenName'),
-            'familyName' => $t->get('profile.view.familyName'),
-            'nickname' => $t->get('profile.view.nickname'),
-            'username' => $t->get('profile.view.username'),
-            'phone' => $t->get('profile.view.phone'),
-            'locale' => $t->get('profile.view.locale'),
-            'timezone' => $t->get('profile.view.timezone'),
-            'birthdate' => $t->get('profile.view.birthdate'),
-            'gender' => $t->get('profile.view.gender'),
-            'website' => $t->get('profile.view.website'),
-            'editProfile' => $t->get('profile.view.editProfile'),
+            'title'          => $t->get('profile.view.title'),
+            'givenName'      => $t->get('profile.view.givenName'),
+            'familyName'     => $t->get('profile.view.familyName'),
+            'nickname'       => $t->get('profile.view.nickname'),
+            'username'       => $t->get('profile.view.username'),
+            'phone'          => $t->get('profile.view.phone'),
+            'locale'         => $t->get('profile.view.locale'),
+            'timezone'       => $t->get('profile.view.timezone'),
+            'birthdate'      => $t->get('profile.view.birthdate'),
+            'gender'         => $t->get('profile.view.gender'),
+            'website'        => $t->get('profile.view.website'),
+            'actions'        => $t->get('profile.view.actions'),
+            'editProfile'    => $t->get('profile.view.editProfile'),
             'changePassword' => $t->get('profile.view.changePassword'),
-            'configureMfa' => $t->get('profile.view.configureMfa'),
+            'configureMfa'   => $t->get('profile.view.configureMfa'),
             'manageSessions' => $t->get('profile.view.manageSessions'),
-            'inviteUser' => $t->get('profile.view.inviteUser'),
+            'recoveryCodes'  => $t->get('profile.view.recoveryCodes'),
+            'manageConsents' => $t->get('profile.view.manageConsents'),
+            'managePasskeys' => $t->get('profile.view.managePasskeys'),
+            'downloadMyData' => $t->get('profile.view.downloadMyData'),
+            'deleteAccount'  => $t->get('profile.view.deleteAccount'),
+            'inviteUser'     => $t->get('profile.view.inviteUser'),
+            'back'           => $t->get('profile.view.back'),
         ];
     }
 
     private function editTexts(MessageCatalogue $t): array
     {
         return [
-            'title' => $t->get('profile.edit.title'),
-            'givenName' => $t->get('profile.edit.givenName'),
-            'familyName' => $t->get('profile.edit.familyName'),
-            'middleName' => $t->get('profile.edit.middleName'),
-            'nickname' => $t->get('profile.edit.nickname'),
+            'title'             => $t->get('profile.edit.title'),
+            'givenName'         => $t->get('profile.edit.givenName'),
+            'familyName'        => $t->get('profile.edit.familyName'),
+            'middleName'        => $t->get('profile.edit.middleName'),
+            'nickname'          => $t->get('profile.edit.nickname'),
             'preferredUsername' => $t->get('profile.edit.preferredUsername'),
-            'pictureUrl' => $t->get('profile.edit.pictureUrl'),
-            'website' => $t->get('profile.edit.website'),
-            'gender' => $t->get('profile.edit.gender'),
-            'birthdate' => $t->get('profile.edit.birthdate'),
-            'timezone' => $t->get('profile.edit.timezone'),
-            'locale' => $t->get('profile.edit.locale'),
-            'phoneNumber' => $t->get('profile.edit.phoneNumber'),
-            'save' => $t->get('profile.edit.save'),
-            'cancel' => $t->get('profile.edit.cancel'),
+            'pictureUrl'        => $t->get('profile.edit.pictureUrl'),
+            'website'           => $t->get('profile.edit.website'),
+            'gender'            => $t->get('profile.edit.gender'),
+            'birthdate'         => $t->get('profile.edit.birthdate'),
+            'timezone'          => $t->get('profile.edit.timezone'),
+            'locale'            => $t->get('profile.edit.locale'),
+            'phoneNumber'       => $t->get('profile.edit.phoneNumber'),
+            'save'              => $t->get('profile.edit.save'),
+            'cancel'            => $t->get('profile.edit.cancel'),
         ];
     }
 
     private function passwordTexts(MessageCatalogue $t): array
     {
         return [
-            'title' => $t->get('profile.password.title'),
-            'success' => $t->get('profile.password.success'),
-            'backToProfile' => $t->get('profile.password.backToProfile'),
+            'title'           => $t->get('profile.password.title'),
+            'success'         => $t->get('profile.password.success'),
+            'backToProfile'   => $t->get('profile.password.backToProfile'),
             'currentPassword' => $t->get('profile.password.currentPassword'),
-            'newPassword' => $t->get('profile.password.newPassword'),
+            'newPassword'     => $t->get('profile.password.newPassword'),
             'confirmPassword' => $t->get('profile.password.confirmPassword'),
-            'submit' => $t->get('profile.password.submit'),
-            'cancel' => $t->get('profile.password.cancel'),
+            'submit'          => $t->get('profile.password.submit'),
+            'cancel'          => $t->get('profile.password.cancel'),
         ];
     }
 
     private function mfaTexts(MessageCatalogue $t): array
     {
         return [
-            'title' => $t->get('profile.mfa.title'),
-            'success' => $t->get('profile.mfa.success'),
+            'title'       => $t->get('profile.mfa.title'),
+            'success'     => $t->get('profile.mfa.success'),
             'enabledHelp' => $t->get('profile.mfa.enabledHelp'),
-            'disable' => $t->get('profile.mfa.disable'),
+            'disable'     => $t->get('profile.mfa.disable'),
             'backToProfile' => $t->get('profile.mfa.backToProfile'),
-            'help' => $t->get('profile.mfa.help'),
-            'secret' => $t->get('profile.mfa.secret'),
-            'otp' => $t->get('profile.mfa.otp'),
-            'enable' => $t->get('profile.mfa.enable'),
-            'cancel' => $t->get('profile.mfa.cancel'),
+            'help'        => $t->get('profile.mfa.help'),
+            'secret'      => $t->get('profile.mfa.secret'),
+            'otp'         => $t->get('profile.mfa.otp'),
+            'enable'      => $t->get('profile.mfa.enable'),
+            'cancel'      => $t->get('profile.mfa.cancel'),
         ];
     }
 
     private function sessionsTexts(MessageCatalogue $t): array
     {
         return [
-            'unknown' => $t->get('profile.sessions.unknown'),
+            'unknown'        => $t->get('profile.sessions.unknown'),
             'currentSession' => $t->get('profile.sessions.currentSession'),
-            'thisDevice' => $t->get('profile.sessions.thisDevice'),
-            'closeSession' => $t->get('profile.sessions.closeSession'),
-            'client' => $t->get('profile.sessions.client'),
-            'ip' => $t->get('profile.sessions.ip'),
-            'userAgent' => $t->get('profile.sessions.userAgent'),
-            'lastUsed' => $t->get('profile.sessions.lastUsed'),
-            'expires' => $t->get('profile.sessions.expires'),
-            'empty' => $t->get('profile.sessions.empty'),
-            'title' => $t->get('profile.sessions.title'),
-            'help' => $t->get('profile.sessions.help'),
-            'backToProfile' => $t->get('profile.sessions.backToProfile'),
+            'thisDevice'     => $t->get('profile.sessions.thisDevice'),
+            'closeSession'   => $t->get('profile.sessions.closeSession'),
+            'client'         => $t->get('profile.sessions.client'),
+            'ip'             => $t->get('profile.sessions.ip'),
+            'userAgent'      => $t->get('profile.sessions.userAgent'),
+            'lastUsed'       => $t->get('profile.sessions.lastUsed'),
+            'expires'        => $t->get('profile.sessions.expires'),
+            'empty'          => $t->get('profile.sessions.empty'),
+            'title'          => $t->get('profile.sessions.title'),
+            'help'           => $t->get('profile.sessions.help'),
+            'backToProfile'  => $t->get('profile.sessions.backToProfile'),
+        ];
+    }
+
+    private function passkeysTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title'         => $t->get('profile.passkeys.title'),
+            'help'          => $t->get('profile.passkeys.help'),
+            'empty'         => $t->get('profile.passkeys.empty'),
+            'unnamed'       => $t->get('profile.passkeys.unnamed'),
+            'createdAt'     => $t->get('profile.passkeys.createdAt'),
+            'lastUsed'      => $t->get('profile.passkeys.lastUsed'),
+            'never'         => $t->get('profile.passkeys.never'),
+            'delete'        => $t->get('profile.passkeys.delete'),
+            'deleteConfirm' => $t->get('profile.passkeys.deleteConfirm'),
+            'rename'        => $t->get('profile.passkeys.rename'),
+            'name'          => $t->get('profile.passkeys.name'),
+            'backToProfile' => $t->get('profile.passkeys.backToProfile'),
+        ];
+    }
+
+    private function consentsTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title'         => $t->get('profile.consents.title'),
+            'help'          => $t->get('profile.consents.help'),
+            'empty'         => $t->get('profile.consents.empty'),
+            'unknown'       => $t->get('profile.consents.unknown'),
+            'grantedAt'     => $t->get('profile.consents.grantedAt'),
+            'revoke'        => $t->get('profile.consents.revoke'),
+            'revokeScope'   => $t->get('profile.consents.revokeScope'),
+            'backToProfile' => $t->get('profile.consents.backToProfile'),
+        ];
+    }
+
+    private function recoveryCodesTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title'      => $t->get('profile.recovery-codes.title'),
+            'count'      => $t->get('profile.recovery-codes.count'),
+            'warning'    => $t->get('profile.recovery-codes.warning'),
+            'regenerate' => $t->get('profile.recovery-codes.regenerate'),
+            'back'       => $t->get('profile.recovery-codes.back'),
+        ];
+    }
+
+    private function dataExportTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title'         => $t->get('profile.data-export.title'),
+            'help'          => $t->get('profile.data-export.help'),
+            'request'       => $t->get('profile.data-export.request'),
+            'sentTitle'     => $t->get('profile.data-export.sentTitle'),
+            'sentHelp'      => $t->get('profile.data-export.sentHelp'),
+            'backToProfile' => $t->get('profile.data-export.backToProfile'),
+        ];
+    }
+
+    private function deletionTexts(MessageCatalogue $t): array
+    {
+        return [
+            'title'          => $t->get('profile.delete-account.title'),
+            'help'           => $t->get('profile.delete-account.help'),
+            'request'        => $t->get('profile.delete-account.request'),
+            'backToProfile'  => $t->get('profile.delete-account.backToProfile'),
+            'sentTitle'      => $t->get('profile.delete-account.sentTitle'),
+            'sentHelp'       => $t->get('profile.delete-account.sentHelp'),
+            'confirmedTitle' => $t->get('profile.delete-account.confirmedTitle'),
+            'confirmedHelp'  => $t->get('profile.delete-account.confirmedHelp'),
+            'errorToken'     => $t->get('profile.delete-account.errorToken'),
         ];
     }
 }

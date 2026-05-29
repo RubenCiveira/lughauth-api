@@ -45,4 +45,15 @@ interface WebAuthnCredentialGateway
      * Must be called as part of the finish-authentication flow to prevent replay attacks.
      */
     public function updateSignCount(string $credentialId, string $tenantId, int $signCount, DateTimeImmutable $lastUsedAt): void;
+
+    /**
+     * Disables the credential identified by its internal UID, scoped to the tenant.
+     * Disabled credentials are excluded from authentication flows but retained for audit history.
+     */
+    public function disableByUid(string $uid, string $tenantId): void;
+
+    /**
+     * Updates the human-readable device name of the credential identified by its internal UID.
+     */
+    public function renameByUid(string $uid, string $tenantId, string $name): void;
 }
