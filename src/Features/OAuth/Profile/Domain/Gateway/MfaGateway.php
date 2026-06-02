@@ -53,4 +53,20 @@ interface MfaGateway
      * the authentication flow unless re-enrolled via buildSetup / enable.
      */
     public function disable(string $userUid, string $tenant): void;
+
+    /**
+     * Replaces all existing recovery codes for the user with a fresh set.
+     *
+     * Deletes every previously stored code (used or not) and generates a new batch of
+     * one-time backup codes.  Returns the plaintext codes so the UI can display them
+     * once — they are stored as hashes and cannot be retrieved again after this call.
+     *
+     * @return string[]
+     */
+    public function generateRecoveryCodes(string $userUid, string $tenant): array;
+
+    /**
+     * Returns the number of recovery codes that have not yet been used.
+     */
+    public function countUnusedRecoveryCodes(string $userUid, string $tenant): int;
 }

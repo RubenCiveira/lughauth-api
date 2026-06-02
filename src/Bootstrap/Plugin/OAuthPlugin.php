@@ -68,9 +68,13 @@ use Civi\Lughauth\Features\OAuth\Consent\Infrastructure\Driver\Rest\MeConsentsGr
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasswordGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
+use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ConsentedScopesGateway;
+use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasskeysGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\SessionsGateway;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\ConsentedScopesAdapter;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\MfaAdapter;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\PasswordAdapter;
+use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\PasskeysAdapter;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\ProfileAdapter;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven\SessionsAdapter;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\ProfileHtml;
@@ -138,6 +142,8 @@ class OAuthPlugin extends MicroPlugin
         $def[PasswordGateway::class] = \DI\autowire(PasswordAdapter::class);
         $def[MfaGateway::class] = \DI\autowire(MfaAdapter::class);
         $def[SessionsGateway::class] = \DI\autowire(SessionsAdapter::class);
+        $def[PasskeysGateway::class] = \DI\autowire(PasskeysAdapter::class);
+        $def[ConsentedScopesGateway::class] = \DI\autowire(ConsentedScopesAdapter::class);
         $def[PasswordRecoveryMailGateway::class] = \DI\autowire(OAuthMailAdapter::class);
         $def[UserRegistrationMailGateway::class] = \DI\autowire(OAuthMailAdapter::class);
         $def[MagicLinkGateway::class] = \DI\autowire(MagicLinkSqlAdapter::class);
@@ -222,6 +228,7 @@ class OAuthPlugin extends MicroPlugin
             $group->post('/me/consents/revoke/{consentUid}/scope', [ProfileHtml::class, 'revokeConsentScope']);
 
             $group->get('/me/recovery-codes', [ProfileHtml::class, 'recoveryCodes']);
+            $group->post('/me/recovery-codes', [ProfileHtml::class, 'regenerateRecoveryCodes']);
 
             $group->get('/me/data-export', [ProfileHtml::class, 'dataExport']);
             $group->post('/me/data-export', [ProfileHtml::class, 'requestDataExport']);

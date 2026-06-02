@@ -11,6 +11,12 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Exception\BadRequestException;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\UserRef;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeFilter;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeReadGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCode;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCodeAttributes;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\MfaGateway;
@@ -37,10 +43,14 @@ class MfaAdapter implements MfaGateway
     use LoggerAwareTrait;
     use TracerAwareTrait;
 
+    private const int RECOVERY_CODE_COUNT = 10;
+
     public function __construct(
         private readonly UserLoaderAdapter $users,
         private readonly UserWriteGateway $repository,
         private readonly UserMfaGateway $mfaGateway,
+        private readonly UserMfaRecoveryCodeReadGateway $recoveryRead,
+        private readonly UserMfaRecoveryCodeWriteGateway $recoveryWrite,
     ) {
     }
 
@@ -131,5 +141,47 @@ class MfaAdapter implements MfaGateway
         } finally {
             $span->end();
         }
+    }
+
+    #[Override]
+    public function generateRecoveryCodes(string $userUid, string $tenant): array
+    {
+        $this->logDebug("Generate MFA recovery codes for user");
+        $span = $this->startSpan("Generate MFA recovery codes for user");
+        try {
+            $userRef = new UserRef($userUid);
+            $existing = $this->recoveryWrite->listForUpdate(
+                (new UserMfaRecoveryCodeFilter())->withUser($userRef),
+            );
+            foreach ($existing->values() as $code) {
+                $this->recoveryWrite->delete($code);
+            }
+            $plainCodes = [];
+            for ($i = 0; $i < self::RECOVERY_CODE_COUNT; $i++) {
+                $plain = strtoupper(bin2hex(random_bytes(5)));
+                $hash  = password_hash($plain, PASSWORD_BCRYPT);
+                $attrs = (new UserMfaRecoveryCodeAttributes())
+                    ->withDefaults()
+                    ->user($userRef)
+                    ->codeHash($hash);
+                $this->recoveryWrite->create(UserMfaRecoveryCode::create($attrs));
+                $plainCodes[] = $plain;
+            }
+            return $plainCodes;
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+
+    #[Override]
+    public function countUnusedRecoveryCodes(string $userUid, string $tenant): int
+    {
+        $userRef = new UserRef($userUid);
+        return $this->recoveryRead->count(
+            (new UserMfaRecoveryCodeFilter())->withUserUnused($userRef),
+        );
     }
 }

@@ -103,6 +103,8 @@ class ProfileHtml
             $profile = $this->gateway->findByUser($session->userId);
             $translator = $this->translatorFor($request, $profile?->locale ?? '');
             $base = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+            $backUrl = $this->resolveTrustedBackUrl($request)
+                ?? ($session->clientId !== '' ? $this->clientStore->defaultRedirectUri($session->clientId) : null);
             $html = '<div class="section-card">' . $this->viewPanel->render(
                 $profile,
                 $base . '/edit',
@@ -116,7 +118,7 @@ class ProfileHtml
                 $base . '/delete-account',
                 $this->viewTexts($translator),
                 $base . '/invite',
-                $this->resolveTrustedBackUrl($request),
+                $backUrl,
             ) . '</div>';
             $locale = $profile?->locale ?? '';
             $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.view.title'), $html, $locale, 'full', $tenant));
@@ -661,11 +663,38 @@ class ProfileHtml
         $translator = $this->translatorFor($request);
         $regenerateUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/recovery-codes';
         $cancelUrl     = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+        $unusedCount   = $this->mfaGateway->countUnusedRecoveryCodes($session->userId, $tenant);
         $html = '<div class="section-card">'
-            . $this->recoveryCodesPanel->render(0, $regenerateUrl, $cancelUrl, null, $this->recoveryCodesTexts($translator))
+            . $this->recoveryCodesPanel->render($unusedCount, $regenerateUrl, $cancelUrl, null, $this->recoveryCodesTexts($translator))
             . '</div>';
         $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.recovery-codes.title'), $html, '', 'full', $tenant));
         return $response;
+    }
+
+    public function regenerateRecoveryCodes(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    {
+        $tenant = $args['tenant'];
+        $this->sql->begin();
+        try {
+            $session = $this->loadSession($request, $tenant);
+            if ($session === null) {
+                return $this->renderUnauthenticated($request, $response, $tenant);
+            }
+            $codes = $this->mfaGateway->generateRecoveryCodes($session->userId, $tenant);
+            $this->sql->commit();
+            $translator = $this->translatorFor($request);
+            $regenerateUrl = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me/recovery-codes';
+            $cancelUrl     = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant . '/me';
+            $html = '<div class="section-card">'
+                . $this->recoveryCodesPanel->render(count($codes), $regenerateUrl, $cancelUrl, $codes, $this->recoveryCodesTexts($translator))
+                . '</div>';
+            $response->getBody()->write($this->decorator->getFullPage($request, $translator->get('profile.recovery-codes.title'), $html, '', 'full', $tenant));
+            return $response;
+        } catch (Throwable $ex) {
+            throw $ex;
+        } finally {
+            $this->sql->close();
+        }
     }
 
     // -------------------------------------------------------------------------
