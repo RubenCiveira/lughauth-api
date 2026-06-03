@@ -77,7 +77,7 @@ class SmtpOutboundConfigDeleteController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
-                globalOnly: isset($params['global-only']) ? filter_var($params['global-only'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
+                globalOnly: isset($params['global-only']) ? new TenantRef($params['global-only']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
             $res = $this->runner->run(SmtpOutboundConfigTaskDelete::class, ['filter' => $filter]);
