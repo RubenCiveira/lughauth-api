@@ -53,7 +53,7 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
     public function pendingScopes(string $tenant, string $username, string $clientId, array $requestedScopes): array
     {
         $theTenant = $this->tenants->findOneByName($tenant);
-        if ($theTenant === null ) {
+        if ($theTenant === null) {
             throw new InvalidArgumentException("Unkown tenant");
         }
         $user = $this->resolveUser($theTenant, $username);
@@ -97,7 +97,7 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
     public function storeAcceptedScopes(string $tenant, string $username, string $clientId, array $approvedScopes): void
     {
         $theTenant = $this->tenants->findOneByName($tenant);
-        if ($theTenant === null ) {
+        if ($theTenant === null) {
             throw new InvalidArgumentException("Unkown tenant");
         }
         $user = $this->resolveUser($theTenant, $username);

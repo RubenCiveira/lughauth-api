@@ -66,7 +66,7 @@ final class ConsentedScopesAdapter implements ConsentedScopesGateway
         }
         $existing = array_filter(
             explode(' ', $consent->getScope() ?? ''),
-            fn($s) => trim($s) !== '' && trim($s) !== $scope
+            fn ($s) => trim($s) !== '' && trim($s) !== $scope
         );
         $newScope = implode(' ', array_values($existing));
 

@@ -60,6 +60,7 @@ class UnauthorizedExceptionUnitTest extends TestCase
         $this->assertSame($prev, $previous);
     }
 
+
     public function testArrayMessageUsesMessageKey(): void
     {
         $exception = new UnauthorizedException(['message' => 'Denied from array']);
@@ -87,4 +88,5 @@ class UnauthorizedExceptionUnitTest extends TestCase
 
         $this->assertSame('Unauthorized', $exception->getMessage());
     }
+
 }

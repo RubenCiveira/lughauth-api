@@ -53,7 +53,7 @@ class ConsentedScopesPanel
                     . '</form>'
                     . '</div>';
 
-                $scopes = array_filter(explode(' ', $consent->scopes), fn($s) => trim($s) !== '');
+                $scopes = array_filter(explode(' ', $consent->scopes), fn ($s) => trim($s) !== '');
                 $html .= '<ul class="scopes-list">';
                 foreach ($scopes as $scope) {
                     $scopeEsc = htmlspecialchars($scope);

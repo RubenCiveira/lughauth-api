@@ -4244,7 +4244,7 @@ paths:
           description: 'Client authentication failed'
       security:
         -
-          basicAuth: {  }
+          basicAuth: {}
   '/oauth/openid/{tenant}/logout':
     get:
       tags:
@@ -4436,7 +4436,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
   '/oauth/openid/{tenant}/register':
     post:
       tags:
@@ -4631,7 +4631,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
   /api/me/gdpr/export:
     get:
       tags:
@@ -4646,7 +4646,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
   '/oauth/openid/{tenant}/.well-known/openid-configuration':
     get:
       tags:
@@ -4748,7 +4748,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
     put:
       tags:
         - Profile
@@ -4773,7 +4773,7 @@ paths:
           description: 'Constraint error'
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
   /api/me/sessions:
     get:
       tags:
@@ -4788,7 +4788,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
     delete:
       tags:
         - Profile
@@ -4802,7 +4802,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
   '/api/me/sessions/{sessionId}':
     delete:
       tags:
@@ -4824,7 +4824,7 @@ paths:
           description: Unauthorized
       security:
         -
-          bearerAuth: {  }
+          bearerAuth: {}
   '/oauth/openid/{tenant}/jwks':
     get:
       tags:
@@ -6583,165 +6583,111 @@ components:
       type: http
       scheme: basic
 tags:
-  -
-    name: 'Api key client access control'
+  - name: 'Api key client access control'
     description: 'Api key client access control'
-  -
-    name: 'Api key client'
+  - name: 'Api key client'
     description: 'Api key client'
-  -
-    name: 'Consent purpose access control'
+  - name: 'Consent purpose access control'
     description: 'Consent purpose access control'
-  -
-    name: 'Consent purpose'
+  - name: 'Consent purpose'
     description: 'Consent purpose'
-  -
-    name: 'Relying party access control'
+  - name: 'Relying party access control'
     description: 'Relying party access control'
-  -
-    name: 'Relying party'
+  - name: 'Relying party'
     description: 'Relying party'
-  -
-    name: 'Role access control'
+  - name: 'Role access control'
     description: 'Role access control'
-  -
-    name: Role
+  - name: Role
     description: Role
-  -
-    name: 'Tenant access control'
+  - name: 'Tenant access control'
     description: 'Tenant access control'
-  -
-    name: Tenant
+  - name: Tenant
     description: Tenant
-  -
-    name: 'Tenant config access control'
+  - name: 'Tenant config access control'
     description: 'Tenant config access control'
-  -
-    name: 'Tenant config'
+  - name: 'Tenant config'
     description: 'Tenant config'
-  -
-    name: 'Tenant login provider access control'
+  - name: 'Tenant login provider access control'
     description: 'Tenant login provider access control'
-  -
-    name: 'Tenant login provider'
+  - name: 'Tenant login provider'
     description: 'Tenant login provider'
-  -
-    name: 'Tenant terms of use access control'
+  - name: 'Tenant terms of use access control'
     description: 'Tenant terms of use access control'
-  -
-    name: 'Tenant terms of use'
+  - name: 'Tenant terms of use'
     description: 'Tenant terms of use'
-  -
-    name: 'Trusted client access control'
+  - name: 'Trusted client access control'
     description: 'Trusted client access control'
-  -
-    name: 'Trusted client'
+  - name: 'Trusted client'
     description: 'Trusted client'
-  -
-    name: User
+  - name: User
     description: User
-  -
-    name: 'User access control'
+  - name: 'User access control'
     description: 'User access control'
-  -
-    name: 'User group membership access control'
+  - name: 'User group membership access control'
     description: 'User group membership access control'
-  -
-    name: 'User group membership'
+  - name: 'User group membership'
     description: 'User group membership'
-  -
-    name: 'User personal api key access control'
+  - name: 'User personal api key access control'
     description: 'User personal api key access control'
-  -
-    name: 'User personal api key'
+  - name: 'User personal api key'
     description: 'User personal api key'
-  -
-    name: 'User role assignament access control'
+  - name: 'User role assignament access control'
     description: 'User role assignament access control'
-  -
-    name: 'User role assignament'
+  - name: 'User role assignament'
     description: 'User role assignament'
-  -
-    name: 'Snippet access control'
+  - name: 'Snippet access control'
     description: 'Snippet access control'
-  -
-    name: Snippet
+  - name: Snippet
     description: Snippet
-  -
-    name: 'Snippet asset access control'
+  - name: 'Snippet asset access control'
     description: 'Snippet asset access control'
-  -
-    name: 'Snippet asset'
+  - name: 'Snippet asset'
     description: 'Snippet asset'
-  -
-    name: 'Snippet version access control'
+  - name: 'Snippet version access control'
     description: 'Snippet version access control'
-  -
-    name: 'Snippet version'
+  - name: 'Snippet version'
     description: 'Snippet version'
-  -
-    name: 'Template access control'
+  - name: 'Template access control'
     description: 'Template access control'
-  -
-    name: Template
+  - name: Template
     description: Template
-  -
-    name: 'Template asset access control'
+  - name: 'Template asset access control'
     description: 'Template asset access control'
-  -
-    name: 'Template asset'
+  - name: 'Template asset'
     description: 'Template asset'
-  -
-    name: 'Template variable access control'
+  - name: 'Template variable access control'
     description: 'Template variable access control'
-  -
-    name: 'Template variable'
+  - name: 'Template variable'
     description: 'Template variable'
-  -
-    name: 'Template version access control'
+  - name: 'Template version access control'
     description: 'Template version access control'
-  -
-    name: 'Template version'
+  - name: 'Template version'
     description: 'Template version'
-  -
-    name: 'Theme access control'
+  - name: 'Theme access control'
     description: 'Theme access control'
-  -
-    name: Theme
+  - name: Theme
     description: Theme
-  -
-    name: 'Theme asset access control'
+  - name: 'Theme asset access control'
     description: 'Theme asset access control'
-  -
-    name: 'Theme asset'
+  - name: 'Theme asset'
     description: 'Theme asset'
-  -
-    name: 'Theme version access control'
+  - name: 'Theme version access control'
     description: 'Theme version access control'
-  -
-    name: 'Theme version'
+  - name: 'Theme version'
     description: 'Theme version'
-  -
-    name: 'Message access control'
+  - name: 'Message access control'
     description: 'Message access control'
-  -
-    name: Message
+  - name: Message
     description: Message
-  -
-    name: 'Smtp outbound config access control'
+  - name: 'Smtp outbound config access control'
     description: 'Smtp outbound config access control'
-  -
-    name: 'Smtp outbound config'
+  - name: 'Smtp outbound config'
     description: 'Smtp outbound config'
-  -
-    name: OIDC
+  - name: OIDC
     description: OIDC
-  -
-    name: GDPR
+  - name: GDPR
     description: GDPR
-  -
-    name: Profile
+  - name: Profile
     description: Profile
-  -
-    name: WebAuthn
+  - name: WebAuthn
     description: WebAuthn

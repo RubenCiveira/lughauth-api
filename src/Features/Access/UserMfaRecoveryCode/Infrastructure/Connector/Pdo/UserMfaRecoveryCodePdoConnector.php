@@ -310,7 +310,7 @@ class UserMfaRecoveryCodePdoConnector
                 $filterUserUnused = $filter->userUnused();
                 if (null !== $filterUserUnused) {
                     $query .= ' and ("access_user_mfa_recovery_code"."user" = :userUserUnused and "access_user_mfa_recovery_code"."used_at" is null)';
-                    $params[] = new SqlParam(name: 'userUserUnused', value: $filterUserUnused, type: SqlParam::STR);
+                    $params[] = new SqlParam(name: 'userUserUnused', value: $filterUserUnused->uid(), type: SqlParam::STR);
                 }
                 $filterUser = $filter->user();
                 if (null !== $filterUser) {
