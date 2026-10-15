@@ -257,13 +257,7 @@ class TrustedClientCommandRepositoryAdapter implements TrustedClientCommandRepos
             $span->end();
         }
     }
-    private function fetchPage(?TrustedClientFilter $filter, ?TrustedClientCursor $pageCursor, ?TrustedClientCursor $fetchCursor): TrustedClientSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TrustedClientSlide(function (TrustedClientSlide $slide, TrustedClientCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?TrustedClient
     {
         $this->logDebug("Find on by uid for Trusted client on adapter");

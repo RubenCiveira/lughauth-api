@@ -95,13 +95,7 @@ class TemplateVariableQueryRepositoryAdapter implements TemplateVariableQueryRep
             $span->end();
         }
     }
-    private function fetchPage(?TemplateVariableFilter $filter, ?TemplateVariableCursor $pageCursor, ?TemplateVariableCursor $fetchCursor): TemplateVariableSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TemplateVariableSlide(function (TemplateVariableSlide $slide, TemplateVariableCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable
     {
         $this->logDebug("Find on by code tenant for Template variable on adapter");

@@ -94,13 +94,7 @@ class RelyingPartyQueryRepositoryAdapter implements RelyingPartyQueryRepositoryG
             $span->end();
         }
     }
-    private function fetchPage(?RelyingPartyFilter $filter, ?RelyingPartyCursor $pageCursor, ?RelyingPartyCursor $fetchCursor): RelyingPartySlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new RelyingPartySlide(function (RelyingPartySlide $slide, RelyingPartyCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?RelyingParty
     {
         $this->logDebug("Find on by uid for Relying party on adapter");

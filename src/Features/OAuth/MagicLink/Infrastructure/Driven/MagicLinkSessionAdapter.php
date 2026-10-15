@@ -57,7 +57,7 @@ class MagicLinkSessionAdapter implements MagicLinkSessionGateway
             return null;
         }
 
-        $issuer = $this->context->getBaseUrl() . '/openid/' . $tenantName;
+        $issuer = $this->context->getIssuer($tenantName);
         $expiration = new DateInterval('P15D');
         $sessionId = Uuid::uuid4()->toString();
 

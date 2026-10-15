@@ -94,11 +94,4 @@ class TemplateVersionQueryRepositoryAdapter implements TemplateVersionQueryRepos
             $span->end();
         }
     }
-    private function fetchPage(?TemplateVersionFilter $filter, ?TemplateVersionCursor $pageCursor, ?TemplateVersionCursor $fetchCursor): TemplateVersionSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TemplateVersionSlide(function (TemplateVersionSlide $slide, TemplateVersionCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }
 }

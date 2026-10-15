@@ -124,6 +124,8 @@ class InstallUsecase
         $trust->allowAllScopes(true);
         $trust->secretOauth(TrustedClientSecretOauthVO::fromPlainText($this->cypher, '123456'));
         $trust->publicAllow(true);
+        $trust->tokenEndpointAuthMethod('none');
+        $trust->grantTypesJson('["password","authorization_code","refresh_token"]');
         $trust->allowedRedirects([$localhost]);
         $trust->enabled(true);
         $created = $this->createTruted->create(TrustedClient::create($trust));

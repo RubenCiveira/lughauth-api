@@ -236,6 +236,7 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
                 id: $res['client']['id'] ?? '-',
                 grants: $res['client']['grants'] ?? [],
                 secretLogin: $res['client']['secretLogin'] ?? false,
+                tokenEndpointAuthMethod: $res['client']['tokenEndpointAuthMethod'] ?? 'client_secret_basic',
             );
             $request = new AuthenticationRequest(
                 client: $client,

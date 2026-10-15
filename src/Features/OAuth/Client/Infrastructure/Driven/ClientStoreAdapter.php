@@ -6,7 +6,6 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 
 use Override;
-use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
@@ -24,16 +23,14 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQuer
  * — logging a structured error message for each rejection reason without leaking details to
  * callers.
  *
- * Redirect-URI matching supports exact matches, server-relative URLs, and a wildcard suffix
- * ("*") pattern restricted to localhost origins so that local development environments remain
- * convenient without opening the server to open-redirect attacks.
+ * Redirect-URI matching supports exact matches and a wildcard suffix ("*") restricted
+ * to localhost origins for local development.
  */
 class ClientStoreAdapter implements ClientStoreGateway
 {
     use LoggerAwareTrait;
 
     public function __construct(
-        private readonly Context $context,
         private readonly AesCypherService $cypher,
         private readonly TrustedClientQueryRepositoryGateway $clients,
     ) {
@@ -131,24 +128,20 @@ class ClientStoreAdapter implements ClientStoreGateway
                 return null;
             } else {
                 $allowed = false;
-                if (str_starts_with($this->context->getBaseUrl(), $redirectUrl)) {
-                    $allowed = true;
-                } else {
-                    $redirects = $existent->getAllowedRedirects() ?? [];
-                    foreach ($redirects as $redirect) {
-                        if ($redirect === null) {
-                            continue;
-                        }
-                        $url = $redirect->getUrl() ?? '';
-                        $local = str_starts_with($url, 'http://localhost:') ||  str_starts_with($url, 'http://localhost/');
-                        $every = str_ends_with($url, '*');
-                        if ($redirectUrl == $redirect->getUrl()) {
-                            $allowed = true;
-                            break;
-                        } elseif ($local && $every && str_starts_with($redirectUrl, substr($url, 0, -1))) {
-                            $allowed = true;
-                            break;
-                        }
+                $redirects = $existent->getAllowedRedirects() ?? [];
+                foreach ($redirects as $redirect) {
+                    if ($redirect === null) {
+                        continue;
+                    }
+                    $url = $redirect->getUrl() ?? '';
+                    $local = str_starts_with($url, 'http://localhost:') || str_starts_with($url, 'http://localhost/');
+                    $every = str_ends_with($url, '*');
+                    if ($redirectUrl === $url) {
+                        $allowed = true;
+                        break;
+                    } elseif ($local && $every && str_starts_with($redirectUrl, substr($url, 0, -1))) {
+                        $allowed = true;
+                        break;
                     }
                 }
                 if (!$allowed) {
@@ -207,7 +200,8 @@ class ClientStoreAdapter implements ClientStoreGateway
             $m2mTokenTtlSeconds,
             $trustedClient->getRequestObjectSigningAlg(),
             $trustedClient->getJwksUri(),
-            $trustedClient->getJwksJson()
+            $trustedClient->getJwksJson(),
+            $trustedClient->getTokenEndpointAuthMethod()
         );
     }
 

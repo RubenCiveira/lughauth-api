@@ -61,7 +61,9 @@ class ClientData
          * Inline JSON Web Key Set provided directly on the client record, used as an alternative
          * to jwksUri for JAR signature verification. Null when not configured.
          */
-        public readonly ?string $jwksJson = null
+        public readonly ?string $jwksJson = null,
+        /** Authentication method registered for the token endpoint (none for browser-based public clients). */
+        public readonly string $tokenEndpointAuthMethod = 'client_secret_basic',
     ) {
     }
 }

@@ -312,13 +312,7 @@ class TenantTermsOfUseCommandRepositoryAdapter implements TenantTermsOfUseComman
             $span->end();
         }
     }
-    private function fetchPage(?TenantTermsOfUseFilter $filter, ?TenantTermsOfUseCursor $pageCursor, ?TenantTermsOfUseCursor $fetchCursor): TenantTermsOfUseSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function readAttached(string $key): BinaryContent
     {
         $this->logDebug("Load Attached childs for Tenant terms of use on adapter ");

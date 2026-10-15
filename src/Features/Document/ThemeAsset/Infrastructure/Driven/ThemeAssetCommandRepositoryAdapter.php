@@ -313,13 +313,7 @@ class ThemeAssetCommandRepositoryAdapter implements ThemeAssetCommandRepositoryG
             $span->end();
         }
     }
-    private function fetchPage(?ThemeAssetFilter $filter, ?ThemeAssetCursor $pageCursor, ?ThemeAssetCursor $fetchCursor): ThemeAssetSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new ThemeAssetSlide(function (ThemeAssetSlide $slide, ThemeAssetCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function readContent(string $key): BinaryContent
     {
         $this->logDebug("Load Content childs for Theme asset on adapter ");

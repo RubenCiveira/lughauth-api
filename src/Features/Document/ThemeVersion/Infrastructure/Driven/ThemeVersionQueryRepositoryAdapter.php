@@ -94,11 +94,4 @@ class ThemeVersionQueryRepositoryAdapter implements ThemeVersionQueryRepositoryG
             $span->end();
         }
     }
-    private function fetchPage(?ThemeVersionFilter $filter, ?ThemeVersionCursor $pageCursor, ?ThemeVersionCursor $fetchCursor): ThemeVersionSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new ThemeVersionSlide(function (ThemeVersionSlide $slide, ThemeVersionCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }
 }

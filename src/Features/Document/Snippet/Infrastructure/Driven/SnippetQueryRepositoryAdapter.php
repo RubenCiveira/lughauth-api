@@ -95,13 +95,7 @@ class SnippetQueryRepositoryAdapter implements SnippetQueryRepositoryGateway
             $span->end();
         }
     }
-    private function fetchPage(?SnippetFilter $filter, ?SnippetCursor $pageCursor, ?SnippetCursor $fetchCursor): SnippetSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new SnippetSlide(function (SnippetSlide $slide, SnippetCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByCodeAndTenant(string $code, ?TenantRef $tenant): ?Snippet
     {
         $this->logDebug("Find on by code tenant for Snippet on adapter");

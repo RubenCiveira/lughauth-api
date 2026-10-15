@@ -271,13 +271,7 @@ class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientCommandReposit
             $span->end();
         }
     }
-    private function fetchPage(?ApiKeyClientFilter $filter, ?ApiKeyClientCursor $pageCursor, ?ApiKeyClientCursor $fetchCursor): ApiKeyClientSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ApiKeyClientCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?ApiKeyClient
     {
         $this->logDebug("Find on by uid for Api key client on adapter");

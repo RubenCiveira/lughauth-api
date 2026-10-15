@@ -243,13 +243,7 @@ class UserMfaRecoveryCodeCommandRepositoryAdapter implements UserMfaRecoveryCode
             $span->end();
         }
     }
-    private function fetchPage(?UserMfaRecoveryCodeFilter $filter, ?UserMfaRecoveryCodeCursor $pageCursor, ?UserMfaRecoveryCodeCursor $fetchCursor): UserMfaRecoveryCodeSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeSlide $slide, UserMfaRecoveryCodeCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserMfaRecoveryCode
     {
         $this->logDebug("Find on by uid for User mfa recovery code on adapter");

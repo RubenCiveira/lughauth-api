@@ -100,13 +100,7 @@ class SnippetAssetQueryRepositoryAdapter implements SnippetAssetQueryRepositoryG
             $span->end();
         }
     }
-    private function fetchPage(?SnippetAssetFilter $filter, ?SnippetAssetCursor $pageCursor, ?SnippetAssetCursor $fetchCursor): SnippetAssetSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new SnippetAssetSlide(function (SnippetAssetSlide $slide, SnippetAssetCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function readContent(string $key): BinaryContent
     {
         $this->logDebug("Load Content childs for Snippet asset on adapter ");

@@ -258,13 +258,7 @@ class RoleCommandRepositoryAdapter implements RoleCommandRepositoryGateway
             $span->end();
         }
     }
-    private function fetchPage(?RoleFilter $filter, ?RoleCursor $pageCursor, ?RoleCursor $fetchCursor): RoleSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new RoleSlide(function (RoleSlide $slide, RoleCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?Role
     {
         $this->logDebug("Find on by uid for Role on adapter");

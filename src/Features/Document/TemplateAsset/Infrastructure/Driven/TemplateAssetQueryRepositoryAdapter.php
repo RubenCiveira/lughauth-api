@@ -101,13 +101,7 @@ class TemplateAssetQueryRepositoryAdapter implements TemplateAssetQueryRepositor
             $span->end();
         }
     }
-    private function fetchPage(?TemplateAssetFilter $filter, ?TemplateAssetCursor $pageCursor, ?TemplateAssetCursor $fetchCursor): TemplateAssetSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TemplateAssetSlide(function (TemplateAssetSlide $slide, TemplateAssetCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function readContent(string $key): BinaryContent
     {
         $this->logDebug("Load Content childs for Template asset on adapter ");

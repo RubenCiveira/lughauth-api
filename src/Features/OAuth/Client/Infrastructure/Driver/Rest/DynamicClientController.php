@@ -89,8 +89,7 @@ class DynamicClientController
 
             $registrationRequest = DynamicClientRequest::fromArray($body);
 
-            $baseUrl = rtrim($this->context->getBaseUrl(), '/');
-            $issuer = $baseUrl . '/openid/' . $tenant;
+            $issuer = $this->context->getIssuer($tenant);
 
             $params = new RegisterClientParams(
                 tenant: $tenant,
@@ -138,8 +137,7 @@ class DynamicClientController
 
             $data = $this->readUsecase->read($clientId, $token);
 
-            $baseUrl = rtrim($this->context->getBaseUrl(), '/');
-            $issuer = $baseUrl . '/openid/' . $tenant;
+            $issuer = $this->context->getIssuer($tenant);
 
             $payload = $this->buildClientDataPayload($data, $issuer);
             $encoded = json_encode($payload);
@@ -180,8 +178,7 @@ class DynamicClientController
             $registrationRequest = DynamicClientRequest::fromArray($body);
             $data = $this->updateUsecase->update($clientId, $token, $registrationRequest);
 
-            $baseUrl = rtrim($this->context->getBaseUrl(), '/');
-            $issuer = $baseUrl . '/openid/' . $tenant;
+            $issuer = $this->context->getIssuer($tenant);
 
             $payload = $this->buildClientDataPayload($data, $issuer);
             $encoded = json_encode($payload);

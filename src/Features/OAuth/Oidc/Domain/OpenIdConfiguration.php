@@ -122,7 +122,7 @@ final class OpenIdConfiguration
             claimsSupported: ['sub', 'iss', 'name', 'email'],
             subjectTypesSupported: ['public', 'pairwise'],
             codeChallengeMethodsSupported: ['plain', 'S256'],
-            tokenEndpointAuthMethodsSupported: ['client_secret_basic', 'client_secret_post'],
+            tokenEndpointAuthMethodsSupported: ['client_secret_basic', 'client_secret_post', 'none'],
             acrValuesSupported: ['urn:mace:incommon:iap:silver'],
             requirePushedAuthorizationRequests: true,
             backchannelLogoutSupported: true,

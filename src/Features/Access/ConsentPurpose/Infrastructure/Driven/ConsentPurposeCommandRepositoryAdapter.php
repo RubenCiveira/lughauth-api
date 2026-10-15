@@ -258,13 +258,7 @@ class ConsentPurposeCommandRepositoryAdapter implements ConsentPurposeCommandRep
             $span->end();
         }
     }
-    private function fetchPage(?ConsentPurposeFilter $filter, ?ConsentPurposeCursor $pageCursor, ?ConsentPurposeCursor $fetchCursor): ConsentPurposeSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new ConsentPurposeSlide(function (ConsentPurposeSlide $slide, ConsentPurposeCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?ConsentPurpose
     {
         $this->logDebug("Find on by uid for Consent purpose on adapter");

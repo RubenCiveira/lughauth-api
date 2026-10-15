@@ -94,13 +94,7 @@ class TenantQueryRepositoryAdapter implements TenantQueryRepositoryGateway
             $span->end();
         }
     }
-    private function fetchPage(?TenantFilter $filter, ?TenantCursor $pageCursor, ?TenantCursor $fetchCursor): TenantSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TenantSlide(function (TenantSlide $slide, TenantCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?Tenant
     {
         $this->logDebug("Find on by uid for Tenant on adapter");

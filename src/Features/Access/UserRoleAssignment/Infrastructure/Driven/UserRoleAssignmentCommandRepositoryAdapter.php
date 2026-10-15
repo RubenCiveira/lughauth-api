@@ -243,13 +243,7 @@ class UserRoleAssignmentCommandRepositoryAdapter implements UserRoleAssignmentCo
             $span->end();
         }
     }
-    private function fetchPage(?UserRoleAssignmentFilter $filter, ?UserRoleAssignmentCursor $pageCursor, ?UserRoleAssignmentCursor $fetchCursor): UserRoleAssignmentSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserRoleAssignmentSlide(function (UserRoleAssignmentSlide $slide, UserRoleAssignmentCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserRoleAssignment
     {
         $this->logDebug("Find on by uid for User role assignment on adapter");

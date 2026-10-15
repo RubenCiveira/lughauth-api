@@ -243,13 +243,7 @@ class UserGroupMembershipCommandRepositoryAdapter implements UserGroupMembership
             $span->end();
         }
     }
-    private function fetchPage(?UserGroupMembershipFilter $filter, ?UserGroupMembershipCursor $pageCursor, ?UserGroupMembershipCursor $fetchCursor): UserGroupMembershipSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserGroupMembershipSlide(function (UserGroupMembershipSlide $slide, UserGroupMembershipCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserGroupMembership
     {
         $this->logDebug("Find on by uid for User group membership on adapter");

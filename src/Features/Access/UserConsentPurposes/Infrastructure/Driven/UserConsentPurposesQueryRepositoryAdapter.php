@@ -94,13 +94,7 @@ class UserConsentPurposesQueryRepositoryAdapter implements UserConsentPurposesQu
             $span->end();
         }
     }
-    private function fetchPage(?UserConsentPurposesFilter $filter, ?UserConsentPurposesCursor $pageCursor, ?UserConsentPurposesCursor $fetchCursor): UserConsentPurposesSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserConsentPurposes
     {
         $this->logDebug("Find on by uid for User consent purposes on adapter");

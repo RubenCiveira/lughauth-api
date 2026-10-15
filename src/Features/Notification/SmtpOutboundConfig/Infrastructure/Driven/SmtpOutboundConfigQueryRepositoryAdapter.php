@@ -95,13 +95,7 @@ class SmtpOutboundConfigQueryRepositoryAdapter implements SmtpOutboundConfigQuer
             $span->end();
         }
     }
-    private function fetchPage(?SmtpOutboundConfigFilter $filter, ?SmtpOutboundConfigCursor $pageCursor, ?SmtpOutboundConfigCursor $fetchCursor): SmtpOutboundConfigSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigSlide $slide, SmtpOutboundConfigCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByTenant(?TenantRef $tenant): ?SmtpOutboundConfig
     {
         $this->logDebug("Find on by tenant for Smtp outbound config on adapter");

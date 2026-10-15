@@ -115,21 +115,38 @@ class Context
     }
 
     /**
-     * Resolves the application base URL from the current server environment.
-     *
-     * Detects the scheme (http/https), host, and script base path from PHP superglobals.
-     * The returned URL has no trailing slash and can be used as a prefix when building
-     * absolute links or redirect targets.
+     * Resolves the public base URL from trusted configuration, never from request headers.
+     * The path must include the web application's public mount point, if any.
      *
      * @return string Base URL (e.g. `https://example.com/api`).
      */
     public function getBaseUrl(): string
     {
-        $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePath = rtrim(str_replace(basename($scriptName), '', $scriptName), '/');
-        return rtrim($scheme . '://' . $host . $basePath, '/');
+        $configured = $this->config->get('app.http.public-base-url');
+        if (!is_string($configured) || $configured === '') {
+            throw new \RuntimeException('APP_HTTP_PUBLIC_BASE_URL must be configured');
+        }
+
+        $url = rtrim($configured, '/');
+        $parts = parse_url($url);
+        if (filter_var($url, FILTER_VALIDATE_URL) === false
+            || !is_array($parts)
+            || !in_array($parts['scheme'] ?? null, ['http', 'https'], true)
+            || empty($parts['host'])
+            || isset($parts['user'])
+            || isset($parts['pass'])
+            || isset($parts['query'])
+            || isset($parts['fragment'])
+        ) {
+            throw new \RuntimeException('APP_HTTP_PUBLIC_BASE_URL must be an absolute HTTP(S) URL without credentials, query or fragment');
+        }
+
+        return $url;
+    }
+
+    public function getIssuer(string $tenant): string
+    {
+        return $this->getBaseUrl() . '/oauth/openid/' . $tenant;
     }
 
     /**

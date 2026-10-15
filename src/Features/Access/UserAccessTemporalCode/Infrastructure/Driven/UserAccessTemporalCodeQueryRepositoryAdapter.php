@@ -95,13 +95,7 @@ class UserAccessTemporalCodeQueryRepositoryAdapter implements UserAccessTemporal
             $span->end();
         }
     }
-    private function fetchPage(?UserAccessTemporalCodeFilter $filter, ?UserAccessTemporalCodeCursor $pageCursor, ?UserAccessTemporalCodeCursor $fetchCursor): UserAccessTemporalCodeSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserAccessTemporalCode
     {
         $this->logDebug("Find on by uid for User access temporal code on adapter");

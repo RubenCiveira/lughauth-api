@@ -95,13 +95,7 @@ class UserWebauthnCredentialQueryRepositoryAdapter implements UserWebauthnCreden
             $span->end();
         }
     }
-    private function fetchPage(?UserWebauthnCredentialFilter $filter, ?UserWebauthnCredentialCursor $pageCursor, ?UserWebauthnCredentialCursor $fetchCursor): UserWebauthnCredentialSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialSlide $slide, UserWebauthnCredentialCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserWebauthnCredential
     {
         $this->logDebug("Find on by uid for User webauthn credential on adapter");

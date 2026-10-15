@@ -244,13 +244,7 @@ class ThemeCommandRepositoryAdapter implements ThemeCommandRepositoryGateway
             $span->end();
         }
     }
-    private function fetchPage(?ThemeFilter $filter, ?ThemeCursor $pageCursor, ?ThemeCursor $fetchCursor): ThemeSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new ThemeSlide(function (ThemeSlide $slide, ThemeCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByNameAndTenant(string $name, ?TenantRef $tenant): ?Theme
     {
         $this->logDebug("Find on by name tenant for Theme on adapter");

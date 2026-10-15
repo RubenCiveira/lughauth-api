@@ -95,13 +95,7 @@ class UserQueryRepositoryAdapter implements UserQueryRepositoryGateway
             $span->end();
         }
     }
-    private function fetchPage(?UserFilter $filter, ?UserCursor $pageCursor, ?UserCursor $fetchCursor): UserSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserSlide(function (UserSlide $slide, UserCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?User
     {
         $this->logDebug("Find on by uid for User on adapter");

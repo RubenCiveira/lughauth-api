@@ -390,13 +390,7 @@ class TenantLoginProviderCommandRepositoryAdapter implements TenantLoginProvider
             $span->end();
         }
     }
-    private function fetchPage(?TenantLoginProviderFilter $filter, ?TenantLoginProviderCursor $pageCursor, ?TenantLoginProviderCursor $fetchCursor): TenantLoginProviderSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TenantLoginProviderSlide(function (TenantLoginProviderSlide $slide, TenantLoginProviderCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function readMetadata(string $key): BinaryContent
     {
         $this->logDebug("Load Metadata childs for Tenant login provider on adapter ");

@@ -258,13 +258,7 @@ class TenantConfigCommandRepositoryAdapter implements TenantConfigCommandReposit
             $span->end();
         }
     }
-    private function fetchPage(?TenantConfigFilter $filter, ?TenantConfigCursor $pageCursor, ?TenantConfigCursor $fetchCursor): TenantConfigSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TenantConfigSlide(function (TenantConfigSlide $slide, TenantConfigCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?TenantConfig
     {
         $this->logDebug("Find on by uid for Tenant config on adapter");

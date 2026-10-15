@@ -259,13 +259,7 @@ class UserAcceptedTermsOfUseCommandRepositoryAdapter implements UserAcceptedTerm
             $span->end();
         }
     }
-    private function fetchPage(?UserAcceptedTermsOfUseFilter $filter, ?UserAcceptedTermsOfUseCursor $pageCursor, ?UserAcceptedTermsOfUseCursor $fetchCursor): UserAcceptedTermsOfUseSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserAcceptedTermsOfUseSlide(function (UserAcceptedTermsOfUseSlide $slide, UserAcceptedTermsOfUseCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserAcceptedTermsOfUse
     {
         $this->logDebug("Find on by uid for User accepted terms of use on adapter");

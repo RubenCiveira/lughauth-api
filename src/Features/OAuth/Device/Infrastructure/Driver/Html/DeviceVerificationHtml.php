@@ -191,7 +191,7 @@ class DeviceVerificationHtml
         $cookies = $request->getCookieParams();
         $acceptLanguage = $request->getHeader('accept-language');
         $baseUrl = $this->context->getBaseUrl();
-        $issuer = $baseUrl . '/openid/' . $tenant;
+        $issuer = $this->context->getIssuer($tenant);
         $nowState = Random::uuid();
         $nowNonce = Random::uuid();
 

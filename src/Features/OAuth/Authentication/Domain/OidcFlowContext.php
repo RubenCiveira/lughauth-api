@@ -166,7 +166,7 @@ final class OidcFlowContext
         $acceptLanguage = $request->getHeader('accept-language');
 
         $baseUrl = $context->getBaseUrl();
-        $issuer = $baseUrl . '/openid/' . $tenant;
+        $issuer = $context->getIssuer($tenant);
         $audiences = self::normalizeAudiences($query['audience'] ?? null);
 
         return new self(

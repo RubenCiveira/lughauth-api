@@ -94,13 +94,7 @@ class UserInvitationQueryRepositoryAdapter implements UserInvitationQueryReposit
             $span->end();
         }
     }
-    private function fetchPage(?UserInvitationFilter $filter, ?UserInvitationCursor $pageCursor, ?UserInvitationCursor $fetchCursor): UserInvitationSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserInvitationSlide(function (UserInvitationSlide $slide, UserInvitationCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserInvitation
     {
         $this->logDebug("Find on by uid for User invitation on adapter");

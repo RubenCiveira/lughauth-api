@@ -14,6 +14,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter\TokenGranterMediator;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 use Civi\Lughauth\Features\OAuth\Session\Domain\Gateway\TemporalKeysGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\OAuthTokenException;
@@ -123,9 +124,23 @@ class TokenController
         $grant = $params['grant_type'] ?? '';
         $scopes = $params['scope'] ?? '';
         if ("authorization_code" == $grant) {
-            $code = $this->temporals->retrieveTemporalAuthCode($params['code'] ?? '');
-            if (!$code) {
-                throw new UnauthorizedException("Unkonw code");
+            $client = $this->authenticateCodeClient($request, $params);
+            $codeValue = $params['code'] ?? null;
+            $redirectUri = $params['redirect_uri'] ?? null;
+            if (!is_string($codeValue) || $codeValue === '' || !is_string($redirectUri) || $redirectUri === '') {
+                throw OAuthTokenException::invalidRequest('code and redirect_uri are required');
+            }
+            $code = $this->temporals->retrieveTemporalAuthCode($codeValue);
+            if ($code === null
+                || $code->client->id !== $client->id
+                || $code->request->client->id !== $client->id
+                || $code->request->redirect !== $redirectUri
+                || $code->data->tenantName !== $tenant
+            ) {
+                throw OAuthTokenException::invalidGrant('Invalid authorization code');
+            }
+            if ($client->tokenEndpointAuthMethod === 'none' && $code->codeChallenge === null) {
+                throw OAuthTokenException::invalidGrant('PKCE is required for public clients');
             }
             if ($code->codeChallenge !== null) {
                 $codeVerifier = $params['code_verifier'] ?? null;
@@ -137,7 +152,6 @@ class TokenController
                     throw OAuthTokenException::invalidGrant('code_verifier does not match code_challenge');
                 }
             }
-            $client = $code->client;
             $auth = $code->data;
             $identity = ['nonce' => $code->nonce ];
             $scopes = $code->request->scope;
@@ -217,7 +231,7 @@ class TokenController
         if ($auth === null || !$auth->valid) {
             throw new UnauthorizedException("No auth");
         }
-        $issuer = $this->context->getBaseUrl().'/oauth/openid/'. $tenant;
+        $issuer = $this->context->getIssuer($tenant);
         $detail = [
             'aud' => $this->tokenAudiences($client->id, $auth->audiences ?? []),
             'azp' => $client->id,
@@ -271,6 +285,60 @@ class TokenController
     {
         $aud = array_values(array_unique([$clientId, ...($audiences ?? [])]));
         return count($aud) == 1 ? $aud[0] : $aud;
+    }
+
+    private function authenticateCodeClient(ServerRequestInterface $request, array $params): ClientData
+    {
+        $basic = $this->basicCredentials($request);
+        $bodyClientId = $params['client_id'] ?? null;
+        $clientId = is_string($bodyClientId) && $bodyClientId !== '' ? $bodyClientId : ($basic[0] ?? '');
+        if ($clientId === '' || ($basic !== null && $bodyClientId !== null && $bodyClientId !== $basic[0])) {
+            throw OAuthTokenException::invalidClient();
+        }
+
+        $registered = $this->clientDataGateway->findEnabledClient($clientId);
+        if ($registered === null || !in_array('authorization_code', $registered->grants, true)) {
+            throw OAuthTokenException::invalidClient();
+        }
+
+        $secret = $params['client_secret'] ?? null;
+        $client = match ($registered->tokenEndpointAuthMethod) {
+            'none' => $basic === null && ($secret === null || $secret === '') && $bodyClientId !== null
+                ? $this->clientDataGateway->preValidatedClient($clientId)
+                : null,
+            'client_secret_basic' => $basic !== null && ($secret === null || $secret === '')
+                ? $this->clientDataGateway->clientData($clientId, $basic[1])
+                : null,
+            'client_secret_post' => $basic === null && is_string($secret) && $secret !== '' && $bodyClientId !== null
+                ? $this->clientDataGateway->clientData($clientId, $secret)
+                : null,
+            default => null,
+        };
+        if ($client === null || $client->id !== $clientId) {
+            throw OAuthTokenException::invalidClient();
+        }
+        return $client;
+    }
+
+    /** @return array{string, string}|null */
+    private function basicCredentials(ServerRequestInterface $request): ?array
+    {
+        $authorization = $request->getHeaderLine('Authorization');
+        if ($authorization !== '') {
+            if (!preg_match('/^Basic ([A-Za-z0-9+\/=]+)$/i', $authorization, $matches)) {
+                throw OAuthTokenException::invalidClient();
+            }
+            $decoded = base64_decode($matches[1], true);
+            if ($decoded === false || !str_contains($decoded, ':')) {
+                throw OAuthTokenException::invalidClient();
+            }
+            [$clientId, $secret] = explode(':', $decoded, 2);
+            return [urldecode($clientId), urldecode($secret)];
+        }
+        if (isset($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW'])) {
+            return [(string) $_SERVER['PHP_AUTH_USER'], (string) $_SERVER['PHP_AUTH_PW']];
+        }
+        return null;
     }
 
     private function deviceErrorResponse(DeviceAuthorizationException $exception, ResponseInterface $response): ResponseInterface

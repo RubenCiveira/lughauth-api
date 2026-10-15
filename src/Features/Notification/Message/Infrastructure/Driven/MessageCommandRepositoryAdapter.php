@@ -229,11 +229,4 @@ class MessageCommandRepositoryAdapter implements MessageCommandRepositoryGateway
             $span->end();
         }
     }
-    private function fetchPage(?MessageFilter $filter, ?MessageCursor $pageCursor, ?MessageCursor $fetchCursor): MessageSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new MessageSlide(function (MessageSlide $slide, MessageCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }
 }

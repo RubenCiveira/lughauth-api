@@ -258,13 +258,7 @@ class UserProfileCommandRepositoryAdapter implements UserProfileCommandRepositor
             $span->end();
         }
     }
-    private function fetchPage(?UserProfileFilter $filter, ?UserProfileCursor $pageCursor, ?UserProfileCursor $fetchCursor): UserProfileSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserProfileSlide(function (UserProfileSlide $slide, UserProfileCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserProfile
     {
         $this->logDebug("Find on by uid for User profile on adapter");

@@ -243,13 +243,7 @@ class UserConsentedScopesCommandRepositoryAdapter implements UserConsentedScopes
             $span->end();
         }
     }
-    private function fetchPage(?UserConsentedScopesFilter $filter, ?UserConsentedScopesCursor $pageCursor, ?UserConsentedScopesCursor $fetchCursor): UserConsentedScopesSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserConsentedScopesSlide(function (UserConsentedScopesSlide $slide, UserConsentedScopesCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserConsentedScopes
     {
         $this->logDebug("Find on by uid for User consented scopes on adapter");

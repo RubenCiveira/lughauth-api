@@ -114,7 +114,7 @@ class LogoutController
 
         // Dispatch back-channel logout notifications (best-effort, never blocks the user)
         if ($issuer === '') {
-            $issuer = $this->context->getBaseUrl() . '/oauth/openid/' . $tenant;
+            $issuer = $this->context->getIssuer($tenant);
         }
         $this->backChannelLogout->dispatch($tenant, $issuer, $userSub, $sessionId);
 

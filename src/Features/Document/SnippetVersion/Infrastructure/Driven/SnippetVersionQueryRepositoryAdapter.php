@@ -94,11 +94,4 @@ class SnippetVersionQueryRepositoryAdapter implements SnippetVersionQueryReposit
             $span->end();
         }
     }
-    private function fetchPage(?SnippetVersionFilter $filter, ?SnippetVersionCursor $pageCursor, ?SnippetVersionCursor $fetchCursor): SnippetVersionSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new SnippetVersionSlide(function (SnippetVersionSlide $slide, SnippetVersionCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }
 }

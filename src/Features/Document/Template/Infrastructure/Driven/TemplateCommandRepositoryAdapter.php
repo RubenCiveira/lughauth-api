@@ -244,13 +244,7 @@ class TemplateCommandRepositoryAdapter implements TemplateCommandRepositoryGatew
             $span->end();
         }
     }
-    private function fetchPage(?TemplateFilter $filter, ?TemplateCursor $pageCursor, ?TemplateCursor $fetchCursor): TemplateSlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new TemplateSlide(function (TemplateSlide $slide, TemplateCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByCodeAndTenant(string $code, ?TenantRef $tenant): ?Template
     {
         $this->logDebug("Find on by code tenant for Template on adapter");

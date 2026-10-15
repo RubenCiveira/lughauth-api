@@ -257,13 +257,7 @@ class UserPersonalApiKeyCommandRepositoryAdapter implements UserPersonalApiKeyCo
             $span->end();
         }
     }
-    private function fetchPage(?UserPersonalApiKeyFilter $filter, ?UserPersonalApiKeyCursor $pageCursor, ?UserPersonalApiKeyCursor $fetchCursor): UserPersonalApiKeySlide
-    {
-        $values = $this->conn->list($filter, $fetchCursor);
-        return new UserPersonalApiKeySlide(function (UserPersonalApiKeySlide $slide, UserPersonalApiKeyCursor $next) use ($filter) {
-            return $this->fetchPage($filter, $next, $next);
-        }, $pageCursor, $values, false, $fetchCursor?->limit());
-    }  #[Override]
+    #[Override]
     public function findOneByUid(string $uid): ?UserPersonalApiKey
     {
         $this->logDebug("Find on by uid for User personal api key on adapter");
