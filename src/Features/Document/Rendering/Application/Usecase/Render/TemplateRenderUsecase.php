@@ -13,20 +13,20 @@ use Civi\Lughauth\Features\Document\Rendering\Domain\RenderedTemplate;
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateRenderRequest;
 use Civi\Lughauth\Features\Document\Rendering\Domain\Gateway\TemplateRenderGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionFilter;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableFilter;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableReadGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Snippet;
 use Civi\Lughauth\Features\Document\Snippet\Domain\SnippetRef;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetFilter;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetReadGateway;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\SnippetVersion;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionFilter;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionReadGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersionChannelOptions;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
@@ -49,11 +49,11 @@ class TemplateRenderUsecase
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly TemplateReadGateway $templateGateway,
-        private readonly TemplateVersionReadGateway $versionGateway,
-        private readonly TemplateVariableReadGateway $variableGateway,
-        private readonly SnippetReadGateway $snippetGateway,
-        private readonly SnippetVersionReadGateway $snippetVersionGateway,
+        private readonly TemplateQueryRepositoryGateway $templateGateway,
+        private readonly TemplateVersionQueryRepositoryGateway $versionGateway,
+        private readonly TemplateVariableQueryRepositoryGateway $variableGateway,
+        private readonly SnippetQueryRepositoryGateway $snippetGateway,
+        private readonly SnippetVersionQueryRepositoryGateway $snippetVersionGateway,
         private readonly TemplateRenderGateway $renderGateway,
         private readonly ThemeRenderService $themeRenderer,
         private readonly DocumentAssetDumpService $assetDumpService,

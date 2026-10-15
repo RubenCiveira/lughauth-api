@@ -12,14 +12,14 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitation;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationAttributes;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
-use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationWriteGateway;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
 
 class InvitationCreateUsecase
 {
     public function __construct(
-        private readonly UserInvitationWriteGateway $writeGateway,
+        private readonly UserInvitationCommandRepositoryGateway $writeGateway,
         private readonly UserInvitationQueryGateway $queryGateway,
         private readonly UserInvitationMailGateway $mailer,
     ) {

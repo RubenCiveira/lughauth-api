@@ -7,9 +7,9 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
@@ -21,8 +21,8 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Infrastructure\Service\WebAuthnVerifie
 
 final class FinishRegistrationUsecaseUnitTest extends TestCase
 {
-    private TenantReadGateway&MockObject $tenants;
-    private UserReadGateway&MockObject $users;
+    private TenantQueryRepositoryGateway&MockObject $tenants;
+    private UserQueryRepositoryGateway&MockObject $users;
     private WebAuthnChallengeGateway&MockObject $challengeGateway;
     private WebAuthnCredentialGateway&MockObject $credentialGateway;
     private WebAuthnVerifier&MockObject $verifier;
@@ -30,8 +30,8 @@ final class FinishRegistrationUsecaseUnitTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->tenants = $this->createMock(TenantReadGateway::class);
-        $this->users = $this->createMock(UserReadGateway::class);
+        $this->tenants = $this->createMock(TenantQueryRepositoryGateway::class);
+        $this->users = $this->createMock(UserQueryRepositoryGateway::class);
         $this->challengeGateway = $this->createMock(WebAuthnChallengeGateway::class);
         $this->credentialGateway = $this->createMock(WebAuthnCredentialGateway::class);
         $this->verifier = $this->createMock(WebAuthnVerifier::class);

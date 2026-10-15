@@ -9,17 +9,17 @@ use Override;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesFilter;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesReadGateway;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesWriteGateway;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopes;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopesAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\ScopesConsentGateway;
@@ -41,11 +41,11 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
     use LoggerAwareTrait;
 
     public function __construct(
-        private readonly UserReadGateway $users,
-        private readonly TenantReadGateway $tenants,
-        private readonly TrustedClientReadGateway $trustedClients,
-        private readonly UserConsentedScopesReadGateway $consentsRead,
-        private readonly UserConsentedScopesWriteGateway $consentsWrite,
+        private readonly UserQueryRepositoryGateway $users,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly TrustedClientQueryRepositoryGateway $trustedClients,
+        private readonly UserConsentedScopesQueryRepositoryGateway $consentsRead,
+        private readonly UserConsentedScopesCommandRepositoryGateway $consentsWrite,
     ) {
     }
 

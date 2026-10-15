@@ -7,14 +7,14 @@ namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install;
 
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeWriteGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Theme;
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeAttributes;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersion;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersionAttributes;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersionChannelOptions;
-use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAsset;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAssetAttributes;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ValueObject\ThemeAssetContentVO;
@@ -39,9 +39,9 @@ class InstallCorporateTheme
     private const string CONTENT_DIR = __DIR__ . '/contents/';
 
     public function __construct(
-        private readonly ThemeWriteGateway $themes,
-        private readonly ThemeVersionWriteGateway $versions,
-        private readonly ThemeAssetWriteGateway $assets,
+        private readonly ThemeCommandRepositoryGateway $themes,
+        private readonly ThemeVersionCommandRepositoryGateway $versions,
+        private readonly ThemeAssetCommandRepositoryGateway $assets,
     ) {
     }
 

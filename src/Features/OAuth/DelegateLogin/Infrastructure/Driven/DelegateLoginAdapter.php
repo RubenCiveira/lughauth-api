@@ -12,9 +12,9 @@ use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderFilter;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProvider;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
@@ -51,10 +51,10 @@ class DelegateLoginAdapter implements DelegateLoginGateway
         private readonly AppConfig $conf,
         private readonly Context $context,
         private readonly UserLoaderAdapter $userLoader,
-        private readonly UserWriteGateway $users,
+        private readonly UserCommandRepositoryGateway $users,
         private readonly LoginGateway $login,
         private readonly AesCypherService $cypher,
-        private readonly TenantLoginProviderReadGateway $loginProviders
+        private readonly TenantLoginProviderQueryRepositoryGateway $loginProviders
     ) {
     }
 

@@ -11,13 +11,13 @@ use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitation;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationFilter;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCursor;
-use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationReadGateway;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationQueryGateway;
 
 class UserInvitationQueryAdapter implements UserInvitationQueryGateway
 {
     public function __construct(
-        private readonly UserInvitationReadGateway $readGateway,
+        private readonly UserInvitationQueryRepositoryGateway $readGateway,
     ) {
     }
 

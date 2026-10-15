@@ -7,8 +7,8 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\FinishRegist
 
 use DateTimeImmutable;
 use Ramsey\Uuid\Uuid;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnCredential;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
@@ -31,8 +31,8 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 final class FinishRegistrationUsecase
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
-        private readonly UserReadGateway $users,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly UserQueryRepositoryGateway $users,
         private readonly WebAuthnChallengeGateway $challengeGateway,
         private readonly WebAuthnCredentialGateway $credentialGateway,
         private readonly WebAuthnVerifier $verifier,

@@ -6,11 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install;
 
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateAttributes;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateChannelOptions;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttributes;
 
@@ -31,8 +31,8 @@ class InstallIndexPageTemplate
     private const string CONTENT_DIR = __DIR__ . '/contents/';
 
     public function __construct(
-        private readonly TemplateWriteGateway $templates,
-        private readonly TemplateVersionWriteGateway $versions,
+        private readonly TemplateCommandRepositoryGateway $templates,
+        private readonly TemplateVersionCommandRepositoryGateway $versions,
     ) {
     }
 

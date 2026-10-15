@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\BeginAuthent
 
 use DateTimeImmutable;
 use Ramsey\Uuid\Uuid;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -26,7 +26,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 final class BeginAuthenticationUsecase
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
+        private readonly TenantQueryRepositoryGateway $tenants,
         private readonly WebAuthnChallengeGateway $challengeGateway,
     ) {
     }

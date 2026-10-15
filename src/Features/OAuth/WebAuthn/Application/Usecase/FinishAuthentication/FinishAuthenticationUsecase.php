@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\FinishAuthentication;
 
 use DateTimeImmutable;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Exception\WebAuthnException;
@@ -28,7 +28,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 final class FinishAuthenticationUsecase
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
+        private readonly TenantQueryRepositoryGateway $tenants,
         private readonly WebAuthnChallengeGateway $challengeGateway,
         private readonly WebAuthnCredentialGateway $credentialGateway,
         private readonly WebAuthnVerifier $verifier,

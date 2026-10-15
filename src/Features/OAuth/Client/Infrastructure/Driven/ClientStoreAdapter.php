@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 
 /**
  * Infrastructure adapter that implements ClientStoreGateway by reading TrustedClient entities
@@ -35,7 +35,7 @@ class ClientStoreAdapter implements ClientStoreGateway
     public function __construct(
         private readonly Context $context,
         private readonly AesCypherService $cypher,
-        private readonly TrustedClientReadGateway $clients,
+        private readonly TrustedClientQueryRepositoryGateway $clients,
     ) {
     }
 

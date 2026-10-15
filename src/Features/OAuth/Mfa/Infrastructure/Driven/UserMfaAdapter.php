@@ -8,10 +8,10 @@ namespace Civi\Lughauth\Features\OAuth\Mfa\Infrastructure\Driven;
 use Override;
 use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\Providers\Qr\EndroidQrCodeProvider; // if using Endroid
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
@@ -31,10 +31,10 @@ use Civi\Lughauth\Shared\Security\AesCypherService;
 class UserMfaAdapter implements UserMfaGateway
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
-        private readonly TenantConfigReadGateway $configs,
-        private readonly UserReadGateway $users,
-        private readonly UserWriteGateway $usersWriter,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly TenantConfigQueryRepositoryGateway $configs,
+        private readonly UserQueryRepositoryGateway $users,
+        private readonly UserCommandRepositoryGateway $usersWriter,
         private readonly AesCypherService $cypher
     ) {
     }

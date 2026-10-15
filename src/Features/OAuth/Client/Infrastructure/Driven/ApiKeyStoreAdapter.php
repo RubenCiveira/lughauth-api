@@ -8,11 +8,11 @@ namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 use Override;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ApiKeyData;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ApiKeyStoreGateway;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientQueryRepositoryGateway;
 
 /**
  * Infrastructure adapter that implements ApiKeyStoreGateway by delegating to the Access
- * bounded context's ApiKeyClientReadGateway.
+ * bounded context's ApiKeyClientQueryRepositoryGateway.
  *
  * This class acts as an anti-corruption layer between the OAuth domain and the Access
  * persistence layer, translating the raw ApiKeyClient entity into the ApiKeyData value object
@@ -25,7 +25,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGa
 class ApiKeyStoreAdapter implements ApiKeyStoreGateway
 {
     public function __construct(
-        private readonly ApiKeyClientReadGateway $apiKeys
+        private readonly ApiKeyClientQueryRepositoryGateway $apiKeys
     ) {
     }
 

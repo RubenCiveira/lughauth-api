@@ -8,8 +8,8 @@ namespace Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagi
 use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLink;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkGateway;
@@ -29,8 +29,8 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGatewa
 class RequestMagicLinkUsecase
 {
     public function __construct(
-        private readonly UserReadGateway $users,
-        private readonly TenantReadGateway $tenants,
+        private readonly UserQueryRepositoryGateway $users,
+        private readonly TenantQueryRepositoryGateway $tenants,
         private readonly ClientStoreGateway $clients,
         private readonly MagicLinkGateway $gateway,
         private readonly MagicLinkMailGateway $mailer,

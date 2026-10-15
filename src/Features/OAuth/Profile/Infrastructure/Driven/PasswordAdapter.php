@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Security\AesCypherService;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\Exception\LoginException;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
@@ -22,7 +22,7 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasswordGateway;
  * This adapter resolves the tenant and user entities via UserLoaderAdapter, decrypts the
  * currently stored password using AesCypherService, and compares it with the old password
  * supplied by the user.  Only if the comparison succeeds is the new password encrypted and
- * persisted through UserWriteGateway::update().
+ * persisted through UserCommandRepositoryGateway::update().
  *
  * A LoginException carrying the "wrong_old_pass" error code is thrown when the old password
  * does not match, allowing the calling controller to surface a specific, user-friendly message
@@ -38,7 +38,7 @@ class PasswordAdapter implements PasswordGateway
 
     public function __construct(
         private readonly UserLoaderAdapter $users,
-        private readonly UserWriteGateway $repository,
+        private readonly UserCommandRepositoryGateway $repository,
         private readonly AesCypherService $cypher,
     ) {
     }

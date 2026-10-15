@@ -11,7 +11,7 @@ use Psr\Http\Message\RequestInterface;
 use Civi\Lughauth\Shared\AppConfig;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Rendering\Application\Usecase\Render\TemplateRenderInput;
 use Civi\Lughauth\Features\Document\Rendering\Application\Usecase\Render\TemplateRenderUsecase;
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateOutputFormat;
@@ -40,7 +40,7 @@ class DecorateHtml
         AppConfig $config,
         Context $context,
         private readonly TemplateRenderUsecase $renderer,
-        private readonly TenantReadGateway $tenantGateway,
+        private readonly TenantQueryRepositoryGateway $tenantGateway,
     ) {
         $this->assetsPath = $config->get('oidc.theme.path', $context->getBaseUrl() . '/');
     }

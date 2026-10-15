@@ -17,7 +17,7 @@ use Civi\Lughauth\Features\OAuth\User\Domain\RecoveryNotificationData;
  *
  * Implementations live in the Infrastructure/Driven layer and are responsible for
  * tenant resolution, recovery-code generation and verification, AES password
- * encryption/decryption, and updating the user aggregate via UserWriteGateway.
+ * encryption/decryption, and updating the user aggregate via UserCommandRepositoryGateway.
  */
 interface ChangePasswordGateway
 {

@@ -9,9 +9,9 @@ use DateTimeImmutable;
 use Nimbly\Capsule\Response;
 use PHPUnit\Framework\MockObject\Stub;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\RequestMagicLink\RequestMagicLinkUsecase;
 use Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\VerifyMagicLink\VerifyMagicLinkUsecase;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\MagicLink;
@@ -37,11 +37,11 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
     private MagicLinkRequestController $requestController;
     private MagicLinkVerifyHtml $verifyController;
 
-    /** @var Stub&TenantReadGateway */
-    private TenantReadGateway $tenantGateway;
+    /** @var Stub&TenantQueryRepositoryGateway */
+    private TenantQueryRepositoryGateway $tenantGateway;
 
-    /** @var Stub&UserReadGateway */
-    private UserReadGateway $userGateway;
+    /** @var Stub&UserQueryRepositoryGateway */
+    private UserQueryRepositoryGateway $userGateway;
 
     protected function setUp(): void
     {
@@ -61,11 +61,11 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
         $tenant->method('uid')->willReturn('tenant-uid-1');
         $tenant->method('isEnabled')->willReturn(true);
 
-        $this->userGateway = $this->createStub(UserReadGateway::class);
+        $this->userGateway = $this->createStub(UserQueryRepositoryGateway::class);
         $this->userGateway->method('findOneByTenantAndName')->willReturn($user);
         $this->userGateway->method('findOneByUid')->willReturn($user);
 
-        $this->tenantGateway = $this->createStub(TenantReadGateway::class);
+        $this->tenantGateway = $this->createStub(TenantQueryRepositoryGateway::class);
         $this->tenantGateway->method('findOneByName')->willReturn($tenant);
 
         $requestUsecase = new RequestMagicLinkUsecase(
@@ -143,7 +143,7 @@ class MagicLinkIntegrationTest extends OidcIntegrationTestCase
 
     public function testRequestReturns202EvenForUnknownEmail(): void
     {
-        $this->userGateway = $this->createStub(UserReadGateway::class);
+        $this->userGateway = $this->createStub(UserQueryRepositoryGateway::class);
         $this->userGateway->method('findOneByTenantAndName')->willReturn(null);
 
         $requestUsecase = new RequestMagicLinkUsecase(

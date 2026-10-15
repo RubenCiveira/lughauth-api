@@ -10,11 +10,11 @@ use Throwable;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Exception\BadRequestException;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeFilter;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeReadGateway;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCode;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCodeAttributes;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
@@ -26,7 +26,7 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\MfaSetup;
  * Infrastructure adapter that implements MfaGateway by delegating to the shared MFA subsystem.
  *
  * This class bridges the Profile feature's domain MfaGateway port to the concrete
- * UserMfaGateway and UserWriteGateway dependencies that live in the Access and OAuth/Mfa
+ * UserMfaGateway and UserCommandRepositoryGateway dependencies that live in the Access and OAuth/Mfa
  * bounded contexts.  It is responsible for resolving the tenant and user entities via
  * UserLoaderAdapter before forwarding any TOTP operation to the underlying gateway.
  *
@@ -47,10 +47,10 @@ class MfaAdapter implements MfaGateway
 
     public function __construct(
         private readonly UserLoaderAdapter $users,
-        private readonly UserWriteGateway $repository,
+        private readonly UserCommandRepositoryGateway $repository,
         private readonly UserMfaGateway $mfaGateway,
-        private readonly UserMfaRecoveryCodeReadGateway $recoveryRead,
-        private readonly UserMfaRecoveryCodeWriteGateway $recoveryWrite,
+        private readonly UserMfaRecoveryCodeQueryRepositoryGateway $recoveryRead,
+        private readonly UserMfaRecoveryCodeCommandRepositoryGateway $recoveryWrite,
     ) {
     }
 
@@ -122,7 +122,7 @@ class MfaAdapter implements MfaGateway
     /**
      * Clears the stored TOTP seed so the user is no longer challenged for a second factor.
      *
-     * Persists the change through UserWriteGateway::update() using the change-set returned
+     * Persists the change through UserCommandRepositoryGateway::update() using the change-set returned
      * by User::setMfaSeed(null, null).
      */
     #[Override]

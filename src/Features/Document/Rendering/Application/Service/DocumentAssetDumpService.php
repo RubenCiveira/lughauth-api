@@ -10,11 +10,11 @@ use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAsset;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetFilter;
-use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetReadGateway;
+use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\SnippetAsset;
-use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetReadGateway;
+use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetQueryRepositoryGateway;
 
 /**
  * Computes public URL paths for asset directories and keeps the local
@@ -34,9 +34,9 @@ class DocumentAssetDumpService
     public function __construct(
         AppConfig $config,
         Context $context,
-        private readonly ThemeAssetReadGateway $themeAssetGateway,
-        private readonly TemplateAssetReadGateway $templateAssetGateway,
-        private readonly SnippetAssetReadGateway $snippetAssetGateway,
+        private readonly ThemeAssetQueryRepositoryGateway $themeAssetGateway,
+        private readonly TemplateAssetQueryRepositoryGateway $templateAssetGateway,
+        private readonly SnippetAssetQueryRepositoryGateway $snippetAssetGateway,
     ) {
         $this->assetsBase = $config->get('oidc.theme.path', $context->getBaseUrl() . '/');
         $projectRoot      = realpath(__DIR__ . '/../../../../../..');

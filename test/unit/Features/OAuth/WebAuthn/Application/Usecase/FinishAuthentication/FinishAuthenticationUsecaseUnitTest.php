@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnChallenge;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\WebAuthnCredential;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Features\OAuth\WebAuthn\Infrastructure\Service\WebAuthnVerifie
 
 final class FinishAuthenticationUsecaseUnitTest extends TestCase
 {
-    private TenantReadGateway&MockObject $tenants;
+    private TenantQueryRepositoryGateway&MockObject $tenants;
     private WebAuthnChallengeGateway&MockObject $challengeGateway;
     private WebAuthnCredentialGateway&MockObject $credentialGateway;
     private WebAuthnVerifier&MockObject $verifier;
@@ -28,7 +28,7 @@ final class FinishAuthenticationUsecaseUnitTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->tenants = $this->createMock(TenantReadGateway::class);
+        $this->tenants = $this->createMock(TenantQueryRepositoryGateway::class);
         $this->challengeGateway = $this->createMock(WebAuthnChallengeGateway::class);
         $this->credentialGateway = $this->createMock(WebAuthnCredentialGateway::class);
         $this->verifier = $this->createMock(WebAuthnVerifier::class);

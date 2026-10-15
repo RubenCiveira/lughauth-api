@@ -11,15 +11,15 @@ use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Exception\ConstraintException;
 use Civi\Lughauth\Shared\Security\AesCypherService;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUseAttributes;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
 use Civi\Lughauth\Features\OAuth\User\Domain\Gateway\RegisterUserGateway;
@@ -29,11 +29,11 @@ class RegisterUserAdapter implements RegisterUserGateway
 {
     public function __construct(
         private readonly UserLoaderAdapter $users,
-        private readonly TenantConfigReadGateway $configs,
-        private readonly UserWriteGateway $repository,
-        private readonly UserAccessTemporalCodeWriteGateway $codes,
+        private readonly TenantConfigQueryRepositoryGateway $configs,
+        private readonly UserCommandRepositoryGateway $repository,
+        private readonly UserAccessTemporalCodeCommandRepositoryGateway $codes,
         private readonly AesCypherService $cypher,
-        private readonly UserAcceptedTermsOfUseWriteGateway $writerUserTerms,
+        private readonly UserAcceptedTermsOfUseCommandRepositoryGateway $writerUserTerms,
         private readonly Random $randomizer,
     ) {
     }

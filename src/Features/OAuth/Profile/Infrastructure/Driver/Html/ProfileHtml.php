@@ -34,8 +34,8 @@ use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\Profi
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\RecoveryCodesPanel;
 use Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driver\Html\Panels\SessionsPanel;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Create\InvitationCreateParams;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Create\InvitationCreateUsecase;
@@ -84,8 +84,8 @@ class ProfileHtml
         private readonly AccountDeletionPanel $accountDeletionPanel,
         private readonly DataExportPanel $dataExportPanel,
         private readonly InvitationCreateUsecase $inviteUsecase,
-        private readonly TenantReadGateway $tenantGateway,
-        private readonly UserReadGateway $userGateway,
+        private readonly TenantQueryRepositoryGateway $tenantGateway,
+        private readonly UserQueryRepositoryGateway $userGateway,
         private readonly ClientStoreGateway $clientStore,
     ) {
     }

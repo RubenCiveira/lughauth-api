@@ -16,7 +16,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\StepResult;
 use Civi\Lughauth\Features\OAuth\Theme\Application\DecorateHtml;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Html\Services\HtmlSecurer;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnChallengeGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
 
 /**
@@ -34,7 +34,7 @@ use Civi\Lughauth\Shared\Infrastructure\Translation\MessageProvider;
  * username is used to update the challenges state and pre-authenticate the user. Expired or
  * unverified challenges result in a LoginException with wrong-credentials.
  *
- * Relationships: uses WebAuthnChallengeGateway for challenge lookup, TenantReadGateway to
+ * Relationships: uses WebAuthnChallengeGateway for challenge lookup, TenantQueryRepositoryGateway to
  * resolve the tenant UUID, AuthenticateUser for post-assertion pre-authentication, and
  * HtmlSecurer / DecorateHtml for rendering.
  */
@@ -46,7 +46,7 @@ class WebAuthnLoginForm implements StepForm
         private readonly DecorateHtml $decorator,
         private readonly HtmlSecurer $securer,
         private readonly WebAuthnChallengeGateway $challengeGateway,
-        private readonly TenantReadGateway $tenants,
+        private readonly TenantQueryRepositoryGateway $tenants,
     ) {
     }
 

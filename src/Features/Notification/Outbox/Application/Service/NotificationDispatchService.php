@@ -11,12 +11,12 @@ use Civi\Lughauth\Shared\Exception\OptimistLockException;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageFilter;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageReadGateway;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageQueryRepositoryGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Gateway\SmtpMailSenderGateway;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Model\OutboundMail;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigReadGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -42,9 +42,9 @@ class NotificationDispatchService
 
 
     public function __construct(
-        private readonly MessageReadGateway $messageReader,
-        private readonly MessageWriteGateway $messageWriter,
-        private readonly SmtpOutboundConfigReadGateway $smtpConfigReader,
+        private readonly MessageQueryRepositoryGateway $messageReader,
+        private readonly MessageCommandRepositoryGateway $messageWriter,
+        private readonly SmtpOutboundConfigQueryRepositoryGateway $smtpConfigReader,
         private readonly SmtpMailSenderGateway $mailSender,
     ) {
     }

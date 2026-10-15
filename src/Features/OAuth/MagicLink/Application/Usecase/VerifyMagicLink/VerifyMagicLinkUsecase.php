@@ -5,8 +5,8 @@ declare(strict_types=1);
 
 namespace Civi\Lughauth\Features\OAuth\MagicLink\Application\Usecase\VerifyMagicLink;
 
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
@@ -29,8 +29,8 @@ class VerifyMagicLinkUsecase
         private readonly MagicLinkCodeGateway $codeGateway,
         private readonly MagicLinkEnabledGateway $enabled,
         private readonly MagicLinkSessionGateway $sessionGateway,
-        private readonly TenantReadGateway $tenants,
-        private readonly UserReadGateway $users,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly UserQueryRepositoryGateway $users,
     ) {
     }
 

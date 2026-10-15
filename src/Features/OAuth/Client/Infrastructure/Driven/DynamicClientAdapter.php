@@ -8,13 +8,13 @@ namespace Civi\Lughauth\Features\OAuth\Client\Infrastructure\Driven;
 use Override;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUidVO;
@@ -41,10 +41,10 @@ use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\DynamicClientGateway;
 final class DynamicClientAdapter implements DynamicClientGateway
 {
     public function __construct(
-        private readonly TrustedClientWriteGateway $writer,
-        private readonly TrustedClientReadGateway $reader,
-        private readonly TenantReadGateway $tenants,
-        private readonly TenantConfigReadGateway $tenantConfigs,
+        private readonly TrustedClientCommandRepositoryGateway $writer,
+        private readonly TrustedClientQueryRepositoryGateway $reader,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly TenantConfigQueryRepositoryGateway $tenantConfigs,
         private readonly AesCypherService $cypher,
     ) {
     }

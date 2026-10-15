@@ -14,8 +14,8 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\UserProfile;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\UserProfileAttributes;
-use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileReadGateway;
-use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileWriteGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileGivenNameVO;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileFamilyNameVO;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileMiddleNameVO;
@@ -44,7 +44,7 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ProfileGateway;
  * collected and thrown as a ConstraintException before any persistence attempt is made.
  *
  * The save() method implements an upsert: it first acquires a pessimistic write lock via
- * UserProfileWriteGateway::findOneForUpdateByUser() and either updates the existing record or
+ * UserProfileCommandRepositoryGateway::findOneForUpdateByUser() and either updates the existing record or
  * creates a brand-new one with a fresh UUID.  The persisted UserProfile is then mapped back
  * to an OidcProfile and returned to the caller.
  *
@@ -57,15 +57,15 @@ class ProfileAdapter implements ProfileGateway
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly UserProfileReadGateway $reader,
-        private readonly UserProfileWriteGateway $writer,
+        private readonly UserProfileQueryRepositoryGateway $reader,
+        private readonly UserProfileCommandRepositoryGateway $writer,
     ) {
     }
 
     /**
      * Looks up the OIDC profile for the given user UID, returning null when none has been created yet.
      *
-     * Delegates to UserProfileReadGateway and maps the result to an OidcProfile value object.
+     * Delegates to UserProfileQueryRepositoryGateway and maps the result to an OidcProfile value object.
      */
     #[Override]
     public function findByUser(string $userUid): ?OidcProfile

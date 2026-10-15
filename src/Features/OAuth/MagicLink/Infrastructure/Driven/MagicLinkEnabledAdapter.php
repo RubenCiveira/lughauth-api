@@ -6,8 +6,8 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\MagicLink\Infrastructure\Driven;
 
 use Override;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
 
 /**
@@ -23,8 +23,8 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGatewa
 class MagicLinkEnabledAdapter implements MagicLinkEnabledGateway
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
-        private readonly TenantConfigReadGateway $configs,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly TenantConfigQueryRepositoryGateway $configs,
     ) {
     }
 

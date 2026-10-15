@@ -9,18 +9,18 @@ use Override;
 use DateTimeImmutable;
 use InvalidArgumentException;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseReadGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUseAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
@@ -39,12 +39,12 @@ use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\TermsOfUseConsentGateway
 final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
-        private readonly UserReadGateway $users,
-        private readonly RelyingPartyReadGateway $relyingParties,
-        private readonly TenantTermsOfUseReadGateway $tenantTerms,
-        private readonly UserAcceptedTermsOfUseReadGateway $acceptedTermsRead,
-        private readonly UserAcceptedTermsOfUseWriteGateway $acceptedTermsWrite,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly UserQueryRepositoryGateway $users,
+        private readonly RelyingPartyQueryRepositoryGateway $relyingParties,
+        private readonly TenantTermsOfUseQueryRepositoryGateway $tenantTerms,
+        private readonly UserAcceptedTermsOfUseQueryRepositoryGateway $acceptedTermsRead,
+        private readonly UserAcceptedTermsOfUseCommandRepositoryGateway $acceptedTermsWrite,
     ) {
     }
 

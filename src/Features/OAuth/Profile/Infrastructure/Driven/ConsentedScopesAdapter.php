@@ -6,11 +6,11 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven;
 
 use Override;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesFilter;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesReadGateway;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesWriteGateway;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopesAttributes;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\ConsentedClient;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ConsentedScopesGateway;
@@ -18,9 +18,9 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ConsentedScopesGateway;
 final class ConsentedScopesAdapter implements ConsentedScopesGateway
 {
     public function __construct(
-        private readonly UserConsentedScopesReadGateway $consentsRead,
-        private readonly UserConsentedScopesWriteGateway $consentsWrite,
-        private readonly TrustedClientReadGateway $trustedClients,
+        private readonly UserConsentedScopesQueryRepositoryGateway $consentsRead,
+        private readonly UserConsentedScopesCommandRepositoryGateway $consentsWrite,
+        private readonly TrustedClientQueryRepositoryGateway $trustedClients,
     ) {
     }
 

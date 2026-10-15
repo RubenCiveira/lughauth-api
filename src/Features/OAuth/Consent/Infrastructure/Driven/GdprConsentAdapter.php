@@ -9,18 +9,18 @@ use DateTimeImmutable;
 use Override;
 use InvalidArgumentException;
 use Civi\Lughauth\Shared\Value\Random;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeRef;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeFilter;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesFilter;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesReadGateway;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesWriteGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\UserConsentPurposes;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\UserConsentPurposesAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\GdprConsentGateway;
@@ -40,11 +40,11 @@ use Civi\Lughauth\Features\OAuth\Consent\Domain\GdprConsentPurposeItem;
 final class GdprConsentAdapter implements GdprConsentGateway
 {
     public function __construct(
-        private readonly TenantReadGateway $tenants,
-        private readonly UserReadGateway $users,
-        private readonly ConsentPurposeReadGateway $consentPurposes,
-        private readonly UserConsentPurposesReadGateway $userConsentPurposesRead,
-        private readonly UserConsentPurposesWriteGateway $userConsentPurposesWrite,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly UserQueryRepositoryGateway $users,
+        private readonly ConsentPurposeQueryRepositoryGateway $consentPurposes,
+        private readonly UserConsentPurposesQueryRepositoryGateway $userConsentPurposesRead,
+        private readonly UserConsentPurposesCommandRepositoryGateway $userConsentPurposesWrite,
     ) {
     }
 

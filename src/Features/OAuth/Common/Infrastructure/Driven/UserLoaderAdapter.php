@@ -9,16 +9,16 @@ use DateTimeImmutable;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCode;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\UserAccessTemporalCodeAttributes;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
@@ -43,12 +43,12 @@ class UserLoaderAdapter
     use LoggerAwareTrait;
 
     public function __construct(
-        private readonly TenantReadGateway $tenants,
-        private readonly UserAccessTemporalCodeWriteGateway $codeWriter,
-        private readonly UserReadGateway $users,
-        private readonly UserWriteGateway $usersWriter,
-        private readonly TenantTermsOfUseReadGateway $terms,
-        private readonly RelyingPartyReadGateway $parties
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly UserAccessTemporalCodeCommandRepositoryGateway $codeWriter,
+        private readonly UserQueryRepositoryGateway $users,
+        private readonly UserCommandRepositoryGateway $usersWriter,
+        private readonly TenantTermsOfUseQueryRepositoryGateway $terms,
+        private readonly RelyingPartyQueryRepositoryGateway $parties
     ) {
     }
 

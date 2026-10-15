@@ -14,16 +14,16 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentFilter;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentReadGateway;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
@@ -41,14 +41,14 @@ class LoginAdapter implements LoginGateway
     public function __construct(
         private readonly AesCypherService $cypher,
         private readonly UserLoaderAdapter $users,
-        private readonly TenantConfigReadGateway $configs,
-        private readonly UserAcceptedTermsOfUseReadGateway $userTerms,
-        private readonly UserGroupMembershipReadGateway $userGroupMemberships,
-        private readonly UserRoleAssignmentReadGateway $userRoleAssignments,
-        private readonly TrustedClientReadGateway $clients,
-        private readonly RelyingPartyReadGateway $parties,
-        private readonly UserWriteGateway $writeUsers,
-        private readonly RoleReadGateway $roles,
+        private readonly TenantConfigQueryRepositoryGateway $configs,
+        private readonly UserAcceptedTermsOfUseQueryRepositoryGateway $userTerms,
+        private readonly UserGroupMembershipQueryRepositoryGateway $userGroupMemberships,
+        private readonly UserRoleAssignmentQueryRepositoryGateway $userRoleAssignments,
+        private readonly TrustedClientQueryRepositoryGateway $clients,
+        private readonly RelyingPartyQueryRepositoryGateway $parties,
+        private readonly UserCommandRepositoryGateway $writeUsers,
+        private readonly RoleQueryRepositoryGateway $roles,
         private readonly ScopesConsentUsecase $scopesConsent,
     ) {
     }

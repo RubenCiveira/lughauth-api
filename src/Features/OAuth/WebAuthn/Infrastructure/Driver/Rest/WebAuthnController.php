@@ -9,8 +9,8 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\BeginRegistration\BeginRegistrationUsecase;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\FinishRegistration\FinishRegistrationUsecase;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Application\Usecase\BeginAuthentication\BeginAuthenticationUsecase;
@@ -34,8 +34,8 @@ final class WebAuthnController
 {
     public function __construct(
         private readonly Context $context,
-        private readonly TenantReadGateway $tenants,
-        private readonly TenantConfigReadGateway $tenantConfigs,
+        private readonly TenantQueryRepositoryGateway $tenants,
+        private readonly TenantConfigQueryRepositoryGateway $tenantConfigs,
         private readonly BeginRegistrationUsecase $beginRegistration,
         private readonly FinishRegistrationUsecase $finishRegistration,
         private readonly BeginAuthenticationUsecase $beginAuthentication,

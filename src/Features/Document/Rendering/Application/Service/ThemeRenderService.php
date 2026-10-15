@@ -10,11 +10,11 @@ use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateOutputFormat;
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateRenderRequest;
 use Civi\Lughauth\Features\Document\Rendering\Domain\Gateway\TemplateRenderGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Theme;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersion;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersionChannelOptions;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionFilter;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionReadGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionQueryRepositoryGateway;
 
 class ThemeRenderService
 {
@@ -22,8 +22,8 @@ class ThemeRenderService
     private array $themeCache = [];
 
     public function __construct(
-        private readonly ThemeReadGateway $themeGateway,
-        private readonly ThemeVersionReadGateway $themeVersionGateway,
+        private readonly ThemeQueryRepositoryGateway $themeGateway,
+        private readonly ThemeVersionQueryRepositoryGateway $themeVersionGateway,
         private readonly TemplateRenderGateway $renderGateway,
         private readonly DocumentAssetDumpService $assetDumpService,
     ) {

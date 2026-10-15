@@ -12,8 +12,8 @@ use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkCodeGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkEnabledGateway;
 use Civi\Lughauth\Features\OAuth\MagicLink\Domain\Gateway\MagicLinkSessionGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 
 final class MagicLinkDomainUnitTest extends TestCase
 {
@@ -236,7 +236,7 @@ final class MagicLinkDomainUnitTest extends TestCase
             }
         };
 
-        $tenants = new class () implements TenantReadGateway {
+        $tenants = new class () implements TenantQueryRepositoryGateway {
             public function resolve(\Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef $ref): ?\Civi\Lughauth\Features\Access\Tenant\Domain\Tenant
             {
                 return null;
@@ -271,7 +271,7 @@ final class MagicLinkDomainUnitTest extends TestCase
             }
         };
 
-        $users = new class () implements UserReadGateway {
+        $users = new class () implements UserQueryRepositoryGateway {
             public function resolve(\Civi\Lughauth\Features\Access\User\Domain\UserRef $ref): ?\Civi\Lughauth\Features\Access\User\Domain\User
             {
                 return null;

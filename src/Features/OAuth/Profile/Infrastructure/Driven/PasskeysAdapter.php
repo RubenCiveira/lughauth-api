@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Profile\Infrastructure\Driven;
 
 use Override;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\PasskeysGateway;
 use Civi\Lughauth\Features\OAuth\WebAuthn\Domain\Gateway\WebAuthnCredentialGateway;
 
@@ -14,7 +14,7 @@ final class PasskeysAdapter implements PasskeysGateway
 {
     public function __construct(
         private readonly WebAuthnCredentialGateway $credentials,
-        private readonly TenantReadGateway $tenants,
+        private readonly TenantQueryRepositoryGateway $tenants,
     ) {
     }
 

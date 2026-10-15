@@ -7,17 +7,17 @@ namespace Civi\Lughauth\Features\OAuth\UserInvitation\Application\Usecase\Resend
 
 use DateTimeImmutable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\UserInvitationStatusOptions;
-use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationWriteGateway;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\UserInvitation\Domain\Gateway\UserInvitationMailGateway;
 
 class InvitationResendUsecase
 {
     public function __construct(
-        private readonly UserInvitationWriteGateway $writeGateway,
+        private readonly UserInvitationCommandRepositoryGateway $writeGateway,
         private readonly UserInvitationMailGateway $mailer,
-        private readonly UserReadGateway $users,
+        private readonly UserQueryRepositoryGateway $users,
         private readonly string $baseUrl,
     ) {
     }

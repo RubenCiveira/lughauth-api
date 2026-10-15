@@ -13,7 +13,7 @@ use Civi\Lughauth\Features\Document\Rendering\Application\Usecase\Render\Templat
 use Civi\Lughauth\Features\Document\Rendering\Domain\TemplateOutputFormat;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
 use Civi\Lughauth\Features\Notification\Outbox\Application\Service\NotificationDispatchService;
 use Civi\Lughauth\Features\Notification\Outbox\Domain\Event\UrgentMessageEnqueuedEvent;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
@@ -38,7 +38,7 @@ class EnqueueNotificationUsecase
 
     public function __construct(
         private readonly TemplateRenderUsecase $renderUsecase,
-        private readonly MessageWriteGateway $messageWriter,
+        private readonly MessageCommandRepositoryGateway $messageWriter,
         private readonly NotificationDispatchService $dispatchService,
         private readonly EventDispatcherInterface $dispatcher,
     ) {

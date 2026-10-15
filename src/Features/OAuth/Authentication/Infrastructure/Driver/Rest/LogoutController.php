@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\BackChannelLogoutDispatcher;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\SessionManager;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\Usecase\RevokeToken\RevokeTokenUsecase;
@@ -36,7 +36,7 @@ use OpenApi\Attributes as OA;
  *
  * Relationships: depends on SessionManager and SessionStoreGateway for session lookup and
  * removal, ClientStoreGateway for client validation, TokenSigner for id_token_hint parsing,
- * RevokeTokenUsecase for revocation, TrustedClientReadGateway for front-channel URIs, and
+ * RevokeTokenUsecase for revocation, TrustedClientQueryRepositoryGateway for front-channel URIs, and
  * BackChannelLogoutDispatcher for back-channel notifications.
  */
 class LogoutController
@@ -50,7 +50,7 @@ class LogoutController
         private readonly ClientStoreGateway $clients,
         private readonly TokenSigner $keys,
         private readonly RevokeTokenUsecase $revokeTokenUsecase,
-        private readonly TrustedClientReadGateway $trustedClients,
+        private readonly TrustedClientQueryRepositoryGateway $trustedClients,
         private readonly BackChannelLogoutDispatcher $backChannelLogout,
     ) {
         $this->base = $this->context->getBaseUrl() . '/oauth';

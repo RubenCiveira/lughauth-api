@@ -8,28 +8,28 @@ namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase;
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Shared\Security\AesCypherService;
 use Civi\Lughauth\Shared\Infrastructure\Sql\SqlTemplate;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyAttributes;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\RoleRef;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserAttributes;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentWriteGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignment;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignmentAttributes;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesItem;
@@ -37,7 +37,7 @@ use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRole
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesRoleVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesUidVO;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\ValueObject\UserRoleAssignmentRolesVersionVO;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembershipAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
@@ -45,7 +45,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClient
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsUrlVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsVersionVO;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientSecretOauthVO;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigWriteGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCommandRepositoryGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfig;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfigAttributes;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\ValueObject\SmtpOutboundConfigPasswordVO;
@@ -67,15 +67,15 @@ class InstallUsecase
     public function __construct(
         private readonly SqlTemplate $template,
         private readonly AesCypherService $cypher,
-        private readonly RelyingPartyWriteGateway $createReling,
-        private readonly TrustedClientWriteGateway $createTruted,
-        private readonly TenantWriteGateway $createTenant,
-        private readonly RoleWriteGateway $createRole,
-        private readonly UserWriteGateway $createUser,
-        private readonly UserRoleAssignmentWriteGateway $createUserRoleAssignment,
-        private readonly UserGroupMembershipWriteGateway $createUserGroupMembership,
-        private readonly ApiKeyClientWriteGateway $apiKeys,
-        private readonly SmtpOutboundConfigWriteGateway $createSmtp,
+        private readonly RelyingPartyCommandRepositoryGateway $createReling,
+        private readonly TrustedClientCommandRepositoryGateway $createTruted,
+        private readonly TenantCommandRepositoryGateway $createTenant,
+        private readonly RoleCommandRepositoryGateway $createRole,
+        private readonly UserCommandRepositoryGateway $createUser,
+        private readonly UserRoleAssignmentCommandRepositoryGateway $createUserRoleAssignment,
+        private readonly UserGroupMembershipCommandRepositoryGateway $createUserGroupMembership,
+        private readonly ApiKeyClientCommandRepositoryGateway $apiKeys,
+        private readonly SmtpOutboundConfigCommandRepositoryGateway $createSmtp,
         private readonly InstallLoginTemplate $loginTemplate,
         private readonly InstallPasswordRecoverTemplate $recoverTemplate,
         private readonly InstallUserRegisterTemplate $registerTemplate,

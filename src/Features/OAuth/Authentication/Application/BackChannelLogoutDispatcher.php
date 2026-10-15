@@ -10,7 +10,7 @@ use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\LogoutToken;
 use Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner;
 
@@ -32,7 +32,7 @@ final class BackChannelLogoutDispatcher
     private readonly LoggerInterface $logger;
 
     public function __construct(
-        private readonly TrustedClientReadGateway $clients,
+        private readonly TrustedClientQueryRepositoryGateway $clients,
         private readonly TokenSigner $signer,
         private readonly ClientInterface $http,
         private readonly RequestFactoryInterface $requestFactory,

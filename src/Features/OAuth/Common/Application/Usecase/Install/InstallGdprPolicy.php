@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\OAuth\Common\Application\Usecase\Install;
 
 use Civi\Lughauth\Shared\Value\Random;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttributes;
 
@@ -28,7 +28,7 @@ class InstallGdprPolicy
     private const string CONTENT_DIR = __DIR__ . '/contents/';
 
     public function __construct(
-        private readonly TenantTermsOfUseWriteGateway $terms,
+        private readonly TenantTermsOfUseCommandRepositoryGateway $terms,
     ) {
     }
 
