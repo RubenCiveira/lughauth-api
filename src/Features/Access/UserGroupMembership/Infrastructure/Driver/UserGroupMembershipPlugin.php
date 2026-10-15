@@ -21,8 +21,8 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Filter\TenantAccessible;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCommandRepositoryGateway;
 
