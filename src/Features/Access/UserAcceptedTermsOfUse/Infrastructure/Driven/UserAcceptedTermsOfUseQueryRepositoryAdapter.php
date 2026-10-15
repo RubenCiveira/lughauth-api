@@ -45,7 +45,7 @@ class UserAcceptedTermsOfUseQueryRepositoryAdapter implements UserAcceptedTermsO
         $span = $this->startSpan("List for User accepted terms of use on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserAcceptedTermsOfUseSlide(function (UserAcceptedTermsOfUseFilter $slide, UserAcceptedTermsOfUseCursor $next) use ($filter) {
+            return new UserAcceptedTermsOfUseSlide(function (UserAcceptedTermsOfUseSlide $slide, UserAcceptedTermsOfUseCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

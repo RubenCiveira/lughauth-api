@@ -43,10 +43,9 @@ class UserRoleAssignmentCommandRepositoryAdapter implements UserRoleAssignmentCo
         $span = $this->startSpan("List for update of User role assignment on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new UserRoleAssignmentSlide(function (UserRoleAssignmentSlide $slide, ?UserRoleAssignmentCursor$next) use ($filter) {
+            return new UserRoleAssignmentSlide(function (UserRoleAssignmentSlide $slide, UserRoleAssignmentCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserRoleAssignmentCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -193,7 +192,7 @@ class UserRoleAssignmentCommandRepositoryAdapter implements UserRoleAssignmentCo
         $span = $this->startSpan("List for User role assignment on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserRoleAssignmentSlide(function (UserRoleAssignmentFilter $slide, UserRoleAssignmentCursor $next) use ($filter) {
+            return new UserRoleAssignmentSlide(function (UserRoleAssignmentSlide $slide, UserRoleAssignmentCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -43,10 +43,9 @@ class UserConsentPurposesCommandRepositoryAdapter implements UserConsentPurposes
         $span = $this->startSpan("List for update of User consent purposes on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, ?UserConsentPurposesCursor$next) use ($filter) {
+            return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserConsentPurposesCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -193,7 +192,7 @@ class UserConsentPurposesCommandRepositoryAdapter implements UserConsentPurposes
         $span = $this->startSpan("List for User consent purposes on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserConsentPurposesSlide(function (UserConsentPurposesFilter $slide, UserConsentPurposesCursor $next) use ($filter) {
+            return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -44,7 +44,7 @@ class RoleQueryRepositoryAdapter implements RoleQueryRepositoryGateway
         $span = $this->startSpan("List for Role on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new RoleSlide(function (RoleFilter $slide, RoleCursor $next) use ($filter) {
+            return new RoleSlide(function (RoleSlide $slide, RoleCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

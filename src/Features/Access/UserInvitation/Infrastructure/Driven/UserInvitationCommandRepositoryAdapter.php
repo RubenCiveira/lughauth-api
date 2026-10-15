@@ -43,10 +43,9 @@ class UserInvitationCommandRepositoryAdapter implements UserInvitationCommandRep
         $span = $this->startSpan("List for update of User invitation on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new UserInvitationSlide(function (UserInvitationSlide $slide, ?UserInvitationCursor$next) use ($filter) {
+            return new UserInvitationSlide(function (UserInvitationSlide $slide, UserInvitationCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserInvitationCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -207,7 +206,7 @@ class UserInvitationCommandRepositoryAdapter implements UserInvitationCommandRep
         $span = $this->startSpan("List for User invitation on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserInvitationSlide(function (UserInvitationFilter $slide, UserInvitationCursor $next) use ($filter) {
+            return new UserInvitationSlide(function (UserInvitationSlide $slide, UserInvitationCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

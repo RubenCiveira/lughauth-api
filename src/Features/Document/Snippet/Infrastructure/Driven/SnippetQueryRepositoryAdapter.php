@@ -44,7 +44,7 @@ class SnippetQueryRepositoryAdapter implements SnippetQueryRepositoryGateway
         $span = $this->startSpan("List for Snippet on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new SnippetSlide(function (SnippetFilter $slide, SnippetCursor $next) use ($filter) {
+            return new SnippetSlide(function (SnippetSlide $slide, SnippetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

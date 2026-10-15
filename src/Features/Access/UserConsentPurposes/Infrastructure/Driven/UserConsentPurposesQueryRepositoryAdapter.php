@@ -43,7 +43,7 @@ class UserConsentPurposesQueryRepositoryAdapter implements UserConsentPurposesQu
         $span = $this->startSpan("List for User consent purposes on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserConsentPurposesSlide(function (UserConsentPurposesFilter $slide, UserConsentPurposesCursor $next) use ($filter) {
+            return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

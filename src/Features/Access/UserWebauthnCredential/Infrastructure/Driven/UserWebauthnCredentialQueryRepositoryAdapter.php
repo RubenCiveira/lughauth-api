@@ -44,7 +44,7 @@ class UserWebauthnCredentialQueryRepositoryAdapter implements UserWebauthnCreden
         $span = $this->startSpan("List for User webauthn credential on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialFilter $slide, UserWebauthnCredentialCursor $next) use ($filter) {
+            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialSlide $slide, UserWebauthnCredentialCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

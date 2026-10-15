@@ -44,7 +44,7 @@ class TenantConfigQueryRepositoryAdapter implements TenantConfigQueryRepositoryG
         $span = $this->startSpan("List for Tenant config on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TenantConfigSlide(function (TenantConfigFilter $slide, TenantConfigCursor $next) use ($filter) {
+            return new TenantConfigSlide(function (TenantConfigSlide $slide, TenantConfigCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -43,7 +43,7 @@ class UserMfaRecoveryCodeQueryRepositoryAdapter implements UserMfaRecoveryCodeQu
         $span = $this->startSpan("List for User mfa recovery code on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeFilter $slide, UserMfaRecoveryCodeCursor $next) use ($filter) {
+            return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeSlide $slide, UserMfaRecoveryCodeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

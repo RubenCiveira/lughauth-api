@@ -43,7 +43,7 @@ class UserInvitationQueryRepositoryAdapter implements UserInvitationQueryReposit
         $span = $this->startSpan("List for User invitation on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserInvitationSlide(function (UserInvitationFilter $slide, UserInvitationCursor $next) use ($filter) {
+            return new UserInvitationSlide(function (UserInvitationSlide $slide, UserInvitationCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

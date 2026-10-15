@@ -44,10 +44,9 @@ class UserCommandRepositoryAdapter implements UserCommandRepositoryGateway
         $span = $this->startSpan("List for update of User on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new UserSlide(function (UserSlide $slide, ?UserCursor$next) use ($filter) {
+            return new UserSlide(function (UserSlide $slide, UserCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -208,7 +207,7 @@ class UserCommandRepositoryAdapter implements UserCommandRepositoryGateway
         $span = $this->startSpan("List for User on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserSlide(function (UserFilter $slide, UserCursor $next) use ($filter) {
+            return new UserSlide(function (UserSlide $slide, UserCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

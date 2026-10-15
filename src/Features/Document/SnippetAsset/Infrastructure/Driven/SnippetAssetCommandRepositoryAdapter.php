@@ -49,10 +49,9 @@ class SnippetAssetCommandRepositoryAdapter implements SnippetAssetCommandReposit
         $span = $this->startSpan("List for update of Snippet asset on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new SnippetAssetSlide(function (SnippetAssetSlide $slide, ?SnippetAssetCursor$next) use ($filter) {
+            return new SnippetAssetSlide(function (SnippetAssetSlide $slide, SnippetAssetCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new SnippetAssetCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -263,7 +262,7 @@ class SnippetAssetCommandRepositoryAdapter implements SnippetAssetCommandReposit
         $span = $this->startSpan("List for Snippet asset on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new SnippetAssetSlide(function (SnippetAssetFilter $slide, SnippetAssetCursor $next) use ($filter) {
+            return new SnippetAssetSlide(function (SnippetAssetSlide $slide, SnippetAssetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

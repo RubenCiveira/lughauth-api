@@ -49,7 +49,7 @@ class ThemeAssetQueryRepositoryAdapter implements ThemeAssetQueryRepositoryGatew
         $span = $this->startSpan("List for Theme asset on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new ThemeAssetSlide(function (ThemeAssetFilter $slide, ThemeAssetCursor $next) use ($filter) {
+            return new ThemeAssetSlide(function (ThemeAssetSlide $slide, ThemeAssetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

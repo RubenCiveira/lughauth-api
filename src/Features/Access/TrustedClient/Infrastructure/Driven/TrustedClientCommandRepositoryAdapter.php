@@ -43,10 +43,9 @@ class TrustedClientCommandRepositoryAdapter implements TrustedClientCommandRepos
         $span = $this->startSpan("List for update of Trusted client on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new TrustedClientSlide(function (TrustedClientSlide $slide, ?TrustedClientCursor$next) use ($filter) {
+            return new TrustedClientSlide(function (TrustedClientSlide $slide, TrustedClientCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TrustedClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -207,7 +206,7 @@ class TrustedClientCommandRepositoryAdapter implements TrustedClientCommandRepos
         $span = $this->startSpan("List for Trusted client on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TrustedClientSlide(function (TrustedClientFilter $slide, TrustedClientCursor $next) use ($filter) {
+            return new TrustedClientSlide(function (TrustedClientSlide $slide, TrustedClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

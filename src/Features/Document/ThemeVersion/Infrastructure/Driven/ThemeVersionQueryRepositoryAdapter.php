@@ -43,7 +43,7 @@ class ThemeVersionQueryRepositoryAdapter implements ThemeVersionQueryRepositoryG
         $span = $this->startSpan("List for Theme version on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new ThemeVersionSlide(function (ThemeVersionFilter $slide, ThemeVersionCursor $next) use ($filter) {
+            return new ThemeVersionSlide(function (ThemeVersionSlide $slide, ThemeVersionCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

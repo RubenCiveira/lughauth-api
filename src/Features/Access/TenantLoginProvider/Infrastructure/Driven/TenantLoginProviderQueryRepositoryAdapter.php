@@ -49,7 +49,7 @@ class TenantLoginProviderQueryRepositoryAdapter implements TenantLoginProviderQu
         $span = $this->startSpan("List for Tenant login provider on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TenantLoginProviderSlide(function (TenantLoginProviderFilter $slide, TenantLoginProviderCursor $next) use ($filter) {
+            return new TenantLoginProviderSlide(function (TenantLoginProviderSlide $slide, TenantLoginProviderCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

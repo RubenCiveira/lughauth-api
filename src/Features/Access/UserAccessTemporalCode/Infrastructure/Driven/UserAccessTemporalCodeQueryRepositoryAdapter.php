@@ -44,7 +44,7 @@ class UserAccessTemporalCodeQueryRepositoryAdapter implements UserAccessTemporal
         $span = $this->startSpan("List for User access temporal code on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeFilter $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
+            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

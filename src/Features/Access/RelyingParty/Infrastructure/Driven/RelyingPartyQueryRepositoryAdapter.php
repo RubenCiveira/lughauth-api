@@ -43,7 +43,7 @@ class RelyingPartyQueryRepositoryAdapter implements RelyingPartyQueryRepositoryG
         $span = $this->startSpan("List for Relying party on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new RelyingPartySlide(function (RelyingPartyFilter $slide, RelyingPartyCursor $next) use ($filter) {
+            return new RelyingPartySlide(function (RelyingPartySlide $slide, RelyingPartyCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

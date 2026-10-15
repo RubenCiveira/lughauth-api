@@ -44,7 +44,7 @@ class ConsentPurposeQueryRepositoryAdapter implements ConsentPurposeQueryReposit
         $span = $this->startSpan("List for Consent purpose on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new ConsentPurposeSlide(function (ConsentPurposeFilter $slide, ConsentPurposeCursor $next) use ($filter) {
+            return new ConsentPurposeSlide(function (ConsentPurposeSlide $slide, ConsentPurposeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -50,7 +50,7 @@ class TemplateAssetQueryRepositoryAdapter implements TemplateAssetQueryRepositor
         $span = $this->startSpan("List for Template asset on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TemplateAssetSlide(function (TemplateAssetFilter $slide, TemplateAssetCursor $next) use ($filter) {
+            return new TemplateAssetSlide(function (TemplateAssetSlide $slide, TemplateAssetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -44,10 +44,9 @@ class UserAccessTemporalCodeCommandRepositoryAdapter implements UserAccessTempor
         $span = $this->startSpan("List for update of User access temporal code on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, ?UserAccessTemporalCodeCursor$next) use ($filter) {
+            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -236,7 +235,7 @@ class UserAccessTemporalCodeCommandRepositoryAdapter implements UserAccessTempor
         $span = $this->startSpan("List for User access temporal code on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeFilter $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
+            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

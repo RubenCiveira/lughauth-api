@@ -43,7 +43,7 @@ class UserPersonalApiKeyQueryRepositoryAdapter implements UserPersonalApiKeyQuer
         $span = $this->startSpan("List for User personal api key on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserPersonalApiKeySlide(function (UserPersonalApiKeyFilter $slide, UserPersonalApiKeyCursor $next) use ($filter) {
+            return new UserPersonalApiKeySlide(function (UserPersonalApiKeySlide $slide, UserPersonalApiKeyCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

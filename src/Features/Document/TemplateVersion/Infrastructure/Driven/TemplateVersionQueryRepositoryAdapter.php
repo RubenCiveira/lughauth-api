@@ -43,7 +43,7 @@ class TemplateVersionQueryRepositoryAdapter implements TemplateVersionQueryRepos
         $span = $this->startSpan("List for Template version on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TemplateVersionSlide(function (TemplateVersionFilter $slide, TemplateVersionCursor $next) use ($filter) {
+            return new TemplateVersionSlide(function (TemplateVersionSlide $slide, TemplateVersionCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

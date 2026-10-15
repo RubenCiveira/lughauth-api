@@ -49,7 +49,7 @@ class SnippetAssetQueryRepositoryAdapter implements SnippetAssetQueryRepositoryG
         $span = $this->startSpan("List for Snippet asset on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new SnippetAssetSlide(function (SnippetAssetFilter $slide, SnippetAssetCursor $next) use ($filter) {
+            return new SnippetAssetSlide(function (SnippetAssetSlide $slide, SnippetAssetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

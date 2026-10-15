@@ -43,7 +43,7 @@ class SnippetVersionQueryRepositoryAdapter implements SnippetVersionQueryReposit
         $span = $this->startSpan("List for Snippet version on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new SnippetVersionSlide(function (SnippetVersionFilter $slide, SnippetVersionCursor $next) use ($filter) {
+            return new SnippetVersionSlide(function (SnippetVersionSlide $slide, SnippetVersionCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

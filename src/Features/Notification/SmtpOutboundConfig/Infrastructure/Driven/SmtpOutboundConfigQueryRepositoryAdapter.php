@@ -44,7 +44,7 @@ class SmtpOutboundConfigQueryRepositoryAdapter implements SmtpOutboundConfigQuer
         $span = $this->startSpan("List for Smtp outbound config on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigFilter $slide, SmtpOutboundConfigCursor $next) use ($filter) {
+            return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigSlide $slide, SmtpOutboundConfigCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

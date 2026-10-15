@@ -44,10 +44,9 @@ class RoleCommandRepositoryAdapter implements RoleCommandRepositoryGateway
         $span = $this->startSpan("List for update of Role on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new RoleSlide(function (RoleSlide $slide, ?RoleCursor$next) use ($filter) {
+            return new RoleSlide(function (RoleSlide $slide, RoleCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new RoleCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -208,7 +207,7 @@ class RoleCommandRepositoryAdapter implements RoleCommandRepositoryGateway
         $span = $this->startSpan("List for Role on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new RoleSlide(function (RoleFilter $slide, RoleCursor $next) use ($filter) {
+            return new RoleSlide(function (RoleSlide $slide, RoleCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

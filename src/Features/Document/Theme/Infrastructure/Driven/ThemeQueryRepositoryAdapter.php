@@ -44,7 +44,7 @@ class ThemeQueryRepositoryAdapter implements ThemeQueryRepositoryGateway
         $span = $this->startSpan("List for Theme on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new ThemeSlide(function (ThemeFilter $slide, ThemeCursor $next) use ($filter) {
+            return new ThemeSlide(function (ThemeSlide $slide, ThemeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

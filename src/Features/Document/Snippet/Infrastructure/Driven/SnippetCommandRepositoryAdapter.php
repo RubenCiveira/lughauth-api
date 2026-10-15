@@ -44,10 +44,9 @@ class SnippetCommandRepositoryAdapter implements SnippetCommandRepositoryGateway
         $span = $this->startSpan("List for update of Snippet on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new SnippetSlide(function (SnippetSlide $slide, ?SnippetCursor$next) use ($filter) {
+            return new SnippetSlide(function (SnippetSlide $slide, SnippetCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new SnippetCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -194,7 +193,7 @@ class SnippetCommandRepositoryAdapter implements SnippetCommandRepositoryGateway
         $span = $this->startSpan("List for Snippet on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new SnippetSlide(function (SnippetFilter $slide, SnippetCursor $next) use ($filter) {
+            return new SnippetSlide(function (SnippetSlide $slide, SnippetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

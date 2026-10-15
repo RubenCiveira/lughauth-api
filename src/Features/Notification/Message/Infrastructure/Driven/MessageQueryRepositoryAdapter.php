@@ -43,7 +43,7 @@ class MessageQueryRepositoryAdapter implements MessageQueryRepositoryGateway
         $span = $this->startSpan("List for Message on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new MessageSlide(function (MessageFilter $slide, MessageCursor $next) use ($filter) {
+            return new MessageSlide(function (MessageSlide $slide, MessageCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

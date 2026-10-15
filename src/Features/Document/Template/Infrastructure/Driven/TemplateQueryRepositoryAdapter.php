@@ -44,7 +44,7 @@ class TemplateQueryRepositoryAdapter implements TemplateQueryRepositoryGateway
         $span = $this->startSpan("List for Template on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TemplateSlide(function (TemplateFilter $slide, TemplateCursor $next) use ($filter) {
+            return new TemplateSlide(function (TemplateSlide $slide, TemplateCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

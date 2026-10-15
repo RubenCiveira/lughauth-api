@@ -43,10 +43,9 @@ class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientCommandReposit
         $span = $this->startSpan("List for update of Api key client on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ?ApiKeyClientCursor$next) use ($filter) {
+            return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ApiKeyClientCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -221,7 +220,7 @@ class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientCommandReposit
         $span = $this->startSpan("List for Api key client on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new ApiKeyClientSlide(function (ApiKeyClientFilter $slide, ApiKeyClientCursor $next) use ($filter) {
+            return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ApiKeyClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

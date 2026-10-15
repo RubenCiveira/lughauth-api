@@ -391,6 +391,9 @@ class UserInvitationPdoConnector
                     }
                 }
                 $keys[] = ['"access_user_invitation"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
+                foreach ($keys as [$column, , , , $asc]) {
+                    $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
+                }
                 if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
                     $alternatives = [];
                     foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {

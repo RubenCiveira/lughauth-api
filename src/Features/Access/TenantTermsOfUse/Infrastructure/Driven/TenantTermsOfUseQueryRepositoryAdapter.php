@@ -48,7 +48,7 @@ class TenantTermsOfUseQueryRepositoryAdapter implements TenantTermsOfUseQueryRep
         $span = $this->startSpan("List for Tenant terms of use on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TenantTermsOfUseSlide(function (TenantTermsOfUseFilter $slide, TenantTermsOfUseCursor $next) use ($filter) {
+            return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

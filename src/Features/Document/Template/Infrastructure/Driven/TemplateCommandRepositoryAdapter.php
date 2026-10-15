@@ -44,10 +44,9 @@ class TemplateCommandRepositoryAdapter implements TemplateCommandRepositoryGatew
         $span = $this->startSpan("List for update of Template on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new TemplateSlide(function (TemplateSlide $slide, ?TemplateCursor$next) use ($filter) {
+            return new TemplateSlide(function (TemplateSlide $slide, TemplateCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TemplateCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -194,7 +193,7 @@ class TemplateCommandRepositoryAdapter implements TemplateCommandRepositoryGatew
         $span = $this->startSpan("List for Template on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TemplateSlide(function (TemplateFilter $slide, TemplateCursor $next) use ($filter) {
+            return new TemplateSlide(function (TemplateSlide $slide, TemplateCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

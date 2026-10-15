@@ -43,7 +43,7 @@ class TrustedClientQueryRepositoryAdapter implements TrustedClientQueryRepositor
         $span = $this->startSpan("List for Trusted client on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TrustedClientSlide(function (TrustedClientFilter $slide, TrustedClientCursor $next) use ($filter) {
+            return new TrustedClientSlide(function (TrustedClientSlide $slide, TrustedClientCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

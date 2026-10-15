@@ -44,10 +44,9 @@ class ConsentPurposeCommandRepositoryAdapter implements ConsentPurposeCommandRep
         $span = $this->startSpan("List for update of Consent purpose on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new ConsentPurposeSlide(function (ConsentPurposeSlide $slide, ?ConsentPurposeCursor$next) use ($filter) {
+            return new ConsentPurposeSlide(function (ConsentPurposeSlide $slide, ConsentPurposeCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new ConsentPurposeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -208,7 +207,7 @@ class ConsentPurposeCommandRepositoryAdapter implements ConsentPurposeCommandRep
         $span = $this->startSpan("List for Consent purpose on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new ConsentPurposeSlide(function (ConsentPurposeFilter $slide, ConsentPurposeCursor $next) use ($filter) {
+            return new ConsentPurposeSlide(function (ConsentPurposeSlide $slide, ConsentPurposeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

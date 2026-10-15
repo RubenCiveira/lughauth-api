@@ -48,10 +48,9 @@ class TenantTermsOfUseCommandRepositoryAdapter implements TenantTermsOfUseComman
         $span = $this->startSpan("List for update of Tenant terms of use on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, ?TenantTermsOfUseCursor$next) use ($filter) {
+            return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new TenantTermsOfUseCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -262,7 +261,7 @@ class TenantTermsOfUseCommandRepositoryAdapter implements TenantTermsOfUseComman
         $span = $this->startSpan("List for Tenant terms of use on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TenantTermsOfUseSlide(function (TenantTermsOfUseFilter $slide, TenantTermsOfUseCursor $next) use ($filter) {
+            return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -330,10 +330,10 @@ class ApiKeyClientPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $keys = [];
-                foreach ($sort->order() ?? [] as $ord) {
+                $keys = [['"access_api_key_client"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0]];
+                foreach ($keys as [$column, , , , $asc]) {
+                    $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
                 }
-                $keys[] = ['"access_api_key_client"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
                 if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
                     $alternatives = [];
                     foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {

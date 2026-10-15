@@ -44,10 +44,9 @@ class UserWebauthnCredentialCommandRepositoryAdapter implements UserWebauthnCred
         $span = $this->startSpan("List for update of User webauthn credential on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            $last = end($values);
-            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialSlide $slide, ?UserWebauthnCredentialCursor$next) use ($filter) {
+            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialSlide $slide, UserWebauthnCredentialCursor $next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, new UserWebauthnCredentialCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -222,7 +221,7 @@ class UserWebauthnCredentialCommandRepositoryAdapter implements UserWebauthnCred
         $span = $this->startSpan("List for User webauthn credential on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialFilter $slide, UserWebauthnCredentialCursor $next) use ($filter) {
+            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialSlide $slide, UserWebauthnCredentialCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

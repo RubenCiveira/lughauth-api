@@ -43,7 +43,7 @@ class UserRoleAssignmentQueryRepositoryAdapter implements UserRoleAssignmentQuer
         $span = $this->startSpan("List for User role assignment on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new UserRoleAssignmentSlide(function (UserRoleAssignmentFilter $slide, UserRoleAssignmentCursor $next) use ($filter) {
+            return new UserRoleAssignmentSlide(function (UserRoleAssignmentSlide $slide, UserRoleAssignmentCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {
