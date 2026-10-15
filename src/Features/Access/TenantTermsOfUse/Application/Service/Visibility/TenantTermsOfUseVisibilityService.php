@@ -16,9 +16,9 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseAttrib
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCursor;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseSlide;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -29,8 +29,8 @@ class TenantTermsOfUseVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TenantTermsOfUseReadGateway $readGateway,
-        private readonly TenantTermsOfUseWriteGateway $writeGateway,
+        private readonly TenantTermsOfUseQueryRepositoryGateway $readGateway,
+        private readonly TenantTermsOfUseCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService,
         private readonly RelyingPartyVisibilityService $relyingPartyVisibilityService
     ) {

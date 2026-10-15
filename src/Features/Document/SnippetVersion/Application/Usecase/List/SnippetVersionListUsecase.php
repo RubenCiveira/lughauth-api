@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionVisibilityService;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionReadGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionFilter;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCursor;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionAttributesSlide;
@@ -25,7 +25,7 @@ class SnippetVersionListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SnippetVersionVisibilityService $visibility,
-        private readonly SnippetVersionReadGateway $reader
+        private readonly SnippetVersionQueryRepositoryGateway $reader
     ) {
     }
 

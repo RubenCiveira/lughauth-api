@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Application\Service\Visibility\UserRoleAssignmentVisibilityService;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignment;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentWriteGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class UserRoleAssignmentCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserRoleAssignmentVisibilityService $visibility,
-        private readonly UserRoleAssignmentWriteGateway $writer,
+        private readonly UserRoleAssignmentCommandRepositoryGateway $writer,
     ) {
     }
 

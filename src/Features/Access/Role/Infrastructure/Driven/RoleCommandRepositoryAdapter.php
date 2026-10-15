@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Connector\Pdo\RolePdoConnector;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleSlide;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class RoleCommandRepositoryAdapter implements RoleWriteGateway
+class RoleCommandRepositoryAdapter implements RoleCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -184,6 +184,104 @@ class RoleCommandRepositoryAdapter implements RoleWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(RoleRef $ref): ?Role
+    {
+        if ($ref instanceof Role) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new RoleFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?RoleFilter $filter = null, ?RoleCursor $cursor = null): RoleSlide
+    {
+        $this->logDebug("List for Role on adapter ");
+        $span = $this->startSpan("List for Role on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new RoleSlide(function (RoleFilter $slide, ?RoleCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new RoleCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(RoleFilter $filter): ?Role
+    {
+        $this->logDebug("Retrieve for Role on adapter ");
+        $span = $this->startSpan("Retrieve for Role on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(RoleFilter $filter): bool
+    {
+        $this->logDebug("Exists for Role on adapter ");
+        $span = $this->startSpan("Exists for Role on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?RoleFilter $filter = null): int
+    {
+        $this->logDebug("Count for Role on adapter ");
+        $span = $this->startSpan("Count for Role on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?Role
+    {
+        $this->logDebug("Find on by uid for Role on adapter");
+        $span = $this->startSpan("Find on by uid for Role on adapter");
+        try {
+            return $this->conn->retrieve(new RoleFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByRelyingPartyAndName(?RelyingPartyRef $relyingParty, string $name): ?Role
+    {
+        $this->logDebug("Find on by relying party name for Role on adapter");
+        $span = $this->startSpan("Find on by relying party name for Role on adapter");
+        try {
+            return $this->conn->retrieve(new RoleFilter(relyingPartyAndName: RoleFilter::relyingPartyAndNameFilter(relyingParty: $relyingParty, name: $name)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserVisibilityService;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserFilter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserAttributesSlide;
@@ -25,7 +25,7 @@ class UserListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
-        private readonly UserReadGateway $reader
+        private readonly UserQueryRepositoryGateway $reader
     ) {
     }
 

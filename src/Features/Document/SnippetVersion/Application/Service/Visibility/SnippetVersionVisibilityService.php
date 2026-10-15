@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\SnippetVersion\Domain\SnippetVersionAttribut
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\SnippetVersion;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionFilter;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCursor;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionReadGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionSlide;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionWriteGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class SnippetVersionVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly SnippetVersionReadGateway $readGateway,
-        private readonly SnippetVersionWriteGateway $writeGateway,
+        private readonly SnippetVersionQueryRepositoryGateway $readGateway,
+        private readonly SnippetVersionCommandRepositoryGateway $writeGateway,
         private readonly SnippetVisibilityService $snippetVisibilityService
     ) {
     }

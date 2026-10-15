@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyFilter;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyAttributesSlide;
@@ -25,7 +25,7 @@ class RelyingPartyListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
-        private readonly RelyingPartyReadGateway $reader
+        private readonly RelyingPartyQueryRepositoryGateway $reader
     ) {
     }
 

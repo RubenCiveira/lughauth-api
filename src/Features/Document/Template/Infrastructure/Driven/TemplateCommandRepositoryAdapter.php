@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Connector\Pdo\TemplatePdoConnector;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateSlide;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TemplateCommandRepositoryAdapter implements TemplateWriteGateway
+class TemplateCommandRepositoryAdapter implements TemplateCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -170,6 +170,90 @@ class TemplateCommandRepositoryAdapter implements TemplateWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TemplateRef $ref): ?Template
+    {
+        if ($ref instanceof Template) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TemplateFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TemplateFilter $filter = null, ?TemplateCursor $cursor = null): TemplateSlide
+    {
+        $this->logDebug("List for Template on adapter ");
+        $span = $this->startSpan("List for Template on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TemplateSlide(function (TemplateFilter $slide, ?TemplateCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TemplateCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TemplateFilter $filter): ?Template
+    {
+        $this->logDebug("Retrieve for Template on adapter ");
+        $span = $this->startSpan("Retrieve for Template on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TemplateFilter $filter): bool
+    {
+        $this->logDebug("Exists for Template on adapter ");
+        $span = $this->startSpan("Exists for Template on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TemplateFilter $filter = null): int
+    {
+        $this->logDebug("Count for Template on adapter ");
+        $span = $this->startSpan("Count for Template on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCodeAndTenant(string $code, ?TenantRef $tenant): ?Template
+    {
+        $this->logDebug("Find on by code tenant for Template on adapter");
+        $span = $this->startSpan("Find on by code tenant for Template on adapter");
+        try {
+            return $this->conn->retrieve(new TemplateFilter(codeAndTenant: TemplateFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

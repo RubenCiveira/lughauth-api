@@ -20,19 +20,19 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\ThemeVersion\Application\Service\Visibility\ThemeVersionRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Driven\ThemeVersionReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionReadGateway;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionWriteGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Driven\ThemeVersionCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Driven\ThemeVersionQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCommandRepositoryGateway;
 
 class ThemeVersionPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[ThemeVersionReadGateway::class] = \DI\autowire(ThemeVersionReadRepositoryAdapter::class);
-        $def[ThemeVersionWriteGateway::class] = \DI\autowire(ThemeVersionCommandRepositoryAdapter::class);
+        $def[ThemeVersionQueryRepositoryGateway::class] = \DI\autowire(ThemeVersionQueryRepositoryAdapter::class);
+        $def[ThemeVersionCommandRepositoryGateway::class] = \DI\autowire(ThemeVersionCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

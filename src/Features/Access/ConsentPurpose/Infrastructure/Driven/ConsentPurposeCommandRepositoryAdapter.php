@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeWriteGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Connector\Pdo\ConsentPurposePdoConnector;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeSlide;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class ConsentPurposeCommandRepositoryAdapter implements ConsentPurposeWriteGateway
+class ConsentPurposeCommandRepositoryAdapter implements ConsentPurposeCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -184,6 +184,104 @@ class ConsentPurposeCommandRepositoryAdapter implements ConsentPurposeWriteGatew
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(ConsentPurposeRef $ref): ?ConsentPurpose
+    {
+        if ($ref instanceof ConsentPurpose) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new ConsentPurposeFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?ConsentPurposeFilter $filter = null, ?ConsentPurposeCursor $cursor = null): ConsentPurposeSlide
+    {
+        $this->logDebug("List for Consent purpose on adapter ");
+        $span = $this->startSpan("List for Consent purpose on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new ConsentPurposeSlide(function (ConsentPurposeFilter $slide, ?ConsentPurposeCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new ConsentPurposeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(ConsentPurposeFilter $filter): ?ConsentPurpose
+    {
+        $this->logDebug("Retrieve for Consent purpose on adapter ");
+        $span = $this->startSpan("Retrieve for Consent purpose on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(ConsentPurposeFilter $filter): bool
+    {
+        $this->logDebug("Exists for Consent purpose on adapter ");
+        $span = $this->startSpan("Exists for Consent purpose on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?ConsentPurposeFilter $filter = null): int
+    {
+        $this->logDebug("Count for Consent purpose on adapter ");
+        $span = $this->startSpan("Count for Consent purpose on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?ConsentPurpose
+    {
+        $this->logDebug("Find on by uid for Consent purpose on adapter");
+        $span = $this->startSpan("Find on by uid for Consent purpose on adapter");
+        try {
+            return $this->conn->retrieve(new ConsentPurposeFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByTenantAndTitle(TenantRef $tenant, string $title): ?ConsentPurpose
+    {
+        $this->logDebug("Find on by tenant title for Consent purpose on adapter");
+        $span = $this->startSpan("Find on by tenant title for Consent purpose on adapter");
+        try {
+            return $this->conn->retrieve(new ConsentPurposeFilter(tenantAndTitle: ConsentPurposeFilter::tenantAndTitleFilter(tenant: $tenant, title: $title)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -20,19 +20,19 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionReadGateway;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionWriteGateway;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCommandRepositoryGateway;
 
 class SnippetVersionPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[SnippetVersionReadGateway::class] = \DI\autowire(SnippetVersionReadRepositoryAdapter::class);
-        $def[SnippetVersionWriteGateway::class] = \DI\autowire(SnippetVersionCommandRepositoryAdapter::class);
+        $def[SnippetVersionQueryRepositoryGateway::class] = \DI\autowire(SnippetVersionQueryRepositoryAdapter::class);
+        $def[SnippetVersionCommandRepositoryGateway::class] = \DI\autowire(SnippetVersionCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

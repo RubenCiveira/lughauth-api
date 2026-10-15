@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Connector\Pdo\UserMfaRecoveryCodePdoConnector;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeSlide;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserMfaRecoveryCodeCommandRepositoryAdapter implements UserMfaRecoveryCodeWriteGateway
+class UserMfaRecoveryCodeCommandRepositoryAdapter implements UserMfaRecoveryCodeCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -169,6 +169,90 @@ class UserMfaRecoveryCodeCommandRepositoryAdapter implements UserMfaRecoveryCode
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserMfaRecoveryCodeRef $ref): ?UserMfaRecoveryCode
+    {
+        if ($ref instanceof UserMfaRecoveryCode) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserMfaRecoveryCodeFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserMfaRecoveryCodeFilter $filter = null, ?UserMfaRecoveryCodeCursor $cursor = null): UserMfaRecoveryCodeSlide
+    {
+        $this->logDebug("List for User mfa recovery code on adapter ");
+        $span = $this->startSpan("List for User mfa recovery code on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeFilter $slide, ?UserMfaRecoveryCodeCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserMfaRecoveryCodeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserMfaRecoveryCodeFilter $filter): ?UserMfaRecoveryCode
+    {
+        $this->logDebug("Retrieve for User mfa recovery code on adapter ");
+        $span = $this->startSpan("Retrieve for User mfa recovery code on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserMfaRecoveryCodeFilter $filter): bool
+    {
+        $this->logDebug("Exists for User mfa recovery code on adapter ");
+        $span = $this->startSpan("Exists for User mfa recovery code on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserMfaRecoveryCodeFilter $filter = null): int
+    {
+        $this->logDebug("Count for User mfa recovery code on adapter ");
+        $span = $this->startSpan("Count for User mfa recovery code on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserMfaRecoveryCode
+    {
+        $this->logDebug("Find on by uid for User mfa recovery code on adapter");
+        $span = $this->startSpan("Find on by uid for User mfa recovery code on adapter");
+        try {
+            return $this->conn->retrieve(new UserMfaRecoveryCodeFilter(uids: [$uid]));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

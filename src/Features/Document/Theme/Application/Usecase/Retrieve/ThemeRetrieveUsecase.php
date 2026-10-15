@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\Theme\Domain\ThemeRef;
 use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeVisibilityService;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class ThemeRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ThemeVisibilityService $visibility,
-        private readonly ThemeReadGateway $reader
+        private readonly ThemeQueryRepositoryGateway $reader
     ) {
     }
 

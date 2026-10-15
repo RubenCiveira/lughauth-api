@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateVisibilityService;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateFilter;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCursor;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateAttributesSlide;
@@ -25,7 +25,7 @@ class TemplateListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVisibilityService $visibility,
-        private readonly TemplateReadGateway $reader
+        private readonly TemplateQueryRepositoryGateway $reader
     ) {
     }
 

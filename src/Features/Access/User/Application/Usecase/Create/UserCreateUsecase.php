@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserVisibilityService;
 use Civi\Lughauth\Features\Access\User\Domain\User;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class UserCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserVisibilityService $visibility,
-        private readonly UserWriteGateway $writer,
+        private readonly UserCommandRepositoryGateway $writer,
     ) {
     }
 

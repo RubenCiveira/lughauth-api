@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Notification\Message\Domain\MessageRef;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageVisibilityService;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageReadGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class MessageRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly MessageVisibilityService $visibility,
-        private readonly MessageReadGateway $reader
+        private readonly MessageQueryRepositoryGateway $reader
     ) {
     }
 

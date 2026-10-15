@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\ThemeAsset\Application\Service\Visibility\ThemeAssetVisibilityService;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\ThemeAsset;
-use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class ThemeAssetCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ThemeAssetVisibilityService $visibility,
-        private readonly ThemeAssetWriteGateway $writer,
+        private readonly ThemeAssetCommandRepositoryGateway $writer,
     ) {
     }
 

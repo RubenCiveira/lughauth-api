@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Notification\Message\Domain\MessageAttributes;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageFilter;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCursor;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageReadGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageQueryRepositoryGateway;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageSlide;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class MessageVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly MessageReadGateway $readGateway,
-        private readonly MessageWriteGateway $writeGateway,
+        private readonly MessageQueryRepositoryGateway $readGateway,
+        private readonly MessageCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

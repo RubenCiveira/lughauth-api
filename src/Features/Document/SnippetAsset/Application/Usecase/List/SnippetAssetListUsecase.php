@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Service\Visibility\SnippetAssetVisibilityService;
-use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetReadGateway;
+use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetFilter;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetCursor;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetAttributesSlide;
@@ -25,7 +25,7 @@ class SnippetAssetListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SnippetAssetVisibilityService $visibility,
-        private readonly SnippetAssetReadGateway $reader
+        private readonly SnippetAssetQueryRepositoryGateway $reader
     ) {
     }
 

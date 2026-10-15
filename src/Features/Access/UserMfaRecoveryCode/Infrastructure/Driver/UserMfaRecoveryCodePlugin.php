@@ -7,18 +7,18 @@ namespace Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Drive
 
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Driven\UserMfaRecoveryCodeReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Driven\UserMfaRecoveryCodeQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Infrastructure\Driven\UserMfaRecoveryCodeCommandRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeReadGateway;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
 
 class UserMfaRecoveryCodePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserMfaRecoveryCodeReadGateway::class] = \DI\autowire(UserMfaRecoveryCodeReadRepositoryAdapter::class);
-        $def[UserMfaRecoveryCodeWriteGateway::class] = \DI\autowire(UserMfaRecoveryCodeCommandRepositoryAdapter::class);
+        $def[UserMfaRecoveryCodeQueryRepositoryGateway::class] = \DI\autowire(UserMfaRecoveryCodeQueryRepositoryAdapter::class);
+        $def[UserMfaRecoveryCodeCommandRepositoryGateway::class] = \DI\autowire(UserMfaRecoveryCodeCommandRepositoryAdapter::class);
         return $def;
     }
 }

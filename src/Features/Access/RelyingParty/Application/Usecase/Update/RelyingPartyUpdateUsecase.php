@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingPartyRef;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class RelyingPartyUpdateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
-        private readonly RelyingPartyWriteGateway $writer,
+        private readonly RelyingPartyCommandRepositoryGateway $writer,
     ) {
     }
 

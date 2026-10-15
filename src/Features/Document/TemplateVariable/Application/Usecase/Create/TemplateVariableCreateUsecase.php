@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Service\Visibility\TemplateVariableVisibilityService;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\TemplateVariable;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class TemplateVariableCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVariableVisibilityService $visibility,
-        private readonly TemplateVariableWriteGateway $writer,
+        private readonly TemplateVariableCommandRepositoryGateway $writer,
     ) {
     }
 

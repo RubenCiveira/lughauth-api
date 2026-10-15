@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionAttrib
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionFilter;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCursor;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionSlide;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class TemplateVersionVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TemplateVersionReadGateway $readGateway,
-        private readonly TemplateVersionWriteGateway $writeGateway,
+        private readonly TemplateVersionQueryRepositoryGateway $readGateway,
+        private readonly TemplateVersionCommandRepositoryGateway $writeGateway,
         private readonly TemplateVisibilityService $templateVisibilityService
     ) {
     }

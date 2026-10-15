@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipVisibilityService;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCursor;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipAttributesSlide;
@@ -25,7 +25,7 @@ class UserGroupMembershipListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserGroupMembershipVisibilityService $visibility,
-        private readonly UserGroupMembershipReadGateway $reader
+        private readonly UserGroupMembershipQueryRepositoryGateway $reader
     ) {
     }
 

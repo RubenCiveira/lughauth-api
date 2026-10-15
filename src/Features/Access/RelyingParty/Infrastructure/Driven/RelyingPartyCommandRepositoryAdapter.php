@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Connector\Pdo\RelyingPartyPdoConnector;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartySlide;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class RelyingPartyCommandRepositoryAdapter implements RelyingPartyWriteGateway
+class RelyingPartyCommandRepositoryAdapter implements RelyingPartyCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -197,6 +197,118 @@ class RelyingPartyCommandRepositoryAdapter implements RelyingPartyWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(RelyingPartyRef $ref): ?RelyingParty
+    {
+        if ($ref instanceof RelyingParty) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new RelyingPartyFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?RelyingPartyFilter $filter = null, ?RelyingPartyCursor $cursor = null): RelyingPartySlide
+    {
+        $this->logDebug("List for Relying party on adapter ");
+        $span = $this->startSpan("List for Relying party on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new RelyingPartySlide(function (RelyingPartyFilter $slide, ?RelyingPartyCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new RelyingPartyCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(RelyingPartyFilter $filter): ?RelyingParty
+    {
+        $this->logDebug("Retrieve for Relying party on adapter ");
+        $span = $this->startSpan("Retrieve for Relying party on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(RelyingPartyFilter $filter): bool
+    {
+        $this->logDebug("Exists for Relying party on adapter ");
+        $span = $this->startSpan("Exists for Relying party on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?RelyingPartyFilter $filter = null): int
+    {
+        $this->logDebug("Count for Relying party on adapter ");
+        $span = $this->startSpan("Count for Relying party on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?RelyingParty
+    {
+        $this->logDebug("Find on by uid for Relying party on adapter");
+        $span = $this->startSpan("Find on by uid for Relying party on adapter");
+        try {
+            return $this->conn->retrieve(new RelyingPartyFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCode(string $code): ?RelyingParty
+    {
+        $this->logDebug("Find on by code for Relying party on adapter");
+        $span = $this->startSpan("Find on by code for Relying party on adapter");
+        try {
+            return $this->conn->retrieve(new RelyingPartyFilter(code: $code));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByApiKey(string $apiKey): ?RelyingParty
+    {
+        $this->logDebug("Find on by api key for Relying party on adapter");
+        $span = $this->startSpan("Find on by api key for Relying party on adapter");
+        try {
+            return $this->conn->retrieve(new RelyingPartyFilter(apiKey: $apiKey));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

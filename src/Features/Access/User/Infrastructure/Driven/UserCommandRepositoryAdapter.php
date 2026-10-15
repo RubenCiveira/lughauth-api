@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Connector\Pdo\UserPdoConnector;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserSlide;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserCommandRepositoryAdapter implements UserWriteGateway
+class UserCommandRepositoryAdapter implements UserCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -184,6 +184,104 @@ class UserCommandRepositoryAdapter implements UserWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserRef $ref): ?User
+    {
+        if ($ref instanceof User) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserFilter $filter = null, ?UserCursor $cursor = null): UserSlide
+    {
+        $this->logDebug("List for User on adapter ");
+        $span = $this->startSpan("List for User on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserSlide(function (UserFilter $slide, ?UserCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserFilter $filter): ?User
+    {
+        $this->logDebug("Retrieve for User on adapter ");
+        $span = $this->startSpan("Retrieve for User on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserFilter $filter): bool
+    {
+        $this->logDebug("Exists for User on adapter ");
+        $span = $this->startSpan("Exists for User on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserFilter $filter = null): int
+    {
+        $this->logDebug("Count for User on adapter ");
+        $span = $this->startSpan("Count for User on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?User
+    {
+        $this->logDebug("Find on by uid for User on adapter");
+        $span = $this->startSpan("Find on by uid for User on adapter");
+        try {
+            return $this->conn->retrieve(new UserFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByTenantAndName(TenantRef $tenant, string $name): ?User
+    {
+        $this->logDebug("Find on by tenant name for User on adapter");
+        $span = $this->startSpan("Find on by tenant name for User on adapter");
+        try {
+            return $this->conn->retrieve(new UserFilter(tenantAndName: UserFilter::tenantAndNameFilter(tenant: $tenant, name: $name)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

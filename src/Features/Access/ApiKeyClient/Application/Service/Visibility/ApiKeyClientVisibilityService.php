@@ -13,9 +13,9 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientAttributes;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientSlide;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,8 +26,8 @@ class ApiKeyClientVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly ApiKeyClientReadGateway $readGateway,
-        private readonly ApiKeyClientWriteGateway $writeGateway
+        private readonly ApiKeyClientQueryRepositoryGateway $readGateway,
+        private readonly ApiKeyClientCommandRepositoryGateway $writeGateway
     ) {
     }
 

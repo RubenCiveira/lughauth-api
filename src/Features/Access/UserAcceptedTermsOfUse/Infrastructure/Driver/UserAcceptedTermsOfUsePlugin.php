@@ -7,18 +7,18 @@ namespace Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Infrastructure\Dr
 
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Infrastructure\Driven\UserAcceptedTermsOfUseReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Infrastructure\Driven\UserAcceptedTermsOfUseQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Infrastructure\Driven\UserAcceptedTermsOfUseCommandRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseReadGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseCommandRepositoryGateway;
 
 class UserAcceptedTermsOfUsePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserAcceptedTermsOfUseReadGateway::class] = \DI\autowire(UserAcceptedTermsOfUseReadRepositoryAdapter::class);
-        $def[UserAcceptedTermsOfUseWriteGateway::class] = \DI\autowire(UserAcceptedTermsOfUseCommandRepositoryAdapter::class);
+        $def[UserAcceptedTermsOfUseQueryRepositoryGateway::class] = \DI\autowire(UserAcceptedTermsOfUseQueryRepositoryAdapter::class);
+        $def[UserAcceptedTermsOfUseCommandRepositoryGateway::class] = \DI\autowire(UserAcceptedTermsOfUseCommandRepositoryAdapter::class);
         return $def;
     }
 }

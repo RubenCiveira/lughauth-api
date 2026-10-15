@@ -21,9 +21,6 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Service\Visibility\UserPersonalApiKeyRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driven\UserPersonalApiKeyReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyReadGateway;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyWriteGateway;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Allow\IsSelfUserAllow;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Update\UserPersonalApiKeyUpdateAllowDecision;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Retrieve\UserPersonalApiKeyRetrieveAllowDecision;
@@ -32,14 +29,17 @@ use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Revoke\
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Filter\OnlySelfAccessibles;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driven\UserPersonalApiKeyCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driven\UserPersonalApiKeyQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyCommandRepositoryGateway;
 
 class UserPersonalApiKeyPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserPersonalApiKeyReadGateway::class] = \DI\autowire(UserPersonalApiKeyReadRepositoryAdapter::class);
-        $def[UserPersonalApiKeyWriteGateway::class] = \DI\autowire(UserPersonalApiKeyCommandRepositoryAdapter::class);
+        $def[UserPersonalApiKeyQueryRepositoryGateway::class] = \DI\autowire(UserPersonalApiKeyQueryRepositoryAdapter::class);
+        $def[UserPersonalApiKeyCommandRepositoryGateway::class] = \DI\autowire(UserPersonalApiKeyCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

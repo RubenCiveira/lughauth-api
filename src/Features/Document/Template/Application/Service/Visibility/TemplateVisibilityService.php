@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\Template\Domain\TemplateAttributes;
 use Civi\Lughauth\Features\Document\Template\Domain\Template;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateFilter;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCursor;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateSlide;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class TemplateVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TemplateReadGateway $readGateway,
-        private readonly TemplateWriteGateway $writeGateway,
+        private readonly TemplateQueryRepositoryGateway $readGateway,
+        private readonly TemplateCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientVisibilityService;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class TrustedClientCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientVisibilityService $visibility,
-        private readonly TrustedClientWriteGateway $writer,
+        private readonly TrustedClientCommandRepositoryGateway $writer,
     ) {
     }
 

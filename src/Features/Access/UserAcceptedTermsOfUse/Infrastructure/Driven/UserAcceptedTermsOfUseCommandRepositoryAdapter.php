@@ -11,7 +11,7 @@ use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Infrastructure\Connector\Pdo\UserAcceptedTermsOfUsePdoConnector;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseSlide;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseCursor;
@@ -22,7 +22,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserAcceptedTermsOfUseCommandRepositoryAdapter implements UserAcceptedTermsOfUseWriteGateway
+class UserAcceptedTermsOfUseCommandRepositoryAdapter implements UserAcceptedTermsOfUseCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -185,6 +185,104 @@ class UserAcceptedTermsOfUseCommandRepositoryAdapter implements UserAcceptedTerm
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserAcceptedTermsOfUseRef $ref): ?UserAcceptedTermsOfUse
+    {
+        if ($ref instanceof UserAcceptedTermsOfUse) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserAcceptedTermsOfUseFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserAcceptedTermsOfUseFilter $filter = null, ?UserAcceptedTermsOfUseCursor $cursor = null): UserAcceptedTermsOfUseSlide
+    {
+        $this->logDebug("List for User accepted terms of use on adapter ");
+        $span = $this->startSpan("List for User accepted terms of use on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserAcceptedTermsOfUseSlide(function (UserAcceptedTermsOfUseFilter $slide, ?UserAcceptedTermsOfUseCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserAcceptedTermsOfUseCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserAcceptedTermsOfUseFilter $filter): ?UserAcceptedTermsOfUse
+    {
+        $this->logDebug("Retrieve for User accepted terms of use on adapter ");
+        $span = $this->startSpan("Retrieve for User accepted terms of use on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserAcceptedTermsOfUseFilter $filter): bool
+    {
+        $this->logDebug("Exists for User accepted terms of use on adapter ");
+        $span = $this->startSpan("Exists for User accepted terms of use on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserAcceptedTermsOfUseFilter $filter = null): int
+    {
+        $this->logDebug("Count for User accepted terms of use on adapter ");
+        $span = $this->startSpan("Count for User accepted terms of use on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserAcceptedTermsOfUse
+    {
+        $this->logDebug("Find on by uid for User accepted terms of use on adapter");
+        $span = $this->startSpan("Find on by uid for User accepted terms of use on adapter");
+        try {
+            return $this->conn->retrieve(new UserAcceptedTermsOfUseFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUserAndConditions(UserRef $user, TenantTermsOfUseRef $conditions): ?UserAcceptedTermsOfUse
+    {
+        $this->logDebug("Find on by user conditions for User accepted terms of use on adapter");
+        $span = $this->startSpan("Find on by user conditions for User accepted terms of use on adapter");
+        try {
+            return $this->conn->retrieve(new UserAcceptedTermsOfUseFilter(userAndConditions: UserAcceptedTermsOfUseFilter::userAndConditionsFilter(user: $user, conditions: $conditions)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigWriteGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCommandRepositoryGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Connector\Pdo\SmtpOutboundConfigPdoConnector;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigSlide;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class SmtpOutboundConfigCommandRepositoryAdapter implements SmtpOutboundConfigWriteGateway
+class SmtpOutboundConfigCommandRepositoryAdapter implements SmtpOutboundConfigCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -170,6 +170,90 @@ class SmtpOutboundConfigCommandRepositoryAdapter implements SmtpOutboundConfigWr
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(SmtpOutboundConfigRef $ref): ?SmtpOutboundConfig
+    {
+        if ($ref instanceof SmtpOutboundConfig) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new SmtpOutboundConfigFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?SmtpOutboundConfigFilter $filter = null, ?SmtpOutboundConfigCursor $cursor = null): SmtpOutboundConfigSlide
+    {
+        $this->logDebug("List for Smtp outbound config on adapter ");
+        $span = $this->startSpan("List for Smtp outbound config on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigFilter $slide, ?SmtpOutboundConfigCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new SmtpOutboundConfigCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(SmtpOutboundConfigFilter $filter): ?SmtpOutboundConfig
+    {
+        $this->logDebug("Retrieve for Smtp outbound config on adapter ");
+        $span = $this->startSpan("Retrieve for Smtp outbound config on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(SmtpOutboundConfigFilter $filter): bool
+    {
+        $this->logDebug("Exists for Smtp outbound config on adapter ");
+        $span = $this->startSpan("Exists for Smtp outbound config on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?SmtpOutboundConfigFilter $filter = null): int
+    {
+        $this->logDebug("Count for Smtp outbound config on adapter ");
+        $span = $this->startSpan("Count for Smtp outbound config on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByTenant(?TenantRef $tenant): ?SmtpOutboundConfig
+    {
+        $this->logDebug("Find on by tenant for Smtp outbound config on adapter");
+        $span = $this->startSpan("Find on by tenant for Smtp outbound config on adapter");
+        try {
+            return $this->conn->retrieve(new SmtpOutboundConfigFilter(tenant: $tenant));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

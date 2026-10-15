@@ -24,19 +24,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Service\Visibility\TemplateVariableRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Service\Visibility\TemplateVariableCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driven\TemplateVariableReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableReadGateway;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableWriteGateway;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driven\TemplateVariableCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Driven\TemplateVariableQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCommandRepositoryGateway;
 
 class TemplateVariablePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TemplateVariableReadGateway::class] = \DI\autowire(TemplateVariableReadRepositoryAdapter::class);
-        $def[TemplateVariableWriteGateway::class] = \DI\autowire(TemplateVariableCommandRepositoryAdapter::class);
+        $def[TemplateVariableQueryRepositoryGateway::class] = \DI\autowire(TemplateVariableQueryRepositoryAdapter::class);
+        $def[TemplateVariableCommandRepositoryGateway::class] = \DI\autowire(TemplateVariableCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

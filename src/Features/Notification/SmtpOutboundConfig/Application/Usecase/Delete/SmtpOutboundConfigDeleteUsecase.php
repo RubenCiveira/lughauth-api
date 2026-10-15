@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\SmtpOutboundConfigRef;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigVisibilityService;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigWriteGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class SmtpOutboundConfigDeleteUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SmtpOutboundConfigVisibilityService $visibility,
-        private readonly SmtpOutboundConfigWriteGateway $writer,
+        private readonly SmtpOutboundConfigCommandRepositoryGateway $writer,
     ) {
     }
 

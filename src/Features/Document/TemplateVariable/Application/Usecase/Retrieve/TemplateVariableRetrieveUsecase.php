@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\TemplateVariableRef;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Service\Visibility\TemplateVariableVisibilityService;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableReadGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class TemplateVariableRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVariableVisibilityService $visibility,
-        private readonly TemplateVariableReadGateway $reader
+        private readonly TemplateVariableQueryRepositoryGateway $reader
     ) {
     }
 

@@ -108,7 +108,7 @@ class MfaAdapter implements MfaGateway
             $theUser = $this->users->checkUserSubjet($theTenant, $userUid);
             $valid = $this->mfaGateway->verifyNewOpt($tenant, $theUser->getName(), $seed, $otp);
             if (!$valid) {
-                throw new BadRequestException('Invalid OTP code');
+                throw new \BadRequestException('Invalid OTP code');
             }
             $this->mfaGateway->storeSeed($tenant, $theUser->getName(), $seed);
         } catch (Throwable $ex) {

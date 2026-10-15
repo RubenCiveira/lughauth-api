@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetVisibilityService;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class TemplateAssetUploadContentUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateAssetVisibilityService $visibility,
-        private readonly TemplateAssetWriteGateway $writer
+        private readonly TemplateAssetCommandRepositoryGateway $writer
     ) {
     }
 

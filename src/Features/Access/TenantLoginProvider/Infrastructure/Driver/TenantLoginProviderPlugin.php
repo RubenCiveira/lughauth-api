@@ -26,19 +26,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCommandRepositoryGateway;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TenantLoginProviderReadGateway::class] = \DI\autowire(TenantLoginProviderReadRepositoryAdapter::class);
-        $def[TenantLoginProviderWriteGateway::class] = \DI\autowire(TenantLoginProviderCommandRepositoryAdapter::class);
+        $def[TenantLoginProviderQueryRepositoryGateway::class] = \DI\autowire(TenantLoginProviderQueryRepositoryAdapter::class);
+        $def[TenantLoginProviderCommandRepositoryGateway::class] = \DI\autowire(TenantLoginProviderCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

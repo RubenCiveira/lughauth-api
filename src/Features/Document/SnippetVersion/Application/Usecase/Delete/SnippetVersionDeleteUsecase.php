@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\SnippetVersionRef;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionVisibilityService;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionWriteGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class SnippetVersionDeleteUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SnippetVersionVisibilityService $visibility,
-        private readonly SnippetVersionWriteGateway $writer,
+        private readonly SnippetVersionCommandRepositoryGateway $writer,
     ) {
     }
 

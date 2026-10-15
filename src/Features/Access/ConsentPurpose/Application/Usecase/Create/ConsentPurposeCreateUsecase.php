@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeVisibilityService;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeWriteGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class ConsentPurposeCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ConsentPurposeVisibilityService $visibility,
-        private readonly ConsentPurposeWriteGateway $writer,
+        private readonly ConsentPurposeCommandRepositoryGateway $writer,
     ) {
     }
 

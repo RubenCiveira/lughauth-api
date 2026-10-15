@@ -25,19 +25,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCommandRepositoryGateway;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TenantTermsOfUseReadGateway::class] = \DI\autowire(TenantTermsOfUseReadRepositoryAdapter::class);
-        $def[TenantTermsOfUseWriteGateway::class] = \DI\autowire(TenantTermsOfUseCommandRepositoryAdapter::class);
+        $def[TenantTermsOfUseQueryRepositoryGateway::class] = \DI\autowire(TenantTermsOfUseQueryRepositoryAdapter::class);
+        $def[TenantTermsOfUseCommandRepositoryGateway::class] = \DI\autowire(TenantTermsOfUseCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

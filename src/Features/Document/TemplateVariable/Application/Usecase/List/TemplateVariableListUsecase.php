@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\TemplateVariable\Application\Service\Visibility\TemplateVariableVisibilityService;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableReadGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableFilter;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCursor;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableAttributesSlide;
@@ -25,7 +25,7 @@ class TemplateVariableListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVariableVisibilityService $visibility,
-        private readonly TemplateVariableReadGateway $reader
+        private readonly TemplateVariableQueryRepositoryGateway $reader
     ) {
     }
 

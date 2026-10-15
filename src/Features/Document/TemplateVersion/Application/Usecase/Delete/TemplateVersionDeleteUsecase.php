@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersionRef;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Service\Visibility\TemplateVersionVisibilityService;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class TemplateVersionDeleteUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVersionVisibilityService $visibility,
-        private readonly TemplateVersionWriteGateway $writer,
+        private readonly TemplateVersionCommandRepositoryGateway $writer,
     ) {
     }
 

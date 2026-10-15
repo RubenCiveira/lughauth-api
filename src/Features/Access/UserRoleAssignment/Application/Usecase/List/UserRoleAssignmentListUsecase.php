@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Application\Service\Visibility\UserRoleAssignmentVisibilityService;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentReadGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentFilter;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCursor;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentAttributesSlide;
@@ -25,7 +25,7 @@ class UserRoleAssignmentListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserRoleAssignmentVisibilityService $visibility,
-        private readonly UserRoleAssignmentReadGateway $reader
+        private readonly UserRoleAssignmentQueryRepositoryGateway $reader
     ) {
     }
 

@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersionAttributes;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersion;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionFilter;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCursor;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionReadGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionSlide;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class ThemeVersionVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly ThemeVersionReadGateway $readGateway,
-        private readonly ThemeVersionWriteGateway $writeGateway,
+        private readonly ThemeVersionQueryRepositoryGateway $readGateway,
+        private readonly ThemeVersionCommandRepositoryGateway $writeGateway,
         private readonly ThemeVisibilityService $themeVisibilityService
     ) {
     }

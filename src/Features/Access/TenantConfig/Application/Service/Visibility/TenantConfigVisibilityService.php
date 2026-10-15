@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigAttributes;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfig;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigFilter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCursor;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigSlide;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class TenantConfigVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TenantConfigReadGateway $readGateway,
-        private readonly TenantConfigWriteGateway $writeGateway,
+        private readonly TenantConfigQueryRepositoryGateway $readGateway,
+        private readonly TenantConfigCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

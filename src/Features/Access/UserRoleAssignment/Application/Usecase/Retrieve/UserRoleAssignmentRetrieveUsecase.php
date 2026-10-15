@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignmentRef;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Application\Service\Visibility\UserRoleAssignmentVisibilityService;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentReadGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class UserRoleAssignmentRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserRoleAssignmentVisibilityService $visibility,
-        private readonly UserRoleAssignmentReadGateway $reader
+        private readonly UserRoleAssignmentQueryRepositoryGateway $reader
     ) {
     }
 

@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\ThemeVersion\Application\Service\Visibility\ThemeVersionVisibilityService;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\ThemeVersion;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class ThemeVersionCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ThemeVersionVisibilityService $visibility,
-        private readonly ThemeVersionWriteGateway $writer,
+        private readonly ThemeVersionCommandRepositoryGateway $writer,
     ) {
     }
 

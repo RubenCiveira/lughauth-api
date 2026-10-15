@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Service\Visibility\TemplateVersionVisibilityService;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\TemplateVersion;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class TemplateVersionCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVersionVisibilityService $visibility,
-        private readonly TemplateVersionWriteGateway $writer,
+        private readonly TemplateVersionCommandRepositoryGateway $writer,
     ) {
     }
 

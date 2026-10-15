@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileWriteGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Connector\Pdo\UserProfilePdoConnector;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileSlide;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserProfileCommandRepositoryAdapter implements UserProfileWriteGateway
+class UserProfileCommandRepositoryAdapter implements UserProfileCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -184,6 +184,104 @@ class UserProfileCommandRepositoryAdapter implements UserProfileWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserProfileRef $ref): ?UserProfile
+    {
+        if ($ref instanceof UserProfile) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserProfileFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserProfileFilter $filter = null, ?UserProfileCursor $cursor = null): UserProfileSlide
+    {
+        $this->logDebug("List for User profile on adapter ");
+        $span = $this->startSpan("List for User profile on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserProfileSlide(function (UserProfileFilter $slide, ?UserProfileCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserProfileCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserProfileFilter $filter): ?UserProfile
+    {
+        $this->logDebug("Retrieve for User profile on adapter ");
+        $span = $this->startSpan("Retrieve for User profile on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserProfileFilter $filter): bool
+    {
+        $this->logDebug("Exists for User profile on adapter ");
+        $span = $this->startSpan("Exists for User profile on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserProfileFilter $filter = null): int
+    {
+        $this->logDebug("Count for User profile on adapter ");
+        $span = $this->startSpan("Count for User profile on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserProfile
+    {
+        $this->logDebug("Find on by uid for User profile on adapter");
+        $span = $this->startSpan("Find on by uid for User profile on adapter");
+        try {
+            return $this->conn->retrieve(new UserProfileFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUser(UserRef $user): ?UserProfile
+    {
+        $this->logDebug("Find on by user for User profile on adapter");
+        $span = $this->startSpan("Find on by user for User profile on adapter");
+        try {
+            return $this->conn->retrieve(new UserProfileFilter(user: $user));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -19,9 +19,9 @@ use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignmentAt
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\UserRoleAssignment;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentFilter;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCursor;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentReadGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentSlide;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentWriteGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -32,8 +32,8 @@ class UserRoleAssignmentVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly UserRoleAssignmentReadGateway $readGateway,
-        private readonly UserRoleAssignmentWriteGateway $writeGateway,
+        private readonly UserRoleAssignmentQueryRepositoryGateway $readGateway,
+        private readonly UserRoleAssignmentCommandRepositoryGateway $writeGateway,
         private readonly UserVisibilityService $userVisibilityService,
         private readonly RelyingPartyVisibilityService $relyingPartyVisibilityService,
         private readonly TrustedClientVisibilityService $trustedClientVisibilityService,

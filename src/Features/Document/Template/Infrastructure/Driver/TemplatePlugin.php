@@ -24,19 +24,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\Template\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
 use Civi\Lughauth\Features\Document\Template\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCommandRepositoryGateway;
 
 class TemplatePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TemplateReadGateway::class] = \DI\autowire(TemplateReadRepositoryAdapter::class);
-        $def[TemplateWriteGateway::class] = \DI\autowire(TemplateCommandRepositoryAdapter::class);
+        $def[TemplateQueryRepositoryGateway::class] = \DI\autowire(TemplateQueryRepositoryAdapter::class);
+        $def[TemplateCommandRepositoryGateway::class] = \DI\autowire(TemplateCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

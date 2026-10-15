@@ -20,19 +20,19 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCommandRepositoryGateway;
 
 class UserGroupMembershipPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserGroupMembershipReadGateway::class] = \DI\autowire(UserGroupMembershipReadRepositoryAdapter::class);
-        $def[UserGroupMembershipWriteGateway::class] = \DI\autowire(UserGroupMembershipCommandRepositoryAdapter::class);
+        $def[UserGroupMembershipQueryRepositoryGateway::class] = \DI\autowire(UserGroupMembershipQueryRepositoryAdapter::class);
+        $def[UserGroupMembershipCommandRepositoryGateway::class] = \DI\autowire(UserGroupMembershipCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

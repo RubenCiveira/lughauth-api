@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Connector\Pdo\TenantPdoConnector;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TenantCommandRepositoryAdapter implements TenantWriteGateway
+class TenantCommandRepositoryAdapter implements TenantCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -197,6 +197,118 @@ class TenantCommandRepositoryAdapter implements TenantWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TenantRef $ref): ?Tenant
+    {
+        if ($ref instanceof Tenant) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TenantFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TenantFilter $filter = null, ?TenantCursor $cursor = null): TenantSlide
+    {
+        $this->logDebug("List for Tenant on adapter ");
+        $span = $this->startSpan("List for Tenant on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TenantSlide(function (TenantFilter $slide, ?TenantCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TenantCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TenantFilter $filter): ?Tenant
+    {
+        $this->logDebug("Retrieve for Tenant on adapter ");
+        $span = $this->startSpan("Retrieve for Tenant on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TenantFilter $filter): bool
+    {
+        $this->logDebug("Exists for Tenant on adapter ");
+        $span = $this->startSpan("Exists for Tenant on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TenantFilter $filter = null): int
+    {
+        $this->logDebug("Count for Tenant on adapter ");
+        $span = $this->startSpan("Count for Tenant on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?Tenant
+    {
+        $this->logDebug("Find on by uid for Tenant on adapter");
+        $span = $this->startSpan("Find on by uid for Tenant on adapter");
+        try {
+            return $this->conn->retrieve(new TenantFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByName(string $name): ?Tenant
+    {
+        $this->logDebug("Find on by name for Tenant on adapter");
+        $span = $this->startSpan("Find on by name for Tenant on adapter");
+        try {
+            return $this->conn->retrieve(new TenantFilter(name: $name));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByDomain(string $domain): ?Tenant
+    {
+        $this->logDebug("Find on by domain for Tenant on adapter");
+        $span = $this->startSpan("Find on by domain for Tenant on adapter");
+        try {
+            return $this->conn->retrieve(new TenantFilter(domain: $domain));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

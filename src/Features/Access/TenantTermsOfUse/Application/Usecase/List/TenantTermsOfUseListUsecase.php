@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseVisibilityService;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseFilter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseCursor;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseAttributesSlide;
@@ -25,7 +25,7 @@ class TenantTermsOfUseListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantTermsOfUseVisibilityService $visibility,
-        private readonly TenantTermsOfUseReadGateway $reader
+        private readonly TenantTermsOfUseQueryRepositoryGateway $reader
     ) {
     }
 

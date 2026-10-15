@@ -20,19 +20,19 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Service\Visibility\TemplateVersionRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCommandRepositoryGateway;
 
 class TemplateVersionPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TemplateVersionReadGateway::class] = \DI\autowire(TemplateVersionReadRepositoryAdapter::class);
-        $def[TemplateVersionWriteGateway::class] = \DI\autowire(TemplateVersionCommandRepositoryAdapter::class);
+        $def[TemplateVersionQueryRepositoryGateway::class] = \DI\autowire(TemplateVersionQueryRepositoryAdapter::class);
+        $def[TemplateVersionCommandRepositoryGateway::class] = \DI\autowire(TemplateVersionCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

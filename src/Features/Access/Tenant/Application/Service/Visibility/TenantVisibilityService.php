@@ -13,9 +13,9 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\TenantAttributes;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantSlide;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -26,8 +26,8 @@ class TenantVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TenantReadGateway $readGateway,
-        private readonly TenantWriteGateway $writeGateway
+        private readonly TenantQueryRepositoryGateway $readGateway,
+        private readonly TenantCommandRepositoryGateway $writeGateway
     ) {
     }
 

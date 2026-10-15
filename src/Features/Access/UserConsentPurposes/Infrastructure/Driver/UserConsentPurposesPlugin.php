@@ -7,18 +7,18 @@ namespace Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Drive
 
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driven\UserConsentPurposesReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driven\UserConsentPurposesQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driven\UserConsentPurposesCommandRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesReadGateway;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesWriteGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesCommandRepositoryGateway;
 
 class UserConsentPurposesPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserConsentPurposesReadGateway::class] = \DI\autowire(UserConsentPurposesReadRepositoryAdapter::class);
-        $def[UserConsentPurposesWriteGateway::class] = \DI\autowire(UserConsentPurposesCommandRepositoryAdapter::class);
+        $def[UserConsentPurposesQueryRepositoryGateway::class] = \DI\autowire(UserConsentPurposesQueryRepositoryAdapter::class);
+        $def[UserConsentPurposesCommandRepositoryGateway::class] = \DI\autowire(UserConsentPurposesCommandRepositoryAdapter::class);
         return $def;
     }
 }

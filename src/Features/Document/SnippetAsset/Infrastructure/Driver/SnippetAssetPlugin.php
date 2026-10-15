@@ -23,19 +23,19 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Service\Visibility\SnippetAssetRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\SnippetAsset\Infrastructure\Driven\SnippetAssetReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetReadGateway;
-use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetWriteGateway;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\SnippetAsset\Infrastructure\Driven\SnippetAssetCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\SnippetAsset\Infrastructure\Driven\SnippetAssetQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetCommandRepositoryGateway;
 
 class SnippetAssetPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[SnippetAssetReadGateway::class] = \DI\autowire(SnippetAssetReadRepositoryAdapter::class);
-        $def[SnippetAssetWriteGateway::class] = \DI\autowire(SnippetAssetCommandRepositoryAdapter::class);
+        $def[SnippetAssetQueryRepositoryGateway::class] = \DI\autowire(SnippetAssetQueryRepositoryAdapter::class);
+        $def[SnippetAssetCommandRepositoryGateway::class] = \DI\autowire(SnippetAssetCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

@@ -21,18 +21,18 @@ use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Application\Service\Visibility\UserRoleAssignmentRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Application\Policy\Filter\TenantAccessible;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Infrastructure\Driven\UserRoleAssignmentReadRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserRoleAssignment\Infrastructure\Driven\UserRoleAssignmentCommandRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentReadGateway;
-use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentWriteGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Infrastructure\Driven\UserRoleAssignmentQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentCommandRepositoryGateway;
 
 class UserRoleAssignmentPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserRoleAssignmentReadGateway::class] = \DI\autowire(UserRoleAssignmentReadRepositoryAdapter::class);
-        $def[UserRoleAssignmentWriteGateway::class] = \DI\autowire(UserRoleAssignmentCommandRepositoryAdapter::class);
+        $def[UserRoleAssignmentQueryRepositoryGateway::class] = \DI\autowire(UserRoleAssignmentQueryRepositoryAdapter::class);
+        $def[UserRoleAssignmentCommandRepositoryGateway::class] = \DI\autowire(UserRoleAssignmentCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

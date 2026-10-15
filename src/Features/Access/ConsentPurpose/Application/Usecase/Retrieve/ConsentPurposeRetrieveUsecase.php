@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeRef;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeVisibilityService;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class ConsentPurposeRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ConsentPurposeVisibilityService $visibility,
-        private readonly ConsentPurposeReadGateway $reader
+        private readonly ConsentPurposeQueryRepositoryGateway $reader
     ) {
     }
 

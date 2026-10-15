@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\TenantConfigRef;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigVisibilityService;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class TenantConfigUpdateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantConfigVisibilityService $visibility,
-        private readonly TenantConfigWriteGateway $writer,
+        private readonly TenantConfigCommandRepositoryGateway $writer,
     ) {
     }
 

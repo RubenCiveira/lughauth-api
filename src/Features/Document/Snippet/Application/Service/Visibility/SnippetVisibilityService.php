@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\Snippet\Domain\SnippetAttributes;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Snippet;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetFilter;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetCursor;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetReadGateway;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetSlide;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetWriteGateway;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class SnippetVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly SnippetReadGateway $readGateway,
-        private readonly SnippetWriteGateway $writeGateway,
+        private readonly SnippetQueryRepositoryGateway $readGateway,
+        private readonly SnippetCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

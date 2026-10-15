@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeAttributes
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeFilter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCursor;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeSlide;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeWriteGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class ConsentPurposeVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly ConsentPurposeReadGateway $readGateway,
-        private readonly ConsentPurposeWriteGateway $writeGateway,
+        private readonly ConsentPurposeQueryRepositoryGateway $readGateway,
+        private readonly ConsentPurposeCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\Gateway\UserWebauthnCredentialWriteGateway;
+use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\Gateway\UserWebauthnCredentialCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Connector\Pdo\UserWebauthnCredentialPdoConnector;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\Gateway\UserWebauthnCredentialSlide;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\Gateway\UserWebauthnCredentialCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserWebauthnCredentialCommandRepositoryAdapter implements UserWebauthnCredentialWriteGateway
+class UserWebauthnCredentialCommandRepositoryAdapter implements UserWebauthnCredentialCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -198,6 +198,118 @@ class UserWebauthnCredentialCommandRepositoryAdapter implements UserWebauthnCred
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserWebauthnCredentialRef $ref): ?UserWebauthnCredential
+    {
+        if ($ref instanceof UserWebauthnCredential) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserWebauthnCredentialFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserWebauthnCredentialFilter $filter = null, ?UserWebauthnCredentialCursor $cursor = null): UserWebauthnCredentialSlide
+    {
+        $this->logDebug("List for User webauthn credential on adapter ");
+        $span = $this->startSpan("List for User webauthn credential on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserWebauthnCredentialSlide(function (UserWebauthnCredentialFilter $slide, ?UserWebauthnCredentialCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserWebauthnCredentialCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserWebauthnCredentialFilter $filter): ?UserWebauthnCredential
+    {
+        $this->logDebug("Retrieve for User webauthn credential on adapter ");
+        $span = $this->startSpan("Retrieve for User webauthn credential on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserWebauthnCredentialFilter $filter): bool
+    {
+        $this->logDebug("Exists for User webauthn credential on adapter ");
+        $span = $this->startSpan("Exists for User webauthn credential on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserWebauthnCredentialFilter $filter = null): int
+    {
+        $this->logDebug("Count for User webauthn credential on adapter ");
+        $span = $this->startSpan("Count for User webauthn credential on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserWebauthnCredential
+    {
+        $this->logDebug("Find on by uid for User webauthn credential on adapter");
+        $span = $this->startSpan("Find on by uid for User webauthn credential on adapter");
+        try {
+            return $this->conn->retrieve(new UserWebauthnCredentialFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByAuthenticator(string $authenticator): ?UserWebauthnCredential
+    {
+        $this->logDebug("Find on by authenticator for User webauthn credential on adapter");
+        $span = $this->startSpan("Find on by authenticator for User webauthn credential on adapter");
+        try {
+            return $this->conn->retrieve(new UserWebauthnCredentialFilter(authenticator: $authenticator));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUserAndName(UserRef $user, string $name): ?UserWebauthnCredential
+    {
+        $this->logDebug("Find on by user name for User webauthn credential on adapter");
+        $span = $this->startSpan("Find on by user name for User webauthn credential on adapter");
+        try {
+            return $this->conn->retrieve(new UserWebauthnCredentialFilter(userAndName: UserWebauthnCredentialFilter::userAndNameFilter(user: $user, name: $name)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

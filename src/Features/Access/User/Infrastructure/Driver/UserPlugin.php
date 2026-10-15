@@ -27,19 +27,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 
 class UserPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserReadGateway::class] = \DI\autowire(UserReadRepositoryAdapter::class);
-        $def[UserWriteGateway::class] = \DI\autowire(UserCommandRepositoryAdapter::class);
+        $def[UserQueryRepositoryGateway::class] = \DI\autowire(UserQueryRepositoryAdapter::class);
+        $def[UserCommandRepositoryGateway::class] = \DI\autowire(UserCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

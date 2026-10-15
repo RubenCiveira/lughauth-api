@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyWriteGateway;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Connector\Pdo\UserPersonalApiKeyPdoConnector;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeySlide;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserPersonalApiKeyCommandRepositoryAdapter implements UserPersonalApiKeyWriteGateway
+class UserPersonalApiKeyCommandRepositoryAdapter implements UserPersonalApiKeyCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -183,6 +183,104 @@ class UserPersonalApiKeyCommandRepositoryAdapter implements UserPersonalApiKeyWr
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserPersonalApiKeyRef $ref): ?UserPersonalApiKey
+    {
+        if ($ref instanceof UserPersonalApiKey) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserPersonalApiKeyFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserPersonalApiKeyFilter $filter = null, ?UserPersonalApiKeyCursor $cursor = null): UserPersonalApiKeySlide
+    {
+        $this->logDebug("List for User personal api key on adapter ");
+        $span = $this->startSpan("List for User personal api key on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserPersonalApiKeySlide(function (UserPersonalApiKeyFilter $slide, ?UserPersonalApiKeyCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserPersonalApiKeyCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserPersonalApiKeyFilter $filter): ?UserPersonalApiKey
+    {
+        $this->logDebug("Retrieve for User personal api key on adapter ");
+        $span = $this->startSpan("Retrieve for User personal api key on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserPersonalApiKeyFilter $filter): bool
+    {
+        $this->logDebug("Exists for User personal api key on adapter ");
+        $span = $this->startSpan("Exists for User personal api key on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserPersonalApiKeyFilter $filter = null): int
+    {
+        $this->logDebug("Count for User personal api key on adapter ");
+        $span = $this->startSpan("Count for User personal api key on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserPersonalApiKey
+    {
+        $this->logDebug("Find on by uid for User personal api key on adapter");
+        $span = $this->startSpan("Find on by uid for User personal api key on adapter");
+        try {
+            return $this->conn->retrieve(new UserPersonalApiKeyFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByKeyHash(string $keyHash): ?UserPersonalApiKey
+    {
+        $this->logDebug("Find on by key hash for User personal api key on adapter");
+        $span = $this->startSpan("Find on by key hash for User personal api key on adapter");
+        try {
+            return $this->conn->retrieve(new UserPersonalApiKeyFilter(keyHash: $keyHash));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

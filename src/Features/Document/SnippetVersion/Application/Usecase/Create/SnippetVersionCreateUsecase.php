@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionVisibilityService;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\SnippetVersion;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionWriteGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class SnippetVersionCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SnippetVersionVisibilityService $visibility,
-        private readonly SnippetVersionWriteGateway $writer,
+        private readonly SnippetVersionCommandRepositoryGateway $writer,
     ) {
     }
 

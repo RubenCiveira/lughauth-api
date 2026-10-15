@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeVisibilityService;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeFilter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCursor;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeAttributesSlide;
@@ -25,7 +25,7 @@ class ConsentPurposeListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ConsentPurposeVisibilityService $visibility,
-        private readonly ConsentPurposeReadGateway $reader
+        private readonly ConsentPurposeQueryRepositoryGateway $reader
     ) {
     }
 

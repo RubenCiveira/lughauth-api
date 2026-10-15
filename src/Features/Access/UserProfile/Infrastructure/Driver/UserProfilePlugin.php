@@ -7,18 +7,18 @@ namespace Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driver;
 
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
-use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driven\UserProfileReadRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driven\UserProfileQueryRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driven\UserProfileCommandRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileReadGateway;
-use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileWriteGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileCommandRepositoryGateway;
 
 class UserProfilePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[UserProfileReadGateway::class] = \DI\autowire(UserProfileReadRepositoryAdapter::class);
-        $def[UserProfileWriteGateway::class] = \DI\autowire(UserProfileCommandRepositoryAdapter::class);
+        $def[UserProfileQueryRepositoryGateway::class] = \DI\autowire(UserProfileQueryRepositoryAdapter::class);
+        $def[UserProfileCommandRepositoryGateway::class] = \DI\autowire(UserProfileCommandRepositoryAdapter::class);
         return $def;
     }
 }

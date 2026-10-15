@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Connector\Pdo\TemplateVersionPdoConnector;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionSlide;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TemplateVersionCommandRepositoryAdapter implements TemplateVersionWriteGateway
+class TemplateVersionCommandRepositoryAdapter implements TemplateVersionCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -155,6 +155,76 @@ class TemplateVersionCommandRepositoryAdapter implements TemplateVersionWriteGat
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TemplateVersionRef $ref): ?TemplateVersion
+    {
+        if ($ref instanceof TemplateVersion) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TemplateVersionFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TemplateVersionFilter $filter = null, ?TemplateVersionCursor $cursor = null): TemplateVersionSlide
+    {
+        $this->logDebug("List for Template version on adapter ");
+        $span = $this->startSpan("List for Template version on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TemplateVersionSlide(function (TemplateVersionFilter $slide, ?TemplateVersionCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TemplateVersionCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TemplateVersionFilter $filter): ?TemplateVersion
+    {
+        $this->logDebug("Retrieve for Template version on adapter ");
+        $span = $this->startSpan("Retrieve for Template version on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TemplateVersionFilter $filter): bool
+    {
+        $this->logDebug("Exists for Template version on adapter ");
+        $span = $this->startSpan("Exists for Template version on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TemplateVersionFilter $filter = null): int
+    {
+        $this->logDebug("Count for Template version on adapter ");
+        $span = $this->startSpan("Count for Template version on adapter");
+        try {
+            return $this->conn->count($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

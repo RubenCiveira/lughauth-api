@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\Snippet\Domain\SnippetRef;
 use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetVisibilityService;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetReadGateway;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class SnippetRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SnippetVisibilityService $visibility,
-        private readonly SnippetReadGateway $reader
+        private readonly SnippetQueryRepositoryGateway $reader
     ) {
     }
 

@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\UserPersonalApiKeyAt
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\UserPersonalApiKey;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyFilter;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyCursor;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyReadGateway;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeySlide;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyWriteGateway;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class UserPersonalApiKeyVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly UserPersonalApiKeyReadGateway $readGateway,
-        private readonly UserPersonalApiKeyWriteGateway $writeGateway,
+        private readonly UserPersonalApiKeyQueryRepositoryGateway $readGateway,
+        private readonly UserPersonalApiKeyCommandRepositoryGateway $writeGateway,
         private readonly UserVisibilityService $userVisibilityService
     ) {
     }

@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeWriteGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Connector\Pdo\ThemePdoConnector;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeSlide;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class ThemeCommandRepositoryAdapter implements ThemeWriteGateway
+class ThemeCommandRepositoryAdapter implements ThemeCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -170,6 +170,90 @@ class ThemeCommandRepositoryAdapter implements ThemeWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(ThemeRef $ref): ?Theme
+    {
+        if ($ref instanceof Theme) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new ThemeFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?ThemeFilter $filter = null, ?ThemeCursor $cursor = null): ThemeSlide
+    {
+        $this->logDebug("List for Theme on adapter ");
+        $span = $this->startSpan("List for Theme on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new ThemeSlide(function (ThemeFilter $slide, ?ThemeCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new ThemeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(ThemeFilter $filter): ?Theme
+    {
+        $this->logDebug("Retrieve for Theme on adapter ");
+        $span = $this->startSpan("Retrieve for Theme on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(ThemeFilter $filter): bool
+    {
+        $this->logDebug("Exists for Theme on adapter ");
+        $span = $this->startSpan("Exists for Theme on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?ThemeFilter $filter = null): int
+    {
+        $this->logDebug("Count for Theme on adapter ");
+        $span = $this->startSpan("Count for Theme on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByNameAndTenant(string $name, ?TenantRef $tenant): ?Theme
+    {
+        $this->logDebug("Find on by name tenant for Theme on adapter");
+        $span = $this->startSpan("Find on by name tenant for Theme on adapter");
+        try {
+            return $this->conn->retrieve(new ThemeFilter(nameAndTenant: ThemeFilter::nameAndTenantFilter(name: $name, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

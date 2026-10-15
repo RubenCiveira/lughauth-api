@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Connector\Pdo\UserAccessTemporalCodePdoConnector;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeSlide;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserAccessTemporalCodeCommandRepositoryAdapter implements UserAccessTemporalCodeWriteGateway
+class UserAccessTemporalCodeCommandRepositoryAdapter implements UserAccessTemporalCodeCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -212,6 +212,132 @@ class UserAccessTemporalCodeCommandRepositoryAdapter implements UserAccessTempor
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserAccessTemporalCodeRef $ref): ?UserAccessTemporalCode
+    {
+        if ($ref instanceof UserAccessTemporalCode) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserAccessTemporalCodeFilter $filter = null, ?UserAccessTemporalCodeCursor $cursor = null): UserAccessTemporalCodeSlide
+    {
+        $this->logDebug("List for User access temporal code on adapter ");
+        $span = $this->startSpan("List for User access temporal code on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeFilter $slide, ?UserAccessTemporalCodeCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserAccessTemporalCodeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserAccessTemporalCodeFilter $filter): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Retrieve for User access temporal code on adapter ");
+        $span = $this->startSpan("Retrieve for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserAccessTemporalCodeFilter $filter): bool
+    {
+        $this->logDebug("Exists for User access temporal code on adapter ");
+        $span = $this->startSpan("Exists for User access temporal code on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserAccessTemporalCodeFilter $filter = null): int
+    {
+        $this->logDebug("Count for User access temporal code on adapter ");
+        $span = $this->startSpan("Count for User access temporal code on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Find on by uid for User access temporal code on adapter");
+        $span = $this->startSpan("Find on by uid for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieve(new UserAccessTemporalCodeFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUser(UserRef $user): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Find on by user for User access temporal code on adapter");
+        $span = $this->startSpan("Find on by user for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieve(new UserAccessTemporalCodeFilter(user: $user));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByRegisterCode(?string $registerCode): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Find on by register code for User access temporal code on adapter");
+        $span = $this->startSpan("Find on by register code for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieve(new UserAccessTemporalCodeFilter(registerCode: $registerCode));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByRecoveryCode(?string $recoveryCode): ?UserAccessTemporalCode
+    {
+        $this->logDebug("Find on by recovery code for User access temporal code on adapter");
+        $span = $this->startSpan("Find on by recovery code for User access temporal code on adapter");
+        try {
+            return $this->conn->retrieve(new UserAccessTemporalCodeFilter(recoveryCode: $recoveryCode));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

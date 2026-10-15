@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipVisibilityService;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class UserGroupMembershipCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly UserGroupMembershipVisibilityService $visibility,
-        private readonly UserGroupMembershipWriteGateway $writer,
+        private readonly UserGroupMembershipCommandRepositoryGateway $writer,
     ) {
     }
 

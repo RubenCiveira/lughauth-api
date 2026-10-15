@@ -22,19 +22,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Notification\Message\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageCollectNonEditableFields;
-use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageReadRepositoryAdapter;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageReadGateway;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
 use Civi\Lughauth\Features\Notification\Message\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageQueryRepositoryGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
 
 class MessagePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[MessageReadGateway::class] = \DI\autowire(MessageReadRepositoryAdapter::class);
-        $def[MessageWriteGateway::class] = \DI\autowire(MessageCommandRepositoryAdapter::class);
+        $def[MessageQueryRepositoryGateway::class] = \DI\autowire(MessageQueryRepositoryAdapter::class);
+        $def[MessageCommandRepositoryGateway::class] = \DI\autowire(MessageCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

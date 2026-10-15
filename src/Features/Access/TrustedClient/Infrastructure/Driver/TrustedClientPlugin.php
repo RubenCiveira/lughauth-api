@@ -21,9 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\OnlyForRootAllow;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Create\TrustedClientCreateAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Update\TrustedClientUpdateAllowDecision;
@@ -33,14 +30,17 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\Trust
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
 
 class TrustedClientPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TrustedClientReadGateway::class] = \DI\autowire(TrustedClientReadRepositoryAdapter::class);
-        $def[TrustedClientWriteGateway::class] = \DI\autowire(TrustedClientCommandRepositoryAdapter::class);
+        $def[TrustedClientQueryRepositoryGateway::class] = \DI\autowire(TrustedClientQueryRepositoryAdapter::class);
+        $def[TrustedClientCommandRepositoryGateway::class] = \DI\autowire(TrustedClientCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

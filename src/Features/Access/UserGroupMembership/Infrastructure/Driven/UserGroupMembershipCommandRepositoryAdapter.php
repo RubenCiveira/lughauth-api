@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Connector\Pdo\UserGroupMembershipPdoConnector;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipSlide;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserGroupMembershipCommandRepositoryAdapter implements UserGroupMembershipWriteGateway
+class UserGroupMembershipCommandRepositoryAdapter implements UserGroupMembershipCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -169,6 +169,90 @@ class UserGroupMembershipCommandRepositoryAdapter implements UserGroupMembership
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserGroupMembershipRef $ref): ?UserGroupMembership
+    {
+        if ($ref instanceof UserGroupMembership) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserGroupMembershipFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserGroupMembershipFilter $filter = null, ?UserGroupMembershipCursor $cursor = null): UserGroupMembershipSlide
+    {
+        $this->logDebug("List for User group membership on adapter ");
+        $span = $this->startSpan("List for User group membership on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserGroupMembershipSlide(function (UserGroupMembershipFilter $slide, ?UserGroupMembershipCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserGroupMembershipCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserGroupMembershipFilter $filter): ?UserGroupMembership
+    {
+        $this->logDebug("Retrieve for User group membership on adapter ");
+        $span = $this->startSpan("Retrieve for User group membership on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserGroupMembershipFilter $filter): bool
+    {
+        $this->logDebug("Exists for User group membership on adapter ");
+        $span = $this->startSpan("Exists for User group membership on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserGroupMembershipFilter $filter = null): int
+    {
+        $this->logDebug("Count for User group membership on adapter ");
+        $span = $this->startSpan("Count for User group membership on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserGroupMembership
+    {
+        $this->logDebug("Find on by uid for User group membership on adapter");
+        $span = $this->startSpan("Find on by uid for User group membership on adapter");
+        try {
+            return $this->conn->retrieve(new UserGroupMembershipFilter(uids: [$uid]));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

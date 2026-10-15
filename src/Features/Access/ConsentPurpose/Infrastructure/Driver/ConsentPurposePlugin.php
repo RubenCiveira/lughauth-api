@@ -22,19 +22,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeWriteGateway;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeCommandRepositoryGateway;
 
 class ConsentPurposePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[ConsentPurposeReadGateway::class] = \DI\autowire(ConsentPurposeReadRepositoryAdapter::class);
-        $def[ConsentPurposeWriteGateway::class] = \DI\autowire(ConsentPurposeCommandRepositoryAdapter::class);
+        $def[ConsentPurposeQueryRepositoryGateway::class] = \DI\autowire(ConsentPurposeQueryRepositoryAdapter::class);
+        $def[ConsentPurposeCommandRepositoryGateway::class] = \DI\autowire(ConsentPurposeCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

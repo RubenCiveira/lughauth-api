@@ -22,19 +22,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigCollectNonEditableFields;
-use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigCommandRepositoryGateway;
 
 class TenantConfigPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TenantConfigReadGateway::class] = \DI\autowire(TenantConfigReadRepositoryAdapter::class);
-        $def[TenantConfigWriteGateway::class] = \DI\autowire(TenantConfigCommandRepositoryAdapter::class);
+        $def[TenantConfigQueryRepositoryGateway::class] = \DI\autowire(TenantConfigQueryRepositoryAdapter::class);
+        $def[TenantConfigCommandRepositoryGateway::class] = \DI\autowire(TenantConfigCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

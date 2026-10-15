@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantVisibilityService;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantFilter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCursor;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantAttributesSlide;
@@ -25,7 +25,7 @@ class TenantListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TenantVisibilityService $visibility,
-        private readonly TenantReadGateway $reader
+        private readonly TenantQueryRepositoryGateway $reader
     ) {
     }
 

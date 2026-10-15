@@ -24,19 +24,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetReadGateway;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetWriteGateway;
 use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetCommandRepositoryGateway;
 
 class SnippetPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[SnippetReadGateway::class] = \DI\autowire(SnippetReadRepositoryAdapter::class);
-        $def[SnippetWriteGateway::class] = \DI\autowire(SnippetCommandRepositoryAdapter::class);
+        $def[SnippetQueryRepositoryGateway::class] = \DI\autowire(SnippetQueryRepositoryAdapter::class);
+        $def[SnippetCommandRepositoryGateway::class] = \DI\autowire(SnippetCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeVisibilityService;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeFilter;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCursor;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeAttributesSlide;
@@ -25,7 +25,7 @@ class ThemeListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ThemeVisibilityService $visibility,
-        private readonly ThemeReadGateway $reader
+        private readonly ThemeQueryRepositoryGateway $reader
     ) {
     }
 

@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClientRef;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientVisibilityService;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class ApiKeyClientEnableUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
-        private readonly ApiKeyClientWriteGateway $writer,
+        private readonly ApiKeyClientCommandRepositoryGateway $writer,
     ) {
     }
 

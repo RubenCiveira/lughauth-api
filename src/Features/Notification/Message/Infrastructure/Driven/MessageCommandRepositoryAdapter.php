@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Connector\Pdo\MessagePdoConnector;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageSlide;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class MessageCommandRepositoryAdapter implements MessageWriteGateway
+class MessageCommandRepositoryAdapter implements MessageCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -155,6 +155,76 @@ class MessageCommandRepositoryAdapter implements MessageWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(MessageRef $ref): ?Message
+    {
+        if ($ref instanceof Message) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new MessageFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?MessageFilter $filter = null, ?MessageCursor $cursor = null): MessageSlide
+    {
+        $this->logDebug("List for Message on adapter ");
+        $span = $this->startSpan("List for Message on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new MessageSlide(function (MessageFilter $slide, ?MessageCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new MessageCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(MessageFilter $filter): ?Message
+    {
+        $this->logDebug("Retrieve for Message on adapter ");
+        $span = $this->startSpan("Retrieve for Message on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(MessageFilter $filter): bool
+    {
+        $this->logDebug("Exists for Message on adapter ");
+        $span = $this->startSpan("Exists for Message on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?MessageFilter $filter = null): int
+    {
+        $this->logDebug("Count for Message on adapter ");
+        $span = $this->startSpan("Count for Message on adapter");
+        try {
+            return $this->conn->count($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

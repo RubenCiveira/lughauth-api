@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Infrastructure\Connector\Pdo\ThemeVersionPdoConnector;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionSlide;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class ThemeVersionCommandRepositoryAdapter implements ThemeVersionWriteGateway
+class ThemeVersionCommandRepositoryAdapter implements ThemeVersionCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -155,6 +155,76 @@ class ThemeVersionCommandRepositoryAdapter implements ThemeVersionWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(ThemeVersionRef $ref): ?ThemeVersion
+    {
+        if ($ref instanceof ThemeVersion) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new ThemeVersionFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?ThemeVersionFilter $filter = null, ?ThemeVersionCursor $cursor = null): ThemeVersionSlide
+    {
+        $this->logDebug("List for Theme version on adapter ");
+        $span = $this->startSpan("List for Theme version on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new ThemeVersionSlide(function (ThemeVersionFilter $slide, ?ThemeVersionCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new ThemeVersionCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(ThemeVersionFilter $filter): ?ThemeVersion
+    {
+        $this->logDebug("Retrieve for Theme version on adapter ");
+        $span = $this->startSpan("Retrieve for Theme version on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(ThemeVersionFilter $filter): bool
+    {
+        $this->logDebug("Exists for Theme version on adapter ");
+        $span = $this->startSpan("Exists for Theme version on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?ThemeVersionFilter $filter = null): int
+    {
+        $this->logDebug("Count for Theme version on adapter ");
+        $span = $this->startSpan("Count for Theme version on adapter");
+        try {
+            return $this->conn->count($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

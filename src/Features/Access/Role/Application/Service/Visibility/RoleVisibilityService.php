@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Access\Role\Domain\RoleAttributes;
 use Civi\Lughauth\Features\Access\Role\Domain\Role;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleSlide;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class RoleVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly RoleReadGateway $readGateway,
-        private readonly RoleWriteGateway $writeGateway,
+        private readonly RoleQueryRepositoryGateway $readGateway,
+        private readonly RoleCommandRepositoryGateway $writeGateway,
         private readonly RelyingPartyVisibilityService $relyingPartyVisibilityService
     ) {
     }

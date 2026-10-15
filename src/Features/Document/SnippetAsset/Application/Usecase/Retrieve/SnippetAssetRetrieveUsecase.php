@@ -13,7 +13,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\SnippetAsset\Domain\SnippetAssetRef;
 use Civi\Lughauth\Features\Document\SnippetAsset\Application\Service\Visibility\SnippetAssetVisibilityService;
-use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetReadGateway;
+use Civi\Lughauth\Features\Document\SnippetAsset\Domain\Gateway\SnippetAssetQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -25,7 +25,7 @@ class SnippetAssetRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SnippetAssetVisibilityService $visibility,
-        private readonly SnippetAssetReadGateway $reader
+        private readonly SnippetAssetQueryRepositoryGateway $reader
     ) {
     }
 

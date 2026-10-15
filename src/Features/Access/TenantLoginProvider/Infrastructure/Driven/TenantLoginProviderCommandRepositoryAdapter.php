@@ -14,7 +14,7 @@ use Civi\Lughauth\Shared\Connector\FileStorage\BinaryContent;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Connector\Pdo\TenantLoginProviderPdoConnector;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderSlide;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderCursor;
@@ -25,7 +25,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TenantLoginProviderCommandRepositoryAdapter implements TenantLoginProviderWriteGateway
+class TenantLoginProviderCommandRepositoryAdapter implements TenantLoginProviderCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -316,6 +316,142 @@ class TenantLoginProviderCommandRepositoryAdapter implements TenantLoginProvider
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TenantLoginProviderRef $ref): ?TenantLoginProvider
+    {
+        if ($ref instanceof TenantLoginProvider) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TenantLoginProviderFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TenantLoginProviderFilter $filter = null, ?TenantLoginProviderCursor $cursor = null): TenantLoginProviderSlide
+    {
+        $this->logDebug("List for Tenant login provider on adapter ");
+        $span = $this->startSpan("List for Tenant login provider on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TenantLoginProviderSlide(function (TenantLoginProviderFilter $slide, ?TenantLoginProviderCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TenantLoginProviderCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TenantLoginProviderFilter $filter): ?TenantLoginProvider
+    {
+        $this->logDebug("Retrieve for Tenant login provider on adapter ");
+        $span = $this->startSpan("Retrieve for Tenant login provider on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TenantLoginProviderFilter $filter): bool
+    {
+        $this->logDebug("Exists for Tenant login provider on adapter ");
+        $span = $this->startSpan("Exists for Tenant login provider on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TenantLoginProviderFilter $filter = null): int
+    {
+        $this->logDebug("Count for Tenant login provider on adapter ");
+        $span = $this->startSpan("Count for Tenant login provider on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function readMetadata(string $key): BinaryContent
+    {
+        $this->logDebug("Load Metadata childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Load Metadata childs for Tenant login provider on adapter");
+        try {
+            $binary = $this->store->retrieveFile(new FileStoreKey($key));
+            if ($binary) {
+                return $binary;
+            } else {
+                throw new NotFoundException('');
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function readSamlIdpCert(string $key): BinaryContent
+    {
+        $this->logDebug("Load SamlIdpCert childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Load SamlIdpCert childs for Tenant login provider on adapter");
+        try {
+            $binary = $this->store->retrieveFile(new FileStoreKey($key));
+            if ($binary) {
+                return $binary;
+            } else {
+                throw new NotFoundException('');
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?TenantLoginProvider
+    {
+        $this->logDebug("Find on by uid for Tenant login provider on adapter");
+        $span = $this->startSpan("Find on by uid for Tenant login provider on adapter");
+        try {
+            return $this->conn->retrieve(new TenantLoginProviderFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByTenantAndName(TenantRef $tenant, string $name): ?TenantLoginProvider
+    {
+        $this->logDebug("Find on by tenant name for Tenant login provider on adapter");
+        $span = $this->startSpan("Find on by tenant name for Tenant login provider on adapter");
+        try {
+            return $this->conn->retrieve(new TenantLoginProviderFilter(tenantAndName: TenantLoginProviderFilter::tenantAndNameFilter(tenant: $tenant, name: $name)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

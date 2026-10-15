@@ -16,9 +16,9 @@ use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetAttributes
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAsset;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetFilter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCursor;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetSlide;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -29,8 +29,8 @@ class TemplateAssetVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TemplateAssetReadGateway $readGateway,
-        private readonly TemplateAssetWriteGateway $writeGateway,
+        private readonly TemplateAssetQueryRepositoryGateway $readGateway,
+        private readonly TemplateAssetCommandRepositoryGateway $writeGateway,
         private readonly TemplateVisibilityService $templateVisibilityService,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {

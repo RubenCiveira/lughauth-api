@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Service\Visibility\TrustedClientVisibilityService;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCursor;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientAttributesSlide;
@@ -25,7 +25,7 @@ class TrustedClientListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TrustedClientVisibilityService $visibility,
-        private readonly TrustedClientReadGateway $reader
+        private readonly TrustedClientQueryRepositoryGateway $reader
     ) {
     }
 

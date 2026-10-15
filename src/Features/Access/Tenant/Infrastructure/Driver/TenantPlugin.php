@@ -22,9 +22,6 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
-use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\OnlyForRootAllow;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Create\TenantCreateAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdateAllowDecision;
@@ -33,14 +30,17 @@ use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnable
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantCommandRepositoryGateway;
 
 class TenantPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TenantReadGateway::class] = \DI\autowire(TenantReadRepositoryAdapter::class);
-        $def[TenantWriteGateway::class] = \DI\autowire(TenantCommandRepositoryAdapter::class);
+        $def[TenantQueryRepositoryGateway::class] = \DI\autowire(TenantQueryRepositoryAdapter::class);
+        $def[TenantCommandRepositoryGateway::class] = \DI\autowire(TenantCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

@@ -15,7 +15,7 @@ use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Shared\Infrastructure\Connector\FileStorage\PdoFileStorage;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Connector\Pdo\TemplateAssetPdoConnector;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetSlide;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCursor;
@@ -26,7 +26,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TemplateAssetCommandRepositoryAdapter implements TemplateAssetWriteGateway
+class TemplateAssetCommandRepositoryAdapter implements TemplateAssetCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -240,6 +240,109 @@ class TemplateAssetCommandRepositoryAdapter implements TemplateAssetWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TemplateAssetRef $ref): ?TemplateAsset
+    {
+        if ($ref instanceof TemplateAsset) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TemplateAssetFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TemplateAssetFilter $filter = null, ?TemplateAssetCursor $cursor = null): TemplateAssetSlide
+    {
+        $this->logDebug("List for Template asset on adapter ");
+        $span = $this->startSpan("List for Template asset on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TemplateAssetSlide(function (TemplateAssetFilter $slide, ?TemplateAssetCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TemplateAssetCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TemplateAssetFilter $filter): ?TemplateAsset
+    {
+        $this->logDebug("Retrieve for Template asset on adapter ");
+        $span = $this->startSpan("Retrieve for Template asset on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TemplateAssetFilter $filter): bool
+    {
+        $this->logDebug("Exists for Template asset on adapter ");
+        $span = $this->startSpan("Exists for Template asset on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TemplateAssetFilter $filter = null): int
+    {
+        $this->logDebug("Count for Template asset on adapter ");
+        $span = $this->startSpan("Count for Template asset on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function readContent(string $key): BinaryContent
+    {
+        $this->logDebug("Load Content childs for Template asset on adapter ");
+        $span = $this->startSpan("Load Content childs for Template asset on adapter");
+        try {
+            $binary = $this->store->retrieveFile(new FileStoreKey($key));
+            if ($binary) {
+                return $binary;
+            } else {
+                throw new NotFoundException('');
+            }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCodeAndTemplateAndTenant(string $code, TemplateRef $template, ?TenantRef $tenant): ?TemplateAsset
+    {
+        $this->logDebug("Find on by code template tenant for Template asset on adapter");
+        $span = $this->startSpan("Find on by code template tenant for Template asset on adapter");
+        try {
+            return $this->conn->retrieve(new TemplateAssetFilter(codeAndTemplateAndTenant: TemplateAssetFilter::codeAndTemplateAndTenantFilter(code: $code, template: $template, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

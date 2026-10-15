@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\TemplateVariable\Domain\TemplateVariableAttr
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\TemplateVariable;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableFilter;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCursor;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableReadGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableSlide;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class TemplateVariableVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly TemplateVariableReadGateway $readGateway,
-        private readonly TemplateVariableWriteGateway $writeGateway,
+        private readonly TemplateVariableQueryRepositoryGateway $readGateway,
+        private readonly TemplateVariableCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

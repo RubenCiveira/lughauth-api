@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\Role\Application\Service\Visibility\RoleVisibilityService;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleFilter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCursor;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleAttributesSlide;
@@ -25,7 +25,7 @@ class RoleListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly RoleVisibilityService $visibility,
-        private readonly RoleReadGateway $reader
+        private readonly RoleQueryRepositoryGateway $reader
     ) {
     }
 

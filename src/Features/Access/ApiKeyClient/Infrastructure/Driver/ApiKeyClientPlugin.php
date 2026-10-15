@@ -21,9 +21,6 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\OnlyForRootAllow;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Create\ApiKeyClientCreateAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Update\ApiKeyClientUpdateAllowDecision;
@@ -33,14 +30,17 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKey
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[ApiKeyClientReadGateway::class] = \DI\autowire(ApiKeyClientReadRepositoryAdapter::class);
-        $def[ApiKeyClientWriteGateway::class] = \DI\autowire(ApiKeyClientCommandRepositoryAdapter::class);
+        $def[ApiKeyClientQueryRepositoryGateway::class] = \DI\autowire(ApiKeyClientQueryRepositoryAdapter::class);
+        $def[ApiKeyClientCommandRepositoryGateway::class] = \DI\autowire(ApiKeyClientCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

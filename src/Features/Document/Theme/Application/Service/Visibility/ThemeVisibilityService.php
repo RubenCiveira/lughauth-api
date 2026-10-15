@@ -15,9 +15,9 @@ use Civi\Lughauth\Features\Document\Theme\Domain\ThemeAttributes;
 use Civi\Lughauth\Features\Document\Theme\Domain\Theme;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeFilter;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCursor;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeSlide;
-use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeWriteGateway;
+use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -28,8 +28,8 @@ class ThemeVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly ThemeReadGateway $readGateway,
-        private readonly ThemeWriteGateway $writeGateway,
+        private readonly ThemeQueryRepositoryGateway $readGateway,
+        private readonly ThemeCommandRepositoryGateway $writeGateway,
         private readonly TenantVisibilityService $tenantVisibilityService
     ) {
     }

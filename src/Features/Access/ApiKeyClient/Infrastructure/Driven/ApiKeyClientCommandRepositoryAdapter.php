@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Connector\Pdo\ApiKeyClientPdoConnector;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientSlide;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientWriteGateway
+class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -197,6 +197,118 @@ class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(ApiKeyClientRef $ref): ?ApiKeyClient
+    {
+        if ($ref instanceof ApiKeyClient) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new ApiKeyClientFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?ApiKeyClientFilter $filter = null, ?ApiKeyClientCursor $cursor = null): ApiKeyClientSlide
+    {
+        $this->logDebug("List for Api key client on adapter ");
+        $span = $this->startSpan("List for Api key client on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new ApiKeyClientSlide(function (ApiKeyClientFilter $slide, ?ApiKeyClientCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new ApiKeyClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(ApiKeyClientFilter $filter): ?ApiKeyClient
+    {
+        $this->logDebug("Retrieve for Api key client on adapter ");
+        $span = $this->startSpan("Retrieve for Api key client on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(ApiKeyClientFilter $filter): bool
+    {
+        $this->logDebug("Exists for Api key client on adapter ");
+        $span = $this->startSpan("Exists for Api key client on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?ApiKeyClientFilter $filter = null): int
+    {
+        $this->logDebug("Count for Api key client on adapter ");
+        $span = $this->startSpan("Count for Api key client on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?ApiKeyClient
+    {
+        $this->logDebug("Find on by uid for Api key client on adapter");
+        $span = $this->startSpan("Find on by uid for Api key client on adapter");
+        try {
+            return $this->conn->retrieve(new ApiKeyClientFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCode(string $code): ?ApiKeyClient
+    {
+        $this->logDebug("Find on by code for Api key client on adapter");
+        $span = $this->startSpan("Find on by code for Api key client on adapter");
+        try {
+            return $this->conn->retrieve(new ApiKeyClientFilter(code: $code));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByKey(?string $key): ?ApiKeyClient
+    {
+        $this->logDebug("Find on by key for Api key client on adapter");
+        $span = $this->startSpan("Find on by key for Api key client on adapter");
+        try {
+            return $this->conn->retrieve(new ApiKeyClientFilter(key: $key));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientVisibilityService;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientFilter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCursor;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientAttributesSlide;
@@ -25,7 +25,7 @@ class ApiKeyClientListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
-        private readonly ApiKeyClientReadGateway $reader
+        private readonly ApiKeyClientQueryRepositoryGateway $reader
     ) {
     }
 

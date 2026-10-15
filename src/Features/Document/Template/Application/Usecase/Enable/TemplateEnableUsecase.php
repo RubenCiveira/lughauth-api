@@ -12,7 +12,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\Template\Domain\TemplateRef;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateVisibilityService;
-use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
+use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -24,7 +24,7 @@ class TemplateEnableUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateVisibilityService $visibility,
-        private readonly TemplateWriteGateway $writer,
+        private readonly TemplateCommandRepositoryGateway $writer,
     ) {
     }
 

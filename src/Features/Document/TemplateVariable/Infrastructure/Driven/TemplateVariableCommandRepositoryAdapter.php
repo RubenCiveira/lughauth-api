@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\TemplateVariable\Infrastructure\Connector\Pdo\TemplateVariablePdoConnector;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableSlide;
 use Civi\Lughauth\Features\Document\TemplateVariable\Domain\Gateway\TemplateVariableCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TemplateVariableCommandRepositoryAdapter implements TemplateVariableWriteGateway
+class TemplateVariableCommandRepositoryAdapter implements TemplateVariableCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -170,6 +170,90 @@ class TemplateVariableCommandRepositoryAdapter implements TemplateVariableWriteG
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TemplateVariableRef $ref): ?TemplateVariable
+    {
+        if ($ref instanceof TemplateVariable) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TemplateVariableFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TemplateVariableFilter $filter = null, ?TemplateVariableCursor $cursor = null): TemplateVariableSlide
+    {
+        $this->logDebug("List for Template variable on adapter ");
+        $span = $this->startSpan("List for Template variable on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TemplateVariableSlide(function (TemplateVariableFilter $slide, ?TemplateVariableCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TemplateVariableCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TemplateVariableFilter $filter): ?TemplateVariable
+    {
+        $this->logDebug("Retrieve for Template variable on adapter ");
+        $span = $this->startSpan("Retrieve for Template variable on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TemplateVariableFilter $filter): bool
+    {
+        $this->logDebug("Exists for Template variable on adapter ");
+        $span = $this->startSpan("Exists for Template variable on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TemplateVariableFilter $filter = null): int
+    {
+        $this->logDebug("Count for Template variable on adapter ");
+        $span = $this->startSpan("Count for Template variable on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable
+    {
+        $this->logDebug("Find on by code tenant for Template variable on adapter");
+        $span = $this->startSpan("Find on by code tenant for Template variable on adapter");
+        try {
+            return $this->conn->retrieve(new TemplateVariableFilter(codeAndTenant: TemplateVariableFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

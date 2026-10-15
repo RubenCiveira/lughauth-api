@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigVisibilityService;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigReadGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigQueryRepositoryGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigFilter;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCursor;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigAttributesSlide;
@@ -25,7 +25,7 @@ class SmtpOutboundConfigListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly SmtpOutboundConfigVisibilityService $visibility,
-        private readonly SmtpOutboundConfigReadGateway $reader
+        private readonly SmtpOutboundConfigQueryRepositoryGateway $reader
     ) {
     }
 

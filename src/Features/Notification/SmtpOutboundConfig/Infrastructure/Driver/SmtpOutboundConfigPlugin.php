@@ -22,19 +22,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigCollectNonEditableFields;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigReadRepositoryAdapter;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigReadGateway;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigWriteGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigQueryRepositoryGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigCommandRepositoryGateway;
 
 class SmtpOutboundConfigPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[SmtpOutboundConfigReadGateway::class] = \DI\autowire(SmtpOutboundConfigReadRepositoryAdapter::class);
-        $def[SmtpOutboundConfigWriteGateway::class] = \DI\autowire(SmtpOutboundConfigCommandRepositoryAdapter::class);
+        $def[SmtpOutboundConfigQueryRepositoryGateway::class] = \DI\autowire(SmtpOutboundConfigQueryRepositoryAdapter::class);
+        $def[SmtpOutboundConfigCommandRepositoryGateway::class] = \DI\autowire(SmtpOutboundConfigCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

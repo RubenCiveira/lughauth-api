@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionWriteGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Connector\Pdo\SnippetVersionPdoConnector;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionSlide;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class SnippetVersionCommandRepositoryAdapter implements SnippetVersionWriteGateway
+class SnippetVersionCommandRepositoryAdapter implements SnippetVersionCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -155,6 +155,76 @@ class SnippetVersionCommandRepositoryAdapter implements SnippetVersionWriteGatew
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(SnippetVersionRef $ref): ?SnippetVersion
+    {
+        if ($ref instanceof SnippetVersion) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new SnippetVersionFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?SnippetVersionFilter $filter = null, ?SnippetVersionCursor $cursor = null): SnippetVersionSlide
+    {
+        $this->logDebug("List for Snippet version on adapter ");
+        $span = $this->startSpan("List for Snippet version on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new SnippetVersionSlide(function (SnippetVersionFilter $slide, ?SnippetVersionCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new SnippetVersionCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(SnippetVersionFilter $filter): ?SnippetVersion
+    {
+        $this->logDebug("Retrieve for Snippet version on adapter ");
+        $span = $this->startSpan("Retrieve for Snippet version on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(SnippetVersionFilter $filter): bool
+    {
+        $this->logDebug("Exists for Snippet version on adapter ");
+        $span = $this->startSpan("Exists for Snippet version on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?SnippetVersionFilter $filter = null): int
+    {
+        $this->logDebug("Count for Snippet version on adapter ");
+        $span = $this->startSpan("Count for Snippet version on adapter");
+        try {
+            return $this->conn->count($filter);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

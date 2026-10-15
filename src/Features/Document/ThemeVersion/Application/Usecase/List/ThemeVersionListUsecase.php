@@ -10,7 +10,7 @@ use Throwable;
 use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Document\ThemeVersion\Application\Service\Visibility\ThemeVersionVisibilityService;
-use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionReadGateway;
+use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionQueryRepositoryGateway;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionFilter;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionCursor;
 use Civi\Lughauth\Features\Document\ThemeVersion\Domain\Gateway\ThemeVersionAttributesSlide;
@@ -25,7 +25,7 @@ class ThemeVersionListUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ThemeVersionVisibilityService $visibility,
-        private readonly ThemeVersionReadGateway $reader
+        private readonly ThemeVersionQueryRepositoryGateway $reader
     ) {
     }
 

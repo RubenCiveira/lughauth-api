@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
+use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Connector\Pdo\TrustedClientPdoConnector;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientSlide;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class TrustedClientCommandRepositoryAdapter implements TrustedClientWriteGateway
+class TrustedClientCommandRepositoryAdapter implements TrustedClientCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -183,6 +183,104 @@ class TrustedClientCommandRepositoryAdapter implements TrustedClientWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(TrustedClientRef $ref): ?TrustedClient
+    {
+        if ($ref instanceof TrustedClient) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new TrustedClientFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?TrustedClientFilter $filter = null, ?TrustedClientCursor $cursor = null): TrustedClientSlide
+    {
+        $this->logDebug("List for Trusted client on adapter ");
+        $span = $this->startSpan("List for Trusted client on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new TrustedClientSlide(function (TrustedClientFilter $slide, ?TrustedClientCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new TrustedClientCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(TrustedClientFilter $filter): ?TrustedClient
+    {
+        $this->logDebug("Retrieve for Trusted client on adapter ");
+        $span = $this->startSpan("Retrieve for Trusted client on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(TrustedClientFilter $filter): bool
+    {
+        $this->logDebug("Exists for Trusted client on adapter ");
+        $span = $this->startSpan("Exists for Trusted client on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?TrustedClientFilter $filter = null): int
+    {
+        $this->logDebug("Count for Trusted client on adapter ");
+        $span = $this->startSpan("Count for Trusted client on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?TrustedClient
+    {
+        $this->logDebug("Find on by uid for Trusted client on adapter");
+        $span = $this->startSpan("Find on by uid for Trusted client on adapter");
+        try {
+            return $this->conn->retrieve(new TrustedClientFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCode(string $code): ?TrustedClient
+    {
+        $this->logDebug("Find on by code for Trusted client on adapter");
+        $span = $this->startSpan("Find on by code for Trusted client on adapter");
+        try {
+            return $this->conn->retrieve(new TrustedClientFilter(code: $code));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

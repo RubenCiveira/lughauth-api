@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Service\Visibility\ApiKeyClientVisibilityService;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\ApiKeyClient;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class ApiKeyClientCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly ApiKeyClientVisibilityService $visibility,
-        private readonly ApiKeyClientWriteGateway $writer,
+        private readonly ApiKeyClientCommandRepositoryGateway $writer,
     ) {
     }
 

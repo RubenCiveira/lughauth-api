@@ -25,19 +25,19 @@ use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetRestrictFilterToVisibility;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetCollectNonEditableFields;
-use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Filter\TenantAccessible;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetQueryRepositoryGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetCommandRepositoryGateway;
 
 class TemplateAssetPlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[TemplateAssetReadGateway::class] = \DI\autowire(TemplateAssetReadRepositoryAdapter::class);
-        $def[TemplateAssetWriteGateway::class] = \DI\autowire(TemplateAssetCommandRepositoryAdapter::class);
+        $def[TemplateAssetQueryRepositoryGateway::class] = \DI\autowire(TemplateAssetQueryRepositoryAdapter::class);
+        $def[TemplateAssetCommandRepositoryGateway::class] = \DI\autowire(TemplateAssetCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

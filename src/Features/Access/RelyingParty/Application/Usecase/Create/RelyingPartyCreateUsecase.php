@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Service\Visibility\RelyingPartyVisibilityService;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\RelyingParty;
-use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
+use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class RelyingPartyCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly RelyingPartyVisibilityService $visibility,
-        private readonly RelyingPartyWriteGateway $writer,
+        private readonly RelyingPartyCommandRepositoryGateway $writer,
     ) {
     }
 

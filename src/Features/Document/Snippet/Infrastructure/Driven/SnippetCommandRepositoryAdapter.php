@@ -10,7 +10,7 @@ use Closure;
 use Override;
 use Throwable;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
-use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetWriteGateway;
+use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetCommandRepositoryGateway;
 use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Connector\Pdo\SnippetPdoConnector;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetSlide;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetCursor;
@@ -21,7 +21,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class SnippetCommandRepositoryAdapter implements SnippetWriteGateway
+class SnippetCommandRepositoryAdapter implements SnippetCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -170,6 +170,90 @@ class SnippetCommandRepositoryAdapter implements SnippetWriteGateway
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(SnippetRef $ref): ?Snippet
+    {
+        if ($ref instanceof Snippet) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new SnippetFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?SnippetFilter $filter = null, ?SnippetCursor $cursor = null): SnippetSlide
+    {
+        $this->logDebug("List for Snippet on adapter ");
+        $span = $this->startSpan("List for Snippet on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new SnippetSlide(function (SnippetFilter $slide, ?SnippetCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new SnippetCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(SnippetFilter $filter): ?Snippet
+    {
+        $this->logDebug("Retrieve for Snippet on adapter ");
+        $span = $this->startSpan("Retrieve for Snippet on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(SnippetFilter $filter): bool
+    {
+        $this->logDebug("Exists for Snippet on adapter ");
+        $span = $this->startSpan("Exists for Snippet on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?SnippetFilter $filter = null): int
+    {
+        $this->logDebug("Count for Snippet on adapter ");
+        $span = $this->startSpan("Count for Snippet on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByCodeAndTenant(string $code, ?TenantRef $tenant): ?Snippet
+    {
+        $this->logDebug("Find on by code tenant for Snippet on adapter");
+        $span = $this->startSpan("Find on by code tenant for Snippet on adapter");
+        try {
+            return $this->conn->retrieve(new SnippetFilter(codeAndTenant: SnippetFilter::codeAndTenantFilter(code: $code, tenant: $tenant)));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

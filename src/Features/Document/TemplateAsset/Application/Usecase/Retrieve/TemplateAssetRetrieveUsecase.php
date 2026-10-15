@@ -13,7 +13,7 @@ use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Shared\Exception\NotFoundException;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\TemplateAssetRef;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetVisibilityService;
-use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetQueryRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -25,7 +25,7 @@ class TemplateAssetRetrieveUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly TemplateAssetVisibilityService $visibility,
-        private readonly TemplateAssetReadGateway $reader
+        private readonly TemplateAssetQueryRepositoryGateway $reader
     ) {
     }
 

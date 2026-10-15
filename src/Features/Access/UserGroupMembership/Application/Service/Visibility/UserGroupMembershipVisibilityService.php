@@ -17,9 +17,9 @@ use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\UserGroupMembership;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCursor;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipSlide;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -30,8 +30,8 @@ class UserGroupMembershipVisibilityService
 
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
-        private readonly UserGroupMembershipReadGateway $readGateway,
-        private readonly UserGroupMembershipWriteGateway $writeGateway,
+        private readonly UserGroupMembershipQueryRepositoryGateway $readGateway,
+        private readonly UserGroupMembershipCommandRepositoryGateway $writeGateway,
         private readonly UserVisibilityService $userVisibilityService,
         private readonly RelyingPartyVisibilityService $relyingPartyVisibilityService,
         private readonly TrustedClientVisibilityService $trustedClientVisibilityService

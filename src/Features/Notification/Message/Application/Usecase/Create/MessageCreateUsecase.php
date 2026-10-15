@@ -11,7 +11,7 @@ use Civi\Lughauth\Shared\Security\Allow;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageVisibilityService;
 use Civi\Lughauth\Features\Notification\Message\Domain\Message;
-use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
+use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageCommandRepositoryGateway;
 use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 
@@ -23,7 +23,7 @@ class MessageCreateUsecase
     public function __construct(
         private readonly EventDispatcherInterface $dispatcher,
         private readonly MessageVisibilityService $visibility,
-        private readonly MessageWriteGateway $writer,
+        private readonly MessageCommandRepositoryGateway $writer,
     ) {
     }
 

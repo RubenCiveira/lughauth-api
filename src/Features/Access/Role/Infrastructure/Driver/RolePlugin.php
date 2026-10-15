@@ -19,18 +19,18 @@ use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
-use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
-use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleCommandRepositoryAdapter;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleQueryRepositoryAdapter;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleQueryRepositoryGateway;
+use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleCommandRepositoryGateway;
 
 class RolePlugin extends MicroPlugin
 {
     #[Override]
     public function registerServiceDefinition(array $def): array
     {
-        $def[RoleReadGateway::class] = \DI\autowire(RoleReadRepositoryAdapter::class);
-        $def[RoleWriteGateway::class] = \DI\autowire(RoleCommandRepositoryAdapter::class);
+        $def[RoleQueryRepositoryGateway::class] = \DI\autowire(RoleQueryRepositoryAdapter::class);
+        $def[RoleCommandRepositoryGateway::class] = \DI\autowire(RoleCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

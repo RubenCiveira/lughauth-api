@@ -9,7 +9,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Closure;
 use Override;
 use Throwable;
-use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationWriteGateway;
+use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Connector\Pdo\UserInvitationPdoConnector;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationSlide;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationCursor;
@@ -20,7 +20,7 @@ use Civi\Lughauth\Shared\Observability\LoggerAwareTrait;
 use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Shared\Infrastructure\EntityChangelog\EntityChangelogService;
 
-class UserInvitationCommandRepositoryAdapter implements UserInvitationWriteGateway
+class UserInvitationCommandRepositoryAdapter implements UserInvitationCommandRepositoryGateway
 {
     use LoggerAwareTrait;
     use TracerAwareTrait;
@@ -183,6 +183,104 @@ class UserInvitationCommandRepositoryAdapter implements UserInvitationWriteGatew
             foreach ($entity->getTheEvents() as $event) {
                 $this->dispatcher->dispatch($event);
             }
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function resolve(UserInvitationRef $ref): ?UserInvitation
+    {
+        if ($ref instanceof UserInvitation) {
+            return $ref;
+        } elseif (!$ref->_private_resolve) {
+            $ref->_private_resolve = $this->conn->retrieve(new UserInvitationFilter(uids: [ $ref->uid() ]));
+        }
+        return $ref->_private_resolve;
+    }
+    #[Override]
+    public function list(?UserInvitationFilter $filter = null, ?UserInvitationCursor $cursor = null): UserInvitationSlide
+    {
+        $this->logDebug("List for User invitation on adapter ");
+        $span = $this->startSpan("List for User invitation on adapter");
+        try {
+            $values = $this->conn->list($filter, $cursor);
+            $last = end($values);
+            return new UserInvitationSlide(function (UserInvitationFilter $slide, ?UserInvitationCursor $next) use ($filter) {
+                return $this->list($filter, $next);
+            }, new UserInvitationCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function retrieve(UserInvitationFilter $filter): ?UserInvitation
+    {
+        $this->logDebug("Retrieve for User invitation on adapter ");
+        $span = $this->startSpan("Retrieve for User invitation on adapter");
+        try {
+            return $this->conn->retrieve($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function exists(UserInvitationFilter $filter): bool
+    {
+        $this->logDebug("Exists for User invitation on adapter ");
+        $span = $this->startSpan("Exists for User invitation on adapter");
+        try {
+            return $this->conn->exists($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function count(?UserInvitationFilter $filter = null): int
+    {
+        $this->logDebug("Count for User invitation on adapter ");
+        $span = $this->startSpan("Count for User invitation on adapter");
+        try {
+            return $this->conn->count($filter);
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByUid(string $uid): ?UserInvitation
+    {
+        $this->logDebug("Find on by uid for User invitation on adapter");
+        $span = $this->startSpan("Find on by uid for User invitation on adapter");
+        try {
+            return $this->conn->retrieve(new UserInvitationFilter(uids: [$uid]));
+        } catch (Throwable $ex) {
+            $span->recordException($ex);
+            throw $ex;
+        } finally {
+            $span->end();
+        }
+    }
+    #[Override]
+    public function findOneByTokenHash(string $tokenHash): ?UserInvitation
+    {
+        $this->logDebug("Find on by token hash for User invitation on adapter");
+        $span = $this->startSpan("Find on by token hash for User invitation on adapter");
+        try {
+            return $this->conn->retrieve(new UserInvitationFilter(tokenHash: $tokenHash));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
