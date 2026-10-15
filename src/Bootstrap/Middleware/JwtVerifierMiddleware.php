@@ -451,7 +451,7 @@ class JwtVerifierMiddleware
             foreach ($auds as $target) {
                 unset($reqs[$target]);
             }
-            if (count($reqs) > 1) {
+            if (count($reqs) > 0) {
                 throw new UnauthorizedException(message: 'The audience is not valid.');
             }
         }
