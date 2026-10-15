@@ -44,10 +44,9 @@ class TemplateVariableQueryRepositoryAdapter implements TemplateVariableQueryRep
         $span = $this->startSpan("List for Template variable on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new TemplateVariableSlide(function (TemplateVariableFilter $slide, ?TemplateVariableCursor $next) use ($filter) {
+            return new TemplateVariableSlide(function (TemplateVariableFilter $slide, TemplateVariableCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TemplateVariableCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

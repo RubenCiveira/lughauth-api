@@ -207,10 +207,9 @@ class UserPersonalApiKeyCommandRepositoryAdapter implements UserPersonalApiKeyCo
         $span = $this->startSpan("List for User personal api key on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new UserPersonalApiKeySlide(function (UserPersonalApiKeyFilter $slide, ?UserPersonalApiKeyCursor $next) use ($filter) {
+            return new UserPersonalApiKeySlide(function (UserPersonalApiKeyFilter $slide, UserPersonalApiKeyCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserPersonalApiKeyCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -23,12 +23,8 @@ class UserRoleAssignmentSlide extends \ArrayIterator
     ) {
         parent::__construct($values);
         $this->last = $values ? end($values) : null;
-        $cursor = $this->cursor;
-        $last = $this->last;
-        $this->nextCursor = new UserRoleAssignmentCursor(
-            limit: null === $cursor ? 1000 : $cursor->limit(),
-            sinceUid: null == $last ? null : $last->uid(),
-        );
+        $cursor = $this->cursor ?? new UserRoleAssignmentCursor(limit: 1000);
+        $this->nextCursor = null === $this->last ? $cursor : $cursor->next($this->last, null);
     }
     public function cursor(): ?UserRoleAssignmentCursor
     {
@@ -53,30 +49,17 @@ class UserRoleAssignmentSlide extends \ArrayIterator
     }
     public function slide(\Closure $fn): UserRoleAssignmentSlide
     {
-        $filtered = array_filter($this->values, $fn);
-        $collected = $filtered;
-        $last = $this->last;
-        $next = $this->next;
+        $collected = array_values(array_filter($this->values, $fn));
         $cursor = $this->cursor;
-        if (null !== $cursor && count($collected) == $cursor->limit()) {
-            while (count($collected) < count($this->values) && $next !== null) {
-                if ($last === null) {
-                    break;
-                }
-                $nextSlide = $next($this, $cursor->next($last, $cursor->limit()));
-                if (count($nextSlide)) {
-                    $nextFiltered = array_filter($nextSlide->values, $fn);
-                    $collected = array_merge($collected, $nextFiltered);
-                    $cursor = $nextSlide->cursor;
-                    $next = $nextSlide->next;
-                    $last = $nextSlide->last;
-                } else {
-                    break;
-                }
+        if (null !== $cursor && null !== $this->next) {
+            $limit = $cursor->limit();
+            $current = $this;
+            while (count($collected) < $limit && count($current->values) >= $limit) {
+                $current = ($this->next)($current, $current->nextCursor);
+                $collected = array_merge($collected, array_values(array_filter($current->values, $fn)));
             }
-            return new UserRoleAssignmentSlide($next, $cursor, $collected);
-        } else {
-            return $this;
+            $collected = array_slice($collected, 0, $limit);
         }
+        return new UserRoleAssignmentSlide($this->next, $cursor, $collected);
     }
 }

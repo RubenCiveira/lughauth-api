@@ -339,23 +339,17 @@ class TenantPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                // Keyset pagination: each entry is [column, param name, since value, sql type, ascending].
                 $keys = [];
                 foreach ($sort->order() ?? [] as $ord) {
-                    if ($ord === 'nameAsc' || $ord === 'nameDesc') {
-                        $keys[] = ['"access_tenant"."name"', 'sinceName', $sort->sinceName(), SqlParam::STR, $ord === 'nameAsc'];
-                    }
                     if ($ord === 'domainAsc' || $ord === 'domainDesc') {
                         $keys[] = ['"access_tenant"."domain"', 'sinceDomain', $sort->sinceDomain(), SqlParam::STR, $ord === 'domainAsc'];
                     }
+                    if ($ord === 'nameAsc' || $ord === 'nameDesc') {
+                        $keys[] = ['"access_tenant"."name"', 'sinceName', $sort->sinceName(), SqlParam::STR, $ord === 'nameAsc'];
+                    }
                 }
-                // The uid breaks ties and keeps the default order (uid desc) when no order is requested.
                 $keys[] = ['"access_tenant"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
-                foreach ($keys as [$column, , , , $asc]) {
-                    $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
-                }
                 if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
-                    // (k1 > s1) or (k1 = s1 and k2 > s2) or ... with each comparison bound to its own parameter.
                     $alternatives = [];
                     foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {
                         $conditions = [];

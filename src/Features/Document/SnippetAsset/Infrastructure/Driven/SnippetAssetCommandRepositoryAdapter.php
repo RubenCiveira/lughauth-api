@@ -263,10 +263,9 @@ class SnippetAssetCommandRepositoryAdapter implements SnippetAssetCommandReposit
         $span = $this->startSpan("List for Snippet asset on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new SnippetAssetSlide(function (SnippetAssetFilter $slide, ?SnippetAssetCursor $next) use ($filter) {
+            return new SnippetAssetSlide(function (SnippetAssetFilter $slide, SnippetAssetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new SnippetAssetCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -193,10 +193,9 @@ class UserMfaRecoveryCodeCommandRepositoryAdapter implements UserMfaRecoveryCode
         $span = $this->startSpan("List for User mfa recovery code on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeFilter $slide, ?UserMfaRecoveryCodeCursor $next) use ($filter) {
+            return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeFilter $slide, UserMfaRecoveryCodeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserMfaRecoveryCodeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

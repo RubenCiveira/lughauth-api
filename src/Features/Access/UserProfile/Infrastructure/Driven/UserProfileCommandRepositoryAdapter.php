@@ -208,10 +208,9 @@ class UserProfileCommandRepositoryAdapter implements UserProfileCommandRepositor
         $span = $this->startSpan("List for User profile on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new UserProfileSlide(function (UserProfileFilter $slide, ?UserProfileCursor $next) use ($filter) {
+            return new UserProfileSlide(function (UserProfileFilter $slide, UserProfileCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserProfileCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

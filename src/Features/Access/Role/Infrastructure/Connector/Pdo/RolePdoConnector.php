@@ -340,36 +340,26 @@ class RolePdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $sortOrder = $sort->order();
-                if (null !== $sortOrder) {
-                    $equals = '';
-                    foreach ($sortOrder as $ord) {
-                        if ($ord === 'nameAsc') {
-                            $sortSinceName = $sort->sinceName();
-                            if (null !== $sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "role"."name" > :sinceName';
-                                $equals .= ' and "role"."name" = :sinceName';
-                                $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
-                            }
-                            $order .= ', "access_role"."name" asc';
-                        }
-                        if ($ord === 'nameDesc') {
-                            $sortSinceName = $sort->sinceName();
-                            if (null !== $sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "role"."name" < :sinceName';
-                                $equals .= ' and "role"."name" = :sinceName';
-                                $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
-                            }
-                            $order .= ', "access_role"."name" desc';
-                        }
+                $keys = [];
+                foreach ($sort->order() ?? [] as $ord) {
+                    if ($ord === 'nameAsc' || $ord === 'nameDesc') {
+                        $keys[] = ['"access_role"."name"', 'sinceName', $sort->sinceName(), SqlParam::STR, $ord === 'nameAsc'];
                     }
-                } else {
-                    $sortSinceUid = $sort->sinceUid();
-                    if (null !== $sortSinceUid) {
-                        $query .= ' and  "access_role"."uid" < :sinceUid';
-                        $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
+                }
+                $keys[] = ['"access_role"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
+                if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
+                    $alternatives = [];
+                    foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {
+                        $conditions = [];
+                        for ($j = 0; $j <= $i; $j++) {
+                            $paramName = $keys[$j][1] . '_' . $i;
+                            $operator = $j < $i ? ' = ' : ($keys[$j][4] ? ' > ' : ' < ');
+                            $conditions[] = $keys[$j][0] . $operator . ':' . $paramName;
+                            $params[] = new SqlParam(name: $paramName, value: $keys[$j][2], type: $keys[$j][3]);
+                        }
+                        $alternatives[] = '(' . implode(' and ', $conditions) . ')';
                     }
-                    $order = ', "access_role"."uid" desc';
+                    $query .= ' and (' . implode(' or ', $alternatives) . ')';
                 }
             }
             return [

@@ -264,10 +264,9 @@ class TemplateAssetCommandRepositoryAdapter implements TemplateAssetCommandRepos
         $span = $this->startSpan("List for Template asset on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new TemplateAssetSlide(function (TemplateAssetFilter $slide, ?TemplateAssetCursor $next) use ($filter) {
+            return new TemplateAssetSlide(function (TemplateAssetFilter $slide, TemplateAssetCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TemplateAssetCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

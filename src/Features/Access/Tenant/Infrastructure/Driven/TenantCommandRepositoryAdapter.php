@@ -43,9 +43,10 @@ class TenantCommandRepositoryAdapter implements TenantCommandRepositoryGateway
         $span = $this->startSpan("List for update of Tenant on adapter");
         try {
             $values = $this->conn->listForUpdate($filter, $cursor);
-            return new TenantSlide(function (TenantSlide $slide, TenantCursor $next) use ($filter) {
+            $last = end($values);
+            return new TenantSlide(function (TenantSlide $slide, ?TenantCursor$next) use ($filter) {
                 return $this->listForUpdate($filter, $next);
-            }, $cursor, $values);
+            }, new TenantCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -220,7 +221,7 @@ class TenantCommandRepositoryAdapter implements TenantCommandRepositoryGateway
         $span = $this->startSpan("List for Tenant on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            return new TenantSlide(function (TenantSlide $slide, TenantCursor $next) use ($filter) {
+            return new TenantSlide(function (TenantFilter $slide, TenantCursor $next) use ($filter) {
                 return $this->list($filter, $next);
             }, $cursor, $values);
         } catch (Throwable $ex) {

@@ -329,12 +329,24 @@ class UserMfaRecoveryCodePdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $sortSinceUid = $sort->sinceUid();
-                if (null !== $sortSinceUid) {
-                    $query .= ' and  "uid" < :sinceUid';
-                    $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
+                $keys = [];
+                foreach ($sort->order() ?? [] as $ord) {
                 }
-                $order = ', "access_user_mfa_recovery_code"."uid" desc';
+                $keys[] = ['"access_user_mfa_recovery_code"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
+                if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
+                    $alternatives = [];
+                    foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {
+                        $conditions = [];
+                        for ($j = 0; $j <= $i; $j++) {
+                            $paramName = $keys[$j][1] . '_' . $i;
+                            $operator = $j < $i ? ' = ' : ($keys[$j][4] ? ' > ' : ' < ');
+                            $conditions[] = $keys[$j][0] . $operator . ':' . $paramName;
+                            $params[] = new SqlParam(name: $paramName, value: $keys[$j][2], type: $keys[$j][3]);
+                        }
+                        $alternatives[] = '(' . implode(' and ', $conditions) . ')';
+                    }
+                    $query .= ' and (' . implode(' or ', $alternatives) . ')';
+                }
             }
             return [
               'query' => 'SELECT '.($count ? ' count("access_user_mfa_recovery_code".*) as count ' : '"access_user_mfa_recovery_code".*').' FROM "access_user_mfa_recovery_code"'

@@ -208,10 +208,9 @@ class UserCommandRepositoryAdapter implements UserCommandRepositoryGateway
         $span = $this->startSpan("List for User on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new UserSlide(function (UserFilter $slide, ?UserCursor $next) use ($filter) {
+            return new UserSlide(function (UserFilter $slide, UserCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

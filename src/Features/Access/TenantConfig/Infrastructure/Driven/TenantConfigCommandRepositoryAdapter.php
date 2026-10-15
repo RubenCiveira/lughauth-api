@@ -208,10 +208,9 @@ class TenantConfigCommandRepositoryAdapter implements TenantConfigCommandReposit
         $span = $this->startSpan("List for Tenant config on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new TenantConfigSlide(function (TenantConfigFilter $slide, ?TenantConfigCursor $next) use ($filter) {
+            return new TenantConfigSlide(function (TenantConfigFilter $slide, TenantConfigCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantConfigCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

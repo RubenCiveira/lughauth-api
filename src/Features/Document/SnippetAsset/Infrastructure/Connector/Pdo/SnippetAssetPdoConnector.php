@@ -346,36 +346,26 @@ class SnippetAssetPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $sortOrder = $sort->order();
-                if (null !== $sortOrder) {
-                    $equals = '';
-                    foreach ($sortOrder as $ord) {
-                        if ($ord === 'codeAsc') {
-                            $sortSinceCode = $sort->sinceCode();
-                            if (null !== $sortSinceCode) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "snippet-asset"."code" > :sinceCode';
-                                $equals .= ' and "snippet-asset"."code" = :sinceCode';
-                                $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
-                            }
-                            $order .= ', "document_snippet_asset"."code" asc';
-                        }
-                        if ($ord === 'codeDesc') {
-                            $sortSinceCode = $sort->sinceCode();
-                            if (null !== $sortSinceCode) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "snippet-asset"."code" < :sinceCode';
-                                $equals .= ' and "snippet-asset"."code" = :sinceCode';
-                                $params[] = new SqlParam(name: 'sinceCode', value: $sortSinceCode, type: SqlParam::STR);
-                            }
-                            $order .= ', "document_snippet_asset"."code" desc';
-                        }
+                $keys = [];
+                foreach ($sort->order() ?? [] as $ord) {
+                    if ($ord === 'codeAsc' || $ord === 'codeDesc') {
+                        $keys[] = ['"document_snippet_asset"."code"', 'sinceCode', $sort->sinceCode(), SqlParam::STR, $ord === 'codeAsc'];
                     }
-                } else {
-                    $sortSinceUid = $sort->sinceUid();
-                    if (null !== $sortSinceUid) {
-                        $query .= ' and  "document_snippet_asset"."uid" < :sinceUid';
-                        $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
+                }
+                $keys[] = ['"document_snippet_asset"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
+                if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
+                    $alternatives = [];
+                    foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {
+                        $conditions = [];
+                        for ($j = 0; $j <= $i; $j++) {
+                            $paramName = $keys[$j][1] . '_' . $i;
+                            $operator = $j < $i ? ' = ' : ($keys[$j][4] ? ' > ' : ' < ');
+                            $conditions[] = $keys[$j][0] . $operator . ':' . $paramName;
+                            $params[] = new SqlParam(name: $paramName, value: $keys[$j][2], type: $keys[$j][3]);
+                        }
+                        $alternatives[] = '(' . implode(' and ', $conditions) . ')';
                     }
-                    $order = ', "document_snippet_asset"."uid" desc';
+                    $query .= ' and (' . implode(' or ', $alternatives) . ')';
                 }
             }
             return [

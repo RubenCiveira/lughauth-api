@@ -48,7 +48,7 @@ class SmtpOutboundConfigListController
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
-                globalOnly: isset($params['global-only']) ? new TenantRef($params['global-only']) : null,
+                globalOnly: isset($params['global-only']) ? filter_var($params['global-only'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
             $cursor = new SmtpOutboundConfigCursor(
@@ -57,7 +57,7 @@ class SmtpOutboundConfigListController
             );
             $result = $this->listUsecase->list($filter, $cursor);
             $value = ['items' => array_map(fn (SmtpOutboundConfigAttributes $item): SmtpOutboundConfigApiDTO => $this->mapSmtpOutboundConfig($request, $item), $result->values())];
-            $nextLink = $this->nextLink($result->cursor(), $params);
+            $nextLink = count($result->values()) < $cursor->limit() ? null : $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -80,15 +80,10 @@ class SmtpOutboundConfigListController
             if (!$value) {
                 return null;
             }
-            $link = [];
-            if (isset($params['limit'])) {
-                $link['limit'] = 'limit=' . $params['limit'];
-            }
-            $sinceUid = $value->sinceUid();
-            if (null !== $sinceUid) {
-                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
-            }
-            return implode('&', $link);
+            $link = array_merge($params, [
+                        'since-uid' => $value->sinceUid(),
+                    ]);
+            return http_build_query(array_filter($link, fn (mixed $item): bool => null !== $item));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

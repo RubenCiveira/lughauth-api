@@ -53,7 +53,7 @@ class ApiKeyClientListController
             );
             $result = $this->listUsecase->list($filter, $cursor);
             $value = ['items' => array_map(fn (ApiKeyClientAttributes $item): ApiKeyClientApiDTO => $this->mapApiKeyClient($request, $item), $result->values())];
-            $nextLink = $this->nextLink($result->cursor(), $params);
+            $nextLink = count($result->values()) < $cursor->limit() ? null : $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -76,15 +76,10 @@ class ApiKeyClientListController
             if (!$value) {
                 return null;
             }
-            $link = [];
-            if (isset($params['limit'])) {
-                $link['limit'] = 'limit=' . $params['limit'];
-            }
-            $sinceUid = $value->sinceUid();
-            if (null !== $sinceUid) {
-                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
-            }
-            return implode('&', $link);
+            $link = array_merge($params, [
+                        'since-uid' => $value->sinceUid(),
+                    ]);
+            return http_build_query(array_filter($link, fn (mixed $item): bool => null !== $item));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

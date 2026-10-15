@@ -208,10 +208,9 @@ class RoleCommandRepositoryAdapter implements RoleCommandRepositoryGateway
         $span = $this->startSpan("List for Role on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new RoleSlide(function (RoleFilter $slide, ?RoleCursor $next) use ($filter) {
+            return new RoleSlide(function (RoleFilter $slide, RoleCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new RoleCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

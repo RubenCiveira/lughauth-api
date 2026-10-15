@@ -47,10 +47,6 @@ class TenantSlide extends \ArrayIterator
     {
         return new TenantSlide($this->next, $this->cursor, array_map($fn, $this->values));
     }
-    /**
-     * Keeps only the items accepted by $fn, fetching following pages until the
-     * page limit is filled again or the source is exhausted.
-     */
     public function slide(\Closure $fn): TenantSlide
     {
         $collected = array_values(array_filter($this->values, $fn));

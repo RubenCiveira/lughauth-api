@@ -179,10 +179,9 @@ class SnippetVersionCommandRepositoryAdapter implements SnippetVersionCommandRep
         $span = $this->startSpan("List for Snippet version on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new SnippetVersionSlide(function (SnippetVersionFilter $slide, ?SnippetVersionCursor $next) use ($filter) {
+            return new SnippetVersionSlide(function (SnippetVersionFilter $slide, SnippetVersionCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new SnippetVersionCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

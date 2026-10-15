@@ -194,10 +194,9 @@ class ThemeCommandRepositoryAdapter implements ThemeCommandRepositoryGateway
         $span = $this->startSpan("List for Theme on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new ThemeSlide(function (ThemeFilter $slide, ?ThemeCursor $next) use ($filter) {
+            return new ThemeSlide(function (ThemeFilter $slide, ThemeCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new ThemeCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

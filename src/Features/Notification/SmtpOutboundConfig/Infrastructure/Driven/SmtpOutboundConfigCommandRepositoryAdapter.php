@@ -194,10 +194,9 @@ class SmtpOutboundConfigCommandRepositoryAdapter implements SmtpOutboundConfigCo
         $span = $this->startSpan("List for Smtp outbound config on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigFilter $slide, ?SmtpOutboundConfigCursor $next) use ($filter) {
+            return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigFilter $slide, SmtpOutboundConfigCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new SmtpOutboundConfigCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

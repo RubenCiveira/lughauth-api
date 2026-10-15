@@ -43,10 +43,9 @@ class UserConsentedScopesQueryRepositoryAdapter implements UserConsentedScopesQu
         $span = $this->startSpan("List for User consented scopes on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new UserConsentedScopesSlide(function (UserConsentedScopesFilter $slide, ?UserConsentedScopesCursor $next) use ($filter) {
+            return new UserConsentedScopesSlide(function (UserConsentedScopesFilter $slide, UserConsentedScopesCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new UserConsentedScopesCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
