@@ -20,11 +20,11 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Service\Visibility\UserGroupMembershipRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipWriteGateway;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driven\UserGroupMembershipCommandRepositoryAdapter;
 
 class UserGroupMembershipPlugin extends MicroPlugin
 {
@@ -32,7 +32,7 @@ class UserGroupMembershipPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserGroupMembershipReadGateway::class] = \DI\autowire(UserGroupMembershipReadRepositoryAdapter::class);
-        $def[UserGroupMembershipWriteGateway::class] = \DI\autowire(UserGroupMembershipWriteRepositoryAdapter::class);
+        $def[UserGroupMembershipWriteGateway::class] = \DI\autowire(UserGroupMembershipCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -44,7 +44,7 @@ class UserGroupMembershipPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(UserGroupMembershipRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(UserGroupMembershipRestrictFilterToVisibility::class, TenantAccessible::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

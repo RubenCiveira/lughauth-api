@@ -328,16 +328,16 @@ class TenantTermsOfUsePdoConnector
                     $query .= ' and "access_tenant_terms_of_use"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
-                $filterRelyingPartys = $filter->relyingPartys();
-                if (null !== $filterRelyingPartys) {
-                    $query .= ' and "access_tenant_terms_of_use"."relying_party" in (:relyingPartys)  ';
-                    $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
+                $filterRelyingParties = $filter->relyingParties();
+                if (null !== $filterRelyingParties) {
+                    $query .= ' and "access_tenant_terms_of_use"."relying_party" in (:relyingParties)  ';
+                    $params[] = new SqlParam(name: 'relyingParties', value: $filterRelyingParties, type: SqlParam::STR);
                 }
-                $filterTenantAccesible = $filter->tenantAccesible();
-                if (null !== $filterTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "access_tenant_terms_of_use"."tenant"';
-                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccessible = $filter->tenantAccessible();
+                if (null !== $filterTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccessibleTenant" ON "tenantAccessibleTenant"."uid" = "access_tenant_terms_of_use"."tenant"';
+                    $query .= ' and "tenantAccessibleTenant"."uid" = :tenantAccessible';
+                    $params[] = new SqlParam(name: 'tenantAccessible', value: $filterTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

@@ -6,19 +6,19 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Bootstrap\Plugin;
 
 use Civi\Lughauth\Shared\Infrastructure\AggregatedMicroPlugin;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Infrastructure\Driver\UserRoleAssignamentPlugin;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driver\UserConsentPurposesPlugin;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driver\RolePlugin;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Infrastructure\Driver\UserGroupMembershipPlugin;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driver\UserAccessTemporalCodePlugin;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driver\RelyingPartyPlugin;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Infrastructure\Driver\UserAcceptedTermnsOfUsePlugin;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Infrastructure\Driver\UserAcceptedTermsOfUsePlugin;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driver\ApiKeyClientPlugin;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driver\UserPersonalApiKeyPlugin;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driver\TenantPlugin;
 use Civi\Lughauth\Features\Access\UserProfile\Infrastructure\Driver\UserProfilePlugin;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driver\TrustedClientPlugin;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driver\TenantConfigPlugin;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Infrastructure\Driver\UserRoleAssignmentPlugin;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driver\ConsentPurposePlugin;
 use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driver\UserInvitationPlugin;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\TenantLoginProviderPlugin;
@@ -33,19 +33,19 @@ class AccessPlugin extends AggregatedMicroPlugin
     public function __construct()
     {
         parent::__construct([
-          new UserRoleAssignamentPlugin(),
           new UserConsentPurposesPlugin(),
           new RolePlugin(),
           new UserGroupMembershipPlugin(),
           new UserAccessTemporalCodePlugin(),
           new RelyingPartyPlugin(),
-          new UserAcceptedTermnsOfUsePlugin(),
+          new UserAcceptedTermsOfUsePlugin(),
           new ApiKeyClientPlugin(),
           new UserPersonalApiKeyPlugin(),
           new TenantPlugin(),
           new UserProfilePlugin(),
           new TrustedClientPlugin(),
           new TenantConfigPlugin(),
+          new UserRoleAssignmentPlugin(),
           new ConsentPurposePlugin(),
           new UserInvitationPlugin(),
           new TenantLoginProviderPlugin(),

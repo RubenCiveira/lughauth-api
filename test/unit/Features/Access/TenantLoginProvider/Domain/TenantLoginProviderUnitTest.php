@@ -28,7 +28,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -64,8 +64,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isSamlIdpEntityIdChanged());
         $this->assertEquals($one->getSamlIdpSsoUrl(), $other->getSamlIdpSsoUrl());
         $this->assertTrue($one->isSamlIdpSsoUrlChanged());
-        $this->assertEquals($one->getSamlIdpIdpCert(), $other->getSamlIdpIdpCert());
-        $this->assertTrue($one->isSamlIdpIdpCertChanged());
+        $this->assertEquals($one->getSamlIdpCert(), $other->getSamlIdpCert());
+        $this->assertTrue($one->isSamlIdpCertChanged());
         $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -89,7 +89,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -108,7 +108,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'other',
             samlIdpEntityId: 'other',
             samlIdpSsoUrl: 'other',
-            samlIdpIdpCert: 'store://obin',
+            samlIdpCert: 'store://obin',
             usersEnabledByDefault: false,
             version: 2,
         );
@@ -142,8 +142,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isSamlIdpEntityIdChanged($base));
         $this->assertEquals($one->getSamlIdpSsoUrl(), $other->getSamlIdpSsoUrl());
         $this->assertTrue($one->isSamlIdpSsoUrlChanged($base));
-        $this->assertEquals($one->getSamlIdpIdpCert(), $other->getSamlIdpIdpCert());
-        $this->assertTrue($one->isSamlIdpIdpCertChanged($base));
+        $this->assertEquals($one->getSamlIdpCert(), $other->getSamlIdpCert());
+        $this->assertTrue($one->isSamlIdpCertChanged($base));
         $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -167,7 +167,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -209,7 +209,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -243,8 +243,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isSamlIdpEntityIdChanged());
         $this->assertEquals($one->getSamlIdpSsoUrl(), $other->getSamlIdpSsoUrl());
         $this->assertTrue($one->isSamlIdpSsoUrlChanged());
-        $this->assertEquals($one->getSamlIdpIdpCert(), $other->getSamlIdpIdpCert());
-        $this->assertTrue($one->isSamlIdpIdpCertChanged());
+        $this->assertEquals($one->getSamlIdpCert(), $other->getSamlIdpCert());
+        $this->assertTrue($one->isSamlIdpCertChanged());
         $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -269,7 +269,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -288,7 +288,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'other',
             samlIdpEntityId: 'other',
             samlIdpSsoUrl: 'other',
-            samlIdpIdpCert: 'store://obin',
+            samlIdpCert: 'store://obin',
             usersEnabledByDefault: false,
             version: 2,
         );
@@ -322,8 +322,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isSamlIdpEntityIdChanged($base));
         $this->assertEquals($one->getSamlIdpSsoUrl(), $other->getSamlIdpSsoUrl());
         $this->assertTrue($one->isSamlIdpSsoUrlChanged($base));
-        $this->assertEquals($one->getSamlIdpIdpCert(), $other->getSamlIdpIdpCert());
-        $this->assertTrue($one->isSamlIdpIdpCertChanged($base));
+        $this->assertEquals($one->getSamlIdpCert(), $other->getSamlIdpCert());
+        $this->assertTrue($one->isSamlIdpCertChanged($base));
         $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged($base));
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -349,7 +349,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -383,8 +383,8 @@ final class TenantLoginProviderUnitTest extends TestCase
         $this->assertTrue($one->isSamlIdpEntityIdChanged());
         $this->assertEquals($one->getSamlIdpSsoUrl(), $other->getSamlIdpSsoUrl());
         $this->assertTrue($one->isSamlIdpSsoUrlChanged());
-        $this->assertEquals($one->getSamlIdpIdpCert(), $other->getSamlIdpIdpCert());
-        $this->assertTrue($one->isSamlIdpIdpCertChanged());
+        $this->assertEquals($one->getSamlIdpCert(), $other->getSamlIdpCert());
+        $this->assertTrue($one->isSamlIdpCertChanged());
         $this->assertEquals($one->isUsersEnabledByDefault(), $other->isUsersEnabledByDefault());
         $this->assertTrue($one->isUsersEnabledByDefaultChanged());
         $this->assertEquals($one->getVersion(), $other->getVersion());
@@ -408,7 +408,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );
@@ -442,7 +442,7 @@ final class TenantLoginProviderUnitTest extends TestCase
             samlIdpMetadataUrl: 'one',
             samlIdpEntityId: 'one',
             samlIdpSsoUrl: 'one',
-            samlIdpIdpCert: 'store://bin',
+            samlIdpCert: 'store://bin',
             usersEnabledByDefault: true,
             version: 1,
         );

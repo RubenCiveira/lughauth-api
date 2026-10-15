@@ -17,13 +17,13 @@ use Civi\Lughauth\Features\Access\Tenant\Domain\Tenant;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipFilter;
 use Civi\Lughauth\Features\Access\UserGroupMembership\Domain\Gateway\UserGroupMembershipReadGateway;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\Gateway\UserRoleAssignamentFilter;
-use Civi\Lughauth\Features\Access\UserRoleAssignament\Domain\Gateway\UserRoleAssignamentReadGateway;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentFilter;
+use Civi\Lughauth\Features\Access\UserRoleAssignment\Domain\Gateway\UserRoleAssignmentReadGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
@@ -42,9 +42,9 @@ class LoginAdapter implements LoginGateway
         private readonly AesCypherService $cypher,
         private readonly UserLoaderAdapter $users,
         private readonly TenantConfigReadGateway $configs,
-        private readonly UserAcceptedTermnsOfUseReadGateway $userTerms,
+        private readonly UserAcceptedTermsOfUseReadGateway $userTerms,
         private readonly UserGroupMembershipReadGateway $userGroupMemberships,
-        private readonly UserRoleAssignamentReadGateway $userRoleAssignaments,
+        private readonly UserRoleAssignmentReadGateway $userRoleAssignments,
         private readonly TrustedClientReadGateway $clients,
         private readonly RelyingPartyReadGateway $parties,
         private readonly UserWriteGateway $writeUsers,
@@ -301,7 +301,7 @@ class LoginAdapter implements LoginGateway
         // Tengo roles para cualquier audiencia
         /** @var list<string> $forAll */
         $forAll = [];
-        $this->rolesFromAssignament(new UserRoleAssignamentFilter(user: $user)->withForAllAudiences(true), $forAll);
+        $this->rolesFromAssignment(new UserRoleAssignmentFilter(user: $user)->withForAllAudiences(true), $forAll);
         if ($client->audiences) {
             foreach ($client->audiences as $audience) {
                 if (!is_string($audience)) {
@@ -309,13 +309,13 @@ class LoginAdapter implements LoginGateway
                 }
                 $roles[$audience] = $forAll;
                 if ($from = $this->clients->findOneByCode($audience)) {
-                    $this->rolesFromAssignament(new UserRoleAssignamentFilter(
+                    $this->rolesFromAssignment(new UserRoleAssignmentFilter(
                         user: $user,
                         trustedClient: $from
                     ), $roles[$audience]);
                 }
                 if ($from = $this->parties->findOneByCode($audience)) {
-                    $this->rolesFromAssignament(new UserRoleAssignamentFilter(
+                    $this->rolesFromAssignment(new UserRoleAssignmentFilter(
                         user: $user,
                         relyingParty: $from
                     ), $roles[$audience]);
@@ -329,15 +329,15 @@ class LoginAdapter implements LoginGateway
      * @param list<string> $roles
      * @psalm-param-out list<string> $roles
      */
-    private function rolesFromAssignament(UserRoleAssignamentFilter $filter, array &$roles): void
+    private function rolesFromAssignment(UserRoleAssignmentFilter $filter, array &$roles): void
     {
-        $assignaments = $this->userRoleAssignaments->list($filter);
-        foreach ($assignaments->values() as $assignament) {
-            $assignamentRoles = $assignament->getRoles();
-            if (null === $assignamentRoles) {
+        $assignments = $this->userRoleAssignments->list($filter);
+        foreach ($assignments->values() as $assignment) {
+            $assignmentRoles = $assignment->getRoles();
+            if (null === $assignmentRoles) {
                 continue;
             }
-            foreach ($assignamentRoles as $role) {
+            foreach ($assignmentRoles as $role) {
                 if ($role === null) {
                     continue;
                 }

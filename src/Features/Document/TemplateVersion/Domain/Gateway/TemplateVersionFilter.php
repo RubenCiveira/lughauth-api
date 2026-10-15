@@ -14,7 +14,7 @@ class TemplateVersionFilter
         private ?string $search = null,
         private ?TemplateRef $template = null,
         private ?array $templates = null,
-        private ?string $templateTenantAccesible = null,
+        private ?string $templateTenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -73,22 +73,22 @@ class TemplateVersionFilter
         $copy->templates = $templates;
         return $copy;
     }
-    public function templateTenantAccesible(): ?string
+    public function templateTenantAccessible(): ?string
     {
-        return $this->templateTenantAccesible;
+        return $this->templateTenantAccessible;
     }
-    public function isTemplateTenantAccesibleAssigned(): bool
+    public function isTemplateTenantAccessibleAssigned(): bool
     {
-        return null !== $this->templateTenantAccesible;
+        return null !== $this->templateTenantAccessible;
     }
-    public function unsetTemplateTenantAccesible(): void
+    public function unsetTemplateTenantAccessible(): void
     {
-        $this->templateTenantAccesible = null;
+        $this->templateTenantAccessible = null;
     }
-    public function withTemplateTenantAccesible(string $templateTenantAccesible): self
+    public function withTemplateTenantAccessible(string $templateTenantAccessible): self
     {
         $copy = clone $this;
-        $copy->templateTenantAccesible = $templateTenantAccesible;
+        $copy->templateTenantAccessible = $templateTenantAccessible;
         return $copy;
     }
 }

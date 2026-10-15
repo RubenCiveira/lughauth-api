@@ -20,13 +20,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Service\Visibility\ConsentPurposeCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeReadGateway;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeWriteGateway;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\ConsentPurpose\Infrastructure\Driven\ConsentPurposeCommandRepositoryAdapter;
 
 class ConsentPurposePlugin extends MicroPlugin
 {
@@ -34,7 +34,7 @@ class ConsentPurposePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[ConsentPurposeReadGateway::class] = \DI\autowire(ConsentPurposeReadRepositoryAdapter::class);
-        $def[ConsentPurposeWriteGateway::class] = \DI\autowire(ConsentPurposeWriteRepositoryAdapter::class);
+        $def[ConsentPurposeWriteGateway::class] = \DI\autowire(ConsentPurposeCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -46,7 +46,7 @@ class ConsentPurposePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(ConsentPurposeRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(ConsentPurposeRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(ConsentPurposeCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

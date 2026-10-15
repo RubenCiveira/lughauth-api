@@ -16,8 +16,8 @@ class TenantTermsOfUseFilter
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
         private ?RelyingPartyRef $relyingParty = null,
-        private ?array $relyingPartys = null,
-        private ?string $tenantAccesible = null,
+        private ?array $relyingParties = null,
+        private ?string $tenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -94,40 +94,40 @@ class TenantTermsOfUseFilter
         $copy->relyingParty = $relyingParty;
         return $copy;
     }
-    public function relyingPartys(): ?array
+    public function relyingParties(): ?array
     {
-        return $this->relyingPartys;
+        return $this->relyingParties;
     }
-    public function isRelyingPartysAssigned(): bool
+    public function isRelyingPartiesAssigned(): bool
     {
-        return null !== $this->relyingPartys;
+        return null !== $this->relyingParties;
     }
-    public function unsetRelyingPartys(): void
+    public function unsetRelyingParties(): void
     {
-        $this->relyingPartys = null;
+        $this->relyingParties = null;
     }
-    public function withRelyingPartys(array $relyingPartys): self
+    public function withRelyingParties(array $relyingParties): self
     {
         $copy = clone $this;
-        $copy->relyingPartys = $relyingPartys;
+        $copy->relyingParties = $relyingParties;
         return $copy;
     }
-    public function tenantAccesible(): ?string
+    public function tenantAccessible(): ?string
     {
-        return $this->tenantAccesible;
+        return $this->tenantAccessible;
     }
-    public function isTenantAccesibleAssigned(): bool
+    public function isTenantAccessibleAssigned(): bool
     {
-        return null !== $this->tenantAccesible;
+        return null !== $this->tenantAccessible;
     }
-    public function unsetTenantAccesible(): void
+    public function unsetTenantAccessible(): void
     {
-        $this->tenantAccesible = null;
+        $this->tenantAccessible = null;
     }
-    public function withTenantAccesible(string $tenantAccesible): self
+    public function withTenantAccessible(string $tenantAccessible): self
     {
         $copy = clone $this;
-        $copy->tenantAccesible = $tenantAccesible;
+        $copy->tenantAccessible = $tenantAccessible;
         return $copy;
     }
 }

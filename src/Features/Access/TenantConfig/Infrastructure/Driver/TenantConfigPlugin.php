@@ -20,13 +20,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantConfig\Application\Service\Visibility\TenantConfigCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigReadGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigWriteGateway;
+use Civi\Lughauth\Features\Access\TenantConfig\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\TenantConfig\Infrastructure\Driven\TenantConfigCommandRepositoryAdapter;
 
 class TenantConfigPlugin extends MicroPlugin
 {
@@ -34,7 +34,7 @@ class TenantConfigPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TenantConfigReadGateway::class] = \DI\autowire(TenantConfigReadRepositoryAdapter::class);
-        $def[TenantConfigWriteGateway::class] = \DI\autowire(TenantConfigWriteRepositoryAdapter::class);
+        $def[TenantConfigWriteGateway::class] = \DI\autowire(TenantConfigCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -46,7 +46,7 @@ class TenantConfigPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantConfigRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]
@@ -75,8 +75,8 @@ class TenantConfigPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-config", "webauthnEnabled", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnRpId", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "webauthnRpName", "MANAGE");
-            $handler->registerResourceAttribute("tenant-config", "wellcomeEmail", "MANAGE");
-            $handler->registerResourceAttribute("tenant-config", "registerdEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "welcomeEmail", "MANAGE");
+            $handler->registerResourceAttribute("tenant-config", "registeredEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "disabledUserEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "enabledUserEmail", "MANAGE");
             $handler->registerResourceAttribute("tenant-config", "allowRecoverPass", "MANAGE");

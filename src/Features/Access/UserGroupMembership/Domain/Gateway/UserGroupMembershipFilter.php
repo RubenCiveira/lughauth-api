@@ -18,10 +18,10 @@ class UserGroupMembershipFilter
         private ?UserRef $user = null,
         private ?array $users = null,
         private ?RelyingPartyRef $relyingParty = null,
-        private ?array $relyingPartys = null,
+        private ?array $relyingParties = null,
         private ?TrustedClientRef $trustedClient = null,
         private ?array $trustedClients = null,
-        private ?string $userTenantAccesible = null,
+        private ?string $userTenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -116,22 +116,22 @@ class UserGroupMembershipFilter
         $copy->relyingParty = $relyingParty;
         return $copy;
     }
-    public function relyingPartys(): ?array
+    public function relyingParties(): ?array
     {
-        return $this->relyingPartys;
+        return $this->relyingParties;
     }
-    public function isRelyingPartysAssigned(): bool
+    public function isRelyingPartiesAssigned(): bool
     {
-        return null !== $this->relyingPartys;
+        return null !== $this->relyingParties;
     }
-    public function unsetRelyingPartys(): void
+    public function unsetRelyingParties(): void
     {
-        $this->relyingPartys = null;
+        $this->relyingParties = null;
     }
-    public function withRelyingPartys(array $relyingPartys): self
+    public function withRelyingParties(array $relyingParties): self
     {
         $copy = clone $this;
-        $copy->relyingPartys = $relyingPartys;
+        $copy->relyingParties = $relyingParties;
         return $copy;
     }
     public function trustedClient(): ?TrustedClientRef
@@ -170,22 +170,22 @@ class UserGroupMembershipFilter
         $copy->trustedClients = $trustedClients;
         return $copy;
     }
-    public function userTenantAccesible(): ?string
+    public function userTenantAccessible(): ?string
     {
-        return $this->userTenantAccesible;
+        return $this->userTenantAccessible;
     }
-    public function isUserTenantAccesibleAssigned(): bool
+    public function isUserTenantAccessibleAssigned(): bool
     {
-        return null !== $this->userTenantAccesible;
+        return null !== $this->userTenantAccessible;
     }
-    public function unsetUserTenantAccesible(): void
+    public function unsetUserTenantAccessible(): void
     {
-        $this->userTenantAccesible = null;
+        $this->userTenantAccessible = null;
     }
-    public function withUserTenantAccesible(string $userTenantAccesible): self
+    public function withUserTenantAccessible(string $userTenantAccessible): self
     {
         $copy = clone $this;
-        $copy->userTenantAccesible = $userTenantAccesible;
+        $copy->userTenantAccessible = $userTenantAccessible;
         return $copy;
     }
 }

@@ -20,7 +20,7 @@ class ThemeAssetFilter
         private ?string $code = null,
         private ?ThemeRef $theme = null,
         private ?array $themes = null,
-        private ?string $themeTenantAccesible = null,
+        private ?string $themeTenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -115,22 +115,22 @@ class ThemeAssetFilter
         $copy->themes = $themes;
         return $copy;
     }
-    public function themeTenantAccesible(): ?string
+    public function themeTenantAccessible(): ?string
     {
-        return $this->themeTenantAccesible;
+        return $this->themeTenantAccessible;
     }
-    public function isThemeTenantAccesibleAssigned(): bool
+    public function isThemeTenantAccessibleAssigned(): bool
     {
-        return null !== $this->themeTenantAccesible;
+        return null !== $this->themeTenantAccessible;
     }
-    public function unsetThemeTenantAccesible(): void
+    public function unsetThemeTenantAccessible(): void
     {
-        $this->themeTenantAccesible = null;
+        $this->themeTenantAccessible = null;
     }
-    public function withThemeTenantAccesible(string $themeTenantAccesible): self
+    public function withThemeTenantAccessible(string $themeTenantAccessible): self
     {
         $copy = clone $this;
-        $copy->themeTenantAccesible = $themeTenantAccesible;
+        $copy->themeTenantAccessible = $themeTenantAccessible;
         return $copy;
     }
 }

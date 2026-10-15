@@ -20,13 +20,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Service\Visibility\SmtpOutboundConfigCollectNonEditableFields;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigReadRepositoryAdapter;
-use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigReadGateway;
 use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Domain\Gateway\SmtpOutboundConfigWriteGateway;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Notification\SmtpOutboundConfig\Infrastructure\Driven\SmtpOutboundConfigCommandRepositoryAdapter;
 
 class SmtpOutboundConfigPlugin extends MicroPlugin
 {
@@ -34,7 +34,7 @@ class SmtpOutboundConfigPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[SmtpOutboundConfigReadGateway::class] = \DI\autowire(SmtpOutboundConfigReadRepositoryAdapter::class);
-        $def[SmtpOutboundConfigWriteGateway::class] = \DI\autowire(SmtpOutboundConfigWriteRepositoryAdapter::class);
+        $def[SmtpOutboundConfigWriteGateway::class] = \DI\autowire(SmtpOutboundConfigCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -46,7 +46,7 @@ class SmtpOutboundConfigPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(SmtpOutboundConfigRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(SmtpOutboundConfigRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(SmtpOutboundConfigCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

@@ -36,10 +36,10 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWe
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWebauthnRpIdAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpNameVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWebauthnRpNameAccessor;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWellcomeEmailAccessor;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRegisterdEmailAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWelcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigWelcomeEmailAccessor;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisteredEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigRegisteredEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Accessor\TenantConfigDisabledUserEmailAccessor;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
@@ -72,8 +72,8 @@ class TenantConfig extends TenantConfigRef
     use TenantConfigWebauthnEnabledAccessor;
     use TenantConfigWebauthnRpIdAccessor;
     use TenantConfigWebauthnRpNameAccessor;
-    use TenantConfigWellcomeEmailAccessor;
-    use TenantConfigRegisterdEmailAccessor;
+    use TenantConfigWelcomeEmailAccessor;
+    use TenantConfigRegisteredEmailAccessor;
     use TenantConfigDisabledUserEmailAccessor;
     use TenantConfigEnabledUserEmailAccessor;
     use TenantConfigAllowRecoverPassAccessor;
@@ -98,8 +98,8 @@ class TenantConfig extends TenantConfigRef
         TenantConfigWebauthnEnabledVO|bool|null $webauthnEnabled = null,
         TenantConfigWebauthnRpIdVO|string|null $webauthnRpId = null,
         TenantConfigWebauthnRpNameVO|string|null $webauthnRpName = null,
-        TenantConfigWellcomeEmailVO|string|null $wellcomeEmail = null,
-        TenantConfigRegisterdEmailVO|string|null $registerdEmail = null,
+        TenantConfigWelcomeEmailVO|string|null $welcomeEmail = null,
+        TenantConfigRegisteredEmailVO|string|null $registeredEmail = null,
         TenantConfigDisabledUserEmailVO|string|null $disabledUserEmail = null,
         TenantConfigEnabledUserEmailVO|string|null $enabledUserEmail = null,
         TenantConfigAllowRecoverPassVO|bool|null $allowRecoverPass = null,
@@ -122,8 +122,8 @@ class TenantConfig extends TenantConfigRef
         $this->_webauthnEnabled = null === $webauthnEnabled ? TenantConfigWebauthnEnabledVO::empty() : TenantConfigWebauthnEnabledVO::from($webauthnEnabled);
         $this->_webauthnRpId = null === $webauthnRpId ? TenantConfigWebauthnRpIdVO::empty() : TenantConfigWebauthnRpIdVO::from($webauthnRpId);
         $this->_webauthnRpName = null === $webauthnRpName ? TenantConfigWebauthnRpNameVO::empty() : TenantConfigWebauthnRpNameVO::from($webauthnRpName);
-        $this->_wellcomeEmail = null === $wellcomeEmail ? TenantConfigWellcomeEmailVO::empty() : TenantConfigWellcomeEmailVO::from($wellcomeEmail);
-        $this->_registerdEmail = null === $registerdEmail ? TenantConfigRegisterdEmailVO::empty() : TenantConfigRegisterdEmailVO::from($registerdEmail);
+        $this->_welcomeEmail = null === $welcomeEmail ? TenantConfigWelcomeEmailVO::empty() : TenantConfigWelcomeEmailVO::from($welcomeEmail);
+        $this->_registeredEmail = null === $registeredEmail ? TenantConfigRegisteredEmailVO::empty() : TenantConfigRegisteredEmailVO::from($registeredEmail);
         $this->_disabledUserEmail = null === $disabledUserEmail ? TenantConfigDisabledUserEmailVO::empty() : TenantConfigDisabledUserEmailVO::from($disabledUserEmail);
         $this->_enabledUserEmail = null === $enabledUserEmail ? TenantConfigEnabledUserEmailVO::empty() : TenantConfigEnabledUserEmailVO::from($enabledUserEmail);
         $this->_allowRecoverPass = null === $allowRecoverPass ? TenantConfigAllowRecoverPassVO::empty() : TenantConfigAllowRecoverPassVO::from($allowRecoverPass);
@@ -148,8 +148,8 @@ class TenantConfig extends TenantConfigRef
         $value->_webauthnEnabled = $values->getWebauthnEnabledOrCurrent($this->_webauthnEnabled);
         $value->_webauthnRpId = $values->getWebauthnRpIdOrCurrent($this->_webauthnRpId);
         $value->_webauthnRpName = $values->getWebauthnRpNameOrCurrent($this->_webauthnRpName);
-        $value->_wellcomeEmail = $values->getWellcomeEmailOrCurrent($this->_wellcomeEmail);
-        $value->_registerdEmail = $values->getRegisterdEmailOrCurrent($this->_registerdEmail);
+        $value->_welcomeEmail = $values->getWelcomeEmailOrCurrent($this->_welcomeEmail);
+        $value->_registeredEmail = $values->getRegisteredEmailOrCurrent($this->_registeredEmail);
         $value->_disabledUserEmail = $values->getDisabledUserEmailOrCurrent($this->_disabledUserEmail);
         $value->_enabledUserEmail = $values->getEnabledUserEmailOrCurrent($this->_enabledUserEmail);
         $value->_allowRecoverPass = $values->getAllowRecoverPassOrCurrent($this->_allowRecoverPass);
@@ -198,8 +198,8 @@ class TenantConfig extends TenantConfigRef
         $data['webauthnEnabled'] = $this->isWebauthnEnabled();
         $data['webauthnRpId'] = $this->getWebauthnRpId();
         $data['webauthnRpName'] = $this->getWebauthnRpName();
-        $data['wellcomeEmail'] = $this->getWellcomeEmail();
-        $data['registerdEmail'] = $this->getRegisterdEmail();
+        $data['welcomeEmail'] = $this->getWelcomeEmail();
+        $data['registeredEmail'] = $this->getRegisteredEmail();
         $data['disabledUserEmail'] = $this->getDisabledUserEmail();
         $data['enabledUserEmail'] = $this->getEnabledUserEmail();
         $data['allowRecoverPass'] = $this->isAllowRecoverPass();
@@ -226,8 +226,8 @@ class TenantConfig extends TenantConfigRef
           ->webauthnEnabled($this->_webauthnEnabled)
           ->webauthnRpId($this->_webauthnRpId)
           ->webauthnRpName($this->_webauthnRpName)
-          ->wellcomeEmail($this->_wellcomeEmail)
-          ->registerdEmail($this->_registerdEmail)
+          ->welcomeEmail($this->_welcomeEmail)
+          ->registeredEmail($this->_registeredEmail)
           ->disabledUserEmail($this->_disabledUserEmail)
           ->enabledUserEmail($this->_enabledUserEmail)
           ->allowRecoverPass($this->_allowRecoverPass)

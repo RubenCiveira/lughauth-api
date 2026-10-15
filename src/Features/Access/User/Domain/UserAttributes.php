@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTenantAttri
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserNameAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWelcomeAtAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailVerifiedAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
@@ -29,7 +29,7 @@ class UserAttributes
     use UserNameAttributeHolder;
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
-    use UserWellcomeAtAttributeHolder;
+    use UserWelcomeAtAttributeHolder;
     use UserEmailVerifiedAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserApproveAttributeHolder;
@@ -46,7 +46,7 @@ class UserAttributes
       'name' => 'unsetName',
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
-      'wellcomeAt' => 'unsetWellcomeAt',
+      'welcomeAt' => 'unsetWelcomeAt',
       'emailVerified' => 'unsetEmailVerified',
       'enabled' => 'unsetEnabled',
       'approve' => 'unsetApprove',
@@ -66,7 +66,7 @@ class UserAttributes
         $name = $this->nameTryBuildInitial($errors);
         $password = $this->passwordTryBuildInitial($errors);
         $email = $this->emailTryBuildInitial($errors);
-        $wellcomeAt = $this->wellcomeAtTryBuildInitial($errors);
+        $welcomeAt = $this->welcomeAtTryBuildInitial($errors);
         $emailVerified = $this->emailVerifiedTryBuildInitial($errors);
         $enabled = $this->enabledTryBuildInitial($errors);
         $approve = $this->approveTryBuildInitial($errors);
@@ -89,7 +89,7 @@ class UserAttributes
             name: $name,
             password: $password,
             email: $email,
-            wellcomeAt: $wellcomeAt,
+            welcomeAt: $welcomeAt,
             emailVerified: $emailVerified,
             enabled: $enabled,
             approve: $approve,
@@ -110,7 +110,7 @@ class UserAttributes
         $this->withAssertedNameRules($value, $errorsList);
         $this->withAssertedPasswordRules($value, $errorsList);
         $this->withAssertedEmailRules($value, $errorsList);
-        $this->withAssertedWellcomeAtRules($value, $errorsList);
+        $this->withAssertedWelcomeAtRules($value, $errorsList);
         $this->withAssertedEmailVerifiedRules($value, $errorsList);
         $this->withAssertedEnabledRules($value, $errorsList);
         $this->withAssertedApproveRules($value, $errorsList);
@@ -138,7 +138,7 @@ class UserAttributes
         $this->withDefaultName();
         $this->withDefaultPassword();
         $this->withDefaultEmail();
-        $this->withDefaultWellcomeAt();
+        $this->withDefaultWelcomeAt();
         $this->withDefaultEmailVerified();
         $this->withDefaultEnabled();
         $this->withDefaultApprove();

@@ -328,10 +328,10 @@ class TenantPdoConnector
                     $query .= ' and "access_tenant"."domain" = :domain';
                     $params[] = new SqlParam(name: 'domain', value: $filterDomain, type: SqlParam::STR);
                 }
-                $filterTenantAccesible = $filter->tenantAccesible();
-                if (null !== $filterTenantAccesible) {
-                    $query .= ' and "access_tenant"."uid" = :tenantAccesible ';
-                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccessible = $filter->tenantAccessible();
+                if (null !== $filterTenantAccessible) {
+                    $query .= ' and "access_tenant"."uid" = :tenantAccessible ';
+                    $params[] = new SqlParam(name: 'tenantAccessible', value: $filterTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

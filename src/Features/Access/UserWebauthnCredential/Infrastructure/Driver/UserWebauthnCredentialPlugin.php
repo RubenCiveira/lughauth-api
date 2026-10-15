@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Dr
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Driven\UserWebauthnCredentialReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Driven\UserWebauthnCredentialWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserWebauthnCredential\Infrastructure\Driven\UserWebauthnCredentialCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\Gateway\UserWebauthnCredentialReadGateway;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\Gateway\UserWebauthnCredentialWriteGateway;
 
@@ -18,7 +18,7 @@ class UserWebauthnCredentialPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserWebauthnCredentialReadGateway::class] = \DI\autowire(UserWebauthnCredentialReadRepositoryAdapter::class);
-        $def[UserWebauthnCredentialWriteGateway::class] = \DI\autowire(UserWebauthnCredentialWriteRepositoryAdapter::class);
+        $def[UserWebauthnCredentialWriteGateway::class] = \DI\autowire(UserWebauthnCredentialCommandRepositoryAdapter::class);
         return $def;
     }
 }

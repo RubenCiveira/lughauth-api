@@ -10,7 +10,7 @@ use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserTenantAttri
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserNameAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserPasswordAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWellcomeAtAttributeHolder;
+use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserWelcomeAtAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEmailVerifiedAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\Holder\UserApproveAttributeHolder;
@@ -29,7 +29,7 @@ class UserDisableResult
     use UserNameAttributeHolder;
     use UserPasswordAttributeHolder;
     use UserEmailAttributeHolder;
-    use UserWellcomeAtAttributeHolder;
+    use UserWelcomeAtAttributeHolder;
     use UserEmailVerifiedAttributeHolder;
     use UserEnabledAttributeHolder;
     use UserApproveAttributeHolder;
@@ -46,7 +46,7 @@ class UserDisableResult
       'name' => 'unsetName',
       'password' => 'unsetPassword',
       'email' => 'unsetEmail',
-      'wellcomeAt' => 'unsetWellcomeAt',
+      'welcomeAt' => 'unsetWelcomeAt',
       'emailVerified' => 'unsetEmailVerified',
       'enabled' => 'unsetEnabled',
       'approve' => 'unsetApprove',
@@ -66,7 +66,7 @@ class UserDisableResult
             $this->readNameFrom($att);
             $this->readPasswordFrom($att);
             $this->readEmailFrom($att);
-            $this->readWellcomeAtFrom($att);
+            $this->readWelcomeAtFrom($att);
             $this->readEmailVerifiedFrom($att);
             $this->readEnabledFrom($att);
             $this->readApproveFrom($att);
@@ -86,7 +86,7 @@ class UserDisableResult
         $this->writeNameTo($att);
         $this->writePasswordTo($att);
         $this->writeEmailTo($att);
-        $this->writeWellcomeAtTo($att);
+        $this->writeWelcomeAtTo($att);
         $this->writeEmailVerifiedTo($att);
         $this->writeEnabledTo($att);
         $this->writeApproveTo($att);
@@ -111,7 +111,7 @@ class UserDisableResult
         $this->withDefaultName();
         $this->withDefaultPassword();
         $this->withDefaultEmail();
-        $this->withDefaultWellcomeAt();
+        $this->withDefaultWelcomeAt();
         $this->withDefaultEmailVerified();
         $this->withDefaultEnabled();
         $this->withDefaultApprove();

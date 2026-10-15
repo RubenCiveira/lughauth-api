@@ -17,7 +17,7 @@ class UserConsentPurposesFilter
         private ?array $users = null,
         private ?ConsentPurposeRef $consentPurpose = null,
         private ?array $consentPurposes = null,
-        private ?string $userTenantAccesible = null,
+        private ?string $userTenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -112,22 +112,22 @@ class UserConsentPurposesFilter
         $copy->consentPurposes = $consentPurposes;
         return $copy;
     }
-    public function userTenantAccesible(): ?string
+    public function userTenantAccessible(): ?string
     {
-        return $this->userTenantAccesible;
+        return $this->userTenantAccessible;
     }
-    public function isUserTenantAccesibleAssigned(): bool
+    public function isUserTenantAccessibleAssigned(): bool
     {
-        return null !== $this->userTenantAccesible;
+        return null !== $this->userTenantAccessible;
     }
-    public function unsetUserTenantAccesible(): void
+    public function unsetUserTenantAccessible(): void
     {
-        $this->userTenantAccesible = null;
+        $this->userTenantAccessible = null;
     }
-    public function withUserTenantAccesible(string $userTenantAccesible): self
+    public function withUserTenantAccessible(string $userTenantAccessible): self
     {
         $copy = clone $this;
-        $copy->userTenantAccesible = $userTenantAccesible;
+        $copy->userTenantAccessible = $userTenantAccessible;
         return $copy;
     }
 }

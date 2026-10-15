@@ -22,7 +22,6 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyReadGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Domain\Gateway\RelyingPartyWriteGateway;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Policy\Allow\OnlyForRootAllow;
@@ -33,6 +32,7 @@ use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Retrieve\Rely
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Delete\RelyingPartyDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Enable\RelyingPartyEnableAllowDecision;
 use Civi\Lughauth\Features\Access\RelyingParty\Application\Usecase\Disable\RelyingPartyDisableAllowDecision;
+use Civi\Lughauth\Features\Access\RelyingParty\Infrastructure\Driven\RelyingPartyCommandRepositoryAdapter;
 
 class RelyingPartyPlugin extends MicroPlugin
 {
@@ -40,7 +40,7 @@ class RelyingPartyPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[RelyingPartyReadGateway::class] = \DI\autowire(RelyingPartyReadRepositoryAdapter::class);
-        $def[RelyingPartyWriteGateway::class] = \DI\autowire(RelyingPartyWriteRepositoryAdapter::class);
+        $def[RelyingPartyWriteGateway::class] = \DI\autowire(RelyingPartyCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

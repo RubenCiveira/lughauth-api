@@ -23,13 +23,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\TemplateAsset\Application\Service\Visibility\TemplateAssetCollectNonEditableFields;
 use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetReadGateway;
 use Civi\Lughauth\Features\Document\TemplateAsset\Domain\Gateway\TemplateAssetWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateAsset\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\TemplateAsset\Infrastructure\Driven\TemplateAssetCommandRepositoryAdapter;
 
 class TemplateAssetPlugin extends MicroPlugin
 {
@@ -37,7 +37,7 @@ class TemplateAssetPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TemplateAssetReadGateway::class] = \DI\autowire(TemplateAssetReadRepositoryAdapter::class);
-        $def[TemplateAssetWriteGateway::class] = \DI\autowire(TemplateAssetWriteRepositoryAdapter::class);
+        $def[TemplateAssetWriteGateway::class] = \DI\autowire(TemplateAssetCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -49,7 +49,7 @@ class TemplateAssetPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TemplateAssetRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TemplateAssetRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TemplateAssetCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

@@ -23,7 +23,7 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSourceVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderMetadataVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpIdpCertVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpCertVO;
 
 class TenantLoginProviderPdoConnector
 {
@@ -138,7 +138,7 @@ class TenantLoginProviderPdoConnector
         $span = $this->startSpan("Execute insert sql query for Tenant login provider");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_tenant_login_provider" ( "uid", "tenant", "name", "source", "disabled", "direct_access", "public_key", "private_key", "certificate", "metadata", "oidc_discovery_url", "saml_idp_metadata_url", "saml_idp_entity_id", "saml_idp_sso_url", "saml_idp_idp_cert", "users_enabled_by_default", "version") VALUES ( :uid, :tenant, :name, :source, :disabled, :directAccess, :publicKey, :privateKey, :certificate, :metadata, :oidcDiscoveryUrl, :samlIdpMetadataUrl, :samlIdpEntityId, :samlIdpSsoUrl, :samlIdpIdpCert, :usersEnabledByDefault, :version)', [
+                $this->db->execute('INSERT INTO "access_tenant_login_provider" ( "uid", "tenant", "name", "source", "disabled", "direct_access", "public_key", "private_key", "certificate", "metadata", "oidc_discovery_url", "saml_idp_metadata_url", "saml_idp_entity_id", "saml_idp_sso_url", "saml_idp_cert", "users_enabled_by_default", "version") VALUES ( :uid, :tenant, :name, :source, :disabled, :directAccess, :publicKey, :privateKey, :certificate, :metadata, :oidcDiscoveryUrl, :samlIdpMetadataUrl, :samlIdpEntityId, :samlIdpSsoUrl, :samlIdpCert, :usersEnabledByDefault, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $entity->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
@@ -153,7 +153,7 @@ class TenantLoginProviderPdoConnector
                      new SqlParam(name: 'samlIdpMetadataUrl', value: $entity->getSamlIdpMetadataUrl(), type: SqlParam::STR),
                      new SqlParam(name: 'samlIdpEntityId', value: $entity->getSamlIdpEntityId(), type: SqlParam::STR),
                      new SqlParam(name: 'samlIdpSsoUrl', value: $entity->getSamlIdpSsoUrl(), type: SqlParam::STR),
-                     new SqlParam(name: 'samlIdpIdpCert', value: $entity->getSamlIdpIdpCert(), type: SqlParam::STR),
+                     new SqlParam(name: 'samlIdpCert', value: $entity->getSamlIdpCert(), type: SqlParam::STR),
                      new SqlParam(name: 'usersEnabledByDefault', value: $entity->isUsersEnabledByDefault(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: 0, type: SqlParam::INT)
                 ]);
@@ -182,7 +182,7 @@ class TenantLoginProviderPdoConnector
         $span = $this->startSpan("Execute update sql query for Tenant login provider");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_tenant_login_provider" SET "tenant" = :tenant , "name" = :name , "source" = :source , "disabled" = :disabled , "direct_access" = :directAccess , "public_key" = :publicKey , "private_key" = :privateKey , "certificate" = :certificate , "metadata" = :metadata , "oidc_discovery_url" = :oidcDiscoveryUrl , "saml_idp_metadata_url" = :samlIdpMetadataUrl , "saml_idp_entity_id" = :samlIdpEntityId , "saml_idp_sso_url" = :samlIdpSsoUrl , "saml_idp_idp_cert" = :samlIdpIdpCert , "users_enabled_by_default" = :usersEnabledByDefault , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_tenant_login_provider" SET "tenant" = :tenant , "name" = :name , "source" = :source , "disabled" = :disabled , "direct_access" = :directAccess , "public_key" = :publicKey , "private_key" = :privateKey , "certificate" = :certificate , "metadata" = :metadata , "oidc_discovery_url" = :oidcDiscoveryUrl , "saml_idp_metadata_url" = :samlIdpMetadataUrl , "saml_idp_entity_id" = :samlIdpEntityId , "saml_idp_sso_url" = :samlIdpSsoUrl , "saml_idp_cert" = :samlIdpCert , "users_enabled_by_default" = :usersEnabledByDefault , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'tenant', value: $update->getTenant()->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
@@ -197,7 +197,7 @@ class TenantLoginProviderPdoConnector
                      new SqlParam(name: 'samlIdpMetadataUrl', value: $update->getSamlIdpMetadataUrl(), type: SqlParam::STR),
                      new SqlParam(name: 'samlIdpEntityId', value: $update->getSamlIdpEntityId(), type: SqlParam::STR),
                      new SqlParam(name: 'samlIdpSsoUrl', value: $update->getSamlIdpSsoUrl(), type: SqlParam::STR),
-                     new SqlParam(name: 'samlIdpIdpCert', value: $update->getSamlIdpIdpCert(), type: SqlParam::STR),
+                     new SqlParam(name: 'samlIdpCert', value: $update->getSamlIdpCert(), type: SqlParam::STR),
                      new SqlParam(name: 'usersEnabledByDefault', value: $update->isUsersEnabledByDefault(), type: SqlParam::BOOL),
                      new SqlParam(name: 'version', value: ($update->getVersion() ?? 0) + 1, type: SqlParam::INT),
                      new SqlParam(name: '_lock_version', value: $update->getVersion(), type: SqlParam::INT)
@@ -360,11 +360,11 @@ class TenantLoginProviderPdoConnector
                     $query .= ' and "access_tenant_login_provider"."tenant" in (:tenants)  ';
                     $params[] = new SqlParam(name: 'tenants', value: $filterTenants, type: SqlParam::STR);
                 }
-                $filterTenantAccesible = $filter->tenantAccesible();
-                if (null !== $filterTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "access_tenant_login_provider"."tenant"';
-                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccessible = $filter->tenantAccessible();
+                if (null !== $filterTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccessibleTenant" ON "tenantAccessibleTenant"."uid" = "access_tenant_login_provider"."tenant"';
+                    $query .= ' and "tenantAccessibleTenant"."uid" = :tenantAccessible';
+                    $params[] = new SqlParam(name: 'tenantAccessible', value: $filterTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {
@@ -447,7 +447,7 @@ class TenantLoginProviderPdoConnector
             $samlIdpMetadataUrl = $row['saml_idp_metadata_url'] ?? null;
             $samlIdpEntityId = $row['saml_idp_entity_id'] ?? null;
             $samlIdpSsoUrl = $row['saml_idp_sso_url'] ?? null;
-            $samlIdpIdpCert = isset($row['saml_idp_idp_cert']) && $row['saml_idp_idp_cert'] ? TenantLoginProviderSamlIdpIdpCertVO::fromStored($row['saml_idp_idp_cert']) : TenantLoginProviderSamlIdpIdpCertVO::empty();
+            $samlIdpCert = isset($row['saml_idp_cert']) && $row['saml_idp_cert'] ? TenantLoginProviderSamlIdpCertVO::fromStored($row['saml_idp_cert']) : TenantLoginProviderSamlIdpCertVO::empty();
             $usersEnabledByDefault = isset($row['users_enabled_by_default']) ? !! $row['users_enabled_by_default'] : null;
             if (null === $usersEnabledByDefault) {
                 throw ConstraintException::ofError('not-null', ['usersEnabledByDefault'], [null]);
@@ -468,7 +468,7 @@ class TenantLoginProviderPdoConnector
                 samlIdpMetadataUrl: $samlIdpMetadataUrl,
                 samlIdpEntityId: $samlIdpEntityId,
                 samlIdpSsoUrl: $samlIdpSsoUrl,
-                samlIdpIdpCert: $samlIdpIdpCert,
+                samlIdpCert: $samlIdpCert,
                 usersEnabledByDefault: $usersEnabledByDefault,
                 version: $version,
             );

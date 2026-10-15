@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Drive
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driven\UserConsentPurposesReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driven\UserConsentPurposesWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserConsentPurposes\Infrastructure\Driven\UserConsentPurposesCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesReadGateway;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesWriteGateway;
 
@@ -18,7 +18,7 @@ class UserConsentPurposesPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserConsentPurposesReadGateway::class] = \DI\autowire(UserConsentPurposesReadRepositoryAdapter::class);
-        $def[UserConsentPurposesWriteGateway::class] = \DI\autowire(UserConsentPurposesWriteRepositoryAdapter::class);
+        $def[UserConsentPurposesWriteGateway::class] = \DI\autowire(UserConsentPurposesCommandRepositoryAdapter::class);
         return $def;
     }
 }

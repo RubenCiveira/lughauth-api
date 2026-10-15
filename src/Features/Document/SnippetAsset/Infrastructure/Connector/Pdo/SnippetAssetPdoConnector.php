@@ -334,11 +334,11 @@ class SnippetAssetPdoConnector
                     $query .= ' and "document_snippet_asset"."snippet" in (:snippets)  ';
                     $params[] = new SqlParam(name: 'snippets', value: $filterSnippets, type: SqlParam::STR);
                 }
-                $filterSnippetTenantAccesible = $filter->snippetTenantAccesible();
-                if (null !== $filterSnippetTenantAccesible) {
-                    $join .= ' LEFT JOIN "document_snippet" as "snippetTenantAccesibleSnippet" ON "snippetTenantAccesibleSnippet"."uid" = "document_snippet_asset"."snippet" LEFT JOIN "access_tenant" as "snippetTenantAccesibleTenant" ON "snippetTenantAccesibleTenant"."uid" = "snippetTenantAccesibleSnippet"."tenant"';
-                    $query .= ' and "snippetTenantAccesibleTenant"."uid" = :snippetTenantAccesible';
-                    $params[] = new SqlParam(name: 'snippetTenantAccesible', value: $filterSnippetTenantAccesible, type: SqlParam::STR);
+                $filterSnippetTenantAccessible = $filter->snippetTenantAccessible();
+                if (null !== $filterSnippetTenantAccessible) {
+                    $join .= ' LEFT JOIN "document_snippet" as "snippetTenantAccessibleSnippet" ON "snippetTenantAccessibleSnippet"."uid" = "document_snippet_asset"."snippet" LEFT JOIN "access_tenant" as "snippetTenantAccessibleTenant" ON "snippetTenantAccessibleTenant"."uid" = "snippetTenantAccessibleSnippet"."tenant"';
+                    $query .= ' and "snippetTenantAccessibleTenant"."uid" = :snippetTenantAccessible';
+                    $params[] = new SqlParam(name: 'snippetTenantAccessible', value: $filterSnippetTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

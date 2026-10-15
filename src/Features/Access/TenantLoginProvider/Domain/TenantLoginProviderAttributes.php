@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpIdpCertAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpCertAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderVersionAttributeHolder;
 use Civi\Lughauth\Shared\Value\Validation\ConstraintFailList;
@@ -40,7 +40,7 @@ class TenantLoginProviderAttributes
     use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
     use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
     use TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
-    use TenantLoginProviderSamlIdpIdpCertAttributeHolder;
+    use TenantLoginProviderSamlIdpCertAttributeHolder;
     use TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
     use TenantLoginProviderVersionAttributeHolder;
 
@@ -59,7 +59,7 @@ class TenantLoginProviderAttributes
       'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
       'samlIdpEntityId' => 'unsetSamlIdpEntityId',
       'samlIdpSsoUrl' => 'unsetSamlIdpSsoUrl',
-      'samlIdpIdpCert' => 'unsetSamlIdpIdpCert',
+      'samlIdpCert' => 'unsetSamlIdpCert',
       'usersEnabledByDefault' => 'unsetUsersEnabledByDefault',
       'version' => 'unsetVersion',
     ];
@@ -81,7 +81,7 @@ class TenantLoginProviderAttributes
         $samlIdpMetadataUrl = $this->samlIdpMetadataUrlTryBuildInitial($errors);
         $samlIdpEntityId = $this->samlIdpEntityIdTryBuildInitial($errors);
         $samlIdpSsoUrl = $this->samlIdpSsoUrlTryBuildInitial($errors);
-        $samlIdpIdpCert = $this->samlIdpIdpCertTryBuildInitial($errors);
+        $samlIdpCert = $this->samlIdpCertTryBuildInitial($errors);
         $usersEnabledByDefault = $this->usersEnabledByDefaultTryBuildInitial($errors);
         $version = $this->versionTryBuildInitial($errors);
         if ($errors->hasErrors()) {
@@ -107,7 +107,7 @@ class TenantLoginProviderAttributes
             samlIdpMetadataUrl: $samlIdpMetadataUrl,
             samlIdpEntityId: $samlIdpEntityId,
             samlIdpSsoUrl: $samlIdpSsoUrl,
-            samlIdpIdpCert: $samlIdpIdpCert,
+            samlIdpCert: $samlIdpCert,
             usersEnabledByDefault: $usersEnabledByDefault,
             version: $version,
         );
@@ -130,7 +130,7 @@ class TenantLoginProviderAttributes
         $this->withAssertedSamlIdpMetadataUrlRules($value, $errorsList);
         $this->withAssertedSamlIdpEntityIdRules($value, $errorsList);
         $this->withAssertedSamlIdpSsoUrlRules($value, $errorsList);
-        $this->withAssertedSamlIdpIdpCertRules($value, $errorsList);
+        $this->withAssertedSamlIdpCertRules($value, $errorsList);
         $this->withAssertedUsersEnabledByDefaultRules($value, $errorsList);
         $this->withAssertedVersionRules($value, $errorsList);
         if ($errorsList->hasErrors()) {
@@ -160,7 +160,7 @@ class TenantLoginProviderAttributes
         $this->withDefaultSamlIdpMetadataUrl();
         $this->withDefaultSamlIdpEntityId();
         $this->withDefaultSamlIdpSsoUrl();
-        $this->withDefaultSamlIdpIdpCert();
+        $this->withDefaultSamlIdpCert();
         $this->withDefaultUsersEnabledByDefault();
         $this->withDefaultVersion();
         return $this;

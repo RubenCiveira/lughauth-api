@@ -54,7 +54,7 @@ class TenantTermsOfUseListController
                 tenant: isset($params['tenant']) ? new TenantRef($params['tenant']) : null,
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
                 relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
-                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
+                relyingParties: isset($params['relying-parties']) ? explode(",", $params['relying-parties']) : null,
             );
             $cursor = new TenantTermsOfUseCursor(
                 limit: (int)($params['limit'] ?? 100),

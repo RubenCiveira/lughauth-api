@@ -128,19 +128,19 @@ class TenantConfigApiDTO
     )]
     public ?string $webauthnRpName = null;
     #[OA\Property(
-        property: "wellcomeEmail",
-        title: "wellcome email",
+        property: "welcomeEmail",
+        title: "welcome email",
         description:"Email send to the enabled user",
         type: "string"
     )]
-    public ?string $wellcomeEmail = null;
+    public ?string $welcomeEmail = null;
     #[OA\Property(
-        property: "registerdEmail",
-        title: "registerd email",
+        property: "registeredEmail",
+        title: "registered email",
         description:"Email send when a user register",
         type: "string"
     )]
-    public ?string $registerdEmail = null;
+    public ?string $registeredEmail = null;
     #[OA\Property(
         property: "disabledUserEmail",
         title: "disabled user email",

@@ -47,7 +47,7 @@ class RoleListController
                 search: $params['search'] ?? null,
                 name: $params['name'] ?? null,
                 relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
-                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
+                relyingParties: isset($params['relying-parties']) ? explode(",", $params['relying-parties']) : null,
             );
             $cursor = new RoleCursor(
                 limit: (int)($params['limit'] ?? 100),

@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driver;
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driven\UserInvitationReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driven\UserInvitationWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserInvitation\Infrastructure\Driven\UserInvitationCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationReadGateway;
 use Civi\Lughauth\Features\Access\UserInvitation\Domain\Gateway\UserInvitationWriteGateway;
 
@@ -18,7 +18,7 @@ class UserInvitationPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserInvitationReadGateway::class] = \DI\autowire(UserInvitationReadRepositoryAdapter::class);
-        $def[UserInvitationWriteGateway::class] = \DI\autowire(UserInvitationWriteRepositoryAdapter::class);
+        $def[UserInvitationWriteGateway::class] = \DI\autowire(UserInvitationCommandRepositoryAdapter::class);
         return $def;
     }
 }

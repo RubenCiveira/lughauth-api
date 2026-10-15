@@ -19,10 +19,10 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfU
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseReadGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseReadGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUse;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUseAttributes;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\TermsOfUseAcceptance;
 use Civi\Lughauth\Features\OAuth\Consent\Domain\Gateway\TermsOfUseConsentGateway;
 
@@ -43,8 +43,8 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
         private readonly UserReadGateway $users,
         private readonly RelyingPartyReadGateway $relyingParties,
         private readonly TenantTermsOfUseReadGateway $tenantTerms,
-        private readonly UserAcceptedTermnsOfUseReadGateway $acceptedTermsRead,
-        private readonly UserAcceptedTermnsOfUseWriteGateway $acceptedTermsWrite,
+        private readonly UserAcceptedTermsOfUseReadGateway $acceptedTermsRead,
+        private readonly UserAcceptedTermsOfUseWriteGateway $acceptedTermsWrite,
     ) {
     }
 
@@ -131,13 +131,13 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
             return;
         }
 
-        $attributes = (new UserAcceptedTermnsOfUseAttributes())
+        $attributes = (new UserAcceptedTermsOfUseAttributes())
             ->uid(Random::comb())
             ->user(new UserRef($userUid))
             ->conditions(new TenantTermsOfUseRef($termUid))
             ->acceptDate(new DateTimeImmutable());
 
-        $this->acceptedTermsWrite->create(UserAcceptedTermnsOfUse::create($attributes));
+        $this->acceptedTermsWrite->create(UserAcceptedTermsOfUse::create($attributes));
     }
 
     private function resolveUser(TenantRef $tenant, string $username): User

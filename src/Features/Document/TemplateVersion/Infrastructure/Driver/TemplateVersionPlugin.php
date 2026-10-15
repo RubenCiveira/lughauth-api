@@ -20,11 +20,11 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\TemplateVersion\Application\Service\Visibility\TemplateVersionRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionReadGateway;
 use Civi\Lughauth\Features\Document\TemplateVersion\Domain\Gateway\TemplateVersionWriteGateway;
+use Civi\Lughauth\Features\Document\TemplateVersion\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\TemplateVersion\Infrastructure\Driven\TemplateVersionCommandRepositoryAdapter;
 
 class TemplateVersionPlugin extends MicroPlugin
 {
@@ -32,7 +32,7 @@ class TemplateVersionPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TemplateVersionReadGateway::class] = \DI\autowire(TemplateVersionReadRepositoryAdapter::class);
-        $def[TemplateVersionWriteGateway::class] = \DI\autowire(TemplateVersionWriteRepositoryAdapter::class);
+        $def[TemplateVersionWriteGateway::class] = \DI\autowire(TemplateVersionCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -44,7 +44,7 @@ class TemplateVersionPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TemplateVersionRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TemplateVersionRestrictFilterToVisibility::class, TenantAccessible::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

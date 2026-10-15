@@ -329,10 +329,10 @@ class RolePdoConnector
                     $query .= ' and "access_role"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
-                $filterRelyingPartys = $filter->relyingPartys();
-                if (null !== $filterRelyingPartys) {
-                    $query .= ' and "access_role"."relying_party" in (:relyingPartys)  ';
-                    $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
+                $filterRelyingParties = $filter->relyingParties();
+                if (null !== $filterRelyingParties) {
+                    $query .= ' and "access_role"."relying_party" in (:relyingParties)  ';
+                    $params[] = new SqlParam(name: 'relyingParties', value: $filterRelyingParties, type: SqlParam::STR);
                 }
             }
             if ($sort) {

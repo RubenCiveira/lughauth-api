@@ -112,12 +112,12 @@ class UserWebauthnCredentialReadRepositoryAdapter implements UserWebauthnCredent
         }
     }
     #[Override]
-    public function findOneByAutenticator(string $autenticator): ?UserWebauthnCredential
+    public function findOneByAuthenticator(string $authenticator): ?UserWebauthnCredential
     {
-        $this->logDebug("Find on by autenticator for User webauthn credential on adapter");
-        $span = $this->startSpan("Find on by autenticator for User webauthn credential on adapter");
+        $this->logDebug("Find on by authenticator for User webauthn credential on adapter");
+        $span = $this->startSpan("Find on by authenticator for User webauthn credential on adapter");
         try {
-            return $this->conn->retrieve(new UserWebauthnCredentialFilter(autenticator: $autenticator));
+            return $this->conn->retrieve(new UserWebauthnCredentialFilter(authenticator: $authenticator));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

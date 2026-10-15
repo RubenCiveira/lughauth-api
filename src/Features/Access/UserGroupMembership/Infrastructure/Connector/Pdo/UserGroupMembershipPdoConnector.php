@@ -328,10 +328,10 @@ class UserGroupMembershipPdoConnector
                     $query .= ' and "access_user_group_membership"."relying_party" = :relyingParty ';
                     $params[] = new SqlParam(name: 'relyingParty', value: $filterRelyingParty->uid(), type: SqlParam::STR);
                 }
-                $filterRelyingPartys = $filter->relyingPartys();
-                if (null !== $filterRelyingPartys) {
-                    $query .= ' and "access_user_group_membership"."relying_party" in (:relyingPartys)  ';
-                    $params[] = new SqlParam(name: 'relyingPartys', value: $filterRelyingPartys, type: SqlParam::STR);
+                $filterRelyingParties = $filter->relyingParties();
+                if (null !== $filterRelyingParties) {
+                    $query .= ' and "access_user_group_membership"."relying_party" in (:relyingParties)  ';
+                    $params[] = new SqlParam(name: 'relyingParties', value: $filterRelyingParties, type: SqlParam::STR);
                 }
                 $filterTrustedClient = $filter->trustedClient();
                 if (null !== $filterTrustedClient) {
@@ -343,11 +343,11 @@ class UserGroupMembershipPdoConnector
                     $query .= ' and "access_user_group_membership"."trusted_client" in (:trustedClients)  ';
                     $params[] = new SqlParam(name: 'trustedClients', value: $filterTrustedClients, type: SqlParam::STR);
                 }
-                $filterUserTenantAccesible = $filter->userTenantAccesible();
-                if (null !== $filterUserTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_user" as "userTenantAccesibleUser" ON "userTenantAccesibleUser"."uid" = "access_user_group_membership"."user" LEFT JOIN "access_tenant" as "userTenantAccesibleTenant" ON "userTenantAccesibleTenant"."uid" = "userTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantAccesibleTenant"."uid" = :userTenantAccesible';
-                    $params[] = new SqlParam(name: 'userTenantAccesible', value: $filterUserTenantAccesible, type: SqlParam::STR);
+                $filterUserTenantAccessible = $filter->userTenantAccessible();
+                if (null !== $filterUserTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_user" as "userTenantAccessibleUser" ON "userTenantAccessibleUser"."uid" = "access_user_group_membership"."user" LEFT JOIN "access_tenant" as "userTenantAccessibleTenant" ON "userTenantAccessibleTenant"."uid" = "userTenantAccessibleUser"."tenant"';
+                    $query .= ' and "userTenantAccessibleTenant"."uid" = :userTenantAccessible';
+                    $params[] = new SqlParam(name: 'userTenantAccessible', value: $filterUserTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

@@ -21,8 +21,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpNameAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWelcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisteredEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnabledUserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRecoverPassAttributeHolder;
@@ -48,8 +48,8 @@ class TenantConfigUpdateResult
     use TenantConfigWebauthnEnabledAttributeHolder;
     use TenantConfigWebauthnRpIdAttributeHolder;
     use TenantConfigWebauthnRpNameAttributeHolder;
-    use TenantConfigWellcomeEmailAttributeHolder;
-    use TenantConfigRegisterdEmailAttributeHolder;
+    use TenantConfigWelcomeEmailAttributeHolder;
+    use TenantConfigRegisteredEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
     use TenantConfigEnabledUserEmailAttributeHolder;
     use TenantConfigAllowRecoverPassAttributeHolder;
@@ -73,8 +73,8 @@ class TenantConfigUpdateResult
       'webauthnEnabled' => 'unsetWebauthnEnabled',
       'webauthnRpId' => 'unsetWebauthnRpId',
       'webauthnRpName' => 'unsetWebauthnRpName',
-      'wellcomeEmail' => 'unsetWellcomeEmail',
-      'registerdEmail' => 'unsetRegisterdEmail',
+      'welcomeEmail' => 'unsetWelcomeEmail',
+      'registeredEmail' => 'unsetRegisteredEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
       'enabledUserEmail' => 'unsetEnabledUserEmail',
       'allowRecoverPass' => 'unsetAllowRecoverPass',
@@ -101,8 +101,8 @@ class TenantConfigUpdateResult
             $this->readWebauthnEnabledFrom($att);
             $this->readWebauthnRpIdFrom($att);
             $this->readWebauthnRpNameFrom($att);
-            $this->readWellcomeEmailFrom($att);
-            $this->readRegisterdEmailFrom($att);
+            $this->readWelcomeEmailFrom($att);
+            $this->readRegisteredEmailFrom($att);
             $this->readDisabledUserEmailFrom($att);
             $this->readEnabledUserEmailFrom($att);
             $this->readAllowRecoverPassFrom($att);
@@ -129,8 +129,8 @@ class TenantConfigUpdateResult
         $this->writeWebauthnEnabledTo($att);
         $this->writeWebauthnRpIdTo($att);
         $this->writeWebauthnRpNameTo($att);
-        $this->writeWellcomeEmailTo($att);
-        $this->writeRegisterdEmailTo($att);
+        $this->writeWelcomeEmailTo($att);
+        $this->writeRegisteredEmailTo($att);
         $this->writeDisabledUserEmailTo($att);
         $this->writeEnabledUserEmailTo($att);
         $this->writeAllowRecoverPassTo($att);
@@ -162,8 +162,8 @@ class TenantConfigUpdateResult
         $this->withDefaultWebauthnEnabled();
         $this->withDefaultWebauthnRpId();
         $this->withDefaultWebauthnRpName();
-        $this->withDefaultWellcomeEmail();
-        $this->withDefaultRegisterdEmail();
+        $this->withDefaultWelcomeEmail();
+        $this->withDefaultRegisteredEmail();
         $this->withDefaultDisabledUserEmail();
         $this->withDefaultEnabledUserEmail();
         $this->withDefaultAllowRecoverPass();

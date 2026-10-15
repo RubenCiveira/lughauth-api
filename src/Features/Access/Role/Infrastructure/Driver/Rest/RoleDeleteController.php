@@ -78,7 +78,7 @@ class RoleDeleteController
                 search: $params['search'] ?? null,
                 name: $params['name'] ?? null,
                 relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
-                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
+                relyingParties: isset($params['relying-parties']) ? explode(",", $params['relying-parties']) : null,
             );
             $res = $this->runner->run(RoleTaskDelete::class, ['filter' => $filter]);
             $encoded = json_encode($res);

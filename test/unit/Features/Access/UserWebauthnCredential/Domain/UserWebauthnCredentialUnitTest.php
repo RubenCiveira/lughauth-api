@@ -15,7 +15,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $one = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -37,8 +37,8 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged());
-        $this->assertEquals($one->getAutenticator(), $other->getAutenticator());
-        $this->assertTrue($one->isAutenticatorChanged());
+        $this->assertEquals($one->getAuthenticator(), $other->getAuthenticator());
+        $this->assertTrue($one->isAuthenticatorChanged());
         $this->assertEquals($one->getName(), $other->getName());
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
@@ -62,7 +62,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $base = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -77,7 +77,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $other = new UserWebauthnCredential(
             uid: 'other',
             user: new UserRef('other'),
-            autenticator: 'other',
+            authenticator: 'other',
             name: 'other',
             publicKey: 'other',
             signCount: 2,
@@ -97,8 +97,8 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged($base));
-        $this->assertEquals($one->getAutenticator(), $other->getAutenticator());
-        $this->assertTrue($one->isAutenticatorChanged($base));
+        $this->assertEquals($one->getAuthenticator(), $other->getAuthenticator());
+        $this->assertTrue($one->isAuthenticatorChanged($base));
         $this->assertEquals($one->getName(), $other->getName());
         $this->assertTrue($one->isNameChanged($base));
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
@@ -122,7 +122,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $one = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -141,7 +141,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         // @Assert
         $this->assertEquals('one', $json['uid']);
         $this->assertEquals('one', $json['user']['$ref']);
-        $this->assertEquals('one', $json['autenticator']);
+        $this->assertEquals('one', $json['authenticator']);
         $this->assertEquals('one', $json['name']);
         $this->assertEquals(1, $json['signCount']);
         $this->assertEquals('one', $json['aaguid']);
@@ -157,7 +157,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $one = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -177,8 +177,8 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged());
-        $this->assertEquals($one->getAutenticator(), $other->getAutenticator());
-        $this->assertTrue($one->isAutenticatorChanged());
+        $this->assertEquals($one->getAuthenticator(), $other->getAuthenticator());
+        $this->assertTrue($one->isAuthenticatorChanged());
         $this->assertEquals($one->getName(), $other->getName());
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
@@ -203,7 +203,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $base = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -218,7 +218,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $other = new UserWebauthnCredential(
             uid: 'other',
             user: new UserRef('other'),
-            autenticator: 'other',
+            authenticator: 'other',
             name: 'other',
             publicKey: 'other',
             signCount: 2,
@@ -238,8 +238,8 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $this->assertEquals($one->uid(), $base->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged($base));
-        $this->assertEquals($one->getAutenticator(), $other->getAutenticator());
-        $this->assertTrue($one->isAutenticatorChanged($base));
+        $this->assertEquals($one->getAuthenticator(), $other->getAuthenticator());
+        $this->assertTrue($one->isAuthenticatorChanged($base));
         $this->assertEquals($one->getName(), $other->getName());
         $this->assertTrue($one->isNameChanged($base));
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
@@ -265,7 +265,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $one = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -285,8 +285,8 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $this->assertEquals($one->uid(), $other->uid());
         $this->assertEquals($one->getUser(), $other->getUser());
         $this->assertTrue($one->isUserChanged());
-        $this->assertEquals($one->getAutenticator(), $other->getAutenticator());
-        $this->assertTrue($one->isAutenticatorChanged());
+        $this->assertEquals($one->getAuthenticator(), $other->getAuthenticator());
+        $this->assertTrue($one->isAuthenticatorChanged());
         $this->assertEquals($one->getName(), $other->getName());
         $this->assertTrue($one->isNameChanged());
         $this->assertEquals($one->getPublicKey(), $other->getPublicKey());
@@ -310,7 +310,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $source = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,
@@ -340,7 +340,7 @@ final class UserWebauthnCredentialUnitTest extends TestCase
         $source = new UserWebauthnCredential(
             uid: 'one',
             user: new UserRef('one'),
-            autenticator: 'one',
+            authenticator: 'one',
             name: 'one',
             publicKey: 'one',
             signCount: 1,

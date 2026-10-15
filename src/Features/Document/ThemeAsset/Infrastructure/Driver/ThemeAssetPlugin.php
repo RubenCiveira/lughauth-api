@@ -23,11 +23,11 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\ThemeAsset\Application\Service\Visibility\ThemeAssetRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\ThemeAsset\Infrastructure\Driven\ThemeAssetReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\ThemeAsset\Infrastructure\Driven\ThemeAssetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetReadGateway;
 use Civi\Lughauth\Features\Document\ThemeAsset\Domain\Gateway\ThemeAssetWriteGateway;
+use Civi\Lughauth\Features\Document\ThemeAsset\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\ThemeAsset\Infrastructure\Driven\ThemeAssetCommandRepositoryAdapter;
 
 class ThemeAssetPlugin extends MicroPlugin
 {
@@ -35,7 +35,7 @@ class ThemeAssetPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[ThemeAssetReadGateway::class] = \DI\autowire(ThemeAssetReadRepositoryAdapter::class);
-        $def[ThemeAssetWriteGateway::class] = \DI\autowire(ThemeAssetWriteRepositoryAdapter::class);
+        $def[ThemeAssetWriteGateway::class] = \DI\autowire(ThemeAssetCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -47,7 +47,7 @@ class ThemeAssetPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(ThemeAssetRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(ThemeAssetRestrictFilterToVisibility::class, TenantAccessible::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

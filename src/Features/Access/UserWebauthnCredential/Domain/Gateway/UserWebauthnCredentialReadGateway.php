@@ -17,6 +17,6 @@ interface UserWebauthnCredentialReadGateway
     public function exists(UserWebauthnCredentialFilter $filter): bool;
     public function count(?UserWebauthnCredentialFilter $filter = null): int;
     public function findOneByUid(string $uid): ?UserWebauthnCredential;
-    public function findOneByAutenticator(string $autenticator): ?UserWebauthnCredential;
+    public function findOneByAuthenticator(string $authenticator): ?UserWebauthnCredential;
     public function findOneByUserAndName(UserRef $user, string $name): ?UserWebauthnCredential;
 }

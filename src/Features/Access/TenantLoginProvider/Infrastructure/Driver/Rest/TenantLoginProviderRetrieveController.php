@@ -89,16 +89,16 @@ class TenantLoginProviderRetrieveController
             $span->end();
         }
     }
-    public function retrieveSamlIdpIdpCert(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
+    public function retrieveSamlIdpCert(ServerRequestInterface $request, ResponseInterface $response, array $args): ResponseInterface
     {
-        $this->logDebug("Retrieve file Saml idp idp cert Tenant login provider");
-        $span = $this->startSpan("Retrieve file Saml idp idp cert Tenant login provider");
+        $this->logDebug("Retrieve file Saml idp cert Tenant login provider");
+        $span = $this->startSpan("Retrieve file Saml idp cert Tenant login provider");
         try {
             if (!isset($args['uid'])) {
                 throw new NotFoundException('-');
             }
             $uid = $args['uid'];
-            $result = $this->retrieveUsecase->retrieveSamlIdpIdpCert($uid);
+            $result = $this->retrieveUsecase->retrieveSamlIdpCert($uid);
             $resource = $result->stream;
             fseek($resource, 0, SEEK_END);
             $fileSize = ftell($resource);
@@ -140,9 +140,9 @@ class TenantLoginProviderRetrieveController
             $dto->samlIdpMetadataUrl = $value->getSamlIdpMetadataUrl();
             $dto->samlIdpEntityId = $value->getSamlIdpEntityId();
             $dto->samlIdpSsoUrl = $value->getSamlIdpSsoUrl();
-            if (null !== $value->getSamlIdpIdpCert()) {
-                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/saml-idp-idp-cert';
-                $dto->samlIdpIdpCert = $this->links->create($url, $request);
+            if (null !== $value->getSamlIdpCert()) {
+                $url = $this->context->getBaseUrl() . '/api/access/login-providers/' . ($value->getUid() ?? '-'). '/saml-idp-cert';
+                $dto->samlIdpCert = $this->links->create($url, $request);
             }
             $dto->usersEnabledByDefault = $value->isUsersEnabledByDefault();
             $dto->version = $value->getVersion();

@@ -22,13 +22,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\Theme\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\Theme\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Theme\Application\Service\Visibility\ThemeCollectNonEditableFields;
 use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeReadGateway;
 use Civi\Lughauth\Features\Document\Theme\Domain\Gateway\ThemeWriteGateway;
+use Civi\Lughauth\Features\Document\Theme\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\Theme\Infrastructure\Driven\ThemeCommandRepositoryAdapter;
 
 class ThemePlugin extends MicroPlugin
 {
@@ -36,7 +36,7 @@ class ThemePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[ThemeReadGateway::class] = \DI\autowire(ThemeReadRepositoryAdapter::class);
-        $def[ThemeWriteGateway::class] = \DI\autowire(ThemeWriteRepositoryAdapter::class);
+        $def[ThemeWriteGateway::class] = \DI\autowire(ThemeCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -48,7 +48,7 @@ class ThemePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(ThemeRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(ThemeRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(ThemeCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

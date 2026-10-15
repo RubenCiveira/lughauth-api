@@ -15,8 +15,8 @@ class UserPersonalApiKeyFilter
         public readonly ?string $keyHash = null,
         private ?UserRef $user = null,
         private ?string $name = null,
-        private ?string $onlySelfAccesibles = null,
-        private ?string $userTenantAccesible = null,
+        private ?string $onlySelfAccessibles = null,
+        private ?string $userTenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -93,40 +93,40 @@ class UserPersonalApiKeyFilter
         $copy->name = $name;
         return $copy;
     }
-    public function onlySelfAccesibles(): ?string
+    public function onlySelfAccessibles(): ?string
     {
-        return $this->onlySelfAccesibles;
+        return $this->onlySelfAccessibles;
     }
-    public function isOnlySelfAccesiblesAssigned(): bool
+    public function isOnlySelfAccessiblesAssigned(): bool
     {
-        return null !== $this->onlySelfAccesibles;
+        return null !== $this->onlySelfAccessibles;
     }
-    public function unsetOnlySelfAccesibles(): void
+    public function unsetOnlySelfAccessibles(): void
     {
-        $this->onlySelfAccesibles = null;
+        $this->onlySelfAccessibles = null;
     }
-    public function withOnlySelfAccesibles(string $onlySelfAccesibles): self
+    public function withOnlySelfAccessibles(string $onlySelfAccessibles): self
     {
         $copy = clone $this;
-        $copy->onlySelfAccesibles = $onlySelfAccesibles;
+        $copy->onlySelfAccessibles = $onlySelfAccessibles;
         return $copy;
     }
-    public function userTenantAccesible(): ?string
+    public function userTenantAccessible(): ?string
     {
-        return $this->userTenantAccesible;
+        return $this->userTenantAccessible;
     }
-    public function isUserTenantAccesibleAssigned(): bool
+    public function isUserTenantAccessibleAssigned(): bool
     {
-        return null !== $this->userTenantAccesible;
+        return null !== $this->userTenantAccessible;
     }
-    public function unsetUserTenantAccesible(): void
+    public function unsetUserTenantAccessible(): void
     {
-        $this->userTenantAccesible = null;
+        $this->userTenantAccessible = null;
     }
-    public function withUserTenantAccesible(string $userTenantAccesible): self
+    public function withUserTenantAccessible(string $userTenantAccessible): self
     {
         $copy = clone $this;
-        $copy->userTenantAccesible = $userTenantAccesible;
+        $copy->userTenantAccessible = $userTenantAccessible;
         return $copy;
     }
 }

@@ -21,8 +21,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantC
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnEnabledAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWebauthnRpNameAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWellcomeEmailAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisterdEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigWelcomeEmailAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigRegisteredEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigDisabledUserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigEnabledUserEmailAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\Holder\TenantConfigAllowRecoverPassAttributeHolder;
@@ -48,8 +48,8 @@ class TenantConfigAttributes
     use TenantConfigWebauthnEnabledAttributeHolder;
     use TenantConfigWebauthnRpIdAttributeHolder;
     use TenantConfigWebauthnRpNameAttributeHolder;
-    use TenantConfigWellcomeEmailAttributeHolder;
-    use TenantConfigRegisterdEmailAttributeHolder;
+    use TenantConfigWelcomeEmailAttributeHolder;
+    use TenantConfigRegisteredEmailAttributeHolder;
     use TenantConfigDisabledUserEmailAttributeHolder;
     use TenantConfigEnabledUserEmailAttributeHolder;
     use TenantConfigAllowRecoverPassAttributeHolder;
@@ -73,8 +73,8 @@ class TenantConfigAttributes
       'webauthnEnabled' => 'unsetWebauthnEnabled',
       'webauthnRpId' => 'unsetWebauthnRpId',
       'webauthnRpName' => 'unsetWebauthnRpName',
-      'wellcomeEmail' => 'unsetWellcomeEmail',
-      'registerdEmail' => 'unsetRegisterdEmail',
+      'welcomeEmail' => 'unsetWelcomeEmail',
+      'registeredEmail' => 'unsetRegisteredEmail',
       'disabledUserEmail' => 'unsetDisabledUserEmail',
       'enabledUserEmail' => 'unsetEnabledUserEmail',
       'allowRecoverPass' => 'unsetAllowRecoverPass',
@@ -101,8 +101,8 @@ class TenantConfigAttributes
         $webauthnEnabled = $this->webauthnEnabledTryBuildInitial($errors);
         $webauthnRpId = $this->webauthnRpIdTryBuildInitial($errors);
         $webauthnRpName = $this->webauthnRpNameTryBuildInitial($errors);
-        $wellcomeEmail = $this->wellcomeEmailTryBuildInitial($errors);
-        $registerdEmail = $this->registerdEmailTryBuildInitial($errors);
+        $welcomeEmail = $this->welcomeEmailTryBuildInitial($errors);
+        $registeredEmail = $this->registeredEmailTryBuildInitial($errors);
         $disabledUserEmail = $this->disabledUserEmailTryBuildInitial($errors);
         $enabledUserEmail = $this->enabledUserEmailTryBuildInitial($errors);
         $allowRecoverPass = $this->allowRecoverPassTryBuildInitial($errors);
@@ -136,8 +136,8 @@ class TenantConfigAttributes
             webauthnEnabled: $webauthnEnabled,
             webauthnRpId: $webauthnRpId,
             webauthnRpName: $webauthnRpName,
-            wellcomeEmail: $wellcomeEmail,
-            registerdEmail: $registerdEmail,
+            welcomeEmail: $welcomeEmail,
+            registeredEmail: $registeredEmail,
             disabledUserEmail: $disabledUserEmail,
             enabledUserEmail: $enabledUserEmail,
             allowRecoverPass: $allowRecoverPass,
@@ -165,8 +165,8 @@ class TenantConfigAttributes
         $this->withAssertedWebauthnEnabledRules($value, $errorsList);
         $this->withAssertedWebauthnRpIdRules($value, $errorsList);
         $this->withAssertedWebauthnRpNameRules($value, $errorsList);
-        $this->withAssertedWellcomeEmailRules($value, $errorsList);
-        $this->withAssertedRegisterdEmailRules($value, $errorsList);
+        $this->withAssertedWelcomeEmailRules($value, $errorsList);
+        $this->withAssertedRegisteredEmailRules($value, $errorsList);
         $this->withAssertedDisabledUserEmailRules($value, $errorsList);
         $this->withAssertedEnabledUserEmailRules($value, $errorsList);
         $this->withAssertedAllowRecoverPassRules($value, $errorsList);
@@ -201,8 +201,8 @@ class TenantConfigAttributes
         $this->withDefaultWebauthnEnabled();
         $this->withDefaultWebauthnRpId();
         $this->withDefaultWebauthnRpName();
-        $this->withDefaultWellcomeEmail();
-        $this->withDefaultRegisterdEmail();
+        $this->withDefaultWelcomeEmail();
+        $this->withDefaultRegisteredEmail();
         $this->withDefaultDisabledUserEmail();
         $this->withDefaultEnabledUserEmail();
         $this->withDefaultAllowRecoverPass();

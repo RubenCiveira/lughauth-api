@@ -21,6 +21,6 @@ interface UserWebauthnCredentialWriteGateway
     public function existsForUpdate(UserWebauthnCredentialFilter $filter): bool;
     public function countForUpdate(?UserWebauthnCredentialFilter $filter = null): int;
     public function findOneForUpdateByUid(string $uid): ?UserWebauthnCredential;
-    public function findOneForUpdateByAutenticator(string $autenticator): ?UserWebauthnCredential;
+    public function findOneForUpdateByAuthenticator(string $authenticator): ?UserWebauthnCredential;
     public function findOneForUpdateByUserAndName(UserRef $user, string $name): ?UserWebauthnCredential;
 }

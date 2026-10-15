@@ -20,13 +20,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Notification\Message\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Notification\Message\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Notification\Message\Application\Service\Visibility\MessageCollectNonEditableFields;
 use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageReadRepositoryAdapter;
-use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageReadGateway;
 use Civi\Lughauth\Features\Notification\Message\Domain\Gateway\MessageWriteGateway;
+use Civi\Lughauth\Features\Notification\Message\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Notification\Message\Infrastructure\Driven\MessageCommandRepositoryAdapter;
 
 class MessagePlugin extends MicroPlugin
 {
@@ -34,7 +34,7 @@ class MessagePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[MessageReadGateway::class] = \DI\autowire(MessageReadRepositoryAdapter::class);
-        $def[MessageWriteGateway::class] = \DI\autowire(MessageWriteRepositoryAdapter::class);
+        $def[MessageWriteGateway::class] = \DI\autowire(MessageCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -46,7 +46,7 @@ class MessagePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(MessageRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(MessageRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(MessageCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

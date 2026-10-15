@@ -114,12 +114,12 @@ class TenantLoginProviderApiDTO
     )]
     public ?string $samlIdpSsoUrl = null;
     #[OA\Property(
-        property: "samlIdpIdpCert",
-        title: "saml idp idp cert",
-        description:"El saml idp idp cert de tenant login provider",
+        property: "samlIdpCert",
+        title: "saml idp cert",
+        description:"El saml idp cert de tenant login provider",
         type: "string"
     )]
-    public ?string $samlIdpIdpCert = null;
+    public ?string $samlIdpCert = null;
     #[OA\Property(
         property: "usersEnabledByDefault",
         title: "users enabled by default",

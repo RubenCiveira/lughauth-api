@@ -334,16 +334,16 @@ class UserPersonalApiKeyPdoConnector
                     $query .= ' and "access_user_personal_api_key"."name" = :name ';
                     $params[] = new SqlParam(name: 'name', value: $filterName, type: SqlParam::STR);
                 }
-                $filterOnlySelfAccesibles = $filter->onlySelfAccesibles();
-                if (null !== $filterOnlySelfAccesibles) {
-                    $query .= ' and "access_user_personal_api_key"."user" = :onlySelfAccesibles ';
-                    $params[] = new SqlParam(name: 'onlySelfAccesibles', value: $filterOnlySelfAccesibles->uid(), type: SqlParam::STR);
+                $filterOnlySelfAccessibles = $filter->onlySelfAccessibles();
+                if (null !== $filterOnlySelfAccessibles) {
+                    $query .= ' and "access_user_personal_api_key"."user" = :onlySelfAccessibles ';
+                    $params[] = new SqlParam(name: 'onlySelfAccessibles', value: $filterOnlySelfAccessibles->uid(), type: SqlParam::STR);
                 }
-                $filterUserTenantAccesible = $filter->userTenantAccesible();
-                if (null !== $filterUserTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_user" as "userTenantAccesibleUser" ON "userTenantAccesibleUser"."uid" = "access_user_personal_api_key"."user" LEFT JOIN "access_tenant" as "userTenantAccesibleTenant" ON "userTenantAccesibleTenant"."uid" = "userTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantAccesibleTenant"."uid" = :userTenantAccesible';
-                    $params[] = new SqlParam(name: 'userTenantAccesible', value: $filterUserTenantAccesible, type: SqlParam::STR);
+                $filterUserTenantAccessible = $filter->userTenantAccessible();
+                if (null !== $filterUserTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_user" as "userTenantAccessibleUser" ON "userTenantAccessibleUser"."uid" = "access_user_personal_api_key"."user" LEFT JOIN "access_tenant" as "userTenantAccessibleTenant" ON "userTenantAccessibleTenant"."uid" = "userTenantAccessibleUser"."tenant"';
+                    $query .= ' and "userTenantAccessibleTenant"."uid" = :userTenantAccessible';
+                    $params[] = new SqlParam(name: 'userTenantAccessible', value: $filterUserTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

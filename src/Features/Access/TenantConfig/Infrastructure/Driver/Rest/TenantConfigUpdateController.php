@@ -31,8 +31,8 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRe
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnEnabledVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpIdVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWebauthnRpNameVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWellcomeEmailVO;
-use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisterdEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigWelcomeEmailVO;
+use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigRegisteredEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigDisabledUserEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigEnabledUserEmailVO;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\ValueObject\TenantConfigAllowRecoverPassVO;
@@ -146,8 +146,8 @@ class TenantConfigUpdateController
             $value->webauthnEnabled(TenantConfigWebauthnEnabledVO::tryFrom($body['webauthnEnabled'] ?? null, $errorsList));
             $value->webauthnRpId(TenantConfigWebauthnRpIdVO::tryFrom($body['webauthnRpId'] ?? null, $errorsList));
             $value->webauthnRpName(TenantConfigWebauthnRpNameVO::tryFrom($body['webauthnRpName'] ?? null, $errorsList));
-            $value->wellcomeEmail(TenantConfigWellcomeEmailVO::tryFrom($body['wellcomeEmail'] ?? null, $errorsList));
-            $value->registerdEmail(TenantConfigRegisterdEmailVO::tryFrom($body['registerdEmail'] ?? null, $errorsList));
+            $value->welcomeEmail(TenantConfigWelcomeEmailVO::tryFrom($body['welcomeEmail'] ?? null, $errorsList));
+            $value->registeredEmail(TenantConfigRegisteredEmailVO::tryFrom($body['registeredEmail'] ?? null, $errorsList));
             $value->disabledUserEmail(TenantConfigDisabledUserEmailVO::tryFrom($body['disabledUserEmail'] ?? null, $errorsList));
             $value->enabledUserEmail(TenantConfigEnabledUserEmailVO::tryFrom($body['enabledUserEmail'] ?? null, $errorsList));
             $value->allowRecoverPass(TenantConfigAllowRecoverPassVO::tryFrom($body['allowRecoverPass'] ?? null, $errorsList));
@@ -187,8 +187,8 @@ class TenantConfigUpdateController
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();
-            $dto->wellcomeEmail = $value->getWellcomeEmail();
-            $dto->registerdEmail = $value->getRegisterdEmail();
+            $dto->welcomeEmail = $value->getWelcomeEmail();
+            $dto->registeredEmail = $value->getRegisteredEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();
             $dto->enabledUserEmail = $value->getEnabledUserEmail();
             $dto->allowRecoverPass = $value->isAllowRecoverPass();

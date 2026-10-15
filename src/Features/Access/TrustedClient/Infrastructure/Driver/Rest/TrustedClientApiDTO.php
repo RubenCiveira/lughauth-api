@@ -42,7 +42,7 @@ class TrustedClientApiDTO
     #[OA\Property(
         property: "secretOauth",
         title: "secret oauth",
-        description:"If the user is not delegated, the phrasse to identify",
+        description:"If the user is not delegated, the phrase to identify",
         type: "string"
     )]
     public ?string $secretOauth = null;

@@ -103,24 +103,24 @@ class TenantLoginProviderRetrieveUsecase
             $span->end();
         }
     }
-    public function retrieveSamlIdpIdpCert(string $uid): BinaryContent
+    public function retrieveSamlIdpCert(string $uid): BinaryContent
     {
-        $this->logDebug("Run retrieve SamlIdpIdpCert file usecase for Tenant login provider");
-        $span = $this->startSpan("Run retrieve SamlIdpIdpCert file usecase for Tenant login provider");
+        $this->logDebug("Run retrieve SamlIdpCert file usecase for Tenant login provider");
+        $span = $this->startSpan("Run retrieve SamlIdpCert file usecase for Tenant login provider");
         try {
             $ref = new TenantLoginProviderRef($uid);
             $allow = $this->allowRetrieve($ref);
             if (!$allow->allowed) {
-                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve saml idp idp cert of Tenant login provider');
+                throw new UnauthorizedException($allow->reason ?? 'Not allowed to retrieve saml idp cert of Tenant login provider');
             }
             if (!$visible = $this->visibility->retrieveVisible($ref)) {
                 throw new NotFoundException($uid);
             }
-            $url = $visible->getSamlIdpIdpCert();
+            $url = $visible->getSamlIdpCert();
             if (null === $url) {
                 throw new NotFoundException($uid);
             }
-            return $this->reader->readSamlIdpIdpCert($url);
+            return $this->reader->readSamlIdpCert($url);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -20,9 +20,9 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleReadGateway;
 use Civi\Lughauth\Features\Access\Role\Domain\Gateway\RoleWriteGateway;
+use Civi\Lughauth\Features\Access\Role\Infrastructure\Driven\RoleCommandRepositoryAdapter;
 
 class RolePlugin extends MicroPlugin
 {
@@ -30,7 +30,7 @@ class RolePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[RoleReadGateway::class] = \DI\autowire(RoleReadRepositoryAdapter::class);
-        $def[RoleWriteGateway::class] = \DI\autowire(RoleWriteRepositoryAdapter::class);
+        $def[RoleWriteGateway::class] = \DI\autowire(RoleCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

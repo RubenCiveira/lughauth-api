@@ -98,7 +98,7 @@ newpass:
 
 newmfa:
   title: Configuración de segundo factor
-  help: Descargar en su telefono móvil una aplicación de generación de tokens otp (Autenticator de google o de microsoft, u otras), y añada una nueva cuenta con este código QR.
+  help: Descargar en su telefono móvil una aplicación de generación de tokens otp (Authenticator de google o de microsoft, u otras), y añada una nueva cuenta con este código QR.
   code: Código de verificación de la aplicación
   error-format: "Error: {0}"
   send: Verificar

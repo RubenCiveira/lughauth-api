@@ -16,11 +16,11 @@ class UserWebauthnCredentialFilter
     public function __construct(
         private ?array $uids = null,
         private ?string $search = null,
-        public readonly ?string $autenticator = null,
+        public readonly ?string $authenticator = null,
         private ?array $userAndName = null,
         private ?UserRef $user = null,
         private ?array $users = null,
-        private ?string $userTenantAccesible = null,
+        private ?string $userTenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -43,22 +43,22 @@ class UserWebauthnCredentialFilter
         $copy->search = $search;
         return $copy;
     }
-    public function autenticator(): ?string
+    public function authenticator(): ?string
     {
-        return $this->autenticator;
+        return $this->authenticator;
     }
-    public function isAutenticatorAssigned(): bool
+    public function isAuthenticatorAssigned(): bool
     {
-        return null !== $this->autenticator;
+        return null !== $this->authenticator;
     }
-    public function unsetAutenticator(): void
+    public function unsetAuthenticator(): void
     {
-        $this->autenticator = null;
+        $this->authenticator = null;
     }
-    public function withAutenticator(?string $autenticator): self
+    public function withAuthenticator(?string $authenticator): self
     {
         $copy = clone $this;
-        $copy->autenticator = $autenticator;
+        $copy->authenticator = $authenticator;
         return $copy;
     }
     public function userAndName(): ?array
@@ -115,22 +115,22 @@ class UserWebauthnCredentialFilter
         $copy->users = $users;
         return $copy;
     }
-    public function userTenantAccesible(): ?string
+    public function userTenantAccessible(): ?string
     {
-        return $this->userTenantAccesible;
+        return $this->userTenantAccessible;
     }
-    public function isUserTenantAccesibleAssigned(): bool
+    public function isUserTenantAccessibleAssigned(): bool
     {
-        return null !== $this->userTenantAccesible;
+        return null !== $this->userTenantAccessible;
     }
-    public function unsetUserTenantAccesible(): void
+    public function unsetUserTenantAccessible(): void
     {
-        $this->userTenantAccesible = null;
+        $this->userTenantAccessible = null;
     }
-    public function withUserTenantAccesible(string $userTenantAccesible): self
+    public function withUserTenantAccessible(string $userTenantAccessible): self
     {
         $copy = clone $this;
-        $copy->userTenantAccesible = $userTenantAccesible;
+        $copy->userTenantAccessible = $userTenantAccessible;
         return $copy;
     }
 }

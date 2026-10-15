@@ -357,26 +357,26 @@ class UserInvitationPdoConnector
                     $query .= ' and "access_user_invitation"."invited_by" = :invitedBy ';
                     $params[] = new SqlParam(name: 'invitedBy', value: $filterInvitedBy->uid(), type: SqlParam::STR);
                 }
-                $filterInvitedBys = $filter->invitedBys();
-                if (null !== $filterInvitedBys) {
-                    $query .= ' and "access_user_invitation"."invited_by" in (:invitedBys)  ';
-                    $params[] = new SqlParam(name: 'invitedBys', value: $filterInvitedBys, type: SqlParam::STR);
+                $filterInvitedBies = $filter->invitedBies();
+                if (null !== $filterInvitedBies) {
+                    $query .= ' and "access_user_invitation"."invited_by" in (:invitedBies)  ';
+                    $params[] = new SqlParam(name: 'invitedBies', value: $filterInvitedBies, type: SqlParam::STR);
                 }
                 $filterAcceptedBy = $filter->acceptedBy();
                 if (null !== $filterAcceptedBy) {
                     $query .= ' and "access_user_invitation"."accepted_by" = :acceptedBy ';
                     $params[] = new SqlParam(name: 'acceptedBy', value: $filterAcceptedBy->uid(), type: SqlParam::STR);
                 }
-                $filterAcceptedBys = $filter->acceptedBys();
-                if (null !== $filterAcceptedBys) {
-                    $query .= ' and "access_user_invitation"."accepted_by" in (:acceptedBys)  ';
-                    $params[] = new SqlParam(name: 'acceptedBys', value: $filterAcceptedBys, type: SqlParam::STR);
+                $filterAcceptedBies = $filter->acceptedBies();
+                if (null !== $filterAcceptedBies) {
+                    $query .= ' and "access_user_invitation"."accepted_by" in (:acceptedBies)  ';
+                    $params[] = new SqlParam(name: 'acceptedBies', value: $filterAcceptedBies, type: SqlParam::STR);
                 }
-                $filterTenantAccesible = $filter->tenantAccesible();
-                if (null !== $filterTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccesibleTenant" ON "tenantAccesibleTenant"."uid" = "access_user_invitation"."tenant"';
-                    $query .= ' and "tenantAccesibleTenant"."uid" = :tenantAccesible';
-                    $params[] = new SqlParam(name: 'tenantAccesible', value: $filterTenantAccesible, type: SqlParam::STR);
+                $filterTenantAccessible = $filter->tenantAccessible();
+                if (null !== $filterTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_tenant" as "tenantAccessibleTenant" ON "tenantAccessibleTenant"."uid" = "access_user_invitation"."tenant"';
+                    $query .= ' and "tenantAccessibleTenant"."uid" = :tenantAccessible';
+                    $params[] = new SqlParam(name: 'tenantAccessible', value: $filterTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

@@ -15,7 +15,7 @@ class SmtpOutboundConfigFilter
         public readonly ?TenantRef $tenant = null,
         private ?bool $globalOnly = null,
         private ?array $tenants = null,
-        private ?string $tenantAccesible = null,
+        private ?string $tenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -92,22 +92,22 @@ class SmtpOutboundConfigFilter
         $copy->tenants = $tenants;
         return $copy;
     }
-    public function tenantAccesible(): ?string
+    public function tenantAccessible(): ?string
     {
-        return $this->tenantAccesible;
+        return $this->tenantAccessible;
     }
-    public function isTenantAccesibleAssigned(): bool
+    public function isTenantAccessibleAssigned(): bool
     {
-        return null !== $this->tenantAccesible;
+        return null !== $this->tenantAccessible;
     }
-    public function unsetTenantAccesible(): void
+    public function unsetTenantAccessible(): void
     {
-        $this->tenantAccesible = null;
+        $this->tenantAccessible = null;
     }
-    public function withTenantAccesible(string $tenantAccesible): self
+    public function withTenantAccessible(string $tenantAccessible): self
     {
         $copy = clone $this;
-        $copy->tenantAccesible = $tenantAccesible;
+        $copy->tenantAccessible = $tenantAccessible;
         return $copy;
     }
 }

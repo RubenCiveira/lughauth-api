@@ -30,8 +30,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
-            wellcomeEmail: 'one',
-            registerdEmail: 'one',
+            welcomeEmail: 'one',
+            registeredEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
             allowRecoverPass: true,
@@ -76,10 +76,10 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isWebauthnRpIdChanged());
         $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
         $this->assertTrue($one->isWebauthnRpNameChanged());
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged());
-        $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
-        $this->assertTrue($one->isRegisterdEmailChanged());
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged());
+        $this->assertEquals($one->getRegisteredEmail(), $other->getRegisteredEmail());
+        $this->assertTrue($one->isRegisteredEmailChanged());
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
         $this->assertTrue($one->isDisabledUserEmailChanged());
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
@@ -111,8 +111,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
-            wellcomeEmail: 'one',
-            registerdEmail: 'one',
+            welcomeEmail: 'one',
+            registeredEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
             allowRecoverPass: true,
@@ -136,8 +136,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
-            wellcomeEmail: 'other',
-            registerdEmail: 'other',
+            welcomeEmail: 'other',
+            registeredEmail: 'other',
             disabledUserEmail: 'other',
             enabledUserEmail: 'other',
             allowRecoverPass: false,
@@ -180,10 +180,10 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isWebauthnRpIdChanged($base));
         $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
         $this->assertTrue($one->isWebauthnRpNameChanged($base));
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged($base));
-        $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
-        $this->assertTrue($one->isRegisterdEmailChanged($base));
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged($base));
+        $this->assertEquals($one->getRegisteredEmail(), $other->getRegisteredEmail());
+        $this->assertTrue($one->isRegisteredEmailChanged($base));
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
         $this->assertTrue($one->isDisabledUserEmailChanged($base));
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
@@ -215,8 +215,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
-            wellcomeEmail: 'one',
-            registerdEmail: 'one',
+            welcomeEmail: 'one',
+            registeredEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
             allowRecoverPass: true,
@@ -267,8 +267,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
-            wellcomeEmail: 'one',
-            registerdEmail: 'one',
+            welcomeEmail: 'one',
+            registeredEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
             allowRecoverPass: true,
@@ -311,10 +311,10 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isWebauthnRpIdChanged());
         $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
         $this->assertTrue($one->isWebauthnRpNameChanged());
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged());
-        $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
-        $this->assertTrue($one->isRegisterdEmailChanged());
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged());
+        $this->assertEquals($one->getRegisteredEmail(), $other->getRegisteredEmail());
+        $this->assertTrue($one->isRegisteredEmailChanged());
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
         $this->assertTrue($one->isDisabledUserEmailChanged());
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
@@ -347,8 +347,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
-            wellcomeEmail: 'one',
-            registerdEmail: 'one',
+            welcomeEmail: 'one',
+            registeredEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
             allowRecoverPass: true,
@@ -372,8 +372,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: false,
             webauthnRpId: 'other',
             webauthnRpName: 'other',
-            wellcomeEmail: 'other',
-            registerdEmail: 'other',
+            welcomeEmail: 'other',
+            registeredEmail: 'other',
             disabledUserEmail: 'other',
             enabledUserEmail: 'other',
             allowRecoverPass: false,
@@ -416,10 +416,10 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isWebauthnRpIdChanged($base));
         $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
         $this->assertTrue($one->isWebauthnRpNameChanged($base));
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged($base));
-        $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
-        $this->assertTrue($one->isRegisterdEmailChanged($base));
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged($base));
+        $this->assertEquals($one->getRegisteredEmail(), $other->getRegisteredEmail());
+        $this->assertTrue($one->isRegisteredEmailChanged($base));
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
         $this->assertTrue($one->isDisabledUserEmailChanged($base));
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());
@@ -453,8 +453,8 @@ final class TenantConfigUnitTest extends TestCase
             webauthnEnabled: true,
             webauthnRpId: 'one',
             webauthnRpName: 'one',
-            wellcomeEmail: 'one',
-            registerdEmail: 'one',
+            welcomeEmail: 'one',
+            registeredEmail: 'one',
             disabledUserEmail: 'one',
             enabledUserEmail: 'one',
             allowRecoverPass: true,
@@ -497,10 +497,10 @@ final class TenantConfigUnitTest extends TestCase
         $this->assertTrue($one->isWebauthnRpIdChanged());
         $this->assertEquals($one->getWebauthnRpName(), $other->getWebauthnRpName());
         $this->assertTrue($one->isWebauthnRpNameChanged());
-        $this->assertEquals($one->getWellcomeEmail(), $other->getWellcomeEmail());
-        $this->assertTrue($one->isWellcomeEmailChanged());
-        $this->assertEquals($one->getRegisterdEmail(), $other->getRegisterdEmail());
-        $this->assertTrue($one->isRegisterdEmailChanged());
+        $this->assertEquals($one->getWelcomeEmail(), $other->getWelcomeEmail());
+        $this->assertTrue($one->isWelcomeEmailChanged());
+        $this->assertEquals($one->getRegisteredEmail(), $other->getRegisteredEmail());
+        $this->assertTrue($one->isRegisteredEmailChanged());
         $this->assertEquals($one->getDisabledUserEmail(), $other->getDisabledUserEmail());
         $this->assertTrue($one->isDisabledUserEmailChanged());
         $this->assertEquals($one->getEnabledUserEmail(), $other->getEnabledUserEmail());

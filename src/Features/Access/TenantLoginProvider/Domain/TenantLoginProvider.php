@@ -32,8 +32,8 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantL
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderSamlIdpEntityIdAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpSsoUrlVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderSamlIdpSsoUrlAccessor;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpIdpCertVO;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderSamlIdpIdpCertAccessor;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderSamlIdpCertVO;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderSamlIdpCertAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderUsersEnabledByDefaultVO;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Accessor\TenantLoginProviderUsersEnabledByDefaultAccessor;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\TenantLoginProviderVersionVO;
@@ -63,7 +63,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
     use TenantLoginProviderSamlIdpMetadataUrlAccessor;
     use TenantLoginProviderSamlIdpEntityIdAccessor;
     use TenantLoginProviderSamlIdpSsoUrlAccessor;
-    use TenantLoginProviderSamlIdpIdpCertAccessor;
+    use TenantLoginProviderSamlIdpCertAccessor;
     use TenantLoginProviderUsersEnabledByDefaultAccessor;
     use TenantLoginProviderVersionAccessor;
     private array $recordedEvents = [];
@@ -84,7 +84,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         TenantLoginProviderSamlIdpMetadataUrlVO|string|null $samlIdpMetadataUrl = null,
         TenantLoginProviderSamlIdpEntityIdVO|string|null $samlIdpEntityId = null,
         TenantLoginProviderSamlIdpSsoUrlVO|string|null $samlIdpSsoUrl = null,
-        TenantLoginProviderSamlIdpIdpCertVO|string|null $samlIdpIdpCert = null,
+        TenantLoginProviderSamlIdpCertVO|string|null $samlIdpCert = null,
         TenantLoginProviderVersionVO|int|null $version = null,
     ) {
         parent::__construct($uid);
@@ -101,7 +101,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $this->_samlIdpMetadataUrl = null === $samlIdpMetadataUrl ? TenantLoginProviderSamlIdpMetadataUrlVO::empty() : TenantLoginProviderSamlIdpMetadataUrlVO::from($samlIdpMetadataUrl);
         $this->_samlIdpEntityId = null === $samlIdpEntityId ? TenantLoginProviderSamlIdpEntityIdVO::empty() : TenantLoginProviderSamlIdpEntityIdVO::from($samlIdpEntityId);
         $this->_samlIdpSsoUrl = null === $samlIdpSsoUrl ? TenantLoginProviderSamlIdpSsoUrlVO::empty() : TenantLoginProviderSamlIdpSsoUrlVO::from($samlIdpSsoUrl);
-        $this->_samlIdpIdpCert = null === $samlIdpIdpCert ? TenantLoginProviderSamlIdpIdpCertVO::empty() : TenantLoginProviderSamlIdpIdpCertVO::from($samlIdpIdpCert);
+        $this->_samlIdpCert = null === $samlIdpCert ? TenantLoginProviderSamlIdpCertVO::empty() : TenantLoginProviderSamlIdpCertVO::from($samlIdpCert);
         $this->_usersEnabledByDefault = TenantLoginProviderUsersEnabledByDefaultVO::from($usersEnabledByDefault);
         $this->_version = null === $version ? TenantLoginProviderVersionVO::empty() : TenantLoginProviderVersionVO::from($version);
     }
@@ -121,7 +121,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
         $value->_samlIdpMetadataUrl = $values->getSamlIdpMetadataUrlOrCurrent($this->_samlIdpMetadataUrl);
         $value->_samlIdpEntityId = $values->getSamlIdpEntityIdOrCurrent($this->_samlIdpEntityId);
         $value->_samlIdpSsoUrl = $values->getSamlIdpSsoUrlOrCurrent($this->_samlIdpSsoUrl);
-        $value->_samlIdpIdpCert = $values->getSamlIdpIdpCertOrCurrent($this->_samlIdpIdpCert);
+        $value->_samlIdpCert = $values->getSamlIdpCertOrCurrent($this->_samlIdpCert);
         $value->_usersEnabledByDefault = $values->getUsersEnabledByDefaultOrCurrent($this->_usersEnabledByDefault);
         $value->_version = $values->getVersionOrCurrent($this->_version);
         return $value;
@@ -162,14 +162,14 @@ class TenantLoginProvider extends TenantLoginProviderRef
             $this->_metadata = TenantLoginProviderMetadataVO::fromStored($key->key);
         }
     }
-    public function commitSamlIdpIdpCertWith(FileStorageInterface $store): void
+    public function commitSamlIdpCertWith(FileStorageInterface $store): void
     {
-        $value = $this->getSamlIdpIdpCert();
+        $value = $this->getSamlIdpCert();
         if (null === $value) {
-            $this->_samlIdpIdpCert = TenantLoginProviderSamlIdpIdpCertVO::empty();
+            $this->_samlIdpCert = TenantLoginProviderSamlIdpCertVO::empty();
         } else {
             $key = $store->commitContent(new FileStoreKey($value));
-            $this->_samlIdpIdpCert = TenantLoginProviderSamlIdpIdpCertVO::fromStored($key->key);
+            $this->_samlIdpCert = TenantLoginProviderSamlIdpCertVO::fromStored($key->key);
         }
     }
     public function enable(): TenantLoginProvider
@@ -223,7 +223,7 @@ class TenantLoginProvider extends TenantLoginProviderRef
           ->samlIdpMetadataUrl($this->_samlIdpMetadataUrl)
           ->samlIdpEntityId($this->_samlIdpEntityId)
           ->samlIdpSsoUrl($this->_samlIdpSsoUrl)
-          ->samlIdpIdpCert($this->_samlIdpIdpCert)
+          ->samlIdpCert($this->_samlIdpCert)
           ->usersEnabledByDefault($this->_usersEnabledByDefault)
           ->version($this->_version);
     }

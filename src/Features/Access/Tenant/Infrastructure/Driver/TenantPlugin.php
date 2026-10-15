@@ -22,9 +22,7 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\Tenant\Application\Service\Visibility\TenantRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantReadGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantWriteGateway;
 use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Allow\OnlyForRootAllow;
@@ -33,6 +31,8 @@ use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Update\TenantUpdate
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Delete\TenantDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Enable\TenantEnableAllowDecision;
 use Civi\Lughauth\Features\Access\Tenant\Application\Usecase\Disable\TenantDisableAllowDecision;
+use Civi\Lughauth\Features\Access\Tenant\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\Tenant\Infrastructure\Driven\TenantCommandRepositoryAdapter;
 
 class TenantPlugin extends MicroPlugin
 {
@@ -40,7 +40,7 @@ class TenantPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TenantReadGateway::class] = \DI\autowire(TenantReadRepositoryAdapter::class);
-        $def[TenantWriteGateway::class] = \DI\autowire(TenantWriteRepositoryAdapter::class);
+        $def[TenantWriteGateway::class] = \DI\autowire(TenantCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -52,7 +52,7 @@ class TenantPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TenantRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantCreateAllowDecision::class, OnlyForRootAllow::class, 'checkCreate');
         $listener->registerListener(TenantUpdateAllowDecision::class, OnlyForRootAllow::class, 'checkUpdate');
         $listener->registerListener(TenantDeleteAllowDecision::class, OnlyForRootAllow::class, 'checkDelete');

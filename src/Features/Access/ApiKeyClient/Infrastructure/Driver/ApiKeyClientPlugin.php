@@ -22,7 +22,6 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientReadGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Domain\Gateway\ApiKeyClientWriteGateway;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Policy\Allow\OnlyForRootAllow;
@@ -33,6 +32,7 @@ use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Retrieve\ApiK
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Delete\ApiKeyClientDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Enable\ApiKeyClientEnableAllowDecision;
 use Civi\Lughauth\Features\Access\ApiKeyClient\Application\Usecase\Disable\ApiKeyClientDisableAllowDecision;
+use Civi\Lughauth\Features\Access\ApiKeyClient\Infrastructure\Driven\ApiKeyClientCommandRepositoryAdapter;
 
 class ApiKeyClientPlugin extends MicroPlugin
 {
@@ -40,7 +40,7 @@ class ApiKeyClientPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[ApiKeyClientReadGateway::class] = \DI\autowire(ApiKeyClientReadRepositoryAdapter::class);
-        $def[ApiKeyClientWriteGateway::class] = \DI\autowire(ApiKeyClientWriteRepositoryAdapter::class);
+        $def[ApiKeyClientWriteGateway::class] = \DI\autowire(ApiKeyClientCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

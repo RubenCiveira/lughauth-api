@@ -20,10 +20,10 @@ class UserInvitationFilter
         private ?TenantRef $tenant = null,
         private ?array $tenants = null,
         private ?UserRef $invitedBy = null,
-        private ?array $invitedBys = null,
+        private ?array $invitedBies = null,
         private ?UserRef $acceptedBy = null,
-        private ?array $acceptedBys = null,
-        private ?string $tenantAccesible = null,
+        private ?array $acceptedBies = null,
+        private ?string $tenantAccessible = null,
     ) {
     }
     public function uids(): ?array
@@ -154,22 +154,22 @@ class UserInvitationFilter
         $copy->invitedBy = $invitedBy;
         return $copy;
     }
-    public function invitedBys(): ?array
+    public function invitedBies(): ?array
     {
-        return $this->invitedBys;
+        return $this->invitedBies;
     }
-    public function isInvitedBysAssigned(): bool
+    public function isInvitedBiesAssigned(): bool
     {
-        return null !== $this->invitedBys;
+        return null !== $this->invitedBies;
     }
-    public function unsetInvitedBys(): void
+    public function unsetInvitedBies(): void
     {
-        $this->invitedBys = null;
+        $this->invitedBies = null;
     }
-    public function withInvitedBys(array $invitedBys): self
+    public function withInvitedBies(array $invitedBies): self
     {
         $copy = clone $this;
-        $copy->invitedBys = $invitedBys;
+        $copy->invitedBies = $invitedBies;
         return $copy;
     }
     public function acceptedBy(): ?UserRef
@@ -190,40 +190,40 @@ class UserInvitationFilter
         $copy->acceptedBy = $acceptedBy;
         return $copy;
     }
-    public function acceptedBys(): ?array
+    public function acceptedBies(): ?array
     {
-        return $this->acceptedBys;
+        return $this->acceptedBies;
     }
-    public function isAcceptedBysAssigned(): bool
+    public function isAcceptedBiesAssigned(): bool
     {
-        return null !== $this->acceptedBys;
+        return null !== $this->acceptedBies;
     }
-    public function unsetAcceptedBys(): void
+    public function unsetAcceptedBies(): void
     {
-        $this->acceptedBys = null;
+        $this->acceptedBies = null;
     }
-    public function withAcceptedBys(array $acceptedBys): self
+    public function withAcceptedBies(array $acceptedBies): self
     {
         $copy = clone $this;
-        $copy->acceptedBys = $acceptedBys;
+        $copy->acceptedBies = $acceptedBies;
         return $copy;
     }
-    public function tenantAccesible(): ?string
+    public function tenantAccessible(): ?string
     {
-        return $this->tenantAccesible;
+        return $this->tenantAccessible;
     }
-    public function isTenantAccesibleAssigned(): bool
+    public function isTenantAccessibleAssigned(): bool
     {
-        return null !== $this->tenantAccesible;
+        return null !== $this->tenantAccessible;
     }
-    public function unsetTenantAccesible(): void
+    public function unsetTenantAccessible(): void
     {
-        $this->tenantAccesible = null;
+        $this->tenantAccessible = null;
     }
-    public function withTenantAccesible(string $tenantAccesible): self
+    public function withTenantAccessible(string $tenantAccessible): self
     {
         $copy = clone $this;
-        $copy->tenantAccesible = $tenantAccesible;
+        $copy->tenantAccessible = $tenantAccessible;
         return $copy;
     }
 }

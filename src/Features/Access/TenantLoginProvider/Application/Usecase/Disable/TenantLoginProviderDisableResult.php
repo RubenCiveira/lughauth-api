@@ -19,7 +19,7 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpEntityIdAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpIdpCertAttributeHolder;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderSamlIdpCertAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\ValueObject\Holder\TenantLoginProviderVersionAttributeHolder;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\TenantLoginProviderAttributes;
@@ -40,7 +40,7 @@ class TenantLoginProviderDisableResult
     use TenantLoginProviderSamlIdpMetadataUrlAttributeHolder;
     use TenantLoginProviderSamlIdpEntityIdAttributeHolder;
     use TenantLoginProviderSamlIdpSsoUrlAttributeHolder;
-    use TenantLoginProviderSamlIdpIdpCertAttributeHolder;
+    use TenantLoginProviderSamlIdpCertAttributeHolder;
     use TenantLoginProviderUsersEnabledByDefaultAttributeHolder;
     use TenantLoginProviderVersionAttributeHolder;
 
@@ -59,7 +59,7 @@ class TenantLoginProviderDisableResult
       'samlIdpMetadataUrl' => 'unsetSamlIdpMetadataUrl',
       'samlIdpEntityId' => 'unsetSamlIdpEntityId',
       'samlIdpSsoUrl' => 'unsetSamlIdpSsoUrl',
-      'samlIdpIdpCert' => 'unsetSamlIdpIdpCert',
+      'samlIdpCert' => 'unsetSamlIdpCert',
       'usersEnabledByDefault' => 'unsetUsersEnabledByDefault',
       'version' => 'unsetVersion',
     ];
@@ -81,7 +81,7 @@ class TenantLoginProviderDisableResult
             $this->readSamlIdpMetadataUrlFrom($att);
             $this->readSamlIdpEntityIdFrom($att);
             $this->readSamlIdpSsoUrlFrom($att);
-            $this->readSamlIdpIdpCertFrom($att);
+            $this->readSamlIdpCertFrom($att);
             $this->readUsersEnabledByDefaultFrom($att);
             $this->readVersionFrom($att);
         }
@@ -103,7 +103,7 @@ class TenantLoginProviderDisableResult
         $this->writeSamlIdpMetadataUrlTo($att);
         $this->writeSamlIdpEntityIdTo($att);
         $this->writeSamlIdpSsoUrlTo($att);
-        $this->writeSamlIdpIdpCertTo($att);
+        $this->writeSamlIdpCertTo($att);
         $this->writeUsersEnabledByDefaultTo($att);
         $this->writeVersionTo($att);
         return $att;
@@ -130,7 +130,7 @@ class TenantLoginProviderDisableResult
         $this->withDefaultSamlIdpMetadataUrl();
         $this->withDefaultSamlIdpEntityId();
         $this->withDefaultSamlIdpSsoUrl();
-        $this->withDefaultSamlIdpIdpCert();
+        $this->withDefaultSamlIdpCert();
         $this->withDefaultUsersEnabledByDefault();
         $this->withDefaultVersion();
         return $this;

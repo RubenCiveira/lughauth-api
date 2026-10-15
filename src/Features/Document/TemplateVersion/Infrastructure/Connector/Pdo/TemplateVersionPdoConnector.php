@@ -292,11 +292,11 @@ class TemplateVersionPdoConnector
                     $query .= ' and "document_template_version"."template" in (:templates)  ';
                     $params[] = new SqlParam(name: 'templates', value: $filterTemplates, type: SqlParam::STR);
                 }
-                $filterTemplateTenantAccesible = $filter->templateTenantAccesible();
-                if (null !== $filterTemplateTenantAccesible) {
-                    $join .= ' LEFT JOIN "document_template" as "templateTenantAccesibleTemplate" ON "templateTenantAccesibleTemplate"."uid" = "document_template_version"."template" LEFT JOIN "access_tenant" as "templateTenantAccesibleTenant" ON "templateTenantAccesibleTenant"."uid" = "templateTenantAccesibleTemplate"."tenant"';
-                    $query .= ' and "templateTenantAccesibleTenant"."uid" = :templateTenantAccesible';
-                    $params[] = new SqlParam(name: 'templateTenantAccesible', value: $filterTemplateTenantAccesible, type: SqlParam::STR);
+                $filterTemplateTenantAccessible = $filter->templateTenantAccessible();
+                if (null !== $filterTemplateTenantAccessible) {
+                    $join .= ' LEFT JOIN "document_template" as "templateTenantAccessibleTemplate" ON "templateTenantAccessibleTemplate"."uid" = "document_template_version"."template" LEFT JOIN "access_tenant" as "templateTenantAccessibleTenant" ON "templateTenantAccessibleTenant"."uid" = "templateTenantAccessibleTemplate"."tenant"';
+                    $query .= ' and "templateTenantAccessibleTenant"."uid" = :templateTenantAccessible';
+                    $params[] = new SqlParam(name: 'templateTenantAccessible', value: $filterTemplateTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

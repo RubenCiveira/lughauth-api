@@ -38,7 +38,7 @@ class UserApiDTO
     #[OA\Property(
         property: "password",
         title: "password",
-        description:"If the user is not delegated, the phrasse to identify",
+        description:"If the user is not delegated, the phrase to identify",
         type: "string"
     )]
     public ?string $password = null;
@@ -50,12 +50,12 @@ class UserApiDTO
     )]
     public ?string $email = null;
     #[OA\Property(
-        property: "wellcomeAt",
-        title: "wellcome at",
-        description:"The date when a wellcome email is send",
+        property: "welcomeAt",
+        title: "welcome at",
+        description:"The date when a welcome email is sent",
         type: "string"
     )]
-    public ?string $wellcomeAt = null;
+    public ?string $welcomeAt = null;
     #[OA\Property(
         property: "emailVerified",
         title: "email verified",
@@ -66,7 +66,7 @@ class UserApiDTO
     #[OA\Property(
         property: "enabled",
         title: "enabled",
-        description:"A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account.",
+        description:"A disabled user cant login on the system. On his login attempts, he will receive a specific warn of his disabled account.",
         type: "string"
     )]
     public ?bool $enabled = null;
@@ -102,7 +102,7 @@ class UserApiDTO
     #[OA\Property(
         property: "blockedUntil",
         title: "blocked until",
-        description:"A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message.",
+        description:"A blocked user cant login on the system, until these date. On his login attempts, the user will receive a generic not allowed message.",
         type: "string"
     )]
     public ?string $blockedUntil = null;

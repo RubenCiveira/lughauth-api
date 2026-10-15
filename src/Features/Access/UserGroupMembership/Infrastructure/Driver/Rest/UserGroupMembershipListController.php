@@ -50,7 +50,7 @@ class UserGroupMembershipListController
                 user: isset($params['user']) ? new UserRef($params['user']) : null,
                 users: isset($params['users']) ? explode(",", $params['users']) : null,
                 relyingParty: isset($params['relying-party']) ? new RelyingPartyRef($params['relying-party']) : null,
-                relyingPartys: isset($params['relying-partys']) ? explode(",", $params['relying-partys']) : null,
+                relyingParties: isset($params['relying-parties']) ? explode(",", $params['relying-parties']) : null,
                 trustedClient: isset($params['trusted-client']) ? new TrustedClientRef($params['trusted-client']) : null,
                 trustedClients: isset($params['trusted-clients']) ? explode(",", $params['trusted-clients']) : null,
             );

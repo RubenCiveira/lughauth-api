@@ -17,20 +17,20 @@ use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderEnableController;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderDisableController;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempMetadataUploadController;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempSamlIdpIdpCertUploadController;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driver\Rest\TenantLoginProviderTempSamlIdpCertUploadController;
 use Civi\Lughauth\Shared\Security\Rbac\Handler;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Service\Visibility\TenantLoginProviderCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderReadGateway;
 use Civi\Lughauth\Features\Access\TenantLoginProvider\Domain\Gateway\TenantLoginProviderWriteGateway;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\TenantLoginProvider\Infrastructure\Driven\TenantLoginProviderCommandRepositoryAdapter;
 
 class TenantLoginProviderPlugin extends MicroPlugin
 {
@@ -38,7 +38,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TenantLoginProviderReadGateway::class] = \DI\autowire(TenantLoginProviderReadRepositoryAdapter::class);
-        $def[TenantLoginProviderWriteGateway::class] = \DI\autowire(TenantLoginProviderWriteRepositoryAdapter::class);
+        $def[TenantLoginProviderWriteGateway::class] = \DI\autowire(TenantLoginProviderCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -50,7 +50,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantLoginProviderRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantLoginProviderCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]
@@ -79,7 +79,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpMetadataUrl", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpEntityId", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "samlIdpSsoUrl", "MANAGE");
-            $handler->registerResourceAttribute("tenant-login-provider", "samlIdpIdpCert", "MANAGE");
+            $handler->registerResourceAttribute("tenant-login-provider", "samlIdpCert", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "usersEnabledByDefault", "MANAGE");
             $handler->registerResourceAttribute("tenant-login-provider", "version", "MANAGE");
         }, StartupProcessor::before(SecurityPlugin::STARTUP_ORDER));
@@ -95,7 +95,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $tenantLoginProviderGroup->post('', [TenantLoginProviderCreateController::class, 'create']);
         $tenantLoginProviderGroup->get('/{uid}', [TenantLoginProviderRetrieveController::class, 'retrieve']);
         $tenantLoginProviderGroup->get('/{uid}/metadata', [TenantLoginProviderRetrieveController::class, 'retrieveMetadata']);
-        $tenantLoginProviderGroup->get('/{uid}/saml-idp-idp-cert', [TenantLoginProviderRetrieveController::class, 'retrieveSamlIdpIdpCert']);
+        $tenantLoginProviderGroup->get('/{uid}/saml-idp-cert', [TenantLoginProviderRetrieveController::class, 'retrieveSamlIdpCert']);
         $tenantLoginProviderGroup->put('/{uid}', [TenantLoginProviderUpdateController::class, 'update']);
         $tenantLoginProviderGroup->delete('/{uid}', [TenantLoginProviderDeleteController::class, 'delete']);
         $tenantLoginProviderGroup->delete('', [TenantLoginProviderDeleteController::class, 'deleteAllForQuery']);
@@ -108,7 +108,7 @@ class TenantLoginProviderPlugin extends MicroPlugin
         $tenantLoginProviderGroup->get('/~/disable-status/{uid}', [TenantLoginProviderDisableController::class, 'checkDisableAllForQueryStatus']);
         $tenantLoginProviderGroup->post('/-/temp-metadata', [TenantLoginProviderTempMetadataUploadController::class, 'uploadTemp']);
         $tenantLoginProviderGroup->get('/-/temp-metadata', [TenantLoginProviderTempMetadataUploadController::class, 'getTemp']);
-        $tenantLoginProviderGroup->post('/-/temp-saml-idp-idp-cert', [TenantLoginProviderTempSamlIdpIdpCertUploadController::class, 'uploadTemp']);
-        $tenantLoginProviderGroup->get('/-/temp-saml-idp-idp-cert', [TenantLoginProviderTempSamlIdpIdpCertUploadController::class, 'getTemp']);
+        $tenantLoginProviderGroup->post('/-/temp-saml-idp-cert', [TenantLoginProviderTempSamlIdpCertUploadController::class, 'uploadTemp']);
+        $tenantLoginProviderGroup->get('/-/temp-saml-idp-cert', [TenantLoginProviderTempSamlIdpCertUploadController::class, 'getTemp']);
     }
 }

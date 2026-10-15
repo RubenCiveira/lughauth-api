@@ -22,13 +22,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\Template\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\Template\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Template\Application\Service\Visibility\TemplateCollectNonEditableFields;
 use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateReadGateway;
 use Civi\Lughauth\Features\Document\Template\Domain\Gateway\TemplateWriteGateway;
+use Civi\Lughauth\Features\Document\Template\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\Template\Infrastructure\Driven\TemplateCommandRepositoryAdapter;
 
 class TemplatePlugin extends MicroPlugin
 {
@@ -36,7 +36,7 @@ class TemplatePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TemplateReadGateway::class] = \DI\autowire(TemplateReadRepositoryAdapter::class);
-        $def[TemplateWriteGateway::class] = \DI\autowire(TemplateWriteRepositoryAdapter::class);
+        $def[TemplateWriteGateway::class] = \DI\autowire(TemplateCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -48,7 +48,7 @@ class TemplatePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TemplateRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TemplateRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TemplateCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

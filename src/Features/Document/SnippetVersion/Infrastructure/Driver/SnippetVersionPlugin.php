@@ -20,11 +20,11 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\SnippetVersion\Application\Service\Visibility\SnippetVersionRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionReadGateway;
 use Civi\Lughauth\Features\Document\SnippetVersion\Domain\Gateway\SnippetVersionWriteGateway;
+use Civi\Lughauth\Features\Document\SnippetVersion\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\SnippetVersion\Infrastructure\Driven\SnippetVersionCommandRepositoryAdapter;
 
 class SnippetVersionPlugin extends MicroPlugin
 {
@@ -32,7 +32,7 @@ class SnippetVersionPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[SnippetVersionReadGateway::class] = \DI\autowire(SnippetVersionReadRepositoryAdapter::class);
-        $def[SnippetVersionWriteGateway::class] = \DI\autowire(SnippetVersionWriteRepositoryAdapter::class);
+        $def[SnippetVersionWriteGateway::class] = \DI\autowire(SnippetVersionCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -44,7 +44,7 @@ class SnippetVersionPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(SnippetVersionRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(SnippetVersionRestrictFilterToVisibility::class, TenantAccessible::class);
     }
     #[Override]
     public function registerStartup(StartupProcessor $processor): void

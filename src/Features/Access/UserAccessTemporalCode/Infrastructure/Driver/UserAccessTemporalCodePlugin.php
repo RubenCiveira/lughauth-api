@@ -8,7 +8,7 @@ namespace Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Dr
 use Override;
 use Civi\Lughauth\Shared\Infrastructure\MicroPlugin;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driven\UserAccessTemporalCodeReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driven\UserAccessTemporalCodeWriteRepositoryAdapter;
+use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Infrastructure\Driven\UserAccessTemporalCodeCommandRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeReadGateway;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 
@@ -18,7 +18,7 @@ class UserAccessTemporalCodePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserAccessTemporalCodeReadGateway::class] = \DI\autowire(UserAccessTemporalCodeReadRepositoryAdapter::class);
-        $def[UserAccessTemporalCodeWriteGateway::class] = \DI\autowire(UserAccessTemporalCodeWriteRepositoryAdapter::class);
+        $def[UserAccessTemporalCodeWriteGateway::class] = \DI\autowire(UserAccessTemporalCodeCommandRepositoryAdapter::class);
         return $def;
     }
 }

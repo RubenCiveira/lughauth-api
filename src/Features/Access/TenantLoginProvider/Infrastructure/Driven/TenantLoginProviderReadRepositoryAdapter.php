@@ -122,10 +122,10 @@ class TenantLoginProviderReadRepositoryAdapter implements TenantLoginProviderRea
         }
     }
     #[Override]
-    public function readSamlIdpIdpCert(string $key): BinaryContent
+    public function readSamlIdpCert(string $key): BinaryContent
     {
-        $this->logDebug("Load SamlIdpIdpCert childs for Tenant login provider on adapter ");
-        $span = $this->startSpan("Load SamlIdpIdpCert childs for Tenant login provider on adapter");
+        $this->logDebug("Load SamlIdpCert childs for Tenant login provider on adapter ");
+        $span = $this->startSpan("Load SamlIdpCert childs for Tenant login provider on adapter");
         try {
             $binary = $this->store->retrieveFile(new FileStoreKey($key));
             if ($binary) {

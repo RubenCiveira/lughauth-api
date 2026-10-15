@@ -7,7 +7,7 @@ namespace Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain;
 
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialUidAttributeHolder;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialUserAttributeHolder;
-use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialAutenticatorAttributeHolder;
+use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialAuthenticatorAttributeHolder;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialNameAttributeHolder;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialPublicKeyAttributeHolder;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Holder\UserWebauthnCredentialSignCountAttributeHolder;
@@ -24,7 +24,7 @@ class UserWebauthnCredentialAttributes
 {
     use UserWebauthnCredentialUidAttributeHolder;
     use UserWebauthnCredentialUserAttributeHolder;
-    use UserWebauthnCredentialAutenticatorAttributeHolder;
+    use UserWebauthnCredentialAuthenticatorAttributeHolder;
     use UserWebauthnCredentialNameAttributeHolder;
     use UserWebauthnCredentialPublicKeyAttributeHolder;
     use UserWebauthnCredentialSignCountAttributeHolder;
@@ -39,7 +39,7 @@ class UserWebauthnCredentialAttributes
     private const array UNSETS = [
       'uid' => 'unsetUid',
       'user' => 'unsetUser',
-      'autenticator' => 'unsetAutenticator',
+      'authenticator' => 'unsetAuthenticator',
       'name' => 'unsetName',
       'publicKey' => 'unsetPublicKey',
       'signCount' => 'unsetSignCount',
@@ -57,7 +57,7 @@ class UserWebauthnCredentialAttributes
         $errors = new ConstraintFailList();
         $uid = $this->uidTryBuildInitial($errors);
         $user = $this->userTryBuildInitial($errors);
-        $autenticator = $this->autenticatorTryBuildInitial($errors);
+        $authenticator = $this->authenticatorTryBuildInitial($errors);
         $name = $this->nameTryBuildInitial($errors);
         $publicKey = $this->publicKeyTryBuildInitial($errors);
         $signCount = $this->signCountTryBuildInitial($errors);
@@ -73,14 +73,14 @@ class UserWebauthnCredentialAttributes
         }
         \assert($uid !== null);
         \assert($user !== null);
-        \assert($autenticator !== null);
+        \assert($authenticator !== null);
         \assert($name !== null);
         \assert($publicKey !== null);
         \assert($signCount !== null);
         return new UserWebauthnCredential(
             uid: $uid,
             user: $user,
-            autenticator: $autenticator,
+            authenticator: $authenticator,
             name: $name,
             publicKey: $publicKey,
             signCount: $signCount,
@@ -99,7 +99,7 @@ class UserWebauthnCredentialAttributes
         $errorsList = new ConstraintFailList();
         $this->withAssertedUidRules($value, $errorsList);
         $this->withAssertedUserRules($value, $errorsList);
-        $this->withAssertedAutenticatorRules($value, $errorsList);
+        $this->withAssertedAuthenticatorRules($value, $errorsList);
         $this->withAssertedNameRules($value, $errorsList);
         $this->withAssertedPublicKeyRules($value, $errorsList);
         $this->withAssertedSignCountRules($value, $errorsList);
@@ -125,7 +125,7 @@ class UserWebauthnCredentialAttributes
     {
         $this->withDefaultUid();
         $this->withDefaultUser();
-        $this->withDefaultAutenticator();
+        $this->withDefaultAuthenticator();
         $this->withDefaultName();
         $this->withDefaultPublicKey();
         $this->withDefaultSignCount();

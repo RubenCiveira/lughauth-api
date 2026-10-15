@@ -23,13 +23,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Service\Visibility\TenantTermsOfUseCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseReadGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\TenantTermsOfUse\Infrastructure\Driven\TenantTermsOfUseCommandRepositoryAdapter;
 
 class TenantTermsOfUsePlugin extends MicroPlugin
 {
@@ -37,7 +37,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TenantTermsOfUseReadGateway::class] = \DI\autowire(TenantTermsOfUseReadRepositoryAdapter::class);
-        $def[TenantTermsOfUseWriteGateway::class] = \DI\autowire(TenantTermsOfUseWriteRepositoryAdapter::class);
+        $def[TenantTermsOfUseWriteGateway::class] = \DI\autowire(TenantTermsOfUseCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -49,7 +49,7 @@ class TenantTermsOfUsePlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(TenantTermsOfUseRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(TenantTermsOfUseCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]

@@ -27,7 +27,7 @@ class RelyingPartyApiDTO
     #[OA\Property(
         property: "apiKey",
         title: "api key",
-        description:"A identification for the aplication",
+        description:"An identifier for the application",
         type: "string"
     )]
     public ?string $apiKey = null;

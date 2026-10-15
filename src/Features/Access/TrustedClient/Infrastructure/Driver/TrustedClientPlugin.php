@@ -22,7 +22,6 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientReadGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientWriteGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Policy\Allow\OnlyForRootAllow;
@@ -33,6 +32,7 @@ use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Retrieve\Tru
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Delete\TrustedClientDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Enable\TrustedClientEnableAllowDecision;
 use Civi\Lughauth\Features\Access\TrustedClient\Application\Usecase\Disable\TrustedClientDisableAllowDecision;
+use Civi\Lughauth\Features\Access\TrustedClient\Infrastructure\Driven\TrustedClientCommandRepositoryAdapter;
 
 class TrustedClientPlugin extends MicroPlugin
 {
@@ -40,7 +40,7 @@ class TrustedClientPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[TrustedClientReadGateway::class] = \DI\autowire(TrustedClientReadRepositoryAdapter::class);
-        $def[TrustedClientWriteGateway::class] = \DI\autowire(TrustedClientWriteRepositoryAdapter::class);
+        $def[TrustedClientWriteGateway::class] = \DI\autowire(TrustedClientCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]

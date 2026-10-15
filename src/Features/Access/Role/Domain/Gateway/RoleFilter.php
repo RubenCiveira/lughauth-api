@@ -19,7 +19,7 @@ class RoleFilter
         private ?array $relyingPartyAndName = null,
         private ?string $name = null,
         private ?RelyingPartyRef $relyingParty = null,
-        private ?array $relyingPartys = null,
+        private ?array $relyingParties = null,
     ) {
     }
     public function uids(): ?array
@@ -96,22 +96,22 @@ class RoleFilter
         $copy->relyingParty = $relyingParty;
         return $copy;
     }
-    public function relyingPartys(): ?array
+    public function relyingParties(): ?array
     {
-        return $this->relyingPartys;
+        return $this->relyingParties;
     }
-    public function isRelyingPartysAssigned(): bool
+    public function isRelyingPartiesAssigned(): bool
     {
-        return null !== $this->relyingPartys;
+        return null !== $this->relyingParties;
     }
-    public function unsetRelyingPartys(): void
+    public function unsetRelyingParties(): void
     {
-        $this->relyingPartys = null;
+        $this->relyingParties = null;
     }
-    public function withRelyingPartys(array $relyingPartys): self
+    public function withRelyingParties(array $relyingParties): self
     {
         $copy = clone $this;
-        $copy->relyingPartys = $relyingPartys;
+        $copy->relyingParties = $relyingParties;
         return $copy;
     }
 }

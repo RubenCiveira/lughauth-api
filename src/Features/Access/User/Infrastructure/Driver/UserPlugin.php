@@ -25,13 +25,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\User\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Access\User\Application\Service\Visibility\UserCollectNonEditableFields;
 use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserReadGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
+use Civi\Lughauth\Features\Access\User\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\User\Infrastructure\Driven\UserCommandRepositoryAdapter;
 
 class UserPlugin extends MicroPlugin
 {
@@ -39,7 +39,7 @@ class UserPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserReadGateway::class] = \DI\autowire(UserReadRepositoryAdapter::class);
-        $def[UserWriteGateway::class] = \DI\autowire(UserWriteRepositoryAdapter::class);
+        $def[UserWriteGateway::class] = \DI\autowire(UserCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -51,7 +51,7 @@ class UserPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(UserRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(UserRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(UserCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]
@@ -74,7 +74,7 @@ class UserPlugin extends MicroPlugin
             $handler->registerResourceAttribute("user", "name", "MANAGE");
             $handler->registerResourceAttribute("user", "password", "MANAGE");
             $handler->registerResourceAttribute("user", "email", "MANAGE");
-            $handler->registerResourceAttribute("user", "wellcomeAt", "MANAGE");
+            $handler->registerResourceAttribute("user", "welcomeAt", "MANAGE");
             $handler->registerResourceAttribute("user", "emailVerified", "MANAGE");
             $handler->registerResourceAttribute("user", "enabled", "MANAGE");
             $handler->registerResourceAttribute("user", "approve", "MANAGE");

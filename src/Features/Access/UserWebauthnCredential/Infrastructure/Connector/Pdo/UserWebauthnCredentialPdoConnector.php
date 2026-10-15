@@ -135,10 +135,10 @@ class UserWebauthnCredentialPdoConnector
         $span = $this->startSpan("Execute insert sql query for User webauthn credential");
         try {
             try {
-                $this->db->execute('INSERT INTO "access_user_webauthn_credential" ( "uid", "user", "autenticator", "name", "public_key", "sign_count", "aaguid", "device_name", "transports_json", "created_at", "last_used_at", "enabled", "version") VALUES ( :uid, :user, :autenticator, :name, :publicKey, :signCount, :aaguid, :deviceName, :transportsJson, :createdAt, :lastUsedAt, :enabled, :version)', [
+                $this->db->execute('INSERT INTO "access_user_webauthn_credential" ( "uid", "user", "authenticator", "name", "public_key", "sign_count", "aaguid", "device_name", "transports_json", "created_at", "last_used_at", "enabled", "version") VALUES ( :uid, :user, :authenticator, :name, :publicKey, :signCount, :aaguid, :deviceName, :transportsJson, :createdAt, :lastUsedAt, :enabled, :version)', [
                      new SqlParam(name: 'uid', value: $entity->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $entity->getUser()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'autenticator', value: $entity->getAutenticator(), type: SqlParam::STR),
+                     new SqlParam(name: 'authenticator', value: $entity->getAuthenticator(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $entity->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'publicKey', value: $entity->getPublicKey(), type: SqlParam::TEXT),
                      new SqlParam(name: 'signCount', value: $entity->getSignCount(), type: SqlParam::INT),
@@ -175,10 +175,10 @@ class UserWebauthnCredentialPdoConnector
         $span = $this->startSpan("Execute update sql query for User webauthn credential");
         try {
             try {
-                $result = $this->db->execute('UPDATE "access_user_webauthn_credential" SET "user" = :user , "autenticator" = :autenticator , "name" = :name , "public_key" = :publicKey , "sign_count" = :signCount , "aaguid" = :aaguid , "device_name" = :deviceName , "transports_json" = :transportsJson , "created_at" = :createdAt , "last_used_at" = :lastUsedAt , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
+                $result = $this->db->execute('UPDATE "access_user_webauthn_credential" SET "user" = :user , "authenticator" = :authenticator , "name" = :name , "public_key" = :publicKey , "sign_count" = :signCount , "aaguid" = :aaguid , "device_name" = :deviceName , "transports_json" = :transportsJson , "created_at" = :createdAt , "last_used_at" = :lastUsedAt , "enabled" = :enabled , "version" = :version WHERE "uid" = :uid and "version" = :_lock_version', [
                      new SqlParam(name: 'uid', value: $update->uid(), type: SqlParam::STR),
                      new SqlParam(name: 'user', value: $update->getUser()->uid(), type: SqlParam::STR),
-                     new SqlParam(name: 'autenticator', value: $update->getAutenticator(), type: SqlParam::STR),
+                     new SqlParam(name: 'authenticator', value: $update->getAuthenticator(), type: SqlParam::STR),
                      new SqlParam(name: 'name', value: $update->getName(), type: SqlParam::STR),
                      new SqlParam(name: 'publicKey', value: $update->getPublicKey(), type: SqlParam::TEXT),
                      new SqlParam(name: 'signCount', value: $update->getSignCount(), type: SqlParam::INT),
@@ -290,9 +290,9 @@ class UserWebauthnCredentialPdoConnector
             if ($creation &&  $this->db->exists('SELECT  "uid" from "access_user_webauthn_credential" where "uid" = :uid', $values)) {
                 throw ConstraintException::ofError('not-unique', array_keys($values), array_values($values));
             }
-            $values = ['autenticator' => $entity->getAutenticator(), 'uid' => $entity->uid()];
-            if ($this->db->exists('SELECT  "autenticator" from "access_user_webauthn_credential" where "autenticator" = :autenticator and "uid" != :uid', $values)) {
-                throw ConstraintException::ofError('not-unique', ['autenticator'], [$entity->getAutenticator()]);
+            $values = ['authenticator' => $entity->getAuthenticator(), 'uid' => $entity->uid()];
+            if ($this->db->exists('SELECT  "authenticator" from "access_user_webauthn_credential" where "authenticator" = :authenticator and "uid" != :uid', $values)) {
+                throw ConstraintException::ofError('not-unique', ['authenticator'], [$entity->getAuthenticator()]);
             }
             $values = ['user' => $entity->getUser()->uid(), 'name' => $entity->getName(), 'uid' => $entity->uid()];
             if ($this->db->exists('SELECT  "user", "name" from "access_user_webauthn_credential" where "user" = :user and "name" = :name and "uid" != :uid', $values)) {
@@ -329,10 +329,10 @@ class UserWebauthnCredentialPdoConnector
                     $query .= ' and ( "access_user_webauthn_credential"."uid" like :search)';
                     $params[] = new SqlParam(name:'search', value: '%'. $filterSearch . '%', type: SqlParam::STR);
                 }
-                if ($filter->isAutenticatorAssigned()) {
-                    $filterAutenticator = $filter->autenticator();
-                    $query .= ' and "access_user_webauthn_credential"."autenticator" = :autenticator';
-                    $params[] = new SqlParam(name: 'autenticator', value: $filterAutenticator, type: SqlParam::STR);
+                if ($filter->isAuthenticatorAssigned()) {
+                    $filterAuthenticator = $filter->authenticator();
+                    $query .= ' and "access_user_webauthn_credential"."authenticator" = :authenticator';
+                    $params[] = new SqlParam(name: 'authenticator', value: $filterAuthenticator, type: SqlParam::STR);
                 }
                 if ($filter->isUserAndNameAssigned()) {
                     $filterUserAndName = $filter->userAndName();
@@ -353,11 +353,11 @@ class UserWebauthnCredentialPdoConnector
                     $query .= ' and "access_user_webauthn_credential"."user" in (:users)  ';
                     $params[] = new SqlParam(name: 'users', value: $filterUsers, type: SqlParam::STR);
                 }
-                $filterUserTenantAccesible = $filter->userTenantAccesible();
-                if (null !== $filterUserTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_user" as "userTenantAccesibleUser" ON "userTenantAccesibleUser"."uid" = "access_user_webauthn_credential"."user" LEFT JOIN "access_tenant" as "userTenantAccesibleTenant" ON "userTenantAccesibleTenant"."uid" = "userTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantAccesibleTenant"."uid" = :userTenantAccesible';
-                    $params[] = new SqlParam(name: 'userTenantAccesible', value: $filterUserTenantAccesible, type: SqlParam::STR);
+                $filterUserTenantAccessible = $filter->userTenantAccessible();
+                if (null !== $filterUserTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_user" as "userTenantAccessibleUser" ON "userTenantAccessibleUser"."uid" = "access_user_webauthn_credential"."user" LEFT JOIN "access_tenant" as "userTenantAccessibleTenant" ON "userTenantAccessibleTenant"."uid" = "userTenantAccessibleUser"."tenant"';
+                    $query .= ' and "userTenantAccessibleTenant"."uid" = :userTenantAccessible';
+                    $params[] = new SqlParam(name: 'userTenantAccessible', value: $filterUserTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {
@@ -399,9 +399,9 @@ class UserWebauthnCredentialPdoConnector
                 throw ConstraintException::ofError('not-null', ['user'], [null]);
             }
             $user = new UserRef(uid: $rawUser);
-            $autenticator = $row['autenticator'] ?? null;
-            if (null === $autenticator) {
-                throw ConstraintException::ofError('not-null', ['autenticator'], [null]);
+            $authenticator = $row['authenticator'] ?? null;
+            if (null === $authenticator) {
+                throw ConstraintException::ofError('not-null', ['authenticator'], [null]);
             }
             $name = $row['name'] ?? null;
             if (null === $name) {
@@ -425,7 +425,7 @@ class UserWebauthnCredentialPdoConnector
             return new UserWebauthnCredential(
                 uid: $uid,
                 user: $user,
-                autenticator: $autenticator,
+                authenticator: $authenticator,
                 name: $name,
                 publicKey: $publicKey,
                 signCount: $signCount,

@@ -75,9 +75,9 @@ class TenantLoginProviderTempMetadataUploadController
         $url = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-metadata?temp=' . base64_encode($key);
         return $this->links->create($url, $request);
     }
-    private function urlForTemporalSamlIdpIdpCert(ServerRequestInterface $request, string $key): string
+    private function urlForTemporalSamlIdpCert(ServerRequestInterface $request, string $key): string
     {
-        $url = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-saml-idp-idp-cert?temp=' . base64_encode($key);
+        $url = $this->context->getBaseUrl() . '/api/access/login-providers/-/temp-saml-idp-cert?temp=' . base64_encode($key);
         return $this->links->create($url, $request);
     }
 }

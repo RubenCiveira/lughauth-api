@@ -16,9 +16,9 @@ use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserWriteGateway;
 use Civi\Lughauth\Features\Access\User\Domain\User;
 use Civi\Lughauth\Features\Access\User\Domain\UserApproveOptions;
 use Civi\Lughauth\Features\Access\User\Domain\ValueObject\UserPasswordVO;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\Gateway\UserAcceptedTermnsOfUseWriteGateway;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUse;
-use Civi\Lughauth\Features\Access\UserAcceptedTermnsOfUse\Domain\UserAcceptedTermnsOfUseAttributes;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseWriteGateway;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUse;
+use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUseAttributes;
 use Civi\Lughauth\Features\Access\UserAccessTemporalCode\Domain\Gateway\UserAccessTemporalCodeWriteGateway;
 use Civi\Lughauth\Features\Access\Tenant\Domain\TenantRef;
 use Civi\Lughauth\Features\OAuth\Common\Infrastructure\Driven\UserLoaderAdapter;
@@ -33,7 +33,7 @@ class RegisterUserAdapter implements RegisterUserGateway
         private readonly UserWriteGateway $repository,
         private readonly UserAccessTemporalCodeWriteGateway $codes,
         private readonly AesCypherService $cypher,
-        private readonly UserAcceptedTermnsOfUseWriteGateway $writerUserTerms,
+        private readonly UserAcceptedTermsOfUseWriteGateway $writerUserTerms,
         private readonly Random $randomizer,
     ) {
     }
@@ -78,12 +78,12 @@ class RegisterUserAdapter implements RegisterUserGateway
                 tenant: $theTenant
             ));
             if ($terms !== null) {
-                $acepted = new UserAcceptedTermnsOfUseAttributes();
+                $acepted = new UserAcceptedTermsOfUseAttributes();
                 $acepted->uid(Random::comb());
                 $acepted->user($theUser);
                 $acepted->conditions($terms);
                 $acepted->acceptDate(new DateTimeImmutable());
-                $this->writerUserTerms->create(UserAcceptedTermnsOfUse::create($acepted));
+                $this->writerUserTerms->create(UserAcceptedTermsOfUse::create($acepted));
             }
             $verify = md5($this->randomizer->comb());
             $activateUrl = str_ends_with($url, '=') ? $url . $verify : $url;

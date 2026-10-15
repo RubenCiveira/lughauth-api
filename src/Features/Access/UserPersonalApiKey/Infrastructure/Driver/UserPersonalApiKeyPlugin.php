@@ -21,10 +21,7 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Service\Visibility\UserPersonalApiKeyRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Filter\OnlySelfAccesibles;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driven\UserPersonalApiKeyReadRepositoryAdapter;
-use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driven\UserPersonalApiKeyWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyReadGateway;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Domain\Gateway\UserPersonalApiKeyWriteGateway;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Allow\IsSelfUserAllow;
@@ -32,6 +29,9 @@ use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Update\
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Retrieve\UserPersonalApiKeyRetrieveAllowDecision;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Delete\UserPersonalApiKeyDeleteAllowDecision;
 use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Usecase\Revoke\UserPersonalApiKeyRevokeAllowDecision;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Filter\OnlySelfAccessibles;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Access\UserPersonalApiKey\Infrastructure\Driven\UserPersonalApiKeyCommandRepositoryAdapter;
 
 class UserPersonalApiKeyPlugin extends MicroPlugin
 {
@@ -39,7 +39,7 @@ class UserPersonalApiKeyPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[UserPersonalApiKeyReadGateway::class] = \DI\autowire(UserPersonalApiKeyReadRepositoryAdapter::class);
-        $def[UserPersonalApiKeyWriteGateway::class] = \DI\autowire(UserPersonalApiKeyWriteRepositoryAdapter::class);
+        $def[UserPersonalApiKeyWriteGateway::class] = \DI\autowire(UserPersonalApiKeyCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -51,8 +51,8 @@ class UserPersonalApiKeyPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(UserPersonalApiKeyRestrictFilterToVisibility::class, OnlySelfAccesibles::class);
-        $listener->registerListener(UserPersonalApiKeyRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(UserPersonalApiKeyRestrictFilterToVisibility::class, OnlySelfAccessibles::class);
+        $listener->registerListener(UserPersonalApiKeyRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(UserPersonalApiKeyUpdateAllowDecision::class, IsSelfUserAllow::class, 'checkUpdate');
         $listener->registerListener(UserPersonalApiKeyRetrieveAllowDecision::class, IsSelfUserAllow::class, 'checkRetrieve');
         $listener->registerListener(UserPersonalApiKeyDeleteAllowDecision::class, IsSelfUserAllow::class, 'checkDelete');

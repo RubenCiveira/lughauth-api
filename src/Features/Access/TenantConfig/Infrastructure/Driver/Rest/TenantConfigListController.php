@@ -117,8 +117,8 @@ class TenantConfigListController
             $dto->webauthnEnabled = $value->isWebauthnEnabled();
             $dto->webauthnRpId = $value->getWebauthnRpId();
             $dto->webauthnRpName = $value->getWebauthnRpName();
-            $dto->wellcomeEmail = $value->getWellcomeEmail();
-            $dto->registerdEmail = $value->getRegisterdEmail();
+            $dto->welcomeEmail = $value->getWelcomeEmail();
+            $dto->registeredEmail = $value->getRegisteredEmail();
             $dto->disabledUserEmail = $value->getDisabledUserEmail();
             $dto->enabledUserEmail = $value->getEnabledUserEmail();
             $dto->allowRecoverPass = $value->isAllowRecoverPass();

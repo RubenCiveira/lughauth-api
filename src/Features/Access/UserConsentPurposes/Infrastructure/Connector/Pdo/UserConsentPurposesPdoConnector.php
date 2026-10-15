@@ -332,11 +332,11 @@ class UserConsentPurposesPdoConnector
                     $query .= ' and "access_user_consent_purposes"."consent_purpose" in (:consentPurposes)  ';
                     $params[] = new SqlParam(name: 'consentPurposes', value: $filterConsentPurposes, type: SqlParam::STR);
                 }
-                $filterUserTenantAccesible = $filter->userTenantAccesible();
-                if (null !== $filterUserTenantAccesible) {
-                    $join .= ' LEFT JOIN "access_user" as "userTenantAccesibleUser" ON "userTenantAccesibleUser"."uid" = "access_user_consent_purposes"."user" LEFT JOIN "access_tenant" as "userTenantAccesibleTenant" ON "userTenantAccesibleTenant"."uid" = "userTenantAccesibleUser"."tenant"';
-                    $query .= ' and "userTenantAccesibleTenant"."uid" = :userTenantAccesible';
-                    $params[] = new SqlParam(name: 'userTenantAccesible', value: $filterUserTenantAccesible, type: SqlParam::STR);
+                $filterUserTenantAccessible = $filter->userTenantAccessible();
+                if (null !== $filterUserTenantAccessible) {
+                    $join .= ' LEFT JOIN "access_user" as "userTenantAccessibleUser" ON "userTenantAccessibleUser"."uid" = "access_user_consent_purposes"."user" LEFT JOIN "access_tenant" as "userTenantAccessibleTenant" ON "userTenantAccessibleTenant"."uid" = "userTenantAccessibleUser"."tenant"';
+                    $query .= ' and "userTenantAccessibleTenant"."uid" = :userTenantAccessible';
+                    $params[] = new SqlParam(name: 'userTenantAccessible', value: $filterUserTenantAccessible, type: SqlParam::STR);
                 }
             }
             if ($sort) {

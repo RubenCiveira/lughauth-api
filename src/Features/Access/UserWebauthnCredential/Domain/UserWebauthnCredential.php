@@ -8,8 +8,8 @@ namespace Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\UserWebauthnCredentialUidVO;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\UserWebauthnCredentialUserVO;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Accessor\UserWebauthnCredentialUserAccessor;
-use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\UserWebauthnCredentialAutenticatorVO;
-use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Accessor\UserWebauthnCredentialAutenticatorAccessor;
+use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\UserWebauthnCredentialAuthenticatorVO;
+use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Accessor\UserWebauthnCredentialAuthenticatorAccessor;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\UserWebauthnCredentialNameVO;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\Accessor\UserWebauthnCredentialNameAccessor;
 use Civi\Lughauth\Features\Access\UserWebauthnCredential\Domain\ValueObject\UserWebauthnCredentialPublicKeyVO;
@@ -42,7 +42,7 @@ use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 class UserWebauthnCredential extends UserWebauthnCredentialRef
 {
     use UserWebauthnCredentialUserAccessor;
-    use UserWebauthnCredentialAutenticatorAccessor;
+    use UserWebauthnCredentialAuthenticatorAccessor;
     use UserWebauthnCredentialNameAccessor;
     use UserWebauthnCredentialPublicKeyAccessor;
     use UserWebauthnCredentialSignCountAccessor;
@@ -58,7 +58,7 @@ class UserWebauthnCredential extends UserWebauthnCredentialRef
     public function __construct(
         UserWebauthnCredentialUidVO|string $uid,
         UserWebauthnCredentialUserVO|UserRef $user,
-        UserWebauthnCredentialAutenticatorVO|string $autenticator,
+        UserWebauthnCredentialAuthenticatorVO|string $authenticator,
         UserWebauthnCredentialNameVO|string $name,
         UserWebauthnCredentialPublicKeyVO|string $publicKey,
         UserWebauthnCredentialSignCountVO|int $signCount,
@@ -72,7 +72,7 @@ class UserWebauthnCredential extends UserWebauthnCredentialRef
     ) {
         parent::__construct($uid);
         $this->_user = UserWebauthnCredentialUserVO::from($user);
-        $this->_autenticator = UserWebauthnCredentialAutenticatorVO::from($autenticator);
+        $this->_authenticator = UserWebauthnCredentialAuthenticatorVO::from($authenticator);
         $this->_name = UserWebauthnCredentialNameVO::from($name);
         $this->_publicKey = UserWebauthnCredentialPublicKeyVO::from($publicKey);
         $this->_signCount = UserWebauthnCredentialSignCountVO::from($signCount);
@@ -88,7 +88,7 @@ class UserWebauthnCredential extends UserWebauthnCredentialRef
     {
         $value = clone $this;
         $value->_user = $values->getUserOrCurrent($this->_user);
-        $value->_autenticator = $values->getAutenticatorOrCurrent($this->_autenticator);
+        $value->_authenticator = $values->getAuthenticatorOrCurrent($this->_authenticator);
         $value->_name = $values->getNameOrCurrent($this->_name);
         $value->_publicKey = $values->getPublicKeyOrCurrent($this->_publicKey);
         $value->_signCount = $values->getSignCountOrCurrent($this->_signCount);
@@ -148,7 +148,7 @@ class UserWebauthnCredential extends UserWebauthnCredentialRef
         $data = [];
         $data['uid'] = $this->uid();
         $data['user'] = [ '$ref' => $this->getUser()->uid() ];
-        $data['autenticator'] = $this->getAutenticator();
+        $data['authenticator'] = $this->getAuthenticator();
         $data['name'] = $this->getName();
         $data['publicKey'] = $this->getPublicKey();
         $data['signCount'] = $this->getSignCount();
@@ -166,7 +166,7 @@ class UserWebauthnCredential extends UserWebauthnCredentialRef
         return (new UserWebauthnCredentialAttributes())
           ->uid($this->uid())
           ->user($this->_user)
-          ->autenticator($this->_autenticator)
+          ->authenticator($this->_authenticator)
           ->name($this->_name)
           ->publicKey($this->_publicKey)
           ->signCount($this->_signCount)

@@ -22,13 +22,13 @@ use Civi\Lughauth\Shared\Security\SecurityPlugin;
 use Civi\Lughauth\Shared\Infrastructure\StartupProcessor;
 use Civi\Lughauth\Shared\Event\EventListenersRegistrarInterface;
 use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetRestrictFilterToVisibility;
-use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Filter\TenantAccesible;
 use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Fields\FixTenantExcludingRoot;
 use Civi\Lughauth\Features\Document\Snippet\Application\Service\Visibility\SnippetCollectNonEditableFields;
 use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetReadRepositoryAdapter;
-use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetWriteRepositoryAdapter;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetReadGateway;
 use Civi\Lughauth\Features\Document\Snippet\Domain\Gateway\SnippetWriteGateway;
+use Civi\Lughauth\Features\Document\Snippet\Application\Policy\Filter\TenantAccessible;
+use Civi\Lughauth\Features\Document\Snippet\Infrastructure\Driven\SnippetCommandRepositoryAdapter;
 
 class SnippetPlugin extends MicroPlugin
 {
@@ -36,7 +36,7 @@ class SnippetPlugin extends MicroPlugin
     public function registerServiceDefinition(array $def): array
     {
         $def[SnippetReadGateway::class] = \DI\autowire(SnippetReadRepositoryAdapter::class);
-        $def[SnippetWriteGateway::class] = \DI\autowire(SnippetWriteRepositoryAdapter::class);
+        $def[SnippetWriteGateway::class] = \DI\autowire(SnippetCommandRepositoryAdapter::class);
         return $def;
     }
     #[Override]
@@ -48,7 +48,7 @@ class SnippetPlugin extends MicroPlugin
     #[Override]
     public function registerEvents(EventListenersRegistrarInterface $listener): void
     {
-        $listener->registerListener(SnippetRestrictFilterToVisibility::class, TenantAccesible::class);
+        $listener->registerListener(SnippetRestrictFilterToVisibility::class, TenantAccessible::class);
         $listener->registerListener(SnippetCollectNonEditableFields::class, FixTenantExcludingRoot::class);
     }
     #[Override]
