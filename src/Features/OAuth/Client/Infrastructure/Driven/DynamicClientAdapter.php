@@ -13,7 +13,6 @@ use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryR
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClient;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientAttributes;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
-use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsItem;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\ValueObject\TrustedClientAllowedRedirectsListRef;
@@ -42,7 +41,6 @@ final class DynamicClientAdapter implements DynamicClientGateway
 {
     public function __construct(
         private readonly TrustedClientCommandRepositoryGateway $writer,
-        private readonly TrustedClientQueryRepositoryGateway $reader,
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly TenantConfigQueryRepositoryGateway $tenantConfigs,
         private readonly AesCypherService $cypher,
@@ -103,7 +101,7 @@ final class DynamicClientAdapter implements DynamicClientGateway
     #[Override]
     public function findByClientIdAndToken(string $clientId, string $registrationAccessToken): ?DynamicClientData
     {
-        $client = $this->reader->findOneByUid($clientId);
+        $client = $this->writer->findOneByUid($clientId);
 
         if ($client === null) {
             return null;

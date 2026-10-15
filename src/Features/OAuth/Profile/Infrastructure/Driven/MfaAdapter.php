@@ -13,7 +13,6 @@ use Civi\Lughauth\Shared\Exception\BadRequestException;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeFilter;
-use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\Gateway\UserMfaRecoveryCodeCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCode;
 use Civi\Lughauth\Features\Access\UserMfaRecoveryCode\Domain\UserMfaRecoveryCodeAttributes;
@@ -49,7 +48,6 @@ class MfaAdapter implements MfaGateway
         private readonly UserLoaderAdapter $users,
         private readonly UserCommandRepositoryGateway $repository,
         private readonly UserMfaGateway $mfaGateway,
-        private readonly UserMfaRecoveryCodeQueryRepositoryGateway $recoveryRead,
         private readonly UserMfaRecoveryCodeCommandRepositoryGateway $recoveryWrite,
     ) {
     }
@@ -180,7 +178,7 @@ class MfaAdapter implements MfaGateway
     public function countUnusedRecoveryCodes(string $userUid, string $tenant): int
     {
         $userRef = new UserRef($userUid);
-        return $this->recoveryRead->count(
+        return $this->recoveryWrite->count(
             (new UserMfaRecoveryCodeFilter())->withUserUnused($userRef),
         );
     }

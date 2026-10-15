@@ -14,7 +14,6 @@ use Civi\Lughauth\Shared\Observability\TracerAwareTrait;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\UserProfile;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\UserProfileAttributes;
-use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\Gateway\UserProfileCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileGivenNameVO;
 use Civi\Lughauth\Features\Access\UserProfile\Domain\ValueObject\UserProfileFamilyNameVO;
@@ -57,7 +56,6 @@ class ProfileAdapter implements ProfileGateway
     use TracerAwareTrait;
 
     public function __construct(
-        private readonly UserProfileQueryRepositoryGateway $reader,
         private readonly UserProfileCommandRepositoryGateway $writer,
     ) {
     }
@@ -65,7 +63,7 @@ class ProfileAdapter implements ProfileGateway
     /**
      * Looks up the OIDC profile for the given user UID, returning null when none has been created yet.
      *
-     * Delegates to UserProfileQueryRepositoryGateway and maps the result to an OidcProfile value object.
+     * Delegates to UserProfileCommandRepositoryGateway and maps the result to an OidcProfile value object.
      */
     #[Override]
     public function findByUser(string $userUid): ?OidcProfile
@@ -73,7 +71,7 @@ class ProfileAdapter implements ProfileGateway
         $this->logDebug("Find profile by user");
         $span = $this->startSpan("Find profile by user");
         try {
-            $profile = $this->reader->findOneByUser(new UserRef($userUid));
+            $profile = $this->writer->findOneByUser(new UserRef($userUid));
             return $profile !== null ? $this->toOidcProfile($profile) : null;
         } catch (Throwable $ex) {
             $span->recordException($ex);

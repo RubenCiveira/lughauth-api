@@ -18,7 +18,6 @@ use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQuer
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientFilter;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\TrustedClientRef;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesFilter;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopes;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopesAttributes;
@@ -44,7 +43,6 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
         private readonly UserQueryRepositoryGateway $users,
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly TrustedClientQueryRepositoryGateway $trustedClients,
-        private readonly UserConsentedScopesQueryRepositoryGateway $consentsRead,
         private readonly UserConsentedScopesCommandRepositoryGateway $consentsWrite,
     ) {
     }
@@ -70,7 +68,7 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
             throw new InvalidArgumentException("Empty client");
         }
 
-        $existing = $this->consentsRead->retrieve(
+        $existing = $this->consentsWrite->retrieve(
             (new UserConsentedScopesFilter())
                 ->withUser(new UserRef($userUid))
                 ->withTrustedClient(new TrustedClientRef($trustedClientUid))
@@ -118,7 +116,7 @@ final class ScopesConsentAdapter implements ScopesConsentGateway
             ->withUser(new UserRef($userUid))
             ->withTrustedClient(new TrustedClientRef($trustedClientUid));
 
-        $existing = $this->consentsRead->retrieve($filter);
+        $existing = $this->consentsWrite->retrieve($filter);
         $approved = $this->normalizeScopes($approvedScopes);
 
         if ($existing !== null) {

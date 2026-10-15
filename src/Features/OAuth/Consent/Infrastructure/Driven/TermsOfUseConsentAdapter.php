@@ -19,7 +19,6 @@ use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfU
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\Gateway\TenantTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUse;
 use Civi\Lughauth\Features\Access\TenantTermsOfUse\Domain\TenantTermsOfUseRef;
-use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\Gateway\UserAcceptedTermsOfUseCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUse;
 use Civi\Lughauth\Features\Access\UserAcceptedTermsOfUse\Domain\UserAcceptedTermsOfUseAttributes;
@@ -43,7 +42,6 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
         private readonly UserQueryRepositoryGateway $users,
         private readonly RelyingPartyQueryRepositoryGateway $relyingParties,
         private readonly TenantTermsOfUseQueryRepositoryGateway $tenantTerms,
-        private readonly UserAcceptedTermsOfUseQueryRepositoryGateway $acceptedTermsRead,
         private readonly UserAcceptedTermsOfUseCommandRepositoryGateway $acceptedTermsWrite,
     ) {
     }
@@ -69,7 +67,7 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
         $terms = $this->loadActiveTermsForAudiences($theTenant->uid() ?? '', $audiences);
         $pending = [];
         foreach ($terms as $term) {
-            $accepted = $this->acceptedTermsRead->findOneByUserAndConditions(
+            $accepted = $this->acceptedTermsWrite->findOneByUserAndConditions(
                 new UserRef($userUid),
                 new TenantTermsOfUseRef($term->uid() ?? '')
             );
@@ -123,7 +121,7 @@ final class TermsOfUseConsentAdapter implements TermsOfUseConsentGateway
             throw new InvalidArgumentException('Unkown consent');
         }
 
-        $existing = $this->acceptedTermsRead->findOneByUserAndConditions(
+        $existing = $this->acceptedTermsWrite->findOneByUserAndConditions(
             new UserRef($userUid),
             new TenantTermsOfUseRef($termUid)
         );

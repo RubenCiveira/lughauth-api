@@ -9,7 +9,6 @@ use Override;
 use Civi\Lughauth\Features\Access\TrustedClient\Domain\Gateway\TrustedClientQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\UserRef;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesFilter;
-use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\Gateway\UserConsentedScopesCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentedScopes\Domain\UserConsentedScopesAttributes;
 use Civi\Lughauth\Features\OAuth\Profile\Domain\ConsentedClient;
@@ -18,7 +17,6 @@ use Civi\Lughauth\Features\OAuth\Profile\Domain\Gateway\ConsentedScopesGateway;
 final class ConsentedScopesAdapter implements ConsentedScopesGateway
 {
     public function __construct(
-        private readonly UserConsentedScopesQueryRepositoryGateway $consentsRead,
         private readonly UserConsentedScopesCommandRepositoryGateway $consentsWrite,
         private readonly TrustedClientQueryRepositoryGateway $trustedClients,
     ) {
@@ -28,7 +26,7 @@ final class ConsentedScopesAdapter implements ConsentedScopesGateway
     public function listByUser(string $userUid): array
     {
         $filter = (new UserConsentedScopesFilter())->withUser(new UserRef($userUid));
-        $slide = $this->consentsRead->list($filter);
+        $slide = $this->consentsWrite->list($filter);
         $result = [];
         foreach ($slide->values() as $consent) {
             $clientUid = $consent->getTrustedClient()->uid() ?? '';

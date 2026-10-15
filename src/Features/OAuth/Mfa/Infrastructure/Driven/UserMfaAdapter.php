@@ -10,7 +10,6 @@ use RobThree\Auth\TwoFactorAuth;
 use RobThree\Auth\Providers\Qr\EndroidQrCodeProvider; // if using Endroid
 use Civi\Lughauth\Features\Access\Tenant\Domain\Gateway\TenantQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\TenantConfig\Domain\Gateway\TenantConfigQueryRepositoryGateway;
-use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\User\Domain\Gateway\UserCommandRepositoryGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\Gateway\UserMfaGateway;
 use Civi\Lughauth\Features\OAuth\Mfa\Domain\PublicLoginMfaBuildResponse;
@@ -33,7 +32,6 @@ class UserMfaAdapter implements UserMfaGateway
     public function __construct(
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly TenantConfigQueryRepositoryGateway $configs,
-        private readonly UserQueryRepositoryGateway $users,
         private readonly UserCommandRepositoryGateway $usersWriter,
         private readonly AesCypherService $cypher
     ) {
@@ -51,7 +49,7 @@ class UserMfaAdapter implements UserMfaGateway
         if (!$theTenant) {
             throw new NotFoundException('tenant ' . $tenant);
         }
-        $theUser = $this->users->findOneByTenantAndName($theTenant, $username);
+        $theUser = $this->usersWriter->findOneByTenantAndName($theTenant, $username);
         if (!$theUser) {
             throw new NotFoundException('tenant ' . $username);
         }

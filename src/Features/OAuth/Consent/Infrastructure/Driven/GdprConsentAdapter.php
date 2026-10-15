@@ -19,7 +19,6 @@ use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurposeRef;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeFilter;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway\ConsentPurposeQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesFilter;
-use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesQueryRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\Gateway\UserConsentPurposesCommandRepositoryGateway;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\UserConsentPurposes;
 use Civi\Lughauth\Features\Access\UserConsentPurposes\Domain\UserConsentPurposesAttributes;
@@ -43,7 +42,6 @@ final class GdprConsentAdapter implements GdprConsentGateway
         private readonly TenantQueryRepositoryGateway $tenants,
         private readonly UserQueryRepositoryGateway $users,
         private readonly ConsentPurposeQueryRepositoryGateway $consentPurposes,
-        private readonly UserConsentPurposesQueryRepositoryGateway $userConsentPurposesRead,
         private readonly UserConsentPurposesCommandRepositoryGateway $userConsentPurposesWrite,
     ) {
     }
@@ -83,7 +81,7 @@ final class GdprConsentAdapter implements GdprConsentGateway
                 continue;
             }
 
-            $existing = $this->userConsentPurposesRead->retrieve(
+            $existing = $this->userConsentPurposesWrite->retrieve(
                 (new UserConsentPurposesFilter())
                     ->withUser(new UserRef($userUid))
                     ->withConsentPurpose(new ConsentPurposeRef($purposeUid))
@@ -144,7 +142,7 @@ final class GdprConsentAdapter implements GdprConsentGateway
                 continue;
             }
 
-            $existing = $this->userConsentPurposesRead->retrieve(
+            $existing = $this->userConsentPurposesWrite->retrieve(
                 (new UserConsentPurposesFilter())
                     ->withUser(new UserRef($userUid))
                     ->withConsentPurpose(new ConsentPurposeRef($purposeUid))
