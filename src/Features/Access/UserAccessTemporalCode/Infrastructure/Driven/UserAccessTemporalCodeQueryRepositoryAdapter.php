@@ -43,10 +43,9 @@ class UserAccessTemporalCodeQueryRepositoryAdapter implements UserAccessTemporal
         $this->logDebug("List for User access temporal code on adapter ");
         $span = $this->startSpan("List for User access temporal code on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new UserAccessTemporalCodeSlide(fn (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next): UserAccessTemporalCodeSlide => new UserAccessTemporalCodeSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -96,7 +95,13 @@ class UserAccessTemporalCodeQueryRepositoryAdapter implements UserAccessTemporal
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?UserAccessTemporalCodeFilter $filter, ?UserAccessTemporalCodeCursor $pageCursor, ?UserAccessTemporalCodeCursor $fetchCursor): UserAccessTemporalCodeSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new UserAccessTemporalCodeSlide(function (UserAccessTemporalCodeSlide $slide, UserAccessTemporalCodeCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?UserAccessTemporalCode
     {
         $this->logDebug("Find on by uid for User access temporal code on adapter");

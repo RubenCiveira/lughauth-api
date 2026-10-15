@@ -16,13 +16,18 @@ class ThemeAssetAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?ThemeAssetCursor $cursor,
-        private readonly array $values
+        private readonly array $values,
+        private readonly bool $hasNext = false
     ) {
         parent::__construct($values);
     }
     public function cursor(): ?ThemeAssetCursor
     {
         return $this->cursor;
+    }
+    public function hasNext(): bool
+    {
+        return $this->hasNext;
     }
     public function values(): array
     {

@@ -48,6 +48,11 @@ class TenantTermsOfUseListController
         $span = $this->startSpan("List Tenant terms of use");
         try {
             $params = $request->getQueryParams();
+            $limit = filter_var($params['limit'] ?? 100, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($limit === false) {
+                $response->getBody()->write('{"error":"invalid_limit"}');
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
             $filter = new TenantTermsOfUseFilter(
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
@@ -57,12 +62,12 @@ class TenantTermsOfUseListController
                 relyingParties: isset($params['relying-parties']) ? explode(",", $params['relying-parties']) : null,
             );
             $cursor = new TenantTermsOfUseCursor(
-                limit: (int)($params['limit'] ?? 100),
+                limit: $limit,
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
             $value = ['items' => array_map(fn (TenantTermsOfUseAttributes $item): TenantTermsOfUseApiDTO => $this->mapTenantTermsOfUse($request, $item), $result->values())];
-            $nextLink = count($result->values()) < $cursor->limit() ? null : $this->nextLink($result->cursor(), $params);
+            $nextLink = $result->hasNext() ? $this->nextLink($result->cursor(), $params) : null;
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
             }

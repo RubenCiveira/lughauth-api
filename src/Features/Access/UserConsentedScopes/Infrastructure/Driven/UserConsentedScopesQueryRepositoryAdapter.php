@@ -42,10 +42,9 @@ class UserConsentedScopesQueryRepositoryAdapter implements UserConsentedScopesQu
         $this->logDebug("List for User consented scopes on adapter ");
         $span = $this->startSpan("List for User consented scopes on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new UserConsentedScopesSlide(function (UserConsentedScopesSlide $slide, UserConsentedScopesCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new UserConsentedScopesSlide(fn (UserConsentedScopesSlide $slide, UserConsentedScopesCursor $next): UserConsentedScopesSlide => new UserConsentedScopesSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -95,7 +94,13 @@ class UserConsentedScopesQueryRepositoryAdapter implements UserConsentedScopesQu
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?UserConsentedScopesFilter $filter, ?UserConsentedScopesCursor $pageCursor, ?UserConsentedScopesCursor $fetchCursor): UserConsentedScopesSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new UserConsentedScopesSlide(function (UserConsentedScopesSlide $slide, UserConsentedScopesCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?UserConsentedScopes
     {
         $this->logDebug("Find on by uid for User consented scopes on adapter");

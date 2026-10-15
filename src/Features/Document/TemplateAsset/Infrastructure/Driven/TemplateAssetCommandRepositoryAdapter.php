@@ -262,10 +262,9 @@ class TemplateAssetCommandRepositoryAdapter implements TemplateAssetCommandRepos
         $this->logDebug("List for Template asset on adapter ");
         $span = $this->startSpan("List for Template asset on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TemplateAssetSlide(function (TemplateAssetSlide $slide, TemplateAssetCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TemplateAssetSlide(fn (TemplateAssetSlide $slide, TemplateAssetCursor $next): TemplateAssetSlide => new TemplateAssetSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -315,7 +314,13 @@ class TemplateAssetCommandRepositoryAdapter implements TemplateAssetCommandRepos
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TemplateAssetFilter $filter, ?TemplateAssetCursor $pageCursor, ?TemplateAssetCursor $fetchCursor): TemplateAssetSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TemplateAssetSlide(function (TemplateAssetSlide $slide, TemplateAssetCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function readContent(string $key): BinaryContent
     {
         $this->logDebug("Load Content childs for Template asset on adapter ");

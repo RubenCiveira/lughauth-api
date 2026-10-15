@@ -219,10 +219,9 @@ class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientCommandReposit
         $this->logDebug("List for Api key client on adapter ");
         $span = $this->startSpan("List for Api key client on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ApiKeyClientCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new ApiKeyClientSlide(fn (ApiKeyClientSlide $slide, ApiKeyClientCursor $next): ApiKeyClientSlide => new ApiKeyClientSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -272,7 +271,13 @@ class ApiKeyClientCommandRepositoryAdapter implements ApiKeyClientCommandReposit
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?ApiKeyClientFilter $filter, ?ApiKeyClientCursor $pageCursor, ?ApiKeyClientCursor $fetchCursor): ApiKeyClientSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new ApiKeyClientSlide(function (ApiKeyClientSlide $slide, ApiKeyClientCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?ApiKeyClient
     {
         $this->logDebug("Find on by uid for Api key client on adapter");

@@ -42,10 +42,9 @@ class TemplateVersionQueryRepositoryAdapter implements TemplateVersionQueryRepos
         $this->logDebug("List for Template version on adapter ");
         $span = $this->startSpan("List for Template version on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TemplateVersionSlide(function (TemplateVersionSlide $slide, TemplateVersionCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TemplateVersionSlide(fn (TemplateVersionSlide $slide, TemplateVersionCursor $next): TemplateVersionSlide => new TemplateVersionSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -94,5 +93,12 @@ class TemplateVersionQueryRepositoryAdapter implements TemplateVersionQueryRepos
         } finally {
             $span->end();
         }
+    }
+    private function fetchPage(?TemplateVersionFilter $filter, ?TemplateVersionCursor $pageCursor, ?TemplateVersionCursor $fetchCursor): TemplateVersionSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TemplateVersionSlide(function (TemplateVersionSlide $slide, TemplateVersionCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
     }
 }

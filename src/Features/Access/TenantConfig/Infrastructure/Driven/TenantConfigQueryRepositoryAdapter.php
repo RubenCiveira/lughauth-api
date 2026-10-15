@@ -43,10 +43,9 @@ class TenantConfigQueryRepositoryAdapter implements TenantConfigQueryRepositoryG
         $this->logDebug("List for Tenant config on adapter ");
         $span = $this->startSpan("List for Tenant config on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TenantConfigSlide(function (TenantConfigSlide $slide, TenantConfigCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TenantConfigSlide(fn (TenantConfigSlide $slide, TenantConfigCursor $next): TenantConfigSlide => new TenantConfigSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -96,7 +95,13 @@ class TenantConfigQueryRepositoryAdapter implements TenantConfigQueryRepositoryG
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TenantConfigFilter $filter, ?TenantConfigCursor $pageCursor, ?TenantConfigCursor $fetchCursor): TenantConfigSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TenantConfigSlide(function (TenantConfigSlide $slide, TenantConfigCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?TenantConfig
     {
         $this->logDebug("Find on by uid for Tenant config on adapter");

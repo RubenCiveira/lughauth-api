@@ -43,10 +43,9 @@ class TemplateVariableQueryRepositoryAdapter implements TemplateVariableQueryRep
         $this->logDebug("List for Template variable on adapter ");
         $span = $this->startSpan("List for Template variable on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TemplateVariableSlide(function (TemplateVariableSlide $slide, TemplateVariableCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TemplateVariableSlide(fn (TemplateVariableSlide $slide, TemplateVariableCursor $next): TemplateVariableSlide => new TemplateVariableSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -96,7 +95,13 @@ class TemplateVariableQueryRepositoryAdapter implements TemplateVariableQueryRep
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TemplateVariableFilter $filter, ?TemplateVariableCursor $pageCursor, ?TemplateVariableCursor $fetchCursor): TemplateVariableSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TemplateVariableSlide(function (TemplateVariableSlide $slide, TemplateVariableCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByCodeAndTenant(string $code, TenantRef $tenant): ?TemplateVariable
     {
         $this->logDebug("Find on by code tenant for Template variable on adapter");

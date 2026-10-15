@@ -219,10 +219,9 @@ class TenantCommandRepositoryAdapter implements TenantCommandRepositoryGateway
         $this->logDebug("List for Tenant on adapter ");
         $span = $this->startSpan("List for Tenant on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TenantSlide(function (TenantSlide $slide, TenantCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TenantSlide(fn (TenantSlide $slide, TenantCursor $next): TenantSlide => new TenantSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

@@ -16,13 +16,18 @@ class ThemeVersionAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?ThemeVersionCursor $cursor,
-        private readonly array $values
+        private readonly array $values,
+        private readonly bool $hasNext = false
     ) {
         parent::__construct($values);
     }
     public function cursor(): ?ThemeVersionCursor
     {
         return $this->cursor;
+    }
+    public function hasNext(): bool
+    {
+        return $this->hasNext;
     }
     public function values(): array
     {

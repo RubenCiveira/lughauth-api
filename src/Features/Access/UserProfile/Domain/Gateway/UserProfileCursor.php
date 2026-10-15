@@ -25,6 +25,12 @@ class UserProfileCursor
     {
         return $this->limit;
     }
+    public function withLimit(int $limit): UserProfileCursor
+    {
+        $next = clone $this;
+        $next->limit = $limit;
+        return $next;
+    }
     public function sinceUid(): ?string
     {
         return $this->sinceUid;

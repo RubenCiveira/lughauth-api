@@ -206,10 +206,9 @@ class UserProfileCommandRepositoryAdapter implements UserProfileCommandRepositor
         $this->logDebug("List for User profile on adapter ");
         $span = $this->startSpan("List for User profile on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new UserProfileSlide(function (UserProfileSlide $slide, UserProfileCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new UserProfileSlide(fn (UserProfileSlide $slide, UserProfileCursor $next): UserProfileSlide => new UserProfileSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -259,7 +258,13 @@ class UserProfileCommandRepositoryAdapter implements UserProfileCommandRepositor
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?UserProfileFilter $filter, ?UserProfileCursor $pageCursor, ?UserProfileCursor $fetchCursor): UserProfileSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new UserProfileSlide(function (UserProfileSlide $slide, UserProfileCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?UserProfile
     {
         $this->logDebug("Find on by uid for User profile on adapter");

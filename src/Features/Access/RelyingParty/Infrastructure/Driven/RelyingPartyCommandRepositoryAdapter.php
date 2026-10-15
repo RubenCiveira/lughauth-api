@@ -219,10 +219,9 @@ class RelyingPartyCommandRepositoryAdapter implements RelyingPartyCommandReposit
         $this->logDebug("List for Relying party on adapter ");
         $span = $this->startSpan("List for Relying party on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new RelyingPartySlide(function (RelyingPartySlide $slide, RelyingPartyCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new RelyingPartySlide(fn (RelyingPartySlide $slide, RelyingPartyCursor $next): RelyingPartySlide => new RelyingPartySlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -272,7 +271,13 @@ class RelyingPartyCommandRepositoryAdapter implements RelyingPartyCommandReposit
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?RelyingPartyFilter $filter, ?RelyingPartyCursor $pageCursor, ?RelyingPartyCursor $fetchCursor): RelyingPartySlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new RelyingPartySlide(function (RelyingPartySlide $slide, RelyingPartyCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?RelyingParty
     {
         $this->logDebug("Find on by uid for Relying party on adapter");

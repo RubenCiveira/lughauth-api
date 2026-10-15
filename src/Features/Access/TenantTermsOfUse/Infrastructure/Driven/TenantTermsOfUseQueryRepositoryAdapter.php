@@ -47,10 +47,9 @@ class TenantTermsOfUseQueryRepositoryAdapter implements TenantTermsOfUseQueryRep
         $this->logDebug("List for Tenant terms of use on adapter ");
         $span = $this->startSpan("List for Tenant terms of use on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TenantTermsOfUseSlide(fn (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next): TenantTermsOfUseSlide => new TenantTermsOfUseSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -100,7 +99,13 @@ class TenantTermsOfUseQueryRepositoryAdapter implements TenantTermsOfUseQueryRep
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TenantTermsOfUseFilter $filter, ?TenantTermsOfUseCursor $pageCursor, ?TenantTermsOfUseCursor $fetchCursor): TenantTermsOfUseSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TenantTermsOfUseSlide(function (TenantTermsOfUseSlide $slide, TenantTermsOfUseCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function readAttached(string $key): BinaryContent
     {
         $this->logDebug("Load Attached childs for Tenant terms of use on adapter ");

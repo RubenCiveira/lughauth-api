@@ -16,13 +16,18 @@ class UserAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?UserCursor $cursor,
-        private readonly array $values
+        private readonly array $values,
+        private readonly bool $hasNext = false
     ) {
         parent::__construct($values);
     }
     public function cursor(): ?UserCursor
     {
         return $this->cursor;
+    }
+    public function hasNext(): bool
+    {
+        return $this->hasNext;
     }
     public function values(): array
     {

@@ -42,10 +42,9 @@ class SnippetVersionQueryRepositoryAdapter implements SnippetVersionQueryReposit
         $this->logDebug("List for Snippet version on adapter ");
         $span = $this->startSpan("List for Snippet version on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new SnippetVersionSlide(function (SnippetVersionSlide $slide, SnippetVersionCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new SnippetVersionSlide(fn (SnippetVersionSlide $slide, SnippetVersionCursor $next): SnippetVersionSlide => new SnippetVersionSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -94,5 +93,12 @@ class SnippetVersionQueryRepositoryAdapter implements SnippetVersionQueryReposit
         } finally {
             $span->end();
         }
+    }
+    private function fetchPage(?SnippetVersionFilter $filter, ?SnippetVersionCursor $pageCursor, ?SnippetVersionCursor $fetchCursor): SnippetVersionSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new SnippetVersionSlide(function (SnippetVersionSlide $slide, SnippetVersionCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
     }
 }

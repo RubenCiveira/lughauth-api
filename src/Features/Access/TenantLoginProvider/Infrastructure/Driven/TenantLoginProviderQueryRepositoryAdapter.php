@@ -48,10 +48,9 @@ class TenantLoginProviderQueryRepositoryAdapter implements TenantLoginProviderQu
         $this->logDebug("List for Tenant login provider on adapter ");
         $span = $this->startSpan("List for Tenant login provider on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TenantLoginProviderSlide(function (TenantLoginProviderSlide $slide, TenantLoginProviderCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TenantLoginProviderSlide(fn (TenantLoginProviderSlide $slide, TenantLoginProviderCursor $next): TenantLoginProviderSlide => new TenantLoginProviderSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -101,7 +100,13 @@ class TenantLoginProviderQueryRepositoryAdapter implements TenantLoginProviderQu
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TenantLoginProviderFilter $filter, ?TenantLoginProviderCursor $pageCursor, ?TenantLoginProviderCursor $fetchCursor): TenantLoginProviderSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TenantLoginProviderSlide(function (TenantLoginProviderSlide $slide, TenantLoginProviderCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function readMetadata(string $key): BinaryContent
     {
         $this->logDebug("Load Metadata childs for Tenant login provider on adapter ");

@@ -192,10 +192,9 @@ class ThemeCommandRepositoryAdapter implements ThemeCommandRepositoryGateway
         $this->logDebug("List for Theme on adapter ");
         $span = $this->startSpan("List for Theme on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new ThemeSlide(function (ThemeSlide $slide, ThemeCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new ThemeSlide(fn (ThemeSlide $slide, ThemeCursor $next): ThemeSlide => new ThemeSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -245,7 +244,13 @@ class ThemeCommandRepositoryAdapter implements ThemeCommandRepositoryGateway
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?ThemeFilter $filter, ?ThemeCursor $pageCursor, ?ThemeCursor $fetchCursor): ThemeSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new ThemeSlide(function (ThemeSlide $slide, ThemeCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByNameAndTenant(string $name, ?TenantRef $tenant): ?Theme
     {
         $this->logDebug("Find on by name tenant for Theme on adapter");

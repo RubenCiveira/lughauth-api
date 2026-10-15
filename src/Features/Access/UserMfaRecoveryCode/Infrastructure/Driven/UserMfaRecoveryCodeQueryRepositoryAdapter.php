@@ -42,10 +42,9 @@ class UserMfaRecoveryCodeQueryRepositoryAdapter implements UserMfaRecoveryCodeQu
         $this->logDebug("List for User mfa recovery code on adapter ");
         $span = $this->startSpan("List for User mfa recovery code on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeSlide $slide, UserMfaRecoveryCodeCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new UserMfaRecoveryCodeSlide(fn (UserMfaRecoveryCodeSlide $slide, UserMfaRecoveryCodeCursor $next): UserMfaRecoveryCodeSlide => new UserMfaRecoveryCodeSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -95,7 +94,13 @@ class UserMfaRecoveryCodeQueryRepositoryAdapter implements UserMfaRecoveryCodeQu
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?UserMfaRecoveryCodeFilter $filter, ?UserMfaRecoveryCodeCursor $pageCursor, ?UserMfaRecoveryCodeCursor $fetchCursor): UserMfaRecoveryCodeSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new UserMfaRecoveryCodeSlide(function (UserMfaRecoveryCodeSlide $slide, UserMfaRecoveryCodeCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?UserMfaRecoveryCode
     {
         $this->logDebug("Find on by uid for User mfa recovery code on adapter");

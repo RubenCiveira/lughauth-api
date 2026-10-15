@@ -177,10 +177,9 @@ class ThemeVersionCommandRepositoryAdapter implements ThemeVersionCommandReposit
         $this->logDebug("List for Theme version on adapter ");
         $span = $this->startSpan("List for Theme version on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new ThemeVersionSlide(function (ThemeVersionSlide $slide, ThemeVersionCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new ThemeVersionSlide(fn (ThemeVersionSlide $slide, ThemeVersionCursor $next): ThemeVersionSlide => new ThemeVersionSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -229,5 +228,12 @@ class ThemeVersionCommandRepositoryAdapter implements ThemeVersionCommandReposit
         } finally {
             $span->end();
         }
+    }
+    private function fetchPage(?ThemeVersionFilter $filter, ?ThemeVersionCursor $pageCursor, ?ThemeVersionCursor $fetchCursor): ThemeVersionSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new ThemeVersionSlide(function (ThemeVersionSlide $slide, ThemeVersionCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
     }
 }

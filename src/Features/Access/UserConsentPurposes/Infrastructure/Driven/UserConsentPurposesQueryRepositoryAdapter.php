@@ -42,10 +42,9 @@ class UserConsentPurposesQueryRepositoryAdapter implements UserConsentPurposesQu
         $this->logDebug("List for User consent purposes on adapter ");
         $span = $this->startSpan("List for User consent purposes on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new UserConsentPurposesSlide(fn (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next): UserConsentPurposesSlide => new UserConsentPurposesSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -95,7 +94,13 @@ class UserConsentPurposesQueryRepositoryAdapter implements UserConsentPurposesQu
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?UserConsentPurposesFilter $filter, ?UserConsentPurposesCursor $pageCursor, ?UserConsentPurposesCursor $fetchCursor): UserConsentPurposesSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new UserConsentPurposesSlide(function (UserConsentPurposesSlide $slide, UserConsentPurposesCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?UserConsentPurposes
     {
         $this->logDebug("Find on by uid for User consent purposes on adapter");

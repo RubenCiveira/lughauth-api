@@ -205,10 +205,9 @@ class TrustedClientCommandRepositoryAdapter implements TrustedClientCommandRepos
         $this->logDebug("List for Trusted client on adapter ");
         $span = $this->startSpan("List for Trusted client on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TrustedClientSlide(function (TrustedClientSlide $slide, TrustedClientCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TrustedClientSlide(fn (TrustedClientSlide $slide, TrustedClientCursor $next): TrustedClientSlide => new TrustedClientSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -258,7 +257,13 @@ class TrustedClientCommandRepositoryAdapter implements TrustedClientCommandRepos
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TrustedClientFilter $filter, ?TrustedClientCursor $pageCursor, ?TrustedClientCursor $fetchCursor): TrustedClientSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TrustedClientSlide(function (TrustedClientSlide $slide, TrustedClientCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?TrustedClient
     {
         $this->logDebug("Find on by uid for Trusted client on adapter");

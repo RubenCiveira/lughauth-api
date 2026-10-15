@@ -44,6 +44,11 @@ class SmtpOutboundConfigListController
         $span = $this->startSpan("List Smtp outbound config");
         try {
             $params = $request->getQueryParams();
+            $limit = filter_var($params['limit'] ?? 100, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($limit === false) {
+                $response->getBody()->write('{"error":"invalid_limit"}');
+                return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
+            }
             $filter = new SmtpOutboundConfigFilter(
                 uids: isset($params['uid']) ? [$params['uid']] : (isset($params['uids']) ? explode(',', $params['uids']) : null),
                 search: $params['search'] ?? null,
@@ -52,12 +57,12 @@ class SmtpOutboundConfigListController
                 tenants: isset($params['tenants']) ? explode(",", $params['tenants']) : null,
             );
             $cursor = new SmtpOutboundConfigCursor(
-                limit: (int)($params['limit'] ?? 100),
+                limit: $limit,
                 sinceUid: $params['since-uid'] ?? null,
             );
             $result = $this->listUsecase->list($filter, $cursor);
             $value = ['items' => array_map(fn (SmtpOutboundConfigAttributes $item): SmtpOutboundConfigApiDTO => $this->mapSmtpOutboundConfig($request, $item), $result->values())];
-            $nextLink = count($result->values()) < $cursor->limit() ? null : $this->nextLink($result->cursor(), $params);
+            $nextLink = $result->hasNext() ? $this->nextLink($result->cursor(), $params) : null;
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
             }

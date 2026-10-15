@@ -8,6 +8,7 @@ namespace Civi\Lughauth\Features\Access\ConsentPurpose\Domain\Gateway;
 use Override;
 use ArrayIterator;
 use Civi\Lughauth\Features\Access\ConsentPurpose\Domain\ConsentPurpose;
+use Civi\Lughauth\Shared\Value\Pagination\Slider;
 
 /**
  * @template-extends ArrayIterator<int, ConsentPurpose>
@@ -19,7 +20,9 @@ class ConsentPurposeSlide extends \ArrayIterator
     public function __construct(
         private readonly ?\Closure $next,
         private readonly ?ConsentPurposeCursor $cursor,
-        private readonly array $values
+        private readonly array $values,
+        private readonly bool $hasNext = false,
+        private readonly int $lookahead = 0
     ) {
         parent::__construct($values);
         $this->last = $values ? end($values) : null;
@@ -34,6 +37,10 @@ class ConsentPurposeSlide extends \ArrayIterator
     {
         return $this->nextCursor;
     }
+    public function hasNext(): bool
+    {
+        return $this->hasNext;
+    }
     public function values(): array
     {
         return $this->values;
@@ -45,21 +52,22 @@ class ConsentPurposeSlide extends \ArrayIterator
     }
     public function map(\Closure $fn): ConsentPurposeSlide
     {
-        return new ConsentPurposeSlide($this->next, $this->cursor, array_map($fn, $this->values));
+        return new ConsentPurposeSlide($this->next, $this->cursor, array_map($fn, $this->values), $this->hasNext, $this->lookahead);
     }
     public function slide(\Closure $fn): ConsentPurposeSlide
     {
-        $collected = array_values(array_filter($this->values, $fn));
         $cursor = $this->cursor;
-        if (null !== $cursor && null !== $this->next) {
-            $limit = $cursor->limit();
-            $current = $this;
-            while (count($collected) < $limit && count($current->values) >= $limit) {
-                $current = ($this->next)($current, $current->nextCursor);
-                $collected = array_merge($collected, array_values(array_filter($current->values, $fn)));
-            }
-            $collected = array_slice($collected, 0, $limit);
+        $next = $this->next;
+        if (null === $cursor || null === $next) {
+            return new ConsentPurposeSlide($next, $cursor, array_values(array_filter($this->values, $fn)));
         }
-        return new ConsentPurposeSlide($this->next, $cursor, $collected);
+        $page = Slider::slide(
+            $this->values,
+            $cursor->limit() + $this->lookahead,
+            $cursor->limit(),
+            fn (ConsentPurpose $after, int $size): array => $next($this, $cursor->next($after, $size))->values(),
+            $fn,
+        );
+        return new ConsentPurposeSlide($next, $cursor, $page->items, $page->hasNext);
     }
 }

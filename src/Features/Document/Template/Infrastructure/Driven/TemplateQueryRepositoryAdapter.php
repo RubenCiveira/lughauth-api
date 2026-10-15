@@ -43,10 +43,9 @@ class TemplateQueryRepositoryAdapter implements TemplateQueryRepositoryGateway
         $this->logDebug("List for Template on adapter ");
         $span = $this->startSpan("List for Template on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new TemplateSlide(function (TemplateSlide $slide, TemplateCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new TemplateSlide(fn (TemplateSlide $slide, TemplateCursor $next): TemplateSlide => new TemplateSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -96,7 +95,13 @@ class TemplateQueryRepositoryAdapter implements TemplateQueryRepositoryGateway
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?TemplateFilter $filter, ?TemplateCursor $pageCursor, ?TemplateCursor $fetchCursor): TemplateSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new TemplateSlide(function (TemplateSlide $slide, TemplateCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByCodeAndTenant(string $code, ?TenantRef $tenant): ?Template
     {
         $this->logDebug("Find on by code tenant for Template on adapter");

@@ -192,10 +192,9 @@ class SmtpOutboundConfigCommandRepositoryAdapter implements SmtpOutboundConfigCo
         $this->logDebug("List for Smtp outbound config on adapter ");
         $span = $this->startSpan("List for Smtp outbound config on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigSlide $slide, SmtpOutboundConfigCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new SmtpOutboundConfigSlide(fn (SmtpOutboundConfigSlide $slide, SmtpOutboundConfigCursor $next): SmtpOutboundConfigSlide => new SmtpOutboundConfigSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -245,7 +244,13 @@ class SmtpOutboundConfigCommandRepositoryAdapter implements SmtpOutboundConfigCo
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?SmtpOutboundConfigFilter $filter, ?SmtpOutboundConfigCursor $pageCursor, ?SmtpOutboundConfigCursor $fetchCursor): SmtpOutboundConfigSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new SmtpOutboundConfigSlide(function (SmtpOutboundConfigSlide $slide, SmtpOutboundConfigCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByTenant(?TenantRef $tenant): ?SmtpOutboundConfig
     {
         $this->logDebug("Find on by tenant for Smtp outbound config on adapter");

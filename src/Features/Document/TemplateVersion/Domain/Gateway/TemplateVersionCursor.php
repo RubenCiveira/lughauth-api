@@ -25,6 +25,12 @@ class TemplateVersionCursor
     {
         return $this->limit;
     }
+    public function withLimit(int $limit): TemplateVersionCursor
+    {
+        $next = clone $this;
+        $next->limit = $limit;
+        return $next;
+    }
     public function sinceUid(): ?string
     {
         return $this->sinceUid;

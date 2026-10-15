@@ -70,7 +70,7 @@ class TemplateListUsecase
                 throw new UnauthorizedException($allow->reason ?? 'Not allowed to list');
             }
             $slide = $this->visibility->listVisibles($filter, $cursor);
-            return new TemplateAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($item)), $slide->values()));
+            return new TemplateAttributesSlide($slide->nextCursor(), array_map(fn ($item) => $this->visibility->copyWithHidden($this->visibility->prepareVisibleData($item)), $slide->values()), $slide->hasNext());
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

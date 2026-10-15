@@ -16,13 +16,18 @@ class TemplateAssetAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?TemplateAssetCursor $cursor,
-        private readonly array $values
+        private readonly array $values,
+        private readonly bool $hasNext = false
     ) {
         parent::__construct($values);
     }
     public function cursor(): ?TemplateAssetCursor
     {
         return $this->cursor;
+    }
+    public function hasNext(): bool
+    {
+        return $this->hasNext;
     }
     public function values(): array
     {

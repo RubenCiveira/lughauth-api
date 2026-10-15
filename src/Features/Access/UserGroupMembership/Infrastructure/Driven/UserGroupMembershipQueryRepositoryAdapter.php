@@ -42,10 +42,9 @@ class UserGroupMembershipQueryRepositoryAdapter implements UserGroupMembershipQu
         $this->logDebug("List for User group membership on adapter ");
         $span = $this->startSpan("List for User group membership on adapter");
         try {
-            $values = $this->conn->list($filter, $cursor);
-            return new UserGroupMembershipSlide(function (UserGroupMembershipSlide $slide, UserGroupMembershipCursor $next) use ($filter) {
-                return $this->list($filter, $next);
-            }, $cursor, $values);
+            $lookahead = null === $cursor ? 0 : max(1, (int) ceil($cursor->limit() * 0.05));
+            $values = $this->conn->list($filter, $cursor?->withLimit($cursor->limit() + $lookahead));
+            return new UserGroupMembershipSlide(fn (UserGroupMembershipSlide $slide, UserGroupMembershipCursor $next): UserGroupMembershipSlide => new UserGroupMembershipSlide(null, $next, $this->conn->list($filter, $next)), $cursor, $values, false, $lookahead);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -95,7 +94,13 @@ class UserGroupMembershipQueryRepositoryAdapter implements UserGroupMembershipQu
             $span->end();
         }
     }
-    #[Override]
+    private function fetchPage(?UserGroupMembershipFilter $filter, ?UserGroupMembershipCursor $pageCursor, ?UserGroupMembershipCursor $fetchCursor): UserGroupMembershipSlide
+    {
+        $values = $this->conn->list($filter, $fetchCursor);
+        return new UserGroupMembershipSlide(function (UserGroupMembershipSlide $slide, UserGroupMembershipCursor $next) use ($filter) {
+            return $this->fetchPage($filter, $next, $next);
+        }, $pageCursor, $values, false, $fetchCursor?->limit());
+    }  #[Override]
     public function findOneByUid(string $uid): ?UserGroupMembership
     {
         $this->logDebug("Find on by uid for User group membership on adapter");

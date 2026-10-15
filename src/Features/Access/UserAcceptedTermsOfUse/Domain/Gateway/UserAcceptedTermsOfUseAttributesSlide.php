@@ -16,13 +16,18 @@ class UserAcceptedTermsOfUseAttributesSlide extends ArrayIterator
 {
     public function __construct(
         private readonly ?UserAcceptedTermsOfUseCursor $cursor,
-        private readonly array $values
+        private readonly array $values,
+        private readonly bool $hasNext = false
     ) {
         parent::__construct($values);
     }
     public function cursor(): ?UserAcceptedTermsOfUseCursor
     {
         return $this->cursor;
+    }
+    public function hasNext(): bool
+    {
+        return $this->hasNext;
     }
     public function values(): array
     {
