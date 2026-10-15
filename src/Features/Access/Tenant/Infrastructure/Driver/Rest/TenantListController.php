@@ -57,7 +57,7 @@ class TenantListController
             );
             $result = $this->listUsecase->list($filter, $cursor);
             $value = ['items' => array_map(fn (TenantAttributes $item): TenantApiDTO => $this->mapTenant($request, $item), $result->values())];
-            $nextLink = $this->nextLink($result->cursor(), $params);
+            $nextLink = count($result->values()) < $cursor->limit() ? null : $this->nextLink($result->cursor(), $params);
             if (null !== $nextLink) {
                 $value['next'] = "?{$nextLink}";
             }
@@ -102,37 +102,19 @@ class TenantListController
     }
     private function nextLink(?TenantCursor $value, array $params): ?string
     {
-        $this->logDebug("Check generic allow for Tenant");
-        $span = $this->startSpan("Generic allow for Tenant");
+        $this->logDebug("Build next link for Tenant");
+        $span = $this->startSpan("Build next link for Tenant");
         try {
             if (!$value) {
                 return null;
             }
-            $link = [];
-            if (isset($params['limit'])) {
-                $link['limit'] = 'limit=' . $params['limit'];
-            }
-            $sinceUid = $value->sinceUid();
-            if (null !== $sinceUid) {
-                $link['since-uid'] = 'since-uid=' . urlencode($sinceUid);
-            }
-            $sinceName = $value->sinceName();
-            if (null !== $sinceName &&  false !== strpos($params['order'] ?? '', 'NAME-ASC')) {
-                $link['since-name'] = 'since-name=' . urlencode($sinceName);
-            }
-            $sinceName = $value->sinceName();
-            if (null !== $sinceName &&  false !== strpos($params['order'] ?? '', 'NAME-DESC')) {
-                $link['since-name'] = 'since-name=' . urlencode($sinceName);
-            }
-            $sinceDomain = $value->sinceDomain();
-            if (null !== $sinceDomain &&  false !== strpos($params['order'] ?? '', 'DOMAIN-ASC')) {
-                $link['since-domain'] = 'since-domain=' . urlencode($sinceDomain);
-            }
-            $sinceDomain = $value->sinceDomain();
-            if (null !== $sinceDomain &&  false !== strpos($params['order'] ?? '', 'DOMAIN-DESC')) {
-                $link['since-domain'] = 'since-domain=' . urlencode($sinceDomain);
-            }
-            return implode('&', $link);
+            // Keep the request (filters, order, limit) and only move the keyset position.
+            $link = array_merge($params, [
+                'since-uid' => $value->sinceUid(),
+                'since-name' => $value->sinceName(),
+                'since-domain' => $value->sinceDomain(),
+            ]);
+            return http_build_query(array_filter($link, fn (mixed $item): bool => null !== $item));
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

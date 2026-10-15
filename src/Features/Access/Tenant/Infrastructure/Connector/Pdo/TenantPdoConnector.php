@@ -339,54 +339,35 @@ class TenantPdoConnector
                 if ($sortLimit) {
                     $limit = ' LIMIT ' . $this->db->escapeValue($sortLimit, SqlParam::INT);
                 }
-                $sortOrder = $sort->order();
-                if (null !== $sortOrder) {
-                    $equals = '';
-                    foreach ($sortOrder as $ord) {
-                        if ($ord === 'nameAsc') {
-                            $sortSinceName = $sort->sinceName();
-                            if (null !== $sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."name" > :sinceName';
-                                $equals .= ' and "tenant"."name" = :sinceName';
-                                $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
-                            }
-                            $order .= ', "access_tenant"."name" asc';
-                        }
-                        if ($ord === 'nameDesc') {
-                            $sortSinceName = $sort->sinceName();
-                            if (null !== $sortSinceName) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."name" < :sinceName';
-                                $equals .= ' and "tenant"."name" = :sinceName';
-                                $params[] = new SqlParam(name: 'sinceName', value: $sortSinceName, type: SqlParam::STR);
-                            }
-                            $order .= ', "access_tenant"."name" desc';
-                        }
-                        if ($ord === 'domainAsc') {
-                            $sortSinceDomain = $sort->sinceDomain();
-                            if (null !== $sortSinceDomain) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."domain" > :sinceDomain';
-                                $equals .= ' and "tenant"."domain" = :sinceDomain';
-                                $params[] = new SqlParam(name: 'sinceDomain', value: $sortSinceDomain, type: SqlParam::STR);
-                            }
-                            $order .= ', "access_tenant"."domain" asc';
-                        }
-                        if ($ord === 'domainDesc') {
-                            $sortSinceDomain = $sort->sinceDomain();
-                            if (null !== $sortSinceDomain) {
-                                $query .= " and " . ($equals ? substr($equals, 4) . ' and ' : '') . ' "tenant"."domain" < :sinceDomain';
-                                $equals .= ' and "tenant"."domain" = :sinceDomain';
-                                $params[] = new SqlParam(name: 'sinceDomain', value: $sortSinceDomain, type: SqlParam::STR);
-                            }
-                            $order .= ', "access_tenant"."domain" desc';
-                        }
+                // Keyset pagination: each entry is [column, param name, since value, sql type, ascending].
+                $keys = [];
+                foreach ($sort->order() ?? [] as $ord) {
+                    if ($ord === 'nameAsc' || $ord === 'nameDesc') {
+                        $keys[] = ['"access_tenant"."name"', 'sinceName', $sort->sinceName(), SqlParam::STR, $ord === 'nameAsc'];
                     }
-                } else {
-                    $sortSinceUid = $sort->sinceUid();
-                    if (null !== $sortSinceUid) {
-                        $query .= ' and  "access_tenant"."uid" < :sinceUid';
-                        $params[] = new SqlParam(name: 'sinceUid', value: $sortSinceUid, type: SqlParam::STR);
+                    if ($ord === 'domainAsc' || $ord === 'domainDesc') {
+                        $keys[] = ['"access_tenant"."domain"', 'sinceDomain', $sort->sinceDomain(), SqlParam::STR, $ord === 'domainAsc'];
                     }
-                    $order = ', "access_tenant"."uid" desc';
+                }
+                // The uid breaks ties and keeps the default order (uid desc) when no order is requested.
+                $keys[] = ['"access_tenant"."uid"', 'sinceUid', $sort->sinceUid(), SqlParam::STR, count($keys) > 0];
+                foreach ($keys as [$column, , , , $asc]) {
+                    $order .= ', ' . $column . ($asc ? ' asc' : ' desc');
+                }
+                if (array_filter($keys, fn (array $key): bool => null === $key[2]) === []) {
+                    // (k1 > s1) or (k1 = s1 and k2 > s2) or ... with each comparison bound to its own parameter.
+                    $alternatives = [];
+                    foreach ($keys as $i => [$column, $name, $value, $type, $asc]) {
+                        $conditions = [];
+                        for ($j = 0; $j <= $i; $j++) {
+                            $paramName = $keys[$j][1] . '_' . $i;
+                            $operator = $j < $i ? ' = ' : ($keys[$j][4] ? ' > ' : ' < ');
+                            $conditions[] = $keys[$j][0] . $operator . ':' . $paramName;
+                            $params[] = new SqlParam(name: $paramName, value: $keys[$j][2], type: $keys[$j][3]);
+                        }
+                        $alternatives[] = '(' . implode(' and ', $conditions) . ')';
+                    }
+                    $query .= ' and (' . implode(' or ', $alternatives) . ')';
                 }
             }
             return [

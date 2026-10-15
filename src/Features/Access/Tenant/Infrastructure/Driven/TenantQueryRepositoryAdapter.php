@@ -43,10 +43,9 @@ class TenantQueryRepositoryAdapter implements TenantQueryRepositoryGateway
         $span = $this->startSpan("List for Tenant on adapter");
         try {
             $values = $this->conn->list($filter, $cursor);
-            $last = end($values);
-            return new TenantSlide(function (TenantFilter $slide, ?TenantCursor $next) use ($filter) {
+            return new TenantSlide(function (TenantSlide $slide, TenantCursor $next) use ($filter) {
                 return $this->list($filter, $next);
-            }, new TenantCursor($cursor?->limit() ?? 100, false !== $last ? $last->uid() : null), $values);
+            }, $cursor, $values);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
