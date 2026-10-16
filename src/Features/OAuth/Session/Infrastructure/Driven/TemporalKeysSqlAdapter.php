@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace Civi\Lughauth\Features\OAuth\Session\Infrastructure\Driven;
 
 use PDO;
+use Throwable;
 use Jose\Component\Core\JWK;
 use Jose\Component\Signature\Serializer\CompactSerializer;
 use Jose\Component\Signature\Algorithm\HS256;
@@ -218,46 +219,71 @@ class TemporalKeysSqlAdapter implements TemporalKeysGateway
     }
 
     /**
-     * Fetches and immediately deletes the TemporalAuthCode row identified by the given code string.
-     * Returns null when the code does not exist or has already expired, enforcing single-use semantics.
+     * Locks and consumes one unexpired code in a transaction. A concurrent redemption waits
+     * for the first one to commit and then sees no row, even under REPEATABLE READ.
      */
     #[\Override]
     public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode
     {
-        $now = (new \DateTimeImmutable());
-        $stmt = $this->pdo->prepare('SELECT code_data FROM _oauth_temporal_codes where code = :code and expiration >= :now ');
-        $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-        $stmt->bindValue('code', $code, PDO::PARAM_STR);
-        $stmt->execute();
-        if ($row = $stmt->fetch()) {
-            $res = json_decode($row[0], true);
-            $data = AuthenticationResult::deserialize($res['data'] ?? []);
-            $client = new ClientData(
-                id: $res['client']['id'] ?? '-',
-                grants: $res['client']['grants'] ?? [],
-                secretLogin: $res['client']['secretLogin'] ?? false,
-                tokenEndpointAuthMethod: $res['client']['tokenEndpointAuthMethod'] ?? 'client_secret_basic',
-            );
-            $request = new AuthenticationRequest(
-                client: $client,
-                scope: $res['request']['scope'] ?? '-',
-                redirect: $res['request']['redirect'] ?? '-',
-                audiences: $res['request']['audiences'] ?? [],
-            );
-            $stmt = $this->pdo->prepare('DELETE FROM _oauth_temporal_codes where code = :code and expiration >= :now ');
-            $stmt->bindValue('now', $now->format('Y-m-d H:i:s'), PDO::PARAM_STR);
-            $stmt->bindValue('code', $code, PDO::PARAM_STR);
-            $stmt->execute();
-            return new TemporalAuthCode(
-                data: $data,
-                nonce: $res['nonce'] ?? '',
-                client: $client,
-                request: $request,
-                codeChallenge: $res['codeChallenge'] ?? null,
-                codeChallengeMethod: $res['codeChallengeMethod'] ?? null,
-            );
-        } else {
+        $ownsTransaction = !$this->pdo->inTransaction();
+        if ($ownsTransaction) {
+            $this->pdo->beginTransaction();
+        }
+
+        try {
+            $now = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+            $stmt = $this->pdo->prepare('SELECT code_data FROM _oauth_temporal_codes WHERE code = :code AND expiration >= :now FOR UPDATE');
+            $stmt->execute(['code' => $code, 'now' => $now]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (is_array($row)) {
+                $delete = $this->pdo->prepare('DELETE FROM _oauth_temporal_codes WHERE code = :code AND expiration >= :now');
+                $delete->execute(['code' => $code, 'now' => $now]);
+                if ($delete->rowCount() !== 1) {
+                    $row = false;
+                }
+            }
+
+            if ($ownsTransaction) {
+                $this->pdo->commit();
+            }
+        } catch (Throwable $ex) {
+            if ($ownsTransaction && $this->pdo->inTransaction()) {
+                $this->pdo->rollBack();
+            }
+            // MariaDB can report ER_CHECKREAD when a row in an older snapshot was
+            // removed by another transaction before the locking read.
+            if ($ex instanceof \PDOException && (int) ($ex->errorInfo[1] ?? 0) === 1020) {
+                return null;
+            }
+            throw $ex;
+        }
+
+        if (!is_array($row)) {
             return null;
         }
+
+        $res = json_decode($row['code_data'], true);
+        $data = AuthenticationResult::deserialize($res['data'] ?? []);
+        $client = new ClientData(
+            id: $res['client']['id'] ?? '-',
+            grants: $res['client']['grants'] ?? [],
+            secretLogin: $res['client']['secretLogin'] ?? false,
+            tokenEndpointAuthMethod: $res['client']['tokenEndpointAuthMethod'] ?? 'client_secret_basic',
+        );
+        $request = new AuthenticationRequest(
+            client: $client,
+            scope: $res['request']['scope'] ?? '-',
+            redirect: $res['request']['redirect'] ?? '-',
+            audiences: $res['request']['audiences'] ?? [],
+        );
+        return new TemporalAuthCode(
+            data: $data,
+            nonce: $res['nonce'] ?? '',
+            client: $client,
+            request: $request,
+            codeChallenge: $res['codeChallenge'] ?? null,
+            codeChallengeMethod: $res['codeChallengeMethod'] ?? null,
+        );
     }
 }

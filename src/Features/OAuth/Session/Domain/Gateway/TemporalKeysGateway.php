@@ -50,8 +50,8 @@ interface TemporalKeysGateway
     public function registerTemporalAuthCode(TemporalAuthCode $code): string;
 
     /**
-     * Retrieves and immediately deletes the TemporalAuthCode identified by the given code string.
-     * Returns null when the code does not exist or has expired.
+     * Atomically consumes and returns a single unexpired authorization code.
+     * Returns null if it is missing, expired, or another request already consumed it.
      */
     public function retrieveTemporalAuthCode(string $code): ?TemporalAuthCode;
 }
