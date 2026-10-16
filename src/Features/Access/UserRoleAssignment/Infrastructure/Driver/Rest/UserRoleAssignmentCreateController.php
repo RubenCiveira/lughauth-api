@@ -107,9 +107,9 @@ class UserRoleAssignmentCreateController
                 if (is_array($roles)) {
                     foreach ($roles as $item) {
                         $innerErrorsList = new ConstraintFailList();
-                        $innerUid = UserRoleAssignmentRolesUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerUid = UserRoleAssignmentRolesUidVO::tryFrom(($item['uid'] ?? null) ? ''.$item['uid'] : null, $innerErrorsList);
                         $innerRole = UserRoleAssignmentRolesRoleVO::tryFrom(isset($item['role']['$ref']) ? new RoleRef($item['role']['$ref']) : null, $innerErrorsList);
-                        $innerVersion = UserRoleAssignmentRolesVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        $innerVersion = UserRoleAssignmentRolesVersionVO::tryFrom(($item['version'] ?? null) ? $item['version'] : null, $innerErrorsList);
                         if (!$innerErrorsList->hasErrors()) {
                             $rolesList[] = new UserRoleAssignmentRolesItem(
                                 uid: $innerUid,

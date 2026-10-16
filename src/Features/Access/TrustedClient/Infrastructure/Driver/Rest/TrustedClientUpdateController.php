@@ -206,9 +206,9 @@ class TrustedClientUpdateController
                 if (is_array($allowedRedirects)) {
                     foreach ($allowedRedirects as $item) {
                         $innerErrorsList = new ConstraintFailList();
-                        $innerUid = TrustedClientAllowedRedirectsUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
-                        $innerUrl = TrustedClientAllowedRedirectsUrlVO::tryFrom($item['url'] ? ''.$item['url'] : null, $innerErrorsList);
-                        $innerVersion = TrustedClientAllowedRedirectsVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        $innerUid = TrustedClientAllowedRedirectsUidVO::tryFrom(($item['uid'] ?? null) ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerUrl = TrustedClientAllowedRedirectsUrlVO::tryFrom(($item['url'] ?? null) ? ''.$item['url'] : null, $innerErrorsList);
+                        $innerVersion = TrustedClientAllowedRedirectsVersionVO::tryFrom(($item['version'] ?? null) ? $item['version'] : null, $innerErrorsList);
                         if (!$innerErrorsList->hasErrors()) {
                             $allowedRedirectsList[] = new TrustedClientAllowedRedirectsItem(
                                 uid: $innerUid,
@@ -230,9 +230,9 @@ class TrustedClientUpdateController
                 if (is_array($allowedAudiences)) {
                     foreach ($allowedAudiences as $item) {
                         $innerErrorsList = new ConstraintFailList();
-                        $innerUid = TrustedClientAllowedAudiencesUidVO::tryFrom($item['uid'] ? ''.$item['uid'] : null, $innerErrorsList);
-                        $innerAudience = TrustedClientAllowedAudiencesAudienceVO::tryFrom($item['audience'] ? ''.$item['audience'] : null, $innerErrorsList);
-                        $innerVersion = TrustedClientAllowedAudiencesVersionVO::tryFrom($item['version'] ? $item['version'] : null, $innerErrorsList);
+                        $innerUid = TrustedClientAllowedAudiencesUidVO::tryFrom(($item['uid'] ?? null) ? ''.$item['uid'] : null, $innerErrorsList);
+                        $innerAudience = TrustedClientAllowedAudiencesAudienceVO::tryFrom(($item['audience'] ?? null) ? ''.$item['audience'] : null, $innerErrorsList);
+                        $innerVersion = TrustedClientAllowedAudiencesVersionVO::tryFrom(($item['version'] ?? null) ? $item['version'] : null, $innerErrorsList);
                         if (!$innerErrorsList->hasErrors()) {
                             $allowedAudiencesList[] = new TrustedClientAllowedAudiencesItem(
                                 uid: $innerUid,

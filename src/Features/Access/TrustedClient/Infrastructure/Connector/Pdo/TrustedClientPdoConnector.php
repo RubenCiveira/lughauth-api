@@ -586,7 +586,9 @@ class TrustedClientPdoConnector
             ])) {
                 throw new OptimistLockException("Insert child TrustedClientAllowedRedirectsItem for TrustedClient", $uid);
             }
-            return $child->withVersion(0);
+            // Keep the generated uid: the saved item must be identifiable by the caller and by the
+            // "NOT IN (:uids)" cleanup that follows in saveChilds.
+            return (new TrustedClientAllowedRedirectsItem(TrustedClientAllowedRedirectsUidVO::from($uid), null, null))->getOrDefault($child)->withVersion(0);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
@@ -647,7 +649,9 @@ class TrustedClientPdoConnector
             ])) {
                 throw new OptimistLockException("Insert child TrustedClientAllowedAudiencesItem for TrustedClient", $uid);
             }
-            return $child->withVersion(0);
+            // Keep the generated uid: the saved item must be identifiable by the caller and by the
+            // "NOT IN (:uids)" cleanup that follows in saveChilds.
+            return (new TrustedClientAllowedAudiencesItem(TrustedClientAllowedAudiencesUidVO::from($uid), null, null))->getOrDefault($child)->withVersion(0);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;

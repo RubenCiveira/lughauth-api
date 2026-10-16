@@ -449,7 +449,9 @@ class UserRoleAssignmentPdoConnector
             ])) {
                 throw new OptimistLockException("Insert child UserRoleAssignmentRolesItem for UserRoleAssignment", $uid);
             }
-            return $child->withVersion(0);
+            // Keep the generated uid: the saved item must be identifiable by the caller and by the
+            // "NOT IN (:uids)" cleanup that follows in saveChilds.
+            return (new UserRoleAssignmentRolesItem(UserRoleAssignmentRolesUidVO::from($uid), null, null))->getOrDefault($child)->withVersion(0);
         } catch (Throwable $ex) {
             $span->recordException($ex);
             throw $ex;
