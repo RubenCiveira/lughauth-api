@@ -866,9 +866,9 @@ class TrustedClientPdoConnector
                 version: TrustedClientAllowedRedirectsVersionVO::from($childAllowedRedirects['version']),
             );
         }
-        $childsAllowedAudiences = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" in (:parents)', [
+        $childsAllowedAudiences = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" in (:parents)', [
           new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
-        ]) : $this->db->query('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" in (:parents)', [
+        ]) : $this->db->query('select "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" in (:parents)', [
           new SqlParam(name: 'parents', value: $ids, type: SqlParam::STR)
         ]);
         foreach ($childsAllowedAudiences as $childAllowedAudiences) {
@@ -898,9 +898,9 @@ class TrustedClientPdoConnector
                     version: TrustedClientAllowedRedirectsVersionVO::from($childAllowedRedirects['version']),
                 );
             }
-            $childsAllowedAudiences = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" = :parent', [
+            $childsAllowedAudiences = $forUpdate ? $this->db->queryForUpdate('select "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" = :parent', [
               new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
-            ]) : $this->db->query('select "uid", "client", "url", "version", "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" = :parent', [
+            ]) : $this->db->query('select "uid", "client", "audience", "version" from "access_trusted_client_allowed_audience" where "client" = :parent', [
               new SqlParam(name: 'parent', value: $value['uid'], type: SqlParam::STR)
             ]);
             foreach ($childsAllowedAudiences as $childAllowedAudiences) {
