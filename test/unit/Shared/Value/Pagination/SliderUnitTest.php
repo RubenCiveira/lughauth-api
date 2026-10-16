@@ -28,9 +28,13 @@ final class SliderUnitTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($message);
 
-        Slider::slide([1], $requested, $limit,
+        Slider::slide(
+            [1],
+            $requested,
+            $limit,
             static fn (int $after, int $size): array => throw new LogicException('Unexpected read'),
-            static fn (int $item): bool => throw new LogicException('Unexpected evaluation'));
+            static fn (int $item): bool => throw new LogicException('Unexpected evaluation')
+        );
     }
 
     public function test_full_first_read_gives_page_and_next_without_refill(): void

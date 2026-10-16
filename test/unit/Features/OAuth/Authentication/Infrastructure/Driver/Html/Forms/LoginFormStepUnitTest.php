@@ -51,6 +51,7 @@ final class LoginFormStepUnitTest extends FormsTestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
         $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
 
@@ -92,7 +93,7 @@ final class LoginFormStepUnitTest extends FormsTestCase
                 'tenant1',
                 'user@example.com',
                 'plain-pass',
-                'https://example.com/openid/tenant1',
+                'https://example.com/oauth/openid/tenant1',
                 'csid-123',
                 'state-xyz',
                 'nonce-abc'

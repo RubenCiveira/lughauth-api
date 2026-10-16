@@ -58,6 +58,7 @@ final class OidcFlowContextUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
@@ -73,7 +74,7 @@ final class OidcFlowContextUnitTest extends TestCase
         $this->assertSame('', $flow->prompt);
         $this->assertSame('es-ES,es;q=0.9', $flow->locale);
         $this->assertSame('https://example.com', $flow->baseUrl);
-        $this->assertSame('https://example.com/openid/tenant1', $flow->issuer);
+        $this->assertSame('https://example.com/oauth/openid/tenant1', $flow->issuer);
         $this->assertSame('sess-123', $flow->sessionId);
         $this->assertSame('pre-456', $flow->preSessionId);
         $this->assertNull($flow->codeChallenge);
@@ -98,6 +99,7 @@ final class OidcFlowContextUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
@@ -123,6 +125,7 @@ final class OidcFlowContextUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);

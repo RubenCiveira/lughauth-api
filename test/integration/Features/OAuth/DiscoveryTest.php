@@ -60,6 +60,18 @@ class DiscoveryTest extends OidcIntegrationTestCase
         $this->assertStringContainsString(self::TENANT, $doc['issuer']);
     }
 
+    public function testIssuerCannotBeChangedByRequestHost(): void
+    {
+        $expected = $this->discover();
+        $_SERVER['HTTP_HOST'] = 'attacker.example';
+        $_SERVER['HTTPS'] = 'on';
+
+        $actual = $this->discover();
+        $this->assertSame($expected['issuer'], $actual['issuer']);
+        $this->assertSame($expected['token_endpoint'], $actual['token_endpoint']);
+        $this->assertSame('http://localhost/oauth/openid/tenant1', $actual['issuer']);
+    }
+
     public function testEndpointsAreAbsoluteUrls(): void
     {
         $doc = $this->discover();

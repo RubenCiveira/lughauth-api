@@ -96,6 +96,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $clients = $this->createMock(ClientStoreGateway::class);
@@ -176,6 +177,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $clients = $this->createMock(ClientStoreGateway::class);
@@ -298,6 +300,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $clients = $this->createMock(ClientStoreGateway::class);
@@ -384,6 +387,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $clients = $this->createMock(ClientStoreGateway::class);
@@ -457,6 +461,7 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         $clients = $this->createMock(ClientStoreGateway::class);

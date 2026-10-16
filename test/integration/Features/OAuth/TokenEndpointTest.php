@@ -10,6 +10,7 @@ use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult;
 use Civi\Lughauth\Features\OAuth\Authentication\Infrastructure\Driver\Rest\TokenController;
 use Civi\Lughauth\Features\OAuth\Session\Domain\TemporalAuthCode;
+use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
 
 class TokenEndpointTest extends OidcIntegrationTestCase
 {
@@ -110,6 +111,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             valid: true,
             id: self::USER_ID,
             tenant: self::TENANT,
+            tenantName: self::TENANT,
             scope: 'openid profile email',
             name: 'Test User',
             email: 'test@example.com',
@@ -130,6 +132,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             'code' => $codeKey,
             'client_id' => self::CLIENT_ID,
             'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
         ]);
 
         $response = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
@@ -149,6 +152,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             valid: true,
             id: self::USER_ID,
             tenant: self::TENANT,
+            tenantName: self::TENANT,
             scope: 'openid profile email',
             name: 'Test User',
             email: 'test@example.com',
@@ -165,6 +169,9 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $request = $this->makeRequest('POST', '/oauth/openid/tenant1/token', [
             'grant_type' => 'authorization_code',
             'code' => $codeKey,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
         ]);
 
         $response = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
@@ -188,6 +195,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             valid: true,
             id: self::USER_ID,
             tenant: self::TENANT,
+            tenantName: self::TENANT,
             scope: 'openid',
         );
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
@@ -205,6 +213,9 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             'grant_type' => 'authorization_code',
             'code' => $codeKey,
             'code_verifier' => $verifier,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
         ]);
 
         $response = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
@@ -219,7 +230,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $challenge = rtrim(strtr(base64_encode(hash('sha256', 'some-verifier', true)), '+/', '-_'), '=');
 
         $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
-        $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, scope: 'openid');
+        $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
         $code = new TemporalAuthCode(
             data: $authResult,
@@ -234,6 +245,9 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $request = $this->makeRequest('POST', '/oauth/openid/tenant1/token', [
             'grant_type' => 'authorization_code',
             'code' => $codeKey,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
         ]);
 
         $response = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
@@ -248,7 +262,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $challenge = rtrim(strtr(base64_encode(hash('sha256', 'correct-verifier', true)), '+/', '-_'), '=');
 
         $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
-        $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, scope: 'openid');
+        $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
         $code = new TemporalAuthCode(
             data: $authResult,
@@ -264,6 +278,9 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             'grant_type' => 'authorization_code',
             'code' => $codeKey,
             'code_verifier' => 'wrong-verifier',
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
         ]);
 
         $response = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
@@ -276,7 +293,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
     public function testAuthorizationCodeIsOneTimeUse(): void
     {
         $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
-        $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, scope: 'openid');
+        $authResult = new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid');
         $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback');
         $code = new TemporalAuthCode(data: $authResult, client: $clientData, nonce: 'nonce', request: $authRequest);
         $codeKey = $this->temporalKeys->registerTemporalAuthCode($code);
@@ -284,14 +301,48 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $request = $this->makeRequest('POST', '/oauth/openid/tenant1/token', [
             'grant_type' => 'authorization_code',
             'code' => $codeKey,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
         ]);
 
         $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
 
-        // Second use of the same code must be rejected; the controller throws UnauthorizedException
-        // which the framework converts to 401 — here we verify the exception is raised.
-        $this->expectException(\Civi\Lughauth\Shared\Exception\UnauthorizedException::class);
-        $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
+        $second = $this->controller->post($request, new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(400, $second->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($second)['error']);
+    }
+
+    public function testAngularPublicClientRedeemsOnlyOnceWithTenantName(): void
+    {
+        $client = new ClientData('lughauth-ui', ['authorization_code'], false, tokenEndpointAuthMethod: 'none');
+        $this->clientStore->register('lughauth-ui', '', $client);
+        $verifier = bin2hex(random_bytes(32));
+        $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
+        $key = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: 'tenant-uid-main', tenantName: 'main', scope: 'openid'),
+            client: $client,
+            nonce: 'nonce',
+            request: new AuthenticationRequest($client, 'openid', 'http://localhost:4200/login-redirect'),
+            codeChallenge: $challenge,
+            codeChallengeMethod: 'S256',
+        ));
+        $request = $this->makeRequest('POST', '/oauth/openid/main/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $key,
+            'redirect_uri' => 'http://localhost:4200/login-redirect',
+            'code_verifier' => $verifier,
+            'client_id' => 'lughauth-ui',
+            'audience' => 'lughauth-ui,lughauth-api',
+        ]);
+
+        $first = $this->controller->post($request, new Response(200), ['tenant' => 'main']);
+        $this->assertSame(200, $first->getStatusCode());
+        $this->assertArrayHasKey('access_token', $this->decodeJson($first));
+
+        $second = $this->controller->post($request, new Response(200), ['tenant' => 'main']);
+        $this->assertSame(400, $second->getStatusCode());
+        $this->assertSame('invalid_grant', $this->decodeJson($second)['error']);
     }
 
     public function testRefreshTokenGrantIssuesNewAccessToken(): void
@@ -301,6 +352,7 @@ class TokenEndpointTest extends OidcIntegrationTestCase
             valid: true,
             id: self::USER_ID,
             tenant: self::TENANT,
+            tenantName: self::TENANT,
             scope: 'openid profile',
             name: 'Test User',
             email: 'test@example.com',
@@ -310,7 +362,13 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $codeKey = $this->temporalKeys->registerTemporalAuthCode($code);
 
         $firstResponse = $this->controller->post(
-            $this->makeRequest('POST', '/oauth/openid/tenant1/token', ['grant_type' => 'authorization_code', 'code' => $codeKey]),
+            $this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+                'grant_type' => 'authorization_code',
+                'code' => $codeKey,
+                'client_id' => self::CLIENT_ID,
+                'redirect_uri' => 'https://app.example.com/callback',
+                'client_secret' => self::CLIENT_SECRET,
+            ]),
             new Response(200),
             ['tenant' => self::TENANT]
         );

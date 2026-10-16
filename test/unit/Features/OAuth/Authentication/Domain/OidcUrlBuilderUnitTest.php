@@ -114,6 +114,7 @@ final class OidcUrlBuilderUnitTest extends TestCase
     {
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
         return new OidcUrlBuilder($context);
     }

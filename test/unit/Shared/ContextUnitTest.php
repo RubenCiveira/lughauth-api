@@ -94,17 +94,18 @@ final class ContextUnitTest extends TestCase
     }
 
     /**
-     * Verifies base URL is constructed correctly from server variables.
+     * Verifies the configured public URL ignores a spoofed Host header.
      */
     public function testGetBaseUrl(): void
     {
         /* Arrange: set server variables. */
         $_SERVER['HTTPS'] = 'on';
-        $_SERVER['HTTP_HOST'] = 'example.com';
+        $_SERVER['HTTP_HOST'] = 'attacker.example';
         $_SERVER['SCRIPT_NAME'] = '/index.php';
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
 
         /* Act: get base URL. */
@@ -115,7 +116,7 @@ final class ContextUnitTest extends TestCase
     }
 
     /**
-     * Verifies base URL includes script path when needed.
+     * Verifies the configured base path is preserved.
      */
     public function testGetBaseUrlWithScriptPath(): void
     {
@@ -126,6 +127,7 @@ final class ContextUnitTest extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('http://example.com/subdir/');
         $context = new Context($builder, $config);
 
         /* Act: get base URL. */
@@ -136,7 +138,7 @@ final class ContextUnitTest extends TestCase
     }
 
     /**
-     * Verifies base URL defaults to localhost when host not set.
+     * Verifies missing public configuration fails closed.
      */
     public function testGetBaseUrlDefaultsToLocalhost(): void
     {
@@ -147,11 +149,24 @@ final class ContextUnitTest extends TestCase
         $config = $this->createMock(AppConfig::class);
         $context = new Context($builder, $config);
 
-        /* Act: get base URL. */
-        $baseUrl = $context->getBaseUrl();
+        $this->expectException(\RuntimeException::class);
+        $context->getBaseUrl();
+    }
 
-        /* Assert: base URL defaults to localhost. */
-        $this->assertSame('http://localhost', $baseUrl);
+    public function testGetBaseUrlRejectsCredentialsAndQuery(): void
+    {
+        foreach (['https://user:pass@example.com', 'https://example.com/?next=evil'] as $url) {
+            $config = $this->createMock(AppConfig::class);
+            $config->method('get')->willReturn($url);
+            $context = new Context(new ContainerBuilder(), $config);
+
+            try {
+                $context->getBaseUrl();
+                $this->fail('Invalid public URL must be rejected');
+            } catch (\RuntimeException $ex) {
+                $this->assertStringContainsString('APP_HTTP_PUBLIC_BASE_URL', $ex->getMessage());
+            }
+        }
     }
 
     /**

@@ -52,6 +52,7 @@ abstract class FormsTestCase extends TestCase
 
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
         $flow = OidcFlowContext::fromRequest($request, 'tenant1', $context);
 
@@ -76,6 +77,7 @@ abstract class FormsTestCase extends TestCase
     {
         $builder = new ContainerBuilder();
         $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
         $context = new Context($builder, $config);
         return new OidcUrlBuilder($context);
     }

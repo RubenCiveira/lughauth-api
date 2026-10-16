@@ -163,6 +163,7 @@ abstract class OidcIntegrationTestCase extends TestCase
         $config = $this->createStub(AppConfig::class);
         $config->method('get')->willReturnCallback(function (string $key, mixed $default = null): mixed {
             return match ($key) {
+                'app.http.public-base-url' => 'http://localhost',
                 'app.id.name' => 'lughauth-test',
                 'app.id.namespace' => 'test',
                 'app.id.version' => '1.0.0',
