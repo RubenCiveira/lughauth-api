@@ -1,0 +1,1083 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<work-project
+    xmlns="http://example.com/work-project"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://example.com/work-project https://dev.civeira.net/civi-model-v4.xsd"
+    version="2.6.0">
+
+    <trait name="multitenant-revenue" />
+
+    <use link="multitenant-oidc" />
+    <use link="multitenant-notification" />
+
+    <!-- ====================================================================
+         CATÁLOGO: planes, métricas y precios
+         ==================================================================== -->
+
+    <!--
+        meter-definition: define QUÉ se mide.
+        Si tenant es null, es una métrica global de plataforma.
+        aggregation: cómo combinar los usage-event del período.
+        reset-interval: cuándo se reinicia el acumulado (monthly | never).
+    -->
+    <entity name="meter-definition" id="uid" generator="uuid"
+        display="code" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant"
+            description="Null means platform-global metric, available to all tenants." />
+        <property name="code" type="xs:string" required="true" unique="true"
+            description="Stable machine key used in code (e.g. api_calls, seats, storage_bytes)." />
+        <property name="name" type="xs:string" required="true" />
+        <property name="unit-label" type="xs:string"
+            description="Human label for the unit: 'requests', 'GB', 'seats'." />
+        <property name="aggregation" type="xs:string" required="true" default="sum">
+            <option>sum</option>
+            <option>max</option>
+            <option>last</option>
+            <option>count</option>
+        </property>
+        <property name="reset-interval" type="xs:string" required="true" default="monthly">
+            <option>monthly</option>
+            <option>never</option>
+        </property>
+        <property name="enabled" type="xs:boolean" required="true" default="true" calculated="true" />
+
+        <index properties="tenant,code" unique="true" remark="code" />
+
+        <facade type="crud" path="revenue/meter-definitions">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+    <!--
+        billing-plan: el producto vendible.
+        billing-interval: cadencia de cobro por defecto; one-time para compras únicas.
+        trial-days: período de prueba gratuita al activar una nueva suscripción.
+    -->
+    <entity name="billing-plan" id="uid" generator="uuid"
+        display="name" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant"
+            description="Null means platform-wide plan. Tenant-scoped plans are private to that tenant." />
+        <property name="code" type="xs:string" required="true" unique="true" />
+        <property name="name" type="xs:string" required="true" />
+        <property name="description" type="xs:blob" />
+        <property name="billing-interval" type="xs:string" required="true" default="monthly">
+            <option>monthly</option>
+            <option>annual</option>
+            <option>one-time</option>
+        </property>
+        <property name="trial-days" type="xs:integer" default="0" />
+        <property name="public" type="xs:boolean" required="true" default="true"
+            description="If false, the plan is only assignable by admins, not self-service." />
+        <property name="sort-order" type="xs:integer" default="0" />
+        <property name="enabled" type="xs:boolean" required="true" default="true" calculated="true" />
+
+        <sort name="sort-order-asc" property="sort-order" direction="asc" />
+
+        <facade type="crud" path="revenue/billing-plans">
+            <action name="enable" contextual="true" icon="visibility" display="enabled">
+                <set property="enabled" value="true" />
+            </action>
+            <action name="disable" contextual="true" icon="visibility_off" display="enabled">
+                <set property="enabled" value="false" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card">
+                <sublist name="prices" icon="attach_money" component="billing-plan-price">
+                    <filter name="plan" value="$this" />
+                </sublist>
+                <sublist name="entitlements" icon="list" component="billing-plan-entitlement">
+                    <filter name="plan" value="$this" />
+                </sublist>
+            </list>
+        </view>
+    </entity>
+
+    <!--
+        billing-plan-price: precio concreto de un plan en una moneda.
+        Un plan puede tener precio mensual y anual como dos registros distintos,
+        o precios en distintas divisas.
+        amount-cents: importe en centavos/cents para evitar decimales flotantes.
+    -->
+    <entity name="billing-plan-price" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="plan" type="tns:billing-plan" required="true" />
+        <property name="currency" type="xs:string" required="true" default="EUR"
+            description="ISO 4217 currency code (EUR, USD, GBP…)." />
+        <property name="amount-cents" type="xs:integer" required="true"
+            description="Price in the smallest currency unit. 999 = 9.99 EUR." />
+        <property name="billing-interval" type="xs:string" required="true"
+            description="Overrides the plan billing-interval for this price point.">
+            <option>monthly</option>
+            <option>annual</option>
+            <option>one-time</option>
+        </property>
+        <property name="external-price-id" type="xs:string"
+            description="ID in an external billing provider (Stripe price ID, etc.)." />
+
+        <index properties="plan,currency,billing-interval" unique="true" remark="currency" />
+
+        <facade type="crud" path="revenue/billing-plan-prices">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+    <!--
+        billing-plan-entitlement: qué límite tiene cada plan sobre cada métrica.
+        limit-type:
+          - hard   → bloquea cuando se supera.
+          - soft   → permite superar pero genera alerta / cargo extra.
+          - unlimited → sin límite (limit-value ignorado).
+        Cuando hay precio adicional por exceso, se registra en overage-cents-per-unit.
+    -->
+    <entity name="billing-plan-entitlement" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="plan" type="tns:billing-plan" required="true" />
+        <property name="meter" type="tns:meter-definition" required="true" />
+        <property name="limit-value" type="xs:integer"
+            description="Units included in the bucket per period. Null when billing-mode=metered." />
+        <property name="billing-mode" type="xs:string" required="true" default="bucket"
+            description="Controls how validar-operacion behaves when the bucket is exhausted (or for meterless plans).
+            bucket              → block at limit-value.
+            metered             → always allow, record overage for end-of-period invoicing.
+            bucket-then-credits → block only when both bucket and credit-wallet are exhausted.
+            bucket-then-metered → allow overage after bucket, charge per unit at period close.">
+            <option>bucket</option>
+            <option>metered</option>
+            <option>bucket-then-credits</option>
+            <option>bucket-then-metered</option>
+        </property>
+        <property name="overage-cents-per-unit" type="xs:integer"
+            description="Charge per unit above limit-value. Required for billing-mode=metered and bucket-then-metered." />
+        <property name="spend-cap-cents" type="xs:integer"
+            description="Optional maximum overage charge per period before blocking, for metered modes.
+            Protects clients from unexpectedly large bills. Null means no cap." />
+
+        <index properties="plan,meter" unique="true" remark="meter" />
+
+        <facade type="crud" path="revenue/billing-plan-entitlements">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+
+    <!-- ====================================================================
+         SUSCRIPCIONES
+         ==================================================================== -->
+
+    <!--
+        tenant-subscription: relación viva entre un tenant y un plan.
+        status lifecycle:
+          trialing → active → (past_due →) active | cancelled | expired
+        cancel-at-period-end: la suscripción sigue activa hasta current-period-end
+        pero no se renovará.
+        external-subscription-id: referencia al objeto en Stripe / Paddle / etc.
+    -->
+    <entity name="tenant-subscription" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="plan" type="tns:billing-plan" required="true" />
+        <property name="plan-price" type="tns:billing-plan-price" required="true" />
+        <property name="status" type="xs:string" required="true" default="trialing">
+            <option>trialing</option>
+            <option>active</option>
+            <option>past_due</option>
+            <option>cancelled</option>
+            <option>expired</option>
+        </property>
+        <property name="quantity" type="xs:integer" required="true" default="1"
+            description="For per-seat plans, number of seats purchased." />
+        <property name="trial-end" type="xs:datetime" />
+        <property name="current-period-start" type="xs:datetime" required="true" />
+        <property name="current-period-end" type="xs:datetime" required="true" />
+        <property name="cancel-at-period-end" type="xs:boolean" required="true" default="false" />
+        <property name="cancelled-at" type="xs:datetime" calculated="true" />
+        <property name="started-at" type="xs:datetime" required="true" />
+        <property name="last-billing-run" type="tns:billing-run" calculated="true"
+            description="Last billing-run that processed this subscription. Used by generar-factura to skip already-billed subscriptions without full aggregate scan." />
+        <property name="external-subscription-id" type="xs:string" unique="true"
+            description="Reference to the subscription object in the external billing provider." />
+
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="status" property="status" operator="eq" />
+        <filter name="billable" type="xs:boolean" intern="true"
+            description="Subscriptions that are active/past_due and ended their current period. Entry point for generar-factura.">
+            <and>
+                <part property="status" operator="in" value="active,past_due" />
+                <part property="current-period-end" operator="lte" />
+            </and>
+        </filter>
+
+        <sort name="started-at-desc" property="started-at" direction="desc" />
+
+        <facade type="crud" path="revenue/subscriptions">
+            <action name="activate" contextual="true" internal="true">
+                <set property="status" value="active" />
+            </action>
+            <action name="mark-past-due" contextual="true" internal="true">
+                <set property="status" value="past_due" />
+            </action>
+            <action name="cancel" contextual="true" internal="true"
+                description="Schedules cancellation at period end or immediately.">
+                <param required="true" property="cancel-at-period-end" />
+                <param property="cancelled-at" />
+            </action>
+            <action name="expire" contextual="true" internal="true">
+                <set property="status" value="expired" />
+            </action>
+            <action name="renew-period" contextual="true" internal="true"
+                description="Advances current-period-start/end to the next billing cycle.">
+                <param required="true" property="current-period-start" />
+                <param required="true" property="current-period-end" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+
+    <!-- ====================================================================
+         PERFIL DE FACTURACIÓN
+         ==================================================================== -->
+
+    <!--
+        tenant-billing-profile: datos de facturación de un tenant.
+        Separado de tenant (entidad de autenticación) y de tenant-config (UX/auth config)
+        para no mezclar concerns. Un tenant puede existir sin billing-profile
+        (tenants internos, free-tier sin tarjeta).
+        external-customer-id: ID del Customer object en el proveedor de pagos
+        (Stripe cus_…). Se crea la primera vez que el tenant inicia un checkout o
+        se registra un payment-method. Es la clave de unión con el proveedor externo.
+        legal-name: razón social para facturas; puede diferir de tenant.name.
+        tax-id: NIF/VAT/CIF usado en facturas y requerido para exención de IVA B2B.
+        billing-email: destinatario de facturas y avisos de pago; puede ser distinto
+        al email del usuario administrador.
+    -->
+    <entity name="tenant-billing-profile" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" unique="true" required="true" />
+        <property name="legal-name" type="xs:string"
+            description="Company legal name as it appears on invoices." />
+        <property name="tax-id" type="xs:string"
+            description="VAT / NIF / CIF used for invoicing and B2B tax exemption." />
+        <property name="billing-email" type="xs:string" email="true"
+            description="Recipient for invoices and payment notifications. Independent of user emails." />
+        <property name="phone" type="xs:string" />
+
+        <property name="address-line1" type="xs:string" />
+        <property name="address-line2" type="xs:string" />
+        <property name="city" type="xs:string" />
+        <property name="state" type="xs:string" />
+        <property name="postal-code" type="xs:string" />
+        <property name="country" type="xs:string"
+            description="ISO 3166-1 alpha-2 country code (ES, FR, DE…)." />
+
+        <property name="external-customer-id" type="xs:string" unique="true"
+            description="Customer ID in the payment provider (Stripe cus_…, PayPal customer ID).
+            Created lazily on first checkout or payment-method registration.
+            This is the join key between the platform and the external billing provider." />
+        <property name="tax-exempt" type="xs:boolean" required="true" default="false"
+            description="If true, invoices are generated without VAT (e.g. validated EU B2B VAT number)." />
+
+        <property name="created-at" type="xs:datetime" required="true" default="now" calculated="true" />
+        <property name="updated-at" type="xs:datetime" required="true" calculated="true" formula="now" />
+
+        <facade type="crud" path="revenue/billing-profile">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+
+    <!-- ====================================================================
+         CRÉDITOS PREPAGO
+         ==================================================================== -->
+
+    <!--
+        credit-wallet: saldo de créditos operacionales de un tenant.
+        Las unidades son el mismo tipo que quantity en usage-event (no son monetarias).
+        balance se actualiza atómicamente con cada credit-transaction mediante
+        el mismo patrón de bloqueo optimista que usage-aggregate (campo version).
+        Un tenant tiene un único wallet; se crea la primera vez que compra créditos.
+    -->
+    <entity name="credit-wallet" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" unique="true" required="true" />
+        <property name="balance" type="xs:integer" required="true" default="0"
+            description="Current available credit units. Never goes below 0." />
+        <property name="version" type="xs:integer" required="true" default="0" calculated="true"
+            description="Optimistic lock counter. Incremented on every credit-transaction." />
+        <property name="updated-at" type="xs:datetime" required="true" calculated="true"
+            formula="now" />
+
+        <filter name="tenant" property="tenant" operator="eq" />
+
+        <facade type="crud" path="revenue/credit-wallets">
+            <action name="debit" contextual="true" internal="true"
+                description="Decrements balance by units. Requires version for optimistic locking.
+                Fails if balance - units would go below 0 or if version has changed.">
+                <param required="true" name="units" type="xs:integer" />
+                <param required="true" property="version" />
+            </action>
+            <action name="credit" contextual="true" internal="true"
+                description="Increments balance by units. Called after a credit-purchase is confirmed paid.">
+                <param required="true" name="units" type="xs:integer" />
+                <param required="true" property="version" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+    <!--
+        credit-transaction: ledger append-only de movimientos del wallet.
+        Nunca se actualiza ni borra; es la fuente de verdad para auditoría.
+        delta positivo = crédito (top-up, refund); delta negativo = débito (consumo).
+        balance-after: snapshot del saldo tras aplicar el delta; facilita auditoría
+        sin necesidad de recorrer todo el historial.
+        source-type / source-uid: referencia polimórfica al origen del movimiento
+        (credit-purchase, usage-event, o ajuste manual).
+    -->
+    <entity name="credit-transaction" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="wallet" type="tns:credit-wallet" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="type" type="xs:string" required="true">
+            <option>top-up</option>
+            <option>consumption</option>
+            <option>expiry</option>
+            <option>refund</option>
+            <option>adjustment</option>
+        </property>
+        <property name="delta" type="xs:integer" required="true"
+            description="Units added (positive) or removed (negative) from the wallet." />
+        <property name="balance-after" type="xs:integer" required="true"
+            description="Wallet balance immediately after this transaction was applied." />
+        <property name="source-type" type="xs:string"
+            description="Entity type of the origin: credit-purchase | usage-event | billing-run | manual." />
+        <property name="source-uid" type="xs:string"
+            description="UID of the source entity. Polymorphic reference paired with source-type." />
+        <property name="occurred-at" type="xs:datetime" required="true" calculated="true"
+            default="now" />
+
+        <filter name="wallet" property="wallet" operator="eq" />
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="type" property="type" operator="eq" />
+
+        <sort name="occurred-at-desc" property="occurred-at" direction="desc" />
+
+        <facade type="crud">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+    <!--
+        credit-purchase: compra de un paquete de créditos (top-up).
+        Equivale al modo 3 (compra única) cuando el objeto comprado son créditos,
+        o al modo 4 como recarga explícita del wallet.
+        units-purchased: unidades operacionales compradas.
+        El crédito se aplica al wallet solo cuando invoice queda en estado paid
+        (checkout-session.complete → payment.succeed → credit-wallet.credit).
+        price-cents: importe cobrado por este lote, en la moneda del invoice.
+        expires-at: opcional; los créditos no usados se caducan con un credit-transaction
+        de tipo expiry en esa fecha.
+    -->
+    <entity name="credit-purchase" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="wallet" type="tns:credit-wallet" required="true" />
+        <property name="units-purchased" type="xs:integer" required="true"
+            description="Operational units added to the wallet when the payment is confirmed." />
+        <property name="price-cents" type="xs:integer" required="true"
+            description="Amount charged for this batch. Denominated in invoice.currency." />
+        <property name="invoice" type="tns:invoice"
+            description="Invoice generated for this purchase. Null while pending checkout." />
+        <property name="checkout-session" type="tns:checkout-session"
+            description="Redirect session used to pay for this purchase." />
+        <property name="status" type="xs:string" required="true" default="pending">
+            <option>pending</option>
+            <option>paid</option>
+            <option>cancelled</option>
+            <option>refunded</option>
+        </property>
+        <property name="expires-at" type="xs:datetime"
+            description="Optional expiry for the purchased units. A scheduled job creates a credit-transaction(expiry) on this date." />
+        <property name="credited-at" type="xs:datetime" calculated="true"
+            description="Timestamp when the units were actually added to the wallet (after payment confirmed)." />
+
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="status" property="status" operator="eq" />
+        <filter name="wallet" property="wallet" operator="eq" />
+
+        <sort name="credited-at-desc" property="credited-at" direction="desc" />
+
+        <facade type="crud" path="revenue/credit-purchases">
+            <action name="confirm-payment" contextual="true" internal="true"
+                description="Called after payment succeeds. Credits the wallet and records the credit-transaction.">
+                <param required="true" property="credited-at" />
+                <set property="status" value="paid" />
+            </action>
+            <action name="cancel" contextual="true" internal="true">
+                <set property="status" value="cancelled" />
+            </action>
+            <action name="refund" contextual="true" internal="true"
+                description="Reverses the wallet credit via a credit-transaction(refund) before marking as refunded.">
+                <set property="status" value="refunded" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+
+    <!-- ====================================================================
+         METERING / CONSUMO
+         ==================================================================== -->
+
+    <!--
+        usage-event: evento de consumo individual.
+        idempotency-key: clave única por evento para evitar doble contabilización.
+        source: qué servicio originó el evento (consumir-coste | validar-operacion).
+        overage: true si en el momento del evento el límite hard/soft ya estaba superado.
+    -->
+    <entity name="usage-event" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="subscription" type="tns:tenant-subscription" />
+        <property name="meter" type="tns:meter-definition" required="true" />
+        <property name="quantity" type="xs:integer" required="true" default="1" />
+        <property name="occurred-at" type="xs:datetime" required="true" />
+        <property name="idempotency-key" type="xs:string" unique="true"
+            description="Caller-provided key to prevent double-counting on retries." />
+        <property name="source" type="xs:string"
+            description="Service that produced this event: consumir-coste | validar-operacion." />
+        <property name="overage" type="xs:boolean" required="true" default="false"
+            description="True when the event was recorded above the plan entitlement limit." />
+        <property name="metadata-json" type="xs:blob"
+            description="Free JSON context: request-id, user uid, endpoint, etc." />
+
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="meter" property="meter" operator="eq" />
+        <filter name="subscription" property="subscription" operator="eq" />
+        <filter name="overage" property="overage" operator="eq" />
+
+        <sort name="occurred-at-desc" property="occurred-at" direction="desc" />
+
+        <facade type="crud" path="revenue/usage-events">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+    <!--
+        usage-aggregate: consumo acumulado por tenant + meter + periodo.
+        version: campo de bloqueo optimista. Se incrementa en cada actualización
+          para que validar-operacion pueda detectar escrituras concurrentes y reintentar.
+        billed-in-run: referencia al billing-run que procesó este agregado.
+          Null significa que aún no ha sido facturado.
+        overage-quantity: unidades acumuladas por encima del límite del plan.
+          Separado de quantity para facilitar el cálculo de cargos adicionales.
+    -->
+    <entity name="usage-aggregate" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="subscription" type="tns:tenant-subscription" required="true" />
+        <property name="meter" type="tns:meter-definition" required="true" />
+        <property name="period-start" type="xs:datetime" required="true" />
+        <property name="period-end" type="xs:datetime" required="true" />
+        <property name="quantity" type="xs:integer" required="true" default="0"
+            description="Total accumulated units in the period." />
+        <property name="overage-quantity" type="xs:integer" required="true" default="0"
+            description="Units above the plan entitlement limit. Used by generar-factura to compute overage charges." />
+        <property name="version" type="xs:integer" required="true" default="0" calculated="true"
+            description="Optimistic lock counter. Incremented on every write by validar-operacion." />
+        <property name="billed-in-run" type="tns:billing-run"
+            description="Null until generar-factura processes this aggregate. Set atomically during billing run." />
+        <property name="updated-at" type="xs:datetime" required="true" calculated="true"
+            formula="now" />
+
+        <index properties="tenant,subscription,meter,period-start" unique="true"
+            remark="period-start" />
+
+        <filter name="subscription" property="subscription" operator="eq" />
+        <filter name="meter" property="meter" operator="eq" />
+        <filter name="unbilled" type="xs:boolean" intern="true">
+            <part property="billed-in-run" operator="is-null" />
+        </filter>
+
+        <facade type="crud" path="revenue/usage-aggregates">
+            <action name="increment" contextual="true" internal="true"
+                description="Atomically increments quantity (+overage-quantity if above limit) and bumps version. Used by both validar-operacion and consumir-coste.">
+                <param required="true" property="quantity" />
+                <param required="true" property="overage-quantity" />
+                <param required="true" property="version"
+                    description="Expected current version for optimistic locking. Fails if version has changed." />
+            </action>
+            <action name="recompute" contextual="true" internal="true"
+                description="Full recompute from usage-event rows. Used for reconciliation, not hot path.">
+                <param required="true" property="quantity" />
+                <param required="true" property="overage-quantity" />
+            </action>
+            <action name="mark-billed" contextual="true" internal="true"
+                description="Sets billed-in-run atomically. Called by generar-factura after creating the invoice-line.">
+                <param required="true" property="billed-in-run" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+    <!--
+        billing-run: registro de cada ejecución del servicio generar-factura.
+        Permite idempotencia: si el proceso falla a mitad, se puede relanzar
+        filtrando por el mismo run o retomando un run en estado 'running'.
+        status lifecycle: pending → running → completed | failed
+        Un run fallido puede ser relanzado creando un nuevo run con el mismo rango,
+        porque generar-factura solo procesa agregados con billed-in-run = null.
+        Guarda un resumen de resultados para auditoría (invoices-created, errors-json).
+    -->
+    <entity name="billing-run" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant"
+            description="Null means the run covers all tenants (platform-wide batch)." />
+        <property name="period-start" type="xs:datetime" required="true"
+            description="Start of the billing window this run covers." />
+        <property name="period-end" type="xs:datetime" required="true"
+            description="End of the billing window this run covers." />
+        <property name="status" type="xs:string" required="true" default="pending">
+            <option>pending</option>
+            <option>running</option>
+            <option>completed</option>
+            <option>failed</option>
+        </property>
+        <property name="started-at" type="xs:datetime" calculated="true" />
+        <property name="finished-at" type="xs:datetime" calculated="true" />
+        <property name="triggered-by" type="tns:user"
+            description="Admin user who triggered the run. Null for scheduled runs." />
+        <property name="invoices-created" type="xs:integer" default="0" calculated="true"
+            description="Count of invoices generated by this run. Updated as the run progresses." />
+        <property name="subscriptions-processed" type="xs:integer" default="0" calculated="true" />
+        <property name="errors-json" type="xs:blob"
+            description="Array of {subscription_uid, error_message} for any subscription that failed during the run." />
+
+        <filter name="status" property="status" operator="eq" />
+        <filter name="tenant" property="tenant" operator="eq" />
+
+        <sort name="started-at-desc" property="started-at" direction="desc" />
+
+        <facade type="crud" path="revenue/billing-runs">
+            <action name="start" contextual="true" internal="true">
+                <param required="true" property="started-at" />
+                <set property="status" value="running" />
+            </action>
+            <action name="complete" contextual="true" internal="true">
+                <param required="true" property="finished-at" />
+                <param required="true" property="invoices-created" />
+                <param required="true" property="subscriptions-processed" />
+                <set property="status" value="completed" />
+            </action>
+            <action name="fail" contextual="true" internal="true">
+                <param required="true" property="finished-at" />
+                <param required="true" property="errors-json" />
+                <set property="status" value="failed" />
+            </action>
+            <action name="increment-progress" contextual="true" internal="true"
+                description="Increments subscriptions-processed and invoices-created as the run advances.">
+                <param required="true" property="subscriptions-processed" />
+                <param required="true" property="invoices-created" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+
+    <!-- ====================================================================
+         FACTURACIÓN
+         ==================================================================== -->
+
+    <!--
+        invoice: factura emitida para un periodo de suscripción.
+        status lifecycle: draft → open → paid | void | uncollectible
+        amount-due-cents: total a cobrar.
+        amount-paid-cents: lo que ya se ha cobrado (parcial o total).
+        external-invoice-id: referencia en el proveedor externo.
+    -->
+    <entity name="invoice" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="billing-profile" type="tns:tenant-billing-profile"
+            description="Snapshot reference to the billing profile at invoice creation time.
+            The profile data (legal-name, tax-id, address) may change later; the invoice
+            preserves what was active when it was finalized." />
+        <property name="subscription" type="tns:tenant-subscription" />
+        <property name="status" type="xs:string" required="true" default="draft">
+            <option>draft</option>
+            <option>open</option>
+            <option>paid</option>
+            <option>void</option>
+            <option>uncollectible</option>
+        </property>
+        <property name="currency" type="xs:string" required="true" default="EUR" />
+        <property name="amount-due-cents" type="xs:integer" required="true" default="0" />
+        <property name="amount-paid-cents" type="xs:integer" required="true" default="0" calculated="true" />
+        <property name="period-start" type="xs:datetime" />
+        <property name="period-end" type="xs:datetime" />
+        <property name="issued-at" type="xs:datetime" />
+        <property name="due-at" type="xs:datetime" />
+        <property name="paid-at" type="xs:datetime" calculated="true" />
+        <property name="voided-at" type="xs:datetime" calculated="true" />
+        <property name="external-invoice-id" type="xs:string" unique="true" />
+        <property name="notes" type="xs:blob" />
+
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="status" property="status" operator="eq" />
+        <filter name="subscription" property="subscription" operator="eq" />
+
+        <sort name="issued-at-desc" property="issued-at" direction="desc" />
+
+        <facade type="crud" path="revenue/invoices">
+            <action name="finalize" contextual="true" internal="true"
+                description="Moves invoice from draft to open and sets issued-at.">
+                <param required="true" property="issued-at" />
+                <param required="true" property="due-at" />
+                <set property="status" value="open" />
+            </action>
+            <action name="mark-paid" contextual="true" internal="true">
+                <param required="true" property="paid-at" />
+                <param required="true" property="amount-paid-cents" />
+                <set property="status" value="paid" />
+            </action>
+            <action name="void" contextual="true" internal="true">
+                <param required="true" property="voided-at" />
+                <set property="status" value="void" />
+            </action>
+            <action name="mark-uncollectible" contextual="true" internal="true">
+                <set property="status" value="uncollectible" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card">
+                <sublist name="lines" icon="list" component="invoice-line">
+                    <filter name="invoice" value="$this" />
+                </sublist>
+                <sublist name="payments" icon="payments" component="payment">
+                    <filter name="invoice" value="$this" />
+                </sublist>
+            </list>
+        </view>
+    </entity>
+
+    <!--
+        invoice-line: cada línea de detalle de una factura.
+        type: subscription (cuota fija), usage (exceso de consumo), adjustment (descuento/crédito).
+        amount-cents puede ser negativo para créditos o ajustes.
+    -->
+    <entity name="invoice-line" id="uid" generator="uuid"
+        display="description" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="invoice" type="tns:invoice" required="true" />
+        <property name="meter" type="tns:meter-definition"
+            description="Only set for type=usage lines." />
+        <property name="type" type="xs:string" required="true" default="subscription">
+            <option>subscription</option>
+            <option>usage</option>
+            <option>adjustment</option>
+        </property>
+        <property name="description" type="xs:string" required="true" />
+        <property name="quantity" type="xs:integer" required="true" default="1" />
+        <property name="unit-amount-cents" type="xs:integer" required="true"
+            description="Price per unit. Negative for credits." />
+        <property name="amount-cents" type="xs:integer" required="true"
+            description="quantity × unit-amount-cents, pre-computed." />
+
+        <filter name="invoice" property="invoice" operator="eq" />
+
+        <facade type="crud">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+    <!--
+        credit-note: abono o devolución parcial/total de una factura.
+        Complementa a invoice sin modificarla para preservar el registro contable.
+    -->
+    <entity name="credit-note" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="invoice" type="tns:invoice" required="true" />
+        <property name="reason" type="xs:string" required="true">
+            <option>duplicate</option>
+            <option>fraudulent</option>
+            <option>order_change</option>
+            <option>product_unsatisfactory</option>
+            <option>other</option>
+        </property>
+        <property name="amount-cents" type="xs:integer" required="true"
+            description="Amount credited. Must be ≤ invoice amount-paid-cents." />
+        <property name="currency" type="xs:string" required="true" default="EUR" />
+        <property name="issued-at" type="xs:datetime" required="true" />
+        <property name="notes" type="xs:blob" />
+
+        <filter name="invoice" property="invoice" operator="eq" />
+        <filter name="tenant" property="tenant" operator="eq" />
+
+        <facade type="crud" path="revenue/credit-notes">
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view />
+    </entity>
+
+
+    <!-- ====================================================================
+         PAGOS
+         ==================================================================== -->
+
+    <!--
+        payment-gateway: configuración de un gateway de pagos a nivel de plataforma.
+        Solo el platform admin puede crear y modificar estas entradas.
+        Cada combinación provider+mode tiene su propio par de credenciales:
+          Stripe test  → pk_test_ / sk_test_ / whsec_test_
+          Stripe live  → pk_live_ / sk_live_ / whsec_live_
+        available-to-tenants: si false, el gateway existe pero no aparece en la
+        pantalla de selección de los tenant-admins (útil para reservarlo a uso interno).
+        display-name y logo-url son los datos que ve el tenant-admin al escoger proveedor.
+    -->
+    <entity name="payment-gateway" id="uid" generator="uuid"
+        display="display-name" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="provider" type="xs:string" required="true">
+            <option>stripe</option>
+            <option>paypal</option>
+            <option>redsys</option>
+            <option>paddle</option>
+            <option>manual</option>
+        </property>
+        <property name="mode" type="xs:string" required="true" default="test"
+            description="test uses sandbox credentials; live uses real money credentials.
+            A platform typically has one gateway record per provider per mode.">
+            <option>test</option>
+            <option>live</option>
+        </property>
+        <property name="display-name" type="xs:string" required="true"
+            description="Label shown to tenant-admins on the payment selection screen (e.g. 'Stripe', 'Redsys TPV')." />
+        <property name="logo-url" type="xs:string"
+            description="Provider logo URL shown on the selection UI." />
+        <property name="public-key" type="xs:string"
+            description="Publishable key for client-side use (Stripe pk_test_… / pk_live_…)." />
+        <property name="private-key" type="xs:string" private-content="true" input-type="password"
+            description="Secret API key used server-side to create sessions and capture payments." />
+        <property name="webhook-secret" type="xs:string" private-content="true" input-type="password"
+            description="Signing secret to verify incoming webhook payloads from this provider." />
+        <property name="default-currency" type="xs:string" required="true" default="EUR" />
+        <property name="supported-currencies" type="xs:string"
+            description="Comma-separated ISO 4217 codes supported by this gateway config." />
+        <property name="available-to-tenants" type="xs:boolean" required="true" default="true"
+            description="If false, the gateway is not shown on the tenant payment selection screen." />
+        <property name="enabled" type="xs:boolean" required="true" default="true" calculated="true" />
+        <property name="metadata-json" type="xs:blob"
+            description="Provider-specific settings (Redsys terminal number, Stripe account ID for Connect, etc.)." />
+
+        <index properties="provider,mode" unique="true" remark="mode" />
+
+        <facade type="crud" path="revenue/payment-gateways">
+            <action name="enable" contextual="true" icon="visibility" display="enabled">
+                <set property="enabled" value="true" />
+            </action>
+            <action name="disable" contextual="true" icon="visibility_off" display="enabled">
+                <set property="enabled" value="false" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')"
+                description="Only platform admins can configure payment gateways." />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+    <!--
+        tenant-payment-selection: el tenant-admin escoge qué gateway usa para pagar
+        su suscripción a la plataforma.
+        Un tenant tiene una única selección activa en cada momento.
+        external-customer-id: ID del Customer object creado en el proveedor para este
+        tenant (Stripe cus_…). Se genera la primera vez que el tenant inicia un checkout
+        o registra un payment-method. Es el vínculo entre el tenant y su identidad en el gateway.
+        El rol requerido para gestionar esta entidad se controla desde la facade allow;
+        en la práctica cualquier usuario con rol 'billing-admin' del tenant puede acceder.
+    -->
+    <entity name="tenant-payment-selection" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" unique="true" required="true" />
+        <property name="gateway" type="tns:payment-gateway" required="true"
+            description="The platform-configured gateway this tenant has chosen." />
+        <property name="external-customer-id" type="xs:string"
+            description="Customer ID created in the gateway for this tenant (Stripe cus_…).
+            Null until first checkout or payment-method registration." />
+        <property name="enabled" type="xs:boolean" required="true" default="true" calculated="true" />
+
+        <facade type="crud" path="revenue/payment-selection">
+            <action name="set-gateway" contextual="true" internal="true"
+                description="Switches the active gateway. Called when a tenant-admin picks a different provider.">
+                <param required="true" property="gateway" />
+                <set-null property="external-customer-id"
+                    description="Clears the old customer ID since the new gateway has no record of this tenant yet." />
+            </action>
+            <action name="register-customer" contextual="true" internal="true"
+                description="Stores the external-customer-id returned by the gateway after the first checkout.">
+                <param required="true" property="external-customer-id" />
+            </action>
+            <allow for="read" name="#tenant-billing-admin"
+                match="hasRole('billing-admin')"
+                description="Tenant billing-admins can view their own payment selection." />
+            <allow for="write" name="#tenant-billing-admin"
+                match="hasRole('billing-admin')"
+                description="Tenant billing-admins can change their gateway." />
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+    <!--
+        checkout-session: sesión de pago en vuelo mientras el usuario está en el proveedor.
+        Lifecycle: pending → completed | expired | cancelled
+        external-session-id: ID de la sesión creada en el proveedor (Stripe cs_…, etc.).
+        redirect-url: URL del proveedor a donde se envía al usuario.
+        success-url / cancel-url: URLs de retorno configuradas al crear la sesión.
+        webhook-payload-json: último payload de webhook recibido, para auditoría y replay.
+        Un checkout-session siempre está ligado a una invoice. Si el usuario cancela
+        y quiere reintentar, se crea una nueva sesión sobre la misma invoice.
+    -->
+    <entity name="checkout-session" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="invoice" type="tns:invoice" required="true" />
+        <property name="gateway" type="tns:payment-gateway" required="true"
+            description="The gateway used for this session, resolved from tenant-payment-selection at session creation time." />
+        <property name="status" type="xs:string" required="true" default="pending">
+            <option>pending</option>
+            <option>completed</option>
+            <option>expired</option>
+            <option>cancelled</option>
+        </property>
+        <property name="external-session-id" type="xs:string" unique="true"
+            description="Session ID returned by the payment provider API." />
+        <property name="redirect-url" type="xs:string"
+            description="Provider-hosted payment page URL. The user is sent here." />
+        <property name="success-url" type="xs:string" required="true"
+            description="URL the provider redirects to after a successful payment." />
+        <property name="cancel-url" type="xs:string" required="true"
+            description="URL the provider redirects to when the user cancels." />
+        <property name="mode" type="xs:string" required="true" default="test"
+            description="Inherited from provider-config.mode at session creation time. Ensures test sessions are never confused with live payments in reporting.">
+            <option>test</option>
+            <option>live</option>
+        </property>
+        <property name="currency" type="xs:string" required="true" />
+        <property name="amount-cents" type="xs:integer" required="true"
+            description="Amount presented to the provider. Matches invoice.amount-due-cents at creation time." />
+        <property name="created-at" type="xs:datetime" required="true" calculated="true" default="now" />
+        <property name="expires-at" type="xs:datetime"
+            description="When the provider session expires. After this, status must be set to expired." />
+        <property name="completed-at" type="xs:datetime" calculated="true" />
+        <property name="webhook-payload-json" type="xs:blob"
+            description="Last raw webhook payload received for this session. Stored for replay and auditing." />
+
+        <filter name="invoice" property="invoice" operator="eq" />
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="status" property="status" operator="eq" />
+        <filter name="external-session-id" property="external-session-id" operator="eq" />
+
+        <sort name="created-at-desc" property="created-at" direction="desc" />
+
+        <facade type="crud" path="revenue/checkout-sessions">
+            <action name="complete" contextual="true" internal="true"
+                description="Called by the webhook handler after verifying the payment succeeded.">
+                <param required="true" property="completed-at" />
+                <param required="true" property="webhook-payload-json" />
+                <set property="status" value="completed" />
+            </action>
+            <action name="expire" contextual="true" internal="true"
+                description="Called by a scheduled job or webhook when the provider session TTL elapses.">
+                <set property="status" value="expired" />
+            </action>
+            <action name="cancel" contextual="true" internal="true"
+                description="Called when the user returns via cancel-url.">
+                <set property="status" value="cancelled" />
+            </action>
+            <action name="record-webhook" contextual="true" internal="true"
+                description="Stores an incoming webhook payload without changing status, for replay.">
+                <param required="true" property="webhook-payload-json" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+    <!--
+        payment-method: medio de pago registrado para un tenant.
+        external-payment-method-id: token en Stripe/Paddle/etc. (no se almacena la tarjeta).
+        is-default: el método que se usa en cargos automáticos.
+    -->
+    <entity name="payment-method" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="gateway" type="tns:payment-gateway" required="true"
+            description="The gateway where this payment method is registered. A tenant switching gateways must re-register their methods." />
+        <property name="type" type="xs:string" required="true">
+            <option>card</option>
+            <option>bank_transfer</option>
+            <option>sepa_debit</option>
+            <option>paypal</option>
+            <option>manual</option>
+        </property>
+        <property name="external-payment-method-id" type="xs:string" unique="true"
+            description="Token in the billing provider. The actual card data is never stored here." />
+        <property name="last4" type="xs:string"
+            description="Last 4 digits of card or IBAN, for display only." />
+        <property name="brand" type="xs:string"
+            description="Card brand: visa, mastercard, amex, etc." />
+        <property name="exp-month" type="xs:integer" />
+        <property name="exp-year" type="xs:integer" />
+        <property name="is-default" type="xs:boolean" required="true" default="false" calculated="true" />
+        <property name="enabled" type="xs:boolean" required="true" default="true" calculated="true" />
+
+        <filter name="tenant" property="tenant" operator="eq" />
+
+        <facade type="crud" path="revenue/payment-methods">
+            <action name="set-default" contextual="true" icon="star"
+                description="Marks this method as the default for automatic charges.">
+                <set property="is-default" value="true" />
+            </action>
+            <action name="disable" contextual="true" icon="delete">
+                <set property="enabled" value="false" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+    <!--
+        payment: transacción de cobro o devolución asociada a una factura.
+        status lifecycle: pending → succeeded | failed | refunded
+        Un payment con amount-cents negativo representa una devolución.
+        external-payment-id: charge/transfer ID en el proveedor externo.
+    -->
+    <entity name="payment" id="uid" generator="uuid"
+        display="uid" group="revenue">
+        <property name="uid" type="xs:string" unique="true" required="true" />
+        <property name="tenant" type="tns:tenant" required="true" />
+        <property name="invoice" type="tns:invoice" required="true" />
+        <property name="checkout-session" type="tns:checkout-session"
+            description="Set when the payment originated from a provider redirect. Null for direct/manual charges." />
+        <property name="payment-method" type="tns:payment-method" />
+        <property name="status" type="xs:string" required="true" default="pending">
+            <option>pending</option>
+            <option>succeeded</option>
+            <option>failed</option>
+            <option>refunded</option>
+        </property>
+        <property name="currency" type="xs:string" required="true" default="EUR" />
+        <property name="amount-cents" type="xs:integer" required="true"
+            description="Positive for charges, negative for refunds." />
+        <property name="mode" type="xs:string" required="true" default="test"
+            description="Inherited from the checkout-session or provider-config. test payments are excluded from revenue reporting.">
+            <option>test</option>
+            <option>live</option>
+        </property>
+        <property name="external-payment-id" type="xs:string" unique="true"
+            description="Charge or transfer ID in the billing provider." />
+        <property name="failure-reason" type="xs:string"
+            description="Provider error message when status=failed." />
+        <property name="processed-at" type="xs:datetime" calculated="true" />
+        <property name="metadata-json" type="xs:blob" />
+
+        <filter name="invoice" property="invoice" operator="eq" />
+        <filter name="tenant" property="tenant" operator="eq" />
+        <filter name="status" property="status" operator="eq" />
+
+        <sort name="processed-at-desc" property="processed-at" direction="desc" />
+
+        <facade type="crud" path="revenue/payments">
+            <action name="succeed" contextual="true" internal="true">
+                <param required="true" property="processed-at" />
+                <set property="status" value="succeeded" />
+            </action>
+            <action name="fail" contextual="true" internal="true">
+                <param required="true" property="failure-reason" />
+                <param required="true" property="processed-at" />
+                <set property="status" value="failed" />
+            </action>
+            <action name="refund" contextual="true" internal="true">
+                <param required="true" property="processed-at" />
+                <set property="status" value="refunded" />
+            </action>
+            <allow for="all" name="#only-for-root"
+                match="hasScope('platform:global_access') and hasRole('admin')" />
+        </facade>
+        <view>
+            <list display-mode="card" />
+        </view>
+    </entity>
+
+</work-project>

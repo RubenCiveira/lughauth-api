@@ -115,9 +115,9 @@ class AuthorizeHtml
             'nonce' => $flow->nonce,
         ]);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
-        $pkceError = $this->requirePkce($flow, $response);
-        if ($pkceError !== null) {
-            return $pkceError;
+        $requestError = $this->rejectInvalidRequest($flow, $client, $response);
+        if ($requestError !== null) {
+            return $requestError;
         }
         $authRequest = $this->buildAuthRequest($flow, $client);
         $sess = $this->sessions->loadSession($flow->sessionId ?? '', $flow->nonce, $flow->state);
@@ -169,9 +169,9 @@ class AuthorizeHtml
             'nonce' => $flow->nonce,
         ]);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
-        $pkceError = $this->requirePkce($flow, $response);
-        if ($pkceError !== null) {
-            return $pkceError;
+        $requestError = $this->rejectInvalidRequest($flow, $client, $response);
+        if ($requestError !== null) {
+            return $requestError;
         }
         $authRequest = $this->buildAuthRequest($flow, $client);
         $csid = $this->securer->verifyToken($body['csid'] ?? '');
@@ -307,9 +307,9 @@ class AuthorizeHtml
         $tenant = $args['tenant'];
         $flow = $this->buildContext($request, $tenant);
         $client = $this->verifyClient($flow->clientId, $tenant, $flow->redirect, $flow->scope);
-        $pkceError = $this->requirePkce($flow, $response);
-        if ($pkceError !== null) {
-            return $pkceError;
+        $requestError = $this->rejectInvalidRequest($flow, $client, $response);
+        if ($requestError !== null) {
+            return $requestError;
         }
         $clientRequest = $this->buildAuthRequest($flow, $client);
         $state = new ChallengesState();
@@ -356,8 +356,15 @@ class AuthorizeHtml
         }
     }
 
-    private function requirePkce(OidcFlowContext $flow, ResponseInterface $response): ?ResponseInterface
+    /**
+     * Redirects with an error when PKCE is missing or malformed, or when an audience not
+     * registered for the client is requested; only approved audiences reach the code.
+     */
+    private function rejectInvalidRequest(OidcFlowContext $flow, ClientData $client, ResponseInterface $response): ?ResponseInterface
     {
+        if (!$client->allowsAudiences($flow->audiences)) {
+            return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_target', $response);
+        }
         if ($flow->codeChallenge === null) {
             return $this->redirectError($flow->tenant, $flow->redirect, 'invalid_request', $response);
         }

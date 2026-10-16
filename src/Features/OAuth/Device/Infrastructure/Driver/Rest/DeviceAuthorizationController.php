@@ -85,6 +85,9 @@ class DeviceAuthorizationController
             }
             $scope = (string) ($params['scope'] ?? '');
             $audiences = $this->normalizeAudiences($params['audience'] ?? null);
+            if (!$client->allowsAudiences($audiences)) {
+                throw DeviceAuthorizationException::invalidTarget();
+            }
             $authorization = $this->deviceAuth->createAuthorization($tenant, $client, $scope, $audiences);
 
             $baseUrl = rtrim($this->context->getBaseUrl(), '/');

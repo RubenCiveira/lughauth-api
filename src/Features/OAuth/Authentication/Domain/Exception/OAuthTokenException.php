@@ -89,4 +89,13 @@ final class OAuthTokenException extends \RuntimeException
         return new self('invalid_scope', $detail);
     }
 
+    /**
+     * Creates an exception when a requested audience is not a resource server granted to the client.
+     * Corresponds to the "invalid_target" error code defined in RFC 8707 §2.
+     */
+    public static function invalidTarget(string $detail = 'Audience not allowed for this client'): self
+    {
+        return new self('invalid_target', $detail);
+    }
+
 }

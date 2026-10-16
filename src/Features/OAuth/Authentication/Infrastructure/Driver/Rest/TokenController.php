@@ -12,6 +12,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Civi\Lughauth\Shared\Context;
 use Civi\Lughauth\Shared\Exception\UnauthorizedException;
 use Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationRequest;
+use Civi\Lughauth\Features\OAuth\Authentication\Domain\OidcFlowContext;
 use Civi\Lughauth\Features\OAuth\Authentication\Application\TokenGranter\TokenGranterMediator;
 use Civi\Lughauth\Features\OAuth\Client\Domain\Gateway\ClientStoreGateway;
 use Civi\Lughauth\Features\OAuth\Client\Domain\ClientData;
@@ -162,21 +163,23 @@ class TokenController
             $auth = $code->data;
             $identity = ['nonce' => $code->nonce ];
             $scopes = $code->request->scope;
+            $audiences = $code->request->audiences;
         } elseif ("refresh_token" == $grant) {
             $refreshPayload = $this->manager->verifyTokenPayload($tenant, $params['refresh_token'] ?? '');
             if ($refreshPayload === null) {
                 throw new UnauthorizedException("Invalid refresh token");
             }
             $scopes = $params['scope'] ?? '';
-            $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
             $client = $this->clientDataGateway->preValidatedClient($params['client_id']);
             if (!$client) {
                 throw new UnauthorizedException("Unknown client");
             }
+            $original = array_values(array_filter((array) ($refreshPayload['resources'] ?? []), 'is_string'));
+            $audiences = $this->grantedAudiences($params, $client, $original);
             $auth = $this->granter->authenticate(
                 $grant,
                 $tenant,
-                new AuthenticationRequest($client, $scopes, "", null, [$client->id, ...$audiences]),
+                new AuthenticationRequest($client, $scopes, "", null, $audiences),
                 $params
             );
             $identity = [];
@@ -197,13 +200,14 @@ class TokenController
                 if (false === array_search($grant, $client->grants)) {
                     throw DeviceAuthorizationException::invalidClient();
                 }
-                $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
+                // The audiences were approved with the device code; the token request cannot change them.
                 $auth = $this->granter->authenticate(
                     $grant,
                     $tenant,
-                    new AuthenticationRequest($client, "", "", null, [$client->id, ...$audiences]),
+                    new AuthenticationRequest($client, "", "", null, [$client->id]),
                     $params
                 );
+                $audiences = $auth->audiences ?? [];
                 $identity = [];
             } catch (DeviceAuthorizationException $ex) {
                 return $this->deviceErrorResponse($ex, $response);
@@ -226,11 +230,11 @@ class TokenController
             if (false === array_search($grant, $client->grants, true)) {
                 throw OAuthTokenException::unauthorizedClient();
             }
-            $audiences = isset($params['audience']) ? explode(",", $params['audience']) : [];
+            $audiences = $this->grantedAudiences($params, $client);
             $auth = $this->granter->authenticate(
                 $grant,
                 $tenant,
-                new AuthenticationRequest($client, "", "", null, [$client->id, ...$audiences]),
+                new AuthenticationRequest($client, "", "", null, $audiences),
                 $params
             );
             $identity = [];
@@ -240,7 +244,7 @@ class TokenController
         }
         $issuer = $this->context->getIssuer($tenant);
         $detail = [
-            'aud' => $this->tokenAudiences($client->id, $auth->audiences ?? []),
+            'aud' => $this->tokenAudiences($client->id, $audiences),
             'azp' => $client->id,
             'iss' => $issuer,
             'sub' => $auth->id,
@@ -263,7 +267,8 @@ class TokenController
         if (str_contains($scopesForClaims, 'email')) {
             $detail['email'] = $auth->email ?? '';
         }
-        $identity = [...$detail, ...$identity];
+        // The ID token is addressed only to the relying party, never to the resource servers.
+        $identity = [...$detail, ...$identity, 'aud' => $client->id];
         $expiration = $grant === 'client_credentials'
             ? new DateInterval('PT'.max(1, $client->m2mTokenTtlSeconds).'S')
             : new DateInterval("PT10M");
@@ -281,11 +286,38 @@ class TokenController
         ];
         if ($grant !== 'client_credentials') {
             $data['id_token'] = $this->manager->sign($tenant, $identity, $expiration);
-            $data['refresh_token'] = $this->manager->sign($tenant, ['keypass' => $auth->id, 'azp' => $client->id, 'scope' => ['refresh']], new DateInterval("PT10H"));
+            $data['refresh_token'] = $this->manager->sign($tenant, [
+                'keypass' => $auth->id,
+                'azp' => $client->id,
+                'scope' => ['refresh'],
+                // Ceiling for later refreshes: they may narrow these audiences but never widen them.
+                'resources' => array_values(array_diff($audiences, [$client->id])),
+            ], new DateInterval("PT10H"));
         }
         $encoded = json_encode($data);
         $response->getBody()->write($encoded !== false ? $encoded : '{}');
         return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Resolves the token audience from the "audience" parameter (defaulting to $ceiling, or to the
+     * client alone), rejecting resource servers not registered for the client and, when a ceiling
+     * is given, any audience beyond it.
+     *
+     * @param string[]|null $ceiling
+     * @return string[]
+     */
+    private function grantedAudiences(array $params, ClientData $client, ?array $ceiling = null): array
+    {
+        $requested = isset($params['audience'])
+            ? OidcFlowContext::normalizeAudiences($params['audience'])
+            : ($ceiling ?? []);
+        if (!$client->allowsAudiences($requested)
+            || ($ceiling !== null && array_diff($requested, [$client->id], $ceiling) !== [])
+        ) {
+            throw OAuthTokenException::invalidTarget();
+        }
+        return array_values(array_unique([$client->id, ...$requested]));
     }
 
     private function tokenAudiences(string $clientId, ?array $audiences): string|array

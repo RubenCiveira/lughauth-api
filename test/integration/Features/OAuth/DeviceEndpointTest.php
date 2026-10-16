@@ -198,4 +198,43 @@ class DeviceEndpointTest extends OidcIntegrationTestCase
         $this->assertArrayHasKey('access_token', $body);
         $this->assertSame('Bearer', $body['token_type']);
     }
+
+    public function testDeviceAuthorizationWithForeignAudienceIsRejected(): void
+    {
+        $response = $this->requestDevice(['audience' => 'foreign-resource']);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $body = $this->decodeJson($response);
+        $this->assertSame('invalid_target', $body['error']);
+        $this->assertArrayNotHasKey('device_code', $body);
+    }
+
+    public function testDevicePollCannotAddAudience(): void
+    {
+        $deviceCode = $this->decodeJson($this->requestDevice())['device_code'];
+        $deviceGateway = $this->container->get(\Civi\Lughauth\Features\OAuth\Device\Domain\Gateway\DeviceAuthorizationGateway::class);
+        $deviceGateway->approve($deviceCode, new \Civi\Lughauth\Features\OAuth\Authentication\Domain\AuthenticationResult(
+            valid: true,
+            id: self::USER_ID,
+            tenant: self::TENANT,
+            scope: 'openid profile',
+            audiences: [self::CLIENT_ID],
+        ));
+
+        $response = $this->tokenController->post(
+            $this->makeRequest('POST', '/oauth/openid/' . self::TENANT . '/token', [
+                'grant_type' => 'urn:ietf:params:oauth:grant-type:device_code',
+                'device_code' => $deviceCode,
+                'client_id' => self::CLIENT_ID,
+                'audience' => 'foreign-resource',
+            ]),
+            new Response(200),
+            ['tenant' => self::TENANT]
+        );
+
+        $this->assertSame(200, $response->getStatusCode());
+        $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
+        $payload = $signer->verifyTokenPayload(self::TENANT, $this->decodeJson($response)['access_token']);
+        $this->assertSame(self::CLIENT_ID, $payload['aud']);
+    }
 }

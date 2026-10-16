@@ -64,6 +64,21 @@ class ClientData
         public readonly ?string $jwksJson = null,
         /** Authentication method registered for the token endpoint (none for browser-based public clients). */
         public readonly string $tokenEndpointAuthMethod = 'client_secret_basic',
+        /**
+         * Resource server identifiers this client may request as token audience (RFC 8707). The
+         * client's own id is always an accepted audience and does not need to be listed.
+         */
+        public readonly array $allowedAudiences = [],
     ) {
+    }
+
+    /**
+     * True when every requested audience is registered for this client or is the client itself.
+     *
+     * @param string[] $audiences
+     */
+    public function allowsAudiences(array $audiences): bool
+    {
+        return array_diff($audiences, [$this->id], $this->allowedAudiences) === [];
     }
 }

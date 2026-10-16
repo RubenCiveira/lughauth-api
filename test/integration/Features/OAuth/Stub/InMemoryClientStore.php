@@ -60,6 +60,7 @@ class InMemoryClientStore implements ClientStoreGateway
                 allowedScopesM2m: ['openid', 'profile', 'email', 'api:read'],
                 m2mTokenTtlSeconds: 3600,
                 tokenEndpointAuthMethod: 'client_secret_post',
+                allowedAudiences: ['api-resource', 'other-resource'],
             )
         );
         return $store;

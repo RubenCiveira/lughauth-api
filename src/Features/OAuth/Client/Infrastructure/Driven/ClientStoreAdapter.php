@@ -229,6 +229,13 @@ class ClientStoreAdapter implements ClientStoreGateway
 
         $allowedScopesM2m = $trustedClient->getAllowedScopesM2m() ?? [];
         $m2mTokenTtlSeconds = $trustedClient->getM2mTokenTtlSeconds() ?? 3600;
+        $allowedAudiences = [];
+        foreach ($trustedClient->getAllowedAudiences() ?? [] as $allowed) {
+            $audience = $allowed?->getAudience() ?? '';
+            if ($audience !== '') {
+                $allowedAudiences[] = $audience;
+            }
+        }
         return new ClientData(
             $trustedClient->getCode() ?? '',
             $grants,
@@ -239,7 +246,8 @@ class ClientStoreAdapter implements ClientStoreGateway
             $trustedClient->getJwksUri(),
             $trustedClient->getJwksJson(),
             // The Access enum uses kebab-case values; the protocol names are RFC 7591 snake_case.
-            str_replace('-', '_', $trustedClient->getTokenEndpointAuthMethod()->value)
+            str_replace('-', '_', $trustedClient->getTokenEndpointAuthMethod()->value),
+            $allowedAudiences
         );
     }
 

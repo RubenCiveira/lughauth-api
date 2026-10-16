@@ -501,4 +501,139 @@ class TokenEndpointTest extends OidcIntegrationTestCase
         $this->assertArrayHasKey('access_token', $body);
         $this->assertSame('Bearer', $body['token_type']);
     }
+
+    public function testClientCredentialsWithAuthorizedAudienceAddsIt(): void
+    {
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
+            'audience' => 'api-resource',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertSame([self::CLIENT_ID, 'api-resource'], $this->payload($this->decodeJson($response)['access_token'])['aud']);
+    }
+
+    public function testForeignAudienceIsRejected(): void
+    {
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'client_credentials',
+            'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
+            'audience' => 'api-resource,foreign-resource',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_target', $this->decodeJson($response)['error']);
+    }
+
+    public function testAuthorizationCodeKeepsApprovedAudienceAndIdTokenOnlyForClient(): void
+    {
+        $body = $this->redeemCodeWithAudience('api-resource', ['audience' => 'other-resource']);
+
+        $this->assertSame([self::CLIENT_ID, 'api-resource'], $this->payload($body['access_token'])['aud']);
+        $this->assertSame(self::CLIENT_ID, $this->payload($body['id_token'])['aud']);
+    }
+
+    public function testRefreshCannotWidenOriginalAudience(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience('api-resource')['refresh_token'];
+
+        $widened = $this->refresh($refreshToken, ['audience' => 'api-resource,other-resource']);
+        $this->assertSame(400, $widened->getStatusCode());
+        $this->assertSame('invalid_target', $this->decodeJson($widened)['error']);
+
+        $kept = $this->refresh($refreshToken);
+        $this->assertSame(200, $kept->getStatusCode());
+        $this->assertSame([self::CLIENT_ID, 'api-resource'], $this->payload($this->decodeJson($kept)['access_token'])['aud']);
+
+        $narrowed = $this->refresh($refreshToken, ['audience' => self::CLIENT_ID]);
+        $this->assertSame(200, $narrowed->getStatusCode());
+        $this->assertSame(self::CLIENT_ID, $this->payload($this->decodeJson($narrowed)['access_token'])['aud']);
+    }
+
+    public function testPasswordGrantWithForeignAudienceIsRejected(): void
+    {
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'password',
+            'client_id' => self::CLIENT_ID,
+            'client_secret' => self::CLIENT_SECRET,
+            'username' => self::USERNAME,
+            'password' => self::PASSWORD,
+            'audience' => 'foreign-resource',
+        ]), new Response(200), ['tenant' => self::TENANT]);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_target', $this->decodeJson($response)['error']);
+        $this->assertArrayNotHasKey('access_token', $this->decodeJson($response));
+    }
+
+    public function testRefreshWithAudienceNotRegisteredForClientIsRejected(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience('api-resource')['refresh_token'];
+
+        $response = $this->refresh($refreshToken, ['audience' => 'foreign-resource']);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_target', $this->decodeJson($response)['error']);
+        $this->assertArrayNotHasKey('access_token', $this->decodeJson($response));
+    }
+
+    public function testRefreshCannotAddAudienceAbsentFromOriginalGrant(): void
+    {
+        $refreshToken = $this->redeemCodeWithAudience(self::CLIENT_ID)['refresh_token'];
+
+        // api-resource is registered for the client but was not granted with the code.
+        $response = $this->refresh($refreshToken, ['audience' => 'api-resource']);
+
+        $this->assertSame(400, $response->getStatusCode());
+        $this->assertSame('invalid_target', $this->decodeJson($response)['error']);
+        $this->assertArrayNotHasKey('access_token', $this->decodeJson($response));
+    }
+
+    public function testAuthorizationCodeIgnoresForeignAudienceInTokenRequest(): void
+    {
+        $body = $this->redeemCodeWithAudience(self::CLIENT_ID, ['audience' => 'foreign-resource']);
+
+        $this->assertSame(self::CLIENT_ID, $this->payload($body['access_token'])['aud']);
+    }
+
+    private function redeemCodeWithAudience(string $audience, array $extra = []): array
+    {
+        $clientData = $this->clientStore->preValidatedClient(self::CLIENT_ID);
+        $authRequest = new AuthenticationRequest($clientData, 'openid', 'https://app.example.com/callback', null, [self::CLIENT_ID, $audience]);
+        $codeKey = $this->temporalKeys->registerTemporalAuthCode(new TemporalAuthCode(
+            data: new AuthenticationResult(valid: true, id: self::USER_ID, tenant: self::TENANT, tenantName: self::TENANT, scope: 'openid'),
+            client: $clientData,
+            nonce: 'n',
+            request: $authRequest,
+        ));
+        $response = $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'authorization_code',
+            'code' => $codeKey,
+            'client_id' => self::CLIENT_ID,
+            'redirect_uri' => 'https://app.example.com/callback',
+            'client_secret' => self::CLIENT_SECRET,
+            ...$extra,
+        ]), new Response(200), ['tenant' => self::TENANT]);
+        $this->assertSame(200, $response->getStatusCode());
+        return $this->decodeJson($response);
+    }
+
+    private function refresh(string $refreshToken, array $extra = []): \Psr\Http\Message\ResponseInterface
+    {
+        return $this->controller->post($this->makeRequest('POST', '/oauth/openid/tenant1/token', [
+            'grant_type' => 'refresh_token',
+            'refresh_token' => $refreshToken,
+            'client_id' => self::CLIENT_ID,
+            ...$extra,
+        ]), new Response(200), ['tenant' => self::TENANT]);
+    }
+
+    private function payload(string $token): array
+    {
+        $signer = $this->container->get(\Civi\Lughauth\Features\OAuth\TokenSecurity\Domain\Gateway\TokenSigner::class);
+        return $signer->verifyTokenPayload(self::TENANT, $token) ?? [];
+    }
 }

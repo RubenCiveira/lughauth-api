@@ -155,6 +155,73 @@ final class AuthorizeHtmlIntegrationUnitTest extends TestCase
     }
 
     /**
+     * Verifies authorize redirects with invalid_target, before loading any session, when an
+     * audience not registered for the client is requested.
+     */
+    public function testAuthorizeWithForeignAudienceRedirectsWithInvalidTarget(): void
+    {
+        $request = (new ServerRequestFactory())
+            ->createServerRequest('GET', '/oauth/openid/tenant1/authorize')
+            ->withQueryParams([
+                'response_type' => 'code',
+                'client_id' => 'client-123',
+                'state' => 'state-xyz',
+                'redirect_uri' => 'https://client.example/callback',
+                'scope' => 'openid',
+                'nonce' => 'nonce-abc',
+                'audience' => 'api-resource,foreign-resource',
+                'code_challenge' => 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM',
+                'code_challenge_method' => 'S256',
+            ]);
+
+        $builder = new ContainerBuilder();
+        $config = $this->createMock(AppConfig::class);
+        $config->method('get')->willReturn('https://example.com');
+        $context = new Context($builder, $config);
+
+        $clients = $this->createMock(ClientStoreGateway::class);
+        $clients->method('publicClientData')
+            ->willReturn(new ClientData('client-123', ['code'], true, allowedAudiences: ['api-resource']));
+        $sessions = $this->createMock(SessionManager::class);
+        $sessions->expects($this->never())->method('loadSession');
+        $cookies = $this->createMock(OidcCookieManager::class);
+        $cookies->method('clearSession')
+            ->willReturnCallback(static fn (ResponseInterface $response): ResponseInterface => $response);
+
+        $authorize = new AuthorizeHtml(
+            $context,
+            $clients,
+            $sessions,
+            $this->createMock(AuthenticateUser::class),
+            $this->createMock(HtmlSecurer::class),
+            $this->createMock(DecorateHtml::class),
+            $this->createMock(OidcResponseBuilder::class),
+            $cookies,
+            new OidcUrlBuilder($context),
+            new OidcStepRouter(
+                $this->createMock(TermsAndGdprConsentForm::class),
+                $this->createMock(ScopeConsentForm::class),
+                $this->createMock(LoginForm::class),
+                $this->createMock(NewMfaForm::class),
+                $this->createMock(NewPassForm::class),
+                $this->createMock(UseMfaForm::class),
+                $this->createMock(RecoverPassForm::class),
+                $this->createMock(DelegateForm::class),
+                $this->createMock(RegisterUserForm::class),
+                $this->createMock(WebAuthnLoginForm::class),
+                $this->createMock(MagicLinkLoginForm::class)
+            ),
+            new ResolveParRequestUsecase($this->createMock(ParRequestGateway::class)),
+            $this->buildRequestObjectValidator()
+        );
+
+        $response = $authorize->authorize($request, new Response(), ['tenant' => 'tenant1']);
+
+        $this->assertSame(302, $response->getStatusCode());
+        $this->assertSame('https://client.example/callback#error=invalid_target', $response->getHeaderLine('Location'));
+    }
+
+    /**
      * Verifies formAuthorize proceeds through the step router.
      */
     public function testFormAuthorizeProceedsWithCsid(): void

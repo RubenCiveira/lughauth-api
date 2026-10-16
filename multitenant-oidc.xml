@@ -1,0 +1,1010 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<work-project
+    xmlns="http://example.com/work-project"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://example.com/work-project https://dev.civeira.net/civi-model-v4.xsd"
+    version="2.6.0">
+
+	<trait name="oidc" />
+
+	<trait name="multitenant-oidc" />
+
+	<!-- to include mail temaplates for events. -->	
+	<use link="multitenant-documents" />
+	<use link="multitenant-notification" />
+	
+	<embbeded name="self-user">
+		<fixed-field name="fixed-self-user" 
+			property="user" />
+		<formula name="inherit-user"
+			on="create,update" 
+		    set="entity.user = claim.uid" />
+		<!--
+		<formula name="inherit-user"
+			on="create,update" 
+		    property="user" claim="uid" />
+		-->
+		<facade>
+			<allow for="all , ^create, ^list" name="is-self-user" 
+				match="entity.user == claim.uid" />
+	    	<visibility name="only-self-accesibles" 
+	    		set="entity.user = claim.uid" />
+		</facade>
+	</embbeded>
+
+	<entity name="relying-party" id="uid" generator="uuid"
+		display="code" group="access">
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="El identificador de la aplicacion" />
+		<property name="code" type="xs:string" required="true"
+			unique="true" description="El código identificativo de la aplicación" />
+		<property name="api-key" type="xs:string" required="true"
+			unique="true" description="A identification for the aplication" />
+			
+		<property name="enabled" type="xs:boolean" default="false"
+			calculated="true"
+			description="Una marca que permite quitar el acceso a una cuenta sin borrarla" />
+
+		<filter name="api-key" property="api-key" operator="eq" />
+
+		<facade type="crud" path="access/relying-parties">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>
+			<allow for="all" name="#only-for-root" 
+				match="hasScope('platform:global_access') and hasRole('admin')"
+				description="The root users can modify tenants" />
+			<!--				
+			<allow for="all" name="#only-for-root" roles="admin" scopes="platform:global_access" />
+			-->
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>
+		</view>
+	</entity>
+
+	<entity name="trusted-client" id="uid" generator="uuid"
+		display="code" group="access">
+		<description>
+			Las diferentes aplicaciones que pueden usar el sistema de
+			acceso.
+			Dado qua la app va en la petición de login, podemos obtener la
+			cuenta asociado a traves del proyecto
+		</description>
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="El identificador de la aplicacion" />
+		<property name="code" type="xs:string" required="true" unique="true"
+			description="El código identificativo de la aplicación" />
+		<property name="allow-all-scopes" type="xs:boolean" />
+		<property name="public-allow" type="xs:boolean"
+			required="true"
+			description="If true, users can use these client to access with public code flow" />
+		<property name="allowed-redirects" type="tns:trusted-client-allowed-redirect[]"
+			reverse="client" />
+		<property name="secret-oauth" type="xs:string"
+			private-content="true" input-type="password"
+			description="If the user is not delegated, the phrasse to identify" />
+		<property name="is-resource-server" type="xs:boolean" required="true" default="false"
+		    description="If true, this client is allowed to call the token introspection endpoint
+		    (POST /introspect) to validate access tokens. Resource servers must authenticate at
+		    the introspection endpoint using their client credentials." />
+		<property name="require-pkce" type="xs:boolean" required="true" default="false"
+		    description="If true, every authorization code request from this client must include
+		    code_challenge and code_challenge_method=S256. For clients with public-allow=true,
+		    PKCE is always required regardless of this flag." />
+		<property name="back-channel-logout-uri" type="xs:string" />
+		<property name="back-channel-logout-session-required" type="xs:boolean" />
+		<property name="front-channel-logout-uri" type="xs:string" />
+		<property name="front-channel-logout-session-required" type="xs:boolean" />
+		<property name="enabled" type="xs:boolean" default="false"
+			calculated="true" required="true"
+			description="The indicator to allow the account be used without deleting it" />
+
+		<property name="registration-access" type="xs:string" />
+		<property name="client-name" type="xs:string" />
+  		<property name="logo-uri" type="xs:string" />
+  		<property name="client-uri" type="xs:string" />
+  		<property name="policy-uri" type="xs:string" />
+  		<property name="tos-uri" type="xs:string" />
+  		<property name="token-endpoint-auth-method" type="xs:string" required="true" default="client_secret_basic" />
+  		<property name="grant-types-json" type="xs:blob" />
+  		<property name="response-types-json" type="xs:blob" />
+  		<property name="dynamically-registered" type="xs:boolean" />
+  		<property name="registered-at" type="xs:datetime" />
+  		<property name="allowed_scopes_m2m" type="xs:blob" />
+  		<property name="m2m_token_ttl_seconds" type="xs:integer" required="true" default="3600" />
+  		
+  		<property name="request_object_signing_alg" type="xs:string" />
+  		<property name="jwks_uri" type="xs:blob" />
+  		<property name="jwks_json" type="xs:blob" />
+
+
+		<filter name="with-back-channelUrl" property="back-channel-logout-uri" 
+			operator="is-null" />
+		<filter name="with-front-channelUrl" property="front-channel-logout-uri" 
+			operator="is-null" />
+			
+		<facade type="crud" path="access/trusted-clients">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>
+			<allow for="all" name="#only-for-root" 
+				match="hasScope('platform:global_access') and hasRole('admin')"
+				description="The root users can modify tenants" />
+			<!--				
+			<allow for="all" name="#only-for-root" roles="admin" scopes="platform:global_access" />
+			-->
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>
+		</view>
+	</entity>
+	
+	<entity name="api-key-client" id="uid" generator="uuid" display="uid" group="access">
+		<description>
+			Las diferentes aplicaciones que pueden usar el sistema a través de un api.
+		</description>
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="El identificador de la aplicacion" />
+		<property name="code" type="xs:string" required="true" unique="true"
+			description="El código identificativo de la aplicación" />
+		<property name="key" type="xs:string" unique="true"
+			description="The key for the api" />
+		<property name="enabled" type="xs:boolean" default="false"
+			calculated="true" required="true"
+			description="The indicator to allow the account be used without deleting it" />
+		<property name="scopes" type="xs:string"
+			description="A coma separated scopes for the api key" />
+			
+		<filter name="key" property="key" operator="eq" />
+		
+		<facade type="crud" path="access/api-key-clients">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>
+			<allow for="all" name="#only-for-root" 
+				match="hasScope('platform:global_access') and hasRole('admin')"
+				description="The root users can modify tenants" />
+			<!--				
+			<allow for="all" name="#only-for-root" roles="admin" scopes="platform:global_access" />
+			-->
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>
+		</view>
+	</entity>
+	
+	<entity name="trusted-client-allowed-redirect" id="uid" generator="uuid" 
+		display="uid" group="access" union="true">
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="El identificador de la aplicacion" />
+		<property name="client" type="tns:trusted-client" required="true" />
+		<property name="url" type="xs:string" required="true" />
+	</entity> 
+
+	<entity name="tenant" id="uid" generator="uuid" display="name" group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="name" type="xs:string" unique="true"
+			required="true" description="The name to identify the account." />
+		<property name="root" type="xs:boolean" default="false" />
+		<property name="domain" type="xs:string" unique="true"
+			required="true" description="A domain suffix to identify the account" />
+		<property name="enabled" type="xs:boolean" default="false"
+			calculated="true" required="true"
+			description="The indicator to allow the account be used without deleting it" />
+		<property name="mark-for-delete" type="xs:boolean"
+			default="false" calculated="true" required="true"
+			description="a tenant mark for deleted will be " />
+		<property name="mark-for-delete-time" type="xs:datetime"
+			calculated="true"
+			description="A tenant mark for deleted will be deleted soon" />
+
+		<sort name="name-asc" property="name" direction="asc" />
+		<sort name="name-desc" property="name" direction="desc" />
+		<sort name="domain-asc" property="domain" direction="asc" />
+		<sort name="domain-desc" property="domain" direction="desc" />
+
+		<for-childs hide-if-disabled="true">
+			<fixed-field 
+				name="fix-tenant-excluding-root"
+				match="!hasScope('platform:global_access')"
+				description="Only root an manager knows about multi tenant" />
+			<!--
+			<fixed-field
+				excluded-scopes="platform:global_access"
+				name="fix-tenant-excluding-root"
+				description="Only root an manager knows about multi tenant" />
+			-->
+			<formula 
+				name="inherit-tenant-excluding-root"
+				on="create,update"
+				match="!hasScope('platform:global_access')"
+				set="$parent = claim.tenant" />
+			<!--
+			<formula 
+				excluded-scopes="platform:global_access"
+				on="create,update" name="inherit-tenant-excluding-root"
+				claim="tenant" />
+			-->
+		</for-childs>
+
+		<facade type="crud" path="access/tenants">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>
+
+			<allow for="write" name="#only-for-root" 
+				match="hasScope('platform:global_access') and hasRole('admin')"
+				description="The root users can modify tenants" />
+			<!--
+			<allow for="write" name="#only-for-root" roles="admin" scopes="platform:global_access"
+				description="The root users can modify tenants" />
+			-->
+			<visibility name="tenant-accesible" 
+				match="not hasScope('platform:global_access')"
+				set="entity.uid = claim.tenant" />
+			<!--
+			<visibility name="tenant-accesible" excluded-scopes="platform:global_access"
+				property="uid" claim="tenant" />
+			-->
+		</facade>
+
+		<view test="UX-CNT" test-location="Access to Tenants menú">
+			<list display-mode="card">
+				<column name="name" template="{{ $name }}" />
+				<column name="domain" template="{{ $domain }}" />
+				<sublist name="conditions" icon="gavel"
+					component="tenant-terms-of-use">
+					<filter name="tenant" value="$this" />
+				</sublist>
+				<sublist name="providers" icon="gavel" roles="admin" scopes="platform:global_access"
+					component="tenant-login-provider">
+					<filter name="tenant" value="$this" />
+				</sublist>
+				<subform name="config" icon="gavel"
+					component="tenant-config">
+					<filter name="tenant" value="$this" />	
+				</subform>
+			</list>
+		</view>
+	</entity>
+	
+	<entity name="tenant-config" id="uid" generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="tenant" type="tns:tenant" unique="true"
+			required="true" description="The name to identify the account." />
+		<property name="inner-label" type="xs:string"
+			description="Tenant could use these field to label the application for the users" />
+		<property name="force-mfa" type="xs:boolean" required="true" default="false" />
+		
+		<property name="dynamic-registration-policy" type="xs:string" default="disabled">
+			<option>open</option>
+			<option>token_required</option>
+			<option>disabled</option>
+		</property>
+		
+		<property name="allow-register" type="xs:boolean" default="true" />
+		<property name="enable-register-users" type="xs:boolean" default="true" />
+		
+		<property name="magic-link-enabled" type="xs:boolean" default="false" />
+		
+		<property name="require-email-verification" type="xs:boolean" required="true" default="false"
+		    description="If true, users must confirm their email address via the verification link
+		    before they can complete their first login. The OIDC flow will hold the user at a
+		    verification-pending challenge until the link is clicked." />
+		
+		<property name="invitation-expiry-days" type="xs:integer" required="true" default="7"
+		    description="Number of days before an unused user invitation token expires.
+		    Currently hardcoded to 7 days in InvitationCreateUsecase." />
+		
+		<property name="magic-link-expiry-minutes" type="xs:integer" required="true" default="30"
+		    description="Number of minutes before a magic-link token expires after being sent.
+		    Only relevant when magic-link-enabled=true." />
+		
+		<property name="session-sso-ttl-seconds" type="xs:integer" required="true" default="3600"
+		    description="Lifetime in seconds of the cross-client SSO session cookie.
+		    After this duration the user must re-authenticate even if a per-flow session is still valid.
+		    Corresponds to the max_age upper bound for prompt=none requests." />
+		
+		<property name="refresh-token-ttl-seconds" type="xs:integer" required="true" default="2592000"
+		    description="Lifetime in seconds of issued refresh tokens. Defaults to 30 days (2 592 000 s).
+		    Applies to all grant types that issue refresh tokens for this tenant." />
+		
+		<property name="webauthn-enabled" type="xs:boolean" default="false" />
+		<property name="webauthn-rp-id" type="xs:string" />
+		<property name="webauthn-rp-name" type="xs:string" />
+		
+		<property name="wellcome-email" type="xs:blob"
+			description="Email send to the enabled user" />
+		<property name="registerd-email" type="xs:blob"
+			description="Email send when a user register" />
+		<property name="disabled-user-email" type="xs:blob"
+			description="Email send when a user is disabled" />
+		<property name="enabled-user-email" type="xs:blob"
+			description="Email send when a user is enabled" />
+
+		<property name="allow-recover-pass" type="xs:boolean" default="true" />
+		<property name="recover-pass-email" type="xs:blob"
+			description="Email send to the user to recover the password" />
+
+		<facade type="crud" path="access/tenants-config">
+		</facade>
+
+		<view>
+		</view>
+	</entity>
+
+	<entity name="tenant-terms-of-use" id="uid" generator="uuid" display="uid"
+		 group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="tenant" type="tns:tenant" required="true"
+			description="La cuenta a la que pertenece" />
+
+		<property name="relying-party" type="tns:relying-party"
+			description="La applicación a tener en cuenta" />
+
+		<property name="text" type="xs:blob" required="true" />
+		<property name="enabled" type="xs:boolean" default="false"
+			calculated="true" required="true"
+			description="The indicator to allow the account be used without deleting it" />
+		<property name="attached" type="xs:binary" />
+		<property name="activation-date" type="xs:datetime" />
+
+
+		<facade type="crud" path="access/tenants-terms-of-use">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>
+		</view>
+	</entity>
+	
+	<entity name="tenant-login-provider" id="uid" generator="uuid"
+		display="name" group="access">
+		<description>
+			Represents a login identity provider (e.g., Google,
+			GitHub, SAML) configured
+			for a tenant. Enables federated
+			authentication integration.
+		</description>
+
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="A uid string to identify the entity" />
+		<property name="tenant" type="tns:tenant" required="true"
+			description="The tenant this login provider is configured for." />
+		<property name="name" type="xs:string" required="true"
+			description="A name that identifies this login provider within the tenant." />
+
+		<property name="source" type="xs:string" required="true"
+			description="The source protocol or system used for authentication (e.g., GOOGLE, GITHUB, SAML).">
+			<option>GOOGLE</option>
+			<option>GITHUB</option>
+			<option>MICROSOFT</option>
+			<option>APPLE</option>
+			<option>SAML</option>
+			<option>OIDC</option>
+		</property>
+		<property name="disabled" type="xs:boolean" calculated="true"
+			default="false"
+			description="Indicates if this provider is currently disabled." />
+		<property name="direct-access" type="xs:boolean"
+			description="If true, the system will default to this login method without requiring selection." />
+		<property name="public-key" type="xs:string"
+			description="A public key shared with users to interact with the identity provider." />
+		<property name="private-key" type="xs:string"
+			description="Private key used internally to validate codes returned by the identity provider." />
+		<property name="certificate" type="xs:blob"
+			description="The provider certificate used for signature verification, if required." />
+		<property name="metadata" type="xs:binary"
+			description="A metadata file required by some providers for configuration (e.g., SAML descriptor)." />
+
+		<property name="oidc-discovery-url" type="xs:string"
+		    description="For source=OIDC: the /.well-known/openid-configuration URL of the external
+		    OIDC identity provider. The system will fetch authorization_endpoint, token_endpoint, and
+		    jwks_uri from this document at startup. public-key holds the OIDC client_id;
+		    private-key holds the OIDC client_secret." />
+		<property name="saml-idp-metadata-url" type="xs:string" />
+		<property name="saml-idp-entity-id" type="xs:string" />
+		<property name="saml-idp-sso-url" type="xs:string" />
+		<property name="saml-idp-idp-cert" type="xs:binary" />
+
+		<property name="users-enabled-by-default" type="xs:boolean"
+			required="true"
+			description="Defines whether the users created with this provider are enabled by default." />
+
+		<index properties="tenant,name" unique="true" remark="name"
+			description="There cannot be two login providers with the same name under a single tenant." />
+
+		<facade type="crud" path="access/login-providers">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled"
+				description="Enables the login provider and allows users to authenticate with it.">
+				<set property="disabled" value="false" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled"
+				description="Disables the login provider and prevents authentication via this source.">
+				<set property="disabled" value="true" />
+			</action>
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>
+		</view>
+	</entity>
+	
+	<entity name="role" id="uid" generator="uid" display="name"
+		 group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="A uid string to identify the entity" />
+		<property name="name" type="xs:string" required="true"
+			description="The user name to identify on the login screen" />
+		<property name="relying-party" type="tns:relying-party"
+			description="Domains without a tenant could be used only for admins" />
+		<index properties="relying-party,name" remark="name" unique="true" />
+		<facade type="crud" path="access/roles">
+		</facade>
+		<view>
+		</view>
+	</entity>
+
+	<entity name="user" id="uid" generator="uuid" display="name" group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="tenant" type="tns:tenant" required="true" />
+
+		<property name="name" type="xs:string" required="true"
+			description="The user name to identify on the login screen" />
+		<property name="password" type="xs:string" required="true"
+			private-content="true" input-type="password"
+			description="If the user is not delegated, the phrasse to identify" />
+		<property name="email" type="xs:string" email="true"
+			description="An optional email used to send notifications to the user" />
+		<property name="wellcome-at" type="xs:datetime" calculated="true"
+			description="The date when a wellcome email is send" />
+		<property name="email-verified" type="xs:boolean" default="false" calculated="true"
+		    description="Indicates whether the user has confirmed ownership of their email address
+		    by clicking the verification link sent at registration. Used by the OIDC flow to emit
+		    the email_verified claim and optionally block login until confirmed." />
+		<property name="enabled" type="xs:boolean" default="true"
+			calculated="true"
+			description="A disabled user cant login on the system. On his login attempts, he will recive a specific warn of his disabled account." />
+		<property name="approve" type="xs:string" default="ACCEPTED" calculated="true">
+			<option>UNVERIFIED</option>
+			<option>PENDING</option>
+			<option>ACCEPTED</option>
+			<option>REJECTED</option>
+		</property>
+
+		<property name="temporal-password" type="xs:boolean" default="false" />
+
+		<property name="use-second-factors" type="xs:boolean" default="false"
+			description="If is true, the user has a otp to force mfa on login" />
+		<property name="second-factor-seed" type="xs:string"
+			private-content="true" calculated="true" hidden="true"
+			description="the seed used to the otp login" />
+		<property name="blocked-until" type="xs:datetime"
+			calculated="true"
+			description="A bloqued user cant login on the system, until these date. On his login attempst, hue will recive a generic not allowed message." />
+
+		<property name="provider" type="xs:string" calculated="true"
+			description="Si se identificó con un proveedor, se marca con cual (aunque el provvedor cambie luego)" />
+
+		<index properties="tenant,name" remark="name" unique="true" />
+
+		<filter name="name-or-email" type="xs:string" intern="true">
+			<or>
+				<part property="email" type="xs:string" operator="eq" />
+				<part property="name" type="xs:string" operator="eq" />
+			</or>
+		</filter>
+
+		<facade type="crud" path="access/users">
+			<!-- 
+				FIXME: access control.
+			-->
+			<action name="register" icon="lock" internal="true">
+				<param required="true" property="uid" /> 
+				<param required="true" property="name" /> 
+				<param required="true" property="email" />
+				<param required="true" property="password" />
+				<param required="true" property="tenant" />
+				<set property="enabled" value="true" />
+				<set property="approve" value="UNVERIFIED" />
+			</action>
+			<action name="verify" contextual="true" internal="true">
+				<param required="true" property="approve" />
+			</action>
+			<action name="accept" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="approve" value="ACCEPTED" />	
+			</action>
+			<action name="reject" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="approve" value="REJECTED" />	
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="unlock" contextual="true" icon="lock">
+				<set-null property="blocked-until" />
+			</action>
+			<action name="block" contextual="true" internal="true">
+				<param required="true" property="blocked-until" />
+			</action>
+			<action name="set-mfa-seed" contextual="true" internal="true">
+				<param required="true" property="second-factor-seed" />
+				<set property="use-second-factors" value="true" />
+			</action>
+			<action name="change-password" contextual="true"
+				internal="true">
+				<param required="true" property="password" />
+				<set property="temporal-password" value="false" />
+			</action>
+			<action name="verify-email" contextual="true" internal="true"
+			    description="Marks the user's email address as verified. Called by the email verification
+			    endpoint after validating the register-code token from user-access-temporal-code.">
+			    <set property="email-verified" value="true" />
+			</action>
+		</facade>
+
+		<view test="UX-ADM"
+			test-location="Accedemos al menú de Maestros - Administradores">
+			<list>
+				<column name="name" template="{{ $name }}" />
+				<column name="email" template="{{ $email }}" />
+				<sublist name="user-role-assignaments" icon="gavel"
+					component="user-role-assignament">
+					<filter name="user" value="$this" />
+				</sublist>
+				<sublist name="user-group-memberships" icon="gavel"
+					component="user-group-membership">
+					<filter name="user" value="$this" />
+				</sublist>
+			</list>
+			<layout>
+				<fb-tenant cols="12" cols-lg="6" />
+				<static cols="12" cols-lg="6">
+					Hola vamos a ver que configura.
+				</static>
+				<fb-name />
+				<fb-password />
+				<fb-email />
+				
+
+				<expansion label="nombre" rows="3" cols="10" cols-xs="12">
+					<fb-enabled />
+					<fb-wellcome-at  />
+					<fb-approve />
+					<fb-blocked-until />
+					<fb-provider />
+				</expansion>
+		
+				<fb-use-second-factors cols="2" cols-xs="12" />
+				<fb-temporal-password cols="2" cols-xs="12" />		
+				<fb-second-factor-seed cols="2" cols-xs="12" />
+			</layout>
+		</view>
+	</entity>
+
+	<entity name="user-access-temporal-code" id="uid"
+		generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="A uid string to identify the entity" />
+		<property name="user" type="tns:user" unique="true"
+			required="true"
+			description="El usuario para el que se tienen estos datos" />
+		<property name="temp-second-factor-seed" type="xs:string"
+			private-content="true" description="the seed used to the otp login" />
+		<property name="temp-second-factor-seed-expiration"
+			type="xs:datetime"
+			description="La caducidad del código de recuperacion" />
+		<property name="failed-login-attempts" type="xs:integer"
+			default="0" calculated="true"
+			description="The amount login attempts failed since the last right login." />
+		<property name="register-code" type="xs:string" unique="true"
+			description="El codigo de registro para verificar enviado por email" />
+		<property name="register-code-url" type="xs:blob"
+			description="La url de retorno para verificar el codigo de registro" />
+		<property name="register-code-expiration" type="xs:datetime"
+			description="El codigo de registro para verificar enviado por email" />
+		<property name="recovery-code" type="xs:string" unique="true"
+			description="El codigo de recuperacion enviado por email" />
+		<property name="recovery-code-expiration" type="xs:datetime"
+			description="La caducidad del código de recuperacion" />
+
+		<facade type="crud">
+			<action name="mark-login-fail" contextual="true"
+				internal="true">
+				<set property="failed-login-attempts"
+					value="${failed-login-attempts} +1 " />
+			</action>
+			<action name="mark-login-block" contextual="true"
+				internal="true">
+				<set property="failed-login-attempts" value="0" />
+			</action>
+			<action name="mark-login-ok" contextual="true" internal="true">
+				<set property="failed-login-attempts" value="0" />
+			</action>
+
+			<action name="generate-mfa-temporal-code" contextual="true"
+				internal="true">
+				<param required="true" property="temp-second-factor-seed" />
+				<param required="true"
+					property="temp-second-factor-seed-expiration" />
+			</action>
+			<action name="reset-mfa-temporal-code" contextual="true"
+				internal="true">
+				<set-null property="temp-second-factor-seed" />
+				<set-null property="temp-second-factor-seed-expiration" />
+			</action>
+			<action name="generated-register-verification" contextual="true"
+				internal="true">
+				<param required="true" property="register-code" />
+				<param required="true" property="register-code-url" />
+				<param required="true" property="register-code-expiration" />
+			</action>
+			<action name="reset-register-verification" contextual="true"
+				internal="true">
+				<set-null property="register-code" />
+				<set-null property="register-code-url" />
+				<set-null property="register-code-expiration" />
+			</action>
+			<action name="generate-password-recover" contextual="true"
+				internal="true">
+				<param required="true" type="xs:string" name="recovery-link" />
+				<param required="true" property="recovery-code" />
+				<param required="true" property="recovery-code-expiration" />
+			</action>
+			<action name="reset-password-recover" contextual="true"
+				internal="true">
+				<set-null property="temp-second-factor-seed" />
+				<set-null property="temp-second-factor-seed-expiration" />
+			</action>
+		</facade>
+	</entity>
+	
+	<entity name="user-profile" id="uid" generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="El identificador de la aplicacion" />
+		<property name="user" type="tns:user" unique="true" required="true" />
+		<property name="given-name" type="xs:string" />
+		<property name="family-name" type="xs:string" />
+		<property name="middle-name" type="xs:string" />
+		<property name="nickname" type="xs:string" />
+		<property name="preferred-username" type="xs:string" />
+		<property name="picture-url" type="xs:string" />
+		<property name="website-url" type="xs:string" />
+		<property name="gender" type="xs:string" />
+		<property name="birthdate" type="xs:string" />
+		<property name="zoneinfo" type="xs:string" />
+		<property name="locale" type="xs:string" />
+		<property name="phone-number" type="xs:string" />
+		<property name="phone-number-verified" type="xs:boolean" />
+		<property name="address-json" type="xs:blob" />
+		<property name="updated_at" type="xs:string" calculated="true" formula="now" />
+
+		<facade type="crud">
+		</facade>
+	</entity>
+	
+	<entity name="user-role-assignament" id="uid" generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="El identificador de la aplicacion" />
+		<property name="user" type="tns:user" required="true" />
+		<property name="relying-party" type="tns:relying-party" />
+		<property name="trusted-client" type="tns:trusted-client" />
+
+		<property name="roles" type="tns:user-role-assignament-role[]"
+				reverse="user-role-assignament" join="role" />
+
+		<filter name="for-all-audiences" type="xs:boolean" intern="true">
+			<and>
+				<part property="relying-party" operator="is-null" />
+				<part property="trusted-client" operator="is-null" />
+			</and>
+		</filter>
+
+		<facade type="crud" path="access/user-role-assignament">
+			
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>		
+		</view>
+	</entity>
+
+	<entity name="user-role-assignament-role" id="uid" generator="uuid"
+		display="uid" group="access" union="true">
+		<property name="uid" type="xs:string" unique="true"
+			required="true" description="A uid string to identify the entity" />
+		<property name="user-role-assignament" type="tns:user-role-assignament"
+			required="true" description="La cuenta a la que pertenece" />
+		<property name="role" type="tns:role" required="true"
+			description="La cuenta a la que pertenece" />
+		<index properties="role,user-role-assignament" unique="true"
+			remark="role"
+			description="No puede haber roles con el mismo nombre para una misma cuenta" />
+	</entity>
+
+	<entity name="user-group-membership" id="uid" generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" unique="true" required="true"
+			description="El identificador de la aplicacion" />
+		<property name="user" type="tns:user" required="true" />
+		<property name="relying-party" type="tns:relying-party" />
+		<property name="trusted-client" type="tns:trusted-client" />
+		
+		<property name="groups" type="xs:blob" />
+
+		<filter name="for-all-audiences" type="xs:boolean" intern="true">
+			<and>
+				<part property="relying-party" operator="is-null" />
+				<part property="trusted-client" operator="is-null" />
+			</and>
+		</filter>
+
+		<facade type="crud" path="access/user-group-membership">
+		</facade>
+		<view>
+			<list display-mode="card">
+			</list>		
+		</view>
+	</entity>
+	
+	<entity name="user-webauthn-credential" id="uid" generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" store="uid" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="user" type="tns:user" required="true" />
+		<property name="autenticator" type="xs:string" required="true" unique="true" />
+		<property name="name" type="xs:string" required="true" />
+		<property name="public-key" type="xs:blob" required="true" />
+		<property name="sign-count" type="xs:integer" required="true" default="0" />
+		<property name="aaguid" type="xs:string" />
+		<property name="device_name" type="xs:string" />
+		<property name="transports_json" type="xs:blob" />
+		<property name="created_at" type="xs:datetime" default="now" calculated="true" />
+		<property name="last_used_at" type="xs:datetime" />
+		<property name="enabled" type="xs:boolean" default="false" calculated="true" />
+		
+		<index properties="user,name" unique="true" remark="name"
+			description="There cannot be two login providers with the same name under a single tenant." />
+
+		<facade type="crud">
+			<action name="enable" contextual="true" icon="visibility"
+				display="enabled">
+				<set property="enabled" value="true" />
+			</action>
+			<action name="disable" contextual="true" icon="visibility_off"
+				display="enabled">
+				<set property="enabled" value="false" />
+			</action>		
+		</facade>
+	</entity>
+	
+	<entity name="user-invitation" id="uid" generator="uuid" display="uid" group="access">
+		<property name="uid" type="xs:string" store="uid" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="tenant" type="tns:tenant" required="true" />
+		<property name="email" type="xs:string" required="true" />
+		<property name="roles" type="xs:string" />
+		<property name="invited-by" type="tns:user" required="true" />
+		<property name="token_hash" type="xs:string" required="true" unique="true" />
+		<property name="metadata-json" type="xs:blob" />
+		<property name="status" type="xs:string">
+			<option>pending</option>
+			<option>accepted</option>
+			<option>cancelled</option>
+			<option>expired</option>
+		</property>
+		<property name="created-at" type="xs:datetime" required="true" />
+		<property name="expired-at" type="xs:datetime" required="true" />
+		<property name="accepted-at" type="xs:datetime" />
+		<property name="accepted-by" type="tns:user" />
+		
+		<filter name="status" property="status" operator="eq" />
+		<filter name="email" property="email" operator="eq" />
+		
+		<sort name="created-at-desc" property="created-at" direction="desc" />
+		
+		<facade type="crud">
+		</facade>
+	</entity>
+	
+	<entity name="user-consented-scopes" id="uid" generator="uuid"
+		display="uid" group="access">
+		<property name="uid" type="xs:string" store="uid" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="user" type="tns:user" required="true" />
+		<property name="trusted-client" type="tns:trusted-client" required="true" />
+		<property name="scope" type="xs:string" />
+		<property name="granted" type="xs:boolean" />
+		<property name="decision-at" type="xs:datetime" />
+		<property name="ip-address" type="xs:string" />
+		<property name="user-agent" type="xs:string" />
+
+		<facade type="crud">
+	<!-- 
+			<allow for="all" name="#only-for-root" roles="platform:admin" />
+	-->
+		</facade>
+	</entity>
+
+	<entity name="user-accepted-termns-of-use" id="uid" generator="uuid"
+		display="uid" group="access">
+		<property name="uid" type="xs:string" store="uid" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="user" type="tns:user" required="true" />
+		<property name="conditions" type="tns:tenant-terms-of-use" required="true" />
+		<property name="accept-date" type="xs:datetime" />
+		<property name="ip-address" type="xs:string" />
+		<property name="user-agent" type="xs:string" />
+
+		<index properties="user, conditions" unique="true" />
+
+		<!--
+		<constraint on="pre-create" name="self-user-acceptation">
+		</constraint>
+		-->
+		<facade type="crud">
+<!--
+			<allow for="all" name="#only-for-root" roles="platform:admin" />
+-->
+		</facade>
+	</entity>	
+	
+	
+	<entity name="consent-purpose" id="uid" generator="uuid"
+		display="uid" group="access">
+		<property name="uid" type="xs:string" store="uid" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="tenant" type="tns:tenant" required="true" />
+		<property name="key" type="xs:string" required="true">
+			<option>marketing</option>
+			<option>analytics</option>
+			<option>third_party</option>
+			<option>personalization</option>
+		</property>
+		<property name="title" type="xs:string" required="true" />
+		<property name="description" type="xs:blob" required="true" />
+		<property name="required" type="xs:boolean" required="true" />
+		<property name="activation-date" type="xs:datetime" required="true" />
+		
+		<index properties="tenant,title" unique="true" remark="title"
+			description="There cannot be two login providers with the same name under a single tenant." />
+		
+		<facade type="crud" path="access/consent-purposes">
+		</facade>
+		<view></view>
+	</entity>
+	
+	<entity name="user-consent-purposes" id="uid" generator="uuid"
+		display="uid" group="access">
+		<property name="uid" type="xs:string" store="uid" unique="true" required="true"
+			description="A number to identify the db record" />
+		<property name="user" type="tns:user" required="true" />
+		<property name="consent-purpose" type="tns:consent-purpose" required="true" />
+		<property name="granted" type="xs:boolean" required="true" />
+		<property name="decision-at" type="xs:datetime" />
+		<property name="ip-address" type="xs:string" />
+		<property name="user-agent" type="xs:string" />
+
+		<facade type="crud">
+		</facade>
+	</entity>
+	
+	<entity name="user-mfa-recovery-code" id="uid" generator="uuid" display="uid" group="access">
+	    <description>
+	        Single-use MFA recovery codes generated at TOTP enrollment time.
+	        Each code is stored as a SHA-256 hash; the raw value is shown to the user only once.
+	        A consumed code has used-at set; unused codes have used-at null.
+	        All codes for a user are replaced atomically when the user regenerates their recovery set.
+	    </description>
+	
+	    <property name="uid" type="xs:string" unique="true" required="true"
+	        description="A uid string to identify the entity" />
+	    <property name="user" type="tns:user" required="true"
+	        description="The user who owns these recovery codes." />
+	    <property name="code-hash" type="xs:string" required="true"
+	        description="SHA-256 hex digest of the raw recovery code. The raw code is never stored." />
+	    <property name="used-at" type="xs:datetime" calculated="true"
+	        description="Timestamp when this code was consumed via the MFA recovery step.
+	        Null means the code is still valid and unused." />
+	    <property name="created-at" type="xs:datetime" required="true" default="now" calculated="true"
+	        description="Timestamp when this recovery code was generated." />
+	
+	    <filter name="user-unused" type="tns:user" intern="true">
+	        <and>
+	            <part property="user" operator="eq" />
+	            <part property="used-at" operator="is-null" />
+	        </and>
+	    </filter>
+	    <filter name="user" property="user" operator="eq" />
+	
+	    <facade type="crud">
+	        <action name="consume" contextual="true" internal="true"
+	            description="Marks this code as used. Called atomically when a valid code is
+	            submitted during MFA recovery. Once used, the code cannot be reused.">
+	            <param required="true" property="used-at" />
+	        </action>
+	    </facade>
+	</entity>
+	
+	<entity name="user-personal-api-key" id="uid" generator="uuid" display="name" group="access">
+	    <description>
+	        A personal API key (PAT) scoped to a specific user. The raw key is shown to the user
+	        only at creation time and is never stored. Subsequent authentication uses the SHA-256
+	        hash for constant-time comparison.
+	    </description>
+
+		<with name="self-user" />
+	
+	    <property name="uid" type="xs:string" unique="true" required="true" />
+	    <property name="user" type="tns:user" required="true" />
+	    <property name="name" type="xs:string" required="true"
+	        description="A label to identify the key (e.g. 'CI pipeline', 'local dev')." />
+	    <property name="key-hash" type="xs:string" required="true" unique="true"
+	        description="SHA-256 hex digest of the raw key. Never stored in plain text." />
+	    <property name="scopes" type="xs:string" required="true"
+	        description="Space-separated OAuth scopes granted to this key." />
+	    <property name="last-used-at" type="xs:datetime" calculated="true"
+	        description="Timestamp of the most recent successful authentication." />
+	    <property name="expires-at" type="xs:datetime"
+	        description="Optional expiry. Null means the key does not expire." />
+	    <property name="created-at" type="xs:datetime" required="true" default="now" calculated="true" />
+	    <property name="enabled" type="xs:boolean" required="true" default="true" calculated="true" />
+	
+	    <filter name="key-hash" property="key-hash" operator="eq" />
+	    <filter name="user"     property="user"     operator="eq" />
+	
+	    <facade type="crud" path="access/me/api-keys">
+	        <action name="touch" contextual="true" internal="true"
+	            description="Updates last-used-at on each successful authentication.">
+	            <param required="true" property="last-used-at" />
+	        </action>
+	        <action name="revoke" contextual="true" icon="delete"
+	            description="Disables the key without deleting it, preserving the audit trail.">
+	            <set property="enabled" value="false" />
+	        </action>
+	    </facade>
+	</entity>
+	
+</work-project>

@@ -33,6 +33,14 @@ final class ClientDomainUnitTest extends TestCase
         $this->assertSame('{"keys":[]}', $c->jwksJson);
     }
 
+    public function test_client_data_allows_only_registered_audiences_or_itself(): void
+    {
+        $c = new ClientData('c', ['cc'], false, allowedAudiences: ['api']);
+        $this->assertTrue($c->allowsAudiences([]));
+        $this->assertTrue($c->allowsAudiences(['c', 'api']));
+        $this->assertFalse($c->allowsAudiences(['api', 'other']));
+    }
+
     // --- ApiKeyData ---
 
     public function test_api_key_data_stores_fields(): void

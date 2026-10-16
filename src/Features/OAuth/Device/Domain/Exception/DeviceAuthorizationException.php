@@ -105,4 +105,12 @@ final class DeviceAuthorizationException extends \RuntimeException
     {
         return new self('invalid_client', 'Invalid client', 401);
     }
+
+    /**
+     * Creates an invalid_target exception (RFC 8707) when a requested audience is not registered for the client.
+     */
+    public static function invalidTarget(): self
+    {
+        return new self('invalid_target', 'Audience not allowed for this client');
+    }
 }

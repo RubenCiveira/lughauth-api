@@ -48,7 +48,7 @@ All tokens are RS256-signed JWTs. Standard JWT registered claims plus domain-spe
 |-------|-----------|-------|
 | `iss` | RFC 7519 §4.1.1 | `{baseUrl}/oauth/openid/{tenant}` |
 | `sub` | RFC 7519 §4.1.2 | Subject (user id or client id for M2M) |
-| `aud` | RFC 7519 §4.1.3 | Client id string, or array when extra audiences requested |
+| `aud` | RFC 7519 §4.1.3 | Access token: client id string, or array with the granted resource servers. ID token: always the client id only |
 | `exp` | RFC 7519 §4.1.4 | Expiry (epoch seconds) |
 | `iat` | RFC 7519 §4.1.6 | Issued-at (epoch seconds) |
 | `azp` | OIDC Core §2 | Authorized party; included when `aud` has multiple values |
@@ -149,7 +149,7 @@ Obtains a new access token using a refresh token.
 | `refresh_token` | REQUIRED | The refresh token |
 | `client_id` | REQUIRED if not authenticating | |
 | `scope` | OPTIONAL | MUST NOT exceed the original scope |
-| `audience` | OPTIONAL (custom) | Comma-separated extra audiences |
+| `audience` | OPTIONAL (custom) | Comma-separated; MUST NOT exceed the audiences in the refresh token (`resources` claim), which are used when omitted |
 
 **Processing:**
 
@@ -203,7 +203,7 @@ Machine-to-machine token for clients authenticating on their own behalf.
 |-----------|-------|-------|
 | `grant_type` | REQUIRED | `"client_credentials"` |
 | `scope` | OPTIONAL | Must be within `client.allowedScopesM2m` |
-| `audience` | OPTIONAL (custom) | Comma-separated extra audiences |
+| `audience` | OPTIONAL (custom) | Comma-separated; each must be in `client.allowedAudiences` |
 
 Client authentication: HTTP Basic Auth or body `client_id` + `client_secret`. Per RFC 6749 §4.4, MUST only be used by **confidential clients**.
 
@@ -217,6 +217,8 @@ Client authentication: HTTP Basic Auth or body `client_id` + `client_secret`. Pe
 **Token TTL:** `client.m2mTokenTtlSeconds` (default 3600 s).
 
 **Audience in `aud` claim:** `[clientId, ...extraAudiences]` (deduplicated). If single element, `aud` is a string; if multiple, an array.
+
+**Audience policy (all grants):** a requested audience must be the client itself or one of its registered `allowedAudiences` (`trusted-client-allowed-audience`); otherwise the request fails with `invalid_target` (RFC 8707). `authorization_code` uses only the audiences approved at `/authorize` (the token request `audience` is ignored), `device_code` those approved at device authorization, and `refresh_token` can narrow but never widen the audiences carried in the refresh token.
 
 ---
 

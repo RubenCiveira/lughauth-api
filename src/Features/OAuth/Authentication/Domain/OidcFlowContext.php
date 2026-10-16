@@ -194,7 +194,7 @@ final class OidcFlowContext
      *
      * @psalm-return list<non-empty-string>
      */
-    private static function normalizeAudiences(mixed $audience): array
+    public static function normalizeAudiences(mixed $audience): array
     {
         if (is_array($audience)) {
             $raw = $audience;
